@@ -10,6 +10,12 @@ start_link() ->
 create_account(Username, Password) ->
     gen_server:call({global, ?MODULE}, {create_account, Username, Password}).
 
+get_user(Username) ->
+    gen_server:call({global, ?MODULE}, {get_user, Username}).
+
+get_users() ->
+    gen_server:call({global, ?MODULE}, {get_users}).
+
 signup(Email, Username, Password) ->
     gen_server:call({global, ?MODULE}, {signup, Email, Username, Password}).
 
@@ -20,11 +26,9 @@ signin(Username, Password) ->
 login(Username, Password) ->
     gen_server:call(?MODULE, {login, Username, Password}).
 
-get_user(Username) ->
-    gen_server:call({global, ?MODULE}, {get_user, Username}).
 
-get_users() ->
-    gen_server:call({global, ?MODULE}, {get_users}).
+
+
 
 search_user(Username) ->
     gen_server:call({global, ?MODULE}, {search_user, Username}).

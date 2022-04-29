@@ -12,10 +12,9 @@ init() ->
 reset_db() ->
     mnesia:clear_table(user).
 
-insert(Username, Password, Email) ->
+insert(Username, Password) ->
     Id = id_gen:generate(),
-    <<Password:160>> = crypto:sha(Password),
-    User = #user{id = Id, username = Username, password = Password, email = Email},
+    User = #user{id = Id, username = Username, password = Password},
     F = fun() ->
         mnesia:write(User)
     end,
