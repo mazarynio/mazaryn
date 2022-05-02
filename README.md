@@ -1,8 +1,12 @@
 # Mazaryn
 
+* Clone the https://github.com/mazarynxyz/mazaryn-front within the Mazaryn Directory
+* Install dependencies with 'yarn'
+
 To start your Phoenix server:
 
   * Install dependencies with `mix deps.get`
+  * Connecting Front to Backend with 'mix vega'
   * Create and migrate your database with `mix ecto.setup`
   * Start Phoenix endpoint with `mix phx.server` or inside IEx with `iex -S mix phx.server`
 
