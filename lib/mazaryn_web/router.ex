@@ -20,6 +20,11 @@ defmodule MazarynWeb.Router do
     get "/", PageController, :index
   end
 
+  scope "/app", MazarynWeb do
+    get "/", VegaController, :index
+    get "/*path", VegaController, :index
+  end
+
   # Other scopes may use custom stacks.
   # scope "/api", MazarynWeb do
   #   pipe_through :api
