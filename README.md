@@ -1,7 +1,7 @@
 # Mazaryn
 
 * Clone the https://github.com/mazarynxyz/mazaryn-front within the Mazaryn Directory
-* Install dependencies with `npm install` then `npm run dev`
+* Install dependencies with `npm install` then `npm run dev` 
 
 To start your Phoenix server:
 
