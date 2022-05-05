@@ -4,7 +4,7 @@
 -include_lib("stdlib/include/qlc.hrl").
 
 init() ->
-    mnesia:create_schema([node()]),
+    mnesia:create_schema([node()]), 
     mnesia:start(),
     mnesia:create_table(post, [{attributes, record_info(fields, post)},
             {disc_copies, [node()]}]).

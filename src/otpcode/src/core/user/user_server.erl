@@ -3,6 +3,7 @@
 -behaviour(gen_server).
 -define(SERVER, ?MODULE).
 -record(state, {}).
+-import(postdb, [init/0]).
 
 start_link() ->
     gen_server:start_link({global, ?SERVER}, ?MODULE, [], []).
@@ -11,7 +12,7 @@ create_account(Username, Password) ->
     gen_server:call({global, ?MODULE}, {create_account, Username, Password}).
 
 get_user(Username) ->
-    gen_server:call({global, ?MODULE}, {get_user, Username}).
+    gen_server:call({global, ?MODULE}, {get_user, Username}). 
 
 get_users() ->
     gen_server:call({global, ?MODULE}, {get_users}).
@@ -45,8 +46,8 @@ is_following(Username) ->
 remove_user(Username) ->
     gen_server:call({global, ?MODULE}, {remove_user, Username}).
 
-create_post() ->
-    gen_server:call({global, ?MODULE}, {create_post}).
+create_post(Content) ->
+    gen_server:call({global, ?MODULE}, {create_post, Content}).
 
 get_post() ->
     gen_server:call({global, ?MODULE}, {get_post}).
@@ -57,6 +58,7 @@ follow_user() ->
 init([]) ->
     io:format("~p (~p) starting.... ~n", [{global, ?MODULE}, self()]),
     userdb:init(),
+    postdb:init(),
     {ok, #state{}}.
 
 handle_call({create_account, Username, Password}, _From, State = #state{}) ->
@@ -86,7 +88,12 @@ handle_call({unfollow, Username}, _From, State) ->
     {reply, ok, State};
 
 handle_call({is_following, Username}, _From, State) ->
-    follower_db:is_following(Username),
+    followerdb:is_following(Username),
+    {reply, ok, State};
+
+handle_call({create_post, Content}, _From, State) ->
+    postdb:insert(Content),
+    io:format("New Post is added on"),
     {reply, ok, State};
 
 handle_call(_Request, _From, State) ->

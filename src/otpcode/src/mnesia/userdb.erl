@@ -10,7 +10,7 @@ init() ->
             {disc_copies, [node()]}]).
 
 reset_db() ->
-    mnesia:clear_table(user).
+    mnesia:clear_table(user). 
 
 insert(Username, Password) ->
     Id = id_gen:generate(),

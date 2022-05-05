@@ -5,3 +5,4 @@
 -record(event, {name, date, loc, desc}).
 -record(msg, {sender, receiver, content, timestamp}).
 -record(follower, {id, username}).
+-record(following, {id, username}).
