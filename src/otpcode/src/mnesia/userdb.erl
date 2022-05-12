@@ -1,6 +1,6 @@
 -module(userdb).
 -compile([export_all, nowarn_export_all]).
--include("../include/records.hrl").
+-include("../records.hrl").
 -include_lib("stdlib/include/qlc.hrl").
 
 init() ->
@@ -96,12 +96,12 @@ unfollow_post(Username, PostId) ->
 
 follow_posts(Username, PostIds) ->
     lists:foreach(fun(PostId) ->
-                    follow_other(Username, PostId)
+                    follow_post(Username, PostId)
                   end, PostIds).
 
 unfollow_posts(Username, PostIds) ->
     lists:foreach(fun(PostId) ->
-                    unfollow_other(Username, PostId)
+                    unfollow_post(Username, PostId)
                   end, PostIds).
 
 

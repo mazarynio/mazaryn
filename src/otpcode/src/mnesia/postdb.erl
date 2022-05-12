@@ -1,6 +1,6 @@
 -module(postdb).
 -compile([export_all, nowarn_export_all]).
--include("../include/records.hrl").
+-include("../records.hrl").
 -include_lib("stdlib/include/qlc.hrl").
 
 init() ->
