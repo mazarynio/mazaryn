@@ -3,12 +3,6 @@
 -include("../records.hrl").
 -include_lib("stdlib/include/qlc.hrl").
 
-init() ->
-    mnesia:create_schema([node()]),
-    mnesia:start(),
-    mnesia:create_table(event, [{attributes, record_info(fields, event)},
-            {disc_copies, [node()]}]).
-
 insert(Name, Date, Loc, Desc) ->
     Event = #event{name = Name, date = Date, loc = Loc, desc = Desc},
     F = fun() ->

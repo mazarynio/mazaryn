@@ -25,7 +25,6 @@ delete_event(Date) ->
 init([]) ->
     process_flag(trap_exit, true),
     io:format("~p (~p) starting ......~n", [{global, ?MODULE}, self()]),
-    eventdb:init(),
     {ok, #state{}}.
 
 handle_call({add_event, Name, Date, Loc, Desc}, _From, State) ->

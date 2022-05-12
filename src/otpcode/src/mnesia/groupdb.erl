@@ -3,12 +3,6 @@
 -include("../records.hrl").
 -include_lib("stdlib/include/qlc.hrl").
 
-init() ->
-    mnesia:create_schema([node()]),
-    mnesia:start(),
-    mnesia:create_table(group, [{attributes, record_info(fields, group)},
-            {disc_copies, [node()]}]).
-
 reset_db() ->
     mnesia:clear_table(group).
 
