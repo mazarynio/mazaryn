@@ -1,4 +1,4 @@
--record(user, {id, username, password, email, pid, posts = 0, loc,
+-record(user, {id, username, password, email,
                 following = [], follower = [], following_posts = []}).
 -record(post, {id, content, comments = []}).
 -record(comment, {username, content}).
