@@ -54,6 +54,8 @@ unfollow_post(Username, Post) ->
 
 init([]) ->
     io:format("~p (~p) starting.... ~n", [{global, ?MODULE}, self()]),
+    userdb:init(),
+    postdb:init(),
     {ok, #state{}}.
 
 handle_call({create_account, Username, Password}, _From, State = #state{}) ->

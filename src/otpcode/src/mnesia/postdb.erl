@@ -1,7 +1,13 @@
 -module(postdb).
 -compile([export_all, nowarn_export_all]).
--include("../records.hrl").
+-include("../include/records.hrl").
 -include_lib("stdlib/include/qlc.hrl").
+
+init() ->
+    mnesia:create_schema([node()]), 
+    mnesia:start(),
+    mnesia:create_table(post, [{attributes, record_info(fields, post)},
+            {disc_copies, [node()]}]).
 
 reset_db() ->
     mnesia:clear_table(post).
