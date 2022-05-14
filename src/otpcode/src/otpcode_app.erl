@@ -11,7 +11,7 @@
 -export([start/2, stop/1]).
 
 start(_StartType, _StartArgs) ->
-    application:set_env(mnesia, dir, "../../mnesia_data/"),
+    application:set_env(mnesia, dir, "../../Mnesia/"),
     mnesia:create_schema([node()]),
     mnesia:start(),
 
@@ -39,7 +39,6 @@ start(_StartType, _StartArgs) ->
     mnesia:create_table(user, [{attributes, record_info(fields, user)},
                                {disc_copies, [node()]},
                                {type, ordered_set}]),
-
     otpcode_sup:start_link().
 
 stop(_State) ->

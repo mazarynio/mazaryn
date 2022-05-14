@@ -1,14 +1,41 @@
 -module(userdb).
--compile([export_all, nowarn_export_all]).
 -include("../records.hrl").
--include_lib("stdlib/include/qlc.hrl").
+
+-export([reset_db/0, set_user_info/3, get_user_info/1,
+         insert/3, get_user/1, get_user_by_email/1,
+         get_users/0, delete_user/1, get_password/1,
+         change_username/3, change_password/3, change_email/3,
+         following/2, unfollowing/2, follow_multiple/2, unfollow_multiple/2,
+         save_post/2, save_posts/2, unsave_post/2, unsave_posts/2,
+         get_save_posts/1, get_follower/1, get_following/1]).
 
 reset_db() ->
     mnesia:clear_table(user). 
 
-insert(Username, Password) ->
-    Id = id_gen:generate(),
-    User = #user{id = Id, username = Username, password = Password},
+%%% Fields: [field_a, field_b, field_c]
+%%% Values: [a,b,c]
+set_user_info(Username, Fields, Values) ->
+  List = lists:zip(Fields, Values),
+  case get_user(Username) of
+    not_exist -> not_exist;
+    error -> error;
+    User ->
+      Attrs = proplists:get_keys(User#user.other_info),
+      NotUpdatedAttrs =[proplists:delete(X, Attrs) || X <- proplists:get_keys(List)],
+      mnesia:transaction(
+        fun() ->
+          mnesia:write(#user{username = Username,
+                             other_info = NotUpdatedAttrs ++ List,
+                             date_updated = calendar:universal_time()})
+        end)
+  end.
+
+insert(Username, Password, Email) ->
+    Now = calendar:universal_time(),
+    User = #user{username = Username,
+                 password = Password,
+                 email = Email,
+                 date_created = Now},
     F = fun() ->
         mnesia:write(User)
     end,
@@ -16,36 +43,107 @@ insert(Username, Password) ->
 
 get_user(Username) ->
     F = fun() ->
-        Q = qlc:q([{U#user.username, U#user.password}
-                || U <- mnesia:table(user),
-                   U#user.username == Username]),
-        qlc:e(Q)
+        mnesia:read(user, Username)
         end,
-    mnesia:transaction(F).
+    Res = mnesia:transaction(F),
+    case Res of
+      {atomic, [User]} -> User;
+      {atomic, []} -> not_exist;
+      _ -> error
+    end.
+
+get_users() ->
+    Fun = fun() ->
+            mnesia:foldl(fun(User, Acc) ->
+                            [User#user.username|Acc]
+                         end, [], user)
+          end,
+    {atomic, Res} = mnesia:transaction(Fun),
+    Res.
 
 get_password(Username) ->
-    Fun = fun() ->
-        case mnesia:read({user, Username}) of 
-            [#user{password = Password}] ->
-                Password;
-            [] ->
-                undefined
-        end
-    end,
-    case mnesia:trasnaction(Fun) of 
-        {atomic, undefined} -> {error, unknown_user};
-        {atomic, Password} -> Password
+    F = fun() ->
+        mnesia:read(user, Username)
+        end,
+    Res = mnesia:transaction(F),
+    case Res of
+      {atomic, [User]} -> User#user.password;
+      {atomic, []} -> not_exist;
+      _ -> error
     end.
+
+get_user_by_email(Email) ->
+  Res = mnesia:transaction(
+          fun() ->
+              mnesia:match_object(#user{email = Email, _= '_'})
+          end),
+  case Res of
+    {atomic, []} -> not_exist;
+    {atomic, User} -> User;
+
+    _ -> error
+  end.
+
+% TODO: change password, email, username
+change_password(Username, CurrentPass, NewPass) ->
+  Fun = fun() ->
+          Res =  mnesia:match_object(#user{username = Username,
+                                           password = CurrentPass,
+                                           _= '_'}),
+          case Res of
+            [] -> wrong_password_or_user;
+            [User] ->
+              mnesia:write(User#user{password = NewPass,
+                date_updated = calendar:universal_time()})
+          end
+        end,
+  mnesia:transaction(Fun).
+
+change_email(Username, CurrentPass, NewEmail) ->
+  Fun = fun() ->
+          Res =  mnesia:match_object(#user{username = Username,
+                                           password = CurrentPass,
+                                           _= '_'}),
+          case Res of
+            [] -> wrong_password_or_user;
+            [User] ->
+              mnesia:write(User#user{email = NewEmail,
+                date_updated = calendar:universal_time()})
+          end
+        end,
+  mnesia:transaction(Fun).
+
+change_username(Username, CurrentPass, NewUsername) ->
+  Fun = fun() ->
+          Res =  mnesia:match_object(#user{username = Username,
+                                           password = CurrentPass,
+                                           _= '_'}),
+          case Res of
+            [] -> wrong_password_or_user;
+            [User] ->
+              mnesia:write(User#user{email = NewUsername,
+                date_updated = calendar:universal_time()}),
+              mnesia:delete({user, Username})
+          end
+        end,
+  mnesia:transaction(Fun).
+
+delete_user(Username) ->
+    F = fun() ->
+        [User] = mnesia:match_object(#user{username = Username, _= '_'}),
+        mnesia:delete_object(User)
+    end,
+    mnesia:activity(transaction, F).
 
 following(Username, Following) ->
     Fun = fun() ->
             [User] = mnesia:read(user, Username),
             NewFollowList = [Following|User#user.following],
-            mnesia:write(user, User#user{following = NewFollowList}),
+            mnesia:write(User#user{following = NewFollowList}),
 
             %% update Following that have a new follower
             [FollowingUser] = mnesia:read(user, Following),
-            mnesia:write(user, FollowingUser#user{follower = [Username| FollowingUser#user.follower]})
+            mnesia:write(FollowingUser#user{follower = [Username| FollowingUser#user.follower]})
         end,
     mnesia:transaction(Fun).
 
@@ -53,11 +151,11 @@ unfollowing(Username, Following) ->
     Fun = fun() ->
             [User] = mnesia:read(user, Username),
             NewFollowList = lists:delete(Following, User#user.following),
-            mnesia:write(user, User#user{following = NewFollowList}),
+            mnesia:write(User#user{following = NewFollowList}),
 
             [FollowingUser] = mnesia:read(user, Following),
             NewFollower = lists:delete(Username, FollowingUser#user.follower),
-            mnesia:write(user, FollowingUser#user{follower = NewFollower})
+            mnesia:write(FollowingUser#user{follower = NewFollower})
         end,
     mnesia:transaction(Fun).
 
@@ -70,84 +168,59 @@ unfollow_multiple(Username, Others) ->
     lists:foreach(fun(Other) ->
                     unfollowing(Username, Other)
                   end, Others).
-                
+
 %% follow/unfollow posts
-follow_post(Username, PostId) ->
+save_post(Username, PostId) ->
     Fun = fun() ->
                 [User] = mnesia:read(user, Username),
-                NewFollowList = [PostId|User#user.following_posts],
-                mnesia:write(user, User#user{following_posts = NewFollowList})
+                NewFollowList = [PostId|User#user.saved_posts],
+                mnesia:write(User#user{saved_posts = NewFollowList})
           end,
     mnesia:transaction(Fun).
 
-unfollow_post(Username, PostId) ->
+unsave_post(Username, PostId) ->
     Fun = fun() ->
                 [User] = mnesia:read(user, Username),
-                NewFollowList = lists:delete(PostId, User#user.following_posts),
-                mnesia:write(user, User#user{following_posts = NewFollowList})
+                NewFollowList = lists:delete(PostId, User#user.saved_posts),
+                mnesia:write(User#user{saved_posts = NewFollowList})
           end,
     mnesia:transaction(Fun).
 
-follow_posts(Username, PostIds) ->
+save_posts(Username, PostIds) ->
     lists:foreach(fun(PostId) ->
-                    follow_post(Username, PostId)
+                    save_post(Username, PostId)
                   end, PostIds).
 
-unfollow_posts(Username, PostIds) ->
+unsave_posts(Username, PostIds) ->
     lists:foreach(fun(PostId) ->
-                    unfollow_post(Username, PostId)
+                    unsave_post(Username, PostId)
                   end, PostIds).
 
+%% get save post, follower, following
+get_save_posts(Username) ->
+  {atomic, Res} = mnesia:transaction(fun() ->
+                                      [User] = mnesia:read(user, Username),
+                                      User#user.saved_posts
+                                     end),
+  Res.
 
-get_user_by_email(Email) ->
-    F = fun() ->
-        Q = qlc:q([{U#user.email}
-                || U <- mnesia:table(user),
-                U#user.email == Email]),
-        qlc:e(Q)
-        end,
-        mnesia:transaction(F).
+get_following(Username) ->
+  {atomic, Res} = mnesia:transaction(fun() ->
+                                      [User] = mnesia:read(user, Username),
+                                      User#user.following
+                                     end),
+  Res.
 
-get_users() ->
-    F = fun() ->
-        Q = qlc:q([{U#user.username, U#user.password}
-                || U <- mnesia:table(user)]),
-        qlc:e(Q)
-        end,
-    mnesia:transaction(F).
+get_follower(Username) ->
+  {atomic, Res} = mnesia:transaction(fun() ->
+                                      [User] = mnesia:read(user, Username),
+                                      User#user.follower
+                                     end),
+  Res.
 
-search_user1(Username) ->
-    F = fun() ->
-        Q = qlc:q([U#user.username || U <- mnesia:table(user),
-                U#user.username == Username]),
-        qlc:e(Q)
-    end,
-    mnesia:transaction(F).
-
-find_user(Username) ->
-    F = fun() ->
-        mnesia:match_object({user, Username, '_'})
-    end,
-    {atomic, Results} = mnesia:transaction(F),
-    Results.
-
-find_all() ->
-    F = fun() ->
-        mnesia:match_object({user, '_', '_'})
-    end,
-    {atomic, Results} = mnesia:transaction(F),
-    Results.
-
-return_user(Username) ->
-    mnesia:dirty_read({user, Username}).
-
-
-delete_user(Username) ->
-    mnesia:delete_table(Username),
-    F = fun() ->
-        mnesia:delete({user, Username})
-    end,
-    mnesia:activity(transaction, F).
-    
-search_user(Username) ->
-    mnesia:dirty_read(user, Username).
+get_user_info(Username) ->
+  {atomic, Res} = mnesia:transaction(fun() ->
+                                      [User] = mnesia:read(user, Username),
+                                      User#user.other_info
+                                     end),
+  Res.
