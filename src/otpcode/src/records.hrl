@@ -12,8 +12,7 @@
                 content,
                 comments = [],
                 author,
-                date_created,
-                date_updated}).
+                date_created}).
 
 -record(comment, {username, content, date_created}).
 

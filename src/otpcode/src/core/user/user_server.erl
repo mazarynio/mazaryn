@@ -6,7 +6,7 @@
          set_user_info/3, get_user_info/1,
          follow/2, unfollow/2, follow_multiple/2, unfollow_multiple/2,
          change_username/3, change_password/3, change_email/3,
-         create_post/1, get_post/0, save_post/2, unsave_post/2,
+         save_post/2, unsave_post/2,
          save_posts/2, unsave_posts/2]).
 
 %% gen_server callbacks
@@ -55,13 +55,6 @@ set_user_info(Username, Fields, Values) ->
 
 get_user_info(Username) ->
     gen_server:call(?MODULE, {get_user_info, Username}).
-
-%%%%%%%%% TODO: handle  create/edit/follow/unfollow post event
-create_post(Content) ->
-    gen_server:call(?MODULE, {create_post, Content}).
-
-get_post() ->
-    gen_server:call(?MODULE, {get_post}).
 
 %%%%%
 follow(Username, Following) ->
@@ -143,7 +136,7 @@ handle_call({get_user_info, Username}, _From, State = #state{}) ->
     {reply, Res, State};
 
 
-%%%%%%%
+%%%%%%% following/follower
 
 handle_call({follow_user, Username, Following}, _From, State) ->
     userdb:follow(Username, Following),
@@ -161,6 +154,7 @@ handle_call({unfollow_multiple, Username, Others}, _From, State) ->
     userdb:unfollow_multiple(Username, Others),
     {reply, ok, State};
 
+%% Save post for reading alter
 handle_call({save_post, Username, PostId}, _From, State) ->
     userdb:save_post(Username, PostId),
     {reply, ok, State};

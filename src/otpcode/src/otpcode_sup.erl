@@ -34,7 +34,14 @@ init([]) ->
                     restart => permanent,
                     shutdown => 5000,
                     type => worker,
-                    modules => [user_server]}
+                    modules => [user_server]},
+
+                  #{id => post_server,
+                    start => {post_server, start_link, []},
+                    restart => permanent,
+                    shutdown => 5000,
+                    type => worker,
+                    modules => [post_server]}
                   ],
     {ok, {SupFlags, ChildSpecs}}.
 
