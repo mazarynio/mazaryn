@@ -84,97 +84,97 @@ init([]) ->
     {ok, #state{}}.
 
 handle_call({create_account, Username, Password, Email}, _From, State = #state{}) ->
-    userdb:insert(Username, Password, Email),
+    Res = userdb:insert(Username, Password, Email),
     io:format("New User is added on"),
-    {reply, ok, State};
+    {reply, Res, State};
 
-handle_call({login, Username, Password}, _From, State) ->
-    userdb:login(Username, Password),
-    {reply, ok, State};
+handle_call({login, Username, Password}, _From, State = #state{}) ->
+    Res = userdb:login(Username, Password),
+    {reply, Res, State};
 
 handle_call({set_user_info, Username, Fields, Values}, _From, State) ->
-    userdb:set_user_info(Username, Fields, Values),
-    {reply, ok, State};
+    Res = userdb:set_user_info(Username, Fields, Values),
+    {reply, Res, State};
 
 handle_call({get_user, Username}, _From, State) ->
-    userdb:get_user(Username),
-    {reply, ok, State};
+    Res = userdb:get_user(Username),
+    {reply, Res, State};
 
 handle_call({get_users}, _From, State = #state{}) ->
-    userdb:get_users(),
-    {reply, ok, State};
+    Res = userdb:get_users(),
+    {reply, Res, State};
 
 handle_call({get_password, Username}, _From, State) ->
-    userdb:get_password(Username),
-    {reply, ok, State};
+    Res = userdb:get_password(Username),
+    {reply, Res, State};
 
 handle_call({get_user_by_email, Email}, _From, State) ->
-    userdb:get_user_by_email(Email),
-    {reply, ok, State};
+    Res = userdb:get_user_by_email(Email),
+    {reply, Res, State};
 
 handle_call({change_password, Username, CurrentPass, NewPass}, _From, State) ->
-    userdb:change_password(Username, CurrentPass, NewPass),
-    {reply, ok, State};
+    Res = userdb:change_password(Username, CurrentPass, NewPass),
+    {reply, Res, State};
 
 handle_call({change_email, Username, CurrentPass, NewEmail}, _From, State) ->
-    userdb:change_email(Username, CurrentPass, NewEmail),
-    {reply, ok, State};
+    Res = userdb:change_email(Username, CurrentPass, NewEmail),
+    {reply, Res, State};
 
 handle_call({change_username, Username, CurrentPass, NewUsername}, _From, State) ->
-    userdb:change_username(Username, CurrentPass, NewUsername),
-    {reply, ok, State};
+    Res = userdb:change_username(Username, CurrentPass, NewUsername),
+    {reply, Res, State};
 
 handle_call({delete_user, Username}, _From, State) ->
-    userdb:delete_user(Username),
-    {reply, ok, State};
+    Res = userdb:delete_user(Username),
+    {reply, Res, State};
 
 handle_call({follow, Username, Following}, _From, State) ->
-    userdb:follow(Username, Following),
-    {reply, ok, State};
+    Res = userdb:follow(Username, Following),
+    {reply, Res, State};
 
 handle_call({unfollow, Username, Following}, _From, State) ->
-    userdb:unfollow(Username, Following),
-    {reply, ok, State};
+    Res = userdb:unfollow(Username, Following),
+    {reply, Res, State};
 
 handle_call({follow_multiple, Username, Others}, _From, State) ->
-    userdb:follow_multiple(Username, Others),
-    {reply, ok, State};
+    Res = userdb:follow_multiple(Username, Others),
+    {reply, Res, State};
 
 handle_call({unfollow_multiple, Username, Others}, _From, State) ->
-    userdb:unfollow_multiple(Username, Others),
-    {reply, ok, State};
+    Res = userdb:unfollow_multiple(Username, Others),
+    {reply, Res, State};
 
 handle_call({save_post, Username, PostId}, _From, State) ->
-    userdb:save_post(Username, PostId),
-    {reply, ok, State};
+    Res = userdb:save_post(Username, PostId),
+    {reply, Res, State};
 
 handle_call({unsave_post, Username, PostId}, _From, State) ->
-    userdb:unsave_post(Username, PostId),
-    {reply, ok, State};
+    Res = userdb:unsave_post(Username, PostId),
+    {reply, Res, State};
 
 handle_call({save_posts, Username, PostIds}, _From, State) ->
-    userdb:save_posts(Username, PostIds),
-    {reply, ok, State};
+    Res = userdb:save_posts(Username, PostIds),
+    {reply, Res, State};
 
 handle_call({unsave_posts, Username, PostIds}, _From, State) ->
-    userdb:unsave_posts(Username, PostIds),
-    {reply, ok, State};
+    Res = userdb:unsave_posts(Username, PostIds),
+    {reply, Res, State};
 
 handle_call({get_save_posts, Username}, _From, State) ->
-    userdb:get_save_posts(Username),
-    {reply, ok, State};
+    Res = userdb:get_save_posts(Username),
+    {reply, Res, State};
 
 handle_call({get_following, Username}, _From, State) ->
-    userdb:get_following(Username),
-    {reply, ok, State};
+    Res = userdb:get_following(Username),
+    {reply, Res, State};
 
 handle_call({get_follower, Username}, _From, State) ->
-    userdb:get_follower(Username),
-    {reply, ok, State};
+    Res = userdb:get_follower(Username),
+    {reply, Res, State};
 
 handle_call({get_user_info, Username}, _From, State) ->
-    userdb:get_user_info(Username),
-    {reply, ok, State};
+    Res = userdb:get_user_info(Username),
+    {reply, Res, State};
 
 
 handle_call(_Request, _From, State) ->
