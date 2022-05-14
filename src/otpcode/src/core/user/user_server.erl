@@ -8,8 +8,8 @@
 start_link() ->
     gen_server:start_link({global, ?SERVER}, ?MODULE, [], []).
 
-create_account(Username, Password) ->
-    gen_server:call({global, ?MODULE}, {create_account, Username, Password}).
+create_account(Username, Password, Email) ->
+    gen_server:call({global, ?MODULE}, {create_account, Username, Password, Email}).
 
 get_user(Username) ->
     gen_server:call({global, ?MODULE}, {get_user, Username}). 
@@ -58,13 +58,10 @@ unfollow_post(Username, Post) ->
 
 init([]) ->
     io:format("~p (~p) starting.... ~n", [{global, ?MODULE}, self()]),
-    userdb:init(),
-    postdb:init(),
-    followerdb:init(),
     {ok, #state{}}.
 
-handle_call({create_account, Username, Password}, _From, State = #state{}) ->
-    userdb:insert(Username, Password),
+handle_call({create_account, Username, Password, Email}, _From, State = #state{}) ->
+    userdb:insert(Username, Password, Email),
     io:format("New User is added on"),
     {reply, ok, State};
 

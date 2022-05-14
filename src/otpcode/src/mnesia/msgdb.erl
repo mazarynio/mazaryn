@@ -1,14 +1,8 @@
 -module(msgdb).
 -compile([export_all, nowarn_export_all]).
--include("../include/records.hrl").
+-include("../records.hrl").
 -include_lib("stdlib/include/qlc.hrl").
 -import(userdb, [get_password/1]).
-
-init() ->
-    mnesia:create_schema([node()]),
-    mnesia:start(),
-    mnesia:create_table(msg, [{attributes, record_info(fields, msg)},
-            {disc_copies, [node()]}]).
 
 reset_db() ->
     mnesia:clear_table(msg).
