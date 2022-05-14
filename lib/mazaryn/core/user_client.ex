@@ -17,7 +17,11 @@ defmodule Core.UserClient do
   end
 
   def follow_user(username) do
-    :user_server.follow(Username)
+    :user_server.follow_user(Username)
+  end
+
+  def unfollow_user(username) do
+    :user_server.unfollow_user(Username)
   end
 
   def creating_post(content) do

@@ -23,7 +23,6 @@ signup(Email, Username, Password) ->
 signin(Username, Password) ->
     gen_server:call({global, ?MODULE}, {signin, Username, Password}).
 
-
 login(Username, Password) ->
     gen_server:call(?MODULE, {login, Username, Password}).
 
@@ -39,6 +38,11 @@ create_post(Content) ->
 get_post() ->
     gen_server:call({global, ?MODULE}, {get_post}).
 
+follow_user(Username) ->
+    gen_server:call({global, ?MODULE}, {follow_user, Username}).
+
+unfollow_user(Username) ->
+    gen_server:call({global, ?MODULE}, {unfollow_user, Username}).
 
 following(Username, Following) ->
     gen_server:call({global, ?MODULE}, {user_follow_other, Username, Following}).
@@ -54,6 +58,9 @@ unfollow_post(Username, Post) ->
 
 init([]) ->
     io:format("~p (~p) starting.... ~n", [{global, ?MODULE}, self()]),
+    userdb:init(),
+    postdb:init(),
+    followerdb:init(),
     {ok, #state{}}.
 
 handle_call({create_account, Username, Password}, _From, State = #state{}) ->
@@ -74,12 +81,12 @@ handle_call({search_user, Username}, _From, State = #state{}) ->
     userdb:search_user(Username),
     {reply, ok, State};
 
-handle_call({follow, Username}, _From, State) ->
+handle_call({follow_user, Username}, _From, State) ->
     followerdb:save_follow_user(Username),
     {reply, ok, State};
 
-handle_call({unfollow, Username}, _From, State) ->
-    followerfb:delete_follow_user(Username),
+handle_call({unfollow_user, Username}, _From, State) ->
+    followerdb:delete_follow_user(Username),
     {reply, ok, State};
 
 handle_call({is_following, Username}, _From, State) ->
