@@ -39,4 +39,16 @@ defmodule Core.UserClient do
   def change_username(username, current_pass, new_username) do
     :user_server.change_username(Username, CurrentPass, NewUsername)
   end
+
+  def delete_user(username) do
+    :user_server.delete_user(Username)
+  end
+
+  def following(username, following) do
+    :user_server.following(Username, Following)
+  end
+
+  def unfollowing(username, following) do
+    :user_server.unfollowing(Username, Following)
+  end
 end
