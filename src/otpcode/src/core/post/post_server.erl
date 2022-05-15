@@ -16,6 +16,9 @@
          get_all_posts_from_date/4, get_all_posts_from_month/3,
          get_comments/1]).
 
+-export([save_post/2, unsave_post/2,
+         save_posts/2, unsave_posts/2,
+         get_save_posts/1]).
 
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2,
@@ -49,7 +52,20 @@ get_all_posts_from_month(Year, Month, Author) ->
 get_comments(Id) ->
   gen_server:call({global, ?MODULE}, {get_comments, Id}).
 
+save_post(Username, PostId) ->
+    gen_server:call({global, ?MODULE}, {save_post, Username, PostId}).
 
+unsave_post(Username, PostId) ->
+    gen_server:call({global, ?MODULE}, {unsave_post, Username, PostId}).
+
+save_posts(Username, PostIds) ->
+    gen_server:call({global, ?MODULE}, {save_posts, Username, PostIds}).
+
+unsave_posts(Username, PostIds) ->
+    gen_server:call({global, ?MODULE}, {unsave_posts, Username, PostIds}).
+
+get_save_posts(Username) ->
+    gen_server:call({global, ?MODULE}, {get_save_posts, Username}).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% INTERNAL FUNCTIONS %%%%%%%%%%%%%%%%%
 init([]) ->
     io:format("~p (~p) starting.... ~n", [{local, ?MODULE}, self()]),
@@ -57,8 +73,8 @@ init([]) ->
 
 
 handle_call({insert, Author, Content}, _From, State) ->
-    postdb:insert(Author, Content),
-    {reply, ok, State};
+    Id = postdb:insert(Author, Content),
+    {reply, Id, State};
 
 handle_call({get_post_by_id, Id}, _From, State) ->
     Posts = postdb:get_post_by_id(Id),
@@ -83,6 +99,27 @@ handle_call({get_all_posts_from_month, Year, Month, Author}, _From, State) ->
 handle_call({get_comments, Id}, _From, State) ->
     Comments = postdb:get_comments(Id),
     {reply, Comments, State};
+
+%% Save post for reading alter
+handle_call({save_post, Username, PostId}, _From, State) ->
+    Res = userdb:save_post(Username, PostId),
+    {reply, Res, State};
+
+handle_call({unsave_post, Username, PostId}, _From, State) ->
+    Res = userdb:unsave_post(Username, PostId),
+    {reply, Res, State};
+
+handle_call({save_posts, Username, PostIds}, _From, State) ->
+    Res = userdb:save_posts(Username, PostIds),
+    {reply, Res, State};
+
+handle_call({unsave_posts, Username, PostIds}, _From, State) ->
+    Res = userdb:unsave_posts(Username, PostIds),
+    {reply, Res, State};
+
+handle_call({get_save_posts, Username}, _From, State) ->
+    Res = userdb:get_save_posts(Username),
+    {reply, Res, State};
 
 handle_call(_Request, _From, State) ->
     {noreply, State}.

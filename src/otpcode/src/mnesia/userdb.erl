@@ -194,7 +194,8 @@ save_post(Username, PostId) ->
                 NewFollowList = [PostId|User#user.saved_posts],
                 mnesia:write(User#user{saved_posts = NewFollowList})
           end,
-    mnesia:transaction(Fun).
+    {atomic, Res} = mnesia:transaction(Fun),
+    Res.
 
 unsave_post(Username, PostId) ->
     Fun = fun() ->
