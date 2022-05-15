@@ -172,6 +172,5 @@ terminate(_Reason, _State) ->
 code_change(_OldVsn, State, _Extra) ->
     {ok, State}.
 
-is_username_taken(Username) ->
-    Username == not_logged_in orelse userdb:return_user(Username) =/= [].
+
 
