@@ -1,7 +1,7 @@
 -module(userdb).
 -include("../records.hrl").
 
--export([reset_db/0, set_user_info/3, get_user_info/1,
+-export([set_user_info/3, get_user_info/1,
          insert/3, login/2,
          get_user/1, get_user_by_email/1,
          get_users/0, delete_user/1, get_password/1,

@@ -6,8 +6,6 @@
 -include("../records.hrl").
 -include_lib("stdlib/include/qlc.hrl").
 
-%%TODO: build util function
-
 insert(Author, Content) ->
     Id = id_gen:generate(),
     Post = #post{id = Id, content = Content,
@@ -55,7 +53,7 @@ get_all_posts_from_date(Year, Month, Date, Author) ->
       case Author of
         [] -> #post{date_created = {DateTime, '_'},
                                         _ = '_'};
-        User -> #post{date_created = {DateTime, '_'},
+        Author -> #post{date_created = {DateTime, '_'},
                                     author = Author,
                                     _ = '_'}
       end,
