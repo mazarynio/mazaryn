@@ -4,9 +4,6 @@
 -include_lib("stdlib/include/qlc.hrl").
 -import(userdb, [get_password/1]).
 
-reset_db() ->
-    mnesia:clear_table(msg).
-
 insert_message(Sender, Receiver, Content) ->
     ReceiverExists = case get_password(Receiver) of 
         undefined -> false;

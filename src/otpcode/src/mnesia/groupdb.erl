@@ -3,9 +3,6 @@
 -include("../records.hrl").
 -include_lib("stdlib/include/qlc.hrl").
 
-reset_db() ->
-    mnesia:clear_table(group).
-
 insert(Gp_name, Members) ->
     Id = id_gen:generate(),
     Group = #group{id = Id, gp_name = Gp_name, members = Members},

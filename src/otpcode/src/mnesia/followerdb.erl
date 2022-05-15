@@ -3,9 +3,6 @@
 -include("../records.hrl").
 -include_lib("stdlib/include/qlc.hrl").
 
-reset_db() ->
-    mnesia:clear_table(follower).
-
 insert(Username) ->
     Id = id_gen:generate(),
     Follower = #follower{id = Id, username = Username},

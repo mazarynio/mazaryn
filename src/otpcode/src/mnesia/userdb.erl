@@ -8,10 +8,7 @@
          change_username/3, change_password/3, change_email/3,
          follow/2, unfollow/2, follow_multiple/2, unfollow_multiple/2,
          save_post/2, save_posts/2, unsave_post/2, unsave_posts/2,
-         get_save_posts/1, get_follower/1, get_following/1]). 
-
-reset_db() ->
-    mnesia:clear_table(user). 
+         get_save_posts/1, get_follower/1, get_following/1]).
 
 login(Username, Password) ->
   case get_user(Username) of
