@@ -1,24 +1,16 @@
 -module(user_server).
--export([start_link/0,
-         create_account/3,login/2,
-         get_user/1, get_users/0, delete_user/1,
-         get_user_by_email/1, get_password/1,
-         set_user_info/3, get_user_info/1,
-         follow/2, unfollow/2, follow_multiple/2, unfollow_multiple/2,
-         change_username/3, change_password/3, change_email/3,
-         get_save_posts/1, get_following/1,
-         get_follower/1,
-         save_post/2, unsave_post/2,
-         save_posts/2, unsave_posts/2]).
-
-%% gen_server callbacks
--export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2,
-  code_change/3]).
-
 -behaviour(gen_server).
 -define(SERVER, ?MODULE).
 -record(state, {}).
+-import(postdb, [init/0]).
 
+-export([start_link/0, create_account/3, login/2, set_user_info/3, get_user/1,
+         get_users/0, get_password/1, get_user_by_email/1, change_password/3,
+         change_email/3, change_username/3, delete_user/1, follow/2, unfollow/2,
+         follow_multiple/2, unfollow_multiple/2, save_post/2, unsave_post/2, 
+         save_posts/2, unsave_posts/2, get_save_posts/1, get_following/1, 
+         get_follower/1, get_user_info/1, init/1, handle_call/3, handle_cast/2, 
+         handle_info/2, terminate/2, code_change/3]).
 
 start_link() ->
     gen_server:start_link({global, ?SERVER}, ?MODULE, [], []).  
@@ -159,7 +151,6 @@ handle_call({unfollow_multiple, Username, Others}, _From, State) ->
     Res = userdb:unfollow_multiple(Username, Others),
     {reply, Res, State};
 
-%% Save post for reading alter
 handle_call({save_post, Username, PostId}, _From, State) ->
     Res = userdb:save_post(Username, PostId),
     {reply, Res, State};
@@ -208,6 +199,5 @@ terminate(_Reason, _State) ->
 code_change(_OldVsn, State, _Extra) ->
     {ok, State}.
 
-is_username_taken(Username) ->
-    Username == not_logged_in orelse userdb:return_user(Username) =/= [].
+
 
