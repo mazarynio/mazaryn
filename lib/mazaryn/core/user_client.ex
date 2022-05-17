@@ -1,14 +1,17 @@
 defmodule Core.UserClient do
+
+
   def start do
     :user_server.start_link()
     :user_server.init([])
   end
 
-  def register(username, password , email) do
+
+  def register(username, password, email) do
     :user_server.create_account(Username, Password, Email)
   end
 
-  def login(username: Username, password: Password) do
+  def login(username, password) do
     :user_server.login(Username, Password)
   end
 
@@ -25,11 +28,11 @@ defmodule Core.UserClient do
   end
 
   def get_pass(username) do
-    :user_server.get_password(username)
+    :user_server.get_password(Username)
   end
 
   def get_user_by_mail(email) do
-    :user_server.get_user_by_email(email)
+    :user_server.get_user_by_email(Email)
   end
 
   def change_pass(username, current_pass, new_pass) do
@@ -37,7 +40,7 @@ defmodule Core.UserClient do
   end
 
   def change_mail(username, current_pass, new_email) do
-    :user_server.change_email(username, current_pass, new_email)
+    :user_server.change_email(Username, CurrentPass, NewEmail)
   end
 
   def change_username(username, current_pass, new_username) do
@@ -65,7 +68,7 @@ defmodule Core.UserClient do
   end
 
   def get_following(username) do
-    :user_server.get_following(username)
+    :user_server.get_following(Username)
   end
 
   def get_follower(username) do
