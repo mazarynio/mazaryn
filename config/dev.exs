@@ -2,10 +2,10 @@ import Config
 
 # Configure your database
 config :mazaryn, Mazaryn.Repo,
-  username: "postgres",
-  password: "postgres",
-  hostname: "localhost",
-  database: "mazaryn_dev",
+  #username: "postgres",
+  #password: "postgres",
+  #hostname: "localhost",
+  #database: "mazaryn_dev",
   stacktrace: true,
   show_sensitive_data_on_connection_error: true,
   pool_size: 10
@@ -26,7 +26,10 @@ config :mazaryn, MazarynWeb.Endpoint,
   secret_key_base: "JmhZ1wTiu1VifuJVeoLzhThdyT3EynZTscxAq6KYT/Pa9foj4PQEuxsjm9WkTrHQ",
   watchers: [
     # Start the esbuild watcher by calling Esbuild.install_and_run(:default, args)
-    esbuild: {Esbuild, :install_and_run, [:default, ~w(--sourcemap=inline --watch)]}
+    esbuild: {Esbuild, :install_and_run, [:default, ~w(--sourcemap=inline --watch)]},
+
+    # Start the tailwind watcher by calling Tailwind.install_and_run(:default, args)
+    tailwind: {Tailwind, :install_and_run, [:default, ~w(--watch)]}
   ]
 
 # ## SSL Support
