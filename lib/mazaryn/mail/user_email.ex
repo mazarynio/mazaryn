@@ -1,12 +1,21 @@
 defmodule Mail.UserEmail do
-  import Swoosh.Email
+  alias Swoosh.Email
 
-  def welcome(user) do
-    new()
-    |> to({user.username, user.email})
-    |> from({"Mazaryn", "no_reply@mazaryn.xyz"})
-    |> subject("Welcome to Mazaryn SN")
-    |> html_body("<h1>Hello #{user.username}</h1>")
-    |> text_body("Hello #{user.username}\n")
+  def register_email(username, user_email) do
+    #assigns = Map.new(username: username)
+    subject = "Welcome to Mazaryn"
+
+    base_email()
+    |> Email.to({username, user_email})
+    |> Email.subject(subject)
+    |> Email.html_body("Thanks for joining Mazaryn!")
   end
+
+  defp base_email do
+    Email.new
+    |> Email.from(from())
+  end
+
+  def from, do: {"Mazaryn", "support@mazaryn.xyz"}
+  def html_body(body), do: body
 end

@@ -3,16 +3,15 @@ defmodule Core.UserClient do
   def start do
     :otpcode_app.start("_a", "_b")
     :user_server.start_link()
-    :user_server.init([])
   end
 
 
   def register(username, password, email) do
-    :user_server.create_account(Username, Password, Email)
+    :user_server.create_account(username, password, email)
   end
 
   def login(username, password) do
-    :user_server.login(Username, Password)
+    :user_server.login(username, password)
   end
 
   def set_user_info(username, fields, values) do
