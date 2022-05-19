@@ -58,8 +58,8 @@ config :logger, :console,
 # Mailer
 # --------------------------#
 config :mailer, Mailer,
-  adapter: Bamboo.LocalAdapter,
-  api_key: "my_api_key"
+  adapter: Swoosh.Adapters.Sendgrid,
+  api_key: "SG.x.x"
 
 # Use Jason for JSON parsing in Phoenix
 config :phoenix, :json_library, Jason
