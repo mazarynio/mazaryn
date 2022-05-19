@@ -3,6 +3,8 @@ defmodule Mailer do
   Documentation for `Mailer`.
   """
 
+  use Bamboo.Mailer, otp_app: :mailer
+
   @doc """
   Hello world.
 

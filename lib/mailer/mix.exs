@@ -5,7 +5,7 @@ defmodule Mailer.MixProject do
     [
       app: :mailer,
       version: "0.1.0",
-      elixir: "~> 1.13",
+      elixir: "~> 1.12",
       build_path: "../../_build",
       config_path: "../../config/config.exs",
       deps_path: "../../deps",
@@ -18,6 +18,7 @@ defmodule Mailer.MixProject do
   # Run "mix help compile.app" to learn about applications.
   def application do
     [
+      applications: [:bamboo],
       extra_applications: [:logger],
       mod: {Mailer.Application, []}
     ]
