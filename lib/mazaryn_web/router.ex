@@ -14,6 +14,11 @@ defmodule MazarynWeb.Router do
     plug :accepts, ["json"]
   end
 
+  if Mix.env == :dev do
+    # If using Phoenix
+    forward "/sent_emails", Bamboo.SentEmailViewerPlug
+  end
+
   scope "/", MazarynWeb do
     pipe_through :browser
 
