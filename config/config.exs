@@ -24,7 +24,10 @@ config :mazaryn, MazarynWeb.Endpoint,
 #
 # For production it's recommended to configure a different adapter
 # at the `config/runtime.exs`.
-config :mazaryn, Mazaryn.Mailer, adapter: Swoosh.Adapters.Local
+config :mazaryn, Mazaryn.Mailer,
+  adapter: Swoosh.Adapters.Sendgrid,
+  api_key: "SG.x.x"
+
 
 # Swoosh API client is needed for adapters other than SMTP.
 config :swoosh, :api_client, false
