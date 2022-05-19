@@ -4,16 +4,17 @@ defmodule Account.Users do
   """
 
   alias Core.UserClient
+  alias Mazaryn.Mailer
   require Logger
 
   def register(username, pass, email) do
     case UserClient.register(username, pass, email) do
-      :error ->
-        Logger.error("[Users] Failed to register user #{username}")
-      _ ->
+      {:atomic, :ok} ->
         username
         |> Mail.UserEmail.register_email(email)
-        |> Mail.deliver()
+        |> Mailer.deliver()
+      res ->
+        Logger.error("[Users] Failed to register user #{username}: #{res}")
     end
   end
 end

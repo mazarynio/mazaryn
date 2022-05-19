@@ -2,13 +2,15 @@ defmodule Mail.UserEmail do
   alias Swoosh.Email
 
   def register_email(username, user_email) do
-    #assigns = Map.new(username: username)
+    assigns = Map.new(username: username)
     subject = "Welcome to Mazaryn"
+
+    body = Mail.HTML.render_html_body(assigns, "users", "register")
 
     base_email()
     |> Email.to({username, user_email})
     |> Email.subject(subject)
-    |> Email.html_body("Thanks for joining Mazaryn!")
+    |> Email.html_body(body)
   end
 
   defp base_email do
