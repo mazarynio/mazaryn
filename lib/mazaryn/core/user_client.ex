@@ -1,5 +1,6 @@
 defmodule Core.UserClient do
   def start do
+    :otpcode_app.start("_a", "_b")
     :user_server.start_link()
     :user_server.init([])
   end
