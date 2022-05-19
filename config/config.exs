@@ -54,6 +54,13 @@ config :logger, :console,
   format: "$time $metadata[$level] $message\n",
   metadata: [:request_id]
 
+# --------------------------#
+# Mailer
+# --------------------------#
+config :mailer, Mailer,
+  adapter: Bamboo.LocalAdapter,
+  api_key: "my_api_key"
+
 # Use Jason for JSON parsing in Phoenix
 config :phoenix, :json_library, Jason
 
