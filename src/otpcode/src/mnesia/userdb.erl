@@ -10,16 +10,18 @@
          save_post/2, save_posts/2, unsave_post/2, unsave_posts/2,
          get_save_posts/1, get_follower/1, get_following/1]).
 
+%%% check user credentials
+-spec login(Username :: term(), Password :: term()) -> wrong_username_or_password | logged_in.
 login(Username, Password) ->
-  case get_user(Username) of
-    error -> wrong_username_or_password;
-    not_exist -> wrong_username_or_password;
-    User ->
-      case User#user.password of
-        Password -> logged_in;
-        _        -> wrong_username_or_password
-      end
-  end.
+  Fun = fun() ->
+          Object = mnesia:match_object(#user{username = Username, password = Password, _ = '_'}),
+          case Object of
+            [] -> wrong_username_or_password;
+            _ -> logged_in
+          end
+        end,
+  {atomic, Res} = mnesia:transaction(Fun),
+  Res.
 
 %%% Fields: [field_a, field_b, field_c]
 %%% Values: [a,b,c]
@@ -41,8 +43,8 @@ set_user_info(Username, Fields, Values) ->
 
 insert(Username, Password, Email) ->
     %% check username exist or not
-    case get_user(Username) of
-      not_exist ->
+    case {check_username(Username), check_email(Email)} of
+      {undefined, undefined} ->
         Now = calendar:universal_time(),
         User = #user{username = Username,
                      password = Password,
@@ -51,9 +53,9 @@ insert(Username, Password, Email) ->
         F = fun() ->
             mnesia:write(User)
         end,
-        mnesia:transaction(F);
-      error -> error;
-      _ -> username_existing
+        {atomic, Res} = mnesia:transaction(F),
+        Res;
+      _ -> username_email_existed
     end.
 
 get_user(Username) ->
@@ -104,7 +106,7 @@ change_password(Username, CurrentPass, NewPass) ->
   Fun = fun() ->
           Res =  mnesia:match_object(#user{username = Username,
                                            password = CurrentPass,
-                                           _= '_'}),
+                                           _ = '_'}),
           case Res of
             [] -> wrong_password_or_user;
             [User] ->
@@ -115,21 +117,29 @@ change_password(Username, CurrentPass, NewPass) ->
   mnesia:transaction(Fun).
 
 change_email(Username, CurrentPass, NewEmail) ->
-  Fun = fun() ->
-          Res =  mnesia:match_object(#user{username = Username,
-                                           password = CurrentPass,
-                                           _= '_'}),
-          case Res of
-            [] -> wrong_password_or_user;
-            [User] ->
-              mnesia:write(User#user{email = NewEmail,
-                date_updated = calendar:universal_time()})
-          end
-        end,
-  mnesia:transaction(Fun).
+  case check_email(NewEmail) of
+    undefined ->
+      Fun = fun() ->
+              Res =  mnesia:match_object(#user{username = Username,
+                                               password = CurrentPass,
+                                               _= '_'}),
+              case Res of
+                [] -> wrong_password_or_user;
+                [User] ->
+                  mnesia:write(User#user{email = NewEmail,
+                    date_updated = calendar:universal_time()})
+              end
+            end,
+      {atomic, Res} = mnesia:transaction(Fun),
+      Res;
+    existed ->
+      existed
+  end.
 
 change_username(Username, CurrentPass, NewUsername) ->
-  Fun = fun() ->
+  case check_username(Username) of
+    undefined ->
+        Fun = fun() ->
           Res =  mnesia:match_object(#user{username = Username,
                                            password = CurrentPass,
                                            _= '_'}),
@@ -141,7 +151,11 @@ change_username(Username, CurrentPass, NewUsername) ->
               mnesia:delete({user, Username})
           end
         end,
-  mnesia:transaction(Fun).
+        {atomic, Res} = mnesia:transaction(Fun),
+        Res;
+    existed ->
+      existed
+  end.
 
 delete_user(Username) ->
     F = fun() ->
@@ -239,4 +253,31 @@ get_user_info(Username) ->
                                       [User] = mnesia:read(user, Username),
                                       User#user.other_info
                                      end),
+  Res.
+
+%%% username and email should be unique for each user
+%%% check if username/email existed
+-spec check_username(Username :: term()) -> undefined | existed.
+check_username(Username) ->
+    Fun = fun() ->
+          Object =  mnesia:match_object(#user{username = Username,
+                                              _ = '_'}),
+          case Object of
+            [] -> undefined;
+            _ -> existed
+          end
+        end,
+  {atomic, Res} = mnesia:transaction(Fun),
+  Res.
+
+-spec check_email(Username :: term()) -> undefined | existed.
+check_email(Email) ->
+    Fun = fun() ->
+          Object =  mnesia:match_object(#user{email = Email, _ = '_'}),
+          case Object of
+            [] -> undefined;
+            _ -> existed
+          end
+        end,
+  {atomic, Res} = mnesia:transaction(Fun),
   Res.

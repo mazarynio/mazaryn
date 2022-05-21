@@ -42,6 +42,8 @@ start(_StartType, _StartArgs) ->
                                {disc_copies, [node()]},
                                {type, ordered_set}]),
 
+    mnesia:add_table_index(user, email),
+
     otpcode_sup:start_link().
 
 stop(_State) ->
