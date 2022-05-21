@@ -14,11 +14,11 @@ defmodule Core.UserClient do
   end
 
   def set_user_info(username, fields, values) do
-    :user_server.set_user_info(Username, Fields, Values)
+    :user_server.set_user_info(username, fields, values)
   end
 
   def getting_user(username) do
-    :user_server.get_user(Username)
+    :user_server.get_user(username)
   end
 
   def getting_users() do
@@ -26,54 +26,54 @@ defmodule Core.UserClient do
   end
 
   def get_pass(username) do
-    :user_server.get_password(Username)
+    :user_server.get_password(username)
   end
 
   def get_user_by_mail(email) do
-    :user_server.get_user_by_email(Email)
+    :user_server.get_user_by_email(email)
   end
 
   def change_pass(username, current_pass, new_pass) do
-    :user_server.change_password(Username, CurrentPass, NewPass)
+    :user_server.change_password(username, current_pass, new_pass)
   end
 
   def change_mail(username, current_pass, new_email) do
-    :user_server.change_email(Username, CurrentPass, NewEmail)
+    :user_server.change_email(username, current_pass, new_email)
   end
 
   def change_username(username, current_pass, new_username) do
-    :user_server.change_username(Username, CurrentPass, NewUsername)
+    :user_server.change_username(username, current_pass, new_username)
   end
 
   def delete_user(username) do
-    :user_server.delete_user(Username)
+    :user_server.delete_user(username)
   end
 
   def follow(username, following) do
-    :user_server.follow(Username, Following)
+    :user_server.follow(username, following)
   end
 
   def unfollow(username, following) do
-    :user_server.unfollow(Username, Following)
+    :user_server.unfollow(username, following)
   end
 
   def follow_multiple(username, others) do
-    :user_server.follow_multiple(Username, Others)
+    :user_server.follow_multiple(username, others)
   end
 
   def unfollow_multiple(username, others) do
-    :user_server.unfollow_multiple(Username, Others)
+    :user_server.unfollow_multiple(username, others)
   end
 
   def get_following(username) do
-    :user_server.get_following(Username)
+    :user_server.get_following(username)
   end
 
   def get_follower(username) do
-    :user_server.get_follower(Username)
+    :user_server.get_follower(username)
   end
 
   def get_user_info(username) do
-    :user_server.get_user_info(Username)
+    :user_server.get_user_info(username)
   end
 end

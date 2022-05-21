@@ -50,7 +50,12 @@ defmodule Mazaryn.MixProject do
       {:plug_cowboy, "~> 2.5"},
 
       {:tailwind, "~> 0.1", runtime: Mix.env() == :dev},
-      {:swoosh, "~> 1.6"}
+      {:swoosh, "~> 1.6"},
+
+      #Science
+      {:axon, "~> 0.1.0-dev", github: "elixir-nx/axon", branch: "main"},
+      {:nx, "~> 0.2"},
+      {:exla, "~> 0.2"}
     ]
   end
 
