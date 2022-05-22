@@ -48,9 +48,12 @@ defmodule Mazaryn.MixProject do
       {:gettext, "~> 0.18"},
       {:jason, "~> 1.2"},
       {:plug_cowboy, "~> 2.5"},
-
       {:tailwind, "~> 0.1", runtime: Mix.env() == :dev},
       {:swoosh, "~> 1.6"},
+
+      # Erlang dependencies
+      {:erlpass, git: "https://github.com/ferd/erlpass.git"},
+      {:bcrypt, git: "https://github.com/erlangpack/bcrypt.git", override: true},
 
       #Science
       {:axon, "~> 0.1.0-dev", github: "elixir-nx/axon", branch: "main"},
