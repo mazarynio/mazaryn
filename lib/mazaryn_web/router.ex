@@ -18,6 +18,7 @@ defmodule MazarynWeb.Router do
     pipe_through :browser
 
     get "/", PageController, :index
+
   end
 
   scope "/app", MazarynWeb do
@@ -26,9 +27,24 @@ defmodule MazarynWeb.Router do
   end
 
   # Other scopes may use custom stacks.
-  # scope "/api", MazarynWeb do
-  #   pipe_through :api
-  # end
+  scope "/api/v1", MazarynWeb do
+    pipe_through :api
+    
+    #User
+    get "/users", UserController, :get_all_user
+    get "/user/:username", UserController, :get_user
+    get "/user/:username", UserController, :get_followers
+
+    #Authentication
+    post "/auth/user", UserController, :register
+
+
+    #Post
+    post "/create/post", UserController, :create_post
+
+
+
+  end
 
   # Enables LiveDashboard only for development
   #

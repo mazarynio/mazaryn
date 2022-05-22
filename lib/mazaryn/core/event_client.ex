@@ -1,4 +1,4 @@
-defmodule Core.EventClient do
+defmodule Mazaryn.Core.EventClient do
   def start do
     :event_server.start_link()
     :event_server.init([])

@@ -2,8 +2,8 @@ import Config
 
 # Configure your database
 config :mazaryn, Mazaryn.Repo,
-  username: "postgres",
-  password: "postgres",
+  username: "thewestdevop",
+  password: "",
   hostname: "localhost",
   database: "mazaryn_dev",
   stacktrace: true,
@@ -73,3 +73,7 @@ config :phoenix, :stacktrace_depth, 20
 
 # Initialize plugs at runtime for faster development compilation
 config :phoenix, :plug_init_mode, :runtime
+
+
+config :joken, default_signer: "EzHId1dW+w66EkssC+4T8FLlRkPpYO/RNamOAn6Pq2eltkRQC93Hal2Ujnr5B6Oo"
+
