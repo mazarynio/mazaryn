@@ -53,12 +53,9 @@ defmodule Mazaryn.MixProject do
 
       # Erlang dependencies
       {:erlpass, git: "https://github.com/ferd/erlpass.git"},
-      {:bcrypt, git: "https://github.com/erlangpack/bcrypt.git", override: true},
+      {:bcrypt, git: "https://github.com/erlangpack/bcrypt.git", override: true}
 
-      #Science
-      {:axon, "~> 0.1.0-dev", github: "elixir-nx/axon", branch: "main"},
-      {:nx, "~> 0.2"},
-      {:exla, "~> 0.2"}
+      
     ]
   end
 
