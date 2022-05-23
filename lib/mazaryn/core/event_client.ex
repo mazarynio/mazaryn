@@ -5,6 +5,6 @@ defmodule Core.EventClient do
   end
 
   def new_event(name, date, loc, desc) do
-    :event_server.add_event(Name, Date, Loc, Desc)
+    :event_server.add_event(name, date, loc, desc)
   end
 end

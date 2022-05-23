@@ -6,55 +6,55 @@ defmodule Core.PostClient do
   end
 
   def create_post(author, content) do
-    :post_server.insert(Author, Content)
+    :post_server.insert(author, content)
   end
 
   def get_post_by_id(id) do
-    :post_server.get_post_by_id(Id)
+    :post_server.get_post_by_id(id)
   end
 
   def get_posts_by_author(author) do
-    :post_server.get_posts_by_author(Author)
+    :post_server.get_posts_by_author(author)
   end
 
   def delete_post(id) do
-    :post_server.delete_post(Id)
+    :post_server.delete_post(id)
   end
 
   def add_comment(id, username, comment) do
-    :post_server.add_comment(Id, Username, Comment)
+    :post_server.add_comment(id, username, comment)
   end
 
   def get_all_posts_from_date(year, month, date, author) do
-    :post_server.get_all_posts_from_date(Year, Month, Date, Author)
+    :post_server.get_all_posts_from_date(year, month, date, author)
   end
 
   def get_all_posts_from_month(year, month, author) do
-    :post_server.get_all_posts_from_month(Year, Month, Author)
+    :post_server.get_all_posts_from_month(year, month, author)
   end
 
   def get_comments(id) do
-    :post_server.get_comments(Id)
+    :post_server.get_comments(id)
   end
 
   def save_post(username, post_id) do
-    :post_server.save_post(Username, PostId)
+    :post_server.save_post(username, post_id)
   end
 
   def unsave_post(username, post_id) do
-    :post_server.unsave_post(Username, PostId)
+    :post_server.unsave_post(username, post_id)
   end
 
   def save_posts(username, post_ids) do
-    :post_server.save_posts(Username, PostIds)
+    :post_server.save_posts(username, post_ids)
   end
 
   def unsave_posts(username, post_ids) do
-    :post_server.unsave_posts(Username, PostIds)
+    :post_server.unsave_posts(username, post_ids)
   end
 
   def get_save_posts(username) do
-    :post_server.get_save_posts(Username)
+    :post_server.get_save_posts(username)
   end
 
 end
