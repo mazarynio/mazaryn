@@ -13,7 +13,7 @@
 
 start(_StartType, _StartArgs) ->
     % create schema and directory
-    application:set_env(mnesia, dir, "../../Mnesia/"),
+    application:set_env(mnesia, dir, "Mnesia/"),
     mnesia:create_schema([node()]),
     mnesia:start(),
 
