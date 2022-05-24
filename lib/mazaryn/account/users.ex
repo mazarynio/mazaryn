@@ -28,7 +28,6 @@ defmodule Account.Users do
     end
   end
 
-
   defp autheticate_user(_username) do
     nil
   end
