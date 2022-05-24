@@ -7,10 +7,7 @@ defmodule Account.Users do
   alias Mazaryn.Mailer
   require Logger
 
-
   def register(username, pass, email) do
-    IO.inspect(UserClient.register(username, pass, email), label: 4343434)
-
     case UserClient.register(username, pass, email) do
       :ok ->
         username
@@ -31,7 +28,17 @@ defmodule Account.Users do
     end
   end
 
+
   defp autheticate_user(_username) do
     nil
+  end
+
+  def follow(follower, following) do
+    case UserClient.follow(follower, following) do
+      {:atomic, :ok} -> :ok
+      res ->
+       Logger.error("[Users] Failed to follow #{follower} -> #{following}")
+       {:error, res}
+    end
   end
 end
