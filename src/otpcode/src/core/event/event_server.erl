@@ -4,6 +4,9 @@
 -define(SERVER, ?MODULE).
 -record(state, {}).
 
+%%TODO: Change the file's logic later
+-include_lib("kernel/include/logger.hrl").
+
 start_link() ->
     gen_server:start_link({global, ?SERVER}, ?MODULE, [], []).
 
@@ -23,7 +26,7 @@ delete_event(Date) ->
     gen_server:call({global, ?MODULE}, {delete_event, Date}).
 
 init([]) ->
-    io:format("~p (~p) starting ......~n", [{global, ?MODULE}, self()]),
+    ?LOG_NOTICE("Post server has been started - ~p", [self()]),
     {ok, #state{}}.
 
 handle_call({add_event, Name, Date, Loc, Desc}, _From, State) ->

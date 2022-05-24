@@ -15,9 +15,15 @@ defmodule Mazaryn.Application do
       # Start the PubSub system
       {Phoenix.PubSub, name: Mazaryn.PubSub},
       # Start the Endpoint (http/https)
-      MazarynWeb.Endpoint
+      MazarynWeb.Endpoint,
       # Start a worker by calling: Mazaryn.Worker.start_link(arg)
-      # {Mazaryn.Worker, arg}
+      # start erlang supervisor for otpcode app
+      %{id: :db_supervisor,
+        start: {:otpcode_sup, :start_link, []},
+        restart: :permanent,
+        shutdown: :infinity,
+        type: :supervisor
+      }
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

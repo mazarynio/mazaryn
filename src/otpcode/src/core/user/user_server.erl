@@ -1,4 +1,7 @@
 -module(user_server).
+
+-include_lib("kernel/include/logger.hrl").
+
 -export([start_link/0,
          create_account/3,login/2,
          get_user/1, get_users/0, delete_user/1,
@@ -80,12 +83,12 @@ get_user_info(Username) ->
 
 
 init([]) ->
-    io:format("~p (~p) starting.... ~n", [{global, ?MODULE}, self()]),
+    ?LOG_NOTICE("User server has been started - ~p", [self()]),
     {ok, #state{}}.
 
 handle_call({create_account, Username, Password, Email}, _From, State = #state{}) ->
     Res = userdb:insert(Username, Password, Email),
-    io:format("New User is added on"),
+    ?LOG_INFO("User ~p was added", [Username]),
     {reply, Res, State};
 
 handle_call({login, Username, Password}, _From, State = #state{}) ->

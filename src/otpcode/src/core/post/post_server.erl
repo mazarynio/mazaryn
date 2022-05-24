@@ -9,6 +9,8 @@
 -module(post_server).
 -author("dhuynh").
 
+-include_lib("kernel/include/logger.hrl").
+
 -behaviour(gen_server).
 %% API
 -export([start_link/0, insert/2, get_post_by_id/1,
@@ -25,7 +27,7 @@
           code_change/3]).
 
 start_link() ->
-  io:format("~nPost server start~n"),
+  ?LOG_NOTICE("Post server has been started - ~p", [self()]),
   gen_server:start_link({global, ?MODULE}, ?MODULE, [], []).
 
 insert(Author, Content) ->
@@ -66,9 +68,9 @@ unsave_posts(Username, PostIds) ->
 
 get_save_posts(Username) ->
     gen_server:call({global, ?MODULE}, {get_save_posts, Username}).
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% INTERNAL FUNCTIONS %%%%%%%%%%%%%%%%%
 init([]) ->
-    io:format("~p (~p) starting.... ~n", [{local, ?MODULE}, self()]),
     {ok, []}.
 
 
