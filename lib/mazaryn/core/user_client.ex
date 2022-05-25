@@ -1,10 +1,5 @@
 defmodule Core.UserClient do
 
-  def start do
-    :otpcode_app.start("_a", "_b")
-  end
-
-
   def register(username, password, email) do
     :user_server.create_account(username, password, email)
   end
@@ -75,5 +70,17 @@ defmodule Core.UserClient do
 
   def get_user_info(username) do
     :user_server.get_user_info(username)
+  end
+
+  def block(username, blocked) do
+    :user_server.block(username, blocked)
+  end
+
+  def unblock(username, unblocked) do
+    :user_server.unblock(username, unblocked)
+  end
+
+  def get_blocked(username) do
+    :user_server.get_blocked(username)
   end
 end

@@ -1,5 +1,8 @@
 -module(event_server).
 -compile([export_all, nowarn_export_all]).
+
+-include_lib("kernel/include/logger.hrl").
+
 -behaviour(gen_server).
 -define(SERVER, ?MODULE).
 -record(state, {}).
@@ -23,12 +26,11 @@ delete_event(Date) ->
     gen_server:call({global, ?MODULE}, {delete_event, Date}).
 
 init([]) ->
-    io:format("~p (~p) starting ......~n", [{global, ?MODULE}, self()]),
+    ?LOG_NOTICE("Event server has been started - ~p", [self()]),
     {ok, #state{}}.
 
 handle_call({add_event, Name, Date, Loc, Desc}, _From, State) ->
     eventdb:insert(Name, Date, Loc, Desc),
-    io:format("New Event is added on"),
     {reply, ok, State};
 
 handle_call({retrieve_all}, _From, State) ->
