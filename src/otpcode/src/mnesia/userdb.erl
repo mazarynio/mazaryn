@@ -8,7 +8,8 @@
          change_username/3, change_password/3, change_email/3,
          follow/2, unfollow/2, follow_multiple/2, unfollow_multiple/2,
          save_post/2, save_posts/2, unsave_post/2, unsave_posts/2,
-         get_save_posts/1, get_follower/1, get_following/1]).
+         get_save_posts/1, get_follower/1, get_following/1,
+         block/2, unblock/2, get_blocked/1]).
 
 %%% check user credentials
 -spec login(Username :: term(), Password :: term()) -> wrong_username_or_password | logged_in.
@@ -276,4 +277,34 @@ check_user_credential(Username, Password) ->
         true -> {true, User};
         false -> false
       end
+  end.
+
+block(Username, Blocked) ->
+  case get_user(Username) of
+    not_exist -> not_exist;
+    error -> error;
+    User ->
+      List = User#user.blocking,
+      UpdatedUser = User#user{blocking = [Blocked|List]},
+      {atomic, Res} = mnesia:transaction(fun() -> mnesia:write(UpdatedUser) end),
+      Res
+  end.
+
+unblock(Username, Unblocked) ->
+  case get_user(Username) of
+    not_exist -> not_exist;
+    error -> error;
+    User ->
+      List = User#user.blocking,
+      UpdatedUser = User#user{blocking = lists:delete(Unblocked, List)},
+      {atomic, Res} = mnesia:transaction(fun() -> mnesia:write(UpdatedUser) end),
+      Res
+  end.
+
+get_blocked(Username) ->
+  case get_user(Username) of
+    not_exist -> not_exist;
+    error -> error;
+    User ->
+      User#user.blocking
   end.
