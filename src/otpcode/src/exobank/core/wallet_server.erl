@@ -6,6 +6,7 @@
   code_change/3]).
 
 -include_lib("kernel/include/logger.hrl").
+-include("../exo_records.hrl").
 
 -behaviour(gen_server).
 -define(SERVER, ?MODULE).
@@ -26,6 +27,17 @@ get_balance() ->
 init([]) ->
     ?LOG_NOTICE("Wallet server has been started - ~p", [self()]),
     {ok, #state{}}.
+
+handle_call({deposit, Amount}, _From, State) ->
+    NewBalance=State#wallet.balance+Amount,
+    {reply, {ok, NewBalance}, State#wallet{balance=NewBalance}};
+
+handle_call({withdraw, Amount}, _From, State) when State#wallet.balance<Amount ->
+  {reply, not_enough_money, State};
+
+handle_call({withdraw, Amount}, _From, State) ->
+    NewBalance=State#wallet.balance-Amount,
+    {reply, {ok, NewBalance}, State#wallet{balance=NewBalance}};
 
 handle_call(_Request, _From, State) ->
     {noreply, State}.
