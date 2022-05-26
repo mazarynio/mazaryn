@@ -3,9 +3,36 @@ defmodule Account.Users do
   User API
   """
 
+  alias Account.User
   alias Core.UserClient
   alias Mazaryn.Mailer
   require Logger
+
+  @spec one_by_username(keyword) :: %User{} | nil
+  def one_by_username(username) do
+    case Core.UserClient.getting_user(username) do
+      :not_exist ->
+        Logger.error("[Users] Failed to find #{username}")
+        :ok
+      erl_user ->
+        User.new(erl_user)
+    end
+  end
+
+  def one_by_email(email) do
+    case Core.UserClient.get_user_by_mail(email) do
+      :not_exist ->
+        Logger.error("[Users] Failed to find #{email}")
+        nil
+      erl_user ->
+        User.new(erl_user)
+    end
+
+  end
+
+  def list() do
+    Core.UserClient.getting_users()
+  end
 
   def register(username, pass, email) do
     case UserClient.register(username, pass, email) do
