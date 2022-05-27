@@ -12,6 +12,13 @@ defmodule MazarynWeb.UserView do
         }
     end
 
+    def render("success.json", %{message: message}) do
+      %{
+        status: true,
+        message: message
+      }
+  end
+
 
 
     def render("show.json", %{user: user}) do
@@ -42,7 +49,7 @@ defmodule MazarynWeb.UserView do
         }
     end
 
-    def render("error.json", %{message: changeset}) do
+    def render("error.json", %{changeset: changeset}) do
       errors = Enum.map(changeset.errors, fn {field, detail} -> "#{field} #{render_detail(detail)}" end)
       %{
         status: false,

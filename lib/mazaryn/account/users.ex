@@ -56,7 +56,7 @@ defmodule Account.Users do
   end
 
   defp autheticate_user(_username) do
-    nil
+    {:ok, _username}
   end
 
   def follow(follower, following) do
