@@ -32,11 +32,15 @@ defmodule MazarynWeb.Router do
     
     #User
     get "/users", UserController, :get_all_user
-    get "/user/:username", UserController, :get_user
-    get "/user/:username", UserController, :get_followers
+    get "/user/:username", UserController, :get_user_by_username
+    get "/user/:email", UserController, :get_user_by_email
+    # get "/user/:username", UserController, :get_followers
+    get "/user/follow", UserController, :follow_user
 
     #Authentication
-    post "/auth/user", UserController, :register
+    post "/auth/user/register", UserController, :register
+    post "/auth/user/login", UserController, :login
+
 
 
     #Post

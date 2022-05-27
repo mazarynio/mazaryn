@@ -17,7 +17,7 @@ config :mazaryn, Mazaryn.Repo,
 # you can enable the server option below.
 config :mazaryn, MazarynWeb.Endpoint,
   http: [ip: {127, 0, 0, 1}, port: 4002],
-  secret_key_base: "amOdVEyT3NmR9rAXmaTMHC6BKwCWlMkFj6+5HqvgEYTDxPCmtpAHDqQomGoI3lhD",
+  secret_key_base: "vqtsbLoeGWQW0exzthxM8fvX/4iBBOgrtSONN1UN72LfEnRQHgNBJmCLEB0f51oW",
   server: false
 
 # In test we don't send emails.

@@ -4,8 +4,8 @@ import Config
 config :mazaryn, Mazaryn.Repo,
   username: "thewestdevop",
   password: "",
+  database: "epp",
   hostname: "localhost",
-  database: "mazaryn_dev",
   stacktrace: true,
   show_sensitive_data_on_connection_error: true,
   pool_size: 10
@@ -23,10 +23,13 @@ config :mazaryn, MazarynWeb.Endpoint,
   check_origin: false,
   code_reloader: true,
   debug_errors: true,
-  secret_key_base: "LFSSGkZrS17QWSDTU1TsxzUY528/iWENFJWWrhyFWTuM8nPyZJuI1dguExC+WdVq",
+  secret_key_base: "JmhZ1wTiu1VifuJVeoLzhThdyT3EynZTscxAq6KYT/Pa9foj4PQEuxsjm9WkTrHQ",
   watchers: [
     # Start the esbuild watcher by calling Esbuild.install_and_run(:default, args)
-    esbuild: {Esbuild, :install_and_run, [:default, ~w(--sourcemap=inline --watch)]}
+    esbuild: {Esbuild, :install_and_run, [:default, ~w(--sourcemap=inline --watch)]},
+
+    # Start the tailwind watcher by calling Tailwind.install_and_run(:default, args)
+    tailwind: {Tailwind, :install_and_run, [:default, ~w(--watch)]}
   ]
 
 # ## SSL Support
@@ -75,5 +78,4 @@ config :phoenix, :stacktrace_depth, 20
 config :phoenix, :plug_init_mode, :runtime
 
 
-config :joken, default_signer: "EzHId1dW+w66EkssC+4T8FLlRkPpYO/RNamOAn6Pq2eltkRQC93Hal2Ujnr5B6Oo"
-
+config :joken, default_signer: "secret"

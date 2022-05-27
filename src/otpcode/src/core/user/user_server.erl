@@ -1,15 +1,38 @@
 -module(user_server).
--compile([export_all, nowarn_export_all]).
+
+-include_lib("kernel/include/logger.hrl").
+
+-export([start_link/0,
+         create_account/3,login/2,
+         get_user/1, get_users/0, delete_user/1,
+         get_user_by_email/1, get_password/1,
+         set_user_info/3, get_user_info/1,
+         follow/2, unfollow/2,
+         follow_multiple/2, unfollow_multiple/2,
+         change_username/3, change_password/3, change_email/3,
+         get_following/1, get_follower/1,
+         block/2, unblock/2, get_blocked/1]).
+
+%% gen_server callbacks
+-export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2,
+  code_change/3]).
+
 -behaviour(gen_server).
 -define(SERVER, ?MODULE).
 -record(state, {}).
--import(postdb, [init/0]).
+
 
 start_link() ->
-    gen_server:start_link({global, ?SERVER}, ?MODULE, [], []).
+    gen_server:start_link({global, ?SERVER}, ?MODULE, [], []).  
 
-create_account(Username, Password) ->
-    gen_server:call({global, ?MODULE}, {create_account, Username, Password}).
+create_account(Username, Password, Email) ->
+    gen_server:call({global, ?MODULE}, {create_account, Username, Password, Email}).
+
+login(Username, Password) ->
+    gen_server:call({global, ?MODULE}, {login, Username, Password}).
+
+set_user_info(Username, Fields, Values) ->
+    gen_server:call({global, ?MODULE}, {set_user_info, Username, Fields, Values}).
 
 get_user(Username) ->
     gen_server:call({global, ?MODULE}, {get_user, Username}). 
@@ -17,84 +40,146 @@ get_user(Username) ->
 get_users() ->
     gen_server:call({global, ?MODULE}, {get_users}).
 
-signup(Email, Username, Password) ->
-    gen_server:call({global, ?MODULE}, {signup, Email, Username, Password}).
+get_password(Username) ->
+    gen_server:call({global, ?MODULE}, {get_password, Username}).
 
-signin(Username, Password) ->
-    gen_server:call({global, ?MODULE}, {signin, Username, Password}).
+get_user_by_email(Email) ->
+    gen_server:call({global, ?MODULE}, {get_user_by_email, Email}). 
+
+change_password(Username, CurrentPass, NewPass) ->
+    gen_server:call({global, ?MODULE}, {change_password, Username, CurrentPass, NewPass}).
+
+change_email(Username, CurrentPass, NewEmail) -> 
+    gen_server:call({global, ?MODULE}, {change_email, Username, CurrentPass, NewEmail}).
+
+change_username(Username, CurrentPass, NewUsername) ->
+    gen_server:call({global, ?MODULE}, {change_username, Username, CurrentPass, NewUsername}).
+
+delete_user(Username) ->
+    gen_server:call({global, ?MODULE}, {delete_user, Username}).
+
+follow(Username, Following) ->
+    gen_server:call({global, ?MODULE}, {follow, Username, Following}).
+
+unfollow(Username, Following) ->
+    gen_server:call({global, ?MODULE}, {unfollow, Username, Following}).
+
+follow_multiple(Username, Others) ->
+    gen_server:call({global, ?MODULE}, {follow_multiple, Username, Others}).
+
+unfollow_multiple(Username, Others) ->
+    gen_server:call({global, ?MODULE}, {unfollow_multiple, Username, Others}).
 
 
-login(Username, Password) ->
-    gen_server:call(?MODULE, {login, Username, Password}).
 
+get_following(Username) ->
+    gen_server:call({global, ?MODULE}, {get_following, Username}).
 
+get_follower(Username) ->
+    gen_server:call({global, ?MODULE}, {get_follower, Username}). 
 
+get_user_info(Username) ->
+    gen_server:call({global, ?MODULE}, {get_user_info, Username}).
 
+block(Username, Blocked) ->
+    gen_server:call({global, ?MODULE}, {user_block, Username, Blocked}).
 
-search_user(Username) ->
-    gen_server:call({global, ?MODULE}, {search_user, Username}).
+unblock(Username, Unblocked) ->
+    gen_server:call({global, ?MODULE}, {user_unblock, Username, Unblocked}).
 
-follow(Username) ->
-    gen_server:call({global, ?MODULE}, {follow, Username}).
+get_blocked(Username) ->
+    gen_server:call({global, ?MODULE}, {get_blocked, Username}).
 
-unfollow(Username) ->
-    gen_server:call({global, ?MODULE}, {unfollow, Username}).
-
-is_following(Username) ->
-    gen_server:call({global, ?MODULE}, {is_following, Username}).
-
-remove_user(Username) ->
-    gen_server:call({global, ?MODULE}, {remove_user, Username}).
-
-create_post(Content) ->
-    gen_server:call({global, ?MODULE}, {create_post, Content}).
-
-get_post() ->
-    gen_server:call({global, ?MODULE}, {get_post}).
-
-follow_user() ->
-    gen_server:call({global, ?MODULE}, {follow_user}).
+%% INTERNAL HANDLERS
 
 init([]) ->
-    io:format("~p (~p) starting.... ~n", [{global, ?MODULE}, self()]),
-    userdb:init(),
-    postdb:init(),
+    ?LOG_NOTICE("User server has been started - ~p", [self()]),
     {ok, #state{}}.
 
-handle_call({create_account, Username, Password}, _From, State = #state{}) ->
-    userdb:insert(Username, Password),
-    io:format("New User is added on"),
-    {reply, ok, State};
+handle_call({create_account, Username, Password, Email}, _From, State = #state{}) ->
+    Res = userdb:insert(Username, Password, Email),
+    ?LOG_INFO("User ~p was added", [Username]),
+    {reply, Res, State};
 
+handle_call({login, Username, Password}, _From, State = #state{}) ->
+    Res = userdb:login(Username, Password),
+    {reply, Res, State};
+
+handle_call({set_user_info, Username, Fields, Values}, _From, State) ->
+    Res = userdb:set_user_info(Username, Fields, Values),
+    {reply, Res, State};
 
 handle_call({get_user, Username}, _From, State) ->
-    userdb:get_user(Username),
-    {reply, ok, State};
+    Res = userdb:get_user(Username),
+    {reply, Res, State};
 
 handle_call({get_users}, _From, State = #state{}) ->
-    userdb:get_users(),
-    {reply, ok, State};
+    Res = userdb:get_users(),
+    {reply, Res, State};
 
-handle_call({search_user, Username}, _From, State = #state{}) ->
-    userdb:search_user(Username),
-    {reply, ok, State};
+handle_call({get_password, Username}, _From, State) ->
+    Res = userdb:get_password(Username),
+    {reply, Res, State};
 
-handle_call({follow, Username}, _From, State) ->
-    followerdb:save_follow_user(Username),
-    {reply, ok, State};
+handle_call({get_user_by_email, Email}, _From, State) ->
+    Res = userdb:get_user_by_email(Email),
+    {reply, Res, State};
 
-handle_call({unfollow, Username}, _From, State) ->
-    followerfb:delete_follow_user(Username),
-    {reply, ok, State};
+handle_call({change_password, Username, CurrentPass, NewPass}, _From, State) ->
+    Res = userdb:change_password(Username, CurrentPass, NewPass),
+    {reply, Res, State};
 
-handle_call({is_following, Username}, _From, State) ->
-    followerdb:is_following(Username),
-    {reply, ok, State};
+handle_call({change_email, Username, CurrentPass, NewEmail}, _From, State) ->
+    Res = userdb:change_email(Username, CurrentPass, NewEmail),
+    {reply, Res, State};
 
-handle_call({create_post, Content}, _From, State) ->
-    postdb:insert(Content),
-    io:format("New Post is added on"),
-    {reply, ok, State};
+handle_call({change_username, Username, CurrentPass, NewUsername}, _From, State) ->
+    Res = userdb:change_username(Username, CurrentPass, NewUsername),
+    {reply, Res, State};
+
+handle_call({delete_user, Username}, _From, State) ->
+    Res = userdb:delete_user(Username),
+    {reply, Res, State};
+
+handle_call({follow, Username, Following}, _From, State) ->
+    Res = userdb:follow(Username, Following),
+    {reply, Res, State};
+
+handle_call({unfollow, Username, Following}, _From, State) ->
+    Res = userdb:unfollow(Username, Following),
+    {reply, Res, State};
+
+handle_call({follow_multiple, Username, Others}, _From, State) ->
+    Res = userdb:follow_multiple(Username, Others),
+    {reply, Res, State};
+
+handle_call({unfollow_multiple, Username, Others}, _From, State) ->
+    Res = userdb:unfollow_multiple(Username, Others),
+    {reply, Res, State};
+
+handle_call({get_following, Username}, _From, State) ->
+    Res = userdb:get_following(Username),
+    {reply, Res, State};
+
+handle_call({get_follower, Username}, _From, State) ->
+    Res = userdb:get_follower(Username),
+    {reply, Res, State};
+
+handle_call({get_user_info, Username}, _From, State) ->
+    Res = userdb:get_user_info(Username),
+    {reply, Res, State};
+
+handle_call({user_block, Username, Blocked}, _From, State) ->
+    Res = userdb:block(Username, Blocked),
+    {reply, Res, State};
+
+handle_call({user_unblock, Username, Unblocked}, _From, State) ->
+    Res = userdb:unblock(Username, Unblocked),
+    {reply, Res, State};
+
+handle_call({get_blocked, Username}, _From, State) ->
+    Res = userdb:get_blocked(Username),
+    {reply, Res, State};
 
 handle_call(_Request, _From, State) ->
     {noreply, State}.
@@ -111,6 +196,4 @@ terminate(_Reason, _State) ->
 code_change(_OldVsn, State, _Extra) ->
     {ok, State}.
 
-is_username_taken(Username) ->
-    Username == not_logged_in orelse userdb:return_user(Username) =/= [].
 

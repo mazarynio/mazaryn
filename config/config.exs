@@ -15,7 +15,7 @@ config :mazaryn, MazarynWeb.Endpoint,
   url: [host: "localhost"],
   render_errors: [view: MazarynWeb.ErrorView, accepts: ~w(html json), layout: false],
   pubsub_server: Mazaryn.PubSub,
-  live_view: [signing_salt: "5w5bgdGm"]
+  live_view: [signing_salt: "3rPgguT0"]
 
 # Configures the mailer
 #
@@ -24,7 +24,10 @@ config :mazaryn, MazarynWeb.Endpoint,
 #
 # For production it's recommended to configure a different adapter
 # at the `config/runtime.exs`.
-config :mazaryn, Mazaryn.Mailer, adapter: Swoosh.Adapters.Local
+config :mazaryn, Mazaryn.Mailer,
+  adapter: Swoosh.Adapters.Local,
+  api_key: "SG.x.x",
+  api_client: false
 
 # Swoosh API client is needed for adapters other than SMTP.
 config :swoosh, :api_client, false
@@ -38,6 +41,16 @@ config :esbuild,
     cd: Path.expand("../assets", __DIR__),
     env: %{"NODE_PATH" => Path.expand("../deps", __DIR__)}
   ]
+
+# Configure Tailwind (the version is required)
+config :tailwind, version: "3.0.24", default: [
+  args: ~w(
+    --config=tailwind.config.js
+    --input=css/app.css
+    --output=../priv/static/assets/app.css
+  ),
+  cd: Path.expand("../assets", __DIR__)
+]
 
 # Configures Elixir's Logger
 config :logger, :console,

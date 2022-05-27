@@ -7,7 +7,7 @@ defmodule MazarynWeb.Endpoint do
   @session_options [
     store: :cookie,
     key: "_mazaryn_key",
-    signing_salt: "aVGH73hq"
+    signing_salt: "46AkRCLb"
   ]
 
   socket "/live", Phoenix.LiveView.Socket, websocket: [connect_info: [session: @session_options]]
@@ -20,7 +20,7 @@ defmodule MazarynWeb.Endpoint do
     at: "/",
     from: :mazaryn,
     gzip: false,
-    only: ~w(assets fonts images vega favicon.ico robots.txt)
+    only: ~w(assets fonts images favicon.ico robots.txt)
 
   # Code reloading can be explicitly enabled under the
   # :code_reloader configuration of your endpoint.
