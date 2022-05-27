@@ -2,7 +2,6 @@ defmodule Account.Users do
   @moduledoc """
   User API
   """
-
   alias Account.User
   alias Core.UserClient
   alias Mazaryn.Mailer
@@ -33,6 +32,7 @@ defmodule Account.Users do
   def list() do
     Core.UserClient.getting_users()
   end
+
 
   def register(username, pass, email) do
     case UserClient.register(username, pass, email) do
