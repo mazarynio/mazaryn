@@ -21,6 +21,30 @@ defmodule MazarynWeb.Router do
   end
 
   # Other scopes may use custom stacks.
+  scope "/api/v1", MazarynWeb do
+    pipe_through :api
+
+    #User
+    get "/users", UserController, :get_all_user
+    get "/user/:username", UserController, :get_user_by_username
+    get "/user/:email", UserController, :get_user_by_email
+    # get "/user/:username", UserController, :get_followers
+    get "/user/follow", UserController, :follow_user
+
+    #Authentication
+    post "/auth/user/register", UserController, :register
+    post "/auth/user/login", UserController, :login
+
+
+
+    #Post
+    post "/create/post", UserController, :create_post
+
+
+
+  end
+
+  # Other scopes may use custom stacks.
   # scope "/api", MazarynWeb do
   #   pipe_through :api
   # end
