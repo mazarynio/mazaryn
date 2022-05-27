@@ -49,6 +49,7 @@ defmodule Mazaryn.MixProject do
       {:jason, "~> 1.3"},
       {:plug_cowboy, "~> 2.5"},
       {:joken, "~> 2.4"},
+      {:tarams, "~> 1.5"},
       {:tailwind, "~> 0.1", runtime: Mix.env() == :dev},
       {:swoosh, "~> 1.6"},
 
