@@ -1,6 +1,6 @@
 -module(postdb).
 -export([insert/2, get_post_by_id/1,
-         get_posts_by_author/1,delete_post/1,add_comment/3,
+         get_posts_by_author/1,delete_post/1,add_comment/3, get_posts/0,
          get_all_posts_from_date/4, get_all_posts_from_month/3,
          get_comments/1]).
 -include("../records.hrl").
@@ -42,6 +42,16 @@ add_comment(Id, Username, Comment) ->
             mnesia:write(Post#post{comments = [{Username, Comment, calendar:universal_time()}| Comments]})
           end,
     mnesia:transaction(Fun).
+
+get_posts() ->
+    Fun = fun() ->
+            mnesia:foldl(fun(Post, Acc) ->
+                            [Post#post.id|Acc]
+                         end, [], post)
+          end,
+    {atomic, Res} = mnesia:transaction(Fun),
+    Res.
+
 
 %%% Date in tuple format
 %%% {2022,05,01}
