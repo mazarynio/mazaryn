@@ -20,6 +20,10 @@ defmodule Core.PostClient do
     :post_server.add_comment(id, username, comment)
   end
 
+  def get_posts() do
+    :post_server.get_posts()
+  end
+
   def get_all_posts_from_date(year, month, date, author) do
     :post_server.get_all_posts_from_date(year, month, date, author)
   end
