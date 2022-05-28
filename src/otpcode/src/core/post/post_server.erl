@@ -14,7 +14,7 @@
 -behaviour(gen_server).
 %% API
 -export([start_link/0, insert/2, get_post_by_id/1,
-         get_posts_by_author/1, delete_post/1,add_comment/3,
+         get_posts_by_author/1, delete_post/1,add_comment/3, get_posts/0,
          get_all_posts_from_date/4, get_all_posts_from_month/3,
          get_comments/1]).
 
@@ -25,6 +25,8 @@
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2,
           code_change/3]).
+
+-record(state, {}).
 
 start_link() ->
   ?LOG_NOTICE("Post server has been started - ~p", [self()]),
@@ -44,6 +46,9 @@ delete_post(Id) ->
 
 add_comment(Id, Username, Comment) ->
   gen_server:call({global, ?MODULE}, {add_comment, Id, Username, Comment}).
+
+get_posts() ->
+    gen_server:call({global, ?MODULE}, {get_posts}).
 
 get_all_posts_from_date(Year, Month, Date, Author) ->
   gen_server:call({global, ?MODULE}, {get_all_posts_from_date, Year, Month, Date, Author}).
@@ -89,6 +94,10 @@ handle_call({get_posts_by_author, Author}, _From, State) ->
 handle_call({add_comment, Id, Username, Comment}, _From, State) ->
     postdb:add_comment(Id, Username, Comment),
     {reply, ok, State};
+
+handle_call({get_posts}, _From, State = #state{}) ->
+    Res = postdb:get_posts(),
+    {reply, Res, State};
 
 handle_call({get_all_posts_from_date, Year, Month, Date, Author}, _From, State) ->
     Posts = postdb:get_all_posts_from_date(Year, Month, Date, Author),
