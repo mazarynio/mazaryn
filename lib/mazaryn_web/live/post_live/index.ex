@@ -19,9 +19,21 @@ defmodule MazarynWeb.PostLive.Index do
     |> assign(:post, PostClient.create_post(author, content))
   end
 
+  defp apply_action(socket, :edit, %{"id" => id}) do
+    socket
+    |> assign(:page_title, "Edit Post")
+    |> assign(:post, PostClient.get_post_by_id(id))
+  end
+
+  defp apply_action(socket, :index, _params) do
+    socket
+    |> assign(:page_title, "Listing Posts")
+    |> assign(:post, nil)
+  end
+
   @impl true
   def handle_event("delete", %{"id" => id}, socket) do
-    post = PostClient.get_post_by_id(id)
+     PostClient.get_post_by_id(id)
     {:ok, _} = PostClient.delete_post(id)
 
     {:noreply, assign(socket, :posts, list_posts())}
