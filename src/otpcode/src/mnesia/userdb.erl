@@ -14,7 +14,10 @@
 %%% check user credentials
 -spec login(Username :: term(), Password :: term()) -> wrong_username_or_password | logged_in.
 login(Username, Password) ->
-  case check_user_credential(Username, Password) of
+  {atomic, Res} = mnesia:transaction(fun() ->
+                                        check_user_credential(Username, Password)
+                                     end),
+  case Res of
     {true, _} -> logged_in;
     false -> wrong_username_or_password
   end.
@@ -23,36 +26,37 @@ login(Username, Password) ->
 %%% Values: [a,b,c]
 set_user_info(Username, Fields, Values) ->
   List = lists:zip(Fields, Values),
-  case get_user(Username) of
-    not_exist -> not_exist;
-    error -> error;
-    User ->
-      Attrs = proplists:get_keys(User#user.other_info),
-      NotUpdatedAttrs =[proplists:delete(X, Attrs) || X <- proplists:get_keys(List)],
-      mnesia:transaction(
-        fun() ->
-          mnesia:write(#user{username = Username,
-                             other_info = lists:append([List|NotUpdatedAttrs]),
-                             date_updated = calendar:universal_time()})
-        end)
-  end.
+  Fun = fun() ->
+          case get_user_in_transaction(Username) of
+            [] -> not_exist;
+            User ->
+              Attrs = proplists:get_keys(User#user.other_info),
+              NotUpdatedAttrs =[proplists:delete(X, Attrs) || X <- proplists:get_keys(List)],
+              mnesia:write(User#user{other_info = lists:append([List|NotUpdatedAttrs]),
+                                     date_updated = calendar:universal_time()})
+          end
+        end,
+  {atomic, Res} = mnesia:transaction(Fun),
+  Res.
 
 insert(Username, Password, Email) ->
     %% check username exist or not
-    case {check_username(Username), check_email(Email)} of
-      {undefined, undefined} ->
-        Now = calendar:universal_time(),
-        User = #user{username = Username,
-                     password = erlpass:hash(Password),
-                     email = Email,
-                     date_created = Now},
-        F = fun() ->
-              mnesia:write(User)
-            end,
-        {atomic, Res} = mnesia:transaction(F),
-        Res;
-      _ -> username_or_email_existed
-    end.
+    Fun = fun() ->
+            case {check_username(Username), check_email(Email)} of
+              {undefined, undefined} ->
+                Now = calendar:universal_time(),
+                User = #user{username = Username,
+                             password = erlpass:hash(Password),
+                             email = Email,
+                             date_created = Now},
+                mnesia:write(User);
+              {username_existed, _} -> username_existed;
+              {_, email_existed} -> email_existed;
+              {username_existed, email_existed} -> username_and_email_existed
+            end
+      end,
+    {atomic, Res} = mnesia:transaction(Fun),
+    Res.
 
 get_user(Username) ->
     F = fun() ->
@@ -63,6 +67,13 @@ get_user(Username) ->
       {atomic, [User]} -> User;
       {atomic, []} -> not_exist;
       _ -> error
+    end.
+
+get_user_in_transaction(Username) ->
+    Res = mnesia:read(user, Username),
+    case Res of
+      [] -> not_exist;
+      [User] -> User
     end.
 
 get_users() ->
@@ -81,7 +92,7 @@ get_password(Username) ->
     Res = mnesia:transaction(F),
     case Res of
       {atomic, [User]} -> User#user.password;
-      {atomic, []} -> not_exist;
+      {atomic, []} -> user_not_existed;
       _ -> error
     end.
 
@@ -91,57 +102,58 @@ get_user_by_email(Email) ->
               mnesia:match_object(#user{email = Email, _= '_'})
           end),
   case Res of
-    {atomic, []} -> not_exist;
+    {atomic, []} -> user_not_exist;
     {atomic, User} -> User;
     _ -> error
   end.
 
 % TODO: change password, email, username
 change_password(Username, CurrentPass, NewPass) ->
-  case check_user_credential(Username, CurrentPass) of
-    {true, User} ->
-      Fun = fun() ->
-              mnesia:write(User#user{password = erlpass:hash(NewPass),
-                                     date_updated = calendar:universal_time()})
-            end,
-      mnesia:transaction(Fun),
-      ok;
-    false -> wrong_username_or_password
-  end.
+  Fun = fun() ->
+          case check_user_credential(Username, CurrentPass) of
+            {true, User} ->
+                      mnesia:write(User#user{password = erlpass:hash(NewPass),
+                                             date_updated = calendar:universal_time()});
+            false -> wrong_username_or_password
+          end
+        end,
+  {atomic, Res} = mnesia:transaction(Fun),
+  Res.
 
-change_email(Username, CurrentPass, NewEmail) ->
-  case check_user_credential(Username, CurrentPass) of
-    {true, User} ->
-      case check_email(NewEmail) of
-        undefined ->
-          mnesia:transaction(fun() ->
-                               mnesia:write(User#user{email = NewEmail,
-                                                      date_updated = calendar:universal_time()})
-                             end);
-        existed ->
-          email_existed
-      end;
-    false ->
-      wrong_username_or_password
-  end.
+change_email(Username, Password, NewEmail) ->
+  Fun = fun() ->
+            case check_email(NewEmail) of
+                  undefined ->
+                     case check_user_credential(Username, Password) of
+                       {true, User} ->
+                          mnesia:write(User#user{email = NewEmail, date_updated = calendar:universal_time()});
+                       false ->
+                          wrong_username_or_password
+                     end;
+                  email_existed ->
+                    email_existed
+            end
+        end,
+  {atomic, Res} = mnesia:transaction(Fun),
+  Res.
 
 change_username(Username, CurrentPass, NewUsername) ->
-  case check_user_credential(Username, CurrentPass) of
-    {true, User} ->
-      case check_username(NewUsername) of
-        undefined ->
-            mnesia:transaction(fun() ->
-                                mnesia:write(User#user{username = NewUsername,
-                                                       date_updated = calendar:universal_time()}),
-                                mnesia:delete({user, Username})
-                               end),
-            ok;
-        existed ->
-          username_existed
-      end;
-    false ->
-      wrong_username_or_password
-  end.
+  Fun = fun() ->
+          case check_username(NewUsername) of
+            undefined ->
+              case check_user_credential(Username, CurrentPass) of
+                {true, User} ->
+                  mnesia:write(User#user{username = NewUsername,
+                                         date_updated = calendar:universal_time()}),
+                  mnesia:delete({user, Username});
+                false ->
+                  wrong_username_or_password
+              end;
+            username_existed -> username_existed
+          end
+        end,
+  {atomic, Res} = mnesia:transaction(Fun),
+  Res.
 
 delete_user(Username) ->
     F = fun() ->
@@ -245,34 +257,27 @@ get_user_info(Username) ->
 %%% check if username/email existed
 -spec check_username(Username :: term()) -> undefined | existed.
 check_username(Username) ->
-    Fun = fun() ->
           Object =  mnesia:match_object(#user{username = Username,
                                               _ = '_'}),
           case Object of
             [] -> undefined;
-            _ -> existed
-          end
-        end,
-  {atomic, Res} = mnesia:transaction(Fun),
-  Res.
+            _ -> username_existed
+          end.
 
 -spec check_email(Username :: term()) -> undefined | existed.
 check_email(Email) ->
-    Fun = fun() ->
-          Object =  mnesia:match_object(#user{email = Email, _ = '_'}),
-          case Object of
-            [] -> undefined;
-            _ -> existed
-          end
-        end,
-  {atomic, Res} = mnesia:transaction(Fun),
-  Res.
+  Object =  mnesia:match_object(#user{email = Email, _ = '_'}),
+  case Object of
+    [] -> undefined;
+    _ -> email_existed
+  end.
 
 check_user_credential(Username, Password) ->
-  case get_user(Username) of
-    not_exist -> false;
-    error -> false;
-    User ->
+  Object =  mnesia:match_object(#user{username = Username,
+                                      _ = '_'}),
+  case Object of
+    [] -> false;
+    [User] ->
       case erlpass:match(Password, User#user.password) of
         true -> {true, User};
         false -> false
