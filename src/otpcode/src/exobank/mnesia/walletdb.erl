@@ -3,6 +3,9 @@
 
 -record(wallet, {name, password, address, balance, pub_key, priv_key}).
 
+-define(CURVE_NAME, eddsa).
+-define(CURVE_PARAM, ed25519).
+
 init() ->
     mnesia:create_schema([node()]),
     mnesia:start(),
@@ -12,8 +15,7 @@ init() ->
 insert(Name, Password) ->
     Address = crypto_utils:generate_key_pair(),
     Balance = 0,
-    Pub_key = uuid:generate(),
-    Priv_key = uuid:get_rand_string(),
+    {Pub_key, Priv_key} = crypto:generate(?CURVE_NAME, ?CURVE_PARAM),
     Wallet = #wallet{name = Name,
                      password = Password, 
                      address = Address,
