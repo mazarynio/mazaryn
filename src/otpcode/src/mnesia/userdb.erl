@@ -30,9 +30,18 @@ set_user_info(Username, Fields, Values) ->
           case get_user_in_transaction(Username) of
             [] -> not_exist;
             User ->
-              Attrs = proplists:get_keys(User#user.other_info),
-              NotUpdatedAttrs =[proplists:delete(X, Attrs) || X <- proplists:get_keys(List)],
-              mnesia:write(User#user{other_info = lists:append([List|NotUpdatedAttrs]),
+              CurrentFields = User#user.other_info,
+              NewFields =
+                lists:foldl(fun({Key, Value}, Acc) ->
+                                case lists:keymember(Key, 1, Acc) of
+                                  true ->
+                                    lists:keyreplace(Key, 1, Acc, {Key, Value});
+                                  false ->
+                                    [{Key, Value}|CurrentFields]
+                                end
+                            end, CurrentFields, List),
+
+              mnesia:write(User#user{other_info = NewFields,
                                      date_updated = calendar:universal_time()})
           end
         end,
@@ -78,9 +87,7 @@ get_user_in_transaction(Username) ->
 
 get_users() ->
     Fun = fun() ->
-            mnesia:foldl(fun(User, Acc) ->
-                            [User#user.username|Acc]
-                         end, [], user)
+            mnesia:all_keys(user)
           end,
     {atomic, Res} = mnesia:transaction(Fun),
     Res.

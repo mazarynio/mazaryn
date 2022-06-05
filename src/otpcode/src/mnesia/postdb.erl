@@ -45,9 +45,7 @@ add_comment(Id, Username, Comment) ->
 
 get_posts() ->
     Fun = fun() ->
-            mnesia:foldl(fun(Post, Acc) ->
-                            [Post#post.id|Acc]
-                         end, [], post)
+            mnesia:all_keys(post)
           end,
     {atomic, Res} = mnesia:transaction(Fun),
     Res.
