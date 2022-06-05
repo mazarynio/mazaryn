@@ -37,7 +37,7 @@ set_user_info(Username, Fields, Values) ->
                                   true ->
                                     lists:keyreplace(Key, 1, Acc, {Key, Value});
                                   false ->
-                                    [{Key, Value}|CurrentFields]
+                                    [{Key, Value}|Acc]
                                 end
                             end, CurrentFields, List),
 
