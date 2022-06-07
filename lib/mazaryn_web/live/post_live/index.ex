@@ -15,8 +15,8 @@ defmodule MazarynWeb.PostLive.Index do
 
   defp apply_action(socket, :new, _params) do
     socket
-    |> aasign(:page_title, "New Post")
-    |> assign(:post, PostClient.create_post(author, content))
+    |> assign(:page_title, "New Post")
+    # |> assign(:post, PostClient.create_post(author, content))
   end
 
   defp apply_action(socket, :edit, %{"id" => id}) do

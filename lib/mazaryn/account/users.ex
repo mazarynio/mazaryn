@@ -20,11 +20,13 @@ defmodule Account.Users do
 
   def one_by_email(email) do
     case Core.UserClient.get_user_by_mail(email) do
-      :not_exist ->
+      :user_not_exist ->
         Logger.error("[Users] Failed to find #{email}")
         nil
       erl_user ->
-        User.new(erl_user)
+        erl_user
+        |> List.first()
+        |> User.new()
     end
 
   end
@@ -32,7 +34,6 @@ defmodule Account.Users do
   def list() do
     Core.UserClient.getting_users()
   end
-
 
   def register(username, pass, email) do
     case UserClient.register(username, pass, email) do
@@ -48,15 +49,11 @@ defmodule Account.Users do
 
   def login(username, pass) do
     case UserClient.login(username, pass) do
-      :logged_in -> autheticate_user(username)
+      :logged_in -> {:ok, :logged_in}
       res ->
        Logger.error("[Users] Failed to login #{username}: #{res}")
        {:error, res}
     end
-  end
-
-  defp autheticate_user(_username) do
-    nil
   end
 
   def follow(follower, following) do

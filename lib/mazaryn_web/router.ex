@@ -14,10 +14,27 @@ defmodule MazarynWeb.Router do
     plug :accepts, ["json"]
   end
 
+  # pipeline :liveview do
+  #   plug :ensure_user_authenticated
+  #   plug :ensure_user_confirmed
+  # end
+
+  live_session :default,
+    on_mount: [MazarynWeb.UserLiveAuth] do
+      scope "/", MazarynWeb do
+        pipe_through [:browser]
+
+        live "/home", HomeLive.Index
+      end
+  end
+
   scope "/", MazarynWeb do
     pipe_through :browser
 
     get "/", PageController, :index
+    live "/login", LoginLive
+    live "/reset", ResetLive
+    live "/signup", SignupLive
   end
 
   # Other scopes may use custom stacks.
@@ -26,8 +43,8 @@ defmodule MazarynWeb.Router do
 
     #User
     get "/users", UserController, :get_all_user
-    get "/user/:username", UserController, :get_user_by_username
-    get "/user/:email", UserController, :get_user_by_email
+    #get "/user/:username", UserController, :get_user_by_username
+    #get "/user/:email", UserController, :get_user_by_email
     # get "/user/:username", UserController, :get_followers
     get "/user/follow", UserController, :follow_user
 

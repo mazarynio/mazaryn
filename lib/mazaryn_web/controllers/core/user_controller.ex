@@ -26,7 +26,6 @@ defmodule MazarynWeb.UserController do
   }
 
 
-
   def get_all_user(conn, _param) do
     users = Users.list()
     render(conn, "index.json", users: users)
@@ -57,7 +56,7 @@ defmodule MazarynWeb.UserController do
   def login(conn, %{"username" => username, "password" => password}) do
     with {:ok, better_params} <- Tarams.cast(%{"username" => username, "password" => password}, @login_schema) do
      case Users.login(better_params.username, better_params.password) do
-      {:ok, msg } ->
+      {:ok, msg} ->
         IO.inspect(msg)
         render(conn, "show.json", user: %{
           id: msg.id,

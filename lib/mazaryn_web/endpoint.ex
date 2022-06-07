@@ -7,7 +7,8 @@ defmodule MazarynWeb.Endpoint do
   @session_options [
     store: :cookie,
     key: "_mazaryn_key",
-    signing_salt: "46AkRCLb"
+    signing_salt: "46AkRCLb",
+    user_token: nil
   ]
 
   socket "/live", Phoenix.LiveView.Socket, websocket: [connect_info: [session: @session_options]]
