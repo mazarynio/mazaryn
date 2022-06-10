@@ -19,22 +19,20 @@ defmodule MazarynWeb.Router do
   #   plug :ensure_user_confirmed
   # end
 
-  live_session :default,
-    on_mount: [MazarynWeb.UserLiveAuth] do
-      scope "/", MazarynWeb do
-        pipe_through [:browser]
-
-        live "/home", HomeLive.Index
-      end
-  end
-
   scope "/", MazarynWeb do
     pipe_through :browser
 
+    live_session :default,
+    on_mount: [MazarynWeb.UserLiveAuth] do
+      live "/login", LoginLive
+      live "/home", HomeLive.Index
+      live "/reset", ResetLive
+      live "/signup", SignupLive
+    end
+
     get "/", PageController, :index
-    live "/login", LoginLive
-    live "/reset", ResetLive
-    live "/signup", SignupLive
+
+
   end
 
   # Other scopes may use custom stacks.
