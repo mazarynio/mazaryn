@@ -1,4 +1,4 @@
-defmodule MazarynWeb.SignupLive do
+defmodule MazarynWeb.AuthLive.Reset do
   use MazarynWeb, :live_view
 
   def mount(_params, _session, socket) do
@@ -6,12 +6,4 @@ defmodule MazarynWeb.SignupLive do
 
     {:ok, socket}
   end
-
-  def render(assigns) do
-    IO.puts "RENDER #{inspect(self())}"
-    ~H"""
-    signup
-    """
-  end
-
 end

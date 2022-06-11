@@ -24,10 +24,10 @@ defmodule MazarynWeb.Router do
 
     live_session :default,
     on_mount: [MazarynWeb.UserLiveAuth] do
-      live "/login", LoginLive
+      live "/login", AuthLive.Login
       live "/home", HomeLive.Index
-      live "/reset", ResetLive
-      live "/signup", SignupLive
+      live "/reset", AuthLive.Reset
+      live "/signup", AuthLive.Signup
     end
 
     get "/", PageController, :index
