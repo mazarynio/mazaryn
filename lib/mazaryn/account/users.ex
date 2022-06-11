@@ -64,4 +64,8 @@ defmodule Account.Users do
        {:error, res}
     end
   end
+
+  def reset_password(%User{} = user) do
+    {:ok, :reseted}
+  end
 end

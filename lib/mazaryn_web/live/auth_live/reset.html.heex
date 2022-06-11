@@ -1,1 +1,293 @@
-reset
+<style>
+    .split {
+        height: 100%;
+        width: 50%;
+        position: fixed;
+        z-index: 1;
+        top: 0;
+        overflow-x: hidden;
+        padding-top: 20px;
+    }
+
+    .left {
+        left: 0;
+        background-color: #000000;
+        width: 45%;
+        overflow-y: hidden;
+    }
+
+    .right {
+        right: 0;
+        background-color: #E5E5E5;
+        width: 55%;
+    }
+
+    .centered {
+        /* Center vertically and horizontally */
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        text-align: center;
+    }
+
+    .form-container{
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: flex-start;
+        padding: 60px;
+        gap: 30px;
+
+        background: #FFFFFF;
+        box-shadow: 0px 10px 20px rgba(112, 144, 176, 0.25);
+        border-radius: 20px;
+    }
+
+    .form-header{
+        height: 32px;
+
+        font-family: 'Poppins';
+        font-style: normal;
+        font-weight: 700;
+        font-size: 24px;
+        line-height: 32px;
+        /* identical to box height, or 133% */
+
+        text-align: center;
+
+
+        /* Inside auto layout */
+
+        flex: none;
+        order: 0;
+        flex-grow: 0;
+    }
+
+    .form-body{
+        flex: none;
+        order: 1;
+        flex-grow: 0;
+    }
+
+    .form-input-container{
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 0px;
+        gap: 8px;
+
+        left: 0px;
+        top: 102px;
+    }
+
+    .form-input-label{
+        /* Label */
+        width: 85px;
+        height: 24px;
+
+        font-family: 'Inter';
+        font-style: normal;
+        font-weight: 600;
+        font-size: 16px;
+        line-height: 24px;
+
+        flex: none;
+        order: 0;
+        flex-grow: 0;
+    }
+
+    .form-input{
+        box-sizing: border-box;
+
+        /* Auto layout */
+
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        padding: 12px 24px;
+
+        width: 423px;
+        height: 48px;
+
+        background: linear-gradient(0deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.9)), #D2D2D1;
+        border: 2px solid #D2D2D1;
+        border-radius: 10px;
+
+        /* Inside auto layout */
+
+        flex: none;
+        order: 1;
+        align-self: stretch;
+        flex-grow: 0;
+    }
+
+    .form-link{
+        margin: 10px 0px 10px 1px;
+
+        /* Body */
+
+        font-family: 'Poppins';
+        font-style: normal;
+        /* identical to box height, or 150% */
+        text-align: left;
+
+        /* Primary color */
+
+        color: #4385F5;
+    }
+
+    .form-button{
+        display: flex;
+        flex-direction: row;
+        justify-content: center;
+        align-items: center;
+        padding: 12px 48px;
+        gap: 12px;
+
+        width: 180px;
+        height: 48px;
+        left: 0px;
+        top: 267.5px;
+
+        /* Primary color */
+
+        background: #4385F5;
+        border-radius: 10px;
+        color: #FFFFFFCC;
+        margin-top: 5%;
+    }
+
+    .form-redirect{
+        position: absolute;
+        left: calc(50% - 61px/2 + 17px);
+        top: calc(50% - 24px/2 + 134px);
+
+        /* text-base/leading-6/font-semibold */
+
+        font-family: 'Inter';
+        font-style: normal;
+        font-weight: 600;
+        font-size: 16px;
+        line-height: 24px;
+        /* identical to box height, or 150% */
+
+        text-align: center;
+
+        /* Primary color */
+
+        color: #4385F5;
+    }
+
+    .welcome-left-title{
+        color: #FFFFFF;
+
+        position: absolute;
+        left: 10.71%;
+        right: 67.7%;
+        top: 6.67%;
+        bottom: 89.78%;
+
+        /* Head 1 */
+
+        font-family: 'Poppins';
+        font-style: normal;
+        font-weight: 700;
+        font-size: 24px;
+        line-height: 32px;
+        /* identical to box height, or 133% */
+
+        text-align: center;
+    }
+
+    .welcome-left-symbol{
+        position: absolute;
+        left: 73.23%;
+        right: 1.73%;
+        top: 0.56%;
+        bottom: 83.33%;
+
+        height: 100%;
+        background-image: url(/images/mazaryn-symbol.svg);
+        background-repeat: no-repeat;
+    }
+
+    .welcome-left-text{
+        color: #FFFFFF;
+        position: absolute;
+        left: 12.09%;
+        right: 0%;
+        top: 16.22%;
+        bottom: 74.89%;
+
+        font-family: 'Poppins';
+        font-style: normal;
+        font-weight: 700;
+        font-size: 28px;
+        line-height: 40px;
+    }
+
+    .welcome-left-logo{
+        position: absolute;
+        left: 0.69%;
+        right: 0.69%;
+        top: 45%;
+        bottom: 14.33%;
+
+        height: 100%;
+        background-repeat: no-repeat;
+        background-image: url(/images/quantum-1.svg);
+    }
+</style>
+
+
+<div>
+    <div class="split left">
+        <div class="welcome-left-title">
+            Mazaryn
+        </div>
+
+        <div class="welcome-left-symbol"></div>
+
+        <div class="welcome-left-text">
+            <p>Online Comunity makes <br />
+            people more creatieve</p>
+        </div>
+
+        <div class="welcome-left-logo"></div>
+    </div>
+
+    <div class="split right">
+        <div class="centered">
+            <div class="form-container">
+                <div class="form-header">
+                    Reset Your Password
+                </div>
+
+                <div class="form-header-explanation">
+                    To request a new password, enter your email
+                </div>
+
+                <div class="form-body">
+                    <form phx-submit="reset">
+                        <div class="form-input-container">
+                            <div>
+                                <label class="form-input-label">Enter your email</label>
+                            </div>
+
+                            <div>
+                                <input class="form-input" type="text" name="email" placeholder="Your email address" autofocus value="danilo1@gmail.com" />
+                            </div>
+                        </div>
+
+                        <div class="form-button">
+                            <button type="submit">
+                                Continue
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

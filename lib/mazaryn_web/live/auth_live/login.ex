@@ -16,7 +16,7 @@ defmodule MazarynWeb.AuthLive.Login do
     {:ok, socket}
   end
 
-  def handle_event("login", %{"email" => email, "password" => password} = session, socket) do
+  def handle_event("login", %{"email" => email, "password" => password} = _session, socket) do
     with {:ok, _better_params} <- Tarams.cast(%{"email" => email, "password" => password}, @login_schema),
       %User{} = user <- Users.one_by_email(email) do
         case Users.login(user.username, password) do
@@ -34,5 +34,4 @@ defmodule MazarynWeb.AuthLive.Login do
 
     end
   end
-
 end
