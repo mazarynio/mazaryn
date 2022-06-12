@@ -5,8 +5,9 @@
                 follower = [],
                 blocking = [],
                 saved_posts = [],
-                other_info = [], %location, birthday
-                private = false,
+                other_info = [], % location, birthday, vvv
+                private = false, % by default users are public
+                last_login,
                 date_created,
                 date_updated}).
 

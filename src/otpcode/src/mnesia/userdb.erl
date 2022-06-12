@@ -15,12 +15,16 @@
 -spec login(Username :: term(), Password :: term()) -> wrong_username_or_password | logged_in.
 login(Username, Password) ->
   {atomic, Res} = mnesia:transaction(fun() ->
-                                        check_user_credential(Username, Password)
+                                        LogIn = check_user_credential(Username, Password),
+                                        case LogIn of
+                                          {true, User} ->
+                                            mnesia:write(User#user{last_login = calendar:universal_time()}),
+                                            logged_in;
+                                          false ->
+                                            wrong_username_or_password
+                                        end
                                      end),
-  case Res of
-    {true, _} -> logged_in;
-    false -> wrong_username_or_password
-  end.
+  Res.
 
 %%% Fields: [field_a, field_b, field_c]
 %%% Values: [a,b,c]

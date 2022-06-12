@@ -6,7 +6,7 @@
 %%% @end
 %%% Created : 05. Jun 2022 8:55 PM
 %%%-------------------------------------------------------------------
--module(sync_postgres_db).
+-module(sync_db).
 -author("dhuynh").
 
 %% API
