@@ -2,8 +2,8 @@ import Config
 
 # Configure your database
 config :mazaryn, Mazaryn.Repo,
-  username: "postgres",
-  password: "postgres",
+  username: "oyeniyiadedayo",
+  # password: "postgres",
   hostname: "localhost",
   database: "mazaryn_dev",
   stacktrace: true,
