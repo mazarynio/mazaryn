@@ -1,0 +1,1 @@
+-record(node, {id, host, port}).
