@@ -75,7 +75,15 @@ init([]) ->
                     restart => permanent,
                     shutdown => 5000,
                     type => worker,
-                    modules => [post_server]}
+                    modules => [post_server]},
+
+                  %% TODO: add other tables
+                  #{id => sync_db_server,
+                    start => {sync_db, start_link, [user]},
+                    restart => permanent,
+                    shutdown => 5000,
+                    type => worker,
+                    modules => [sync_db_server]}
                   ],
     {ok, {SupFlags, ChildSpecs}}.
 
