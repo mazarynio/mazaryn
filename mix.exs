@@ -57,8 +57,6 @@ defmodule Mazaryn.MixProject do
       {:erlpass, git: "https://github.com/ferd/erlpass.git"},
       {:bcrypt, git: "https://github.com/erlangpack/bcrypt.git", override: true},
       {:epgsql, "~> 4.6"}
-
-
     ]
   end
 
