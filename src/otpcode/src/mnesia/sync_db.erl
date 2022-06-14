@@ -10,7 +10,10 @@
 -author("dhuynh").
 
 %% API
--export([init/0, my_test/0]).
+-export([init/0]).
+
+-export([make_insert_query/1, make_delete_query/2,
+  make_update_query/2, generate_partial_query/1]).
 
 init() ->
   {ok, Conn} = epgsql:connect(#{
@@ -27,7 +30,6 @@ init() ->
 
 
 subscribe_activities(Table, Conn) ->
-  Attributes = mnesia:table_info(Table, attributes),
   io:format("Going to create table"),
   {ok, _, _} = epgsql:squery(Conn,
     "CREATE TABLE IF NOT EXISTS users (
@@ -42,7 +44,7 @@ subscribe_activities(Table, Conn) ->
 	   private TEXT,
 	   last_login TIMESTAMP WITH TIME ZONE,
 	   date_crated TIMESTAMP WITH TIME ZONE,
-	   date_updated TIMESTAMP WITH TIME ZONE );"),
+	   date_updated TIMESTAMP WITH TIME ZONE )"),
   {ok, _} = mnesia:subscribe({table, Table, detailed}),
   subscribe_handler(Conn).
 
@@ -75,48 +77,25 @@ subscribe_handler(Conn) ->
 
   end.
 
-my_test() ->
-  Table = user,
-  Username = "dathuynh148",
-  QueryStr = "DELETE FROM " ++ get_table_name(Table) ++
-             " WHERE  " ++ get_table_key(Table) ++
-             "='" ++ standardize_helper(Username) ++ "'".
-%%    {ok, Conn} = epgsql:connect(#{
-%%      host => "localhost",
-%%      username => "postgres",
-%%      password => "docker",
-%%      database => "mazaryn_dev",
-%%      timeout => 4000
-%%  }),
-%%  epgsql:squery(Conn, QueryStr).
 generate_partial_query({Type, Values}) ->
     MapValue =
       case Type of
         fields ->
-            Values;
+            string:join(Values, ",");
         values ->
-          [ case X of
-                 "null" -> "null";
-                 X -> "'" ++ X ++ "'"
-               end || X <- Values, X =/="nulls"]
+          map_postgres_value(Values)
       end,
-
-  " (" ++ lists:flatten(lists:join(",", MapValue)) ++ ") ".
+  add_trim(["(", ")"], MapValue).
 
 make_insert_query(Record) ->
   [Table|Values] = tuple_to_list(Record),
-  StandardValues = standardize_values(Values),
-  MapValue = [ case X of
-                 "null" -> "null";
-                 X -> "'" ++ X ++ "'"
-               end || X <- StandardValues, X =/="nulls"],
-  StrValues = lists:flatten(lists:join(",", MapValue)),
-  lists:flatten(string:replace("INSERT INTO " ++ get_table_name(Table) ++ " VALUES (%s)","%s", StrValues)).
+  TextValues = map_postgres_value(Values),
+  "INSERT INTO " ++ get_table_name(Table) ++ " VALUES " ++ add_trim(["(", ")"], TextValues).
 
 make_delete_query(Table, Username) ->
-  QueryStr = "DELETE FROM " ++ get_table_name(Table) ++
-             " WHERE  " ++ get_table_key(Table) ++
-             "='" ++ standardize_helper(Username) ++ "'".
+  "DELETE FROM " ++ get_table_name(Table) ++
+  " WHERE " ++ get_table_key(Table) ++
+  "=" ++ make_postges_text(standardize_helper(Username)).
 
 make_update_query(NewRecord, OldRecord) ->
   [Table | NewValue ] = tuple_to_list(NewRecord),
@@ -129,7 +108,7 @@ make_update_query(NewRecord, OldRecord) ->
   UpdatedValues = [X || {X, _} <- UpdatedThings],
   "UPDATE " ++ get_table_name(Table) ++ " SET " ++ generate_partial_query({fields, UpdatedFields}) ++
     " = " ++ generate_partial_query({values, UpdatedValues}) ++
-      "WHERE username = '" ++ standardize_helper(Username) ++ "'".
+      "WHERE username = " ++ make_postges_text(standardize_helper(Username)).
 
 standardize_values(Values) ->
   [standardize_helper(X) || X <- Values].
@@ -141,6 +120,19 @@ standardize_helper({{_, _, _}, { _, _, _}} = DateTime) ->
 standardize_helper(X) when is_binary(X) -> erlang:binary_to_list(X);
 standardize_helper(X) when is_atom(X) -> erlang:atom_to_list(X);
 standardize_helper(X) -> X.
+
+map_postgres_value(List) ->
+  StandardValues = standardize_values(List),
+  MapValues = [ case X of
+                 "null" -> "null";
+                 X -> make_postges_text(X)
+               end || X <- StandardValues, X =/="nulls"],
+  string:join(MapValues, ",").
+
+make_postges_text(X) -> add_trim(["'","'"], X).
+
+%% add_trim(["'", "'"], "12345") -> '12345'.
+add_trim(X, Trim) -> string:join(X, Trim).
 
 get_table_name(user) -> "users".
 get_table_key(user) -> "username".
