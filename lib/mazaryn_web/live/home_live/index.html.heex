@@ -32,7 +32,7 @@
         <li class="mx-5 my-0">
             <div class="relative inline-block text-left">
                 <div>
-                    <button type="button" class="dropdown inline-flex justify-center w-full rounded-md border border-slate-100 shadow-sm px-4 py-1.5 bg-slate-100 text-sm font-medium text-gray-700 flex-shrink-0 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-100 focus:ring-indigo-500" id="menu-button" aria-expanded="true" aria-haspopup="true"> 
+                    <button phx-click={Phoenix.LiveView.JS.toggle(to: ".dropdown-menu", in: "fade-in-scale", out: "fade-out-scale")} type="button" class="dropdown inline-flex justify-center w-full rounded-md border border-slate-100 shadow-sm px-4 py-1.5 bg-slate-100 text-sm font-medium text-gray-700 flex-shrink-0 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-100 focus:ring-indigo-500" id="menu-button" aria-expanded="true" aria-haspopup="true"> 
                         <div class="rounded-full pr-6 flex-shrink-0">
                             <img src={Routes.static_path(@socket, "/images/profile-photo.svg")} alt="Mazaryn symbol" class="w-6 rounded-full"/>
                         </div>
@@ -43,17 +43,7 @@
                         </svg>
                     </button>
                 </div>
-
-                <!--
-                    Dropdown menu, show/hide based on menu state.
-                    Entering: "transition ease-out duration-100"
-                    From: "transform opacity-0 scale-95"
-                    To: "transform opacity-100 scale-100"
-                    Leaving: "transition ease-in duration-75"
-                    From: "transform opacity-100 scale-100"
-                    To: "transform opacity-0 scale-95"
-                -->
-                <div class="dropdown-menu hidden origin-top-right absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 divide-y divide-gray-100 focus:outline-none" role="menu" aria-orientation="vertical" aria-labelledby="menu-button" tabindex="-1">
+                <div class="dropdown-menu hidden origin-top-right absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 divide-y divide-gray-100 focus:outline-none"  role="menu" aria-orientation="vertical" aria-labelledby="menu-button" tabindex="-1">
                     <div class="py-1" role="none">
                         <a href="#" class="text-gray-700 block px-4 py-2 text-sm" role="menuitem" tabindex="-1" id="menu-item-0">
                             <div class="flex">
@@ -76,7 +66,7 @@
     </ol>
     <!-- Mobile menu button -->
     <div class="md:hidden flex items-center">
-        <button class="outline-none mobile-menu-button">
+        <button  phx-click={Phoenix.LiveView.JS.toggle(to: ".mobile-menu", in: "fade-in-scale", out: "fade-out-scale")} class="outline-none mobile-menu-button">
             <svg
                 class="w-6 h-6 text-gray-500"
                 x-show="!showMenu"
@@ -93,28 +83,12 @@
     </div>
 
 </nav>
-    <!-- Mobile menu -->
-    <div class="hidden lg:hidden mobile-menu">
-        <ul class="">
-            <li class="active"><a href="index.html" class="block text-sm px-2 py-4 text-white bg-slate-500 font-semibold">Coins</a></li>
-            <li><a href="#services" class="block text-sm px-2 py-4 hover:bg-slate-500 transition duration-300">Profile</a></li>
-            <li><a href="#about" class="block text-sm px-2 py-4 hover:bg-slate-500 transition duration-300">Logout</a></li>
-        </ul>
-    </div>
-<script>
-// Grab HTML Elements
-const btn = document.querySelector("button.mobile-menu-button");
-const menu = document.querySelector(".mobile-menu");
-
-// Add Event Listeners
-btn.addEventListener("click", () => {
-    menu.classList.toggle("hidden");
-});
-
-const    dropdownButton = document.querySelector(".dropdown")
-const  dropdownMenu = document.querySelector(".dropdown-menu") 
-dropdownButton.addEventListener("click", function() {
-    dropdownMenu.classList.toggle("hidden") 
-})
-</script>
+<!-- Mobile menu -->
+<div class="hidden md:hidden mobile-menu">
+    <ul class="">
+        <li class="active"><a href="index.html" class="block text-sm px-2 py-4 text-white bg-slate-500 font-semibold">Coins</a></li>
+        <li><a href="#services" class="block text-sm px-2 py-4 hover:bg-slate-500 transition duration-300">Profile</a></li>
+        <li><a href="#about" class="block text-sm px-2 py-4 hover:bg-slate-500 transition duration-300">Logout</a></li>
+    </ul>
+</div>
 
