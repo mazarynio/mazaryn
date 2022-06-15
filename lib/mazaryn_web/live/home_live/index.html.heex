@@ -1,9 +1,9 @@
-<nav class="flex justify-evenly items-center w-full bg-white relative text-center px-9 py-6 shadow-lg">
+<nav class="flex justify-evenly items-center w-full bg-white relative text-center px-9 py-3 shadow-lg">
     <div class="text-xl font-extrabold text-black cursor-pointer">
         <img src={Routes.static_path(@socket, "/images/logo.png")} alt="Mazaryn Logo"/>
     </div>
     <div class="flex m-auto my-0 h-9 leading-9 w-1/2 px-10">
-        <input type="search" placeholder="Search" class="w-full text-sm outline-0 rounded border-2 border-gray-400 bg-gray-100"/>
+        <input type="search" placeholder="Search" class="w-full text-sm outline-0 rounded border-2 border-slate-200 bg-slate-100"/>
         <span class="fa fa-search"></span>
     </div>
     <ol class="hidden md:flex justify-evenly items-center list-none">
@@ -17,8 +17,14 @@
             </div>
         </li>
         <li class="mx-5 my-0">
-            <div class="w-8 bg-slate-100 center rounded-full p-1">
-                <img src={Routes.static_path(@socket, "/images/notification-svg.svg")} alt="Mazaryn symbol" class="w-8 rounded-full"/>
+            <div class="w-10 h-10 bg-slate-100 center rounded-full p-1">
+                <span class="relative inline-block">
+                    <svg class="w-8 rounded-full text-gray-200" width="29" height="29" viewBox="0 0 29 29" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M24.3112 20.5829L21.7378 16.9417V9.82806C21.7378 6.19728 19.0505 3.18269 15.5605 2.66783V1.06099C15.5605 0.475045 15.0855 0 14.4996 0C13.9137 0 13.4386 0.475045 13.4386 1.06099V2.66777C9.94864 3.18264 7.26133 6.19722 7.26133 9.828V16.9417L4.68797 20.5829C4.19259 21.2837 4.69426 22.2562 5.55435 22.2562H23.4449C24.3031 22.2563 24.8077 21.2852 24.3112 20.5829Z" fill="#AAAAAA"/>
+                        <path d="M14.4989 23.0137C12.8485 23.0137 11.5059 24.3563 11.5059 26.0067C11.5059 27.6571 12.8486 28.9998 14.4989 28.9998C16.1493 28.9998 17.4919 27.6571 17.4919 26.0068C17.4919 24.3564 16.1493 23.0137 14.4989 23.0137Z" fill="#AAAAAA"/>
+                    </svg>
+                    <span class="absolute top-0 left-5 px-1.5 py-1 text-xs font-bold leading-none text-red-100 transform bg-red-600 rounded-full">9</span>
+                </span>
             </div>
         </li>
         <li class="mx-5 my-0">
@@ -86,7 +92,7 @@
 
 </nav>
     <!-- Mobile menu -->
-    <div class="hidden mobile-menu">
+    <div class="hidden lg:hidden mobile-menu">
         <ul class="">
             <li class="active"><a href="index.html" class="block text-sm px-2 py-4 text-white bg-slate-500 font-semibold">Coins</a></li>
             <li><a href="#services" class="block text-sm px-2 py-4 hover:bg-slate-500 transition duration-300">Profile</a></li>
