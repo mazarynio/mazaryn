@@ -1,5 +1,5 @@
 <nav class="flex justify-evenly items-center w-full bg-white relative text-center px-9 py-3 shadow-lg">
-    <div class="text-xl font-extrabold text-black cursor-pointer">
+    <div class="text-xl font-extrabold text-black cursor-pointer flex-shrink-0">
         <img src={Routes.static_path(@socket, "/images/logo.png")} alt="Mazaryn Logo"/>
     </div>
     <div class="flex m-auto my-0 h-9 leading-9 w-1/2 px-10">
@@ -8,8 +8,8 @@
     </div>
     <ol class="hidden md:flex justify-evenly items-center list-none">
         <li class="mx-5 my-0">
-            <div class="flex justify-evenly items-center px-5 py-1 bg-slate-100 rounded">
-                <div class="rounded-full pr-4">
+            <div class="flex justify-evenly items-center px-5 py-1 bg-slate-100 rounded-full">
+                <div class="rounded-full pr-4 flex-shrink-0">
                     <img src={Routes.static_path(@socket, "/images/mazaryn-symbol.svg")} alt="Mazaryn symbol" class="w-4 rounded-full"/>
                 </div>
 
@@ -30,8 +30,8 @@
         <li class="mx-5 my-0">
             <div class="relative inline-block text-left">
                 <div>
-                    <button type="button" class="dropdown inline-flex justify-center w-full rounded-md border border-slate-100 shadow-sm px-4 py-1.5 bg-slate-100 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-100 focus:ring-indigo-500" id="menu-button" aria-expanded="true" aria-haspopup="true"> 
-                        <div class="rounded-full pr-6">
+                    <button type="button" class="dropdown inline-flex justify-center w-full rounded-md border border-slate-100 shadow-sm px-4 py-1.5 bg-slate-100 text-sm font-medium text-gray-700 flex-shrink-0 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-100 focus:ring-indigo-500" id="menu-button" aria-expanded="true" aria-haspopup="true"> 
+                        <div class="rounded-full pr-6 flex-shrink-0">
                             <img src={Routes.static_path(@socket, "/images/profile-photo.svg")} alt="Mazaryn symbol" class="w-6 rounded-full"/>
                         </div>
                         Auwal Rg 
