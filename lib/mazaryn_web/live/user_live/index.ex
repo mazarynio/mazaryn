@@ -9,4 +9,18 @@ defmodule MazarynWeb.UserLive.Index do
   end
 
   defp get_user, do: UserClient.getting_users()
+
+  def handle_event("follow_user", %{"to-user" => username}, socket) do
+    to_user = UserClient.getting_user(username)
+    UserClient.follow(socket.assigns.user, to_user)
+
+    {:noreply, socket}
+  end
+
+  def handle_event("unfollow_user", %{"to-user" => username}, socket) do
+    to_user = UserClient.getting_user(username)
+    UserClient.unfollow(socket.assigns.user, to_user)
+
+    {:noreply, socket}
+  end
 end
