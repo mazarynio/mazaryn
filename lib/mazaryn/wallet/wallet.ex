@@ -5,7 +5,8 @@ defmodule Mazaryn.Wallet do
     address: nil,
     balance: nil,
     pub_key: nil,
-    priv_key: nil
+    priv_key: nil,
+    tokens: nil
   ]
 
   def new(name, password) do
