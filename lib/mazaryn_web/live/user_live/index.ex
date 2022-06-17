@@ -23,4 +23,18 @@ defmodule MazarynWeb.UserLive.Index do
 
     {:noreply, socket}
   end
+
+  def handle_event("block_user", %{"to-user" => username}, socket) do
+    to_user = UserClient.getting_user(username)
+    UserClient.block(socket.assigns.user, to_user)
+
+    {:noreply, socket}
+  end
+
+  def handle_event("unblock_user", %{"to_user" => username}, socket) do
+    to_user = UserClient.getting_user(username)
+    UserClient.unblock(socket.assigns.user, to_user)
+
+    {:noreply, socket}
+  end
 end
