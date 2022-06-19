@@ -92,7 +92,7 @@ make_table_query(user) ->
 	   email TEXT UNIQUE NOT NULL,
 	   following TEXT,
 	   follower TEXT ,
-	   blocking TEXT,
+	   blocked TEXT,
 	   saved_posts TEXT,
 	   other_info TEXT,
 	   private TEXT,
@@ -138,6 +138,13 @@ standardize_values(Values) ->
 
 standardize_helper([]) -> "null";
 standardize_helper(undefined) -> "null";
+
+standardize_helper({X, []}) when is_atom(X) -> "null";
+standardize_helper({X, List}) when is_atom(X) ->
+  NewFormat = lists:map(fun(X) when is_binary(X)-> erlang:binary_to_list(X);
+                           (X) -> X  % X is string
+                        end, List),
+  string:join(NewFormat, ",");
 standardize_helper({{_, _, _}, { _, _, _}} = DateTime) ->
   core_util:parse_utc_str_time(DateTime);
 standardize_helper(X) when is_binary(X) -> erlang:binary_to_list(X);

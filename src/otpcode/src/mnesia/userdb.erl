@@ -171,27 +171,29 @@ delete_user(Username) ->
 
 follow(Username, Following) ->
     Fun = fun() ->
-            [User] = mnesia:read(user, Username),
-            NewFollowList = [Following|User#user.following],
-            mnesia:write(User#user{following = NewFollowList}),
+            [#user{following = {following, FollowList}} = User] = mnesia:read(user, Username),
+            mnesia:write(User#user{following = {following, [Following|FollowList]}}),
 
             %% update Following that have a new follower
             [FollowingUser] = mnesia:read(user, Following),
-            mnesia:write(FollowingUser#user{follower = [Username| FollowingUser#user.follower]})
+            {follower, FollowerList} = FollowingUser#user.follower,
+            mnesia:write(FollowingUser#user{follower = {follower, [Username| FollowerList]}})
         end,
-    mnesia:transaction(Fun).
+    {atomic, Res} = mnesia:transaction(Fun),
+    Res.
 
 unfollow(Username, Following) ->
     Fun = fun() ->
-            [User] = mnesia:read(user, Username),
-            NewFollowList = lists:delete(Following, User#user.following),
-            mnesia:write(User#user{following = NewFollowList}),
+            [#user{following = {following, FollowList}} = User] = mnesia:read(user, Username),
+            NewFollowList = lists:delete(Following, FollowList),
+            mnesia:write(User#user{following = {following, NewFollowList}}),
 
-            [FollowingUser] = mnesia:read(user, Following),
-            NewFollower = lists:delete(Username, FollowingUser#user.follower),
-            mnesia:write(FollowingUser#user{follower = NewFollower})
+            [#user{follower = {follower, FollowerList}} = FollowingUser] = mnesia:read(user, Following),
+            NewFollower = lists:delete(Username, FollowerList),
+            mnesia:write(FollowingUser#user{follower = {follower, NewFollower}})
         end,
-    mnesia:transaction(Fun).
+    {atomic, Res} = mnesia:transaction(Fun),
+    Res.
 
 follow_multiple(Username, Others) ->
     lists:foreach(fun(Other) ->
@@ -206,20 +208,20 @@ unfollow_multiple(Username, Others) ->
 %% follow/unfollow posts
 save_post(Username, PostId) ->
     Fun = fun() ->
-                [User] = mnesia:read(user, Username),
-                NewFollowList = [PostId|User#user.saved_posts],
-                mnesia:write(User#user{saved_posts = NewFollowList})
+                [#user{saved_posts = {saved_posts, PostList}} = User] = mnesia:read(user, Username),
+                mnesia:write(User#user{saved_posts = {saved_posts, [PostId|PostList]}})
           end,
     {atomic, Res} = mnesia:transaction(Fun),
     Res.
 
 unsave_post(Username, PostId) ->
     Fun = fun() ->
-                [User] = mnesia:read(user, Username),
-                NewFollowList = lists:delete(PostId, User#user.saved_posts),
-                mnesia:write(User#user{saved_posts = NewFollowList})
+                [#user{saved_posts = {saved_posts, PostList}} = User] = mnesia:read(user, Username),
+                NewFollowList = lists:delete(PostId, PostList),
+                mnesia:write(User#user{saved_posts = {saved_posts, NewFollowList}})
           end,
-    mnesia:transaction(Fun).
+    {atomic, Res} = mnesia:transaction(Fun),
+    Res.
 
 save_posts(Username, PostIds) ->
     lists:foreach(fun(PostId) ->
@@ -234,22 +236,22 @@ unsave_posts(Username, PostIds) ->
 %% get save post, follower, following
 get_save_posts(Username) ->
   {atomic, Res} = mnesia:transaction(fun() ->
-                                      [User] = mnesia:read(user, Username),
-                                      User#user.saved_posts
+                                      [#user{saved_posts = {saved_posts, SavedPosts}}] = mnesia:read(user, Username),
+                                      SavedPosts
                                      end),
   Res.
 
 get_following(Username) ->
   {atomic, Res} = mnesia:transaction(fun() ->
-                                      [User] = mnesia:read(user, Username),
-                                      User#user.following
+                                      [#user{following = {following, Following}}] = mnesia:read(user, Username),
+                                      Following
                                      end),
   Res.
 
 get_follower(Username) ->
   {atomic, Res} = mnesia:transaction(fun() ->
-                                      [User] = mnesia:read(user, Username),
-                                      User#user.follower
+                                      [#user{follower = {follower, Follower}}] = mnesia:read(user, Username),
+                                      Follower
                                      end),
   Res.
 
@@ -291,32 +293,27 @@ check_user_credential(Username, Password) ->
       end
   end.
 
-block(Username, Blocked) ->
-  case get_user(Username) of
-    not_exist -> not_exist;
-    error -> error;
-    User ->
-      List = User#user.blocking,
-      UpdatedUser = User#user{blocking = [Blocked|List]},
-      {atomic, Res} = mnesia:transaction(fun() -> mnesia:write(UpdatedUser) end),
-      Res
-  end.
+block(Username, Person) ->
+  Fun = fun() ->
+          [#user{blocked = {blocked, Block}} = User] = mnesia:read(user, Username),
+          mnesia:write(User#user{blocked = {blocked, [Person|Block]}})
+        end,
+  {atomic, Res} = mnesia:transaction(Fun),
+  Res.
 
-unblock(Username, Unblocked) ->
-  case get_user(Username) of
-    not_exist -> not_exist;
-    error -> error;
-    User ->
-      List = User#user.blocking,
-      UpdatedUser = User#user{blocking = lists:delete(Unblocked, List)},
-      {atomic, Res} = mnesia:transaction(fun() -> mnesia:write(UpdatedUser) end),
-      Res
-  end.
+unblock(Username, Person) ->
+  Fun = fun() ->
+          [#user{blocked = {blocked, Block}} = User] = mnesia:read(user, Username),
+          NewBlockList = lists:delete(Person, Block),
+          mnesia:write(User#user{blocked = {blocked, NewBlockList}})
+        end,
+  {atomic, Res} = mnesia:transaction(Fun),
+  Res.
 
 get_blocked(Username) ->
-  case get_user(Username) of
-    not_exist -> not_exist;
-    error -> error;
-    User ->
-      User#user.blocking
-  end.
+  Fun = fun() ->
+          [#user{blocked = {blocked, Blocked}}] = mnesia:read(user, Username),
+          Blocked
+        end,
+  {atomic, Res} = mnesia:transaction(Fun),
+  Res.

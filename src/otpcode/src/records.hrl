@@ -1,11 +1,11 @@
 -record(user, { username,
                 password,
                 email,
-                following = [],
-                follower = [],
-                blocking = [],
-                saved_posts = [],
-                other_info = [], %location, birthday
+                following = {following, []},
+                follower = {follower, []},
+                blocked = {blocked, []},
+                saved_posts = {saved_posts, []},
+                other_info = {other_info, []}, %location, birthday
                 private = false,
                 date_created,
                 date_updated}).
