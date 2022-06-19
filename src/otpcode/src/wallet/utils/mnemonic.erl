@@ -1,4 +1,4 @@
--module(wallet_utils).
+-module(mnemonic).
 
 -export([entropy_to_mnemonic/1,
 	 generate_mnemonic/0,
@@ -18,8 +18,9 @@ word_list() ->
 
 
 generate_mnemonic() ->
-    Entropy = crypto:strong_rand_bytes(16),
-    entropy_to_mnemonic(Entropy).
+    X = Entropy = crypto:strong_rand_bytes(16),
+    entropy_to_mnemonic(Entropy),
+    libp2p_crypto:save_keys(X, "mnemonic.dat").
 
 
 entropy_to_mnemonic(Entropy) when size(Entropy) >= 16 andalso
