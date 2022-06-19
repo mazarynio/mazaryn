@@ -8,5 +8,5 @@ module.exports = {
       sans: ["Poppins", "sans-serif"],
     },
   },
-  plugins: [require("@tailwindcss/forms")],
+  plugins: [require("@tailwindcss/forms", "daisyui")],
 };
