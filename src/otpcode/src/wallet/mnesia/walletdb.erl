@@ -15,7 +15,7 @@ init() ->
 insert(Name, Password) ->
     Address = crypto_utils:generate_key_pair(),
     Balance = 0,
-    {Pub_key, Priv_key} = crypto:generate(?CURVE_NAME, ?CURVE_PARAM),
+    {Pub_key, Priv_key} = libp2p_crypto:generate_keys(ecc_compact),
     Wallet = #wallet{name = Name,
                      password = Password, 
                      address = Address,
