@@ -10,30 +10,30 @@ defmodule MazarynWeb.UserLive.Index do
 
   defp get_user, do: UserClient.getting_users()
 
-  def handle_event("follow_user", %{"to-user" => username}, socket) do
-    to_user = UserClient.getting_user(username)
-    UserClient.follow(socket.assigns.user, to_user)
+  def handle_event("follow_user", %{"username" => username}, socket) do
+    username = UserClient.getting_user(username)
+    UserClient.follow(socket.assigns.user, username)
 
     {:noreply, socket}
   end
 
-  def handle_event("unfollow_user", %{"to-user" => username}, socket) do
-    to_user = UserClient.getting_user(username)
-    UserClient.unfollow(socket.assigns.user, to_user)
+  def handle_event("unfollow_user", %{"username" => username}, socket) do
+    username = UserClient.getting_user(username)
+    UserClient.unfollow(socket.assigns.user, username)
 
     {:noreply, socket}
   end
 
-  def handle_event("block_user", %{"to-user" => username}, socket) do
-    to_user = UserClient.getting_user(username)
-    UserClient.block(socket.assigns.user, to_user)
+  def handle_event("block_user", %{"username" => username}, socket) do
+    username = UserClient.getting_user(username)
+    UserClient.block(socket.assigns.user, username)
 
     {:noreply, socket}
   end
 
-  def handle_event("unblock_user", %{"to_user" => username}, socket) do
-    to_user = UserClient.getting_user(username)
-    UserClient.unblock(socket.assigns.user, to_user)
+  def handle_event("unblock_user", %{"username" => username}, socket) do
+    username = UserClient.getting_user(username)
+    UserClient.unblock(socket.assigns.user, username)
 
     {:noreply, socket}
   end
