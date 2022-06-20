@@ -118,7 +118,7 @@ make_insert_query(Record) ->
 make_delete_query(Table, Username) ->
   "DELETE FROM " ++ get_table_name(Table) ++
   " WHERE " ++ get_table_key(Table) ++
-  "=" ++ make_postges_text(standardize_helper(Username)).
+  "=" ++ make_postgres_text(standardize_helper(Username)).
 
 make_update_query(NewRecord, OldRecord) ->
   [Table | NewValue ] = tuple_to_list(NewRecord),
@@ -131,7 +131,7 @@ make_update_query(NewRecord, OldRecord) ->
   UpdatedValues = [X || {X, _} <- UpdatedThings],
   "UPDATE " ++ get_table_name(Table) ++ " SET " ++ generate_partial_query({fields, UpdatedFields}) ++
     " = " ++ generate_partial_query({values, UpdatedValues}) ++
-      "WHERE username = " ++ make_postges_text(standardize_helper(Username)).
+      "WHERE username = " ++ make_postgres_text(standardize_helper(Username)).
 
 standardize_values(Values) ->
   [standardize_helper(X) || X <- Values].
@@ -160,11 +160,11 @@ map_postgres_value(List) ->
   StandardValues = standardize_values(List),
   MapValues = [case X of
                  "null" -> "null";
-                 X -> make_postges_text(X)
+                 X -> make_postgres_text(X)
                end || X <- StandardValues],
   string:join(MapValues, ",").
 
-make_postges_text(X) -> add_trim(["'","'"], X).
+make_postgres_text(X) -> add_trim(["'","'"], X).
 
 %% add_trim(["'", "'"], "12345") -> '12345'.
 add_trim(X, Trim) -> string:join(X, Trim).
