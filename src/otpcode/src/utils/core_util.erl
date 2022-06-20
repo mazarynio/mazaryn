@@ -11,7 +11,11 @@
 
 %% API
 -export([read_all/1,
-         clear_table/1]).
+         clear_table/1,
+         parse_utc_str_time/1]).
+
+parse_utc_str_time({{Year, Month, Day}, {Hour, Min, Sec}} = _DateTime) ->
+  io_lib:format("~.4.0w-~.2.0w-~.2.0wT~.2.0w:~.2.0w:~.2.0w.0+00:00", [Year, Month, Day, Hour, Min, Sec]).
 
 %% Traverse the selected table from mnesia:info()
 read_all(Table) ->

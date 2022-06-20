@@ -3,7 +3,7 @@
                 email,
                 following = [],
                 follower = [],
-                blocking = [],
+                blocked = [],
                 saved_posts = [],
                 other_info = [], %location, birthday
                 private = false,

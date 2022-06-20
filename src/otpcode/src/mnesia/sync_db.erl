@@ -142,6 +142,18 @@ standardize_helper({{_, _, _}, { _, _, _}} = DateTime) ->
   core_util:parse_utc_str_time(DateTime);
 standardize_helper(X) when is_binary(X) -> erlang:binary_to_list(X);
 standardize_helper(X) when is_atom(X) -> erlang:atom_to_list(X);
+standardize_helper(X) when is_list(X) ->
+  %% TODO: need to check elements type of X in elixr vs erlang
+  X1 = lists:map(fun(Elem) when is_binary(Elem) -> binary_to_list(Elem);
+                    (Elem) -> Elem
+                 end, X),
+  try
+      X2 = string:join(X1, ","),  % X1 is a list of string
+      X2
+  catch
+      error:_Error  ->
+        X1
+  end;
 standardize_helper(X) -> X.
 
 map_postgres_value(List) ->

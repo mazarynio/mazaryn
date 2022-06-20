@@ -133,7 +133,8 @@ change_email(Username, Password, NewEmail) ->
                   undefined ->
                      case check_user_credential(Username, Password) of
                        {true, User} ->
-                          mnesia:write(User#user{email = NewEmail, date_updated = calendar:universal_time()});
+                          mnesia:write(User#user{email = NewEmail,
+                                                 date_updated = calendar:universal_time()});
                        false ->
                           wrong_username_or_password
                      end;
@@ -173,25 +174,31 @@ follow(Username, Following) ->
     Fun = fun() ->
             [User] = mnesia:read(user, Username),
             NewFollowList = [Following|User#user.following],
-            mnesia:write(User#user{following = NewFollowList}),
+            mnesia:write(User#user{following = NewFollowList,
+                                   date_updated = calendar:universal_time()}),
 
             %% update Following that have a new follower
             [FollowingUser] = mnesia:read(user, Following),
-            mnesia:write(FollowingUser#user{follower = [Username| FollowingUser#user.follower]})
+            mnesia:write(FollowingUser#user{follower = [Username| FollowingUser#user.follower],
+                                            date_updated = calendar:universal_time()})
         end,
-    mnesia:transaction(Fun).
+    {atomic, Res} = mnesia:transaction(Fun),
+    Res.
 
 unfollow(Username, Following) ->
     Fun = fun() ->
             [User] = mnesia:read(user, Username),
             NewFollowList = lists:delete(Following, User#user.following),
-            mnesia:write(User#user{following = NewFollowList}),
+            mnesia:write(User#user{following = NewFollowList,
+                                   date_updated = calendar:universal_time()}),
 
             [FollowingUser] = mnesia:read(user, Following),
             NewFollower = lists:delete(Username, FollowingUser#user.follower),
-            mnesia:write(FollowingUser#user{follower = NewFollower})
+            mnesia:write(FollowingUser#user{follower = NewFollower,
+                                            date_updated = calendar:universal_time()})
         end,
-    mnesia:transaction(Fun).
+    {atomic, Res} = mnesia:transaction(Fun),
+    Res.
 
 follow_multiple(Username, Others) ->
     lists:foreach(fun(Other) ->
@@ -208,7 +215,8 @@ save_post(Username, PostId) ->
     Fun = fun() ->
                 [User] = mnesia:read(user, Username),
                 NewFollowList = [PostId|User#user.saved_posts],
-                mnesia:write(User#user{saved_posts = NewFollowList})
+                mnesia:write(User#user{saved_posts = NewFollowList,
+                                       date_updated = calendar:universal_time()})
           end,
     {atomic, Res} = mnesia:transaction(Fun),
     Res.
@@ -217,7 +225,8 @@ unsave_post(Username, PostId) ->
     Fun = fun() ->
                 [User] = mnesia:read(user, Username),
                 NewFollowList = lists:delete(PostId, User#user.saved_posts),
-                mnesia:write(User#user{saved_posts = NewFollowList})
+                mnesia:write(User#user{saved_posts = NewFollowList,
+                                       date_updated = calendar:universal_time()})
           end,
     mnesia:transaction(Fun).
 
@@ -292,31 +301,27 @@ check_user_credential(Username, Password) ->
   end.
 
 block(Username, Blocked) ->
-  case get_user(Username) of
-    not_exist -> not_exist;
-    error -> error;
-    User ->
-      List = User#user.blocking,
-      UpdatedUser = User#user{blocking = [Blocked|List]},
-      {atomic, Res} = mnesia:transaction(fun() -> mnesia:write(UpdatedUser) end),
-      Res
-  end.
+  Fun = fun() ->
+          [#user{blocked = BlockedList} = User] = mnesia:read(user, Username),
+          mnesia:write(User#user{blocked = [Blocked|BlockedList],
+                                 date_updated = calendar:universal_time()})
+        end,
+  {atomic, Res} = mnesia:transaction(Fun),
+  Res.
 
 unblock(Username, Unblocked) ->
-  case get_user(Username) of
-    not_exist -> not_exist;
-    error -> error;
-    User ->
-      List = User#user.blocking,
-      UpdatedUser = User#user{blocking = lists:delete(Unblocked, List)},
-      {atomic, Res} = mnesia:transaction(fun() -> mnesia:write(UpdatedUser) end),
-      Res
-  end.
+  Fun = fun() ->
+          [#user{blocked = BlockedList} = User] = mnesia:read(user, Username),
+          mnesia:write(User#user{blocked = lists:delete(Unblocked, BlockedList),
+                                 date_updated = calendar:universal_time()})
+        end,
+  {atomic, Res} = mnesia:transaction(Fun),
+  Res.
 
 get_blocked(Username) ->
-  case get_user(Username) of
-    not_exist -> not_exist;
-    error -> error;
-    User ->
-      User#user.blocking
-  end.
+  Fun = fun() ->
+          [#user{blocked = BlockedList}] = mnesia:read(user, Username),
+          BlockedList
+        end,
+  {atomic, Res} = mnesia:transaction(Fun),
+  Res.
