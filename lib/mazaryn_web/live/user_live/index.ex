@@ -39,4 +39,11 @@ defmodule MazarynWeb.UserLive.Index do
 
     {:noreply, assign(socket, :unblock, username)}
   end
+
+  def handle_event("delete_user", %{"username" => username}, socket) do
+    username = UserClient.getting_user(username)
+    UserClient.delete_user(username)
+
+    {:noreply, assign(socket, :delete, username)}
+  end
 end
