@@ -1,5 +1,6 @@
 defmodule MazarynWeb.UserView do
   use MazarynWeb, :view
+  alias MazarynWeb.UserView
 
   def render("index.json", %{users: users}) do
       %{status: true, data: render_many(users, UserView, "user.json")}
