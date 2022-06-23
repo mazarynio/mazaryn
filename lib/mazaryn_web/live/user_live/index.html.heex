@@ -1,3 +1,68 @@
-<li username="{@username}"
-     class="col-span-1 flex flex-col text-center bg-white shadow rounded-lg text-xs">
-</li>
+<style>
+     .profile figure{
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+     }
+
+     .profile figure img{
+          height: 150px;
+          width: 150px;
+          border-radius: 50%;
+          border: 5px solid #e9d8fd;
+     }
+
+     .profile figcaption{
+          margin-top:15px;
+          font-size: 14px;
+          font-weight: bold;
+     }
+
+     .profile{
+     position: relative;
+     width: 100%;
+     }
+
+     /*footer menu*/
+
+     .footerMenu{
+          width: 46%;
+          border:1px solid #e9d8fd;
+          position: fixed;
+          bottom: 0;
+          border-top-left-radius: 0.9375rem;
+          border-top-right-radius: 0.9375rem;
+     }
+
+     .footerMenu ul{
+          display: flex;
+          flex-direction: row;
+          justify-content: center;
+     }
+
+     .footerMenu ul > li{
+          height: 2.75rem;
+          width: 2.75rem;
+          border-radius: 50%;
+          background-color: #0AB97A;
+          margin-bottom: 1.625rem;
+          margin-left: auto;
+          margin-right: auto;
+          color: #fff;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+     }
+</style>
+
+<div>
+     <div class="split right">
+          <div class="centered">
+               <div class="form-container">
+                    <div class="form-header">
+                        Profile 
+                    </div>
+               </div>
+          </div>
+     </div>
+</div>
