@@ -1,0 +1,11 @@
+<section class="phx-hero">
+  <h2><%= @user.username %> followers</h2>
+</section>
+
+<%= for user <- @followers do %>
+  <% live_component(
+    @socket,
+    MazarynWeb.UserLive.Index,
+    username: @username
+  ) %>
+<% end %>
