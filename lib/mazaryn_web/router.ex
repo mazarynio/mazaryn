@@ -28,6 +28,8 @@ defmodule MazarynWeb.Router do
       live "/home", HomeLive.Index
       live "/reset", AuthLive.Reset
       live "/signup", AuthLive.Signup
+      live "/profile", UserLive.Index
+      live "/posts", PostLive.Index
     end
 
     get "/", PageController, :index
