@@ -26,9 +26,10 @@ defmodule Mazaryn.Application do
         shutdown: :infinity,
         type: :supervisor}
     ]
-
+    :ets.new(:mazaryn_auth_table, [:set, :public, :named_table, read_concurrency: true])
     # See https://hexdocs.pm/elixir/Supervisor.html
     # for other strategies and supported options
+
     opts = [strategy: :one_for_one, name: Mazaryn.Supervisor]
     Supervisor.start_link(children, opts)
   end

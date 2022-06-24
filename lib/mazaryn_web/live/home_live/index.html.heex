@@ -35,7 +35,7 @@
                         <div class="rounded-full pr-6 flex-shrink-0">
                             <img src={Routes.static_path(@socket, "/images/profile-photo.svg")} alt="Mazaryn symbol" class="w-6 rounded-full"/>
                         </div>
-                        Auwal Rg 
+                        <%= @user_id %>
                         <!-- Heroicon name: solid/chevron-down -->
                         <svg class="-mr-1 ml-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                             <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
@@ -50,14 +50,14 @@
                                     <img src={Routes.static_path(@socket, "/images/profile-photo.svg")} alt="Mazaryn symbol" class="w-8 rounded-full"/>
                                 </div>
                                 <div class="flex flex-col">
-                                    <h1>Auwal Rg</h1>
-                                    <p>@auwalrg</p>
+                                    <h1><%= @user_id %></h1>
+                                    <p><%= @user_id %></p>
                                 </div>
                             </div>
                         </a>
                     </div>
                     <div class="py-1" role="none">
-                        <a href="#" class="text-gray-700 block px-4 py-2 text-sm" role="menuitem" tabindex="-1" id="menu-item-6">Log Out</a>
+                        <%= link "Log Out", to: Routes.logout_path(@socket, :index), class: "text-gray-700 block px-4 py-2 text-sm", role: "menuitem", tabindex: "-1", id: "menu-item-6"  %>         
                     </div>
                 </div>
             </div>
@@ -220,6 +220,7 @@
     <!-- end of middle column-->
 
     <div class="w-full lg:w-1/5 bg-gray-100 p-10"></div>
+    <button phx-click="messages" title="Chat">Chat</button>
 </div>
 
 

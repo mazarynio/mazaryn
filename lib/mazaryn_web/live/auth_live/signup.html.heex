@@ -45,7 +45,7 @@
     }
 
     .form-header{
-        width: 72px;
+        width: 102px;
         height: 32px;
 
         font-family: 'Poppins';
@@ -259,7 +259,7 @@
 
         <div class="welcome-left-text">
             <p>Online Comunity makes <br />
-            people more creatieve</p>
+            people more creative</p>
         </div>
 
         <div class="welcome-left-logo"></div>
@@ -269,44 +269,71 @@
     <div class="centered">
         <div class="form-container">
         <div class="form-header">
-            Login
+            Sign Up
         </div>
         <div class="form-body">
-            <form phx-submit="login">
-            <div class="form-input-container">
-                <div>
-                <label class="form-input-label">Email *</label>
+            <%= form_for @changeset, "#", [phx_change: :validate, phx_submit: :save, class: "form-body", autocomplete: "off", autocorrect: "off", autocapitalize: "off", spellcheck: "false"], fn f -> %>
+                    
+                <div class="form-input-container">  
+                    <div>
+                        <label class="form-input-label">Email*</label>
+        
+                    </div>
+                    <div>
+                        <%= email_input f, :email, [class: "form-input", placeholder: "Your email address", aria_describedby: "form_email_detail", aria_required: "true", phx_click: :blur_email] %>
+                    </div>
+                    
+                    <div aria-live="polite"  id="form_email_detail" class={"#{detail_error f, @changeset, :email}"}>
+                        <span class="text-sm"> <%= push_error_tag f, :email %></span>
+                    </div>
+                </div>
+                
+                <div class="form-input-container">  
+                    <div>
+                        <label class="form-input-label">Password*</label>
+                    </div>
+                    
+                    <div>
+                        <%= password_input f, :password, [value: input_value(f, :password), class: "form-input", placeholder: "••••••••", aria_describedby: "form_password_detail", aria_required: "true", phx_click: :blur_password] %>
+                    </div>
+                    <div aria-live="polite"  id="form_password_detail" class={"#{detail_error f, @changeset, :password}"}>
+                        <span class="text-sm"> <%= push_error_tag f, :password %> </span>
+                    </div>
                 </div>
 
-                <div>
-                <input class="form-input" type="text" name="email" placeholder="Your email address" autofocus value="danilo1@gmail.com" />
+                <div class="form-input-container">  
+                    <div>
+                        <label class="form-input-label">Repeat Password*</label>
+                    </div>
+                    
+                    <div>
+                        <%= password_input f, :password_confirmation, [value: input_value(f, :password_confirmation), class: "form-input", placeholder: "••••••••", aria_describedby: "form_password_confirmation_detail", aria_required: "true"] %>
+                    </div>
+                    <div aria-live="polite"  id="form_password_confirmation_detail" class={"#{detail_error f, @changeset, :password_confirmation}"}>
+                        <span class="text-sm"> <%= push_error_tag f, :password_confirmation %> </span>
+                    </div>
                 </div>
-            </div>
 
-            <div class="form-input-container">
-                <div>
-                <label class="form-input-label">Password *</label>
+                <div class="flex items-center pt-2 pb-2">
+                    <%= checkbox f, :accepts_conditions, [phx_click: "toggle", class: "rounded"] %>
+                    <label class="ml-2 text-sm font-medium text-gray-900 ">Agree to our <a href="#" class="text-blue-600 dark:text-blue-500 hover:underline">terms of service</a>.
+                    </label>
                 </div>
-
-                <div>
-                <input type="text" class="form-input" name="password" placeholder="************" value="1234" autofocus />
+                <div aria-live="polite"  id="form_accepts_conditions_detail" class={"#{detail_error f, @changeset, :accepts_conditions} flex"}>
+                    <span class="text-sm"> <%= push_error_tag f, :accepts_conditions %> </span>
                 </div>
-            </div>
+                                
+                
+                <div class="btn-group flex items-center pt-2 pb-2">
+                    <a><%= submit submit_value(@changeset, "Sign Up"), [class: "bg-blue-500 hover:bg-blue-700 text-white py-3 px-14 rounded-md"] %></a>
+                    <a> <%= link "Login", to: "/login", class: "text-blue-600 pl-6" %> </a>
+                  </div>
 
-            <div class="form-link">
-                <%= link "Forgot your password?", to: Routes.live_path(@socket, MazarynWeb.AuthLive.Reset) %>
-            </div>
-
-            <div class="form-button">
-                <button type="submit">
-                Login
-                </button>
-            </div>
-
-            <div class="form-redirect">
-                <%= link "Sign Up", to: Routes.live_path(@socket, MazarynWeb.AuthLive.Signup) %>
-            </div>
-            </form>
+                <%= hidden_input f, :email_touched %>
+                <%= hidden_input f, :password_touched %>
+                <%= hidden_input f, :form_submitted %>
+                <%= hidden_input f, :form_disabled %>
+                <% end %>
         </div>
         </div>
     </div>

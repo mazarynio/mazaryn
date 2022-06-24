@@ -17,6 +17,11 @@ defmodule MazarynWeb.ErrorHelpers do
     end)
   end
 
+  def push_error_tag(form, field) do
+    Enum.map(Keyword.get_values(form.errors, field), fn error ->
+      content_tag(:span, "#{translate_error(error)}", class: "block mt-1 text-sm text-red-700")
+    end) end
+
   @doc """
   Translates an error message using gettext.
   """
