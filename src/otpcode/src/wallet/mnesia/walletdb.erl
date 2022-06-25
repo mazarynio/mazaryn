@@ -4,7 +4,7 @@
 -include("../wallet.hrl").
 
 -define(CURVE_NAME, eddsa).
--define(CURVE_PARAM, ed25519). 
+-define(CURVE_PARAM, ed25519).  
 
 init() ->
     mnesia:create_schema([node()]),
