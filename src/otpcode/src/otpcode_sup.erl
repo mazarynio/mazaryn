@@ -78,12 +78,13 @@ init([]) ->
                     modules => [post_server]},
 
                   %% TODO: add other tables
-                  #{id => sync_db_server,
+                  #{id => sync_user_table,
                     start => {sync_db, start_link, [user]},
                     restart => permanent,
                     shutdown => 5000,
                     type => worker,
-                    modules => [sync_db_server]}
+                    modules => [sync_user_table]}
+
                   ],
     {ok, {SupFlags, ChildSpecs}}.
 

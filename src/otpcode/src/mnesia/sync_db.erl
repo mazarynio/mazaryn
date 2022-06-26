@@ -12,6 +12,8 @@
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2,
   code_change/3]).
 
+-include_lib("kernel/include/logger.hrl").
+
 -define(SERVER, ?MODULE).
 
 -record(syncdb_state, {conn, attributes}).
@@ -21,10 +23,10 @@
 %%%===================================================================
 
 start_link(Table) ->
-  gen_server:start_link({local, ?SERVER}, ?MODULE, [Table], []).
+  gen_server:start_link({local, list_to_atom(atom_to_list(Table) ++ "_table_sync")}, ?MODULE, [Table], []).
 
 init([Table]) ->
-  io:format("Start db_sync"),
+  ?LOG_NOTICE("Sync ~p has been started - ~p", [Table, self()]),
   %%TODO: the database credentials should be dynamic configured
   {ok, Conn} = epgsql:connect(#{
       host => "localhost",
@@ -50,23 +52,34 @@ handle_cast(_Request, _State) ->
 %% handle mnesia activities
 handle_info({mnesia_table_event, Event}, #syncdb_state{conn = Conn}=State) ->
   case Event of
-    {Operation, schema, Table, _Old, _Activity} -> % schema activity
-      ok;
+     % schema activity
+    {Operation, schema, Table, _Old, _Activity} ->
+      ?LOG_NOTICE("Schema ~p operation on ~p", [Operation, Table]);
 
     %% record and table have same name
-    {delete, Table, {Record, Key}, _OldRecord, _ActivityId} ->
+    {delete, _Table, {Record, Key}, _OldRecord, _ActivityId} ->
       QueryStr = make_delete_query(Record, Key),
-      {ok, _} = epgsql:squery(Conn, QueryStr);
-
-    {_Operation, Table, NewRec, OldRecs, _ActivityId} ->
-          case OldRecs of
-            [] -> %% new one is inserted
-              %% run insert query here
-              QueryStr = make_insert_query(NewRec),
-              {ok, _} = epgsql:squery(Conn, QueryStr);
-            [OldRec] ->
-              QueryStr = make_update_query(NewRec, OldRec), %% run update query
-              {ok, _} = epgsql:squery(Conn, QueryStr)
+      QueryRes = epgsql:squery(Conn, QueryStr),
+      case QueryRes of %% result of single query
+        {ok, _} -> ok;
+        {error, Error} ->
+          ?LOG_NOTICE("Error ~p db sync with record ~p", [Error, Record])
+      end;
+    {_Operation, _Table, NewRec, OldRecs, _ActivityId} ->
+          QueryRes =
+            case OldRecs of
+              [] -> %% new one is inserted
+                %% run insert query here
+                QueryStr = make_insert_query(NewRec),
+                epgsql:squery(Conn, QueryStr);
+              [OldRec] ->
+                QueryStr = make_update_query(NewRec, OldRec), %% run update query
+                epgsql:squery(Conn, QueryStr)
+            end,
+          case QueryRes of %% result of single query
+            {ok, _} -> ok;
+            {error, Error} ->
+              ?LOG_NOTICE("Error ~p db sync with record ~p", [Error, NewRec])
           end
   end,
   {noreply, State};
@@ -98,7 +111,24 @@ make_table_query(user) ->
 	   private TEXT,
 	   last_login TIMESTAMP WITH TIME ZONE,
 	   date_crated TIMESTAMP WITH TIME ZONE,
+	   date_updated TIMESTAMP WITH TIME ZONE)";
+make_table_query(post) ->
+    "CREATE TABLE IF NOT EXISTS posts (
+     id TEXT PRIMARY KEY,
+	   content TEXT NOT NULL,
+	   comments TEXT UNIQUE NOT NULL,
+	   author TEXT,
+	   date_crated TIMESTAMP WITH TIME ZONE,
 	   date_updated TIMESTAMP WITH TIME ZONE)".
+%% TODO: Implement later with comment module
+%%make_table_query(comment) ->
+%%    "CREATE TABLE IF NOT EXISTS users (
+%%     id TEXT PRIMARY KEY,
+%%	   post TEXT NOT NULL,
+%%	   username TEXT UNIQUE NOT NULL,
+%%	   content TEXT,
+%%	   date_crated TIMESTAMP WITH TIME ZONE,
+%%	   date_updated TIMESTAMP WITH TIME ZONE)".
 
 generate_partial_query({Type, Values}) ->
     MapValue =

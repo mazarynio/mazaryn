@@ -13,7 +13,7 @@
 
 -behaviour(gen_server).
 %% API
--export([start_link/0, insert/2, get_post_by_id/1,
+-export([start_link/0, insert/2, get_post_by_id/1, modify_post/3,
          get_posts_by_author/1, delete_post/1,add_comment/3, get_posts/0,
          get_all_posts_from_date/4, get_all_posts_from_month/3,
          get_comments/1]).
@@ -34,6 +34,9 @@ start_link() ->
 
 insert(Author, Content) ->
   gen_server:call({global, ?MODULE}, {insert, Author, Content}).
+
+modify_post(Id, Username, NewContent) ->
+  gen_server:call({global, ?MODULE}, {modify_post, Id, Username, NewContent}).
 
 get_post_by_id(Id) ->
   gen_server:call({global, ?MODULE}, {get_post_by_id, Id}).
@@ -82,6 +85,10 @@ init([]) ->
 handle_call({insert, Author, Content}, _From, State) ->
     Id = postdb:insert(Author, Content),
     {reply, Id, State};
+
+handle_call({modify_post, Id, Username, NewContent}, _From, State) ->
+  Res = postdb:modify_post(Id, Username, NewContent),
+  {reply, Res, State};
 
 handle_call({get_post_by_id, Id}, _From, State) ->
     Posts = postdb:get_post_by_id(Id),

@@ -14,9 +14,14 @@
                 content,
                 comments = [],
                 author,
-                date_created}).
+                date_created,
+                date_updated}).
 
--record(comment, {username, content, date_created}).
+-record(comment, {id,
+                  post,
+                  username,
+                  content,
+                  date_created}).
 
 
 -record(group, {id, gp_name, num_members, members}).
