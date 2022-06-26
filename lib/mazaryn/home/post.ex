@@ -11,6 +11,7 @@ defmodule Home.Post do
     field :removed, :boolean, default: false
     field :pinned, :boolean, default: false
     field :profile_tags, {:array, :string}, default: []
+    has_many(:likes, Home.Like)
     has_many(:comments, Home.Comment)
     belongs_to(:user, Account.User)
 
