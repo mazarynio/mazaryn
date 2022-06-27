@@ -56,7 +56,10 @@ defmodule Mazaryn.MixProject do
       # Erlang dependencies
       {:erlpass, git: "https://github.com/ferd/erlpass.git"},
       {:bcrypt, git: "https://github.com/erlangpack/bcrypt.git", override: true},
-      {:epgsql, "~> 4.6"}
+      {:epgsql, "~> 4.6"},
+
+      # Icons
+      {:ex_heroicons, "~> 0.6.0"}
     ]
   end
 
