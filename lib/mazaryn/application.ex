@@ -16,6 +16,7 @@ defmodule Mazaryn.Application do
       {Phoenix.PubSub, name: Mazaryn.PubSub},
       # Start the Endpoint (http/https)
       MazarynWeb.Endpoint,
+
       # Start a worker by calling: Mazaryn.Worker.start_link(arg)
       # {Mazaryn.Worker, arg}
 
@@ -32,6 +33,11 @@ defmodule Mazaryn.Application do
 
     opts = [strategy: :one_for_one, name: Mazaryn.Supervisor]
     Supervisor.start_link(children, opts)
+  end
+
+  def start_server do
+    :user_server.start_link()
+    :post_server.start_link()
   end
 
   # Tell Phoenix to update the endpoint configuration
