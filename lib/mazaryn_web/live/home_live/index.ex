@@ -26,9 +26,11 @@ defmodule MazarynWeb.HomeLive.Index do
         case Phoenix.Token.verify(MazarynWeb.Endpoint, signing_salt(), token, max_age: 806_400) do
           {:ok, user_id} ->
             user_id
+
           _ ->
             nil
         end
+
       _ ->
         nil
     end

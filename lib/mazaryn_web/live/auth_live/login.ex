@@ -11,7 +11,7 @@ defmodule MazarynWeb.AuthLive.Login do
 
   @login_schema %{
     email: [type: :string, required: true],
-    password: [type: :string, required: true],
+    password: [type: :string, required: true]
   }
 
   @impl true
@@ -22,7 +22,6 @@ defmodule MazarynWeb.AuthLive.Login do
       |> Map.put(:action, :insert)
 
     {:ok, assign(socket, key: key, changeset: changeset)}
-
   end
 
   # @impl true
@@ -61,11 +60,11 @@ defmodule MazarynWeb.AuthLive.Login do
       {:noreply, socket}
     end
   end
+
   @impl true
   def handle_event("save", param, socket) do
     Logger.info(params: param)
     {:noreply, socket}
-
   end
 
   @impl true
@@ -99,6 +98,7 @@ defmodule MazarynWeb.AuthLive.Login do
       %Account.User{id: user_id} ->
         insert_session_token(key, user_id)
         {:noreply, push_redirect(socket, to: Routes.live_path(socket, MazarynWeb.HomeLive.Index))}
+
       changeset ->
         changeset =
           changeset
@@ -107,5 +107,4 @@ defmodule MazarynWeb.AuthLive.Login do
         {:noreply, assign(socket, changeset: changeset)}
     end
   end
-
 end

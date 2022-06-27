@@ -4,22 +4,22 @@ defmodule MazarynWeb.Router do
   import MazarynWeb.Plug.Session, only: [redirect_unauthorized: 2, validate_session: 2]
 
   pipeline :browser do
-    plug :accepts, ["html"]
-    plug :fetch_session
-    plug :fetch_live_flash
-    plug :put_root_layout, {MazarynWeb.LayoutView, :root}
-    plug :protect_from_forgery
-    plug :put_secure_browser_headers
-    plug :validate_session
+    plug(:accepts, ["html"])
+    plug(:fetch_session)
+    plug(:fetch_live_flash)
+    plug(:put_root_layout, {MazarynWeb.LayoutView, :root})
+    plug(:protect_from_forgery)
+    plug(:put_secure_browser_headers)
+    plug(:validate_session)
   end
 
   pipeline :restricted do
-    plug :browser
-    plug :redirect_unauthorized
+    plug(:browser)
+    plug(:redirect_unauthorized)
   end
 
   pipeline :api do
-    plug :accepts, ["json"]
+    plug(:accepts, ["json"])
   end
 
   # pipeline :liveview do
@@ -28,52 +28,46 @@ defmodule MazarynWeb.Router do
   # end
 
   scope "/", MazarynWeb do
-    pipe_through :browser
+    pipe_through(:browser)
 
-    get "/logout", LogoutController, :index
+    get("/logout", LogoutController, :index)
+
     live_session :default,
-    on_mount: [MazarynWeb.UserLiveAuth] do
-      live "/login", AuthLive.Login
+      on_mount: [MazarynWeb.UserLiveAuth] do
+      live("/login", AuthLive.Login)
 
-      live "/reset", AuthLive.Reset
-      live "/signup", AuthLive.Signup
-      live "/profile", UserLive.Index
-      live "/posts", PostLive.Index
-      live "/messages/:id", ChatLive.Index
+      live("/reset", AuthLive.Reset)
+      live("/signup", AuthLive.Signup)
+      live("/profile", UserLive.Index)
+      live("/posts", PostLive.Index)
+      live("/messages/:id", ChatLive.Index)
     end
 
-    get "/", PageController, :index
-
-
+    get("/", PageController, :index)
   end
 
   scope "/home", MazarynWeb do
-    pipe_through :restricted
-    live "/", HomeLive.Index
+    pipe_through(:restricted)
+    live("/", HomeLive.Index)
   end
 
   # Other scopes may use custom stacks.
   scope "/api/v1", MazarynWeb do
-    pipe_through :api
+    pipe_through(:api)
 
-    #User
-    get "/users", UserController, :get_all_user
-    #get "/user/:username", UserController, :get_user_by_username
-    #get "/user/:email", UserController, :get_user_by_email
+    # User
+    get("/users", UserController, :get_all_user)
+    # get "/user/:username", UserController, :get_user_by_username
+    # get "/user/:email", UserController, :get_user_by_email
     # get "/user/:username", UserController, :get_followers
-    get "/user/follow", UserController, :follow_user
+    get("/user/follow", UserController, :follow_user)
 
-    #Authentication
-    post "/auth/user/register", UserController, :register
-    post "/auth/user/login", UserController, :login
+    # Authentication
+    post("/auth/user/register", UserController, :register)
+    post("/auth/user/login", UserController, :login)
 
-
-
-    #Post
-    post "/create/post", UserController, :create_post
-
-
-
+    # Post
+    post("/create/post", UserController, :create_post)
   end
 
   # Other scopes may use custom stacks.
@@ -92,9 +86,9 @@ defmodule MazarynWeb.Router do
     import Phoenix.LiveDashboard.Router
 
     scope "/" do
-      pipe_through :browser
+      pipe_through(:browser)
 
-      live_dashboard "/dashboard", metrics: MazarynWeb.Telemetry
+      live_dashboard("/dashboard", metrics: MazarynWeb.Telemetry)
     end
   end
 
@@ -104,9 +98,9 @@ defmodule MazarynWeb.Router do
   # node running the Phoenix server.
   if Mix.env() == :dev do
     scope "/dev" do
-      pipe_through :browser
+      pipe_through(:browser)
 
-      forward "/mailbox", Plug.Swoosh.MailboxPreview
+      forward("/mailbox", Plug.Swoosh.MailboxPreview)
     end
   end
 end
