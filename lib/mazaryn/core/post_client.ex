@@ -1,7 +1,10 @@
 defmodule Core.PostClient do
 
-  def create_post(author, content) do
+  def start do
     :post_server.start_link()
+  end
+
+  def create_post(author, content) do
     :post_server.insert(author, content)
   end
 
