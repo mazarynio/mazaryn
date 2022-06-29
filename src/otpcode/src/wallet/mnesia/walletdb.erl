@@ -1,7 +1,7 @@
 -module(walletdb).
--export([init/0, insert/2]).
-
 -include("../wallet.hrl").
+
+-export([init/0, insert/2, get_wallet/1, get_wallets/0, get_password/1]).
 
 -define(CURVE_NAME, eddsa).
 -define(CURVE_PARAM, ed25519).  
@@ -26,6 +26,35 @@ insert(Name, Password) ->
         mnesia:write(Wallet)
     end,
     mnesia:transaction(F).
+
+get_wallet(Name) ->
+    F = fun() ->
+        mnesia:read(wallet, Name)
+    end,
+    Res = mnesia:transaction(F),
+    case Res of 
+        {atomic, [Wallet]} -> Wallet;
+        {atomic, []} -> not_exist;
+        _ -> error 
+    end.
+
+get_wallets() ->
+    Fun = fun() ->
+        mnesia:all_keys(wallet)
+    end,
+    {atomic, Res} = mnesia:transaction(Fun),
+    Res.
+
+get_password(Name) ->
+    F = fun() ->
+        mnesia:read(wallet, Name)
+        end,
+    Res = mnesia:transaction(F),
+    case Res of
+      {atomic, [Wallet]} -> Wallet#wallet.password;
+      {atomic, []} -> wallet_not_existed;
+      _ -> error
+    end.
 
 
 
