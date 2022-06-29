@@ -24,6 +24,7 @@ defmodule Mazaryn.Wallet do
   schema "wallets" do
     field :name, :string
     field :password
+    has_many(:transactions, Mazaryn.Wallet.Transaction)
     belongs_to(:user, Account.User)
 
     # timestamps()
