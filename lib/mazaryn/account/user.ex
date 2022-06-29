@@ -25,6 +25,7 @@ defmodule Account.User do
   schema "users" do
     field :email, :string
     field :password, :string, virtual: true
+    has_many(:wallets, Mazaryn.Wallet)
 
     # timestamps()
   end
