@@ -23,6 +23,7 @@ defmodule Account.User do
   # end
 
   schema "users" do
+    field :username, :string
     field :email, :string
     field :password, :string, virtual: true
     has_many(:wallets, Mazaryn.Wallet)
@@ -31,6 +32,7 @@ defmodule Account.User do
   end
 
   @required_attrs [
+    :username,
     :email,
     :password
   ]
