@@ -8,6 +8,7 @@ defmodule MazarynWeb.AuthLive.Signup do
   require Logger
 
   @signup_schema %{
+    username: [type: :string, required: true],
     email: [type: :string, required: true],
     password: [type: :string, required: true],
     repassword: [type: :string, require: true],
@@ -52,6 +53,10 @@ defmodule MazarynWeb.AuthLive.Signup do
     {:noreply, assign(socket, changeset: changeset)}
   end
 
+  @impl true
+  def handle_event("blur_username", _value, socket) do
+    blur_event("username", socket)
+  end
 
   @impl true
   def handle_event("blur_email", _value, socket) do

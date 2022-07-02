@@ -276,6 +276,20 @@
                     
                 <div class="form-input-container">  
                     <div>
+                        <label class="form-input-label">Username*</label>
+        
+                    </div>
+                    <div>
+                        <%= username_input f, :username, [class: "form-input", placeholder: "Your username", aria_describedby: "form_username_detail", aria_required: "true", phx_click: :blur_username] %>
+                    </div>
+                    
+                    <div aria-live="polite"  id="form_username_detail" class={"#{detail_error f, @changeset, :username}"}>
+                        <span class="text-sm"> <%= push_error_tag f, :username %></span>
+                    </div>
+                </div>
+                
+                <div class="form-input-container">  
+                    <div>
                         <label class="form-input-label">Email*</label>
         
                     </div>
@@ -329,6 +343,8 @@
                     <a> <%= link "Login", to: "/login", class: "text-blue-600 pl-6" %> </a>
                   </div>
 
+
+                <%= hidden_input f, :username_touched %>
                 <%= hidden_input f, :email_touched %>
                 <%= hidden_input f, :password_touched %>
                 <%= hidden_input f, :form_submitted %>
