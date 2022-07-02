@@ -9,10 +9,12 @@ defmodule Mazaryn.Signup.Form do
   @password_message "Password must be between 8 and 20 characters"
 
   schema "signup_form" do
+    field(:username, :string)
     field(:email, :string)
     field(:password, :string)
     field(:password_confirmation, :string)
     field(:accepts_conditions, :boolean)
+    field(:username_touched, :boolean)
     field(:email_touched, :boolean)
     field(:password_touched, :boolean)
     field(:form_submitted, :boolean)
@@ -20,6 +22,7 @@ defmodule Mazaryn.Signup.Form do
   end
 
   @required_attrs [
+    :username,
     :email,
     :password,
     :password_confirmation,
@@ -27,6 +30,7 @@ defmodule Mazaryn.Signup.Form do
   ]
 
   @optional_attrs [
+    :username_touched,
     :email_touched,
     :password_touched,
     :form_submitted,
@@ -36,6 +40,7 @@ defmodule Mazaryn.Signup.Form do
   def changeset(user, params \\ %{}) do
     user
     |> cast(params, @required_attrs ++ @optional_attrs)
+    |> validate_required(:username, message: "Username is required")
     |> validate_required(:email, message: "Email address is required")
     |> validate_required(:password, message: "Password is required")
     |> validate_confirmation(:password, message: "Does not match password")
@@ -47,12 +52,13 @@ defmodule Mazaryn.Signup.Form do
   def create_user(%Ecto.Changeset{valid?: false} = changeset), do: changeset
 
   def create_user(%Ecto.Changeset{} = changeset) do
+    username = changeset |> Ecto.Changeset.get_field(:username)
     email = changeset |> Ecto.Changeset.get_field(:email)
     password = changeset |> Ecto.Changeset.get_field(:password)
 
-    case Core.UserClient.register(email, password, email) do
+    case Core.UserClient.register(username, password, email) do
       :ok ->
-        %User{email: email, password: password}
+        %User{username: username, email: email, password: password}
 
       :username_existed ->
         :username_existed
