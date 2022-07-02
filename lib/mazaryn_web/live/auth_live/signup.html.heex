@@ -280,7 +280,7 @@
         
                     </div>
                     <div>
-                        <%= username_input f, :username, [class: "form-input", placeholder: "Your username", aria_describedby: "form_username_detail", aria_required: "true", phx_click: :blur_username] %>
+                        <%= text_input f, :username, [class: "form-input", placeholder: "Your username", aria_describedby: "form_username_detail", aria_required: "true", phx_click: :blur_username] %>
                     </div>
                     
                     <div aria-live="polite"  id="form_username_detail" class={"#{detail_error f, @changeset, :username}"}>
