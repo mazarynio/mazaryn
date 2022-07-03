@@ -1,4 +1,4 @@
-defmodule Mazaryn.Wallet.Transaction do
+defmodule Wallet.Transaction do
 
   use Ecto.Schema
 

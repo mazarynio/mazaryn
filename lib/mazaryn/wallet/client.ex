@@ -1,4 +1,4 @@
-defmodule Mazaryn.Wallet.Client do
+defmodule Wallet.Client do
 
   def create(name, password) do
     :wallet_server.create(name, password)
