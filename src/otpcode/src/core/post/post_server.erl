@@ -102,7 +102,7 @@ handle_call({add_comment, Id, Username, Comment}, _From, State) ->
     postdb:add_comment(Id, Username, Comment),
     {reply, ok, State};
 
-handle_call({get_posts}, _From, State = #state{}) ->
+handle_call({get_posts}, _From, State) ->
     Res = postdb:get_posts(),
     {reply, Res, State};
 
