@@ -289,7 +289,7 @@ check_email(Email) ->
   end.
 
 check_user_credential(Email, Password) ->
-  Object =  mnesia:match_object(#user{Email = Email,
+  Object =  mnesia:match_object(#user{email = Email,
                                       _ = '_'}),
   case Object of
     [] -> false;
