@@ -51,12 +51,14 @@ defmodule MazarynWeb.Router do
     live("/", HomeLive.Index)
   end
 
-  scope "/api", MazarynWeb do
+  scope "/api" do
     pipe_through :api
 
     forward "/graphiql", Absinthe.Plug.GraphiQL,
       schema: MazarynWeb.Schema,
       interface: :simple
+
+      forward("/", Absinthe.Plug, schema: MazarynWeb.Schema)
   end
 
 
