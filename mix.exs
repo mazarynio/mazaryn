@@ -20,7 +20,7 @@ defmodule Mazaryn.MixProject do
   def application do
     [
       mod: {Mazaryn.Application, []},
-      extra_applications: [:logger, :runtime_tools]
+      extra_applications: [:logger, :runtime_tools, :absinthe_plug]
     ]
   end
 
@@ -59,7 +59,11 @@ defmodule Mazaryn.MixProject do
       {:epgsql, "~> 4.6"},
 
       # Icons
-      {:ex_heroicons, "~> 0.6.0"}
+      {:ex_heroicons, "~> 0.6.0"},
+
+      # Graphql APIs
+      {:absinthe, "~> 1.7"},
+      {:absinthe_plug, "~> 1.5"}
     ]
   end
 
