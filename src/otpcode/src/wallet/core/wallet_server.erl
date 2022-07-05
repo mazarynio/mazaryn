@@ -43,7 +43,7 @@ handle_call({create, Name, Password}, _From, State = #state{}) ->
   ?LOG_INFO("Wallet ~p was added", [Name]),
   {reply, Res, State};
 
-handle_call({get_wallets}, _From, State = #state{}) ->
+handle_call({get_wallets}, _From, State) ->
   Res = walletdb:get_wallets(),
   {reply, Res, State};
 
