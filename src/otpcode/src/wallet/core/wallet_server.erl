@@ -1,5 +1,5 @@
 -module(wallet_server).
--export([start_link/0, create/2, get_wallets/0, deposit/1, withdraw/1,
+-export([start_link/0, create/2, get_wallet/1, get_wallets/0, deposit/1, withdraw/1,
  get_balance/0, send_token/4]).
 
 %% gen_server callbacks
@@ -18,6 +18,9 @@ start_link() ->
 
 create(Name, Password) ->
   gen_server:call({global, ?MODULE}, {create, Name, Password}). 
+
+get_wallet(Address) ->
+  gen_server:call({global, ?MODULE}, {get_wallet, Address}).
 
 get_wallets() ->
   gen_server:call({global, ?MODULE}, {get_wallets}).
@@ -43,7 +46,11 @@ handle_call({create, Name, Password}, _From, State = #state{}) ->
   ?LOG_INFO("Wallet ~p was added", [Name]),
   {reply, Res, State};
 
-handle_call({get_wallets}, _From, State) ->
+handle_call({get_wallet, Address}, _From, State) ->
+  Wallets = walletdb:get_wallet(Address),
+  {reply, Wallets, State};
+
+handle_call({get_wallets}, _From, State = #state{}) ->
   Res = walletdb:get_wallets(),
   {reply, Res, State};
 
