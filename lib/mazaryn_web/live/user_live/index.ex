@@ -3,6 +3,11 @@ defmodule MazarynWeb.UserLive.Index do
 
   alias Core.UserClient, as: UserClient
 
+  @impl true
+  def mount(_params, %{"user_id" => user_id} = _session, socket) do
+    {:ok, assign(socket, user_id: user_id)}
+  end
+
   def mounth(_params, _session, socket) do
     # Get the Users from the database
     {:ok, assign(socket, :users, get_user())}

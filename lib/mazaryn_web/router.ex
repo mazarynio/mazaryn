@@ -38,7 +38,7 @@ defmodule MazarynWeb.Router do
 
       live("/reset", AuthLive.Reset)
       live("/signup", AuthLive.Signup)
-      live("/profile", UserLive.Index)
+      # live("/profile", UserLive.Index)
       live("/posts", PostLive.Index)
       live("/messages/:id", ChatLive.Index)
     end
@@ -48,7 +48,12 @@ defmodule MazarynWeb.Router do
 
   scope "/home", MazarynWeb do
     pipe_through(:restricted)
-    live("/", HomeLive.Index)
+    live "/", HomeLive.Index
+  end
+
+  scope "/profile", MazarynWeb do
+    pipe_through(:restricted)
+    live "/", UserLive.Index
   end
 
   scope "/api" do
