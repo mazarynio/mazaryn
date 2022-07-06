@@ -27,16 +27,9 @@ insert(Name, Password) ->
     end,
     mnesia:transaction(F).
 
-get_wallet(Name) ->
-    F = fun() ->
-        mnesia:read(wallet, Name)
-    end,
-    Res = mnesia:transaction(F),
-    case Res of 
-        {atomic, [Wallet]} -> Wallet;
-        {atomic, []} -> not_exist;
-        _ -> error 
-    end.
+get_wallet(Address) ->
+    {atomic, [Wallet]} = mnesia:transaction(fun() -> mnesia:read({wallet, Address}) end),
+    Wallet.
 
 get_wallets() ->
     Fun = fun() ->
