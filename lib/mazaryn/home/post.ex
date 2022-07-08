@@ -27,4 +27,22 @@ defmodule Home.Post do
     |> cast(params, @required_attrs)
     |> validate_required(@required_attrs)
   end
+
+  def create_post(%Ecto.Changeset{valid?: false} = changeset), do: changeset
+
+  def create_post(%Ecto.Changeset{} = changeset) do
+    author = changeset |> Ecto.Changeset.get_field(:author)
+    content = changeset |> Ecto.Changeset.get_field(:content)
+
+    case Core.PostClient.create_post(author, content) do
+      :ok ->
+        %Post{author: author, content: content}
+
+      :post_existed ->
+        :post_existed
+
+      other ->
+        other
+    end
+  end
 end
