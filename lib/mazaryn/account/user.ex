@@ -27,6 +27,7 @@ defmodule Account.User do
     field :email, :string
     field :password, :string, virtual: true
     has_many(:wallets, Mazaryn.Wallet)
+    has_many(:posts, Mazaryn.Post)
 
     # timestamps()
   end
