@@ -7,7 +7,7 @@
 
 insert(Name, Password) ->
     F = fun() ->
-        Address = crypto_utils:generate_key_pair(),
+        Address = uuid:generate(), 
         Balance = 0,
         {Pub_key, Priv_key} = crypto_utils:generate_key_pair(),
         mnesia:write(#wallet{name = Name,
