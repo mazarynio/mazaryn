@@ -1,31 +1,25 @@
 -module(walletdb).
+-export([insert/2, get_wallet/1, get_wallets/0, get_password/1]). 
+
 -include("../wallet.hrl").
+-include_lib("stdlib/include/qlc.hrl").
 
--export([init/0, insert/2, get_wallet/1, get_wallets/0, get_password/1]).
-
--define(CURVE_NAME, eddsa).
--define(CURVE_PARAM, ed25519).  
-
-init() ->
-    mnesia:create_schema([node()]),
-    mnesia:start(),
-    mnesia:create_table(wallet, 
-                    [{attributes, record_info(fields, wallet)}]).
 
 insert(Name, Password) ->
-    Address = crypto_utils:generate_key_pair(),
-    Balance = 0,
-    {Pub_key, Priv_key} = libp2p_crypto:generate_keys(ecc_compact),
-    Wallet = #wallet{name = Name,
-                     password = Password, 
-                     address = Address,
-                     balance = Balance,
-                     pub_key = Pub_key,
-                     priv_key = Priv_key},
     F = fun() ->
-        mnesia:write(Wallet)
+        Address = crypto_utils:generate_key_pair(),
+        Balance = 0,
+        {Pub_key, Priv_key} = crypto_utils:generate_key_pair(),
+        mnesia:write(#wallet{name = Name,
+                             password = Password,
+                             address = Address,
+                             balance = Balance,
+                             pub_key = Pub_key,
+                             priv_key = Priv_key}),
+        Address
     end,
-    mnesia:transaction(F).
+    {atomic, Res} = mnesia:transaction(F),
+    Res.
 
 get_wallet(Address) ->
     {atomic, [Wallet]} = mnesia:transaction(fun() -> mnesia:read({wallet, Address}) end),
