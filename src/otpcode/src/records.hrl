@@ -23,6 +23,8 @@
                   content,
                   date_created}).
 
+-record(wallet, {name, password, address, balance, pub_key, priv_key}).
+
 
 -record(group, {id, gp_name, num_members, members}).
 -record(event, {name, date, loc, desc}).
