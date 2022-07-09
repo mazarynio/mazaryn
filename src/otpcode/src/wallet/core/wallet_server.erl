@@ -6,15 +6,15 @@
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2,
   code_change/3]).
 
--include_lib("kernel/include/logger.hrl").
+-include_lib("kernel/include/logger.hrl"). 
 -include("../wallet.hrl").
 
 -behaviour(gen_server).
--define(SERVER, ?MODULE).
 -record(state, {}).
 
 start_link() ->
-  gen_server:start_link({global, ?SERVER}, ?MODULE, [], []).
+  ?LOG_NOTICE("Wallet server has been started - ~p", [self()]),
+  gen_server:start_link({global, ?MODULE}, ?MODULE, [], []).
 
 create(Name, Password) ->
   gen_server:call({global, ?MODULE}, {create, Name, Password}). 
@@ -38,13 +38,11 @@ send_token(Name, To, From, Amount) ->
   gen_server:call({global, ?MODULE}, {send_token, Name, To, From, Amount}).
 
 init([]) ->
-    ?LOG_NOTICE("Wallet server has been started - ~p", [self()]),
-    {ok, #state{}}.
+    {ok, []}.
 
-handle_call({create, Name, Password}, _From, State = #state{}) ->
-  Res = walletdb:insert(Name, Password),
-  ?LOG_INFO("Wallet ~p was added", [Name]),
-  {reply, Res, State};
+handle_call({create, Name, Password}, _From, State) ->
+  Address = walletdb:insert(Name, Password),
+  {reply, Address, State};
 
 handle_call({get_wallet, Address}, _From, State) ->
   Wallets = walletdb:get_wallet(Address),
