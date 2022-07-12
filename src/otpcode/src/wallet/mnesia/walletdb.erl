@@ -1,23 +1,21 @@
 -module(walletdb).
--export([insert/2, get_wallet/1, get_wallets/0, get_password/1]). 
+-export([insert/2, get_wallet/1, get_wallets/0, get_password/1,
+         deposit/2]).
 
--include("../wallet.hrl").
--include_lib("stdlib/include/qlc.hrl").
-
+-include("../../records.hrl").
 
 insert(Name, Password) ->
     F = fun() ->
-        Address = uuid:generate(), 
-        Balance = 0,
-        {Pub_key, Priv_key} = crypto_utils:generate_key_pair(),
-        mnesia:write(#wallet{name = Name,
-                             password = Password,
-                             address = Address,
-                             balance = Balance,
-                             pub_key = Pub_key,
-                             priv_key = Priv_key}),
-        Address
-    end,
+          {Pub_key, Priv_key} = crypto_utils:generate_key_pair(),
+          Address = base58:binary_to_base58(Pub_key),
+          mnesia:write(#wallet{name = Name,
+                               password = erlpass:hash(Password),
+                               address = [Address],
+                               balance = 0,
+                               pub_key = Pub_key,
+                               priv_key = Priv_key}),
+          Pub_key
+        end,
     {atomic, Res} = mnesia:transaction(F),
     Res.
 
@@ -43,7 +41,13 @@ get_password(Name) ->
       _ -> error
     end.
 
-
+deposit(Name, Amount) ->
+  Fun = fun() ->
+          [Wallet] = mnesia:read({wallet, Name}),
+          mnesia:write(Wallet#wallet{balance = Wallet#wallet.balance + Amount})
+        end,
+  {atomic, Res} = mnesia:transaction(Fun),
+  Res.
 
 
 

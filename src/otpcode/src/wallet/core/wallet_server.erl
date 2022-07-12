@@ -7,7 +7,7 @@
   code_change/3]).
 
 -include_lib("kernel/include/logger.hrl"). 
--include("../wallet.hrl").
+-include("../../records.hrl").
 
 -behaviour(gen_server).
 -record(state, {}).
