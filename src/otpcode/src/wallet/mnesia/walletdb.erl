@@ -1,6 +1,7 @@
 -module(walletdb).
 -export([insert/2, get_wallet/1, get_wallets/0, get_password/1,
-         deposit/2]).
+         get_address/1,
+         deposit/2, withdraw/2, generate_new_address/1]).
 
 -include("../../records.hrl").
 
@@ -19,8 +20,29 @@ insert(Name, Password) ->
     {atomic, Res} = mnesia:transaction(F),
     Res.
 
-get_wallet(Address) ->
-    {atomic, [Wallet]} = mnesia:transaction(fun() -> mnesia:read({wallet, Address}) end),
+generate_new_address(PubKey) ->
+  Fun = fun() ->
+          [Wallet] = mnesia:read({wallet, PubKey}),
+          CurrentAddress = Wallet#wallet.address,
+          NewAddress = base58:binary_to_base58(PubKey),
+          mnesia:write(Wallet#wallet{address = [NewAddress|CurrentAddress]}),
+          NewAddress
+        end,
+  {atomic, Res} = mnesia:transaction(Fun),
+  Res.
+
+get_address(PubKey) ->
+  Fun = fun() ->
+          [Wallet] = mnesia:read({wallet, PubKey}),
+          Wallet#wallet.address
+        end,
+  {atomic, Res} = mnesia:transaction(Fun),
+  Res.
+
+get_wallet(PubKey) ->
+    {atomic, [Wallet]} = mnesia:transaction(fun() ->
+                                              mnesia:read({wallet, PubKey})
+                                            end),
     Wallet.
 
 get_wallets() ->
@@ -30,9 +52,9 @@ get_wallets() ->
     {atomic, Res} = mnesia:transaction(Fun),
     Res.
 
-get_password(Name) ->
+get_password(PubKey) ->
     F = fun() ->
-        mnesia:read(wallet, Name)
+        mnesia:read(wallet, PubKey)
         end,
     Res = mnesia:transaction(F),
     case Res of
@@ -41,13 +63,26 @@ get_password(Name) ->
       _ -> error
     end.
 
-deposit(Name, Amount) ->
+
+deposit(PubKey, Amount) ->
   Fun = fun() ->
-          [Wallet] = mnesia:read({wallet, Name}),
+          [Wallet] = mnesia:read({wallet, PubKey}),
           mnesia:write(Wallet#wallet{balance = Wallet#wallet.balance + Amount})
         end,
   {atomic, Res} = mnesia:transaction(Fun),
   Res.
 
-
+withdraw(PubKey, Amount) ->
+  Fun = fun() ->
+          [Wallet] = mnesia:read({wallet, PubKey}),
+          CurrentBalance = Wallet#wallet.balance,
+          case Amount =< CurrentBalance of
+              true ->
+                mnesia:write(Wallet#wallet{balance = CurrentBalance - Amount});
+              false ->
+                ?MSG_INSUFFICIENT_FUNDS
+          end
+        end,
+  {atomic, Res} = mnesia:transaction(Fun),
+  Res.
 

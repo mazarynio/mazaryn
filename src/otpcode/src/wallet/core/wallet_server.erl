@@ -1,6 +1,7 @@
 -module(wallet_server).
--export([start_link/0, create/2, get_wallet/1, get_wallets/0, deposit/1, withdraw/1,
- get_balance/0, send_token/4]).
+-export([start_link/0, create/2, get_wallet/1, get_wallets/0,
+         deposit/2, withdraw/2,
+         get_address/1, get_balance/1, send_token/4]).
 
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2,
@@ -19,20 +20,24 @@ start_link() ->
 create(Name, Password) ->
   gen_server:call({global, ?MODULE}, {create, Name, Password}). 
 
-get_wallet(Address) ->
-  gen_server:call({global, ?MODULE}, {get_wallet, Address}).
+get_wallet(PubKey) ->
+  gen_server:call({global, ?MODULE}, {get_wallet, PubKey}).
 
 get_wallets() ->
   gen_server:call({global, ?MODULE}, {get_wallets}).
 
-deposit(Amount) ->
-  gen_server:call({global, ?MODULE}, {deposit, Amount}).
+get_address(PubKey) ->
+  gen_server:call({global, ?MODULE}, {get_address, PubKey}).
 
-withdraw(Amount) ->
-  gen_server:call({global, ?MODULE}, {withdraw, Amount}).
+deposit(PubKey, Amount) ->
+  gen_server:call({global, ?MODULE}, {deposit, PubKey, Amount}).
 
-get_balance() ->
-  gen_server:call({global, ?MODULE}, {get_balance}).
+withdraw(PubKey, Amount) ->
+  gen_server:call({global, ?MODULE}, {withdraw, PubKey, Amount}).
+
+get_balance(PubKey) ->
+  Wallet = get_wallet(PubKey),
+  Wallet#wallet.balance.
 
 send_token(Name, To, From, Amount) ->
   gen_server:call({global, ?MODULE}, {send_token, Name, To, From, Amount}).
@@ -52,12 +57,17 @@ handle_call({get_wallets}, _From, State = #state{}) ->
   Res = walletdb:get_wallets(),
   {reply, Res, State};
 
-handle_call({deposit, Amount}, _From, State) ->
-    NewBalance=State#wallet.balance+Amount,
-    {reply, {ok, NewBalance}, State#wallet{balance=NewBalance}};
+handle_call({get_address, PubKey}, _From, State = #state{}) ->
+  Res = walletdb:get_address(PubKey),
+  {reply, Res, State};
 
-handle_call({withdraw, Amount}, _From, State) when State#wallet.balance<Amount ->
-  {reply, not_enough_money, State};
+handle_call({deposit, PubKey, Amount}, _From, State) ->
+    Res = walletdb:deposit(PubKey, Amount),
+    {reply, Res, State};
+
+handle_call({withdraw, PubKey, Amount}, _From, State) ->
+  Res = walletdb:withdraw(PubKey, Amount),
+  {reply, Res, State};
 
 handle_call({withdraw, Amount}, _From, State) ->
     NewBalance=State#wallet.balance-Amount,

@@ -30,19 +30,17 @@
 -record(following, {id, username}).
 
 %% crypto wallet and transaction
--record(transaction, {
-    id,
-    type,
-    amount,
-    status
-}).
+-record(transaction, {id,
+                      type,
+                      amount,
+                      status}).
 
--record(wallet, {name,
+-record(wallet, {pub_key,
+                 priv_key,
+                 name,
                  password,
                  address,
                  balance,
-                 pub_key,
-                 priv_key,
                  secret_phase,
                  transaction = []}).
 
