@@ -31,4 +31,9 @@ defmodule Wallet.Client do
   def deposit(amount) do
     :wallet_server.deposit(amount)
   end
+
+  def get_balance(pub_key) do
+    :wallet_server.get_balance(pub_key)
+  end
+
 end
