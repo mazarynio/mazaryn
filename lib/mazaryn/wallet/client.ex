@@ -8,12 +8,24 @@ defmodule Wallet.Client do
     :wallet_server.create(name, password)
   end
 
-  def get_wallet(address) do
-    :wallet_server.get_wallet(address)
+  def get_wallet(pub_key) do
+    :wallet_server.get_wallet(pub_key)
   end
 
   def get_wallets() do
     :wallet_server.get_wallets()
+  end
+
+  def get_address(pub_key) do
+    :wallet_server.get_address(pub_key)
+  end
+
+  def deposit(pub_key, amount) do
+    :wallet_server.deposit(pub_key, amount)
+  end
+
+  def withdraw(pub_key, amount) do
+    :wallet_server.withdraw(pub_key, amount)
   end
 
   def deposit(amount) do
