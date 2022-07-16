@@ -7,41 +7,46 @@
 
 insert(Name, Password) ->
     F = fun() ->
-          {Pub_key, Priv_key} = crypto_utils:generate_key_pair(),
-          Address = base58:binary_to_base58(Pub_key),
-          mnesia:write(#wallet{name = Name,
+          Names = mnesia:all_keys(wallet),
+          case lists:member(Name, Names) of
+            true ->
+              wallet_name_existing;
+            false ->
+              {Pub_key, Priv_key} = crypto_utils:generate_key_pair(),
+              Address = base58:binary_to_base58(Pub_key),
+              mnesia:write(#wallet{name = Name,
                                password = erlpass:hash(Password),
                                address = [Address],
                                balance = 0,
                                pub_key = Pub_key,
-                               priv_key = Priv_key}),
-          Pub_key
+                               priv_key = Priv_key})
+          end
         end,
     {atomic, Res} = mnesia:transaction(F),
     Res.
 
-generate_new_address(PubKey) ->
+generate_new_address(Name) ->
   Fun = fun() ->
-          [Wallet] = mnesia:read({wallet, PubKey}),
-          CurrentAddress = Wallet#wallet.address,
-          NewAddress = base58:binary_to_base58(PubKey),
-          mnesia:write(Wallet#wallet{address = [NewAddress|CurrentAddress]}),
+          [Wallet] = mnesia:read({wallet, Name}),
+          PubKey = Wallet#wallet.pub_key,
+          NewAddress = hash:hash(PubKey),
+          mnesia:write(Wallet#wallet{address = [NewAddress|Wallet#wallet.address]}),
           NewAddress
         end,
   {atomic, Res} = mnesia:transaction(Fun),
   Res.
 
-get_address(PubKey) ->
+get_address(Name) ->
   Fun = fun() ->
-          [Wallet] = mnesia:read({wallet, PubKey}),
+          [Wallet] = mnesia:read({wallet, Name}),
           Wallet#wallet.address
         end,
   {atomic, Res} = mnesia:transaction(Fun),
   Res.
 
-get_wallet(PubKey) ->
+get_wallet(Name) ->
     {atomic, [Wallet]} = mnesia:transaction(fun() ->
-                                              mnesia:read({wallet, PubKey})
+                                              mnesia:read({wallet, Name})
                                             end),
     Wallet.
 
@@ -52,9 +57,9 @@ get_wallets() ->
     {atomic, Res} = mnesia:transaction(Fun),
     Res.
 
-get_password(PubKey) ->
+get_password(Name) ->
     F = fun() ->
-        mnesia:read(wallet, PubKey)
+        mnesia:read(wallet, Name)
         end,
     Res = mnesia:transaction(F),
     case Res of
@@ -64,17 +69,17 @@ get_password(PubKey) ->
     end.
 
 
-deposit(PubKey, Amount) ->
+deposit(Name, Amount) ->
   Fun = fun() ->
-          [Wallet] = mnesia:read({wallet, PubKey}),
+          [Wallet] = mnesia:read({wallet, Name}),
           mnesia:write(Wallet#wallet{balance = Wallet#wallet.balance + Amount})
         end,
   {atomic, Res} = mnesia:transaction(Fun),
   Res.
 
-withdraw(PubKey, Amount) ->
+withdraw(Name, Amount) ->
   Fun = fun() ->
-          [Wallet] = mnesia:read({wallet, PubKey}),
+          [Wallet] = mnesia:read({wallet, Name}),
           CurrentBalance = Wallet#wallet.balance,
           case Amount =< CurrentBalance of
               true ->
@@ -85,4 +90,3 @@ withdraw(PubKey, Amount) ->
         end,
   {atomic, Res} = mnesia:transaction(Fun),
   Res.
-
