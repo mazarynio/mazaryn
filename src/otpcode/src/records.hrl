@@ -35,12 +35,12 @@
                       amount,
                       status}).
 
--record(wallet, {pub_key,
-                 priv_key,
-                 name,
+-record(wallet, {name,
                  password,
                  address,
                  balance,
+                 pub_key,
+                 priv_key,
                  secret_phase,
                  transaction = []}).
 

@@ -9,4 +9,4 @@ hash256(B) -> crypto:hash(sha256, crypto:hash(sha256, B)).
 
 hash(Data) ->
   Bin = crypto:hash(sha256, crypto:hash(sha256, Data)),
-  base58:encode(Bin).
+  base58:binary_to_base58(Bin).
