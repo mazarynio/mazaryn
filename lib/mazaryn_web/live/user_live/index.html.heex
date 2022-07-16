@@ -1,7 +1,7 @@
-<%= live_component MazarynWeb.HomeLive.NavComponent, user_id: @user_id %>
+<%= live_component MazarynWeb.HomeLive.NavComponent, user_id: @user.email %>
 <div class="flex flex-wrap h-screen">
      <div class="w-full lg:w-1/6 bg-gray-100 py-10 pl-10">
-         <%= live_component MazarynWeb.HomeLive.LeftSidebarComponent, user_id: @user_id %>
+         <%= live_component MazarynWeb.HomeLive.LeftSidebarComponent, user_id: @user.email %>
      </div>
 
      <div class="w-full lg:w-5/6 bg-gray-100 px-10">
@@ -23,8 +23,8 @@
                     
                     <div class="w-full lg:w-6/12 lg:order-2 px-2 pt-6">
                          <div class="mr-4 p-3 text-left">
-                              <span class="text-xl font-bold block tracking-wide text-gray-700">Stephen Str.
-                                   <a class="ml-4 text-sm font-medium ">@<%=@user_id%></a>
+                              <span class="text-xl font-bold block tracking-wide text-gray-700"><%=@user.username%>
+                                   <a class="ml-4 text-sm font-medium ">@<%=@user.email%></a>
                               </span>
                               <span class="text-sm"> Bitcoin Design Contributor | UI/UX Designer</span>
                          </div>

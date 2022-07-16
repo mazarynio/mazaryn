@@ -3,17 +3,15 @@ defmodule MazarynWeb.UserLive.Index do
 
   alias Core.UserClient, as: UserClient
 
+  alias Account.Users
+
+
   @impl true
-  def mount(_params, %{"user_id" => user_id} = _session, socket) do
-    {:ok, assign(socket, user_id: user_id)}
+  def mount(_params, %{"user_id" => email} = _session, socket) do
+    {:ok, assign(socket, user: get_user(email))}
   end
 
-  def mounth(_params, _session, socket) do
-    # Get the Users from the database
-    {:ok, assign(socket, :users, get_user())}
-  end
-
-  defp get_user, do: UserClient.getting_users()
+  defp get_user(email), do: Users.one_by_email2(email)
 
   @impl true
   def handle_event("follow_user", %{"username" => username}, socket) do

@@ -2,10 +2,34 @@ defmodule Account.Users do
   @moduledoc """
   User API
   """
+
+  import Ecto.Query
+
+  alias Mazaryn.Repo
   alias Account.User
   alias Core.UserClient
   alias Mazaryn.Mailer
   require Logger
+
+  @spec query :: Ecto.Query.t()
+  def query do
+    from user in User
+  end
+
+  def preload_all(query) do
+    query
+  end
+
+  def one_by_email2(email) do
+    from(user in query(),
+    where: user.email == ^email,
+    select: %{
+      username: user.username,
+      email: user.email
+    })
+    |> preload_all()
+    |> Repo.one()
+  end
 
   @spec one_by_username(keyword) :: %User{} | nil
   def one_by_username(username) do
@@ -28,7 +52,6 @@ defmodule Account.Users do
         |> List.first()
         |> User.new()
     end
-
   end
 
   def list() do
@@ -65,7 +88,7 @@ defmodule Account.Users do
     end
   end
 
-  def reset_password(%User{} = user) do
+  def reset_password(%User{} = _user) do
     {:ok, :reseted}
   end
 end
