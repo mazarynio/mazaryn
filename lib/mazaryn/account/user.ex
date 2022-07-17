@@ -22,8 +22,9 @@ defmodule Account.User do
   #   struct(Account.User, %{username: username, password: password, email: email, follower: follower, blocking: blocking, following: following, saved_posts: saved_posts, other_info: other_info, date_created: date_created, date_updated: date_updated, private: private})
   # end
 
+  @primary_key {:username, :string, []}
+  @derive {Phoenix.Param, key: :username}
   schema "users" do
-    field :username, :string
     field :email, :string
     field :password, :string, virtual: true
     has_many(:wallets, Mazaryn.Wallet)
