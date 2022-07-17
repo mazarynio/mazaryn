@@ -22,11 +22,7 @@ defmodule Account.Users do
 
   def one_by_email2(email) do
     from(user in query(),
-    where: user.email == ^email,
-    select: %{
-      username: user.username,
-      email: user.email
-    })
+    where: user.email == ^email)
     |> preload_all()
     |> Repo.one()
   end

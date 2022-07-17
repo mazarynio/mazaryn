@@ -99,8 +99,8 @@ defmodule MazarynWeb.AuthLive.Signup do
   @impl true
   def handle_info({:disable_form, changeset}, %{assigns: %{:key => key}} = socket) do
     case Signup.Form.create_user(changeset) do
-      %Account.User{id: user_id} ->
-        insert_session_token(key, user_id)
+      %Account.User{email: email} ->
+        insert_session_token(key, email)
         {:noreply, push_redirect(socket, to: "/login")}
       :username_existed ->
         changeset =

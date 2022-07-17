@@ -52,7 +52,7 @@ defmodule Mazaryn.Login.Form do
 
     case Core.UserClient.login(email, password) do
       :logged_in ->
-        %User{id: email}
+        %User{email: email}
 
       :wrong_username_or_password ->
         :wrong_username_or_password
