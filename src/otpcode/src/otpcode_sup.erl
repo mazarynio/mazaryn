@@ -20,6 +20,7 @@ start_link() ->
     application:set_env(mnesia, dir, "Mnesia/"),
     mnesia:create_schema([node()]),
     mnesia:start(),
+    mnesia:change_table_copy_type(schema, node(), disc_copies),
 
     % create tables
     mnesia:create_table(event, [{attributes, record_info(fields, event)},

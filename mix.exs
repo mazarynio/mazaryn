@@ -20,7 +20,8 @@ defmodule Mazaryn.MixProject do
   def application do
     [
       mod: {Mazaryn.Application, []},
-      extra_applications: [:logger, :runtime_tools, :absinthe_plug]
+      extra_applications: [:logger, :runtime_tools, :absinthe_plug],
+      included_applications: [:mnesia]
     ]
   end
 
