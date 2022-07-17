@@ -8,10 +8,12 @@ defmodule MazarynWeb.UserLive.Index do
 
   @impl true
   def mount(_params, %{"user_id" => email} = _session, socket) do
-    {:ok, assign(socket, user: get_user(email))}
+    {:ok, assign(socket, user: user_info(email))}
   end
 
-  defp get_user(email), do: Users.one_by_email2(email)
+  defp user_info(email) do
+    Users.user_profile_by_email(email)
+  end
 
   @impl true
   def handle_event("follow_user", %{"username" => username}, socket) do

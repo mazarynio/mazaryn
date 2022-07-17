@@ -12,16 +12,29 @@ defmodule Account.Users do
   require Logger
 
   @spec query :: Ecto.Query.t()
-  def query do
+  defp query do
     from user in User
   end
 
-  def preload_all(query) do
+  defp query_user_profile do
+    from user in User
+    #eft_join: wallet in assoc(user, :wallets),
+    #left_join: post in assoc(user, :posts)
+  end
+
+  defp preload_all(query) do
     query
   end
 
   def one_by_email2(email) do
     from(user in query(),
+    where: user.email == ^email)
+    |> preload_all()
+    |> Repo.one()
+  end
+
+  def user_profile_by_email(email) do
+    from(user in query_user_profile(),
     where: user.email == ^email)
     |> preload_all()
     |> Repo.one()
