@@ -18,16 +18,24 @@ defmodule Account.User do
   #   date_updated: nil,
   #   password: nil
 
-  def new({:user, username, password, email, _following, _follower, blocked, saved_posts, other_info, private, date_created, date_updated}) do
+  def new_posts(posts) do
+    for post <- posts, do: Home.Post.new(post)
+  end
+
+  def new(users) when is_list(users) do
+    for user <- users, do: new(user)
+  end
+
+  def new({:user, username, password, email, following, follower, blocked, saved_posts, other_info, private, date_created, date_updated}) do
     struct(Account.User, %{
       username: username,
       password: password,
       email: email,
-      follower: [1, 2, 3],
-      blocked: blocked,
-      following: [1, 2, 3, 4],
-      saved_posts: saved_posts,
-      posts: [2, 3],
+      follower: Account.User.new(follower),
+      blocked: Account.User.new(blocked),
+      following: Account.User.new(following),
+      saved_posts: new_posts(saved_posts),
+      posts: new_posts([]),
       other_info: other_info,
       location: "Rio de Janeiro",
       date_created: date_created,
@@ -49,7 +57,7 @@ defmodule Account.User do
     field :date_created, :utc_datetime
     field :date_updated, :utc_datetime
     has_many(:wallets, Mazaryn.Wallet)
-    has_many :posts, Home.Post
+    has_many(:posts, Home.Post)
     has_many(:following, Account.User)
     has_many(:follower, Account.User)
     has_many(:blocked, Account.User)

@@ -25,6 +25,7 @@ defmodule Wallet.Transaction do
     field :type, :string, default: @internal
     field :status, :string, default: @pending
     field :amount, :decimal
+    field :username, :string
     belongs_to(:wallet, Mazaryn.Wallet)
     belongs_to(:user, Account.User)
   end
