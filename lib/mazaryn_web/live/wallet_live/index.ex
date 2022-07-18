@@ -22,5 +22,4 @@ defmodule MazarynWeb.WalletLive.Index do
           {:noreply, assign(socket, error: message)}
       end
   end
-
 end

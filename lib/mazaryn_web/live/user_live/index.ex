@@ -12,7 +12,7 @@ defmodule MazarynWeb.UserLive.Index do
   end
 
   defp user_info(email) do
-    Users.user_profile_by_email(email)
+    Users.one_by_email(email)
   end
 
   @impl true

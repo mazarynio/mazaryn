@@ -39,21 +39,21 @@
                <div class="flex p-4">
                     <div class="mr-8 p-3 text-center flex">
                          <i><%= Heroicons.icon("location-marker", class: "h-5 w-5 mr-2") %> </i>
-                         <a class="font-bold text-gray-700 mr-1">Toronto</a>
+                         <a class="font-bold text-gray-700 mr-1"><%=@user.location%></a>
                     </div>
                     <div class="mr-8 p-3 text-center flex">
                          <i><%= Heroicons.icon("newspaper", class: "h-5 w-5 mr-2") %> </i>
-                         <a class="font-bold text-gray-700 mr-1">100</a>
+                         <a class="font-bold text-gray-700 mr-1"><%= length(@user.posts) %></a>
                          <a class="text-gray-500">Posts</a>
                     </div>
                     <div class="mr-8 p-3 text-center flex">
                          <i><%= Heroicons.icon("users", class: "h-5 w-5 mr-2") %> </i>
-                         <a class="font-bold text-gray-700 mr-1">235</a>
+                         <a class="font-bold text-gray-700 mr-1"><%= length(@user.following) %></a>
                          <a class="text-gray-500">Follows</a>
                     </div>
                     <div class="p-3 text-center flex">
                          <i><%= Heroicons.icon("users", class: "h-5 w-5 mr-2") %> </i>
-                         <a class="font-bold text-gray-700 mr-1">2345</a>
+                         <a class="font-bold text-gray-700 mr-1"><%= length(@user.follower) %></a>
                          <a class="text-gray-500">Followers</a>
                     </div>
                </div>

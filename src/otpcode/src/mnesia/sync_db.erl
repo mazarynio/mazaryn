@@ -110,7 +110,7 @@ make_table_query(user) ->
 	   other_info TEXT,
 	   private TEXT,
 	   last_login TIMESTAMP WITH TIME ZONE,
-	   date_crated TIMESTAMP WITH TIME ZONE,
+	   date_created TIMESTAMP WITH TIME ZONE,
 	   date_updated TIMESTAMP WITH TIME ZONE)";
 make_table_query(post) ->
     "CREATE TABLE IF NOT EXISTS posts (
@@ -118,7 +118,7 @@ make_table_query(post) ->
 	   content TEXT NOT NULL,
 	   comments TEXT UNIQUE NOT NULL,
 	   author TEXT,
-	   date_crated TIMESTAMP WITH TIME ZONE,
+	   date_created TIMESTAMP WITH TIME ZONE,
 	   date_updated TIMESTAMP WITH TIME ZONE)".
 %% TODO: Implement later with comment module
 %%make_table_query(comment) ->
@@ -127,7 +127,7 @@ make_table_query(post) ->
 %%	   post TEXT NOT NULL,
 %%	   username TEXT UNIQUE NOT NULL,
 %%	   content TEXT,
-%%	   date_crated TIMESTAMP WITH TIME ZONE,
+%%	   date_created TIMESTAMP WITH TIME ZONE,
 %%	   date_updated TIMESTAMP WITH TIME ZONE)".
 
 generate_partial_query({Type, Values}) ->

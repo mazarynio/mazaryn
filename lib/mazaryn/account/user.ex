@@ -18,19 +18,42 @@ defmodule Account.User do
   #   date_updated: nil,
   #   password: nil
 
-  # def new({:user, username, password, email, following, follower, blocking, saved_posts, other_info, private, date_created, date_updated}) do
-  #   struct(Account.User, %{username: username, password: password, email: email, follower: follower, blocking: blocking, following: following, saved_posts: saved_posts, other_info: other_info, date_created: date_created, date_updated: date_updated, private: private})
-  # end
+  def new({:user, username, password, email, _following, _follower, blocked, saved_posts, other_info, private, date_created, date_updated}) do
+    struct(Account.User, %{
+      username: username,
+      password: password,
+      email: email,
+      follower: [1, 2, 3],
+      blocked: blocked,
+      following: [1, 2, 3, 4],
+      saved_posts: saved_posts,
+      posts: [2, 3],
+      other_info: other_info,
+      location: "Rio de Janeiro",
+      date_created: date_created,
+      date_updated: date_updated,
+      private: private,
+      role: "Bitcoin Design Contributor | UI/UX Designer"})
+  end
 
   @primary_key {:username, :string, []}
   @derive {Phoenix.Param, key: :username}
   schema "users" do
     field :email, :string
     field :password, :string, virtual: true
+    field :other_info, :string
+    field :location, :string
+    field :birthday, :date
+    field :role, :string
+    field :private, :boolean
+    field :date_created, :utc_datetime
+    field :date_updated, :utc_datetime
     has_many(:wallets, Mazaryn.Wallet)
-    has_many(:posts, Home.Post)
-
-    # timestamps()
+    has_many :posts, Home.Post
+    has_many(:following, Account.User)
+    has_many(:follower, Account.User)
+    has_many(:blocked, Account.User)
+    has_many(:saved_posts, Home.Post)
   end
 
   @required_attrs [
