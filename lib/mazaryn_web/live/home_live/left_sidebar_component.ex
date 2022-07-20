@@ -100,6 +100,7 @@ defmodule MazarynWeb.HomeLive.LeftSidebarComponent do
   defp hover("Home", :home) do
     ""
   end
+
   defp hover(_, _) do
     "hover:"
   end

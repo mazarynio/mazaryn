@@ -39,7 +39,7 @@ defmodule MazarynWeb.Router do
       live("/reset", AuthLive.Reset)
       live("/signup", AuthLive.Signup)
       # live("/profile", UserLive.Index)
-      live("/profile", UserLive.Index)
+      # live("/profile", UserLive.Index)
       live("/posts", PostLive.Index)
       live("/reset", AuthLive.Reset)
       live("/signup", AuthLive.Signup)
@@ -51,12 +51,9 @@ defmodule MazarynWeb.Router do
 
   scope "/", MazarynWeb do
     pipe_through(:restricted)
-    live("/", HomeLive.Index)
-  end
-
-  scope "/profile", MazarynWeb do
-    pipe_through(:restricted)
-    live("/", UserLive.Index)
+    live("/coins", CoinLive.Index)
+    live("/profile", UserLive.Index)
+    live("/home", HomeLive.Index)
   end
 
   scope "/api" do
