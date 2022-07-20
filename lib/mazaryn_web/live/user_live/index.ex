@@ -4,10 +4,19 @@ defmodule MazarynWeb.UserLive.Index do
   alias Core.UserClient, as: UserClient
 
   alias Account.Users
+  alias Home.Post
 
   @impl true
   def mount(_params, %{"user_id" => email} = _session, socket) do
-    {:ok, assign(socket, user: user_info(email))}
+    post_changeset = Post.changeset(%Post{})
+
+    socket =
+      socket
+      |> assign(user_id: email)
+      |> assign(post_changeset: post_changeset)
+      |> assign(user: user_info(email))
+
+    {:ok, socket}
   end
 
   defp user_info(email) do

@@ -50,9 +50,9 @@ defmodule MazarynWeb.Router do
 
   scope "/", MazarynWeb do
     pipe_through(:restricted)
+    live("/home", HomeLive.Index)
     live("/coins", CoinLive.Index)
     live("/profile", UserLive.Index)
-    live("/home", HomeLive.Index)
     live("/posts", PostLive.Index)
   end
 

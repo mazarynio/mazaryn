@@ -14,7 +14,7 @@ defmodule MazarynWeb.HomeLive.Index do
       |> assign(user_id: user_id)
       |> assign(post_changeset: post_changeset)
 
-    {:ok, assign(socket, user_id: user_id)}
+    {:ok, socket}
   end
 
   @impl true
