@@ -39,33 +39,36 @@ defmodule MazarynWeb.Router do
       live("/reset", AuthLive.Reset)
       live("/signup", AuthLive.Signup)
       # live("/profile", UserLive.Index)
+      live("/profile", UserLive.Index)
       live("/posts", PostLive.Index)
+      live("/reset", AuthLive.Reset)
+      live("/signup", AuthLive.Signup)
       live("/messages/:id", ChatLive.Index)
     end
 
     get("/", PageController, :index)
   end
 
-  scope "/home", MazarynWeb do
+  scope "/", MazarynWeb do
     pipe_through(:restricted)
-    live "/", HomeLive.Index
+    live("/", HomeLive.Index)
   end
 
   scope "/profile", MazarynWeb do
     pipe_through(:restricted)
-    live "/", UserLive.Index
+    live("/", UserLive.Index)
   end
 
   scope "/api" do
-    pipe_through :api
+    pipe_through(:api)
 
-    forward "/graphiql", Absinthe.Plug.GraphiQL,
+    forward("/graphiql", Absinthe.Plug.GraphiQL,
       schema: MazarynWeb.Schema,
       interface: :simple
+    )
 
-      forward("/", Absinthe.Plug, schema: MazarynWeb.Schema)
+    forward("/", Absinthe.Plug, schema: MazarynWeb.Schema)
   end
-
 
   # Other scopes may use custom stacks.
 
