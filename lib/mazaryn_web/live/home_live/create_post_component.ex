@@ -3,7 +3,6 @@ defmodule MazarynWeb.HomeLive.CreatePostComponent do
 
   alias MazarynWeb.Component.SelectLive
   alias Home.Post
-  import MazarynWeb.Live.Helper
 
   @impl true
   def render(assigns) do
@@ -39,12 +38,13 @@ defmodule MazarynWeb.HomeLive.CreatePostComponent do
 
   @impl true
   def handle_event("validate-post", %{"post" => post_params} = _params, socket) do
+    post_params = Map.put(post_params, "user_id", socket.assigns.user_id)
+
     changeset =
-      socket.assigns.changeset
+      %Post{}
       |> Post.changeset(post_params)
-      |> Ecto.Changeset.change(%{user_id: socket.assigns.user_id})
+      |> Ecto.Changeset.put_change(:user_id, socket.assigns.user_id)
       |> Map.put(:action, :validate)
-      |> IO.inspect()
 
     socket =
       socket
@@ -54,18 +54,18 @@ defmodule MazarynWeb.HomeLive.CreatePostComponent do
   end
 
   def handle_event("save-post", %{"post" => post_params} = _params, socket) do
-    Process.sleep(1000)
+    post_params = Map.put(post_params, "user_id", socket.assigns.user_id)
 
     changeset =
-      socket.assigns.changeset
+      %Post{}
       |> Post.changeset(post_params)
-      |> Ecto.Changeset.change(%{user_id: socket.assigns.user_id})
+      |> Map.put(:action, :validate)
 
     changeset
     |> Post.create_post()
     |> case do
       :ok ->
-        {:noreply, assign(socket, trigger_submit: true)}
+        {:noreply, assign(socket, socket)}
 
       changeset ->
         {:noreply, assign(socket, :changeset, changeset)}

@@ -2,6 +2,7 @@ defmodule MazarynWeb.HomeLive.Index do
   use MazarynWeb, :live_view
 
   import MazarynWeb.Live.Helper, only: [signing_salt: 0]
+  alias MazarynWeb.Component.SelectLive
   alias Home.Post
   require Logger
 

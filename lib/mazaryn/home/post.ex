@@ -2,6 +2,7 @@ defmodule Home.Post do
   use Ecto.Schema
   import Ecto.Changeset
 
+  @foreign_key_type :string
   schema "posts" do
     field(:body, :string)
     field(:likes_count, :integer, default: 0)
