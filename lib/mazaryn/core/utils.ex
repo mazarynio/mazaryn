@@ -1,5 +1,4 @@
 defmodule Mazaryn.Core.Utils do
-
   @spec generate_uuid() :: <<_::288>>
   def generate_uuid do
     <<u0::48, _::4, u1::12, _::2, u2::62>> = :crypto.strong_rand_bytes(16)

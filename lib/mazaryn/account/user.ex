@@ -26,7 +26,10 @@ defmodule Account.User do
     for user <- users, do: new(user)
   end
 
-  def new({:user, username, password, email, following, follower, blocked, saved_posts, other_info, private, date_created, date_updated}) do
+  def new(
+        {:user, username, password, email, following, follower, blocked, saved_posts, other_info,
+         private, date_created, date_updated}
+      ) do
     struct(Account.User, %{
       username: username,
       password: password,
@@ -41,21 +44,22 @@ defmodule Account.User do
       date_created: date_created,
       date_updated: date_updated,
       private: private,
-      role: "Bitcoin Design Contributor | UI/UX Designer"})
+      role: "Bitcoin Design Contributor | UI/UX Designer"
+    })
   end
 
   @primary_key {:username, :string, []}
   @derive {Phoenix.Param, key: :username}
   schema "users" do
-    field :email, :string
-    field :password, :string, virtual: true
-    field :other_info, :string
-    field :location, :string
-    field :birthday, :date
-    field :role, :string
-    field :private, :boolean
-    field :date_created, :utc_datetime
-    field :date_updated, :utc_datetime
+    field(:email, :string)
+    field(:password, :string, virtual: true)
+    field(:other_info, :string)
+    field(:location, :string)
+    field(:birthday, :date)
+    field(:role, :string)
+    field(:private, :boolean)
+    field(:date_created, :utc_datetime)
+    field(:date_updated, :utc_datetime)
     has_many(:wallets, Mazaryn.Wallet)
     has_many(:posts, Home.Post)
     has_many(:following, Account.User)
@@ -75,7 +79,11 @@ defmodule Account.User do
     |> cast(params, @required_attrs)
     |> validate_required(@required_attrs)
     |> validate_format(:email, ~r/@/)
-    |> validate_length(:password, min: 8, max: 20, message: "Password must be between 8 and 20 characters")
+    |> validate_length(:password,
+      min: 8,
+      max: 20,
+      message: "Password must be between 8 and 20 characters"
+    )
     |> create_password_hash()
   end
 

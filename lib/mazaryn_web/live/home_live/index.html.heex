@@ -8,7 +8,7 @@
     <!-- middle column -->
     <div class="w-full lg:w-3/6 bg-gray-100 p-10">
         <div class="w-full bg-white white:bg-gray-800 shadow p-4 pb-2 rounded-xl border">             
-            <.live_component module={MazarynWeb.HomeLive.CreatePostComponent} id="posting" />
+            <.live_component module={MazarynWeb.HomeLive.CreatePostComponent} id="posting" changeset={@post_changeset}} user_id={@user_id} />
         </div>
         <div class="flex flex-wrap justify-center align-center my-5"> 
             <div class="w-full bg-white white:bg-gray-800 shadow p-4 rounded-xl border">             

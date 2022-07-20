@@ -1,5 +1,4 @@
 defmodule Wallet.Client do
-
   def start do
     :wallet_server.start_link()
   end
@@ -31,5 +30,4 @@ defmodule Wallet.Client do
   def get_balance(name) do
     :wallet_server.get_balance(name)
   end
-
 end

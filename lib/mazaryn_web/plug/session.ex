@@ -28,20 +28,21 @@ defmodule MazarynWeb.Plug.Session do
   end
 
   def validate_session_token(conn, session_uuid) do
-  case :ets.lookup(:mazaryn_auth_table, :"#{session_uuid}") do
-    [{_, token}] ->
-      case Phoenix.Token.verify(MazarynWeb.Endpoint, signing_salt(), token, max_age: 806_400) do
-        {:ok, user_id} ->
-          conn
-          |> assign(:user_id, user_id)
-          |> put_session("user_id", user_id)
-        _ ->
-          conn
-      end
+    case :ets.lookup(:mazaryn_auth_table, :"#{session_uuid}") do
+      [{_, token}] ->
+        case Phoenix.Token.verify(MazarynWeb.Endpoint, signing_salt(), token, max_age: 806_400) do
+          {:ok, user_id} ->
+            conn
+            |> assign(:user_id, user_id)
+            |> put_session("user_id", user_id)
 
-    _ ->
-      conn
-  end
+          _ ->
+            conn
+        end
+
+      _ ->
+        conn
+    end
   end
 
   def signing_salt do

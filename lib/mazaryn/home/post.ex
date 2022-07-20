@@ -6,6 +6,7 @@ defmodule Home.Post do
     field(:body, :string)
     field(:likes_count, :integer, default: 0)
     field(:gif_url, :string)
+    field(:privacy, :string)
     field(:removed, :boolean, default: false)
     field(:pinned, :boolean, default: false)
     field(:profile_tags, {:array, :string}, default: [])
@@ -17,7 +18,9 @@ defmodule Home.Post do
   end
 
   @required_attrs [
-    :body
+    :body,
+    :user_id,
+    :privacy
   ]
 
   def changeset(post, params \\ %{}) do

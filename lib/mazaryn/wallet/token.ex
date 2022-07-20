@@ -1,5 +1,4 @@
 defmodule Wallet.Token do
-
   use Ecto.Schema
   import Ecto.Changeset
 

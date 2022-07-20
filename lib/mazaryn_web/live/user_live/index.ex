@@ -5,7 +5,6 @@ defmodule MazarynWeb.UserLive.Index do
 
   alias Account.Users
 
-
   @impl true
   def mount(_params, %{"user_id" => email} = _session, socket) do
     {:ok, assign(socket, user: user_info(email))}

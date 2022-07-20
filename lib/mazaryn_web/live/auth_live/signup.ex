@@ -12,7 +12,7 @@ defmodule MazarynWeb.AuthLive.Signup do
     email: [type: :string, required: true],
     password: [type: :string, required: true],
     repassword: [type: :string, require: true],
-    check: [type: :boolean, require: :true]
+    check: [type: :boolean, require: true]
   }
 
   # def mount(_params, _session, socket) do
@@ -68,14 +68,18 @@ defmodule MazarynWeb.AuthLive.Signup do
     blur_event("password", socket)
   end
 
-
   @impl true
-  def handle_event("toggle", %{"value" => _value}, %{assigns: %{:changeset => changeset}} = socket) do
+  def handle_event(
+        "toggle",
+        %{"value" => _value},
+        %{assigns: %{:changeset => changeset}} = socket
+      ) do
     changeset =
       changeset
       |> Ecto.Changeset.put_change(:accepts_conditions, true)
       |> Map.put(:action, :insert)
-    {:noreply,  assign(socket, changeset: changeset)}
+
+    {:noreply, assign(socket, changeset: changeset)}
   end
 
   @impl true
@@ -84,7 +88,8 @@ defmodule MazarynWeb.AuthLive.Signup do
       changeset
       |> Ecto.Changeset.put_change(:accepts_conditions, false)
       |> Map.put(:action, :insert)
-    {:noreply,  assign(socket, changeset: changeset)}
+
+    {:noreply, assign(socket, changeset: changeset)}
   end
 
   def blur_event(field, %{assigns: %{:changeset => changeset}} = socket) do
@@ -102,19 +107,22 @@ defmodule MazarynWeb.AuthLive.Signup do
       %Account.User{email: email} ->
         insert_session_token(key, email)
         {:noreply, push_redirect(socket, to: "/login")}
+
       :username_existed ->
         changeset =
           changeset
           |> Ecto.Changeset.add_error(:password, "This account has been created before.")
           |> Ecto.Changeset.put_change(:form_disabled, false)
+
         {:noreply, assign(socket, changeset: changeset)}
+
       changeset ->
         changeset =
           changeset
           |> Ecto.Changeset.put_change(:form_disabled, false)
+
         Logger.info(changeset: changeset)
         {:noreply, assign(socket, changeset: changeset)}
+    end
   end
-  end
-
 end

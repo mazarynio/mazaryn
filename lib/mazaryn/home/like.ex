@@ -3,14 +3,12 @@ defmodule Home.Like do
   import Ecto.Changeset
 
   schema "likes" do
-    field :like_type, :string
-    belongs_to :post, Home.Post
-    belongs_to :user, Account.User
+    field(:like_type, :string)
+    belongs_to(:post, Home.Post)
+    belongs_to(:user, Account.User)
 
     # timestamps()
   end
-
-
 
   @doc false
   def changeset(like, params \\ %{}) do

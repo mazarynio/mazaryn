@@ -3,15 +3,12 @@ defmodule MazarynWeb.HomeLive.Profile do
 
   @impl true
   def mount(_params, %{"user_id" => user_id} = _session, socket) do
-
     {:ok, assign(socket, user_id: user_id)}
   end
 
   @impl true
   def handle_params(%{"user" => user}, _, socket) do
-    {:noreply,
-     socket
-     }
+    {:noreply, socket}
   end
 
   @impl true

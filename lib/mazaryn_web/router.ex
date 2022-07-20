@@ -40,7 +40,6 @@ defmodule MazarynWeb.Router do
       live("/signup", AuthLive.Signup)
       # live("/profile", UserLive.Index)
       # live("/profile", UserLive.Index)
-      live("/posts", PostLive.Index)
       live("/reset", AuthLive.Reset)
       live("/signup", AuthLive.Signup)
       live("/messages/:id", ChatLive.Index)
@@ -54,6 +53,7 @@ defmodule MazarynWeb.Router do
     live("/coins", CoinLive.Index)
     live("/profile", UserLive.Index)
     live("/home", HomeLive.Index)
+    live("/posts", PostLive.Index)
   end
 
   scope "/api" do
