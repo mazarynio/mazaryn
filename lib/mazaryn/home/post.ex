@@ -2,7 +2,6 @@ defmodule Home.Post do
   use Ecto.Schema
   import Ecto.Changeset
 
-  @foreign_key_type :string
   schema "posts" do
     field(:body, :string)
     field(:likes_count, :integer, default: 0)
@@ -11,8 +10,8 @@ defmodule Home.Post do
     field(:removed, :boolean, default: false)
     field(:pinned, :boolean, default: false)
     field(:profile_tags, {:array, :string}, default: [])
-    has_many(:likes, Home.Like)
-    has_many(:comments, Home.Comment)
+    has_many(:likes, Home.Like, on_delete: :nilify_all)
+    has_many(:comments, Home.Comment, on_delete: :nilify_all)
     belongs_to(:user, Account.User)
 
     # timestamps()
