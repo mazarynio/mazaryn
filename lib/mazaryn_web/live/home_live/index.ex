@@ -1,12 +1,14 @@
 defmodule MazarynWeb.HomeLive.Index do
   use MazarynWeb, :live_view
 
+  alias Core.PostClient, as: PostClient
+
   import MazarynWeb.Live.Helper, only: [signing_salt: 0]
   require Logger
 
   @impl true
   def mount(_params, %{"user_id" => user_id} = _session, socket) do
-    {:ok, assign(socket, user_id: user_id)}
+    {:ok, assign(socket, user_id: user_id, posts: get_post())}
   end
 
   @impl true
@@ -28,6 +30,8 @@ defmodule MazarynWeb.HomeLive.Index do
   #   Phoenix.LiveView.JS.toggle(to: ".dropdown-menu", in: "fade-in-scale", out: "fade-out-scale")
   #   {:noreply, assign(socket, :temperature, new_temp)}
   # end
+
+  defp get_post, do: PostClient.get_posts()
 
   defp get_user_id(session_uuid) do
     case :ets.lookup(:mazaryn_auth_table, :"#{session_uuid}") do

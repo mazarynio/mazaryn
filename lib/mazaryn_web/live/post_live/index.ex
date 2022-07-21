@@ -6,6 +6,8 @@ defmodule MazarynWeb.PostLive.Index do
   alias Post
 
   def mount(_params, session, socket) do
+    # start post genserver
+    start_post_server()
     # Get the posts from the database.
     {:ok, assign(socket, :posts, get_post())}
   end
@@ -64,7 +66,12 @@ defmodule MazarynWeb.PostLive.Index do
     {:noreply, assign(socket, posts: posts, info: "Post deleted!")}
   end
 
+  defp start_post_server, do: PostClient.start()
+
   defp get_post, do: PostClient.get_posts()
+
+  defp get_post_by_author(author), do: PostClient.get_posts_by_author(author)
+
 
   defp get_session_posts(socket) do
     socket.assigns.posts
@@ -83,4 +90,8 @@ defmodule MazarynWeb.PostLive.Index do
         {:noreply, assign(socket, posts: get_session_posts(socket), error: message)}
     end
   end
+
+
+
+
 end
