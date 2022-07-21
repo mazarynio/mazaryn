@@ -48,24 +48,30 @@ defmodule Account.User do
     })
   end
 
-  @primary_key {:username, :string, []}
   @derive {Phoenix.Param, key: :username}
   schema "users" do
+    field(:username, :string)
     field(:email, :string)
     field(:password, :string, virtual: true)
-    field(:other_info, :string)
     field(:location, :string)
     field(:birthday, :date)
-    field(:role, :string)
     field(:private, :boolean)
+    field(:avatar_url, :string)
+    field(:bio, :string)
     field(:date_created, :utc_datetime)
     field(:date_updated, :utc_datetime)
+    field(:followers_count, :integer, default: 0)
+    field(:following_count, :integer, default: 0)
+    field(:posts_count, :integer, default: 0)
     has_many(:wallets, Mazaryn.Wallet)
     has_many(:posts, Home.Post)
+    has_many(:likes, Home.Like)
+    has_many(:comments, Home.Comment)
     has_many(:following, Account.User)
     has_many(:follower, Account.User)
     has_many(:blocked, Account.User)
     has_many(:saved_posts, Home.Post)
+    has_many(:notifications, Home.Notification)
   end
 
   @required_attrs [
