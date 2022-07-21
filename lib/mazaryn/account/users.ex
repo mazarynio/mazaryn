@@ -2,6 +2,10 @@ defmodule Account.Users do
   @moduledoc """
   User API
   """
+
+  import Ecto.Query
+
+  alias Mazaryn.Repo
   alias Account.User
   alias Core.UserClient
   alias Mazaryn.Mailer
@@ -13,6 +17,7 @@ defmodule Account.Users do
       :not_exist ->
         Logger.error("[Users] Failed to find #{username}")
         :ok
+
       erl_user ->
         User.new(erl_user)
     end
@@ -23,12 +28,12 @@ defmodule Account.Users do
       :user_not_exist ->
         Logger.error("[Users] Failed to find #{email}")
         nil
+
       erl_user ->
         erl_user
         |> List.first()
         |> User.new()
     end
-
   end
 
   def list() do
@@ -41,6 +46,7 @@ defmodule Account.Users do
         username
         |> Mail.UserEmail.register_email(email)
         |> Mailer.deliver()
+
       res ->
         Logger.error("[Users] Failed to register user #{username}: #{res}")
         {:error, res}
@@ -49,23 +55,27 @@ defmodule Account.Users do
 
   def login(username, pass) do
     case UserClient.login(username, pass) do
-      :logged_in -> {:ok, :logged_in}
+      :logged_in ->
+        {:ok, :logged_in}
+
       res ->
-       Logger.error("[Users] Failed to login #{username}: #{res}")
-       {:error, res}
+        Logger.error("[Users] Failed to login #{username}: #{res}")
+        {:error, res}
     end
   end
 
   def follow(follower, following) do
     case UserClient.follow(follower, following) do
-      {:atomic, :ok} -> :ok
+      {:atomic, :ok} ->
+        :ok
+
       res ->
-       Logger.error("[Users] Failed to follow #{follower} -> #{following}")
-       {:error, res}
+        Logger.error("[Users] Failed to follow #{follower} -> #{following}")
+        {:error, res}
     end
   end
 
-  def reset_password(%User{} = user) do
+  def reset_password(%User{} = _user) do
     {:ok, :reseted}
   end
 end

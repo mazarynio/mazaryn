@@ -12,3 +12,5 @@ erl_crash.dump
 /Mnesia
 mazaryn-front
 Mnesia
+mix.lock
+rel/

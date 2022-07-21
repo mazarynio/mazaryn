@@ -7,15 +7,14 @@ defmodule Mazaryn.DataAbstractor do
     Enum.filter(items, fn item -> item.id !== id end)
   end
 
-
-
-
   def update_item(items, new_value) do
     Enum.map(items, fn item ->
       if item.id == new_value.id do
-        result =  Map.merge(item, new_value, fn _k, v1, v2 ->
+        result =
+          Map.merge(item, new_value, fn _k, v1, v2 ->
             v2
           end)
+
         result
       else
         item
@@ -25,10 +24,12 @@ defmodule Mazaryn.DataAbstractor do
 
   def update_uuid(items) do
     Enum.map(items, fn item ->
-    id = convert_uuid(item.id)
+      id = convert_uuid(item.id)
+
       %{
-        item | id: id
-       }
+        item
+        | id: id
+      }
     end)
   end
 
@@ -36,6 +37,4 @@ defmodule Mazaryn.DataAbstractor do
     {:ok, id} = Ecto.UUID.load(id)
     String.replace_suffix(id, ">", "")
   end
-
-
 end

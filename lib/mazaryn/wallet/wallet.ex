@@ -1,10 +1,9 @@
 defmodule Mazaryn.Wallet do
-
   use Ecto.Schema
 
   import Ecto.Changeset
 
- # defstruct [
+  # defstruct [
   #  name: nil,
   #  password: nil,
   #  address: nil,
@@ -12,18 +11,19 @@ defmodule Mazaryn.Wallet do
   #  pub_key: nil,
   #  priv_key: nil,
   #  tokens: nil
-  #]
+  # ]
 
-  #def new(name, password) do
+  # def new(name, password) do
   #  %__MODULE__{
-    #  name: name,
-    #  password: password
+  #  name: name,
+  #  password: password
   #  }
-# end
+  # end
 
   schema "wallets" do
-    field :name, :string
-    field :password
+    field(:name, :string)
+    field(:username, :string)
+    field(:password)
     has_many(:transactions, Mazaryn.Wallet.Transaction)
     belongs_to(:user, Account.User)
 

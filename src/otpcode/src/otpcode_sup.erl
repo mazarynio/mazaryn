@@ -20,6 +20,7 @@ start_link() ->
     application:set_env(mnesia, dir, "Mnesia/"),
     mnesia:create_schema([node()]),
     mnesia:start(),
+    mnesia:change_table_copy_type(schema, node(), disc_copies),
 
     % create tables
     mnesia:create_table(event, [{attributes, record_info(fields, event)},
@@ -45,6 +46,10 @@ start_link() ->
     mnesia:create_table(user, [{attributes, record_info(fields, user)},
                                {disc_copies, [node()]},
                                {type, ordered_set}]),
+    
+    mnesia:create_table(wallet, [{attributes, record_info(fields, wallet)},
+                                 {disc_copies, [node()]},
+                                 {type, ordered_set}]),
 
     mnesia:add_table_index(user, email),
 
@@ -76,6 +81,13 @@ init([]) ->
                     shutdown => 5000,
                     type => worker,
                     modules => [post_server]},
+                  
+                  #{id => wallet_server,
+                    start => {wallet_server, start_link, []},
+                    restart => permanent,
+                    shutdown => 5000,
+                    type => worker,
+                    modules => [wallet_server]},
 
                   %% TODO: add other tables
                   #{id => sync_user_table,

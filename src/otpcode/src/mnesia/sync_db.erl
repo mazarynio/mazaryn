@@ -28,13 +28,26 @@ start_link(Table) ->
 init([Table]) ->
   ?LOG_NOTICE("Sync ~p has been started - ~p", [Table, self()]),
   %%TODO: the database credentials should be dynamic configured
-  {ok, Conn} = epgsql:connect(#{
-      host => "localhost",
-      username => "postgres",
-      password => "postgres",
-      database => "mazaryn_dev",
-      timeout => 4000
-  }),
+  {ok, Conn} = case os:getenv("MIX_ENV") of
+    "prod" ->
+      epgsql:connect(#{
+        host => os:getenv("POSTGRES_HOST"),
+        username => os:getenv("POSTGRES_USERNAME"),
+        password => os:getenv("POSTGRES_PASSWORD"),
+        database => os:getenv("POSTGRES_DB"),
+        port => list_to_integer(os:getenv("POSTGRES_PORT")),
+        timeout => 4000
+      });
+    _ ->
+      epgsql:connect(#{
+        host => "localhost",
+        username => "postgres",
+        password => "postgres",
+        database => "mazaryn_dev",
+        timeout => 4000
+      })
+  end,
+
   %%  create table if it does not exist yet
   QueryStr = make_table_query(Table),
   {ok, _, _} = epgsql:squery(Conn, QueryStr),
@@ -110,7 +123,7 @@ make_table_query(user) ->
 	   other_info TEXT,
 	   private TEXT,
 	   last_login TIMESTAMP WITH TIME ZONE,
-	   date_crated TIMESTAMP WITH TIME ZONE,
+	   date_created TIMESTAMP WITH TIME ZONE,
 	   date_updated TIMESTAMP WITH TIME ZONE)";
 make_table_query(post) ->
     "CREATE TABLE IF NOT EXISTS posts (
@@ -118,7 +131,7 @@ make_table_query(post) ->
 	   content TEXT NOT NULL,
 	   comments TEXT UNIQUE NOT NULL,
 	   author TEXT,
-	   date_crated TIMESTAMP WITH TIME ZONE,
+	   date_created TIMESTAMP WITH TIME ZONE,
 	   date_updated TIMESTAMP WITH TIME ZONE)".
 %% TODO: Implement later with comment module
 %%make_table_query(comment) ->
@@ -127,7 +140,7 @@ make_table_query(post) ->
 %%	   post TEXT NOT NULL,
 %%	   username TEXT UNIQUE NOT NULL,
 %%	   content TEXT,
-%%	   date_crated TIMESTAMP WITH TIME ZONE,
+%%	   date_created TIMESTAMP WITH TIME ZONE,
 %%	   date_updated TIMESTAMP WITH TIME ZONE)".
 
 generate_partial_query({Type, Values}) ->

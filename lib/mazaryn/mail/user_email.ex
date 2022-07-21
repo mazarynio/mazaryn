@@ -14,7 +14,7 @@ defmodule Mail.UserEmail do
   end
 
   defp base_email do
-    Email.new
+    Email.new()
     |> Email.from(from())
   end
 

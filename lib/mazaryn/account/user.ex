@@ -18,17 +18,60 @@ defmodule Account.User do
   #   date_updated: nil,
   #   password: nil
 
-  # def new({:user, username, password, email, following, follower, blocking, saved_posts, other_info, private, date_created, date_updated}) do
-  #   struct(Account.User, %{username: username, password: password, email: email, follower: follower, blocking: blocking, following: following, saved_posts: saved_posts, other_info: other_info, date_created: date_created, date_updated: date_updated, private: private})
-  # end
+  def new_posts(posts) do
+    for post <- posts, do: Home.Post.new(post)
+  end
 
+  def new(users) when is_list(users) do
+    for user <- users, do: new(user)
+  end
+
+  def new(
+        {:user, username, password, email, following, follower, blocked, saved_posts, other_info,
+         private, date_created, date_updated}
+      ) do
+    struct(Account.User, %{
+      username: username,
+      password: password,
+      email: email,
+      follower: Account.User.new(follower),
+      blocked: Account.User.new(blocked),
+      following: Account.User.new(following),
+      saved_posts: new_posts(saved_posts),
+      posts: new_posts([]),
+      other_info: other_info,
+      location: "Rio de Janeiro",
+      date_created: date_created,
+      date_updated: date_updated,
+      private: private,
+      role: "Bitcoin Design Contributor | UI/UX Designer"
+    })
+  end
+
+  @derive {Phoenix.Param, key: :username}
   schema "users" do
-    field :username, :string
-    field :email, :string
-    field :password, :string, virtual: true
+    field(:username, :string)
+    field(:email, :string)
+    field(:password, :string, virtual: true)
+    field(:location, :string)
+    field(:birthday, :date)
+    field(:private, :boolean)
+    field(:avatar_url, :string)
+    field(:bio, :string)
+    field(:date_created, :utc_datetime)
+    field(:date_updated, :utc_datetime)
+    field(:followers_count, :integer, default: 0)
+    field(:following_count, :integer, default: 0)
+    field(:posts_count, :integer, default: 0)
     has_many(:wallets, Mazaryn.Wallet)
-
-    # timestamps()
+    has_many(:posts, Home.Post)
+    has_many(:likes, Home.Like)
+    has_many(:comments, Home.Comment)
+    has_many(:following, Account.User)
+    has_many(:follower, Account.User)
+    has_many(:blocked, Account.User)
+    has_many(:saved_posts, Home.Post)
+    has_many(:notifications, Home.Notification)
   end
 
   @required_attrs [
@@ -42,7 +85,11 @@ defmodule Account.User do
     |> cast(params, @required_attrs)
     |> validate_required(@required_attrs)
     |> validate_format(:email, ~r/@/)
-    |> validate_length(:password, min: 8, max: 20, message: "Password must be between 8 and 20 characters")
+    |> validate_length(:password,
+      min: 8,
+      max: 20,
+      message: "Password must be between 8 and 20 characters"
+    )
     |> create_password_hash()
   end
 

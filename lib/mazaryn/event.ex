@@ -4,9 +4,9 @@ defmodule Event do
   """
 
   defstruct name: nil,
-    date: nil,
-    loc: nil,
-    desc: nil
+            date: nil,
+            loc: nil,
+            desc: nil
 
   def new({:event, name, date, loc, desc}) do
     struct(Event, %{name: name, date: date, loc: loc, desc: desc})

@@ -22,7 +22,9 @@ defmodule Home.Post do
   end
 
   @required_attrs [
-    :body
+    :body,
+    :user_id,
+    :privacy
   ]
 
   def changeset(post, params \\ %{}) do

@@ -13,6 +13,7 @@ defmodule Home.Comment do
     belongs_to(:post, Home.Post)
     belongs_to(:user, Account.User)
     has_many(:likes, Home.CommentLike)
+    has_many(:notifications, Home.Notification)
 
     # timestamps()
   end

@@ -1,9 +1,8 @@
 defmodule Wallet.Transaction do
-
   use Ecto.Schema
 
   import Ecto.Changeset
-  #defstruct [
+  # defstruct [
   #  :id,
   #  :status,
   #  :amount
@@ -22,9 +21,10 @@ defmodule Wallet.Transaction do
   def external, do: @external
 
   schema "transactions" do
-    field :type, :string, default: @internal
-    field :status, :string, default: @pending
-    field :amount, :decimal
+    field(:type, :string, default: @internal)
+    field(:status, :string, default: @pending)
+    field(:amount, :decimal)
+    field(:username, :string)
     belongs_to(:wallet, Mazaryn.Wallet)
     belongs_to(:user, Account.User)
   end
@@ -39,5 +39,4 @@ defmodule Wallet.Transaction do
     |> cast(params, @required_attrs)
     |> validate_required(@required_attrs)
   end
-
 end
