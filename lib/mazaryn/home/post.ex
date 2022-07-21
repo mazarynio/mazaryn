@@ -4,7 +4,8 @@ defmodule Home.Post do
 
   schema "posts" do
     field(:body, :string)
-    field(:likes_count, :integer, default: 0)
+    field(:total_likes, :integer, default: 0)
+    field(:total_comments, :integer, default: 0)
     field(:gif_url, :string)
     field(:privacy, :string)
     field(:removed, :boolean, default: false)
@@ -12,6 +13,7 @@ defmodule Home.Post do
     field(:profile_tags, {:array, :string}, default: [])
     has_many(:likes, Home.Like, on_delete: :nilify_all)
     has_many(:comments, Home.Comment, on_delete: :nilify_all)
+    has_many(:notifications, Home.Notification)
     belongs_to(:user, Account.User)
 
     # timestamps()
