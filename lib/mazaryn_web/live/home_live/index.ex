@@ -10,7 +10,16 @@ defmodule MazarynWeb.HomeLive.Index do
 
   @impl true
   def mount(_params, %{"user_id" => user_id} = _session, socket) do
-    {:ok, assign(socket, user_id: user_id, posts: get_post())}
+    PostClient.start()
+    post_changeset = Post.changeset(%Post{})
+
+    socket =
+      socket
+      |> assign(post_changeset: post_changeset)
+      |> assign(user_id: user_id)
+      |> assign(posts: get_post())
+
+    {:ok, socket}
   end
 
   @impl true

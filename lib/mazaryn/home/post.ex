@@ -7,8 +7,10 @@ defmodule Home.Post do
   import Ecto.Changeset
   import Ecto.Query, only: [from: 2]
 
+  @foreign_key_type :string
   schema "posts" do
     field(:body, :string)
+    field(:privacy, :string)
     field(:likes_count, :integer, default: 0)
     field(:gif_url, :string)
     field(:removed, :boolean, default: false)

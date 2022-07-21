@@ -55,15 +55,11 @@ defmodule MazarynWeb.HomeLive.CreatePostComponent do
 
   def handle_event("save-post", %{"post" => post_params} = _params, socket) do
     post_params = Map.put(post_params, "user_id", socket.assigns.user_id)
+    changeset = Post.changeset(%Post{}, post_params)
+    author = Ecto.Changeset.get_field(changeset, :user_id)
+    content = Ecto.Changeset.get_field(changeset, :body)
 
-    changeset =
-      %Post{}
-      |> Post.changeset(post_params)
-      |> Map.put(:action, :validate)
-
-    changeset
-    |> Post.create_post()
-    |> case do
+    case Core.PostClient.create_post(author, content) do
       :ok ->
         {:noreply, assign(socket, socket)}
 
