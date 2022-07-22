@@ -26,6 +26,7 @@ defmodule Home.Post do
 
   @required_attrs [
     :content,
+    :media
     :user_id,
     :privacy
   ]
