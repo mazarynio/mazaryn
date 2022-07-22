@@ -26,14 +26,17 @@ defmodule Home.Post do
 
   @required_attrs [
     :content,
-    :media,
     :user_id,
     :privacy
   ]
 
+  @optional_attrs [
+    :media
+  ]
+
   def changeset(post, params \\ %{}) do
     post
-    |> cast(params, @required_attrs)
+    |> cast(params, @required_attrs ++ @optional_attrs)
     |> validate_required(@required_attrs)
   end
 
