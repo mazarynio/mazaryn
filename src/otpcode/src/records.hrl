@@ -13,6 +13,7 @@
 -record(post, { id,
                 content,
                 comments = [],
+                media,
                 author,
                 date_created,
                 date_updated}).
