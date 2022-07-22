@@ -9,7 +9,8 @@ defmodule Home.Post do
 
   @foreign_key_type :string
   schema "posts" do
-    field(:body, :string)
+    field(:content, :string)
+    field(:photo_url, :string)
     field(:privacy, :string)
     field(:likes_count, :integer, default: 0)
     field(:gif_url, :string)
@@ -24,7 +25,7 @@ defmodule Home.Post do
   end
 
   @required_attrs [
-    :body,
+    :content,
     :user_id,
     :privacy
   ]
@@ -33,6 +34,24 @@ defmodule Home.Post do
     post
     |> cast(params, @required_attrs)
     |> validate_required(@required_attrs)
+  end
+
+  def create_post(%Ecto.Changeset{valid?: false} = changeset), do: changeset
+
+  def create_post(%Ecto.Changeset{} = changeset) do
+    content = changeset |> Ecto.Changeset.get_field(:content)
+    photo_url = changeset |> Ecto.Changeset.get_field(:photo_url)
+
+    case Core.PostClient.create_post(content, _photo_url) do
+      :ok ->
+        %Post{content: content, photo_url: photo_url}
+
+      :post_existed ->
+        :post_existed
+
+      other ->
+        other
+    end
   end
 
   def add_post(%__MODULE__{} = post, params \\ %{}) do
