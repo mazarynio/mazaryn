@@ -5,6 +5,7 @@ defmodule Post do
 
   defstruct id: nil,
             content: nil,
+            media: nil,
             comments: [],
             author: nil,
             date_created: nil,
