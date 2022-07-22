@@ -3,20 +3,21 @@ defmodule Post do
   Post Struct
   """
 
-
   defstruct id: nil,
             content: nil,
             comments: [],
             author: nil,
-            date_created: nil
+            date_created: nil,
+            photo_url: nil
 
-  def new({:post, id, content, comments, author, date_created}) do
+  def new({:post, id, content, comments, author, photo_url, date_created}) do
     struct(Post, %{
       id: id,
       content: content,
       comments: comments,
       author: author,
-      date_created: date_created
+      date_created: date_created,
+      photo_url: photo_url
     })
   end
 end

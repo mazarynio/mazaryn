@@ -12,8 +12,8 @@ defmodule MazarynWeb.HomeLive.CreatePostComponent do
         <div class="flex items-center px-5">
           <img class="h-11 w-11 rounded-full" src="https://placeimg.com/192/192/people" />
           <div class="ml-4 text-sm leading-tight w-full">
-            <%= textarea f, :body, class: "w-full border-none resize-none text-gray-300 font-normal block", placeholder: "Write a comment" %>
-              <span class="text-sm"><%= push_error_tag f, :body %></span>
+            <%= textarea f, :content, class: "w-full border-none resize-none text-gray-300 font-normal block", placeholder: "Write a comment" %>
+              <span class="text-sm"><%= push_error_tag f, :content %></span>
           </div>
 
 
@@ -60,11 +60,11 @@ defmodule MazarynWeb.HomeLive.CreatePostComponent do
     content = Ecto.Changeset.get_field(changeset, :body)
 
     case Core.PostClient.create_post(author, content) do
-      :ok ->
-        {:noreply, assign(socket, socket)}
+      %Post{} ->
+        {:noreply, socket}
 
-      changeset ->
-        {:noreply, assign(socket, :changeset, changeset)}
+      _other ->
+        {:noreply, socket}
     end
   end
 end

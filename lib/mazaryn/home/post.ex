@@ -42,7 +42,7 @@ defmodule Home.Post do
     content = changeset |> Ecto.Changeset.get_field(:content)
     photo_url = changeset |> Ecto.Changeset.get_field(:photo_url)
 
-    case Core.PostClient.create_post(content, _photo_url) do
+    case Core.PostClient.create_post(content, photo_url) do
       :ok ->
         %Post{content: content, photo_url: photo_url}
 
