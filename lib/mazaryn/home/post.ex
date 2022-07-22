@@ -10,7 +10,7 @@ defmodule Home.Post do
   @foreign_key_type :string
   schema "posts" do
     field(:content, :string)
-    field(:photo_url, :string)
+    field(:media, :string)
     field(:privacy, :string)
     field(:likes_count, :integer, default: 0)
     field(:gif_url, :string)
@@ -40,11 +40,12 @@ defmodule Home.Post do
 
   def create_post(%Ecto.Changeset{} = changeset) do
     content = changeset |> Ecto.Changeset.get_field(:content)
+    media = changeset |> Ecto.Changeset.get_field(:media)
     author = changeset |> Ecto.Changeset.get_field(:user_id)
 
-    case Core.PostClient.create_post(author, content) do
+    case Core.PostClient.create_post(author, content, media) do
       :ok ->
-        %Post{content: content, author: author}
+        %Post{content: content, author: author, media: media}
 
       :post_existed ->
         :post_existed
