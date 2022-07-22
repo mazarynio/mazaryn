@@ -40,11 +40,11 @@ defmodule Home.Post do
 
   def create_post(%Ecto.Changeset{} = changeset) do
     content = changeset |> Ecto.Changeset.get_field(:content)
-    photo_url = changeset |> Ecto.Changeset.get_field(:photo_url)
+    author = changeset |> Ecto.Changeset.get_field(:user_id)
 
-    case Core.PostClient.create_post(content, photo_url) do
+    case Core.PostClient.create_post(author, content) do
       :ok ->
-        %Post{content: content, photo_url: photo_url}
+        %Post{content: content, author: author}
 
       :post_existed ->
         :post_existed
