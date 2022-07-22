@@ -1,6 +1,7 @@
 -record(user, { username,
                 password,
                 email,
+                post = [],
                 following = [],
                 follower = [],
                 blocked = [],

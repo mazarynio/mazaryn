@@ -15,6 +15,9 @@ insert(Author, Content, Media) ->
                              author=Author,
                              media=Media,
                              date_created = calendar:universal_time()}),
+          [User] = mnesia:read({user, Author}),
+          Posts = User#user.post,
+          mnesia:write(User#user{post = [Id | Posts]}),
           Id
     end,
     {atomic, Res} = mnesia:transaction(F),
