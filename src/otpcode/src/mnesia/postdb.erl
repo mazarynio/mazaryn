@@ -1,5 +1,5 @@
 -module(postdb).
--export([insert/2, get_post_by_id/1,
+-export([insert/3, get_post_by_id/1,
          modify_post/3,
          get_posts_by_author/1,delete_post/1,add_comment/3, get_posts/0,
          get_all_posts_from_date/4, get_all_posts_from_month/3,
@@ -7,12 +7,13 @@
 -include("../records.hrl").
 -include_lib("stdlib/include/qlc.hrl").
 
-insert(Author, Content) ->
+insert(Author, Content, Media) ->
     F = fun() ->
           Id = id_gen:generate(),
           mnesia:write(#post{id = Id,
                              content = Content,
                              author=Author,
+                             media=Media,
                              date_created = calendar:universal_time()}),
           Id
     end,
