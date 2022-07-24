@@ -10,8 +10,8 @@
 insert(Author, Content, Media) ->
     F = fun() ->
           Id = id_gen:generate(),
-          mnesia:write(#post{id = Id,
-                             content = Content,
+          mnesia:write(#post{id=Id,
+                             content=Content,
                              author=Author,
                              media=Media,
                              date_created = calendar:universal_time()}),

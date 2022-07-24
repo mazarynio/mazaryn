@@ -26,8 +26,6 @@
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2,
           code_change/3]).
 
--record(state, {}).
-
 start_link() ->
   ?LOG_NOTICE("Post server has been started - ~p", [self()]),
   gen_server:start_link({global, ?MODULE}, ?MODULE, [], []).

@@ -10,7 +10,8 @@ defmodule Home.Post do
   @foreign_key_type :string
   schema "posts" do
     field(:content, :string)
-    field(:media, :string)
+    field(:media, {:array, :string}, default: [])
+    field(:author, :string)
     field(:privacy, :string)
     field(:likes_count, :integer, default: 0)
     field(:gif_url, :string)
@@ -26,7 +27,7 @@ defmodule Home.Post do
 
   @required_attrs [
     :content,
-    :user_id,
+    :author,
     :privacy
   ]
 
@@ -40,16 +41,18 @@ defmodule Home.Post do
     |> validate_required(@required_attrs)
   end
 
-  def create_post(%Ecto.Changeset{valid?: false} = changeset), do: changeset
+  def create_post(changeset, after_save \\ &{:ok, &1})
+  def create_post(%Ecto.Changeset{valid?: false} = changeset, _after_save), do: changeset
 
-  def create_post(%Ecto.Changeset{} = changeset) do
+  def create_post(%Ecto.Changeset{} = changeset, after_save) do
     content = changeset |> Ecto.Changeset.get_field(:content)
     media = changeset |> Ecto.Changeset.get_field(:media)
-    author = changeset |> Ecto.Changeset.get_field(:user_id)
+    author = changeset |> Ecto.Changeset.get_field(:author)
 
     case Core.PostClient.create_post(author, content, media) do
       :ok ->
         %Post{content: content, author: author, media: media}
+        |> after_save(after_save)
 
       :post_existed ->
         :post_existed
@@ -58,6 +61,12 @@ defmodule Home.Post do
         other
     end
   end
+
+  defp after_save(%Post{} = post, func) do
+    {:ok, _post} = func.(post)
+  end
+
+  defp after_save(error, _func), do: error
 
   def add_post(%__MODULE__{} = post, params \\ %{}) do
     post

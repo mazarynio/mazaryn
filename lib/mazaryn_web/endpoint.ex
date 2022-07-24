@@ -21,7 +21,7 @@ defmodule MazarynWeb.Endpoint do
     at: "/",
     from: :mazaryn,
     gzip: false,
-    only: ~w(assets fonts images favicon.ico robots.txt)
+    only: ~w(assets fonts images favicon.ico robots.txt uploads)
   )
 
   # Code reloading can be explicitly enabled under the
