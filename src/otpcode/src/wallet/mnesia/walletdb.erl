@@ -1,42 +1,54 @@
 -module(walletdb).
--include("../wallet.hrl").
+-export([insert/2, get_wallet/1, get_wallets/0, get_password/1,
+         get_address/1,
+         deposit/2, withdraw/2, generate_new_address/1]).
 
--export([init/0, insert/2, get_wallet/1, get_wallets/0, get_password/1]).
-
--define(CURVE_NAME, eddsa).
--define(CURVE_PARAM, ed25519).  
-
-init() ->
-    mnesia:create_schema([node()]),
-    mnesia:start(),
-    mnesia:create_table(wallet, 
-                    [{attributes, record_info(fields, wallet)}]).
+-include("../../records.hrl").
 
 insert(Name, Password) ->
-    Address = crypto_utils:generate_key_pair(),
-    Balance = 0,
-    {Pub_key, Priv_key} = libp2p_crypto:generate_keys(ecc_compact),
-    Wallet = #wallet{name = Name,
-                     password = Password, 
-                     address = Address,
-                     balance = Balance,
-                     pub_key = Pub_key,
-                     priv_key = Priv_key},
     F = fun() ->
-        mnesia:write(Wallet)
-    end,
-    mnesia:transaction(F).
+          Names = mnesia:all_keys(wallet),
+          case lists:member(Name, Names) of
+            true ->
+              wallet_name_existing;
+            false ->
+              {Pub_key, Priv_key} = crypto_utils:generate_key_pair(),
+              Address = base58:binary_to_base58(Pub_key),
+              mnesia:write(#wallet{name = Name,
+                               password = erlpass:hash(Password),
+                               address = [Address],
+                               balance = 0,
+                               pub_key = Pub_key,
+                               priv_key = Priv_key})
+          end
+        end,
+    {atomic, Res} = mnesia:transaction(F),
+    Res.
+
+generate_new_address(Name) ->
+  Fun = fun() ->
+          [Wallet] = mnesia:read({wallet, Name}),
+          PubKey = Wallet#wallet.pub_key,
+          NewAddress = hash:hash(PubKey),
+          mnesia:write(Wallet#wallet{address = [NewAddress|Wallet#wallet.address]}),
+          NewAddress
+        end,
+  {atomic, Res} = mnesia:transaction(Fun),
+  Res.
+
+get_address(Name) ->
+  Fun = fun() ->
+          [Wallet] = mnesia:read({wallet, Name}),
+          Wallet#wallet.address
+        end,
+  {atomic, Res} = mnesia:transaction(Fun),
+  Res.
 
 get_wallet(Name) ->
-    F = fun() ->
-        mnesia:read(wallet, Name)
-    end,
-    Res = mnesia:transaction(F),
-    case Res of 
-        {atomic, [Wallet]} -> Wallet;
-        {atomic, []} -> not_exist;
-        _ -> error 
-    end.
+    {atomic, [Wallet]} = mnesia:transaction(fun() ->
+                                              mnesia:read({wallet, Name})
+                                            end),
+    Wallet.
 
 get_wallets() ->
     Fun = fun() ->
@@ -57,6 +69,24 @@ get_password(Name) ->
     end.
 
 
+deposit(Name, Amount) ->
+  Fun = fun() ->
+          [Wallet] = mnesia:read({wallet, Name}),
+          mnesia:write(Wallet#wallet{balance = Wallet#wallet.balance + Amount})
+        end,
+  {atomic, Res} = mnesia:transaction(Fun),
+  Res.
 
-
-
+withdraw(Name, Amount) ->
+  Fun = fun() ->
+          [Wallet] = mnesia:read({wallet, Name}),
+          CurrentBalance = Wallet#wallet.balance,
+          case Amount =< CurrentBalance of
+              true ->
+                mnesia:write(Wallet#wallet{balance = CurrentBalance - Amount});
+              false ->
+                ?MSG_INSUFFICIENT_FUNDS
+          end
+        end,
+  {atomic, Res} = mnesia:transaction(Fun),
+  Res.

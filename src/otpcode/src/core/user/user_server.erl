@@ -28,8 +28,8 @@ start_link() ->
 create_account(Username, Password, Email) ->
     gen_server:call({global, ?MODULE}, {create_account, Username, Password, Email}).
 
-login(Username, Password) ->
-    gen_server:call({global, ?MODULE}, {login, Username, Password}).
+login(Email, Password) ->
+    gen_server:call({global, ?MODULE}, {login, Email, Password}).
 
 set_user_info(Username, Fields, Values) ->
     gen_server:call({global, ?MODULE}, {set_user_info, Username, Fields, Values}).
@@ -101,8 +101,8 @@ handle_call({create_account, Username, Password, Email}, _From, State = #state{}
     ?LOG_INFO("User ~p was added", [Username]),
     {reply, Res, State};
 
-handle_call({login, Username, Password}, _From, State = #state{}) ->
-    Res = userdb:login(Username, Password),
+handle_call({login, Email, Password}, _From, State = #state{}) ->
+    Res = userdb:login(Email, Password),
     {reply, Res, State};
 
 handle_call({set_user_info, Username, Fields, Values}, _From, State) ->

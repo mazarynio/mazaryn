@@ -1,14 +1,8 @@
 -module(trxdb).
--export([init/0, insert/0]).
+-export([insert/0]).
 
--include("../wallet.hrl").
+-include("../../records.hrl").
 -import(uuid, [generate/0]).
-
-init() ->
-    mnesia:create_schema([node()]),
-    mnesia:start(),
-    mnesia:create_table(wallet, 
-                    [{attributes, record_info(fields, transaction)}]).
 
 insert() ->
     Id = uuid:generate(),

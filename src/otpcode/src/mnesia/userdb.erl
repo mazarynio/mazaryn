@@ -12,14 +12,14 @@
          block/2, unblock/2, get_blocked/1]).
 
 %%% check user credentials
--spec login(Username :: term(), Password :: term()) -> wrong_username_or_password | logged_in.
-login(Username, Password) ->
+-spec login(Email :: term(), Password :: term()) -> wrong_email_or_password | logged_in.
+login(Email, Password) ->
   {atomic, Res} = mnesia:transaction(fun() ->
-                                        check_user_credential(Username, Password)
+                                        check_user_credential(Email, Password)
                                      end),
   case Res of
     {true, _} -> logged_in;
-    false -> wrong_username_or_password
+    false -> wrong_email_or_password
   end.
 
 %%% Fields: [field_a, field_b, field_c]
@@ -288,8 +288,8 @@ check_email(Email) ->
     _ -> email_existed
   end.
 
-check_user_credential(Username, Password) ->
-  Object =  mnesia:match_object(#user{username = Username,
+check_user_credential(Email, Password) ->
+  Object =  mnesia:match_object(#user{email = Email,
                                       _ = '_'}),
   case Object of
     [] -> false;
