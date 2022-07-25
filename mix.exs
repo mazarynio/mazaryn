@@ -20,7 +20,8 @@ defmodule Mazaryn.MixProject do
   def application do
     [
       mod: {Mazaryn.Application, []},
-      extra_applications: [:logger, :runtime_tools]
+      extra_applications: [:logger, :runtime_tools, :absinthe_plug],
+      included_applications: [:mnesia]
     ]
   end
 
@@ -57,9 +58,14 @@ defmodule Mazaryn.MixProject do
       {:erlpass, git: "https://github.com/ferd/erlpass.git"},
       {:bcrypt, git: "https://github.com/erlangpack/bcrypt.git", override: true},
       {:epgsql, "~> 4.6"},
+      {:erl_base58, "~> 0.0.1"},
 
       # Icons
-      {:ex_heroicons, "~> 0.6.0"}
+      {:ex_heroicons, "~> 0.6.0"},
+
+      # Graphql APIs
+      {:absinthe, "~> 1.7"},
+      {:absinthe_plug, "~> 1.5"}
     ]
   end
 
