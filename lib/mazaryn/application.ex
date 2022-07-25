@@ -21,12 +21,15 @@ defmodule Mazaryn.Application do
       # {Mazaryn.Worker, arg}
 
       # start erlang code to store user activities
-      %{id: :db_supervisor,
+      %{
+        id: :db_supervisor,
         start: {:otpcode_sup, :start_link, []},
         restart: :permanent,
         shutdown: :infinity,
-        type: :supervisor}
+        type: :supervisor
+      }
     ]
+
     :ets.new(:mazaryn_auth_table, [:set, :public, :named_table, read_concurrency: true])
     # See https://hexdocs.pm/elixir/Supervisor.html
     # for other strategies and supported options

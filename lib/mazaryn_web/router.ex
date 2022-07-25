@@ -38,37 +38,36 @@ defmodule MazarynWeb.Router do
 
       live("/reset", AuthLive.Reset)
       live("/signup", AuthLive.Signup)
-      live("/profile", UserLive.Index)
-      live("/posts", PostLive.Index)
+      # live("/profile", UserLive.Index)
+      # live("/profile", UserLive.Index)
+      live("/reset", AuthLive.Reset)
+      live("/signup", AuthLive.Signup)
       live("/messages/:id", ChatLive.Index)
     end
 
     get("/", PageController, :index)
   end
 
-  scope "/home", MazarynWeb do
+  scope "/", MazarynWeb do
     pipe_through(:restricted)
-    live("/", HomeLive.Index)
+    live("/home", HomeLive.Index)
+    live("/coins", CoinLive.Index)
+    live("/profile", UserLive.Index)
+    live("/posts", PostLive.Index)
+  end
+
+  scope "/api" do
+    pipe_through(:api)
+
+    forward("/graphiql", Absinthe.Plug.GraphiQL,
+      schema: MazarynWeb.Schema,
+      interface: :simple
+    )
+
+    forward("/", Absinthe.Plug, schema: MazarynWeb.Schema)
   end
 
   # Other scopes may use custom stacks.
-  scope "/api/v1", MazarynWeb do
-    pipe_through(:api)
-
-    # User
-    get("/users", UserController, :get_all_user)
-    # get "/user/:username", UserController, :get_user_by_username
-    # get "/user/:email", UserController, :get_user_by_email
-    # get "/user/:username", UserController, :get_followers
-    get("/user/follow", UserController, :follow_user)
-
-    # Authentication
-    post("/auth/user/register", UserController, :register)
-    post("/auth/user/login", UserController, :login)
-
-    # Post
-    post("/create/post", UserController, :create_post)
-  end
 
   # Other scopes may use custom stacks.
   # scope "/api", MazarynWeb do

@@ -1,11 +1,10 @@
 defmodule Core.PostClient do
-
   def start do
     :post_server.start_link()
   end
 
-  def create_post(author, content) do
-    :post_server.insert(author, content)
+  def create_post(author, content, media) do
+    :post_server.insert(author, content, media)
   end
 
   def get_post_by_id(id) do
@@ -59,5 +58,4 @@ defmodule Core.PostClient do
   def get_save_posts(username) do
     :post_server.get_save_posts(username)
   end
-
 end

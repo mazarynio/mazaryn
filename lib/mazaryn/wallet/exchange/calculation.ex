@@ -1,5 +1,4 @@
 defmodule Wallet.Exchange.Calculation do
-
   @enforce_keys [
     :from_amount,
     :from_token,

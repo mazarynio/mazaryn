@@ -101,6 +101,7 @@ defmodule MazarynWeb.Live.Helper do
 
   def signing_salt do
     salt = MazarynWeb.Endpoint.config(:live_view)[:signing_salt]
+
     salt ||
       raise MazarynWeb.AuthenticationError, message: "missing signing_salt"
   end
@@ -109,6 +110,4 @@ defmodule MazarynWeb.Live.Helper do
     token = Phoenix.Token.sign(MazarynWeb.Endpoint, signing_salt(), user_id)
     :ets.insert(:mazaryn_auth_table, {:"#{key}", token})
   end
-
-
 end

@@ -1,15 +1,56 @@
 <!DOCTYPE html>
-<html lang="en" class="h-full">
+<html lang="en">
   <head>
-    <meta charset="utf-8"/>
-    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <%= csrf_meta_tag() %>
-    <%= live_title_tag assigns[:page_title] || "Mazaryn", suffix: " · Social Network" %>
-    <link phx-track-static rel="stylesheet" href={Routes.static_path(@conn, "/assets/app.css")}/>
-    <script defer phx-track-static type="text/javascript" src={Routes.static_path(@conn, "/assets/app.js")}></script>
+      <meta charset="utf-8">
+      <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <%= csrf_meta_tag() %>
+      <%= live_title_tag assigns[:page_title] || "Mazaryn", suffix: " · an Online community which empower users to explore their Talents" %>
+      <link phx-track-static rel="stylesheet" href= {Routes.static_path(@conn, "/assets/app.css")}/>
+      <link phx-track-static href="//fonts.googleapis.com/css?family=Open+Sans:400,600,300" rel='stylesheet' type='text/css'>
+      <script defer phx-track-static type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+      <script defer phx-track-static type="text/javascript" src={ Routes.static_path(@conn, "/assets/app.js")}></script>
   </head>
-  <body class="flex flex-col h-full">
+  <body>
+    <div class="loader">
+      <div class="strip-holder">
+        <div class="strip-1"></div>
+        <div class="strip-2"></div>
+        <div class="strip-3"></div>
+      </div>
+    </div>
+
+    <a id="top"></a>
+
+
     <%= @inner_content %>
+
+    <%# <div class="footer-container"> %>
+      <%#   <footer class="classic"> %>
+        <%#     <div class="container"> %>
+          <%#       <div class="row"> %>
+
+            <%#         <div id="about-website" class="col-sm-8"> %>
+              <%#           <span class="lead color-heading">About this Website</span> %>
+              <%#           <p>This application is built using:</p> %>
+              <%#             <ul> %>
+                <%#               <li><a href="https://elixir-lang.org/">Elixir</a>: a dynamic, functional language designed for %>
+                  <%#                   building scalable and maintainable applications</li> %>
+                <%#               <li> <a href="http://www.phoenixframework.org/">Phoenix Framework</a>: a productive web framework %>
+                  <%#                   that does not compromise speed and maintainability.</li> %>
+                <%#             </ul> %>
+              <%#           <br/> %>
+              <%#           <p>The application has three main goals:</p> %>
+              <%#           <ul> %>
+                <%#             <li>promote the Power of Positivity and Creativity,</li> %>
+                <%#             <li>inform the users about  latest events and new contents, and</li> %>
+                <%#             <li>provide an opportunity to learn about Blockchain by contributing to an <a href="https://github.com/montrealelixir/website">open source project</a>.</li> %>
+                <%#           </ul> %>
+              <%#           <br/> %>
+              <%#         </div> %>
+            <%#       </div> %>
+          <%#     </div> %>
+        <%#   </footer> %>
+      <%# </div> %>
   </body>
 </html>

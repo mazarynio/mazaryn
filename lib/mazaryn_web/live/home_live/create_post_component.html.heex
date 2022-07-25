@@ -1,0 +1,43 @@
+<div class="flex flex-col">
+    <.form let={f} for={@changeset} phx-change="validate-post" phx-submit="save-post" phx-target={@myself} multipart class="flex flex-col justify-between align-center py-5">
+    <div class="flex items-center px-5">
+        <img class="h-11 w-11 rounded-full" src="https://placeimg.com/192/192/people" />
+        <div class="ml-4 text-sm leading-tight w-full">
+            <%= textarea f, :content, class: "w-full border-none resize-none text-gray-300 font-normal block", placeholder: "Write a comment" %>
+            <span class="text-sm"><%= push_error_tag f, :content %></span>
+        </div>
+    </div>
+    <div class="flex-flex-row justify-between items-center px-5">
+        <%= for {_ref, msg} <- @uploads.media.errors  do %>
+            <p class="alert alert-danger"> <%= Phoenix.Naming.humanize(msg) %> </p>
+        <% end %>
+
+        <%= for entry <- @uploads.media.entries do %>
+            <div class="flex flex-row gap-4 justify-center align-center items-center">
+                <div class="w-5/6">
+                    <%= live_img_preview entry, class: "pt-5 pb-2" %>
+                    <progress max="100" value={entry.progress} class="w-full"/>
+                </div>
+                <div class="w-1/6"> 
+                    <%= Heroicons.icon("x", class: "h-5 w-5 mr-3 fill-red-500 icon", phx_click: "cancel-entry", phx_value_ref: "#{entry.ref}", phx_target: @myself )  %>
+                </div>
+            </div>
+        <% end %>
+    </div>
+
+    <div class="flex flex-row justify-between items-center pt-10 px-5">
+        <div class="flex flex-row items-center">
+            <i><%= Heroicons.icon("emoji-happy", class: "h-5 w-5 mr-3 fill-gray-500" ) %></i>
+            <i><%= Heroicons.icon("hashtag", class: "h-5 w-5 mr-3 fill-gray-500" ) %></i>
+            <i id="upload-area" phx-drop-target={@uploads.media.ref} phx-click={Phoenix.LiveView.JS.dispatch("click", to: "##{@uploads.media.ref}", bubbles: false)}>
+                <%= Heroicons.icon("photograph", class: "h-5 w-5 mr-3 fill-gray-500 icon" )  %>
+                <%= live_file_input @uploads.media, hidden: true %> 
+            </i>
+            <%= live_component SelectLive, id: "privacy-select", f: f, name: :privacy, options: ["public", "private", "only me"] %>
+        </div>
+        <%= submit "Post", class: "bg-blue-600 text-white border rounded-lg py-1.5 px-6 mx-5 self-auto", phx_disabled_with: "Posting..." %>
+    </div> 
+    </.form>
+</div>
+
+

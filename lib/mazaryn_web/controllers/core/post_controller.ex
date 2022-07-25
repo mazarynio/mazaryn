@@ -1,9 +1,6 @@
 defmodule MazarynWeb.PostController do
   use MazarynWeb, :controller
 
-
-
-
   # def create_post(conn, %{"content" => content}) do
   #   with {:ok, better_params} <- Tarams.cast(%{"content" => content}, @content) do
   #     case UserClient.creating_post(better_params.content) do

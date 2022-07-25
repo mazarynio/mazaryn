@@ -5,11 +5,9 @@ defmodule Mazaryn.P2P.Node do
     :port
   ]
 
-  defstruct [
-    id: nil,
-    host: nil,
-    port: nil
-  ]
+  defstruct id: nil,
+            host: nil,
+            port: nil
 
   def new(id, host, port) do
     %__MODULE__{

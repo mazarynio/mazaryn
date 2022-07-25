@@ -1,5 +1,4 @@
 defmodule Mail.HTML do
-
   defp templates_path, do: "lib/mazaryn_web/templates"
 
   def render_html_body(assigns, project, action) do

@@ -1,5 +1,4 @@
 defmodule Wallet.Cli do
-
   import IO
   import IO.ANSI
 
@@ -23,5 +22,4 @@ defmodule Wallet.Cli do
   def heading(message), do: Docs.print_headings(message, width: 100)
 
   def print(message), do: Docs.print(message, width: 100)
-
 end

@@ -95,8 +95,8 @@ defmodule MazarynWeb.AuthLive.Login do
   @impl true
   def handle_info({:disable_form, changeset}, %{assigns: %{:key => key}} = socket) do
     case Login.Form.get_user_by_email(changeset) do
-      %Account.User{id: user_id} ->
-        insert_session_token(key, user_id)
+      %Account.User{email: email} ->
+        insert_session_token(key, email)
         {:noreply, push_redirect(socket, to: Routes.live_path(socket, MazarynWeb.HomeLive.Index))}
 
       changeset ->
