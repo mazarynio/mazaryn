@@ -18,6 +18,8 @@ defmodule Mazaryn.Signup.Form do
     field(:accepts_conditions, :boolean)
     field(:username_touched, :boolean)
     field(:email_touched, :boolean)
+    field(:phone_touched, :boolean)
+    field(:country_touched, :boolean)
     field(:password_touched, :boolean)
     field(:form_submitted, :boolean)
     field(:form_disabled, :boolean)
@@ -36,6 +38,8 @@ defmodule Mazaryn.Signup.Form do
   @optional_attrs [
     :username_touched,
     :email_touched,
+    :phone_touched,
+    :country_touched,
     :password_touched,
     :form_submitted,
     :form_disabled
