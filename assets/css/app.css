@@ -148,3 +148,22 @@
     opacity: 0;
   }
 }
+
+ /* Main Page */
+
+.hero-section {
+  position: relative;
+  background-blend-mode: overlay;
+  background-attachment: fixed;
+  background-position: center;
+  background-image: url("../../images/moon.jpg");
+  background-color: #232323;
+  background-size: cover;
+  height: 100vh;
+}
+
+.social-icon {
+  border-radius: 50%;
+  background-color: #fff;
+  padding: 6px;
+}
