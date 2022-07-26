@@ -19,9 +19,7 @@ defmodule Account.User do
     follower
     blocked
     saved_posts
-
     notifications
-
     avatar_url
     country
   )a
