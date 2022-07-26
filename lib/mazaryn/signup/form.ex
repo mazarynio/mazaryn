@@ -11,6 +11,8 @@ defmodule Mazaryn.Signup.Form do
   schema "signup_form" do
     field(:username, :string)
     field(:email, :string)
+    field(:phone, :integer)
+    field(:country)
     field(:password, :string)
     field(:password_confirmation, :string)
     field(:accepts_conditions, :boolean)
@@ -24,6 +26,8 @@ defmodule Mazaryn.Signup.Form do
   @required_attrs [
     :username,
     :email,
+    :phone,
+    :country,
     :password,
     :password_confirmation,
     :accepts_conditions
@@ -55,10 +59,12 @@ defmodule Mazaryn.Signup.Form do
     username = changeset |> Ecto.Changeset.get_field(:username)
     email = changeset |> Ecto.Changeset.get_field(:email)
     password = changeset |> Ecto.Changeset.get_field(:password)
+    phone = changeset |> Ecto.Changeset.get_field(:phone)
+    country = changeset |> Ecto.Changeset.get_field(:country)
 
-    case Core.UserClient.register(username, password, email) do
+    case Core.UserClient.register(username, password, email, phone, country) do
       :ok ->
-        %User{username: username, email: email, password: password}
+        %User{username: username, email: email, password: password, phone: phone, country: country}
 
       :username_existed ->
         :username_existed
