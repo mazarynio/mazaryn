@@ -8,22 +8,24 @@ defmodule MazarynWeb.HomeLive.Index do
   alias Home.Post
   require Logger
 
+  # case reload home page
   @impl true
   def mount(_params, %{"user_id" => user_id} = _session, socket) do
     {:ok, do_mount(user_id, socket)}
   end
 
+  # case redirect form login, signup
   @impl true
   def mount(_params, %{"session_uuid" => session_uuid} = _session, socket) do
-    {:ok, do_mount(session_uuid, socket)}
+    {:ok, do_mount(get_user_id(session_uuid), socket)}
   end
 
-  defp do_mount(session_uuid, socket) do
+  defp do_mount(user_id, socket) do
     post_changeset = Post.changeset(%Post{})
 
     socket
     |> assign(post_changeset: post_changeset)
-    |> assign(user_id: session_uuid)
+    |> assign(user_id: user_id)
     |> assign(posts: get_post())
   end
 
