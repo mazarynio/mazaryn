@@ -1,7 +1,8 @@
 defmodule Core.UserClient do
-  def register(username, password, email) do
+
+  def register(username, password, email, phone, country) do
     :user_server.start_link()
-    :user_server.create_account(username, password, email)
+    :user_server.create_account(username, password, email, phone, country)
   end
 
   def login(email, password) do
