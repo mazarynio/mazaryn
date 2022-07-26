@@ -301,6 +301,34 @@
                         <span class="text-sm"> <%= push_error_tag f, :email %></span>
                     </div>
                 </div>
+
+                <div class="form-input-container">  
+                    <div>
+                        <label class="form-input-label">Country*</label>
+        
+                    </div>
+                    <div>
+                        <%= text_input f, :country, [class: "form-input", placeholder: "Your Country", aria_describedby: "form_country_detail", aria_required: "true", phx_click: :blur_country] %>
+                    </div>
+                    
+                    <div aria-live="polite"  id="form_country_detail" class={"#{detail_error f, @changeset, :country}"}>
+                        <span class="text-sm"> <%= push_error_tag f, :country %></span>
+                    </div>
+                </div>
+
+                <div class="form-input-container">  
+                    <div>
+                        <label class="form-input-label">Phone*</label>
+        
+                    </div>
+                    <div>
+                        <%= text_input f, :phone, [class: "form-input", placeholder: "Your phone number", aria_describedby: "form_phone_detail", aria_required: "true", phx_click: :blur_phone] %>
+                    </div>
+                    
+                    <div aria-live="polite"  id="form_phone_detail" class={"#{detail_error f, @changeset, :phone}"}>
+                        <span class="text-sm"> <%= push_error_tag f, :phone %></span>
+                    </div>
+                </div>
                 
                 <div class="form-input-container">  
                     <div>

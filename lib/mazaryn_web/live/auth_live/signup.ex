@@ -10,6 +10,8 @@ defmodule MazarynWeb.AuthLive.Signup do
   @signup_schema %{
     username: [type: :string, required: true],
     email: [type: :string, required: true],
+    phone: [type: :string, required: true],
+    country: [type: :string, required: true],
     password: [type: :string, required: true],
     repassword: [type: :string, require: true],
     check: [type: :boolean, require: true]
@@ -61,6 +63,16 @@ defmodule MazarynWeb.AuthLive.Signup do
   @impl true
   def handle_event("blur_email", _value, socket) do
     blur_event("email", socket)
+  end
+
+  @impl true
+  def handle_event("blur_phone", _value, socket) do
+    blur_event("phone", socket)
+  end
+
+  @impl true
+  def handle_event("blur_country", _value, socket) do
+    blur_event("country", socket)
   end
 
   @impl true
