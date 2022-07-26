@@ -40,8 +40,8 @@ defmodule Account.Users do
     Core.UserClient.getting_users()
   end
 
-  def register(username, pass, email) do
-    case UserClient.register(username, pass, email) do
+  def register(username, pass, email, phone, country) do
+    case UserClient.register(username, pass, email, phone, country) do
       :ok ->
         username
         |> Mail.UserEmail.register_email(email)

@@ -53,7 +53,8 @@ defmodule Account.User do
     field(:username, :string)
     field(:email, :string)
     field(:password, :string, virtual: true)
-    field(:location, :string)
+    field(:phone, :integer)
+    field(:country, :string)
     field(:birthday, :date)
     field(:private, :boolean)
     field(:avatar_url, :string)
@@ -77,7 +78,9 @@ defmodule Account.User do
   @required_attrs [
     :username,
     :email,
-    :password
+    :password,
+    :phone,
+    :country
   ]
 
   def changeset(user, params \\ %{}) do
