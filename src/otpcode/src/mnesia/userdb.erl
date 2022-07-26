@@ -2,7 +2,7 @@
 -include("../records.hrl").
 
 -export([set_user_info/3, get_user_info/1,
-         insert/3, login/2,
+         insert/5, login/2,
          get_user/1, get_user_by_email/1,
          get_users/0, delete_user/1, get_password/1,
          change_username/3, change_password/3, change_email/3,
@@ -48,7 +48,7 @@ set_user_info(Username, Fields, Values) ->
   {atomic, Res} = mnesia:transaction(Fun),
   Res.
 
-insert(Username, Password, Email) ->
+insert(Username, Password, Email, Phone, Country) ->
     %% check username exist or not
     Fun = fun() ->
             case {check_username(Username), check_email(Email)} of
@@ -57,6 +57,8 @@ insert(Username, Password, Email) ->
                 User = #user{username = Username,
                              password = erlpass:hash(Password),
                              email = Email,
+                             phone = Phone,
+                             country = Country,
                              date_created = Now},
                 mnesia:write(User);
               {username_existed, _} -> username_existed;
