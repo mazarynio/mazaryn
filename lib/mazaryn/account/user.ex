@@ -19,7 +19,7 @@ defmodule Account.User do
   #   password: nil
 
   def new_posts(posts) do
-    for post <- posts, do: Home.Post.new(post)
+    posts
   end
 
   def new(users) when is_list(users) do
@@ -27,8 +27,8 @@ defmodule Account.User do
   end
 
   def new(
-        {:user, username, password, email, following, follower, blocked, saved_posts, other_info,
-         private, date_created, date_updated}
+        {_user, username, password, email, saved_posts, following, follower, blocked, other_info,
+         _other, private, date_created, date_updated}
       ) do
     struct(Account.User, %{
       username: username,

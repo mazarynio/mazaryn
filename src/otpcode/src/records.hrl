@@ -14,7 +14,7 @@
 -record(post, { id,
                 content,
                 comments = [],
-                media,
+                media = [],
                 author,
                 date_created,
                 date_updated}).

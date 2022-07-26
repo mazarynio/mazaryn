@@ -5,45 +5,32 @@ defmodule MazarynWeb.HomeLive.CreatePostComponent do
   alias Home.Post
 
   @impl true
-  def render(assigns) do
-    ~H"""
-    <div>
-      <.form let={f} for={@changeset} phx-change="validate-post" phx-submit="save-post" phx-target={@myself} multipart class="flex flex-col justify-between align-center py-5">
-        <div class="flex items-center px-5">
-          <img class="h-11 w-11 rounded-full" src="https://placeimg.com/192/192/people" />
-          <div class="ml-4 text-sm leading-tight w-full">
-            <%= textarea f, :content, class: "w-full border-none resize-none text-gray-300 font-normal block", placeholder: "Write a comment" %>
-              <span class="text-sm"><%= push_error_tag f, :content %></span>
-          </div>
+  def mount(socket) do
+    socket =
+      socket
+      |> assign(:uploaded_files, [])
+      |> allow_upload(:media, accept: ~w(.png .jpg .jpeg), max_entries: 2)
 
-
-        </div>
-        <div class="flex flex-row justify-between items-center pt-10 px-5">
-          <div class="flex flex-row items-center">
-            <i><%= Heroicons.icon("emoji-happy", class: "h-5 w-5 mr-3 fill-gray-500" ) %></i>
-            <i><%= Heroicons.icon("hashtag", class: "h-5 w-5 mr-3 fill-gray-500" ) %></i>
-            <i><%= Heroicons.icon("photograph", class: "h-5 w-5 mr-3 fill-gray-500" ) %></i>
-            <%= live_component SelectLive, id: "privacy-select", f: f, name: :privacy, options: ["public", "private", "only me"] %> 
-
-
-    </div>
-    <div>
-    <%= submit "Post", class: "bg-blue-600 text-white border rounded-lg py-1.5 px-6 mx-5 self-auto", phx_disabled_with: "Posting..." %>
-    </div>
-    </div>
-    </.form>
-    </div>
-    """
+    {:ok, socket}
   end
 
   @impl true
+  def handle_event("cancel-entry", %{"ref" => ref} = _params, socket) do
+    {:noreply, cancel_upload(socket, :media, ref)}
+  end
+
   def handle_event("validate-post", %{"post" => post_params} = _params, socket) do
-    post_params = Map.put(post_params, "user_id", socket.assigns.user_id)
+    user =
+      socket.assigns.user_id
+      |> Core.UserClient.get_user_by_mail()
+      |> Account.User.new()
+      |> List.first()
+
+    post_params = Map.put(post_params, "author", user.username)
 
     changeset =
       %Post{}
       |> Post.changeset(post_params)
-      |> Ecto.Changeset.put_change(:user_id, socket.assigns.user_id)
       |> Map.put(:action, :validate)
 
     socket =
@@ -54,15 +41,46 @@ defmodule MazarynWeb.HomeLive.CreatePostComponent do
   end
 
   def handle_event("save-post", %{"post" => post_params} = _params, socket) do
-    post_params = Map.put(post_params, "user_id", socket.assigns.user_id)
+    user =
+      socket.assigns.user_id
+      |> Core.UserClient.get_user_by_mail()
+      |> Account.User.new()
+      |> List.first()
+
+    {completed, []} = uploaded_entries(socket, :media)
+
+    urls =
+      for entry <- completed do
+        Routes.static_path(socket, "/uploads/#{entry.uuid}.#{ext(entry)}")
+      end
+
+    post_params =
+      post_params
+      |> Map.put("author", user.username)
+      |> Map.put("media", urls)
+
     changeset = Post.changeset(%Post{}, post_params)
 
-    case Post.create_post(changeset) do
+    case Post.create_post(changeset, &consume_photos(socket, &1)) do
       %Post{} ->
         {:noreply, socket}
 
       _other ->
         {:noreply, socket}
     end
+  end
+
+  defp ext(entry) do
+    [ext | _] = MIME.extensions(entry.client_type)
+    ext
+  end
+
+  defp consume_photos(socket, %Post{} = post) do
+    consume_uploaded_entries(socket, :media, fn meta, entry ->
+      dest = Path.join("priv/static/uploads", "#{entry.uuid}.#{ext(entry)}")
+      File.cp!(meta.path, dest)
+    end)
+
+    post
   end
 end

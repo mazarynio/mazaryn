@@ -42,12 +42,6 @@ defmodule MazarynWeb.HomeLive.LeftSidebarComponent do
             <ul class="">
                 <li class="flex align-center items-center">
                     <a href="index.html" class="block flex items-center text-l px-2 py-4 text-gray-500 font-semibold hover:text-blue-500">
-                        <i><%= Heroicons.icon("credit-card", class: "h-5 w-5 mr-3") %></i>
-                        Wallet
-                    </a>
-                </li>
-                <li class="flex align-center items-center">
-                    <a href="index.html" class="block flex items-center text-l px-2 py-4 text-gray-500 font-semibold hover:text-blue-500">
                         <i><%= Heroicons.icon("shopping-bag", class: "h-5 w-5 mr-3") %></i>
                         My Products
                     </a>
