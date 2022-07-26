@@ -163,7 +163,9 @@
 }
 
 .social-icon {
+  display: block;
+  margin: 0 auto;
   border-radius: 50%;
-  background-color: #fff;
+  background-color: #fffc;
   padding: 6px;
 }
