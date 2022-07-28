@@ -1,51 +1,59 @@
+/* This file is for your main application css. */
+
 @import url("https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Sarabun:ital,wght@0,200;0,300;0,400;0,500;0,600;0,700;0,800;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800&display=swap");
+
 @import "tailwindcss/base";
+
 @import "tailwindcss/components";
+
 @import "tailwindcss/utilities";
 
 @layer base {
-  html {
-    font-family: "Poppins", sans-serif;
-  }
+    html {
+        font-family: "Poppins", sans-serif;
+    }
 }
 
-/* This file is for your main application CSS */
 
 /* Alerts and form errors used by phx.new */
+
 .alert {
-  padding: 15px;
-  margin-bottom: 20px;
-  border: 1px solid transparent;
-  border-radius: 4px;
+    padding: 15px;
+    margin-bottom: 20px;
+    border: 1px solid transparent;
+    border-radius: 4px;
 }
 .alert-info {
-  color: #31708f;
-  background-color: #d9edf7;
-  border-color: #bce8f1;
+    color: #31708f;
+    background-color: #d9edf7;
+    border-color: #bce8f1;
 }
 .alert-warning {
-  color: #8a6d3b;
-  background-color: #fcf8e3;
-  border-color: #faebcc;
+    color: #8a6d3b;
+    background-color: #fcf8e3;
+    border-color: #faebcc;
 }
 .alert-danger {
-  color: #a94442;
-  background-color: #f2dede;
-  border-color: #ebccd1;
+    color: #a94442;
+    background-color: #f2dede;
+    border-color: #ebccd1;
 }
 .alert p {
-  margin-bottom: 0;
+    margin-bottom: 0;
 }
 .alert:empty {
-  display: none;
+    display: none;
 }
 .invalid-feedback {
-  color: #a94442;
-  display: block;
-  margin: -1rem 0 2rem;
+    color: #a94442;
+    display: block;
+    margin: -1rem 0 2rem;
 }
 
+
+
 /* LiveView specific classes for your customization */
+
 .phx-no-feedback.invalid-feedback,
 .phx-no-feedback .invalid-feedback {
   display: none;
@@ -149,23 +157,471 @@
   }
 }
 
- /* Main Page */
 
-.hero-section {
-  position: relative;
-  background-blend-mode: overlay;
-  background-attachment: fixed;
-  background-position: center;
-  background-image: url("../../images/moon.jpg");
-  background-color: #232323;
-  background-size: cover;
-  height: 100vh;
+
+ /* Main Page (index) */
+
+ .hero-section {
+    position: relative;
+    background-blend-mode: overlay;
+    background-attachment: fixed;
+    background-position: center;
+    background-image: url("../../images/moon.jpg");
+    background-color: #1e1e1e;
+    background-size: cover;
+    height: 100vh;
 }
 
 .social-icon {
-  display: block;
-  margin: 0 auto;
-  border-radius: 50%;
-  background-color: #fffc;
-  padding: 6px;
+    display: block;
+    margin: 0 auto;
+    border-radius: 50%;
+    background-color: #fffc;
+    padding: 6px;
 }
+
+
+
+/* Shared by Login and Sign Up */
+
+.split {
+    height: 100%;
+    z-index: 1;
+    top: 0;
+    overflow-x: hidden;
+}
+
+.left {
+    left: 0;
+    background-color: #000;
+    width: 70%;
+    overflow-y: hidden;
+    position: relative;
+}
+
+.right {
+    right: 0;
+    background-color: #E5E5E5;
+    width: 100%;
+    position: relative;
+}
+
+
+.welcome-left-title{
+    color: #FFF;
+    position: absolute;
+    left: 14.5%;
+    right: 0;
+    top: 8%;
+    bottom: 89.78%;
+    /* Head 1 */
+    font-family: 'Poppins';
+    font-style: normal;
+    font-weight: 700;
+    font-size: 32px;
+    line-height: 32px;
+    /* identical to box height, or 133% */
+    text-align: center;
+    z-index: 10;
+}
+  
+
+.welcome-left-text{
+    color: #FFFFFF;
+    position: absolute;
+    left: 13%;
+    right: 0%;
+    top: 82%;
+    bottom: 0;
+    font-family: 'Poppins';
+    font-style: normal;
+    font-weight: 400;
+    font-size: 28px;
+    line-height: 2.25rem;
+    z-index: 10;
+}
+
+.welcome-center-logo{
+    display: none;
+    position: absolute;
+    left: 0;
+    right: -2.31%;
+    top: 0;
+    bottom: 14.33%;
+    height: 100%;
+    background: #000000a3;
+    z-index: 5;
+}
+
+
+.welcome-left-logo{
+    height: 100%;
+    background-image: url(/images/bg-globe.jpg);
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-position-x: 50%;
+    z-index: 5;
+    top: -10px;
+    position: relative;
+}
+
+
+
+/* Login  */
+
+.login {
+    display: flex;
+    height: 100vh;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+.login .centered {
+    /* Center vertically and horizontally */
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+}
+
+.login .form-container{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 60px;
+    gap: 35px;
+
+    background: #FFF;
+    box-shadow: 0px 10px 20px rgba(112, 144, 176, 0.25);
+    border-radius: 20px;
+}
+
+.login .form-header{
+    position: relative;
+    left: -2px;
+    font-family: 'Poppins';
+    font-style: normal;
+    font-weight: 700;
+    font-size: 28px;
+    line-height: 32px;
+    /* identical to box height, or 133% */
+    text-align: left;
+    flex: none;
+    order: 0;
+    flex-grow: 0;
+}
+
+.login .form-body{
+    flex: none;
+    order: 1;
+    flex-grow: 0;
+}
+
+.login .form-input-container{
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 0px;
+    margin-bottom: 15px;
+    gap: 8px;
+    left: 0px;
+    top: 102px;
+}
+
+
+.login .form-input-label{
+    /* Label */
+    /* text-base/leading-6/font-semibold */
+
+    /* font-family: 'Inter';
+    font-style: normal;
+    font-weight: 600;
+    font-size: 16px;
+    line-height: 24px; */
+    /* identical to box height, or 150% */
+
+    font-family: 'Poppins';
+    font-style: normal;
+    font-weight: 500;
+    font-size: 16px;
+    line-height: 24px;
+    flex: none;
+    order: 0;
+    flex-grow: 0;
+
+
+
+    /* Inside auto layout */
+
+    flex: none;
+    order: 0;
+    flex-grow: 0;
+}
+
+.login .form-input{
+    box-sizing: border-box;
+
+    /* Auto layout */
+
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    padding: 12px 24px;
+
+    width: 423px;
+    height: 48px;
+
+    background: linear-gradient(0deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.9)), #D2D2D1;
+    border: 2px solid #D2D2D1;
+    border-radius: 10px;
+
+    /* Inside auto layout */
+
+    flex: none;
+    order: 1;
+    align-self: stretch;
+    flex-grow: 0;
+}
+
+.login .form-link{
+    margin: 10px 0px 10px 1px;
+
+    /* Body */
+
+    font-family: 'Poppins';
+    font-style: normal;
+    /* identical to box height, or 150% */
+    text-align: left;
+
+    /* Primary color */
+
+    color: #4385F5;
+}
+
+.login .form-button{
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    padding: 12px 48px;
+    gap: 12px;
+
+    width: 180px;
+    height: 48px;
+    left: 0px;
+    top: 267.5px;
+
+    /* Primary color */
+
+    background: #4385F5;
+    border-radius: 10px;
+    color: #FFFFFFCC;
+    margin-top: 5%;
+}
+
+.login .form-redirect{
+    position: absolute;
+    left: calc(50% - 61px/2 + 17px);
+    top: calc(50% - 24px/2 + 134px);
+
+    /* text-base/leading-6/font-semibold */
+
+    font-family: 'Inter';
+    font-style: normal;
+    font-weight: 600;
+    font-size: 16px;
+    line-height: 24px;
+    /* identical to box height, or 150% */
+
+    text-align: center;
+
+    /* Primary color */
+
+    color: #4385F5;
+}
+
+
+
+/* Sign Up */
+
+.signup {
+    display: flex;
+    height: 100vh;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+
+.signup .centered {
+    /* Center vertically and horizontally */
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+}
+
+.signup .form-container{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 60px;
+    gap: 30px;
+
+    background: #FFFFFF;
+    box-shadow: 0px 10px 20px rgba(112, 144, 176, 0.25);
+    border-radius: 20px;
+}
+
+.signup .form-header{
+    width: 102px;
+    height: 32px;
+
+    font-family: 'Poppins';
+    font-style: normal;
+    font-weight: 700;
+    font-size: 24px;
+    line-height: 32px;
+    /* identical to box height, or 133% */
+
+    text-align: center;
+
+
+    /* Inside auto layout */
+
+    flex: none;
+    order: 0;
+    flex-grow: 0;
+}
+
+.signup .form-body{
+    flex: none;
+    order: 1;
+    flex-grow: 0;
+}
+
+.signup .form-input-container{
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 0px;
+    gap: 8px;
+
+    left: 0px;
+    top: 102px;
+}
+
+.signup .form-input-label{
+    /* Label */
+    width: 85px;
+    height: 24px;
+
+    /* text-base/leading-6/font-semibold */
+
+    font-family: 'Inter';
+    font-style: normal;
+    font-weight: 600;
+    font-size: 16px;
+    line-height: 24px;
+    /* identical to box height, or 150% */
+
+
+
+    /* Inside auto layout */
+
+    flex: none;
+    order: 0;
+    flex-grow: 0;
+}
+
+.signup .form-input{
+    box-sizing: border-box;
+
+    /* Auto layout */
+
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    padding: 12px 24px;
+
+    width: 423px;
+    height: 48px;
+
+    background: linear-gradient(0deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.9)), #D2D2D1;
+    border: 2px solid #D2D2D1;
+    border-radius: 10px;
+
+    /* Inside auto layout */
+
+    flex: none;
+    order: 1;
+    align-self: stretch;
+    flex-grow: 0;
+}
+
+.signup .form-link{
+    margin: 10px 0px 10px 1px;
+
+    /* Body */
+
+    font-family: 'Poppins';
+    font-style: normal;
+    /* identical to box height, or 150% */
+    text-align: left;
+
+    /* Primary color */
+
+    color: #4385F5;
+}
+
+.signup .form-button{
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    padding: 12px 48px;
+    gap: 12px;
+
+    width: 180px;
+    height: 48px;
+    left: 0px;
+    top: 267.5px;
+
+    /* Primary color */
+
+    background: #4385F5;
+    border-radius: 10px;
+    color: #FFFFFFCC;
+    margin-top: 5%;
+}
+
+.signup .form-redirect{
+    position: absolute;
+    left: calc(50% - 61px/2 + 17px);
+    top: calc(50% - 24px/2 + 134px);
+
+    /* text-base/leading-6/font-semibold */
+
+    font-family: 'Inter';
+    font-style: normal;
+    font-weight: 600;
+    font-size: 16px;
+    line-height: 24px;
+    /* identical to box height, or 150% */
+
+    text-align: center;
+
+    /* Primary color */
+
+    color: #4385F5;
+}
+
+
+
+
+
