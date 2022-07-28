@@ -186,7 +186,6 @@
 
 
 .split {
-    height: 100%;
     z-index: 1;
     top: 0;
     overflow-x: hidden;
@@ -225,10 +224,8 @@
     background-color: #ededed;
     width: 100%;
     position: initial;
-    height: 50vh;
   }
 }
-
 
 
 .welcome-left-title{
@@ -274,7 +271,6 @@
     position: absolute;
     left: 13%;
     right: 0%;
-    top: 82%;
     bottom: 0;
     font-family: 'Poppins';
     font-style: normal;
@@ -285,13 +281,17 @@
 }
 
 
+.login .welcome-left-text,
+.reset .welcome-left-text {
+  top: 82%;
+}
+
 
 @media(max-width: 750px) {
   .welcome-left-text {
     color: #ededed;
     position: absolute;
     left: 0;
-    top: 90%;
     bottom: 0;
     font-family: 'Poppins';
     font-style: normal;
@@ -299,10 +299,14 @@
     font-size: 22px;
     line-height: 2.25rem;
     z-index: 1000;
-    backgrund-color: unset;
     height: 20vh;
     background: #000;
     width: 100%;
+  }
+
+  .login .welcome-left-text,
+  .reset .welcome-left-text {
+  top: 90%;
   }
 }
 
@@ -516,12 +520,10 @@
 
 .login {
     display: flex;
-    height: 100vh;
     width: 100%;
     margin: 0;
     padding: 0;
 }
-
 
 
 .login .form-link{
@@ -587,10 +589,17 @@
 
 .signup {
     display: flex;
-    height: 100vh;
     width: 100%;
     margin: 0;
     padding: 0;
+}
+
+@media(max-width: 375px) {
+
+  .signup .centered {
+
+    transform: translate(-50%, -42%);
+  }
 }
 
 
