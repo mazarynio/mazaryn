@@ -304,10 +304,6 @@
     width: 100%;
   }
 
-  .login .welcome-left-text,
-  .reset .welcome-left-text {
-  top: 90%;
-  }
 }
 
 
@@ -520,9 +516,11 @@
 
 .login {
     display: flex;
+    position: relative;
     width: 100%;
     margin: 0;
     padding: 0;
+    min-height: 110vh;
 }
 
 
@@ -589,9 +587,11 @@
 
 .signup {
     display: flex;
+    position: relative;
     width: 100%;
     margin: 0;
     padding: 0;
+    min-height: 100vh;
 }
 
 @media(max-width: 375px) {
@@ -665,10 +665,11 @@
 
 .reset {
   display: flex;
-  height: 100vh;
+  position: relative;
   width: 100%;
   margin: 0;
   padding: 0;
+  min-height: 110vh;
 }
 
 
