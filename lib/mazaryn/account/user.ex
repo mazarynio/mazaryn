@@ -27,8 +27,8 @@ defmodule Account.User do
   end
 
   def new(
-        {_user, username, password, email, phone, country, saved_posts, following, follower, blocked, other_info,
-         _other, private, date_created, date_updated}
+        {_user, username, password, email, phone, country, saved_posts, following, follower,
+         blocked, other_info, _other, private, date_created, date_updated}
       ) do
     struct(Account.User, %{
       username: username,
@@ -40,7 +40,7 @@ defmodule Account.User do
       blocked: Account.User.new(blocked),
       following: Account.User.new(following),
       saved_posts: new_posts(saved_posts),
-      posts: new_posts([]),
+      posts: Core.PostClient.get_posts_by_author(username),
       other_info: other_info,
       location: "Rio de Janeiro",
       date_created: date_created,

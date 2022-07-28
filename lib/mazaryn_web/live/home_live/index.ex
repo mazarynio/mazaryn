@@ -3,14 +3,16 @@ defmodule MazarynWeb.HomeLive.Index do
 
   alias Core.PostClient, as: PostClient
 
-  import MazarynWeb.Live.Helper, only: [signing_salt: 0]
+  import MazarynWeb.Live.Helper
   alias MazarynWeb.Component.SelectLive
   alias Home.Post
+  alias Account.Users
   require Logger
 
   # case reload home page
   @impl true
   def mount(_params, %{"user_id" => user_id} = _session, socket) do
+    Logger.info(user_id: user_id)
     {:ok, do_mount(user_id, socket)}
   end
 
@@ -25,7 +27,7 @@ defmodule MazarynWeb.HomeLive.Index do
 
     socket
     |> assign(post_changeset: post_changeset)
-    |> assign(user_id: user_id)
+    |> assign(user: Users.one_by_email(user_id))
     |> assign(posts: get_post())
   end
 
@@ -35,21 +37,9 @@ defmodule MazarynWeb.HomeLive.Index do
     {:noreply, push_redirect(socket, to: random_id)}
   end
 
-  defp get_post, do: PostClient.get_posts()
-
-  defp get_user_id(session_uuid) do
-    case :ets.lookup(:mazaryn_auth_table, :"#{session_uuid}") do
-      [{_, token}] ->
-        case Phoenix.Token.verify(MazarynWeb.Endpoint, signing_salt(), token, max_age: 806_400) do
-          {:ok, user_id} ->
-            user_id
-
-          _ ->
-            nil
-        end
-
-      _ ->
-        nil
-    end
+  def handle_params(_params, _uri, socket) do
+    {:noreply, socket}
   end
+
+  defp get_post, do: PostClient.get_posts()
 end

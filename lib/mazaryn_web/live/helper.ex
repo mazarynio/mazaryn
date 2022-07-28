@@ -1,4 +1,10 @@
 defmodule MazarynWeb.Live.Helper do
+  import Phoenix.LiveView
+  import Phoenix.LiveView.Helpers
+
+  alias MazarynWeb.Router.Helpers, as: Routes
+
+  alias Phoenix.LiveView.JS
   require Logger
 
   def is_disabled(changeset) do
@@ -109,5 +115,21 @@ defmodule MazarynWeb.Live.Helper do
   def insert_session_token(key, user_id) do
     token = Phoenix.Token.sign(MazarynWeb.Endpoint, signing_salt(), user_id)
     :ets.insert(:mazaryn_auth_table, {:"#{key}", token})
+  end
+
+  def get_user_id(session_uuid) do
+    case :ets.lookup(:mazaryn_auth_table, :"#{session_uuid}") do
+      [{_, token}] ->
+        case Phoenix.Token.verify(MazarynWeb.Endpoint, signing_salt(), token, max_age: 806_400) do
+          {:ok, user_id} ->
+            user_id
+
+          _ ->
+            nil
+        end
+
+      _ ->
+        nil
+    end
   end
 end

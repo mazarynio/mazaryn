@@ -1,31 +1,32 @@
 <!-- navigation -->
-<%= live_component MazarynWeb.HomeLive.NavComponent, user_id: @user_id %>
+<.live_component module={MazarynWeb.HomeLive.NavComponent} id="navigation" username={@user.username} avatar_url={@user.avatar_url} />
+
 <!-- Three columns -->
 <div class="flex flex-wrap h-screen">
     <div class="w-full lg:w-1/6 bg-gray-100 py-10 pl-10">
-        <%= live_component MazarynWeb.HomeLive.LeftSidebarComponent, user_id: @user_id %>
+        <.live_component module={MazarynWeb.HomeLive.LeftSidebarComponent} id="leftsidebar" user_id={@user.username} avatar_url={@user.avatar_url} />
     </div>
     <!-- middle column -->
     <div class="w-full lg:w-3/6 bg-gray-100 p-10">
-        <div class="w-full bg-white white:bg-gray-800 shadow p-4 pb-2 rounded-xl border">             
-            <.live_component module={MazarynWeb.HomeLive.CreatePostComponent} id="posting" changeset={@post_changeset}} user_id={@user_id} />
+        <div class="w-full bg-white white:bg-gray-800 shadow p-4 pb-2 rounded-xl border">
+            <.live_component module={MazarynWeb.HomeLive.CreatePostComponent} id="posting" changeset={@post_changeset}} user_id={@user.username} avatar_url={@user.avatar_url} />
         </div>
-        <div class="flex flex-wrap justify-center align-center my-5"> 
-            <div class="w-full bg-white white:bg-gray-800 shadow p-4 rounded-xl border">             
-                <div class="flex justify-between align-center items-center">                            
+        <div class="flex flex-wrap justify-center align-center my-5">
+            <div class="w-full bg-white white:bg-gray-800 shadow p-4 rounded-xl border">
+                <div class="flex justify-between align-center items-center">
                     <div class="flex justify-center items-center">
                         <img class="h-11 w-11 rounded-full" src={Routes.static_path(@socket, "/images/incroyable.svg")}/>
-                        <div class="ml-1.5 text-sm leading-tight">                                
-                            <span class="text-black font-medium block">Incroyable</span>                                
+                        <div class="ml-1.5 text-sm leading-tight">
+                            <span class="text-black font-medium block">Incroyable</span>
                             <span class="text-gray-300 font-normal block">16hrs</span>
-                        </div>                        
+                        </div>
                     </div>
-                    <div class="flex flex-row justify-evenly items-center ml-1.5 text-sm leading-tight">                                
-                        <span class="text-gray-300 font-normal block">23.15k views</span> 
+                    <div class="flex flex-row justify-evenly items-center ml-1.5 text-sm leading-tight">
+                        <span class="text-gray-300 font-normal block">23.15k views</span>
                         <button class="text-gray-800 text-2xl pl-5">&#xFE19;</button>
-                    </div>                        
-                </div>                        
-                <svg class="text-blue-400 dark:text-white h-6 w-auto inline-block fill-current" viewBox="0 0 24 24"><g><path d="M23.643 4.937c-.835.37-1.732.62-2.675.733.962-.576 1.7-1.49 2.048-2.578-.9.534-1.897.922-2.958 1.13-.85-.904-2.06-1.47-3.4-1.47-2.572 0-4.658 2.086-4.658 4.66 0 .364.042.718.12 1.06-3.873-.195-7.304-2.05-9.602-4.868-.4.69-.63 1.49-.63 2.342 0 1.616.823 3.043 2.072 3.878-.764-.025-1.482-.234-2.11-.583v.06c0 2.257 1.605 4.14 3.737 4.568-.392.106-.803.162-1.227.162-.3 0-.593-.028-.877-.082.593 1.85 2.313 3.198 4.352 3.234-1.595 1.25-3.604 1.995-5.786 1.995-.376 0-.747-.022-1.112-.065 2.062 1.323 4.51 2.093 7.14 2.093 8.57 0 13.255-7.098 13.255-13.254 0-.2-.005-.402-.014-.602.91-.658 1.7-1.477 2.323-2.41z"></path></g></svg>                    
+                    </div>
+                </div>
+                <svg class="text-blue-400 dark:text-white h-6 w-auto inline-block fill-current" viewBox="0 0 24 24"><g><path d="M23.643 4.937c-.835.37-1.732.62-2.675.733.962-.576 1.7-1.49 2.048-2.578-.9.534-1.897.922-2.958 1.13-.85-.904-2.06-1.47-3.4-1.47-2.572 0-4.658 2.086-4.658 4.66 0 .364.042.718.12 1.06-3.873-.195-7.304-2.05-9.602-4.868-.4.69-.63 1.49-.63 2.342 0 1.616.823 3.043 2.072 3.878-.764-.025-1.482-.234-2.11-.583v.06c0 2.257 1.605 4.14 3.737 4.568-.392.106-.803.162-1.227.162-.3 0-.593-.028-.877-.082.593 1.85 2.313 3.198 4.352 3.234-1.595 1.25-3.604 1.995-5.786 1.995-.376 0-.747-.022-1.112-.065 2.062 1.323 4.51 2.093 7.14 2.093 8.57 0 13.255-7.098 13.255-13.254 0-.2-.005-.402-.014-.602.91-.658 1.7-1.477 2.323-2.41z"></path></g></svg>
                 <p class="text-black block text-xl leading-snug mt-3">This 3 shows are special😀 <br> Part 1/7 <br> <span class="text-blue-300 text-sm">#TheOwlHouse #DemonSlayer #AvatarTheLastAirbender</span></p>
                 <img class="w-full mt-2 rounded-2xl border border-gray-100" src={Routes.static_path(@socket, "/images/lastairbender.svg")}/>
                 <div class="text-gray-500 flex mt-3 py-3">
@@ -50,39 +51,39 @@
                     <span class="text-blue-400 text-sm">View 12 comments</span>
                 </div>
                 <div class="border-gray-300 border border-b-0 my-1"></div>
-                <div class="flex justify-between align-center items-center py-5">                            
+                <div class="flex justify-between align-center items-center py-5">
                     <div class="flex justify-center items-center">
                         <img class="h-11 w-11 rounded-full" src={Routes.static_path(@socket, "/images/profile-photo.svg")}/>
-                        <div class="ml-4 text-sm leading-tight">                                
+                        <div class="ml-4 text-sm leading-tight">
                             <span class="text-gray-300 font-normal block">Write a comment</span>
-                        </div>                        
+                        </div>
                     </div>
-                    <div class="flex flex-row justify-evenly items-center ml-1.5 text-sm leading-tight">                                
+                    <div class="flex flex-row justify-evenly items-center ml-1.5 text-sm leading-tight">
                         <button class="text-gray-500 font-normal block">
                             <svg class="fill-current h-5 w-auto" viewBox="0 0 24 24" class="r-1re7ezh r-4qtqp9 r-yyyyoo r-1xvli5t r-dnmrzs r-bnwqim r-1plcrui r-lrvibr"><g><path d="M14.046 2.242l-4.148-.01h-.002c-4.374 0-7.8 3.427-7.8 7.802 0 4.098 3.186 7.206 7.465 7.37v3.828c0 .108.044.286.12.403.142.225.384.347.632.347.138 0 .277-.038.402-.118.264-.168 6.473-4.14 8.088-5.506 1.902-1.61 3.04-3.97 3.043-6.312v-.017c-.006-4.367-3.43-7.787-7.8-7.788zm3.787 12.972c-1.134.96-4.862 3.405-6.772 4.643V16.67c0-.414-.335-.75-.75-.75h-.396c-3.66 0-6.318-2.476-6.318-5.886 0-3.534 2.768-6.302 6.3-6.302l4.147.01h.002c3.532 0 6.3 2.766 6.302 6.296-.003 1.91-.942 3.844-2.514 5.176z"></path></g></svg>
-                        </button> 
-                        <button class="text-gray-500 pl-3"> 
+                        </button>
+                        <button class="text-gray-500 pl-3">
                             <svg class="fill-current h-5 w-auto" viewBox="0 0 24 24" class="r-1re7ezh r-4qtqp9 r-yyyyoo r-1xvli5t r-dnmrzs r-bnwqim r-1plcrui r-lrvibr"><g><path d="M14.046 2.242l-4.148-.01h-.002c-4.374 0-7.8 3.427-7.8 7.802 0 4.098 3.186 7.206 7.465 7.37v3.828c0 .108.044.286.12.403.142.225.384.347.632.347.138 0 .277-.038.402-.118.264-.168 6.473-4.14 8.088-5.506 1.902-1.61 3.04-3.97 3.043-6.312v-.017c-.006-4.367-3.43-7.787-7.8-7.788zm3.787 12.972c-1.134.96-4.862 3.405-6.772 4.643V16.67c0-.414-.335-.75-.75-.75h-.396c-3.66 0-6.318-2.476-6.318-5.886 0-3.534 2.768-6.302 6.3-6.302l4.147.01h.002c3.532 0 6.3 2.766 6.302 6.296-.003 1.91-.942 3.844-2.514 5.176z"></path></g></svg>
                         </button>
-                    </div>                        
+                    </div>
                 </div>
             </div>
         </div>
-        <div class="w-full bg-white white:bg-gray-800 shadow p-4 rounded-xl border">             
-            <div class="flex justify-between align-center items-center">                            
+        <div class="w-full bg-white white:bg-gray-800 shadow p-4 rounded-xl border">
+            <div class="flex justify-between align-center items-center">
                 <div class="flex justify-center items-center">
                     <img class="h-11 w-11 rounded-full" src={Routes.static_path(@socket, "/images/incroyable.svg")}/>
-                    <div class="ml-1.5 text-sm leading-tight">                                
-                        <span class="text-black font-medium block">Incroyable</span>                                
+                    <div class="ml-1.5 text-sm leading-tight">
+                        <span class="text-black font-medium block">Incroyable</span>
                         <span class="text-gray-300 font-normal block">16hrs</span>
-                    </div>                        
+                    </div>
                 </div>
-                <div class="flex flex-row justify-evenly items-center ml-1.5 text-sm leading-tight">                                
-                    <span class="text-gray-300 font-normal block">23.15k views</span> 
+                <div class="flex flex-row justify-evenly items-center ml-1.5 text-sm leading-tight">
+                    <span class="text-gray-300 font-normal block">23.15k views</span>
                     <button class="text-gray-800 text-2xl pl-5">&#xFE19;</button>
-                </div>                        
-            </div>                        
-            <svg class="text-blue-400 dark:text-white h-6 w-auto inline-block fill-current" viewBox="0 0 24 24"><g><path d="M23.643 4.937c-.835.37-1.732.62-2.675.733.962-.576 1.7-1.49 2.048-2.578-.9.534-1.897.922-2.958 1.13-.85-.904-2.06-1.47-3.4-1.47-2.572 0-4.658 2.086-4.658 4.66 0 .364.042.718.12 1.06-3.873-.195-7.304-2.05-9.602-4.868-.4.69-.63 1.49-.63 2.342 0 1.616.823 3.043 2.072 3.878-.764-.025-1.482-.234-2.11-.583v.06c0 2.257 1.605 4.14 3.737 4.568-.392.106-.803.162-1.227.162-.3 0-.593-.028-.877-.082.593 1.85 2.313 3.198 4.352 3.234-1.595 1.25-3.604 1.995-5.786 1.995-.376 0-.747-.022-1.112-.065 2.062 1.323 4.51 2.093 7.14 2.093 8.57 0 13.255-7.098 13.255-13.254 0-.2-.005-.402-.014-.602.91-.658 1.7-1.477 2.323-2.41z"></path></g></svg>                    
+                </div>
+            </div>
+            <svg class="text-blue-400 dark:text-white h-6 w-auto inline-block fill-current" viewBox="0 0 24 24"><g><path d="M23.643 4.937c-.835.37-1.732.62-2.675.733.962-.576 1.7-1.49 2.048-2.578-.9.534-1.897.922-2.958 1.13-.85-.904-2.06-1.47-3.4-1.47-2.572 0-4.658 2.086-4.658 4.66 0 .364.042.718.12 1.06-3.873-.195-7.304-2.05-9.602-4.868-.4.69-.63 1.49-.63 2.342 0 1.616.823 3.043 2.072 3.878-.764-.025-1.482-.234-2.11-.583v.06c0 2.257 1.605 4.14 3.737 4.568-.392.106-.803.162-1.227.162-.3 0-.593-.028-.877-.082.593 1.85 2.313 3.198 4.352 3.234-1.595 1.25-3.604 1.995-5.786 1.995-.376 0-.747-.022-1.112-.065 2.062 1.323 4.51 2.093 7.14 2.093 8.57 0 13.255-7.098 13.255-13.254 0-.2-.005-.402-.014-.602.91-.658 1.7-1.477 2.323-2.41z"></path></g></svg>
             <p class="text-black block text-xl leading-snug mt-3">This 3 shows are special😀 <br> Part 1/7 <br> <span class="text-blue-300 text-sm">#TheOwlHouse #DemonSlayer #AvatarTheLastAirbender</span></p>
             <img class="w-full mt-2 rounded-2xl border border-gray-100" src={Routes.static_path(@socket, "/images/lastairbender.svg")}/>
             <div class="text-gray-500 flex mt-3 py-3">
@@ -107,45 +108,29 @@
                 <span class="text-blue-400 text-sm">View 12 comments</span>
             </div>
             <div class="border-gray-300 border border-b-0 my-1"></div>
-            <div class="flex justify-between align-center items-center py-5">                            
+            <div class="flex justify-between align-center items-center py-5">
                 <div class="flex justify-center items-center">
                     <img class="h-11 w-11 rounded-full" src={Routes.static_path(@socket, "/images/profile-photo.svg")}/>
-                    <div class="ml-4 text-sm leading-tight">                                
+                    <div class="ml-4 text-sm leading-tight">
                         <span class="text-gray-300 font-normal block">Write a comment</span>
-                    </div>                        
+                    </div>
                 </div>
-                <div class="flex flex-row justify-evenly items-center ml-1.5 text-sm leading-tight">                                
+                <div class="flex flex-row justify-evenly items-center ml-1.5 text-sm leading-tight">
                     <button class="text-gray-500 font-normal block">
                         <svg class="fill-current h-5 w-auto" viewBox="0 0 24 24" class="r-1re7ezh r-4qtqp9 r-yyyyoo r-1xvli5t r-dnmrzs r-bnwqim r-1plcrui r-lrvibr"><g><path d="M14.046 2.242l-4.148-.01h-.002c-4.374 0-7.8 3.427-7.8 7.802 0 4.098 3.186 7.206 7.465 7.37v3.828c0 .108.044.286.12.403.142.225.384.347.632.347.138 0 .277-.038.402-.118.264-.168 6.473-4.14 8.088-5.506 1.902-1.61 3.04-3.97 3.043-6.312v-.017c-.006-4.367-3.43-7.787-7.8-7.788zm3.787 12.972c-1.134.96-4.862 3.405-6.772 4.643V16.67c0-.414-.335-.75-.75-.75h-.396c-3.66 0-6.318-2.476-6.318-5.886 0-3.534 2.768-6.302 6.3-6.302l4.147.01h.002c3.532 0 6.3 2.766 6.302 6.296-.003 1.91-.942 3.844-2.514 5.176z"></path></g></svg>
-                    </button> 
-                    <button class="text-gray-500 pl-3"> 
+                    </button>
+                    <button class="text-gray-500 pl-3">
                         <svg class="fill-current h-5 w-auto" viewBox="0 0 24 24" class="r-1re7ezh r-4qtqp9 r-yyyyoo r-1xvli5t r-dnmrzs r-bnwqim r-1plcrui r-lrvibr"><g><path d="M14.046 2.242l-4.148-.01h-.002c-4.374 0-7.8 3.427-7.8 7.802 0 4.098 3.186 7.206 7.465 7.37v3.828c0 .108.044.286.12.403.142.225.384.347.632.347.138 0 .277-.038.402-.118.264-.168 6.473-4.14 8.088-5.506 1.902-1.61 3.04-3.97 3.043-6.312v-.017c-.006-4.367-3.43-7.787-7.8-7.788zm3.787 12.972c-1.134.96-4.862 3.405-6.772 4.643V16.67c0-.414-.335-.75-.75-.75h-.396c-3.66 0-6.318-2.476-6.318-5.886 0-3.534 2.768-6.302 6.3-6.302l4.147.01h.002c3.532 0 6.3 2.766 6.302 6.296-.003 1.91-.942 3.844-2.514 5.176z"></path></g></svg>
                     </button>
-                </div>                        
+                </div>
             </div>
         </div>
     </div>
     <!-- end of middle column-->
 
     <div class="w-full lg:w-2/6 bg-gray-100 py-10 pr-10">
-        <div class="w-full bg-white white:bg-gray-800 shadow p-4 rounded-xl border">             
-            <h1 class="block text-l font-semibold py-4 px-2">Complete your profile</h1>
-            <div class="border-gray-300 border border-x-0 border-b-0 py-5 px-10"></div> 
-            <div class="w-full bg-gray-200 h-1">
-                <div class="bg-blue-600 h-1" style="width: 45%"></div>
-            </div>
-            <div class="flex justify-between align-center items-center py-5">                            
-                
-                <div class="flex justify-center items-center">
-                    <ul class="">
-                        <li class="active"><a href="index.html" class="block text-l px-2 py-4 text-gray-300 font-semibold">Verify your email</a></li>
-                        <li class="active"><a href="index.html" class="block text-l px-2 py-4 text-gray-500 font-semibold">Set your username</a></li>
-                        <li class="active"><a href="index.html" class="block text-l px-2 py-4 text-gray-500 font-semibold">Set your profile picture</a></li>
-                    </ul>
-                </div>                        
-            </div>
-        </div>
-        <div class="w-full bg-white white:bg-gray-800 shadow p-4 rounded-xl border my-5">  
+        <.live_component module={MazarynWeb.HomeLive.CompleteProfileComponent} id="completing" user_id={@user.username} />
+        <div class="w-full bg-white white:bg-gray-800 shadow p-4 rounded-xl border my-5">
             <div class="flex flex-row justify-between">
                 <h1 class="block flex items-center text-l font-semibold py-4 px-2">
                     <i><%= Heroicons.icon("fire", class: "h-7 w-7 mr-3 fill-red-500") %></i>
@@ -154,7 +139,7 @@
                 <a href="#" class="block text-l text-blue-400 py-4 px-2">See more</a>
             </div>
             <div class="border-gray-300 border border-b-0 "></div>
-            <div class="flex justify-between align-center items-center py-5">                            
+            <div class="flex justify-between align-center items-center py-5">
                 <div class="w-full flex justify-between items-center">
                     <ul class="w-full">
                         <li class="active pb-3">
@@ -187,19 +172,19 @@
                             </div>
                         </li>
                     </ul>
-                </div>                        
+                </div>
             </div>
         </div>
-        <div class="w-full bg-white white:bg-gray-800 shadow p-4 rounded-xl border my-5">  
+        <div class="w-full bg-white white:bg-gray-800 shadow p-4 rounded-xl border my-5">
             <div class="flex flex-row justify-between">
                 <h1 class="block flex items-center text-l font-semibold py-4 px-2">
                     <i><%= Heroicons.icon("users", class: "h-7 w-7 mr-3 fill-blue-500") %></i>
-                    Friend suggestion 
+                    Friend suggestion
                 </h1>
                 <a href="#" class="block text-l text-blue-400 py-4 px-2">See more</a>
             </div>
             <div class="border-gray-300 border border-b-0 "></div>
-            <div class="flex justify-between align-center items-center py-5">                            
+            <div class="flex justify-between align-center items-center py-5">
                 <div class="w-full flex justify-between items-center">
                     <ul class="w-full">
                         <li class="active pb-3">
@@ -215,7 +200,7 @@
                                 <div class="flex space-x-2 justify-center">
                                     <button type="button" class="inline-block flex items-center px-4 py-2.5 border border-gray-400  text-gray-400 font-medium text-xs leading-tight uppercase rounded-lg transition duration-150 ease-in-out hover:bg-gray-100">
                                         <i><%= Heroicons.icon("plus-circle", type: "outline",class: "h-5 w-5 mr-2") %></i>
-                                       Add 
+                                       Add
                                     </button>
                                 </div>
                             </div>
@@ -232,25 +217,25 @@
                                 <div class="flex space-x-2 justify-center">
                                     <button type="button" class="inline-block flex items-center px-4 py-2.5 border border-gray-400  text-gray-400 font-medium text-xs leading-tight uppercase rounded-lg transition duration-150 ease-in-out hover:bg-gray-100">
                                         <i><%= Heroicons.icon("plus-circle", type: "outline",class: "h-5 w-5 mr-2") %></i>
-                                       Add 
+                                       Add
                                     </button>
                                 </div>
                             </div>
                         </li>
                     </ul>
-                </div>                        
+                </div>
             </div>
         </div>
-        <div class="w-full bg-white white:bg-gray-800 shadow p-4 rounded-xl border my-5">  
+        <div class="w-full bg-white white:bg-gray-800 shadow p-4 rounded-xl border my-5">
             <div class="flex flex-row justify-between">
                 <h1 class="block flex items-center text-l font-semibold py-4 px-2">
                     <i><%= Heroicons.icon("users", class: "h-7 w-7 mr-3 fill-blue-500") %></i>
-                    Groups 
+                    Groups
                 </h1>
                 <a href="#" class="block text-l text-blue-400 py-4 px-2">See more</a>
             </div>
             <div class="border-gray-300 border border-b-0 "></div>
-            <div class="flex justify-between align-center items-center py-5">                            
+            <div class="flex justify-between align-center items-center py-5">
                 <div class="w-full flex justify-between items-center">
                     <ul class="w-full">
                         <li class="active pb-3">
@@ -270,7 +255,7 @@
                                 <div class="flex space-x-2 justify-center">
                                     <button type="button" class="inline-block flex items-center px-4 py-2.5 border border-gray-400  text-gray-400 font-medium text-xs leading-tight uppercase rounded-lg transition duration-150 ease-in-out hover:bg-gray-100">
                                         <i><%= Heroicons.icon("plus-circle", type: "outline",class: "h-5 w-5 mr-2") %></i>
-                                       Join 
+                                       Join
                                     </button>
                                 </div>
                             </div>
@@ -292,13 +277,13 @@
                                 <div class="flex space-x-2 justify-center">
                                     <button type="button" class="inline-block flex items-center px-4 py-2.5 border border-gray-400  text-gray-400 font-medium text-xs leading-tight uppercase rounded-lg transition duration-150 ease-in-out hover:bg-gray-100">
                                         <i><%= Heroicons.icon("plus-circle", type: "outline",class: "h-5 w-5 mr-2") %></i>
-                                       Join 
+                                       Join
                                     </button>
                                 </div>
                             </div>
                         </li>
                     </ul>
-                </div>                        
+                </div>
             </div>
         </div>
     </div>

@@ -56,7 +56,8 @@
                     
                     <div class="btn-group flex items-center pt-2 pb-2">
                         <a> <%= submit submit_value(@changeset, "Login"), [class: "bg-blue-500 hover:bg-blue-700 text-white py-3 px-14 rounded-md"] %></a>
-                        <a> <%= link "Sign Up", to: "/signup", class: "text-blue-600 pl-6" %> </a>
+                        <a> <%= live_patch "Sign Up", to: Routes.live_path(@socket, MazarynWeb.AuthLive.Signup), class: "text-blue-600 pl-6" %></a>
+
                     </div>
 
                     <%= hidden_input f, :email_touched %>
