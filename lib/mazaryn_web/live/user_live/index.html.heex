@@ -7,7 +7,7 @@
 
   <div class="w-full lg:w-5/6 bg-gray-100 px-10">
     <div class="relative block" style="height: 300px;">
-      <%= if @user.country do %>
+      <%= if @user.avatar_url do %>
         <div class="w-full h-full bg-center bg-cover rounded-b-3xl"
         style='background-image: url("https://images.unsplash.com/photo-1499336315816-097655dcfbda?ixlib=rb-1.2.1&amp;ixid=eyJhcHBfaWQiOjEyMDd9&amp;auto=format&amp;fit=crop&amp;w=2710&amp;q=80");'>
         </div>
@@ -20,7 +20,7 @@
       <div class="flex flex-wrap justify-center">
         <div class="w-full lg:w-2/12 lg:order-1 flex justify-center">
           <div class="relative">
-            <%= if @user.country do %>
+            <%= if @user.avatar_url do %>
               <img alt="..." src="https://placeimg.com/192/192/people"
               class="shadow-xl rounded-full h-auto align-middle border-none absolute -m-16 -ml-20 lg:-ml-20 ring-8 ring-gray-100"
               style="max-width: 150px;" />

@@ -10,7 +10,7 @@ defmodule MazarynWeb.UserLive.Index do
   @impl true
   def mount(_params, %{"user_id" => email} = _session, socket) do
     post_changeset = Post.changeset(%Post{})
-    Logger.info(socket: socket.assigns)
+    # Logger.info(socket: socket.assigns)
 
     socket =
       socket
@@ -25,7 +25,7 @@ defmodule MazarynWeb.UserLive.Index do
   def mount(_params, %{"session_uuid" => session_uuid} = _session, socket) do
     post_changeset = Post.changeset(%Post{})
     email = get_user_id(session_uuid)
-    Logger.info(socket: socket.assigns)
+    # Logger.info(socket: socket.assigns)
 
     socket =
       socket
