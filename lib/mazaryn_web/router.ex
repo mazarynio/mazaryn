@@ -54,6 +54,7 @@ defmodule MazarynWeb.Router do
     live("/coins", CoinLive.Index)
     live("/profile", UserLive.Index)
     live("/posts", PostLive.Index)
+    live("/dashboard", DashboardLive.Index)
   end
 
   scope "/api" do
