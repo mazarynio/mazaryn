@@ -15,7 +15,7 @@
     </div>
 
     <div class="split right">
-    <div class="centered">
+    <div class="centered 2xl:left-[45%]">
         <div class="form-container">
         <div class="form-header">
             Sign Up
@@ -29,7 +29,7 @@
         
                     </div>
                     <div>
-                        <%= text_input f, :username, [class: "form-input", placeholder: "Your username", aria_describedby: "form_username_detail", aria_required: "true", phx_click: :blur_username] %>
+                        <%= text_input f, :username, [class: "form-input", placeholder: "Your username", aria_describedby: "form_username_detail", aria_required: "true", autofocus: "1", phx_click: :blur_username] %>
                     </div>
                     
                     <div aria-live="polite"  id="form_username_detail" class={"#{detail_error f, @changeset, :username}"}>
@@ -48,34 +48,6 @@
                     
                     <div aria-live="polite"  id="form_email_detail" class={"#{detail_error f, @changeset, :email}"}>
                         <span class="text-sm"> <%= push_error_tag f, :email %></span>
-                    </div>
-                </div>
-
-                <div class="form-input-container">  
-                    <div>
-                        <label class="form-input-label">Country*</label>
-        
-                    </div>
-                    <div>
-                        <%= text_input f, :country, [class: "form-input", placeholder: "Your Country", aria_describedby: "form_country_detail", aria_required: "true", phx_click: :blur_country] %>
-                    </div>
-                    
-                    <div aria-live="polite"  id="form_country_detail" class={"#{detail_error f, @changeset, :country}"}>
-                        <span class="text-sm"> <%= push_error_tag f, :country %></span>
-                    </div>
-                </div>
-
-                <div class="form-input-container">  
-                    <div>
-                        <label class="form-input-label">Phone*</label>
-        
-                    </div>
-                    <div>
-                        <%= text_input f, :phone, [class: "form-input", placeholder: "Your phone number", aria_describedby: "form_phone_detail", aria_required: "true", phx_click: :blur_phone] %>
-                    </div>
-                    
-                    <div aria-live="polite"  id="form_phone_detail" class={"#{detail_error f, @changeset, :phone}"}>
-                        <span class="text-sm"> <%= push_error_tag f, :phone %></span>
                     </div>
                 </div>
                 
