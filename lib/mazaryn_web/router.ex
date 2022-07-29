@@ -53,6 +53,7 @@ defmodule MazarynWeb.Router do
     live("/home", HomeLive.Index)
     live("/coins", CoinLive.Index)
     live("/profile", UserLive.Index)
+    live("/profile/edit", UserLive.Index, :edit)
     live("/posts", PostLive.Index)
     live("/dashboard", DashboardLive.Index)
   end

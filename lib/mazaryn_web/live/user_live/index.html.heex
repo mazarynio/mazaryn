@@ -45,7 +45,9 @@
             <%# <.button id="upload-btn" primary>
               <.icon name={:upload}/><span class="ml-2">Upload Songs</span>
             </.button> %>
-            <button type="button" class="py-2.5 px-5  mb-2 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200">Edit profile</button>
+            <%# <button type="button" class="py-2.5 px-5  mb-2 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200">Edit profile</button> %>
+            <a> <%= live_patch "Edit profile", to: Routes.user_index_path(@socket, :edit), class: "py-2.5 px-5  mb-2 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200" %></a>
+
           </div>
         </div>
       </div>
@@ -62,7 +64,7 @@
         <div class="mr-8 p-3 text-center flex">
           <i><%= Heroicons.icon("users", class: "h-5 w-5 mr-2") %> </i>
           <a class="font-bold text-gray-700 mr-1"><%= length(@user.following) %></a>
-          <a class="text-gray-500">Follows</a>
+          <a class="text-gray-500">Followings</a>
         </div>
         <div class="p-3 text-center flex">
           <i><%= Heroicons.icon("users", class: "h-5 w-5 mr-2") %> </i>
@@ -107,3 +109,16 @@
   </div>
 
 </div>
+
+<%= if @live_action in [:edit] do %>
+  <.modal return_to={Routes.live_path(@socket, MazarynWeb.UserLive.Index)}>
+    <.live_component
+      module={MazarynWeb.UserLive.EditProfileComponent}
+      id={@user.username}
+      title="Edit Profile"
+      changeset={@user_changeset}
+      action={@live_action}
+      return_to={Routes.live_path(@socket, MazarynWeb.UserLive.Index)}
+    />
+  </.modal>
+<% end %>

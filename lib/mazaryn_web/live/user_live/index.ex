@@ -4,18 +4,21 @@ defmodule MazarynWeb.UserLive.Index do
   import MazarynWeb.Live.Helper
   import Logger
   alias Core.UserClient, as: UserClient
+  alias Account.User
   alias Account.Users
   alias Home.Post
 
   @impl true
   def mount(_params, %{"user_id" => email} = _session, socket) do
     post_changeset = Post.changeset(%Post{})
+    user_changeset = User.changeset(%User{})
     # Logger.info(socket: socket.assigns)
 
     socket =
       socket
       |> assign(user_id: email)
       |> assign(post_changeset: post_changeset)
+      |> assign(user_changeset: user_changeset)
       |> assign(user: user_info(email))
 
     {:ok, socket}
@@ -31,6 +34,7 @@ defmodule MazarynWeb.UserLive.Index do
       socket
       |> assign(user_id: email)
       |> assign(post_changeset: post_changeset)
+      |> assign(user_changeset: User.changeset(%User{}))
       |> assign(user: user_info(email))
 
     {:ok, socket}
@@ -78,8 +82,9 @@ defmodule MazarynWeb.UserLive.Index do
   end
 
   @impl true
-  def handle_params(_params, _uri, socket) do
-    # Logger.info(socket: socket.assigns)
+  def handle_params(params, uri, socket) do
+    Logger.info(live_action: socket.assigns.user_changeset)
+    # Logger.info(params: uri)
     {:noreply, socket}
   end
 end

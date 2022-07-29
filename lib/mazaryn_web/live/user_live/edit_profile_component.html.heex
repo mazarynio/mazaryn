@@ -1,0 +1,81 @@
+<div class="">
+  <div class="form-header border-b pb-5 mb-10 mr-10">
+    <%= @title %>
+  </div>
+  <.form
+    let={f}
+    for={@changeset}
+    id="edit-form"
+    phx-target={@myself}
+    phx-change="validate"
+    phx-submit="save">
+    
+    <!-- accordion-tab  -->
+    <div class="form-container group outline-none accordion-section" tabindex="1">
+      <div class="form-header transition ease duration-500">
+        About Info
+      </div>
+      <div class="form-body">
+        <div class="form-input-container group-focus:max-h-screen max-h-0 overflow-hidden ease duration-500"> 
+          <div>
+            <label class="form-input-label">Username*</label>
+          </div>
+          <div>
+            <%= text_input f, :username, [class: "form-input", placeholder: "Your username", aria_describedby: "form_username_detail", aria_required: "true", autofocus: "1", phx_click: :blur_username] %>
+          </div>
+          
+          <div aria-live="polite"  id="form_username_detail" class={"#{detail_error f, @changeset, :username}"}>
+              <span class="text-sm"> <%= push_error_tag f, :username %></span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+    <!-- accordion-tab -->
+    <!-- accordion-tab  -->
+    <div class="form-container">
+    <div class="group outline-none accordion-section" tabindex="2">
+      <div class="group flex justify-between px-4 py-3 items-center text-gray-500 transition ease duration-500 cursor-pointer pr-10 relative">
+        <div class="form-header transition ease duration-500">
+          Bio
+        </div>
+      </div>
+      <div class="group-focus:max-h-screen max-h-0 px-4 overflow-hidden ease duration-500">
+        <p class="p-2 text-gray-400 text-justify">
+          Lorem ipsum dolor sit amet consectetur adipisicing elit. Fugiat,
+          repellat amet doloribus consequuntur eos similique provident
+          tempora voluptates iure quia fuga dicta voluptatibus culpa
+          mollitia recusandae delectus id suscipit labore?
+        </p>
+      </div>
+    </div>
+    </div>
+    <!-- accordion-tab -->
+    <!-- accordion-tab  -->
+    <div class="form-container">
+    <div class="group outline-none accordion-section" tabindex="3">
+      <div class="group flex justify-between px-4 py-3 items-center text-gray-500 transition ease duration-500 cursor-pointer pr-10 relative">
+        <div class="form-header transition ease duration-500">
+          Image
+        </div>
+      </div>
+      <div class="group-focus:max-h-screen max-h-0 px-4 overflow-hidden ease duration-500">
+        <p class="p-2 text-gray-400 text-justify">
+          Lorem ipsum dolor sit amet consectetur adipisicing elit. Fugiat,
+          repellat amet doloribus consequuntur eos similique provident
+          tempora voluptates iure quia fuga dicta voluptatibus culpa
+          mollitia recusandae delectus id suscipit labore?
+        </p>
+      </div>
+    </div>
+    </div>
+    <!-- accordion-tab -->
+    <div>
+      <%= submit "Save", phx_disable_with: "Saving..." %>
+    </div>    
+  
+  
+  
+
+  </.form>
+</div>
