@@ -47,6 +47,12 @@ defmodule MazarynWeb.HomeLive.LeftSidebarComponent do
                     </a>
                 </li>
                 <li class="flex align-center items-center group">
+                    <%= live_patch to: Routes.live_path(@socket, MazarynWeb.DashboardLive.Index), replace: false, class: "flex items-center text-1 px-2 py-4 text-gray-500 font-semibold group-hover:text-blue-500" do %>
+                    <i><%= Heroicons.icon("dashboard", class: "h-5 w-5 mr-3") %></i>
+                    Dashboard
+                    <% end %>
+                </li>
+                <li class="flex align-center items-center group">
                     <%= live_patch to: Routes.live_path(@socket, MazarynWeb.UserLive.Index), replace: false, class: "flex items-center text-l px-2 py-4 text-gray-500 font-semibold group-hover:text-blue-500" do %>
                         <%= if @avatar_url do %>
                             <img src="https://placeimg.com/192/192/people" class="w-4 mr-3 rounded-full ring-blue-500 group-hover:ring"/>
