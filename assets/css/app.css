@@ -1,6 +1,8 @@
 /* This file is for your main application css. */
 
 @import url("https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Sarabun:ital,wght@0,200;0,300;0,400;0,500;0,600;0,700;0,800;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800&display=swap");
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Nunito:ital,wght@0,200;0,300;0,400;0,500;0,600;0,700;0,800;1,200;1,400&display=swap');
+
 
 @import "tailwindcss/base";
 
@@ -194,7 +196,7 @@
 .left {
     left: 0;
     background-color: #000;
-    width: 70%;
+    width: 60%;
     overflow-y: hidden;
     position: relative;
 }
@@ -204,12 +206,11 @@
     width: 100%;
     overflow-y: hidden;
     position: initial;
-    height: 40vh;
+    min-height: 18vh;
     bottom: 0;
   }
 
 }
-
 
 .right {
     right: 0;
@@ -224,8 +225,10 @@
     background-color: #ededed;
     width: 100%;
     position: initial;
+    height: 100%;
   }
 }
+
 
 
 .welcome-left-title{
@@ -233,7 +236,7 @@
     position: absolute;
     left: 14.5%;
     right: 0;
-    top: 7%;
+    top: 5%;
     bottom: 89.78%;
     /* Head 1 */
     font-family: 'Poppins';
@@ -248,10 +251,9 @@
 
 @media(max-width: 750px) {
   .welcome-left-title {
-    position: absolute;
-    left: 20px;
+    left: 27px;
     right: 0;
-    top: 15px;
+    top: 25px;
     bottom: 0;
     font-family: 'Poppins';
     font-style: normal;
@@ -262,6 +264,40 @@
     z-index: 2000;
     height: 50px;
     background: unset;
+    position: relative;
+    color: #FFF;
+  }
+
+  .welcome-left-title img {
+    height: 45px;
+    width: 135px;
+  }
+}
+
+
+
+@media(max-width: 750px) {
+  .welcome-left-text.mobile {
+
+    color: #ededed;
+    left: 0;
+    bottom: 0;
+    font-family: 'Poppins';
+    font-style: normal;
+    font-weight: 400;
+    font-size: 22px;
+    line-height: 2.25rem;
+
+    height: inherit;
+    position: initial;
+    min-height: 24vh;
+    display: flex;
+    align-items: center;
+    max-height: 40vh;
+
+    background: #000;
+    width: 100%;
+    z-index: 5;
   }
 }
 
@@ -307,20 +343,16 @@
 }
 
 
-/* .welcome-center-logo{
-    display: none;
+@media(max-width: 750px) {
+  .welcome-layer-style{
     position: absolute;
-    left: 0;
-    right: -2.31%;
+    z-index: 125;
+    background: #000000b0;
+    height: 18vh;
+    width: 100%;
     top: 0;
-    bottom: 14.33%;
-    height: 100%;
-    background: #000000a3;
-    z-index: 5;
-} */
-
-
-
+  } 
+}
 
 
 .welcome-left-logo{
@@ -336,15 +368,16 @@
 
 @media(max-width: 750px) {
   .welcome-left-logo {
-    height: 100%;
+    height: 220px;
     background-image: url(/images/bg-globe.jpg);
     background-repeat: no-repeat;
     background-size: auto;
     background-position-x: 50%;
     z-index: 120;
     top: 0;
-    position: relative;
-    background-position-y: 20%;
+    width: 100%;
+    position: absolute;
+    background-position-y: 31%;
   }
 }
 
@@ -356,12 +389,14 @@
   transform: translate(-50%, -50%);
 }
 
-@media (max-width: 750px) {
+@media(max-width: 750px) {
   .centered {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -45%);
+    /* Center vertically and horizontally */
+    position: relative;
+    width: 100%;
+    top: unset;
+    left: unset;
+    transform: translate(0,0);
   }
 }
 
@@ -378,7 +413,7 @@
   justify-content: center;
   align-items: flex-start;
   padding: 60px;
-  gap: 32px;
+  gap: 30px;
   background: #FFF;
   box-shadow: 0px 10px 20px rgba(112, 144, 176, 0.25);
   border-radius: 20px;
@@ -391,13 +426,14 @@
     justify-content: center;
     align-items: flex-start;
     width: 100%;
-    max-width: 390px;
+    max-width: unset; 
     min-width: 240px;
     padding: 2rem;
-    gap: 32px;
+    gap: 30px;
     background: #FFF;
-    box-shadow: 0px 10px 20px rgba(112, 144, 176, 0.25);
-    border-radius: 20px;
+    box-shadow: 0px 10px 20px rgb(112 144 176 / 25%);
+    border-radius: 0;
+    height: 100%;
   }
 
 }
@@ -406,7 +442,7 @@
 .form-header{
   position: relative;
   left: -2px;
-  font-family: 'Poppins';
+  font-family: 'Poppins', sans-serif;
   font-style: normal;
   font-weight: 700;
   font-size: 24px;
@@ -416,6 +452,7 @@
   flex: none;
   order: 0;
   flex-grow: 0;
+  color: rgba(0, 0, 0, 0.8);
 }
 
 
@@ -430,20 +467,29 @@
   line-height: 24px; */
   /* identical to box height, or 150% */
 
-  font-family: 'Poppins';
+  font-family: 'Inter', sans-serif;
   font-style: normal;
-  font-weight: 500;
+  font-weight: 600;
   font-size: 16px;
   line-height: 24px;
   flex: none;
   order: 0;
   flex-grow: 0;
+  color: #000;
 
   /* Inside auto layout */
 
   flex: none;
   order: 0;
   flex-grow: 0;
+}
+
+
+
+.form-input::placeholder {
+  font-family: "Inter", sans-serif;
+  font-weight: 400;
+  color: #C5C7C8;
 }
 
 .form-input{
@@ -458,9 +504,10 @@
   width: 423px;
   height: 48px;
 
-  background: linear-gradient(0deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.9)), #D2D2D1;
+  background: linear-gradient(0deg, rgba(255, 255, 255, 0.88), rgba(255, 255, 255, 0.88)), #D2D2D1;
   border: 2px solid #D2D2D1;
   border-radius: 10px;
+  
 
   /* Inside auto layout */
 
@@ -469,6 +516,9 @@
   align-self: stretch;
   flex-grow: 0;
 }
+
+
+
 
 @media(max-width: 750px) {
   .form-input{
@@ -505,7 +555,7 @@
   flex-direction: column;
   align-items: flex-start;
   padding: 0px;
-  margin-bottom: 15px;
+  margin-bottom: 20px;
   gap: 8px;
   left: 0px;
   top: 102px;
@@ -520,12 +570,24 @@
     width: 100%;
     margin: 0;
     padding: 0;
-    min-height: 110vh;
 }
 
 
+@media(max-width: 750px) {
+  .login {
+    display: flex;
+    position: relative;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    align-items: center;
+    min-height: 100vh;
+    background: #000;
+  }
+}
+
 .login .form-link{
-    margin: 10px 0px 10px 1px;
+    margin: 30px 0px 30px 1px;
 
     /* Body */
 
@@ -592,14 +654,6 @@
     margin: 0;
     padding: 0;
     min-height: 100vh;
-}
-
-@media(max-width: 375px) {
-
-  .signup .centered {
-
-    transform: translate(-50%, -42%);
-  }
 }
 
 
@@ -669,9 +723,20 @@
   width: 100%;
   margin: 0;
   padding: 0;
-  min-height: 110vh;
 }
 
+@media(max-width: 750px) {
+  .reset{
+    display: flex;
+    position: relative;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    align-items: center;
+    min-height: 100vh;
+    background: #000;
+  }
+}
 
 .reset .form-link{
   margin: 10px 0px 10px 1px;

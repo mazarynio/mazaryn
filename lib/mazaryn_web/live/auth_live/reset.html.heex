@@ -1,19 +1,21 @@
-<div class="reset  h-full md:h-screen flex-col md:flex-row">
+<div class="reset min-h-[110vh] md:min-h-screen h-full h-full md:h-screen flex-col md:flex-row">
     <div class="split left">
         <div class="welcome-left-title">
             <img class="logo mb-5 mr-auto md:mr-0 brightness-150"  src="images/logo.png" alt="" title="" />
         </div>
 
-         <div class="welcome-left-text h-[25vh] md:h-full top-[100%] md:top-[82%]">
+         <div class="welcome-left-text hidden md:block h-[25vh] md:h-full top-[100%] md:top-[82%]">
             <p class="relative md:static left-0 bottom-[-40px] max-w-[310px] md:max-w-[420px] text-color-[#E5E5E5] md:full mx-auto md:mx-0">Online Comunity <b>makes</b> <br />
             people <b>more</b> creative</p>
         </div>
-
+        
+        <div class="welcome-layer-style"></div>
+        
         <div class="welcome-left-logo"></div>
     </div>
 
     <div class="split right h-[50vh] md:h-full">
-        <div class="centered 2xl:left-[45%]">
+        <div class="centered">
             <div class="form-container">
                 <div class="form-header">
                     Reset Your Password
@@ -44,5 +46,11 @@
                 </div>
             </div>
         </div>
+    </div>
+
+    <div class="welcome-left-text mobile md:hidden">
+        <p class="absolute left-[10%] text-color-[#E5E5E5]">Online Comunity <b>makes</b> <br />
+            people <b>more</b> creative
+        </p>
     </div>
 </div>
