@@ -79,15 +79,15 @@
   width: 100%;
   height: 100%;
   overflow: auto;
-  background-color: rgba(0, 0, 0, 0.4);
+  background-color: #0008;
 }
 
 .phx-modal-content {
   background-color: #fefefe;
   margin: 15vh auto;
-  padding: 20px;
   border: 1px solid #888;
   width: 80%;
+  padding: 40px 35px;
 }
 
 .phx-modal-close {
@@ -95,6 +95,10 @@
   float: right;
   font-size: 28px;
   font-weight: bold;
+  border-radius: 50%;
+  background: #FAFAFA;
+  position: relative;
+  top: -20px;
 }
 
 .phx-modal-close:hover,
@@ -392,7 +396,7 @@
 @media(max-width: 750px) {
   .centered {
     /* Center vertically and horizontally */
-    position: relative;
+    position: unset;
     width: 100%;
     top: unset;
     left: unset;
