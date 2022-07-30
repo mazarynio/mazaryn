@@ -80,9 +80,7 @@ defmodule Account.User do
   @required_attrs [
     :username,
     :email,
-    :password,
-    :phone,
-    :country
+    :password
   ]
 
   def changeset(user, params \\ %{}) do
