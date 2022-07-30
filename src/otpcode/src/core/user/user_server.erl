@@ -3,7 +3,7 @@
 -include_lib("kernel/include/logger.hrl").
 
 -export([start_link/0,
-         create_account/5,login/2,
+         create_account/3,login/2,
          get_user/1, get_users/0, delete_user/1,
          get_user_by_email/1, get_password/1,
          set_user_info/3, get_user_info/1,
@@ -25,8 +25,8 @@
 start_link() ->
     gen_server:start_link({global, ?SERVER}, ?MODULE, [], []).  
 
-create_account(Username, Password, Email, Phone, Country) ->
-    gen_server:call({global, ?MODULE}, {create_account, Username, Password, Email, Phone, Country}).
+create_account(Username, Password, Email) ->
+    gen_server:call({global, ?MODULE}, {create_account, Username, Password, Email}).
 
 login(Email, Password) ->
     gen_server:call({global, ?MODULE}, {login, Email, Password}).
@@ -96,8 +96,8 @@ init([]) ->
     ?LOG_NOTICE("User server has been started - ~p", [self()]),
     {ok, #state{}}.
 
-handle_call({create_account, Username, Password, Email, Phone, Country}, _From, State = #state{}) ->
-    Res = userdb:insert(Username, Password, Email, Phone, Country),
+handle_call({create_account, Username, Password, Email}, _From, State = #state{}) ->
+    Res = userdb:insert(Username, Password, Email),
     ?LOG_INFO("User ~p was added", [Username]),
     {reply, Res, State};
 
