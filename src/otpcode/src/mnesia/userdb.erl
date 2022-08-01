@@ -2,7 +2,7 @@
 -include("../records.hrl").
 
 -export([set_user_info/3, get_user_info/1,
-         insert/3, login/2,
+         insert/3, insert_media/3, login/2,
          get_user/1, get_user_by_email/1,
          get_users/0, delete_user/1, get_password/1,
          change_username/3, change_password/3, change_email/3,
@@ -66,6 +66,16 @@ insert(Username, Password, Email) ->
       end,
     {atomic, Res} = mnesia:transaction(Fun),
     Res.
+
+insert_media(username, media_type, url) ->
+  Fun = fun() ->
+    User = #user{username = Username,
+                 media = Url},
+    mnesia:write(User)
+  end,
+  {atomic, Res} = mnesia:transaction(Fun),
+  Res.
+
 
 get_user(Username) ->
     F = fun() ->
