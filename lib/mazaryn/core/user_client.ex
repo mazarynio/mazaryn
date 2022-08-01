@@ -84,4 +84,8 @@ defmodule Core.UserClient do
   def get_blocked(username) do
     :user_server.get_blocked(username)
   end
+
+  def add_media(username, mediaType, url) do
+    :user_server.add_media(username, mediaType, url)
+  end
 end
