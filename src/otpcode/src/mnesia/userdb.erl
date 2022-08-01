@@ -67,12 +67,12 @@ insert(Username, Password, Email) ->
     {atomic, Res} = mnesia:transaction(Fun),
     Res.
 
-insert_media(Username, Media_type, Url) ->
+insert_media(Username, MediaType, Url) ->
   Fun = fun() ->
-    User = #user{username = Username,
-                 media = [Media_type, Url]},
-    mnesia:write(User)
-  end,
+          [User] =  mnesia:read(user, Username),
+          Media = User#user.media,
+          mnesia:write(User#user{media = [{MediaType, Url} | Media]})
+        end,
   {atomic, Res} = mnesia:transaction(Fun),
   Res.
 
