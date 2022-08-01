@@ -14,6 +14,14 @@
     html {
         font-family: "Poppins", sans-serif;
     }
+
+    @media(max-width: 750px) {
+      main {
+        /* For mobile normality test of modal edit profile */
+        overflow-x: hidden; 
+      }
+    }
+
 }
 
 
@@ -84,9 +92,8 @@
 
 .phx-modal-content {
   background-color: #fefefe;
-  margin: 15vh auto;
-  border: 1px solid #888;
-  width: 80%;
+  width: 100%;
+  max-width: 800px;
   padding: 40px 35px;
 }
 
@@ -99,6 +106,9 @@
   background: #FAFAFA;
   position: relative;
   top: -20px;
+  padding: 20px;
+  left: 0;
+  z-index: 20;
 }
 
 .phx-modal-close:hover,
@@ -121,6 +131,10 @@
 }
 .fade-out {
   animation: 0.2s ease-out 0s normal forwards 1 fade-out-keys;
+}
+
+.fade-visibility {
+  animation: 0.2s ease-out 0s normal forwards 1 fade-visibility;
 }
 
 @keyframes fade-in-scale-keys {
@@ -163,6 +177,17 @@
   }
 }
 
+
+@keyframes fade-visible {
+  0% {
+    opacity: 0;
+    visibility: hidden;
+  }
+  100% {
+    opacity: 0;
+    visibility: visible;
+  }
+}
 
 
  /* Main Page (index) */
@@ -210,7 +235,7 @@
     width: 100%;
     overflow-y: hidden;
     position: initial;
-    min-height: 18vh;
+    height: 100px;
     bottom: 0;
   }
 
@@ -351,7 +376,7 @@
   .welcome-layer-style{
     position: absolute;
     z-index: 125;
-    background: #000000b0;
+    background: linear-gradient(45deg, black, transparent);
     height: 18vh;
     width: 100%;
     top: 0;
@@ -505,9 +530,8 @@
   flex-direction: row;
   align-items: center;
   padding: 12px 24px;
-  width: 423px;
+  width: 100%;
   height: 48px;
-
   background: linear-gradient(0deg, rgba(255, 255, 255, 0.88), rgba(255, 255, 255, 0.88)), #D2D2D1;
   border: 2px solid #D2D2D1;
   border-radius: 10px;
@@ -536,7 +560,6 @@
     padding: 12px 24px;
 
     width: 100%;
-    min-width: 320px;
     height: 48px;
 
     background: linear-gradient(0deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.9)), #D2D2D1;
@@ -800,6 +823,51 @@
 }
 
 
+
+/* Modal Edit Profile */
+
+.phx-modal .form-container{
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 28px 30px 0px 30px;
+  gap: 30px;
+  background: #FFF;
+  box-shadow: 0px 10px 20px rgba(112, 144, 176, 0.25);
+  border-radius: 20px;
+  margin: 30px 0;
+}
+
+.phx-modal .form-container .form-text-area {
+  resize: none;
+  overflow: auto;
+  background: linear-gradient(0deg, rgba(255, 255, 255, 0.88), rgba(255, 255, 255, 0.88)), #D2D2D1;
+  position: relative;
+  z-index: 100;
+}
+
+.phx-modal .form-container .form__label-cover-image {
+  background: linear-gradient(0deg, #5D5F63, #5D5F63), #D2D2D1;
+  border: 2px solid #D2D2D1;
+  border-radius: 10px;
+}
+
+.phx-modal .form-container .form__label-cover-image:hover svg {
+  z-index: 30;
+  cursor: pointer;
+  visibility: visible;
+}
+
+.phx-modal .form-container .form-file-input {
+  visibility: hidden;
+}
+
+.phx-modal .form-container .form__label-profile-photo:hover svg {
+   z-index: 30;
+   cursor: pointer;
+   visibility: visible;
+}
 
 
 

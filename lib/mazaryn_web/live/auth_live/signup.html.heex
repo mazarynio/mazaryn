@@ -16,19 +16,19 @@
 
     <div class="split right h-[60vh] md:h-full">
         <div class="centered">
-            <div class="form-container">
+            <div class="form-container md:w-[540px]">
                 <div class="form-header">
                     Sign Up
                 </div>
-                <div class="form-body">
-                    <%= form_for @changeset, "#", [phx_change: :validate, phx_submit: :save, class: "form-body", autocomplete: "off", autocorrect: "off", autocapitalize: "off", spellcheck: "false"], fn f -> %>
+                <div class="form-body w-[100%]">
+                    <%= form_for @changeset, "#", [phx_change: :validate, phx_submit: :save, class: "form-body w-[100%]", autocomplete: "off", autocorrect: "off", autocapitalize: "off", spellcheck: "false"], fn f -> %>
                             
                         <div class="form-input-container">  
                             <div>
                                 <label class="form-input-label">Username*</label>
                 
                             </div>
-                            <div>
+                            <div class="w-[100%]">
                                 <%= text_input f, :username, [class: "form-input", placeholder: "Your username", aria_describedby: "form_username_detail", aria_required: "true", autofocus: "1", phx_click: :blur_username] %>
                             </div>
                             
@@ -42,7 +42,7 @@
                                 <label class="form-input-label">Email*</label>
                 
                             </div>
-                            <div>
+                            <div class="w-[100%]">
                                 <%= email_input f, :email, [class: "form-input", placeholder: "Your email address", aria_describedby: "form_email_detail", aria_required: "true", phx_click: :blur_email] %>
                             </div>
                             
@@ -56,7 +56,7 @@
                                 <label class="form-input-label">Password*</label>
                             </div>
                             
-                            <div>
+                            <div class="w-[100%]">
                                 <%= password_input f, :password, [value: input_value(f, :password), class: "form-input", placeholder: "••••••••", aria_describedby: "form_password_detail", aria_required: "true", phx_click: :blur_password] %>
                             </div>
                             <div aria-live="polite"  id="form_password_detail" class={"#{detail_error f, @changeset, :password}"}>
@@ -69,7 +69,7 @@
                                 <label class="form-input-label">Repeat Password*</label>
                             </div>
                             
-                            <div>
+                            <div class="w-[100%]">
                                 <%= password_input f, :password_confirmation, [value: input_value(f, :password_confirmation), class: "form-input", placeholder: "••••••••", aria_describedby: "form_password_confirmation_detail", aria_required: "true"] %>
                             </div>
                             <div aria-live="polite"  id="form_password_confirmation_detail" class={"#{detail_error f, @changeset, :password_confirmation}"}>

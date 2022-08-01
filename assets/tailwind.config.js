@@ -5,8 +5,7 @@ module.exports = {
   theme: {
     extend: {},
     fontFamily: {
-      sans: ["Poppins", "sans-serif"],
-      sans: ['Inter', "sans-serif"]
+      sans: ["Poppins", "Inter", "sans-serif"],
     },
   },
   plugins: [require("@tailwindcss/forms", "daisyui")],
