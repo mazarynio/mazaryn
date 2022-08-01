@@ -377,7 +377,7 @@
     position: absolute;
     z-index: 125;
     background: linear-gradient(45deg, black, transparent);
-    height: 18vh;
+    height: 100px;
     width: 100%;
     top: 0;
   } 
