@@ -56,6 +56,7 @@ defmodule Account.User do
     field(:birthday, :date)
     field(:private, :boolean)
     field(:avatar_url, :string)
+    field(:country, :string)
     field(:bio, :string)
     field(:date_created, :utc_datetime)
     field(:date_updated, :utc_datetime)
