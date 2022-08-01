@@ -17,6 +17,10 @@ defmodule Core.UserClient do
     :user_server.get_user(username)
   end
 
+  def get_user_in_transaction(username) do
+    :user_server.get_user_in_transaction(username)
+  end
+
   def getting_users() do
     :user_server.get_users()
   end
@@ -59,6 +63,26 @@ defmodule Core.UserClient do
 
   def unfollow_multiple(username, others) do
     :user_server.unfollow_multiple(username, others)
+  end
+
+  def save_post(username, postId) do
+    :user_server.save_post(username, postId)
+  end
+
+  def unsave_post(username, postId) do
+    :user_server.unsave_post(username, postId)
+  end
+
+  def save_posts(username, postIds) do
+    :user_server.save_posts(username, postIds)
+  end
+
+  def unsave_posts(username, postIds) do
+    :user_server.unsave_posts(username, postIds)
+  end
+
+  def get_save_posts(username) do
+    :user_server.get_save_posts(username)
   end
 
   def get_following(username) do
