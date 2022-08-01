@@ -4,11 +4,13 @@
 
 -export([start_link/0,
          create_account/3,login/2,
-         get_user/1, get_users/0, delete_user/1,
+         get_user/1, get_user_in_transaction/1, get_users/0, delete_user/1,
          get_user_by_email/1, get_password/1,
-         set_user_info/3, get_user_info/1,
+         set_user_info/3,
          follow/2, unfollow/2,
          follow_multiple/2, unfollow_multiple/2,
+         save_post/2, unsave_post/2, save_posts/2, unsave_posts/2,
+         get_save_posts/1, get_user_info/1,
          change_username/3, change_password/3, change_email/3,
          get_following/1, get_follower/1,
          block/2, unblock/2, get_blocked/1, add_media/3]).
@@ -36,6 +38,9 @@ set_user_info(Username, Fields, Values) ->
 
 get_user(Username) ->
     gen_server:call({global, ?MODULE}, {get_user, Username}). 
+
+get_user_in_transaction(Username) ->
+    gen_server:call({global, ?MODULE}, {get_user_in_transaction, Username}).
 
 get_users() ->
     gen_server:call({global, ?MODULE}, {get_users}).
@@ -69,6 +74,21 @@ follow_multiple(Username, Others) ->
 
 unfollow_multiple(Username, Others) ->
     gen_server:call({global, ?MODULE}, {unfollow_multiple, Username, Others}).
+
+save_post(Username, PostId) ->
+    gen_server:call({global, ?MODULE}, {save_post, Username, PostId}).
+
+unsave_post(Username, PostId) ->
+    gen_server:call({global, ?MODULE}, {unsave_post, Username, PostId}).
+
+save_posts(Username, PostIds) ->
+    gen_server:call({global, ?MODULE}, {save_posts, Username, PostIds}).
+
+unsave_posts(Username, PostIds) ->
+    gen_server:call({global, ?MODULE}, {unsave_posts, Username, PostIds}).
+
+get_save_posts(Username) ->
+    gen_server:call({global, ?MODULE}, {get_save_posts, Username}).
 
 get_following(Username) ->
     gen_server:call({global, ?MODULE}, {get_following, Username}).
@@ -115,6 +135,10 @@ handle_call({get_user, Username}, _From, State) ->
     Res = userdb:get_user(Username),
     {reply, Res, State};
 
+handle_call({get_user_in_transaction, Username}, _From, State) ->
+    Res = userdb:get_user_in_transaction(Username),
+    {reply, Res, State};
+
 handle_call({get_users}, _From, State = #state{}) ->
     Res = userdb:get_users(),
     {reply, Res, State};
@@ -157,6 +181,26 @@ handle_call({follow_multiple, Username, Others}, _From, State) ->
 
 handle_call({unfollow_multiple, Username, Others}, _From, State) ->
     Res = userdb:unfollow_multiple(Username, Others),
+    {reply, Res, State};
+
+handle_call({save_post, Username, PostId}, _From, State) ->
+    Res = userdb:save_post(Username, PostId),
+    {reply, Res, State};
+
+handle_call({unsave_post, Username, PostId}, _From, State) ->
+    Res = userdb:unsave_post(Username, PostId),
+    {reply, Res, State};
+
+handle_call({save_posts, Username, PostIds}, _From, State) ->
+    Res = userdb:save_posts(Username, PostIds),
+    {reply, Res, State};
+
+handle_call({unsave_posts, Username, PostIds}, _From, State) ->
+    Res = userdb:unsave_posts(Username, PostIds),
+    {reply, Res, State};
+
+handle_call({get_save_posts, Username}, _From, State) ->
+    Res = userdb:get_save_posts(Username),
     {reply, Res, State};
 
 handle_call({get_following, Username}, _From, State) ->
