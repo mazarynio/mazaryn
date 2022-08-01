@@ -27,8 +27,8 @@ defmodule Account.User do
   end
 
   def new(
-        {_user, username, password, email, saved_posts, following, follower,
-         blocked, other_info, _other, private, date_created, date_updated}
+        {_user, username, password, email, _media, saved_posts, following, follower, blocked,
+         other_info, _other, private, date_created, date_updated}
       ) do
     struct(Account.User, %{
       username: username,
