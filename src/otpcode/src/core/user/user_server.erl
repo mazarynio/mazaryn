@@ -11,7 +11,7 @@
          follow_multiple/2, unfollow_multiple/2,
          change_username/3, change_password/3, change_email/3,
          get_following/1, get_follower/1,
-         block/2, unblock/2, get_blocked/1]).
+         block/2, unblock/2, get_blocked/1, add_media/3]).
 
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2,
@@ -70,8 +70,6 @@ follow_multiple(Username, Others) ->
 unfollow_multiple(Username, Others) ->
     gen_server:call({global, ?MODULE}, {unfollow_multiple, Username, Others}).
 
-
-
 get_following(Username) ->
     gen_server:call({global, ?MODULE}, {get_following, Username}).
 
@@ -89,6 +87,10 @@ unblock(Username, Unblocked) ->
 
 get_blocked(Username) ->
     gen_server:call({global, ?MODULE}, {get_blocked, Username}).
+
+add_media(Username, Media_type, Url) ->
+    gen_server:call({global, ?MODULE}, {add_media, Username, Media_type, Url}).
+
 
 %% INTERNAL HANDLERS
 
@@ -179,6 +181,10 @@ handle_call({user_unblock, Username, Unblocked}, _From, State) ->
 
 handle_call({get_blocked, Username}, _From, State) ->
     Res = userdb:get_blocked(Username),
+    {reply, Res, State};
+
+handle_call({add_media, Username, Media_type, Url}, _From, State) ->
+    Res = userdb:insert_media(Username, Media_type, Url),
     {reply, Res, State};
 
 handle_call(_Request, _From, State) ->
