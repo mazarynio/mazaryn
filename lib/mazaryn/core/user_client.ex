@@ -93,8 +93,8 @@ defmodule Core.UserClient do
     :user_server.get_follower(username)
   end
 
-  def get_user_info(username) do
-    :user_server.get_user_info(username)
+  def get_user_info(username, fields) do
+    :user_server.get_user_info(username, fields)
   end
 
   def block(username, blocked) do
@@ -111,5 +111,9 @@ defmodule Core.UserClient do
 
   def add_media(username, mediaType, url) do
     :user_server.add_media(username, mediaType, url)
+  end
+
+  def get_media(username, mediaType) do
+    :user_server.get_media(username, mediaType)
   end
 end
