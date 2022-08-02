@@ -75,6 +75,10 @@ defmodule Account.Users do
     end
   end
 
+  def get_followers(user_id) do
+    UserClient.get_following(user_id)
+  end
+
   def reset_password(%User{} = _user) do
     {:ok, :reseted}
   end

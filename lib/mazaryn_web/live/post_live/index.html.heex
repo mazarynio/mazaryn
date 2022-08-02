@@ -22,45 +22,11 @@
             </div>
           </a>
         </div>
+        <div class="flex flex-wrap justify-center align-center my-5">
         <%= for post <- @posts do%>
-          <div phx-click="view_post" phx-value-id="{post.id}"
-            class="h-52 relative max-w-sm bg-white  block p-4 rounded-lg border-2 border-gray-200 hover:bg-gray-100 ">
-            <%# <a href="/posts" class="max-w-full"> %>
-              <h5 class="mb-2 text-2xl font-bold tracking-tight text-gray-900 ">
-                <%= post.title %>
-              </h5>
-              <p class="font-normal text-gray-700  pt-1 pb-5 text-ellipsis overflow-hidden h-20">
-                <%= post.description %>
-              </p>
-              <%# </a> %>
-                <div class="flex justify-between absolute bottom-0 right-0 left-0 mt-5 mb-3 mr-3 ml-3">
-                  <div>
-                    <span phx-click="edit_post" phx-value-id="{post.id}"
-                      class="flex items-start justify-start p-1 bg-indigo-500 hover:bg-indigo-800 focus:ring-4 focus:ring-indigo-300 rounded-md shadow-lg">
-                      <svg @click="openEdit = !openEdit" class="h-6 w-6 text-white" xmlns="http://www.w3.org/2000/svg"
-                        fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                          d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                      </svg>
-                    </span>
-
-                  </div>
-                  <div>
-
-                    <span @click="openDelete = !openDelete" phx-click="delete_post" phx-value-id="{post.id}"
-                      class="flex items-end justify-end p-1 rounded-md shadow-lg bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium text-sm  text-center">
-                      <svg class="h-6 w-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                        stroke="currentColor" aria-hidden="true">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                      </svg>
-                    </span>
-
-
-                  </div>
-                </div>
-          </div>
-          <% end %>
+        <.live_component module={MazarynWeb.HomeLive.PostComponent} id="posting" post={post} />
+        <% end %>
+      </div>
       </div>
     </div>
     <!-- /End replace -->

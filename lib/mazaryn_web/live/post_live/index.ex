@@ -3,7 +3,7 @@ defmodule MazarynWeb.PostLive.Index do
 
   alias Mazaryn.DataAbstractor
   alias Core.PostClient, as: PostClient
-  alias Post
+  alias Home.Post
 
   def mount(_params, session, socket) do
     # start post genserver

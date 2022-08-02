@@ -3,6 +3,7 @@ defmodule Home.Post do
 
   alias Home.{Follow, Like, Comment}
   alias Mazaryn.Repo
+  alias __MODULE__, as: Post
 
   import Ecto.Changeset
   import Ecto.Query, only: [from: 2]
@@ -68,7 +69,7 @@ defmodule Home.Post do
 
   defp after_save(error, _func), do: error
 
-  def add_post(%__MODULE__{} = post, params \\ %{}) do
+  def add_post(%Post{} = post, params \\ %{}) do
     post
     |> changeset(params)
     |> Repo.insert()
@@ -79,26 +80,28 @@ defmodule Home.Post do
     |> Repo.delete()
   end
 
-  def update_post(%__MODULE__{} = post, params \\ %{}) do
+  def update_post(%Post{} = post, params \\ %{}) do
     post
     |> changeset(params)
     |> Repo.update()
   end
 
   def all_posts do
-    Repo.all(__MODULE__)
+    Repo.all(Post)
   end
 
   def posts_from_user_following(user_id) do
     query =
-      from(f in Follow,
-        join: p in __MODULE__,
+      from(
+        f in Follow,
+        as: :follow,
+        join: p in Post,
         as: :post,
-        on: p.author == f.following,
+        on: p.author == f.following_id,
         join: c in Comment,
         as: :comment,
         on: c.post_id == p.id,
-        where: f.follower == ^user_id,
+        where: f.follower_id == ^user_id,
         order_by: [desc: p.date_created],
         select: [p, c]
       )
@@ -108,7 +111,7 @@ defmodule Home.Post do
 
   def posts_from_user(user_id) do
     query =
-      from(p in __MODULE__,
+      from(p in Post,
         where: p.author == ^user_id,
         order_by: [desc: p.date_created],
         select: [p]
@@ -120,13 +123,13 @@ defmodule Home.Post do
   def posts_from_user_following_with_comments(user_id) do
     query =
       from(f in Follow,
-        join: p in __MODULE__,
+        join: p in Post,
         as: :post,
-        on: p.author == f.following,
+        on: p.author == f.following_id,
         join: c in Comment,
         as: :comment,
         on: c.post_id == p.id,
-        where: f.follower == ^user_id,
+        where: f.follower_id == ^user_id,
         order_by: [desc: p.date_created],
         select: [p, c]
       )
@@ -136,7 +139,7 @@ defmodule Home.Post do
 
   def posts_from_user_with_comments(user_id) do
     query =
-      from(p in __MODULE__,
+      from(p in Post,
         join: c in Comment,
         as: :comment,
         on: c.post_id == p.id,
@@ -151,16 +154,16 @@ defmodule Home.Post do
   def posts_from_user_following_with_comments_and_likes(user_id) do
     query =
       from(f in Follow,
-        join: p in __MODULE__,
+        join: p in Post,
         as: :post,
-        on: p.author == f.following,
+        on: p.author == f.following_id,
         join: c in Comment,
         as: :comment,
         on: c.post_id == p.id,
         join: l in Like,
         as: :like,
         on: l.post_id == p.id,
-        where: f.follower == ^user_id,
+        where: f.follower_id == ^user_id,
         order_by: [desc: p.date_created],
         select: [p, c, l]
       )
@@ -170,7 +173,7 @@ defmodule Home.Post do
 
   def posts_from_user_with_comments_and_likes(user_id) do
     query =
-      from(p in __MODULE__,
+      from(p in Post,
         join: c in Comment,
         as: :comment,
         on: c.post_id == p.id,

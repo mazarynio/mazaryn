@@ -28,7 +28,7 @@ defmodule MazarynWeb.HomeLive.Index do
     socket
     |> assign(post_changeset: post_changeset)
     |> assign(user: Users.one_by_email(user_id))
-    |> assign(posts: get_post())
+    |> assign(posts: get_post(user_id))
   end
 
   @impl true
@@ -41,5 +41,11 @@ defmodule MazarynWeb.HomeLive.Index do
     {:noreply, socket}
   end
 
-  defp get_post, do: PostClient.get_posts()
+  require Logger
+
+  defp get_post(user_id) do
+    post = Post.posts_from_user_following(user_id)
+    Logger.info(post)
+    post
+  end
 end
