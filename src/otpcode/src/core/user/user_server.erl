@@ -1,6 +1,6 @@
 -module(user_server).
 
--include_lib("kernel/include/logger.hrl").
+-include_lib("kernel/include/logger.hrl"). 
 
 -export([start_link/0,
          create_account/3,login/2,
@@ -111,11 +111,8 @@ get_blocked(Username) ->
 add_media(Username, MediaType, Url) ->
     gen_server:call({global, ?MODULE}, {add_media, Username, MediaType, Url}).
 
-<<<<<<< HEAD
-=======
 get_media(Username, MediaType) ->
     gen_server:call({global, ?MODULE}, {get_media, Username, MediaType}).
->>>>>>> ef0e047d9902d9270f93de65f03f34f81e874941
 
 %% INTERNAL HANDLERS
 
