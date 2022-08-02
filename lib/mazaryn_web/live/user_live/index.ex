@@ -1,19 +1,40 @@
 defmodule MazarynWeb.UserLive.Index do
   use MazarynWeb, :live_view
 
+  import MazarynWeb.Live.Helper
+  import Logger
   alias Core.UserClient, as: UserClient
-
+  alias Account.User
   alias Account.Users
   alias Home.Post
 
   @impl true
   def mount(_params, %{"user_id" => email} = _session, socket) do
     post_changeset = Post.changeset(%Post{})
+    user_changeset = User.changeset(%User{})
+    # Logger.info(socket: socket.assigns)
 
     socket =
       socket
       |> assign(user_id: email)
       |> assign(post_changeset: post_changeset)
+      |> assign(user_changeset: user_changeset)
+      |> assign(user: user_info(email))
+
+    {:ok, socket}
+  end
+
+  @impl true
+  def mount(_params, %{"session_uuid" => session_uuid} = _session, socket) do
+    post_changeset = Post.changeset(%Post{})
+    email = get_user_id(session_uuid)
+    # Logger.info(socket: socket.assigns)
+
+    socket =
+      socket
+      |> assign(user_id: email)
+      |> assign(post_changeset: post_changeset)
+      |> assign(user_changeset: User.changeset(%User{}))
       |> assign(user: user_info(email))
 
     {:ok, socket}
@@ -58,5 +79,12 @@ defmodule MazarynWeb.UserLive.Index do
     UserClient.delete_user(username)
 
     {:noreply, assign(socket, :delete, username)}
+  end
+
+  @impl true
+  def handle_params(params, uri, socket) do
+    Logger.info(live_action: socket.assigns.user_changeset)
+    # Logger.info(params: uri)
+    {:noreply, socket}
   end
 end

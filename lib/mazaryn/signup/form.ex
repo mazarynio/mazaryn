@@ -11,11 +11,15 @@ defmodule Mazaryn.Signup.Form do
   schema "signup_form" do
     field(:username, :string)
     field(:email, :string)
+    field(:phone, :integer)
+    field(:country)
     field(:password, :string)
     field(:password_confirmation, :string)
     field(:accepts_conditions, :boolean)
     field(:username_touched, :boolean)
     field(:email_touched, :boolean)
+    field(:phone_touched, :boolean)
+    field(:country_touched, :boolean)
     field(:password_touched, :boolean)
     field(:form_submitted, :boolean)
     field(:form_disabled, :boolean)
@@ -55,6 +59,7 @@ defmodule Mazaryn.Signup.Form do
     username = changeset |> Ecto.Changeset.get_field(:username)
     email = changeset |> Ecto.Changeset.get_field(:email)
     password = changeset |> Ecto.Changeset.get_field(:password)
+
 
     case Core.UserClient.register(username, password, email) do
       :ok ->

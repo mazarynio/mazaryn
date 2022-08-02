@@ -1,4 +1,5 @@
 defmodule Core.UserClient do
+
   def register(username, password, email) do
     :user_server.start_link()
     :user_server.create_account(username, password, email)
@@ -14,6 +15,10 @@ defmodule Core.UserClient do
 
   def getting_user(username) do
     :user_server.get_user(username)
+  end
+
+  def get_user_in_transaction(username) do
+    :user_server.get_user_in_transaction(username)
   end
 
   def getting_users() do
@@ -60,6 +65,26 @@ defmodule Core.UserClient do
     :user_server.unfollow_multiple(username, others)
   end
 
+  def save_post(username, postId) do
+    :user_server.save_post(username, postId)
+  end
+
+  def unsave_post(username, postId) do
+    :user_server.unsave_post(username, postId)
+  end
+
+  def save_posts(username, postIds) do
+    :user_server.save_posts(username, postIds)
+  end
+
+  def unsave_posts(username, postIds) do
+    :user_server.unsave_posts(username, postIds)
+  end
+
+  def get_save_posts(username) do
+    :user_server.get_save_posts(username)
+  end
+
   def get_following(username) do
     :user_server.get_following(username)
   end
@@ -82,5 +107,9 @@ defmodule Core.UserClient do
 
   def get_blocked(username) do
     :user_server.get_blocked(username)
+  end
+
+  def add_media(username, mediaType, url) do
+    :user_server.add_media(username, mediaType, url)
   end
 end

@@ -1,7 +1,12 @@
 <div class="flex flex-col">
     <.form let={f} for={@changeset} phx-change="validate-post" phx-submit="save-post" phx-target={@myself} multipart class="flex flex-col justify-between align-center py-5">
     <div class="flex items-center px-5">
-        <img class="h-11 w-11 rounded-full" src="https://placeimg.com/192/192/people" />
+        <%= if @avatar_url do %>
+            <img src="https://placeimg.com/192/192/people" class="h-11 w-11 rounded-full"/>
+        <% else %>
+            <img alt="Default user" src={Routes.static_path(@socket, "/images/default-user.svg")} class="h-11 w-11 rounded-full"/>
+        <% end %>
+        <%# <img class="h-11 w-11 rounded-full" src="https://placeimg.com/192/192/people" /> %>
         <div class="ml-4 text-sm leading-tight w-full">
             <%= textarea f, :content, class: "w-full border-none resize-none text-gray-300 font-normal block", placeholder: "Write a comment" %>
             <span class="text-sm"><%= push_error_tag f, :content %></span>
