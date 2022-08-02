@@ -869,6 +869,10 @@
    visibility: visible;
 }
 
+.js--accordion.acc-active {
+  overflow: visible;
+  max-height: 100%;
+}
 
 
 
