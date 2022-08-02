@@ -11,8 +11,6 @@ defmodule Mazaryn.Signup.Form do
   schema "signup_form" do
     field(:username, :string)
     field(:email, :string)
-    field(:phone, :integer)
-    field(:country)
     field(:password, :string)
     field(:password_confirmation, :string)
     field(:accepts_conditions, :boolean)
