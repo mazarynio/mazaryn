@@ -48,4 +48,6 @@ defmodule MazarynWeb.HomeLive.Index do
     Logger.info(post)
     post
   end
+
+  defp get_post, do: PostClient.get_posts()
 end
