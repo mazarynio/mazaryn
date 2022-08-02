@@ -13,7 +13,7 @@ insert(Author, Content, Media) ->
           mnesia:write(#post{id=Id,
                              content=Content,
                              author=Author,
-                             media=Media,
+                             media = [Media],
                              date_created = calendar:universal_time()}),
           [User] = mnesia:read({user, Author}),
           Posts = User#user.post,

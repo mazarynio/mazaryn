@@ -1,8 +1,9 @@
 -module(userdb).
 -include("../records.hrl").
 
--export([set_user_info/3, get_user_info/1,
-         insert/3, insert_media/3, login/2,
+-export([set_user_info/3, get_user_info/2,
+         insert/3, insert_media/3, get_media/2,
+         login/2,
          get_user/1, get_user_by_email/1,
          get_users/0, delete_user/1, get_password/1,
          change_username/3, change_password/3, change_email/3,
@@ -67,15 +68,29 @@ insert(Username, Password, Email) ->
     {atomic, Res} = mnesia:transaction(Fun),
     Res.
 
-insert_media(Username, MediaType, Url) ->
+insert_media(Username, Type, Url) ->
   Fun = fun() ->
           [User] =  mnesia:read(user, Username),
           Media = User#user.media,
-          mnesia:write(User#user{media = [{MediaType, Url} | Media]})
+          NewMedia = case lists:keymember(Type, 1, Media) of
+                        true ->
+                          lists:keyreplace(Type, 1, Media, {Type, Url});
+                        false ->
+                          [{Type, Url}|Media]
+                     end,
+          mnesia:write(User#user{media = NewMedia})
         end,
   {atomic, Res} = mnesia:transaction(Fun),
   Res.
 
+get_media(Username, Type) ->
+  Fun = fun() ->
+          [User] = mnesia:read({user, Username}),
+          Media = User#user.media,
+          proplists:get_value(Type, Media, undefined)
+        end,
+  {atomic, Res} = mnesia:transaction(Fun),
+  Res.
 
 get_user(Username) ->
     F = fun() ->
@@ -272,11 +287,17 @@ get_follower(Username) ->
                                      end),
   Res.
 
-get_user_info(Username) ->
-  {atomic, Res} = mnesia:transaction(fun() ->
-                                      [User] = mnesia:read(user, Username),
-                                      User#user.other_info
-                                     end),
+get_user_info(Username, Fields) ->
+  Fun = fun() ->
+          [User] = mnesia:read(user, Username),
+          Dict = User#user.other_info,
+          lists:map(fun(Field) ->
+                      proplists:get_value(Field, Dict, undefined)
+                    end,
+                    Fields)
+        end,
+
+  {atomic, Res} = mnesia:transaction(Fun),
   Res.
 
 %%% username and email should be unique for each user

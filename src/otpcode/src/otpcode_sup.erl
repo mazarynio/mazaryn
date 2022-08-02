@@ -87,15 +87,15 @@ init([]) ->
                     restart => permanent,
                     shutdown => 5000,
                     type => worker,
-                    modules => [wallet_server]},
+                    modules => [wallet_server]}
 
-                        %% TODO: add other tables
-                  #{id => sync_user_table,
-                    start => {sync_db, start_link, [user]},
-                    restart => permanent,
-                    shutdown => 5000,
-                    type => worker,
-                    modules => [sync_user_table]}
+                  %% TODO: disable this function for temporary
+%%                  #{id => sync_user_table,
+%%                    start => {sync_db, start_link, [user]},
+%%                    restart => permanent,
+%%                    shutdown => 5000,
+%%                    type => worker,
+%%                    modules => [sync_user_table]}
 
                   ],
     {ok, {SupFlags, ChildSpecs}}.

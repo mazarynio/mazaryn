@@ -6,14 +6,14 @@
          create_account/3,login/2,
          get_user/1, get_user_in_transaction/1, get_users/0, delete_user/1,
          get_user_by_email/1, get_password/1,
-         set_user_info/3,
+         set_user_info/3, get_user_info/2,
          follow/2, unfollow/2,
          follow_multiple/2, unfollow_multiple/2,
          save_post/2, unsave_post/2, save_posts/2, unsave_posts/2,
-         get_save_posts/1, get_user_info/1,
+         get_save_posts/1,
          change_username/3, change_password/3, change_email/3,
          get_following/1, get_follower/1,
-         block/2, unblock/2, get_blocked/1, add_media/3]).
+         block/2, unblock/2, get_blocked/1, add_media/3, get_media/2]).
 
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2,
@@ -96,8 +96,8 @@ get_following(Username) ->
 get_follower(Username) ->
     gen_server:call({global, ?MODULE}, {get_follower, Username}). 
 
-get_user_info(Username) ->
-    gen_server:call({global, ?MODULE}, {get_user_info, Username}).
+get_user_info(Username, Fields) ->
+    gen_server:call({global, ?MODULE}, {get_user_info, Username, Fields}).
 
 block(Username, Blocked) ->
     gen_server:call({global, ?MODULE}, {user_block, Username, Blocked}).
@@ -111,6 +111,8 @@ get_blocked(Username) ->
 add_media(Username, MediaType, Url) ->
     gen_server:call({global, ?MODULE}, {add_media, Username, MediaType, Url}).
 
+get_media(Username, MediaType) ->
+    gen_server:call({global, ?MODULE}, {get_media, Username, MediaType}).
 
 %% INTERNAL HANDLERS
 
@@ -211,8 +213,8 @@ handle_call({get_follower, Username}, _From, State) ->
     Res = userdb:get_follower(Username),
     {reply, Res, State};
 
-handle_call({get_user_info, Username}, _From, State) ->
-    Res = userdb:get_user_info(Username),
+handle_call({get_user_info, Username, Fields}, _From, State) ->
+    Res = userdb:get_user_info(Username, Fields),
     {reply, Res, State};
 
 handle_call({user_block, Username, Blocked}, _From, State) ->
@@ -229,6 +231,10 @@ handle_call({get_blocked, Username}, _From, State) ->
 
 handle_call({add_media, Username, MediaType, Url}, _From, State) ->
     Res = userdb:insert_media(Username, MediaType, Url),
+    {reply, Res, State};
+
+handle_call({get_media, Username, MediaType}, _From, State) ->
+    Res = userdb:get_media(Username, MediaType),
     {reply, Res, State};
 
 handle_call(_Request, _From, State) ->
