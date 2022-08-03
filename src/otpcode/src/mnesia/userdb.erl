@@ -61,7 +61,8 @@ insert(Username, Password, Email) ->
                              password = erlpass:hash(Password),
                              email = Email,
                              date_created = Now},
-                mnesia:write(User);
+                mnesia:write(User),
+                Id;
               {username_existed, _} -> username_existed;
               {_, email_existed} -> email_existed;
               {username_existed, email_existed} -> username_and_email_existed
