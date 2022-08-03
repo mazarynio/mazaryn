@@ -276,16 +276,16 @@ get_save_posts(Username) ->
                                      end),
   Res.
 
-get_following(Username) ->
+get_following(Id) ->
   {atomic, Res} = mnesia:transaction(fun() ->
-                                      [User] = mnesia:read(user, Username),
+                                      [User] = mnesia:read(user, Id),
                                       User#user.following
                                      end),
   Res.
 
-get_follower(Username) ->
+get_follower(Id) ->
   {atomic, Res} = mnesia:transaction(fun() ->
-                                      [User] = mnesia:read(user, Username),
+                                      [User] = mnesia:read(user, Id),
                                       User#user.follower
                                      end),
   Res.
