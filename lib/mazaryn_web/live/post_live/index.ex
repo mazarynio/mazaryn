@@ -5,7 +5,8 @@ defmodule MazarynWeb.PostLive.Index do
   alias Core.PostClient, as: PostClient
   alias Home.Post
 
-  def mount(_params, session, socket) do
+  @impl true
+  def mount(_params, _session, socket) do
     # start post genserver
     start_post_server()
     # Get the posts from the database.
