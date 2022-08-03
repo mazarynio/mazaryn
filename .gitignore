@@ -10,7 +10,5 @@ erl_crash.dump
 .elixir_ls/
 /priv/static/assets/
 /Mnesia
-/mazaryn-front
-mazaryn-front
 Mnesia
 mix.lock
