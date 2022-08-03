@@ -121,9 +121,9 @@ init([]) ->
     {ok, #state{}}.
 
 handle_call({create_account, Username, Password, Email}, _From, State = #state{}) ->
-    Res = userdb:insert(Username, Password, Email),
+    Id = userdb:insert(Username, Password, Email),
     ?LOG_INFO("User ~p was added", [Username]),
-    {reply, Res, State};
+    {reply, Id, State};
 
 handle_call({login, Email, Password}, _From, State = #state{}) ->
     Res = userdb:login(Email, Password),
