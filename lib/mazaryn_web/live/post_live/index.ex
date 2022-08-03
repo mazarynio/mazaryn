@@ -81,7 +81,8 @@ defmodule MazarynWeb.PostLive.Index do
   defp add_post(socket, post) do
     case PostClient.create_post(
            post.author,
-           post.content
+           post.content,
+           post.media
          ) do
       {:ok, _post} ->
         previous_posts = get_session_posts(socket)
