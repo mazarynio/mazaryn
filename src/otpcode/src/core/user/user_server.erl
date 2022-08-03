@@ -90,11 +90,11 @@ unsave_posts(Username, PostIds) ->
 get_save_posts(Username) ->
     gen_server:call({global, ?MODULE}, {get_save_posts, Username}).
 
-get_following(Username) ->
-    gen_server:call({global, ?MODULE}, {get_following, Username}).
+get_following(Id) ->
+    gen_server:call({global, ?MODULE}, {get_following, Id}).
 
-get_follower(Username) ->
-    gen_server:call({global, ?MODULE}, {get_follower, Username}). 
+get_follower(Id) ->
+    gen_server:call({global, ?MODULE}, {get_follower, Id}). 
 
 get_user_info(Username, Fields) ->
     gen_server:call({global, ?MODULE}, {get_user_info, Username, Fields}).
@@ -205,12 +205,12 @@ handle_call({get_save_posts, Username}, _From, State) ->
     Res = userdb:get_save_posts(Username),
     {reply, Res, State};
 
-handle_call({get_following, Username}, _From, State) ->
-    Res = userdb:get_following(Username),
+handle_call({get_following, Id}, _From, State) ->
+    Res = userdb:get_following(Id),
     {reply, Res, State};
 
-handle_call({get_follower, Username}, _From, State) ->
-    Res = userdb:get_follower(Username),
+handle_call({get_follower, Id}, _From, State) ->
+    Res = userdb:get_follower(Id),
     {reply, Res, State};
 
 handle_call({get_user_info, Username, Fields}, _From, State) ->
