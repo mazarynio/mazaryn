@@ -85,12 +85,12 @@ defmodule Core.UserClient do
     :user_server.get_save_posts(username)
   end
 
-  def get_following(username) do
-    :user_server.get_following(username)
+  def get_following(id) do
+    :user_server.get_following(id)
   end
 
-  def get_follower(username) do
-    :user_server.get_follower(username)
+  def get_follower(id) do
+    :user_server.get_follower(id)
   end
 
   def get_user_info(username, fields) do
