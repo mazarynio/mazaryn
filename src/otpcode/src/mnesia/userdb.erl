@@ -4,7 +4,7 @@
 -export([set_user_info/3, get_user_info/2,
          insert/3, insert_media/3, get_media/2,
          login/2,
-         get_user/1, get_user_by_email/1,
+         get_user/1, get_user_by_email/1, get_user_by_id/1,
          get_users/0, delete_user/1, get_password/1,
          change_username/3, change_password/3, change_email/3,
          follow/2, unfollow/2, follow_multiple/2, unfollow_multiple/2,
@@ -55,11 +55,14 @@ insert(Username, Password, Email) ->
             case {check_username(Username), check_email(Email)} of
               {undefined, undefined} ->
                 Now = calendar:universal_time(),
-                User = #user{username = Username,
+                Id = id_gen:generate(),
+                User = #user{id = Id,
+                             username = Username,
                              password = erlpass:hash(Password),
                              email = Email,
                              date_created = Now},
-                mnesia:write(User);
+                mnesia:write(User),
+                Id;
               {username_existed, _} -> username_existed;
               {_, email_existed} -> email_existed;
               {username_existed, email_existed} -> username_and_email_existed
@@ -138,6 +141,10 @@ get_user_by_email(Email) ->
     {atomic, User} -> User;
     _ -> error
   end.
+
+get_user_by_id(Id) ->
+  {atomic, [User]} = mnesia:transaction(fun() -> mnesia:read({user, Id}) end),
+  User.
 
 % TODO: change password, email, username
 change_password(Username, CurrentPass, NewPass) ->
@@ -273,16 +280,16 @@ get_save_posts(Username) ->
                                      end),
   Res.
 
-get_following(Username) ->
+get_following(Id) ->
   {atomic, Res} = mnesia:transaction(fun() ->
-                                      [User] = mnesia:read(user, Username),
+                                      [User] = mnesia:read(user, Id),
                                       User#user.following
                                      end),
   Res.
 
-get_follower(Username) ->
+get_follower(Id) ->
   {atomic, Res} = mnesia:transaction(fun() ->
-                                      [User] = mnesia:read(user, Username),
+                                      [User] = mnesia:read(user, Id),
                                       User#user.follower
                                      end),
   Res.

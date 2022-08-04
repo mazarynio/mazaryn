@@ -1,4 +1,5 @@
--record(user, { username,
+-record(user, { id,
+                username,
                 password,
                 email,
                 media= [],

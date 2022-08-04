@@ -5,7 +5,7 @@
 -export([start_link/0,
          create_account/3,login/2,
          get_user/1, get_user_in_transaction/1, get_users/0, delete_user/1,
-         get_user_by_email/1, get_password/1,
+         get_user_by_email/1, get_user_by_id/1, get_password/1,
          set_user_info/3, get_user_info/2,
          follow/2, unfollow/2,
          follow_multiple/2, unfollow_multiple/2,
@@ -51,6 +51,9 @@ get_password(Username) ->
 get_user_by_email(Email) ->
     gen_server:call({global, ?MODULE}, {get_user_by_email, Email}). 
 
+get_user_by_id(Id) ->
+    gen_server:call({global, ?MODULE}, {get_user_by_id, Id}).
+
 change_password(Username, CurrentPass, NewPass) ->
     gen_server:call({global, ?MODULE}, {change_password, Username, CurrentPass, NewPass}).
 
@@ -90,11 +93,11 @@ unsave_posts(Username, PostIds) ->
 get_save_posts(Username) ->
     gen_server:call({global, ?MODULE}, {get_save_posts, Username}).
 
-get_following(Username) ->
-    gen_server:call({global, ?MODULE}, {get_following, Username}).
+get_following(Id) ->
+    gen_server:call({global, ?MODULE}, {get_following, Id}).
 
-get_follower(Username) ->
-    gen_server:call({global, ?MODULE}, {get_follower, Username}). 
+get_follower(Id) ->
+    gen_server:call({global, ?MODULE}, {get_follower, Id}). 
 
 get_user_info(Username, Fields) ->
     gen_server:call({global, ?MODULE}, {get_user_info, Username, Fields}).
@@ -153,6 +156,10 @@ handle_call({get_user_by_email, Email}, _From, State) ->
     Res = userdb:get_user_by_email(Email),
     {reply, Res, State};
 
+handle_call({get_user_by_id, Id}, _From, State) ->
+    Res = userdb:get_user_by_id(Id),
+    {reply, Res, State};
+
 handle_call({change_password, Username, CurrentPass, NewPass}, _From, State) ->
     Res = userdb:change_password(Username, CurrentPass, NewPass),
     {reply, Res, State};
@@ -205,12 +212,12 @@ handle_call({get_save_posts, Username}, _From, State) ->
     Res = userdb:get_save_posts(Username),
     {reply, Res, State};
 
-handle_call({get_following, Username}, _From, State) ->
-    Res = userdb:get_following(Username),
+handle_call({get_following, Id}, _From, State) ->
+    Res = userdb:get_following(Id),
     {reply, Res, State};
 
-handle_call({get_follower, Username}, _From, State) ->
-    Res = userdb:get_follower(Username),
+handle_call({get_follower, Id}, _From, State) ->
+    Res = userdb:get_follower(Id),
     {reply, Res, State};
 
 handle_call({get_user_info, Username, Fields}, _From, State) ->
