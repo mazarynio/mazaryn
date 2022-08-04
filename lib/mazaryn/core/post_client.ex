@@ -7,6 +7,10 @@ defmodule Core.PostClient do
     :post_server.insert(author, content, media)
   end
 
+  def modify_post(author, newContent, newMedia) do
+    :post_server.modify_post(author, newContent, newMedia)
+  end
+
   def get_post_by_id(id) do
     :post_server.get_post_by_id(id)
   end
@@ -23,8 +27,20 @@ defmodule Core.PostClient do
     :post_server.delete_post(id)
   end
 
-  def add_comment(id, username, comment) do
-    :post_server.add_comment(id, username, comment)
+  def add_comment(author, postID, content) do
+    :post_server.add_comment(author, postID, content)
+  end
+
+  def update_comment(commentID, newContent) do
+    :post_server.update_comment(commentID, newContent)
+  end
+
+  def get_single_comment(commentId) do
+    :post_server.get_single_comment(commentId)
+  end
+
+  def get_all_comments(postId) do
+    :post_server.get_all_comments(postId)
   end
 
   def get_posts() do
