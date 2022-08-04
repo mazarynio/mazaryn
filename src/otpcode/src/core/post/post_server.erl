@@ -16,7 +16,9 @@
 -behaviour(gen_server).
 %% API
 -export([start_link/0, insert/3, get_post_by_id/1, modify_post/3,
-         get_posts_by_author/1, get_latest_posts/1, delete_post/1,add_comment/3, get_posts/0,
+         get_posts_by_author/1, get_latest_posts/1, delete_post/1,add_comment/3,
+         update_comment/2, get_single_comment/1, get_all_comments/1,
+         get_media/1, get_posts/0,
          get_all_posts_from_date/4, get_all_posts_from_month/3,
          get_comments/1]).
 
@@ -35,8 +37,8 @@ start_link() ->
 insert(Author, Content, Media) ->
   gen_server:call({global, ?MODULE}, {insert, Author, Content, Media}).
 
-modify_post(Id, Username, NewContent) ->
-  gen_server:call({global, ?MODULE}, {modify_post, Id, Username, NewContent}).
+modify_post(Author, NewContent, NewMedia) ->
+  gen_server:call({global, ?MODULE}, {modify_post, Author, NewContent, NewMedia}).
 
 get_post_by_id(Id) ->
   gen_server:call({global, ?MODULE}, {get_post_by_id, Id}).
@@ -50,8 +52,20 @@ get_latest_posts(Author) ->
 delete_post(Id) ->
   gen_server:call({global, ?MODULE}, {delete_post, Id}).
 
-add_comment(Id, Username, Comment) ->
-  gen_server:call({global, ?MODULE}, {add_comment, Id, Username, Comment}).
+add_comment(Author, PostID, Content) ->
+  gen_server:call({global, ?MODULE}, {add_comment, Author, PostID, Content}).
+
+update_comment(CommentID, NewContent) ->
+    gen_server:call({global, ?MODULE}, {update_comment, CommentID, NewContent}).
+
+get_single_comment(CommentId) ->
+    gen_server:call({global, ?MODULE}, {get_single_comment, CommentId}).
+
+get_all_comments(PostId) ->
+    gen_server:call({global, ?MODULE}, {get_all_comments, PostId}).
+
+get_media(Media) ->
+    gen_server:call({global, ?MODULE}, {get_media, Media}).
 
 get_posts() ->
     gen_server:call({global, ?MODULE}, {get_posts}).
@@ -89,8 +103,8 @@ handle_call({insert, Author, Content, Media}, _From, State) ->
     Id = postdb:insert(Author, Content, Media),
     {reply, Id, State};
 
-handle_call({modify_post, Id, Username, NewContent}, _From, State) ->
-  Res = postdb:modify_post(Id, Username, NewContent),
+handle_call({modify_post, Author, NewContent, NewMedia}, _From, State) ->
+  Res = postdb:modify_post(Author, NewContent, NewMedia),
   {reply, Res, State};
 
 handle_call({get_post_by_id, Id}, _From, State) ->
@@ -106,9 +120,25 @@ handle_call({get_latest_posts, Author}, _From, State) ->
     LatestPosts = lists:sublists(AllPosts, ?NUM),
     {reply, LatestPosts, State};
 
-handle_call({add_comment, Id, Username, Comment}, _From, State) ->
-    postdb:add_comment(Id, Username, Comment),
+handle_call({add_comment, Author, PostID, Content}, _From, State) ->
+    postdb:add_comment(Author, PostID, Content),
     {reply, ok, State};
+
+handle_call({update_comment, CommentID, NewContent}, _From, State) ->
+    postdb:update_comment(CommentID, NewContent),
+    {reply, ok, State};
+
+handle_call({get_single_comment, CommentId}, _From, State) ->
+    postdb:get_single_comment(CommentId),
+    {reply, ok, State};
+
+handle_call({get_all_comments, PostId}, _From, State) ->
+    postdb:get_all_comments(PostId),
+    {reply, ok, State};
+
+handle_call({get_media, Media}, _From, State) ->
+    postdb:get_media(Media),
+    {reply, ok, State}; 
 
 handle_call({get_posts}, _From, State) ->
     Res = postdb:get_posts(),
