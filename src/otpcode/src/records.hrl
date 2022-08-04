@@ -1,5 +1,6 @@
--record(user, { id,
-                username,
+%% TODO: change id order for testing, modify later
+-record(user, { username,
+                id,
                 password,
                 email,
                 media= [],
@@ -18,13 +19,14 @@
                 comments = [],
                 media = [],
                 author,
+                other = [],
                 date_created,
                 date_updated}).
 
 -record(comment, {id,
                   post,
-                  username,
-                  content,
+                  author,
+                  content=[],
                   date_created}).
 
 -record(group, {id, gp_name, num_members, members}).

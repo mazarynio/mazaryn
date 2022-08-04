@@ -46,7 +46,11 @@ start_link() ->
     mnesia:create_table(user, [{attributes, record_info(fields, user)},
                                {disc_copies, [node()]},
                                {type, ordered_set}]),
-    
+
+    mnesia:create_table(comment, [{attributes, record_info(fields, comment)},
+                               {disc_copies, [node()]},
+                               {type, ordered_set}]),
+
     mnesia:create_table(wallet, [{attributes, record_info(fields, wallet)},
                                  {disc_copies, [node()]},
                                  {type, ordered_set}]),
