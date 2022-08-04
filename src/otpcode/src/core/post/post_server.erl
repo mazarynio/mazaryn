@@ -9,12 +9,14 @@
 -module(post_server).
 -author("dhuynh").
 
+-define(NUM, 5).
+
 -include_lib("kernel/include/logger.hrl").
 
 -behaviour(gen_server).
 %% API
 -export([start_link/0, insert/3, get_post_by_id/1, modify_post/3,
-         get_posts_by_author/1, delete_post/1,add_comment/3, get_posts/0,
+         get_posts_by_author/1, get_latest_posts/1, delete_post/1,add_comment/3, get_posts/0,
          get_all_posts_from_date/4, get_all_posts_from_month/3,
          get_comments/1]).
 
@@ -41,6 +43,9 @@ get_post_by_id(Id) ->
 
 get_posts_by_author(Author) ->
   gen_server:call({global, ?MODULE}, {get_posts_by_author, Author}).
+
+get_latest_posts(Author) ->
+    gen_server:call({global, ?MODULE}, {get_latest_posts, Author}).
 
 delete_post(Id) ->
   gen_server:call({global, ?MODULE}, {delete_post, Id}).
@@ -92,9 +97,14 @@ handle_call({get_post_by_id, Id}, _From, State) ->
     Posts = postdb:get_post_by_id(Id),
     {reply, Posts, State};
 
-handle_call({get_posts_by_author, Author}, _From, State) ->
+handle_call({get_posts_by_author, Author}, _From, State) -> 
     Posts = postdb:get_posts_by_author(Author),
     {reply, Posts, State};
+
+handle_call({get_latest_posts, Author}, _From, State) ->
+    AllPosts = post_server:get_posts_by_author(Author),
+    LatestPosts = lists:sublists(AllPosts, ?NUM),
+    {reply, LatestPosts, State};
 
 handle_call({add_comment, Id, Username, Comment}, _From, State) ->
     postdb:add_comment(Id, Username, Comment),
