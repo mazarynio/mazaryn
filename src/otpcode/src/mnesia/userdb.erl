@@ -4,7 +4,7 @@
 -export([set_user_info/3, get_user_info/2,
          insert/3, insert_media/3, get_media/2,
          login/2,
-         get_user/1, get_user_by_email/1,
+         get_user/1, get_user_by_email/1, get_user_by_id/1,
          get_users/0, delete_user/1, get_password/1,
          change_username/3, change_password/3, change_email/3,
          follow/2, unfollow/2, follow_multiple/2, unfollow_multiple/2,
@@ -141,6 +141,10 @@ get_user_by_email(Email) ->
     {atomic, User} -> User;
     _ -> error
   end.
+
+get_user_by_id(Id) ->
+  {atomic, [User]} = mnesia:transaction(fun() -> mnesia:read({user, Id}) end),
+  User.
 
 % TODO: change password, email, username
 change_password(Username, CurrentPass, NewPass) ->
