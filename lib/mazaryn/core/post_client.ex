@@ -15,6 +15,10 @@ defmodule Core.PostClient do
     :post_server.get_posts_by_author(author)
   end
 
+  def get_latest_posts(author) do
+    :post_server.get_latest_posts(author)
+  end
+
   def delete_post(id) do
     :post_server.delete_post(id)
   end
