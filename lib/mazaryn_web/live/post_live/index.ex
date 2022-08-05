@@ -62,7 +62,7 @@ defmodule MazarynWeb.PostLive.Index do
       |> DataAbstractor.filter_item_by_id(params["id"])
 
     # Delete the post from the database.
-    PostClient.delete_post(params["id"])
+    Post.delete_post(params)
 
     {:noreply, assign(socket, posts: posts, info: "Post deleted!")}
   end
@@ -71,18 +71,14 @@ defmodule MazarynWeb.PostLive.Index do
 
   defp get_post(user_id), do: Post.posts_from_user_following(user_id)
 
-  defp get_post_by_author(author), do: PostClient.get_posts_by_author(author)
+  defp get_post_by_author(author), do: Post.posts_from_user(author)
 
   defp get_session_posts(socket) do
     socket.assigns.posts
   end
 
   defp add_post(socket, post) do
-    case PostClient.create_post(
-           post.author,
-           post.content,
-           post.media
-         ) do
+    case Post.create_post(post) do
       {:ok, _post} ->
         previous_posts = get_session_posts(socket)
         {:noreply, assign(socket, posts: [post | previous_posts], info: "Post added!")}
