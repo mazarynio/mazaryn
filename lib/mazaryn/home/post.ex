@@ -105,7 +105,7 @@ defmodule Home.Post do
 
     Logger.info(result)
 
-    result
+    Enum.shuffle(result)
   end
 
   def posts_from_user(author), do: PostClient.get_posts_by_author(author)
