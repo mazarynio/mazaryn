@@ -108,7 +108,7 @@ defmodule Home.Post do
     Enum.shuffle(result)
   end
 
-  def posts_from_user(author), do: PostClient.get_posts_by_author(author)
+  def posts_from_user(author), do: PostClient.get_latest_posts(author)
 
   def posts_from_user_following_with_comments(user_id) do
     query =
