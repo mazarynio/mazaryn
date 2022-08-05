@@ -16,7 +16,7 @@
 -behaviour(gen_server).
 %% API
 -export([start_link/0, insert/3, get_post_by_id/1, modify_post/3,
-         get_posts_by_author/1, get_latest_posts/1, delete_post/1,add_comment/3,
+         get_posts_by_author/1, get_latest_posts/1, update_post/2, delete_post/1,add_comment/3,
          update_comment/2, get_single_comment/1, get_all_comments/1,
          get_media/1, get_posts/0,
          get_all_posts_from_date/4, get_all_posts_from_month/3,
@@ -48,6 +48,9 @@ get_posts_by_author(Author) ->
 
 get_latest_posts(Author) ->
     gen_server:call({global, ?MODULE}, {get_latest_posts, Author}).
+
+update_post(PostId, NewContent) ->
+    gen_server:call({global, ?MODULE}, {update_post, PostId, NewContent}).
 
 delete_post(Id) ->
   gen_server:call({global, ?MODULE}, {delete_post, Id}).
@@ -119,6 +122,14 @@ handle_call({get_latest_posts, Author}, _From, State) ->
     AllPosts = post_server:get_posts_by_author(Author),
     LatestPosts = lists:sublists(AllPosts, ?NUM),
     {reply, LatestPosts, State};
+
+handle_call({update_post, PostId, NewContent}, _From, State) ->
+    postdb:update_post(PostId, NewContent),
+    {reply, ok, State};
+
+handle_call({delete_post, Id}, _From, State) ->
+    postdb:delete_post(Id),
+    {reply, ok, State};
 
 handle_call({add_comment, Author, PostID, Content}, _From, State) ->
     postdb:add_comment(Author, PostID, Content),
