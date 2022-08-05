@@ -1,13 +1,13 @@
 -module(postdb).
 -export([insert/3, get_post_by_id/1,
-         modify_post/3, get_posts_by_author/1,
+         modify_post/3, get_posts_by_author/1, update_post/2,
          delete_post/1, get_posts/0,
          get_all_posts_from_date/4, get_all_posts_from_month/3,
          add_comment/3, update_comment/2,
          get_all_comments/1, get_single_comment/1]).
 
 -include("../records.hrl").
--include_lib("stdlib/include/qlc.hrl").
+-include_lib("stdlib/include/qlc.hrl"). 
 
 %% if post or comment do not have media,
 %% their value in record are nil
@@ -60,6 +60,25 @@ get_posts_by_author(Author) ->
     {atomic, Res} = mnesia:transaction(Fun),
     Res.
 
+update_post(PostId, NewContent) ->
+  Fun = fun() ->
+          [Post] = mnesia:read({post, PostId}),
+          Content = Post#post.content,
+          UpdatedContent =
+                lists:foldl(fun({Key, Value}, Acc) ->
+                                case lists:keymember(Key, 1, Acc) of
+                                  true ->
+                                    lists:keyreplace(Key, 1, Acc, {Key, Value});
+                                  false ->
+                                    [{Key, Value}|Acc]
+                                end
+                            end, Content, NewContent),
+          mnesia:write(Post#post{content = UpdatedContent})
+        end,
+  {atomic, Res} = mnesia:transaction(Fun),
+  Res.
+
+
 delete_post(Id) ->
     F = fun() ->
             mnesia:delete({post, Id})
@@ -91,7 +110,7 @@ get_all_posts_from_date(Year, Month, Date, Author) ->
     {atomic, Res} = mnesia:transaction(fun() -> mnesia:match_object(Object) end),
     Res.
 
-get_all_posts_from_month(Year, Month, Author) ->
+get_all_posts_from_month(Year, Month, Author) -> 
     Object =
       case Author of
         [] -> #post{date_created = {{Year, Month, '_'}, '_'},
