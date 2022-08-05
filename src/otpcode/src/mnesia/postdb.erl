@@ -39,8 +39,18 @@ modify_post(Author, NewContent, NewMedia) ->
   Res.
 
 get_post_by_id(Id) ->
-    {atomic, [Post]} = mnesia:transaction(fun() -> mnesia:read({post, Id}) end),
-    Post.
+  Fun = fun() ->
+          mnesia:match_object(#comment{post = Id,
+                                              _ = '_'}),
+          [Post] = mnesia:read({post, Id}),
+          Comments = lists:foldl(fun(Id, Acc) ->
+                                  [Comment] = mnesia:read({comment, Id}),
+                                  [Comment|Acc]
+                                 end,[], Post#post.comments),
+          Post#post{comments = Comments}
+        end,
+  {atomic, Res} = mnesia:transaction(Fun),
+  Res.
 
 get_posts_by_author(Author) ->
     Fun = fun() ->
