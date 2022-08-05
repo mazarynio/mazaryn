@@ -23,6 +23,10 @@ defmodule Core.PostClient do
     :post_server.get_latest_posts(author)
   end
 
+  def update_post(postId, newContent) do
+    :post_server.update_post(postId, newContent)
+  end
+
   def delete_post(id) do
     :post_server.delete_post(id)
   end
