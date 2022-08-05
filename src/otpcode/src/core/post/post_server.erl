@@ -132,16 +132,16 @@ handle_call({delete_post, Id}, _From, State) ->
     {reply, ok, State};
 
 handle_call({add_comment, Author, PostID, Content}, _From, State) ->
-    postdb:add_comment(Author, PostID, Content),
-    {reply, ok, State};
+    Id = postdb:add_comment(Author, PostID, Content),
+    {reply, Id, State};
 
 handle_call({update_comment, CommentID, NewContent}, _From, State) ->
     postdb:update_comment(CommentID, NewContent),
     {reply, ok, State};
 
 handle_call({get_single_comment, CommentId}, _From, State) ->
-    postdb:get_single_comment(CommentId),
-    {reply, ok, State};
+    Comment = postdb:get_single_comment(CommentId),
+    {reply, Comment, State};
 
 handle_call({get_all_comments, PostId}, _From, State) ->
     postdb:get_all_comments(PostId),

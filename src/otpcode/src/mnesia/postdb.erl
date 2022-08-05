@@ -133,7 +133,8 @@ add_comment(Author, PostID, Content) ->
                                 date_created = calendar:universal_time()}),
           [Post] = mnesia:read({post, PostID}),
           Comments = Post#post.comments,
-          mnesia:write(Post#post{comments = [Id|Comments]})
+          mnesia:write(Post#post{comments = [Id|Comments]}),
+          Id
         end,
   {atomic, Res} = mnesia:transaction(Fun),
   Res.

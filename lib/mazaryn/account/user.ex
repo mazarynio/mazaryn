@@ -1,11 +1,10 @@
 defmodule Account.User do
   @moduledoc """
-  User Struct
+  Embedded schema to represent Account.User
   """
   use Ecto.Schema
 
   import Ecto.Changeset
-
 
   def new_posts(posts) do
     posts
@@ -38,25 +37,16 @@ defmodule Account.User do
     })
   end
 
-  @derive {Phoenix.Param, key: :username}
-  schema "users" do
+  embedded_schema do
     field(:username, :string)
     field(:email, :string)
     field(:password, :string, virtual: true)
-    field(:birthday, :date)
     field(:private, :boolean)
-    field(:avatar_url, :string)
-    field(:country, :string)
-    field(:bio, :string)
+    field(:other_info, {:array, :string})
+    field(:media, {:array, :string})
     field(:date_created, :utc_datetime)
     field(:date_updated, :utc_datetime)
-    field(:followers_count, :integer, default: 0)
-    field(:following_count, :integer, default: 0)
-    field(:posts_count, :integer, default: 0)
-    has_many(:wallets, Mazaryn.Wallet)
-    has_many(:posts, Home.Post)
-    has_many(:likes, Home.Like)
-    has_many(:comments, Home.Comment)
+    has_many(:post, Mazaryn.Post)
     has_many(:following, Account.User)
     has_many(:follower, Account.User)
     has_many(:blocked, Account.User)
@@ -69,6 +59,26 @@ defmodule Account.User do
     :email,
     :password
   ]
+
+  def erl_changeset({:user, username, id, password, email, media, post, following, follower, blocked, saved_posts, other_info, private, date_created, date_updated}) do
+    %__MODULE__{}
+    |> changeset(%{
+      username: username,
+      id: id,
+      password: password,
+      email: email,
+      media: media,
+      post: post,
+      following: following,
+      follower: follower,
+      blocked: blocked,
+      saved_posts: saved_posts,
+      other_info: other_info,
+      private: private,
+      date_created: date_created,
+      date_updated: date_updated,
+    })
+  end
 
   def changeset(user, params \\ %{}) do
     user

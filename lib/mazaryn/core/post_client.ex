@@ -3,7 +3,7 @@ defmodule Core.PostClient do
     :post_server.start_link()
   end
 
-  def create_post(author, content, media) do
+  def create(author, content, media) do
     :post_server.insert(author, content, media)
   end
 
@@ -11,7 +11,7 @@ defmodule Core.PostClient do
     :post_server.modify_post(author, newContent, newMedia)
   end
 
-  def get_post_by_id(id) do
+  def get_by_id(id) do
     :post_server.get_post_by_id(id)
   end
 

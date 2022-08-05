@@ -10,7 +10,6 @@ defmodule Home.Follow do
   schema "follows" do
     belongs_to(:following, Account.User)
     belongs_to(:follower, Account.User)
-    # timestamps()
   end
 
   @required_attrs [

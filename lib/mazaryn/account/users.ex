@@ -3,9 +3,6 @@ defmodule Account.Users do
   User API
   """
 
-  import Ecto.Query
-
-  alias Mazaryn.Repo
   alias Account.User
   alias Core.UserClient
   alias Mazaryn.Mailer
