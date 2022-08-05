@@ -6,11 +6,11 @@ defmodule MazarynWeb.PostLive.Index do
   alias Home.Post
 
   @impl true
-  def mount(_params, _session, socket) do
+  def mount(_params, %{"user_id" => user_id} = _session, socket) do
     # start post genserver
     start_post_server()
     # Get the posts from the database.
-    {:ok, assign(socket, :posts, get_post())}
+    {:ok, assign(socket, :posts, get_post(user_id))}
   end
 
   @impl true
@@ -69,10 +69,9 @@ defmodule MazarynWeb.PostLive.Index do
 
   defp start_post_server, do: PostClient.start()
 
-  defp get_post, do: PostClient.get_posts()
+  defp get_post(user_id), do: Post.posts_from_user_following(user_id)
 
   defp get_post_by_author(author), do: PostClient.get_posts_by_author(author)
-
 
   defp get_session_posts(socket) do
     socket.assigns.posts
@@ -92,8 +91,4 @@ defmodule MazarynWeb.PostLive.Index do
         {:noreply, assign(socket, posts: get_session_posts(socket), error: message)}
     end
   end
-
-
-
-
 end
