@@ -6,17 +6,6 @@ defmodule Account.User do
 
   import Ecto.Changeset
 
-  # defstruct username: nil,
-  #   email: nil,
-  #   following: [],
-  #   follower: [],
-  #   blocking: [],
-  #   saved_posts: [],
-  #   other_info: [],
-  #   private: nil,
-  #   date_created: nil,
-  #   date_updated: nil,
-  #   password: nil
 
   def new_posts(posts) do
     posts
@@ -27,10 +16,11 @@ defmodule Account.User do
   end
 
   def new(
-        {_user, username, password, email, _media, saved_posts, following, follower, blocked,
+        {_user, id,  username, password, email, _media, saved_posts, following, follower, blocked,
          other_info, _other, private, date_created, date_updated}
       ) do
     struct(Account.User, %{
+      id: id,
       username: username,
       password: password,
       email: email,

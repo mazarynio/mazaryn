@@ -75,6 +75,17 @@ defmodule Account.Users do
     end
   end
 
+  def get_following(id) do
+    case UserClient.get_following(id) do
+      :not_exist ->
+        Logger.error("[Users] Failed to find #{id}")
+        :ok
+
+      erl_following ->
+        erl_following
+    end
+  end
+
   def reset_password(%User{} = _user) do
     {:ok, :reseted}
   end

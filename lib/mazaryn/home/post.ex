@@ -3,10 +3,14 @@ defmodule Home.Post do
 
   alias Home.{Follow, Like, Comment}
   alias Mazaryn.Repo
+  alias Account.{Users, User}
+  alias Core.PostClient
   alias __MODULE__, as: Post
 
   import Ecto.Changeset
   import Ecto.Query, only: [from: 2]
+
+  require Logger
 
   @foreign_key_type :string
   schema "posts" do
@@ -91,34 +95,20 @@ defmodule Home.Post do
   end
 
   def posts_from_user_following(user_id) do
-    query =
-      from(
-        f in Follow,
-        as: :follow,
-        join: p in Post,
-        as: :post,
-        on: p.author == f.following_id,
-        join: c in Comment,
-        as: :comment,
-        on: c.post_id == p.id,
-        where: f.follower_id == ^user_id,
-        order_by: [desc: p.date_created],
-        select: [p, c]
-      )
+    user = Users.one_by_email(user_id)
 
-    Repo.all(query)
+    following = Users.get_following(user.id)
+
+    Logger.info("[Posts] Getting posts from following:")
+
+    result = Enum.map(following, fn user -> posts_from_user(user.username) end)
+
+    Logger.info(result)
+
+    Enum.shuffle(result)
   end
 
-  def posts_from_user(user_id) do
-    query =
-      from(p in Post,
-        where: p.author == ^user_id,
-        order_by: [desc: p.date_created],
-        select: [p]
-      )
-
-    Repo.all(query)
-  end
+  def posts_from_user(author), do: PostClient.get_latest_posts(author)
 
   def posts_from_user_following_with_comments(user_id) do
     query =
