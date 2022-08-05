@@ -6,11 +6,11 @@ defmodule MazarynWeb.PostLive.Index do
   alias Home.Post
 
   @impl true
-  def mount(_params, _session, socket) do
+  def mount(_params, %{"user_id" => user_id} = _session, socket) do
     # start post genserver
     start_post_server()
     # Get the posts from the database.
-    {:ok, assign(socket, :posts, get_post())}
+    {:ok, assign(socket, :posts, get_post(user_id))}
   end
 
   @impl true
@@ -62,28 +62,23 @@ defmodule MazarynWeb.PostLive.Index do
       |> DataAbstractor.filter_item_by_id(params["id"])
 
     # Delete the post from the database.
-    PostClient.delete_post(params["id"])
+    Post.delete_post(params)
 
     {:noreply, assign(socket, posts: posts, info: "Post deleted!")}
   end
 
   defp start_post_server, do: PostClient.start()
 
-  defp get_post, do: PostClient.get_posts()
+  defp get_post(user_id), do: Post.posts_from_user_following(user_id)
 
-  defp get_post_by_author(author), do: PostClient.get_posts_by_author(author)
-
+  defp get_post_by_author(author), do: Post.posts_from_user(author)
 
   defp get_session_posts(socket) do
     socket.assigns.posts
   end
 
   defp add_post(socket, post) do
-    case PostClient.create_post(
-           post.author,
-           post.content,
-           post.media
-         ) do
+    case Post.create_post(post) do
       {:ok, _post} ->
         previous_posts = get_session_posts(socket)
         {:noreply, assign(socket, posts: [post | previous_posts], info: "Post added!")}
@@ -92,8 +87,4 @@ defmodule MazarynWeb.PostLive.Index do
         {:noreply, assign(socket, posts: get_session_posts(socket), error: message)}
     end
   end
-
-
-
-
 end
