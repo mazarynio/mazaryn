@@ -46,7 +46,13 @@ defmodule Account.User do
     field(:media, {:array, :string})
     field(:date_created, :utc_datetime)
     field(:date_updated, :utc_datetime)
-    has_many(:post, Mazaryn.Post)
+
+
+    # TODO: ADD to mnesia
+    field(:avatar_url, :string)
+    field(:country, :string)
+
+    has_many(:posts, Mazaryn.Post)
     has_many(:following, Account.User)
     has_many(:follower, Account.User)
     has_many(:blocked, Account.User)
@@ -61,7 +67,7 @@ defmodule Account.User do
   ]
 
   def erl_changeset(
-        {:user, username, id, password, email, media, post, following, follower, blocked,
+        {:user, username, id, password, email, media, posts, following, follower, blocked,
          saved_posts, other_info, private, date_created, date_updated}
       ) do
     %__MODULE__{}
@@ -71,7 +77,7 @@ defmodule Account.User do
       password: password,
       email: email,
       media: media,
-      post: post,
+      posts: posts,
       following: following,
       follower: follower,
       blocked: blocked,
