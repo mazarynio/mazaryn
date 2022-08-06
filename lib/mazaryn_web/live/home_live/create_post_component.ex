@@ -2,6 +2,7 @@ defmodule MazarynWeb.HomeLive.CreatePostComponent do
   use MazarynWeb, :live_component
 
   alias MazarynWeb.Component.SelectLive
+  alias Account.Users
   alias Home.Post
 
   @impl true
@@ -20,8 +21,6 @@ defmodule MazarynWeb.HomeLive.CreatePostComponent do
   end
 
   def handle_event("validate-post", %{"post" => post_params} = _params, socket) do
-    user = Account.Users.one_by_email(socket.assigns.user_id)
-
     post_params = Map.put(post_params, "author", "thewestdevop")
 
     changeset =
@@ -39,9 +38,7 @@ defmodule MazarynWeb.HomeLive.CreatePostComponent do
   def handle_event("save-post", %{"post" => post_params} = _params, socket) do
     user =
       socket.assigns.user_id
-      |> Core.UserClient.get_user_by_mail()
-      |> Account.User.new()
-      |> List.first()
+      |> Users.one_by_email()
 
     {completed, []} = uploaded_entries(socket, :media)
 

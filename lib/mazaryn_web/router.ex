@@ -40,8 +40,6 @@ defmodule MazarynWeb.Router do
       live("/signup", AuthLive.Signup)
       # live("/profile", UserLive.Index)
       # live("/profile", UserLive.Index)
-      live("/reset", AuthLive.Reset)
-      live("/signup", AuthLive.Signup)
       live("/messages/:id", ChatLive.Index)
     end
 

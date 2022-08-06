@@ -4,12 +4,12 @@
 <!-- Three columns -->
 <div class="flex flex-wrap h-screen">
     <div class="w-full lg:w-1/6 bg-gray-100 py-10 pl-10">
-        <.live_component module={MazarynWeb.HomeLive.LeftSidebarComponent} id="leftsidebar" user_id={@user.username} avatar_url={@user.avatar_url} />
+        <.live_component module={MazarynWeb.HomeLive.LeftSidebarComponent} id="leftsidebar" user={@user} />
     </div>
     <!-- middle column -->
     <div class="w-full lg:w-3/6 bg-gray-100 p-10">
         <div class="w-full bg-white white:bg-gray-800 shadow p-4 pb-2 rounded-xl border">
-            <.live_component module={MazarynWeb.HomeLive.CreatePostComponent} id="posting" changeset={@post_changeset}} user_id={@user.username} avatar_url={@user.avatar_url} />
+            <.live_component module={MazarynWeb.HomeLive.CreatePostComponent} id="posting" changeset={@post_changeset}} user_id={@user.id} avatar_url={@user.avatar_url} />
         </div>
         <div class="flex flex-wrap justify-center align-center my-5">
             <%= for post <- @posts do %>
@@ -20,7 +20,7 @@
     <!-- end of middle column-->
 
     <div class="w-full lg:w-2/6 bg-gray-100 py-10 pr-10">
-        <.live_component module={MazarynWeb.HomeLive.CompleteProfileComponent} id="completing" user_id={@user.username} />
+        <.live_component module={MazarynWeb.HomeLive.CompleteProfileComponent} id="completing" user_id={@user.id} />
         <div class="w-full bg-white white:bg-gray-800 shadow p-4 rounded-xl border my-5">
             <div class="flex flex-row justify-between">
                 <h1 class="block flex items-center text-l font-semibold py-4 px-2">

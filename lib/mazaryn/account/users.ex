@@ -16,12 +16,14 @@ defmodule Account.Users do
         :ok
 
       erl_user ->
-        User.new(erl_user)
+        erl_user
+        |> User.erl_changeset()
+        |> User.build()
     end
   end
 
   def one_by_email(email) do
-    case Core.UserClient.get_user_by_mail(email) do
+    case Core.UserClient.get_user_by_email(email) do
       :user_not_exist ->
         Logger.error("[Users] Failed to find #{email}")
         nil

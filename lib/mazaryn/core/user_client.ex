@@ -28,7 +28,7 @@ defmodule Core.UserClient do
     :user_server.get_password(username)
   end
 
-  def get_user_by_mail(email) do
+  def get_user_by_email(email) do
     :user_server.get_user_by_email(email)
   end
 
