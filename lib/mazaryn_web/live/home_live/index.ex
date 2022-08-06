@@ -22,13 +22,15 @@ defmodule MazarynWeb.HomeLive.Index do
     {:ok, do_mount(get_user_id(session_uuid), socket)}
   end
 
-  defp do_mount(user_id, socket) do
+  defp do_mount(email, socket) do
     post_changeset = Post.changeset(%Post{})
+
+    {:ok, user} = Users.one_by_email(email)
 
     socket
     |> assign(post_changeset: post_changeset)
-    |> assign(user: Users.one_by_email(user_id))
-    |> assign(posts: get_post(user_id))
+    |> assign(user: user)
+    |> assign(posts: get_post(email))
   end
 
   @impl true
@@ -44,9 +46,14 @@ defmodule MazarynWeb.HomeLive.Index do
   require Logger
 
   defp get_post(user_id) do
-    post = Post.posts_from_user_following(user_id)
-    Logger.info(post)
-    post
+    case Post.posts_from_user_following(user_id) do
+      [] ->
+        []
+
+      {:ok, posts} ->
+        Logger.info(posts)
+        posts
+    end
   end
 
   defp get_post, do: PostClient.get_posts()

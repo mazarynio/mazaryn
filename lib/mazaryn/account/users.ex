@@ -28,8 +28,8 @@ defmodule Account.Users do
 
       erl_user ->
         erl_user
-        |> List.first()
-        |> User.new()
+        |> User.erl_changeset()
+        |> User.build()
     end
   end
 
@@ -75,7 +75,7 @@ defmodule Account.Users do
   def get_following(id) do
     case UserClient.get_following(id) do
       :not_exist ->
-        Logger.error("[Users] Failed to find #{id}")
+        Logger.error("[Users] Failed to find followings #{id}")
         :ok
 
       erl_following ->

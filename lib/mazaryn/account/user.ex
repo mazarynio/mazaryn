@@ -6,38 +6,16 @@ defmodule Account.User do
 
   import Ecto.Changeset
 
+  alias Mazaryn.Post
+  alias Mazaryn.Posts
 
-  def new_posts(posts) do
-    posts
-  end
+  @optional_fields ~w(
+    id
+  )a
 
-  def new(users) when is_list(users) do
-    for user <- users, do: new(user)
-  end
-
-  def new(
-        {_user, id, username, password, email, media, post, saved_posts, following, follower, blocked,
-         other_info, private, date_created, date_updated}
-      ) do
-    struct(Account.User, %{
-      id: id,
-      username: username,
-      password: password,
-      email: email,
-      media: media,
-      post: post,
-      saved_posts: new_posts(saved_posts),
-      following: Account.User.new(following),
-      follower: Account.User.new(follower),
-      blocked: Account.User.new(blocked),
-      other_info: other_info,
-      private: private,
-      date_created: date_created,
-      date_updated: date_updated
-    })
-  end
-
+  @primary_key false
   embedded_schema do
+    field(:id, :string)
     field(:username, :string)
     field(:email, :string)
     field(:password, :string, virtual: true)
@@ -47,17 +25,17 @@ defmodule Account.User do
     field(:date_created, :utc_datetime)
     field(:date_updated, :utc_datetime)
 
-
     # TODO: ADD to mnesia
     field(:avatar_url, :string)
     field(:country, :string)
 
-    has_many(:posts, Mazaryn.Post)
-    has_many(:following, Account.User)
-    has_many(:follower, Account.User)
-    has_many(:blocked, Account.User)
-    has_many(:saved_posts, Home.Post)
-    has_many(:notifications, Home.Notification)
+    embeds_many(:posts, Post)
+    embeds_many(:following, Account.User)
+
+    # has_many(:follower, Account.User)
+    # has_many(:blocked, Account.User)
+    # has_many(:saved_posts, Home.Post)
+    # has_many(:notifications, Home.Notification)
   end
 
   @required_attrs [
@@ -71,22 +49,35 @@ defmodule Account.User do
          saved_posts, other_info, private, date_created, date_updated}
       ) do
     %__MODULE__{}
-    |> changeset(%{
-      username: username,
-      id: id,
-      password: password,
-      email: email,
-      media: media,
-      posts: posts,
-      following: following,
-      follower: follower,
-      blocked: blocked,
-      saved_posts: saved_posts,
-      other_info: other_info,
-      private: private,
-      date_created: date_created,
-      date_updated: date_updated
-    })
+    |> cast(
+      %{
+        username: username,
+        id: id,
+        password: password,
+        email: email,
+        media: media,
+        posts: preload_posts(posts),
+        following: following,
+        follower: follower,
+        blocked: blocked,
+        saved_posts: saved_posts,
+        other_info: other_info,
+        private: private,
+        date_created: date_created,
+        date_updated: date_updated
+      },
+      @optional_fields ++ @required_attrs
+    )
+    |> cast_embed(:posts, required: false, with: &Post.changeset/2)
+    # |> cast_embed(:following, required: false, with: &User.changeset/2)
+    |> validate_required(@required_attrs)
+  end
+
+  defp preload_posts(posts) do
+    for post_id <- posts do
+      {:ok, post} = Posts.one_by_id(post_id)
+      Map.from_struct(post)
+    end
   end
 
   def changeset(user, params \\ %{}) do
@@ -96,7 +87,7 @@ defmodule Account.User do
     |> validate_format(:email, ~r/@/)
     |> validate_length(:password,
       min: 8,
-      max: 20,
+      max: 60,
       message: "Password must be between 8 and 20 characters"
     )
     |> create_password_hash()
@@ -112,5 +103,9 @@ defmodule Account.User do
 
     changeset
     |> Ecto.Changeset.put_change(:password, password_hash)
+  end
+
+  def build(changeset) do
+    apply_action(changeset, :build)
   end
 end

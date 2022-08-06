@@ -87,8 +87,8 @@ defmodule Home.Post do
     PostClient.get_posts()
   end
 
-  def posts_from_user_following(user_id) do
-    user = Users.one_by_email(user_id)
+  def posts_from_user_following(email) do
+    {:ok, user} = Users.one_by_email(email)
 
     following = Users.get_following(user.id)
 

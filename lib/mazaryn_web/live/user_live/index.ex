@@ -13,13 +13,14 @@ defmodule MazarynWeb.UserLive.Index do
     post_changeset = Post.changeset(%Post{})
     user_changeset = User.changeset(%User{})
     # Logger.info(socket: socket.assigns)
+    {:ok, user} = user_info(email)
 
     socket =
       socket
-      |> assign(user_id: email)
+      |> assign(user_id: user.id)
       |> assign(post_changeset: post_changeset)
       |> assign(user_changeset: user_changeset)
-      |> assign(user: user_info(email))
+      |> assign(user: user)
 
     {:ok, socket}
   end

@@ -19,7 +19,7 @@ defmodule Mazaryn.Post do
 
   # date_created
   embedded_schema do
-    field(:content, :string)
+    field(:content, :map)
     field(:media, {:array, :string})
     field(:date_created, :utc_datetime)
     field(:photo_url, :string)
@@ -34,7 +34,7 @@ defmodule Mazaryn.Post do
     %__MODULE__{}
     |> changeset(%{
       id: id,
-      content: content,
+      content: Enum.into(content, %{}),
       comments: comments,
       media: media,
       author: author,

@@ -138,13 +138,20 @@ get_user_by_email(Email) ->
           end),
   case Res of
     {atomic, []} -> user_not_exist;
-    {atomic, User} -> User;
+    {atomic, [User]} -> User;
     _ -> error
   end.
 
 get_user_by_id(Id) ->
-  {atomic, [User]} = mnesia:transaction(fun() -> mnesia:read({user, Id}) end),
-  User.
+  Res = mnesia:transaction(
+          fun() ->
+              mnesia:match_object(#user{id = Id, _= '_'})
+          end),
+  case Res of
+    {atomic, []} -> user_not_exist;
+    {atomic, [User]} -> User;
+    _ -> error
+  end.
 
 % TODO: change password, email, username
 change_password(Username, CurrentPass, NewPass) ->
@@ -281,11 +288,15 @@ get_save_posts(Username) ->
   Res.
 
 get_following(Id) ->
-  {atomic, Res} = mnesia:transaction(fun() ->
-                                      [User] = mnesia:read(user, Id),
-                                      User#user.following
-                                     end),
-  Res.
+  Res = mnesia:transaction(
+          fun() ->
+              mnesia:match_object(#user{id = Id, _= '_'})
+          end),
+  case Res of
+    {atomic, []} -> user_not_exist;
+    {atomic, [User]} -> User#user.following;
+    _ -> error
+  end.
 
 get_follower(Id) ->
   {atomic, Res} = mnesia:transaction(fun() ->
