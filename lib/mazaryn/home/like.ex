@@ -1,5 +1,4 @@
 defmodule Home.Like do
-
   alias Mazaryn.Repo
 
   use Ecto.Schema

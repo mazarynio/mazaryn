@@ -1,5 +1,4 @@
 defmodule Mazaryn.Wallet do
-
   @doc false
   defstruct [
     :name,

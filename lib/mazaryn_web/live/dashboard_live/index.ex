@@ -25,5 +25,4 @@ defmodule DashboardLive.Index do
   end
 
   def get_wallet, do: Wallet.Client.get_wallets()
-
 end

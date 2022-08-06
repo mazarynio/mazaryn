@@ -73,7 +73,6 @@ defmodule Home.Post do
 
   defp after_save(error, _func), do: error
 
-
   def delete_post(params) do
     PostClient.delete_post(params["id"])
   end
@@ -103,5 +102,4 @@ defmodule Home.Post do
   end
 
   def posts_from_user(author), do: PostClient.get_latest_posts(author)
-
 end

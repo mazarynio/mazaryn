@@ -60,7 +60,6 @@ defmodule Mazaryn.Signup.Form do
     email = changeset |> Ecto.Changeset.get_field(:email)
     password = changeset |> Ecto.Changeset.get_field(:password)
 
-
     case Core.UserClient.register(username, password, email) do
       :ok ->
         %User{username: username, email: email, password: password}

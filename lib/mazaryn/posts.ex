@@ -9,7 +9,9 @@ defmodule Mazaryn.Posts do
 
   def create(author, content, media) do
     case Core.PostClient.create(author, content, media) do
-      post_id when is_binary(post_id) -> {:ok, post_id}
+      post_id when is_binary(post_id) ->
+        {:ok, post_id}
+
       something_else ->
         Logger.warn(something_else)
         {:error, something_else}

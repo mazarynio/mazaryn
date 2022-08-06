@@ -9,10 +9,12 @@ defmodule Mazaryn.Comments do
 
   def create(author, post_id, content) do
     case Core.PostClient.add_comment(author, post_id, content) do
-      comment_id when is_binary(comment_id) -> {:ok, comment_id}
+      comment_id when is_binary(comment_id) ->
+        {:ok, comment_id}
+
       something_else ->
-          Logger.warn(something_else)
-          {:error, something_else}
+        Logger.warn(something_else)
+        {:error, something_else}
     end
   end
 

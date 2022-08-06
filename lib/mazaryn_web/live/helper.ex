@@ -172,8 +172,4 @@ defmodule MazarynWeb.Live.Helper do
     |> JS.hide(to: "#modal", transition: "fade-out")
     |> JS.hide(to: "#modal-content", transition: "fade-out-scale")
   end
-
-
-
-
 end

@@ -28,7 +28,9 @@ defmodule Mazaryn.Post do
     has_many(:comments, Mazaryn.Comment)
   end
 
-  def erl_changeset({:post, id, content, comments, media, author, other, date_created, date_updated}) do
+  def erl_changeset(
+        {:post, id, content, comments, media, author, other, date_created, date_updated}
+      ) do
     %__MODULE__{}
     |> changeset(%{
       id: id,

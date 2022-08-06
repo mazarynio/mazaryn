@@ -30,7 +30,7 @@ defmodule Mazaryn.Comment do
       post: post,
       author: author,
       content: Enum.into(content, %{}),
-      date_created: date_created,
+      date_created: date_created
     })
   end
 

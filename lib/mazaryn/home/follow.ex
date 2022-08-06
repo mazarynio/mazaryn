@@ -3,7 +3,6 @@ defmodule Home.Follow do
 
   alias Mazaryn.Repo
 
-
   import Ecto.Changeset
   import Ecto.Query, only: [from: 2]
 

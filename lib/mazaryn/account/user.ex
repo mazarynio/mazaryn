@@ -15,7 +15,7 @@ defmodule Account.User do
   end
 
   def new(
-        {_user, id,  username, password, email, _media, saved_posts, following, follower, blocked,
+        {_user, id, username, password, email, _media, saved_posts, following, follower, blocked,
          other_info, _other, private, date_created, date_updated}
       ) do
     struct(Account.User, %{
@@ -60,7 +60,10 @@ defmodule Account.User do
     :password
   ]
 
-  def erl_changeset({:user, username, id, password, email, media, post, following, follower, blocked, saved_posts, other_info, private, date_created, date_updated}) do
+  def erl_changeset(
+        {:user, username, id, password, email, media, post, following, follower, blocked,
+         saved_posts, other_info, private, date_created, date_updated}
+      ) do
     %__MODULE__{}
     |> changeset(%{
       username: username,
@@ -76,7 +79,7 @@ defmodule Account.User do
       other_info: other_info,
       private: private,
       date_created: date_created,
-      date_updated: date_updated,
+      date_updated: date_updated
     })
   end
 
