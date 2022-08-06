@@ -13,9 +13,7 @@ defmodule Account.User do
     id
   )a
 
-  @primary_key false
   embedded_schema do
-    field(:id, :string)
     field(:username, :string)
     field(:email, :string)
     field(:password, :string, virtual: true)
@@ -31,6 +29,11 @@ defmodule Account.User do
 
     embeds_many(:posts, Post)
     embeds_many(:following, Account.User)
+    embeds_many(:follower, Account.User)
+    embeds_many(:blocked, Account.User)
+    embeds_many(:saved_posts, Post)
+
+    embeds_many(:notifications, Home.Notification)
 
     # has_many(:follower, Account.User)
     # has_many(:blocked, Account.User)
@@ -69,7 +72,6 @@ defmodule Account.User do
       @optional_fields ++ @required_attrs
     )
     |> cast_embed(:posts, required: false, with: &Post.changeset/2)
-    # |> cast_embed(:following, required: false, with: &User.changeset/2)
     |> validate_required(@required_attrs)
   end
 

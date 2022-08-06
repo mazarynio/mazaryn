@@ -33,6 +33,19 @@ defmodule Account.Users do
     end
   end
 
+  def one_by_id(id) do
+    case Core.UserClient.get_user_by_id(id) do
+      :user_not_exist ->
+        Logger.error("[Users] Failed to find #{id}")
+        nil
+
+      erl_user ->
+        erl_user
+        |> User.erl_changeset()
+        |> User.build()
+    end
+  end
+
   def list() do
     Core.UserClient.getting_users()
   end
