@@ -6,6 +6,7 @@ defmodule Account.User do
 
   import Ecto.Changeset
 
+
   def new_posts(posts) do
     posts
   end
@@ -15,25 +16,24 @@ defmodule Account.User do
   end
 
   def new(
-        {_user, id, username, password, email, _media, saved_posts, following, follower, blocked,
-         other_info, _other, private, date_created, date_updated}
+        {_user, id, username, password, email, media, post, saved_posts, following, follower, blocked,
+         other_info, private, date_created, date_updated}
       ) do
     struct(Account.User, %{
       id: id,
       username: username,
       password: password,
       email: email,
+      media: media,
+      post: post,
+      saved_posts: new_posts(saved_posts),
+      following: Account.User.new(following),
       follower: Account.User.new(follower),
       blocked: Account.User.new(blocked),
-      following: Account.User.new(following),
-      saved_posts: new_posts(saved_posts),
-      posts: Core.PostClient.get_posts_by_author(username),
       other_info: other_info,
-      location: "Rio de Janeiro",
-      date_created: date_created,
-      date_updated: date_updated,
       private: private,
-      role: "Bitcoin Design Contributor | UI/UX Designer"
+      date_created: date_created,
+      date_updated: date_updated
     })
   end
 

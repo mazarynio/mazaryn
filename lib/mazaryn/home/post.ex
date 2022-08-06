@@ -54,7 +54,7 @@ defmodule Home.Post do
     media = changeset |> Ecto.Changeset.get_field(:media)
     author = changeset |> Ecto.Changeset.get_field(:author)
 
-    case Core.PostClient.create_post(author, content, media) do
+    case Core.PostClient.create(author, content, media) do
       :ok ->
         %Post{content: content, author: author, media: media}
         |> after_save(after_save)
