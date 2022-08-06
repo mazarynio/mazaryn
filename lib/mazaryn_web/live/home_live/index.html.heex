@@ -8,8 +8,8 @@
     </div>
     <!-- middle column -->
     <div class="w-full lg:w-3/6 bg-gray-100 p-10">
-        <div class="w-full bg-white white:bg-gray-800 shadow p-4 pb-2 rounded-xl border">
-            <.live_component module={MazarynWeb.HomeLive.CreatePostComponent} id="posting" changeset={@post_changeset}} user_id={@user.id} avatar_url={@user.avatar_url} />
+        <div class="w-full bg-white white:bg-gray-800 custom-box-shadow p-[0.25rem] rounded-[20px]">
+            <.live_component module={MazarynWeb.HomeLive.CreatePostComponent} id="posting" changeset={@post_changeset} user_id={@user.id} avatar_url={@user.avatar_url} />
         </div>
         <div class="flex flex-wrap justify-center align-center my-5">
             <%= for post <- @posts do %>
