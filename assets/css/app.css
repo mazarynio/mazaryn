@@ -875,4 +875,8 @@
 }
 
 
+/* Home */
 
+.custom-box-shadow {
+  box-shadow: 0px 10px 20px rgb(112 144 176 / 12%);
+}
