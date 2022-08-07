@@ -5,6 +5,8 @@
 
 -include("../../records.hrl").
 
+-define(WALLET_LENGTH, 40).
+
 insert(Name, Password) ->
     F = fun() ->
           Names = mnesia:all_keys(wallet),
@@ -13,7 +15,7 @@ insert(Name, Password) ->
               wallet_name_existing;
             false ->
               {Pub_key, Priv_key} = crypto_utils:generate_key_pair(),
-              Address = base58:binary_to_base58(Pub_key),
+              Address = generate_address(),
               mnesia:write(#wallet{name = Name,
                                password = erlpass:hash(Password),
                                address = [Address],
@@ -28,8 +30,7 @@ insert(Name, Password) ->
 generate_new_address(Name) ->
   Fun = fun() ->
           [Wallet] = mnesia:read({wallet, Name}),
-          PubKey = Wallet#wallet.pub_key,
-          NewAddress = hash:hash(PubKey),
+          NewAddress = generate_address(),
           mnesia:write(Wallet#wallet{address = [NewAddress|Wallet#wallet.address]}),
           NewAddress
         end,
@@ -90,3 +91,8 @@ withdraw(Name, Amount) ->
         end,
   {atomic, Res} = mnesia:transaction(Fun),
   Res.
+
+generate_address() ->
+  Rand = crypto:strong_rand_bytes(?WALLET_LENGTH),
+  Hash = crypto:hash(sha256, Rand),
+  base58:binary_to_base58(Hash).
