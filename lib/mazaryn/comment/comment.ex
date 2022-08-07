@@ -19,9 +19,10 @@ defmodule Mazaryn.Comment do
     field(:content, :map)
     field(:date_created, :date)
 
-    belongs_to(:author, Account.User)
-    belongs_to(:post, Mazaryn.Post)
+    field(:author, :string)
+    field(:post, :string)
   end
+
 
   def erl_changeset({:comment, id, post, author, content, date_created}) do
     %__MODULE__{}

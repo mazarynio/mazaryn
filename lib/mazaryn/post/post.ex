@@ -11,6 +11,11 @@ defmodule Mazaryn.Post do
     id
     media
     photo_url
+    author
+    other
+    comments
+    date_created
+    date_updated
   )a
 
   @required_fields ~w(
@@ -20,12 +25,15 @@ defmodule Mazaryn.Post do
   # date_created
   embedded_schema do
     field(:content, :map)
-    field(:media, {:array, :string})
-    field(:date_created, :utc_datetime)
-    field(:photo_url, :string)
+    field(:media, {:array, :string}, default: [])
+    field(:author, :string)
+    field(:other, {:array, :string}, default: [])
+    #TODO: Add to mnesia
+    field(:comments, {:array, :string}, default: [])
 
-    belongs_to(:author, Account.User)
-    has_many(:comments, Mazaryn.Comment)
+    field(:photo_url, :string)
+    field(:date_created, :utc_datetime)
+    field(:date_updated, :utc_datetime)
   end
 
   def erl_changeset(
