@@ -3,7 +3,7 @@ defmodule MazarynWeb.HomeLive.CreatePostComponent do
 
   alias MazarynWeb.Component.SelectLive
   alias Account.Users
-  alias Mazaryn.Post
+  alias Mazaryn.Schema.Post
 
   @impl true
   def mount(socket) do

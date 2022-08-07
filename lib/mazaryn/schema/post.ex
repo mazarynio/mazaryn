@@ -1,6 +1,6 @@
-defmodule Mazaryn.Post do
+defmodule Mazaryn.Schema.Post do
   @moduledoc """
-  Embedded schema to represent Mazaryn.Post
+  Embedded schema to represent Mazaryn.Schema.Post
   """
 
   use Ecto.Schema

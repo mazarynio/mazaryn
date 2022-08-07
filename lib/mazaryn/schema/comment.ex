@@ -1,6 +1,6 @@
-defmodule Mazaryn.Comment do
+defmodule Mazaryn.Schema.Comment do
   @moduledoc """
-  Embedded schema to represent Mazaryn.Comment
+  Embedded schema to represent Mazaryn.Schema.Comment
   """
 
   use Ecto.Schema
@@ -13,6 +13,9 @@ defmodule Mazaryn.Comment do
 
   @required_fields ~w(
     content
+    author
+    post
+    date_created
   )a
 
   embedded_schema do
@@ -37,7 +40,7 @@ defmodule Mazaryn.Comment do
 
   def changeset(%__MODULE__{} = struct, attrs) do
     struct
-    |> cast(attrs, @required_fields)
+    |> cast(attrs, @optional_fields ++ @required_fields)
     |> validate_required(@required_fields)
   end
 

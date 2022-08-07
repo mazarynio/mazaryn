@@ -5,7 +5,7 @@ defmodule Mazaryn.Comments do
 
   require Logger
 
-  alias Mazaryn.Comment
+  alias Mazaryn.Schema.Comment
 
   def create(author, post_id, content) do
     case Core.PostClient.add_comment(author, post_id, content) do

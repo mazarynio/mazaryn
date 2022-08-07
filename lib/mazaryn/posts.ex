@@ -5,7 +5,7 @@ defmodule Mazaryn.Posts do
 
   require Logger
 
-  alias Mazaryn.Post
+  alias Mazaryn.Schema.Post
 
   def create(author, content, media) do
     case Core.PostClient.create(author, content, media) do
