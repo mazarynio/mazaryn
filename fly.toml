@@ -1,4 +1,4 @@
-# fly.toml file generated for mazaryn on 2022-07-25T18:11:14+07:00
+# fly.toml file generated for mazaryn on 2022-08-07T08:51:54+07:00
 
 app = "mazaryn"
 kill_signal = "SIGTERM"
@@ -9,7 +9,7 @@ processes = []
   release_command = "/app/bin/migrate"
 
 [env]
-  PHX_HOST = "mazaryn.fly.dev"
+  PHX_HOST = "mazaryn.io"
   PORT = "8080"
 
 [experimental]

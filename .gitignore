@@ -11,6 +11,5 @@ erl_crash.dump
 /priv/static/assets/
 /Mnesia
 Mnesia
-mix.lock
 mazaryn-front
 /mazaryn-front
