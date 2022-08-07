@@ -20,7 +20,7 @@ defmodule Core.UserClient do
     :user_server.get_user_in_transaction(username)
   end
 
-  def getting_users() do
+  def get_all() do
     :user_server.get_users()
   end
 

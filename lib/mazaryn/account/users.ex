@@ -49,7 +49,7 @@ defmodule Account.Users do
   end
 
   def list() do
-    Core.UserClient.getting_users()
+    Core.UserClient.get_all()
   end
 
   def register(username, pass, email) do

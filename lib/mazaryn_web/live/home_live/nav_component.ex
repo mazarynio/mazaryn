@@ -35,14 +35,14 @@ defmodule MazarynWeb.HomeLive.NavComponent do
                         <div>
                           <button phx-click={Phoenix.LiveView.JS.toggle(to: ".dropdown-menu", in: "fade-in-scale", out: "fade-out-scale")} type="button" class="dropdown inline-flex justify-center w-full rounded-md border border-slate-100 shadow-sm px-4 py-1.5 bg-slate-100 text-sm font-medium text-gray-700 flex-shrink-0 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-100 focus:ring-indigo-500" id="menu-button" aria-expanded="true" aria-haspopup="true">
                             <div class="rounded-full pr-6 flex-shrink-0">
-                            <%= if @avatar_url do %>
+                            <%= if @user.avatar_url do %>
                                 <img src="https://placeimg.com/192/192/people" class="w-6 rounded-full"/>
                             <% else %>
                                 <img alt="Default user" src={Routes.static_path(@socket, "/images/default-user.svg")} class="w-6 rounded-full"/>
                             <% end %>
                             <%# <img src="https://placeimg.com/192/192/people" class="w-6 rounded-full"/> %>
                             </div>
-                            <%= @username %>
+                            <%= @user.username %>
                             <i><%= Heroicons.icon("chevron-down", class: "-mr-1 ml-2 h-5 w-5") %> </i>
                           </button>
                         </div>
@@ -51,7 +51,7 @@ defmodule MazarynWeb.HomeLive.NavComponent do
                               <%= link to: Routes.live_path(@socket, MazarynWeb.UserLive.Index),  class: "text-gray-700 block px-4 py-2 text-sm", role: "menuitem", tabindex: "-1", id: "menu-item-0" do %>
                                     <div class="flex">
                                         <div class="flex rounded-full pr-6">
-                                            <%= if @avatar_url do %>
+                                            <%= if @user.avatar_url do %>
                                                 <img src="https://placeimg.com/192/192/people" class="h-5 w-5 rounded-full"/>
                                             <% else %>
                                                 <img alt="Default user" src={Routes.static_path(@socket, "/images/default-user.svg")} class="h-5 w-5 rounded-full"/>
@@ -59,8 +59,8 @@ defmodule MazarynWeb.HomeLive.NavComponent do
                                             <%# <img src="https://placeimg.com/192/192/people" class="h-5 w-5 rounded-full"/> %>
                                         </div>
                                         <div class="flex flex-col">
-                                            <h1><%= @username %></h1>
-                                            <span class="text-xs text-gray-500"><%= @username %></span>
+                                            <h1><%= @user.username %></h1>
+                                            <span class="text-xs text-gray-500"><%= @user.username %></span>
                                         </div>
                                     </div>
                                   <% end %>

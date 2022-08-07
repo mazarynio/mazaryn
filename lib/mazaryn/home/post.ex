@@ -56,7 +56,7 @@ defmodule Home.Post do
 
     case Core.PostClient.create(author, content, media) do
       :ok ->
-        %Post{content: content, author: author, media: media}
+        %Post{content: [text: content], author: author, media: media}
         |> after_save(after_save)
 
       :post_existed ->

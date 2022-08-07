@@ -3,7 +3,7 @@ defmodule MazarynWeb.HomeLive.CreatePostComponent do
 
   alias MazarynWeb.Component.SelectLive
   alias Account.Users
-  alias Home.Post
+  alias Mazaryn.Post
 
   @impl true
   def mount(socket) do
@@ -36,9 +36,9 @@ defmodule MazarynWeb.HomeLive.CreatePostComponent do
   end
 
   def handle_event("save-post", %{"post" => post_params} = _params, socket) do
-    user =
+    {:ok, user} =
       socket.assigns.user_id
-      |> Users.one_by_email()
+      |> Users.one_by_id()
 
     {completed, []} = uploaded_entries(socket, :media)
 

@@ -1,8 +1,8 @@
-<.live_component module={MazarynWeb.HomeLive.NavComponent} id="navigation" username={@user.username} avatar_url={@user.avatar_url} />
+<.live_component module={MazarynWeb.HomeLive.NavComponent} id="navigation" user={@user} />
 
 <div class="flex flex-wrap h-screen">
   <div class="w-full lg:w-1/6 bg-gray-100 py-10 pl-10">
-    <.live_component module={MazarynWeb.HomeLive.LeftSidebarComponent} id="leftside" user_id={@user.username} avatar_url={@user.avatar_url} />
+    <.live_component module={MazarynWeb.HomeLive.LeftSidebarComponent} id="leftside" user={@user} />
   </div>
 
   <div class="w-full lg:w-5/6 bg-gray-100 px-10">

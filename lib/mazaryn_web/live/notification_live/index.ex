@@ -8,5 +8,5 @@ defmodule MazarynWeb.NotificationLive.Index do
     {:ok, assign(socket, :users, get_user())}
   end
 
-  defp get_user, do: UserClient.getting_users()
+  defp get_user, do: UserClient.get_all()
 end
