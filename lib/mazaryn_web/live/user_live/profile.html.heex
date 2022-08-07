@@ -46,7 +46,7 @@
               <.icon name={:upload}/><span class="ml-2">Upload Songs</span>
             </.button> %>
             <%# <button type="button" class="py-2.5 px-5  mb-2 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200">Edit profile</button> %>
-            <a> <%= live_patch "Edit profile", to: Routes.user_index_path(@socket, :edit), class: "py-2.5 px-5  mb-2 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200" %></a>
+            <a> <%= live_patch "Edit profile", to: Routes.user_profile_path(@socket, :edit), class: "py-2.5 px-5  mb-2 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200" %></a>
 
           </div>
         </div>
@@ -111,14 +111,14 @@
 </div>
 
 <%= if @live_action in [:edit] do %>
-  <.modal return_to={Routes.live_path(@socket, MazarynWeb.UserLive.Index)}>
+  <.modal return_to={Routes.live_path(@socket, MazarynWeb.UserLive.Profile)}>
     <.live_component
       module={MazarynWeb.UserLive.EditProfileComponent}
       id={@user.username}
       title="Edit Profile"
       changeset={@user_changeset}
       action={@live_action}
-      return_to={Routes.live_path(@socket, MazarynWeb.UserLive.Index)}
+      return_to={Routes.live_path(@socket, MazarynWeb.UserLive.Profile)}
     />
   </.modal>
 <% end %>

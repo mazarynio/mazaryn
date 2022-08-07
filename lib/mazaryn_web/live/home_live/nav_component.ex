@@ -48,7 +48,7 @@ defmodule MazarynWeb.HomeLive.NavComponent do
                         </div>
                         <div class="dropdown-menu hidden origin-top-right absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 divide-y divide-gray-100 focus:outline-none"  role="menu" aria-orientation="vertical" aria-labelledby="menu-button" tabindex="-1">
                             <div class="py-1" role="none">
-                              <%= link to: Routes.live_path(@socket, MazarynWeb.UserLive.Index),  class: "text-gray-700 block px-4 py-2 text-sm", role: "menuitem", tabindex: "-1", id: "menu-item-0" do %>
+                              <%= link to: Routes.live_path(@socket, MazarynWeb.UserLive.Profile),  class: "text-gray-700 block px-4 py-2 text-sm", role: "menuitem", tabindex: "-1", id: "menu-item-0" do %>
                                     <div class="flex">
                                         <div class="flex rounded-full pr-6">
                                             <%= if @user.avatar_url do %>
@@ -95,7 +95,7 @@ defmodule MazarynWeb.HomeLive.NavComponent do
         <div class="hidden md:hidden mobile-menu">
             <ul class="">
                 <li><%= link "Coin", to: Routes.live_path(@socket, MazarynWeb.CoinLive.Index), class: "block text-sm px-2 py-2 hover:bg-slate-500 transition duration-300"%></li>
-                <li><%= link "Profile", to: Routes.live_path(@socket, MazarynWeb.UserLive.Index), class: "block text-sm px-2 py-2 hover:bg-slate-500 transition duration-300"%></li>
+                <li><%= link "Profile", to: Routes.live_path(@socket, MazarynWeb.UserLive.Profile), class: "block text-sm px-2 py-2 hover:bg-slate-500 transition duration-300"%></li>
                 <li><%= link "Log out", to: Routes.logout_path(@socket, :index), class: "block text-sm px-2 py-4 hover:bg-slate-500 transition duration-300" %></li>
             </ul>
         </div>

@@ -5,7 +5,7 @@
 <%= for user <- @followers do %>
   <% live_component(
     @socket,
-    MazarynWeb.UserLive.Index,
+    MazarynWeb.UserLive.Profile,
     username: @username
   ) %>
 <% end %>

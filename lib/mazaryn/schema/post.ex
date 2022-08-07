@@ -28,7 +28,7 @@ defmodule Mazaryn.Schema.Post do
     field(:media, {:array, :string}, default: [])
     field(:author, :string)
     field(:other, {:array, :string}, default: [])
-    #TODO: Add to mnesia
+    # TODO: Add to mnesia
     field(:comments, {:array, :string}, default: [])
 
     field(:photo_url, :string)

@@ -32,7 +32,6 @@ defmodule Account.User do
     :password
   ]
 
-
   embedded_schema do
     field(:username, :string)
     field(:email, :string)

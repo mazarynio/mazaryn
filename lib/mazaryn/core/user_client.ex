@@ -12,7 +12,7 @@ defmodule Core.UserClient do
     :user_server.set_user_info(username, fields, values)
   end
 
-  def getting_user(username) do
+  def get_user(username) do
     :user_server.get_user(username)
   end
 

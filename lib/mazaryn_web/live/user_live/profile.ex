@@ -1,9 +1,10 @@
-defmodule MazarynWeb.UserLive.Index do
+defmodule MazarynWeb.UserLive.Profile do
   use MazarynWeb, :live_view
 
+  require Logger
+
   import MazarynWeb.Live.Helper
-  import Logger
-  alias Core.UserClient, as: UserClient
+  alias Core.UserClient
   alias Account.User
   alias Account.Users
   alias Home.Post
@@ -47,7 +48,7 @@ defmodule MazarynWeb.UserLive.Index do
 
   @impl true
   def handle_event("follow_user", %{"username" => username}, socket) do
-    username = UserClient.getting_user(username)
+    username = UserClient.get_user(username)
     UserClient.follow(socket.assigns.user, username)
 
     {:noreply, assign(socket, :follow, username)}
@@ -55,28 +56,28 @@ defmodule MazarynWeb.UserLive.Index do
 
   @impl true
   def handle_event("unfollow_user", %{"username" => username}, socket) do
-    username = UserClient.getting_user(username)
+    username = UserClient.get_user(username)
     UserClient.unfollow(socket.assigns.user, username)
 
     {:noreply, assign(socket, :unfollow, username)}
   end
 
   def handle_event("block_user", %{"username" => username}, socket) do
-    username = UserClient.getting_user(username)
+    username = UserClient.get_user(username)
     UserClient.block(socket.assigns.user, username)
 
     {:noreply, assign(socket, :block, username)}
   end
 
   def handle_event("unblock_user", %{"username" => username}, socket) do
-    username = UserClient.getting_user(username)
+    username = UserClient.get_user(username)
     UserClient.unblock(socket.assigns.user, username)
 
     {:noreply, assign(socket, :unblock, username)}
   end
 
   def handle_event("delete_user", %{"username" => username}, socket) do
-    username = UserClient.getting_user(username)
+    username = UserClient.get_user(username)
     UserClient.delete_user(username)
 
     {:noreply, assign(socket, :delete, username)}

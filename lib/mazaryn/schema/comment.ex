@@ -26,7 +26,6 @@ defmodule Mazaryn.Schema.Comment do
     field(:post, :string)
   end
 
-
   def erl_changeset({:comment, id, post, author, content, date_created}) do
     %__MODULE__{}
     |> changeset(%{
