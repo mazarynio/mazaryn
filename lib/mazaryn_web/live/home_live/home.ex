@@ -27,10 +27,12 @@ defmodule MazarynWeb.HomeLive.Home do
 
     {:ok, user} = Users.one_by_email(email)
 
+    posts = get_posts()
+
     socket
     |> assign(post_changeset: post_changeset)
     |> assign(user: user)
-    |> assign(posts: get_post(email))
+    |> assign(posts: posts)
   end
 
   @impl true
@@ -45,16 +47,5 @@ defmodule MazarynWeb.HomeLive.Home do
 
   require Logger
 
-  defp get_post(user_id) do
-    case Posts.posts_from_user_following(user_id) do
-      [] ->
-        []
-
-      {:ok, posts} ->
-        Logger.info(posts)
-        posts
-    end
-  end
-
-  defp get_post, do: PostClient.get_posts()
+  defp get_posts, do: Posts.get_home_posts()
 end

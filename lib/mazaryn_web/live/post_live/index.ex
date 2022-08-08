@@ -3,7 +3,7 @@ defmodule MazarynWeb.PostLive.Index do
 
   alias Mazaryn.DataAbstractor
   alias Core.PostClient, as: PostClient
-  alias Home.Post
+  alias Mazaryn.Schema.Post
 
   @impl true
   def mount(_params, %{"user_id" => user_id} = _session, socket) do

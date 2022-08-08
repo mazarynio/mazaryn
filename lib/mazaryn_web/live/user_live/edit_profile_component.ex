@@ -27,7 +27,6 @@ defmodule MazarynWeb.UserLive.EditProfileComponent do
 
   def toggle_tab3(js \\ %JS{}) do
     js
-    |> IO.inspect()
     |> JS.remove_class("acc-active", to: ".js--accordion.acc-1", transition: "fade-out-scale")
     |> JS.remove_class("acc-active", to: ".js--accordion.acc-2", transition: "fade-out-scale")
     |> JS.add_class("acc-active", to: ".js--accordion.acc-3", transition: "ease-in duration-300")

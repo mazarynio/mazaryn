@@ -14,10 +14,11 @@ defmodule Mazaryn.Schema.Post do
     author
     other
     comments
-    date_created
-    date_updated
+    profile_tags
   )a
 
+  # date_created
+  # date_updated
   @required_fields ~w(
     content
   )a
@@ -30,6 +31,8 @@ defmodule Mazaryn.Schema.Post do
     field(:other, {:array, :string}, default: [])
     # TODO: Add to mnesia
     field(:comments, {:array, :string}, default: [])
+    field(:profile_tags, {:array, :string}, default: [])
+    field(:like_count, :integer, default: 0)
 
     field(:photo_url, :string)
     field(:date_created, :utc_datetime)

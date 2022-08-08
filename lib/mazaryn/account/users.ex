@@ -10,7 +10,7 @@ defmodule Account.Users do
 
   @spec one_by_username(keyword) :: %User{} | nil
   def one_by_username(username) do
-    case Core.UserClient.getting_user(username) do
+    case Core.UserClient.get_user(username) do
       :not_exist ->
         Logger.error("[Users] Failed to find #{username}")
         :ok

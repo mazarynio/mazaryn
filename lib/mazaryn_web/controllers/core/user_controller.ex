@@ -161,22 +161,4 @@ defmodule MazarynWeb.UserController do
       {:error, error} -> conn |> put_status(:bad_request) |> render("error.json", message: error)
     end
   end
-
-  # def get_followers(conn, %{"username" => username}) do
-  #   with {:ok, better_params} <- Tarams.cast(%{"value" => username}, @value_schema) do
-  #     case UserClient.follow_user(better_params.value) do
-  #      {:ok, msg } ->
-  #       #  IO.inspect(msg)
-  #        render(conn, "show.json", user: %{
-  #          id: msg.id,
-  #          username: msg.username,
-  #          password: msg.password,
-  #          token: Token.generate_and_sign!(msg),
-  #        })
-  #      {:error, msg} ->
-  #       #  IO.inspect(msg)
-  #        render(conn, "error.json", message: msg)
-  #     end
-  #    end
-  # end
 end

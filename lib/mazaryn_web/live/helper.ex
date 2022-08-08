@@ -112,8 +112,8 @@ defmodule MazarynWeb.Live.Helper do
       raise MazarynWeb.AuthenticationError, message: "missing signing_salt"
   end
 
-  def insert_session_token(key, user_id) do
-    token = Phoenix.Token.sign(MazarynWeb.Endpoint, signing_salt(), user_id)
+  def insert_session_token(key, email) do
+    token = Phoenix.Token.sign(MazarynWeb.Endpoint, signing_salt(), email)
     :ets.insert(:mazaryn_auth_table, {:"#{key}", token})
   end
 
@@ -121,8 +121,8 @@ defmodule MazarynWeb.Live.Helper do
     case :ets.lookup(:mazaryn_auth_table, :"#{session_uuid}") do
       [{_, token}] ->
         case Phoenix.Token.verify(MazarynWeb.Endpoint, signing_salt(), token, max_age: 806_400) do
-          {:ok, user_id} ->
-            user_id
+          {:ok, email} ->
+            email
 
           _ ->
             nil
