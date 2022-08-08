@@ -84,14 +84,7 @@ init([]) ->
                     restart => permanent,
                     shutdown => 5000,
                     type => worker,
-                    modules => [post_server]},
-                  
-                  #{id => wallet_server,
-                    start => {wallet_server, start_link, []},
-                    restart => permanent,
-                    shutdown => 5000,
-                    type => worker,
-                    modules => [wallet_server]}
+                    modules => [post_server]}
 
                   ],
     {ok, {SupFlags, ChildSpecs}}.
