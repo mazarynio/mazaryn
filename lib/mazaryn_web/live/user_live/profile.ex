@@ -7,7 +7,7 @@ defmodule MazarynWeb.UserLive.Profile do
   alias Core.UserClient
   alias Account.User
   alias Account.Users
-  alias Home.Post
+  alias Mazaryn.Schema.Post
 
   @impl true
   def mount(_params, %{"user_id" => email} = _session, socket) do

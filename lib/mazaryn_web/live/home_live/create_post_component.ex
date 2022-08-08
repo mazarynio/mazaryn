@@ -2,8 +2,9 @@ defmodule MazarynWeb.HomeLive.CreatePostComponent do
   use MazarynWeb, :live_component
 
   alias MazarynWeb.Component.SelectLive
-  alias Account.Users
   alias Mazaryn.Schema.Post
+  alias Mazaryn.Posts
+  alias Account.Users
 
   @impl true
   def mount(socket) do
@@ -35,9 +36,10 @@ defmodule MazarynWeb.HomeLive.CreatePostComponent do
     {:noreply, socket}
   end
 
+  # TODO Refact
   def handle_event("save-post", %{"post" => post_params} = _params, socket) do
     {:ok, user} =
-      socket.assigns.user_id
+      socket.assigns.user.id
       |> Users.one_by_id()
 
     {completed, []} = uploaded_entries(socket, :media)
@@ -54,7 +56,7 @@ defmodule MazarynWeb.HomeLive.CreatePostComponent do
 
     changeset = Post.changeset(%Post{}, post_params)
 
-    case Post.create_post(changeset, &consume_photos(socket, &1)) do
+    case Posts.create_post(changeset, &consume_photos(socket, &1)) do
       %Post{} ->
         {:noreply, socket}
 

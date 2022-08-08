@@ -3,7 +3,7 @@ defmodule Core.PostClient do
     :post_server.start_link()
   end
 
-  def create(author, content, media) do
+  def create(author, content, media \\ []) do
     :post_server.insert(author, content, media)
   end
 

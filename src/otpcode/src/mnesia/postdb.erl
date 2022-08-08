@@ -18,7 +18,7 @@ insert(Author, Content, Media) ->
           mnesia:write(#post{id=Id,
                              content=Content,
                              author=Author,
-                             media = get_media(Media),
+                             media = Media,
                              date_created = calendar:universal_time()}),
           [User] = mnesia:read({user, Author}),
           Posts = User#user.post,
@@ -32,7 +32,7 @@ modify_post(Author, NewContent, NewMedia) ->
   Fun = fun() ->
           [Post] = mnesia:read({post, Author}),
           mnesia:write(Post#post{content = NewContent,
-                                 media = get_media(NewMedia),
+                                 media = NewMedia,
                                  date_updated = calendar:universal_time()})
         end,
   {atomic, Res} = mnesia:transaction(Fun),

@@ -1,11 +1,11 @@
-defmodule MazarynWeb.HomeLive.Index do
+defmodule MazarynWeb.HomeLive.Home do
   use MazarynWeb, :live_view
 
   alias Core.PostClient, as: PostClient
 
   import MazarynWeb.Live.Helper
-  alias MazarynWeb.Component.SelectLive
-  alias Home.Post
+  alias Mazaryn.Schema.Post
+  alias Mazaryn.Posts
   alias Account.Users
   require Logger
 
@@ -46,7 +46,7 @@ defmodule MazarynWeb.HomeLive.Index do
   require Logger
 
   defp get_post(user_id) do
-    case Post.posts_from_user_following(user_id) do
+    case Posts.posts_from_user_following(user_id) do
       [] ->
         []
 

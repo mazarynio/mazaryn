@@ -9,7 +9,7 @@
         class="flex flex-col justify-between align-center w-[95%] pt-[5px] pr-[10px] pl-[10px] pb-[20px] my-0 mx-auto"
     >
         <div class="flex relative items-center p-0">
-            <%= if @avatar_url do %>
+            <%= if @user.avatar_url do %>
                 <img src="https://placeimg.com/192/192/people" class="h-11 w-11  max-h-[40px] max-w-[40px] rounded-full"/>
             <% else %>
                 <img alt="Default user" src={Routes.static_path(@socket, "/images/default-user.svg")} class="h-11 w-11  max-h-[40px] max-w-[40px]  rounded-full"/>

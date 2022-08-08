@@ -24,7 +24,7 @@ defmodule Mazaryn.Schema.Post do
 
   # date_created
   embedded_schema do
-    field(:content, :map)
+    field(:content, :string)
     field(:media, {:array, :string}, default: [])
     field(:author, :string)
     field(:other, {:array, :string}, default: [])
@@ -42,7 +42,7 @@ defmodule Mazaryn.Schema.Post do
     %__MODULE__{}
     |> changeset(%{
       id: id,
-      content: Enum.into(content, %{}),
+      content: content,
       comments: comments,
       media: media,
       author: author,
@@ -52,8 +52,8 @@ defmodule Mazaryn.Schema.Post do
     })
   end
 
-  def changeset(%__MODULE__{} = struct, attrs) do
-    struct
+  def changeset(post, attrs \\ %{}) do
+    post
     |> cast(attrs, @optional_fields ++ @required_fields)
     |> validate_required(@required_fields)
   end

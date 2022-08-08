@@ -1,7 +1,7 @@
 defmodule MazarynWeb.PostLive.Show do
   use MazarynWeb, :live_view
 
-  alias Core.PostClient, as: PostClient
+  alias Mazaryn.Posts
 
   @impl true
   def mount(_params, _session, socket) do
@@ -13,7 +13,7 @@ defmodule MazarynWeb.PostLive.Show do
     {:noreply,
      socket
      |> assign(:page_title, page_title(socket.assigns.live_action))
-     |> assign(:post, PostClient.get_post_by_id(id))}
+     |> assign(:post, Posts.one_by_id(id))}
   end
 
   defp page_title(:show), do: "Show Post"

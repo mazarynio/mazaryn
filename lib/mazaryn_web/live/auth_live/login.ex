@@ -24,26 +24,6 @@ defmodule MazarynWeb.AuthLive.Login do
     {:ok, assign(socket, key: key, changeset: changeset)}
   end
 
-  # @impl true
-  # def handle_event("login", %{"email" => email, "password" => password} = _session, socket) do
-  #   with {:ok, _better_params} <- Tarams.cast(%{"email" => email, "password" => password}, @login_schema),
-  #     %User{} = user <- Users.one_by_email(email) do
-  #       case Users.login(user.username, password) do
-  #         {:ok, :logged_in} ->
-  #           token = Token.generate_and_sign!
-
-  #           socket
-  #           = socket
-  #           |> assign(user_token: token)
-
-  #           {:noreply, push_redirect(socket, to: Routes.live_path(socket, MazarynWeb.HomeLive.Index))}
-  #         {:error, _res} ->
-  #           {:noreply, redirect(socket, to: "/login")}
-  #       end
-
-  #   end
-  # end
-
   @impl true
   def handle_event("save", %{"form" => params}, socket) do
     if Map.get(params, "form_disabled", nil) != "true" do
@@ -97,7 +77,7 @@ defmodule MazarynWeb.AuthLive.Login do
     case Login.Form.get_user_by_email(changeset) do
       %Account.User{email: email} ->
         insert_session_token(key, email)
-        {:noreply, push_redirect(socket, to: Routes.live_path(socket, MazarynWeb.HomeLive.Index))}
+        {:noreply, push_redirect(socket, to: Routes.live_path(socket, MazarynWeb.HomeLive.Home))}
 
       changeset ->
         changeset =
