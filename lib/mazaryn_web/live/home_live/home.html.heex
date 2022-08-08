@@ -13,7 +13,6 @@
         </div>
         <div class="flex flex-wrap justify-center align-center my-5">
             <%= for post <- @posts do%>
-                <%= inspect post %>
                 <%= live_component MazarynWeb.HomeLive.PostComponent, id: post, post: post %>
             <% end %>
         </div>
