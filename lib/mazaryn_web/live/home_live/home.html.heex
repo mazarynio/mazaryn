@@ -11,7 +11,7 @@
         <div class="w-full bg-white white:bg-gray-800 custom-box-shadow p-[0.25rem] rounded-[20px]">
             <.live_component module={MazarynWeb.HomeLive.CreatePostComponent} id="posting" changeset={@post_changeset} user={@user} />
         </div>
-        <div class="flex flex-wrap justify-center align-center my-5">
+        <div class="flex flex-wrap justify-center align-center my-5 gap-y-4">
             <%= for post <- @posts do %>
                 <.live_component module={MazarynWeb.HomeLive.PostComponent} id={"post-#{post.id}"} post={post} />
             <% end %>
