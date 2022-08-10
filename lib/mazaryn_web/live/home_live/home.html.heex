@@ -12,8 +12,8 @@
             <.live_component module={MazarynWeb.HomeLive.CreatePostComponent} id="posting" changeset={@post_changeset} user={@user} />
         </div>
         <div class="flex flex-wrap justify-center align-center my-5">
-            <%= for post <- @posts do%>
-                <%= live_component MazarynWeb.HomeLive.PostComponent, id: post, post: post %>
+            <%= for post <- @posts do %>
+                <.live_component module={MazarynWeb.HomeLive.PostComponent} id={"post-#{post.id}"} post={post} />
             <% end %>
         </div>
     </div>

@@ -8,31 +8,20 @@ defmodule Mazaryn.Posts do
   alias Core.PostClient
   alias Mazaryn.Schema.Post
 
-  @spec(create_post(%Ecto.Changeset{}, :map) :: %Post{}, {:error, :string})
-  def create_post(%Ecto.Changeset{valid?: false} = changeset, _after_save \\ %{}), do: changeset
+  @spec(create_post(%Ecto.Changeset{}) :: %Post{}, {:error, :string})
+  def create_post(%Ecto.Changeset{valid?: false} = changeset), do: changeset
 
-  def create_post(
-        %Ecto.Changeset{changes: %{author: author, content: content}} = changeset,
-        after_save
-      ) do
+  def create_post(%Ecto.Changeset{changes: %{author: author, content: content}} = changeset) do
     media = Ecto.Changeset.get_field(changeset, :media, [])
 
     case create(author, content, media) do
       {:ok, post_id} ->
         one_by_id(post_id)
-        |> after_save(after_save)
 
       {:error, some_error} ->
         {:error, some_error}
     end
   end
-
-  # REVER
-  defp after_save(%Post{} = post, func) do
-    {:ok, _post} = func.(post) |> IO.inspect(label: "333")
-  end
-
-  defp after_save(error, _func), do: error
 
   @spec create(String.t(), String.t(), list(String.t()), list(String.t())) :: any
   def create(author, content, media, _other \\ []) do
@@ -62,6 +51,7 @@ defmodule Mazaryn.Posts do
           {:ok, post} = one_by_id(post_id)
           post
         end
+        |> Enum.sort_by(& &1.date_created, &>=/2)
 
       _something_else ->
         Logger.error("handle here")

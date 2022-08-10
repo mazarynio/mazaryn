@@ -53,6 +53,7 @@ defmodule Mazaryn.MixProject do
       {:tarams, "~> 1.5"},
       {:tailwind, "~> 0.1", runtime: Mix.env() == :dev},
       {:swoosh, "~> 1.6"},
+      {:timex, "~> 3.0"},
 
       # Erlang dependencies
       {:erlpass, git: "https://github.com/ferd/erlpass.git"},

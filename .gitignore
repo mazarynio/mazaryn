@@ -9,6 +9,7 @@ erl_crash.dump
 /config/*.secret.exs
 .elixir_ls/
 /priv/static/assets/
+/priv/static/uploads/
 /Mnesia
 Mnesia
 mazaryn-front

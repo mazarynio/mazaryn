@@ -22,6 +22,23 @@ defmodule MazarynWeb.HomeLive.Home do
     {:ok, do_mount(get_user_id(session_uuid), socket)}
   end
 
+  @impl true
+  def handle_event("messages", _param, socket) do
+    random_id = "/messages/" <> "1"
+    {:noreply, push_redirect(socket, to: random_id)}
+  end
+
+  @impl true
+  def handle_info(:reload_posts, socket) do
+    {:noreply, assign(socket, posts: get_posts())}
+  end
+
+  def handle_params(_params, _uri, socket) do
+    {:noreply, socket}
+  end
+
+  defp get_posts, do: Posts.get_home_posts()
+
   defp do_mount(email, socket) do
     post_changeset = Post.changeset(%Post{})
 
@@ -34,18 +51,4 @@ defmodule MazarynWeb.HomeLive.Home do
     |> assign(user: user)
     |> assign(posts: posts)
   end
-
-  @impl true
-  def handle_event("messages", _param, socket) do
-    random_id = "/messages/" <> "1"
-    {:noreply, push_redirect(socket, to: random_id)}
-  end
-
-  def handle_params(_params, _uri, socket) do
-    {:noreply, socket}
-  end
-
-  require Logger
-
-  defp get_posts, do: Posts.get_home_posts()
 end

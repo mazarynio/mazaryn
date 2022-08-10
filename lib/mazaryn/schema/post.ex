@@ -4,7 +4,7 @@ defmodule Mazaryn.Schema.Post do
   """
 
   use Ecto.Schema
-
+  alias Timex
   import Ecto.Changeset
 
   @optional_fields ~w(
@@ -15,6 +15,8 @@ defmodule Mazaryn.Schema.Post do
     other
     comments
     profile_tags
+    date_created
+    date_updated
   )a
 
   # date_created
@@ -50,10 +52,13 @@ defmodule Mazaryn.Schema.Post do
       media: media,
       author: author,
       other: other,
-      date_created: date_created,
-      date_updated: date_updated
+      date_created: handle_datetime(date_created),
+      date_updated: handle_datetime(date_updated)
     })
   end
+
+  defp handle_datetime(:undefined), do: nil
+  defp handle_datetime(datetime), do: Timex.to_naive_datetime(datetime)
 
   def changeset(post, attrs \\ %{}) do
     post

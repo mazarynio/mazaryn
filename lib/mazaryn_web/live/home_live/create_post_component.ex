@@ -8,12 +8,7 @@ defmodule MazarynWeb.HomeLive.CreatePostComponent do
 
   @impl true
   def mount(socket) do
-    socket =
-      socket
-      |> assign(:uploaded_files, [])
-      |> allow_upload(:media, accept: ~w(.png .jpg .jpeg), max_entries: 2)
-
-    {:ok, socket}
+    {:ok, handle_assign(socket)}
   end
 
   @impl true
@@ -21,7 +16,47 @@ defmodule MazarynWeb.HomeLive.CreatePostComponent do
     {:noreply, cancel_upload(socket, :media, ref)}
   end
 
-  def handle_event("validate-post", %{"post" => post_params} = _params, socket) do
+  def handle_event("validate-post", params, socket) do
+    {:noreply, handle_validate_post(socket, params)}
+  end
+
+  def handle_event("save-post", params, socket) do
+    {:noreply, handle_save_post(socket, params)}
+  end
+
+  defp handle_assign(socket) do
+    socket
+    |> assign(:uploaded_files, [])
+    |> allow_upload(:media, accept: ~w(.png .jpg .jpeg), max_entries: 2)
+  end
+
+  defp handle_save_post(socket, %{"post" => post_params} = _params) do
+    {:ok, user} =
+      socket.assigns.user.id
+      |> Users.one_by_id()
+
+    urls = consume_upload(socket)
+
+    post_params =
+      post_params
+      |> Map.put("author", user.username)
+      |> Map.put("media", urls)
+
+    %Post{}
+    |> Post.changeset(post_params)
+    |> Posts.create_post()
+    |> case do
+      {:ok, %Post{}} ->
+        # send event to parent live-view
+        send(self(), :reload_posts)
+        socket
+
+      _other ->
+        socket
+    end
+  end
+
+  defp handle_validate_post(socket, %{"post" => post_params} = _params) do
     post_params = Map.put(post_params, "author", "thewestdevop")
 
     changeset =
@@ -29,40 +64,7 @@ defmodule MazarynWeb.HomeLive.CreatePostComponent do
       |> Post.changeset(post_params)
       |> Map.put(:action, :validate)
 
-    socket =
-      socket
-      |> assign(:changeset, changeset)
-
-    {:noreply, socket}
-  end
-
-  # TODO Refact
-  def handle_event("save-post", %{"post" => post_params} = _params, socket) do
-    {:ok, user} =
-      socket.assigns.user.id
-      |> Users.one_by_id()
-
-    {completed, []} = uploaded_entries(socket, :media)
-
-    urls =
-      for entry <- completed do
-        Routes.static_path(socket, "/uploads/#{entry.uuid}.#{ext(entry)}")
-      end
-
-    post_params =
-      post_params
-      |> Map.put("author", user.username)
-      |> Map.put("media", urls)
-
-    changeset = Post.changeset(%Post{}, post_params)
-
-    case Posts.create_post(changeset, &consume_photos(socket, &1)) do
-      %Post{} ->
-        {:noreply, socket}
-
-      _other ->
-        {:noreply, socket}
-    end
+    assign(socket, :changeset, changeset)
   end
 
   defp ext(entry) do
@@ -70,12 +72,11 @@ defmodule MazarynWeb.HomeLive.CreatePostComponent do
     ext
   end
 
-  defp consume_photos(socket, %Post{} = post) do
-    consume_uploaded_entries(socket, :media, fn meta, entry ->
+  defp consume_upload(socket) do
+    consume_uploaded_entries(socket, :media, fn %{path: path}, entry ->
       dest = Path.join("priv/static/uploads", "#{entry.uuid}.#{ext(entry)}")
-      File.cp!(meta.path, dest)
+      File.cp!(path, dest)
+      {:ok, Routes.static_path(socket, "/uploads/#{Path.basename(dest)}")}
     end)
-
-    post
   end
 end
