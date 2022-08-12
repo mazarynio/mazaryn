@@ -52,20 +52,20 @@ defmodule Core.UserClient do
     :user_server.delete_user(username)
   end
 
-  def follow(username, following) do
-    :user_server.follow(username, following)
+  def follow(id, following) do
+    :user_server.follow(id, following)
   end
 
-  def unfollow(username, following) do
-    :user_server.unfollow(username, following)
+  def unfollow(id, following) do
+    :user_server.unfollow(id, following)
   end
 
-  def follow_multiple(username, others) do
-    :user_server.follow_multiple(username, others)
+  def follow_multiple(id, others) do
+    :user_server.follow_multiple(id, others)
   end
 
-  def unfollow_multiple(username, others) do
-    :user_server.unfollow_multiple(username, others)
+  def unfollow_multiple(id, others) do
+    :user_server.unfollow_multiple(id, others)
   end
 
   def save_post(username, postId) do
