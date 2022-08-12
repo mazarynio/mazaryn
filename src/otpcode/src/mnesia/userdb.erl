@@ -209,44 +209,44 @@ delete_user(Username) ->
     end,
     mnesia:activity(transaction, F).
 
-follow(Username, Following) ->
+follow(Id, Following) ->
     Fun = fun() ->
-            [User] = mnesia:read(user, Username),
+            [User] = mnesia:read(user, Id),
             NewFollowList = [Following|User#user.following],
             mnesia:write(User#user{following = NewFollowList,
                                    date_updated = calendar:universal_time()}),
 
             %% update Following that have a new follower
             [FollowingUser] = mnesia:read(user, Following),
-            mnesia:write(FollowingUser#user{follower = [Username| FollowingUser#user.follower],
+            mnesia:write(FollowingUser#user{follower = [Id| FollowingUser#user.follower],
                                             date_updated = calendar:universal_time()})
         end,
     {atomic, Res} = mnesia:transaction(Fun),
     Res.
 
-unfollow(Username, Following) ->
+unfollow(Id, Following) ->
     Fun = fun() ->
-            [User] = mnesia:read(user, Username),
+            [User] = mnesia:read(user, Id),
             NewFollowList = lists:delete(Following, User#user.following),
             mnesia:write(User#user{following = NewFollowList,
                                    date_updated = calendar:universal_time()}),
 
             [FollowingUser] = mnesia:read(user, Following),
-            NewFollower = lists:delete(Username, FollowingUser#user.follower),
+            NewFollower = lists:delete(Id, FollowingUser#user.follower),
             mnesia:write(FollowingUser#user{follower = NewFollower,
                                             date_updated = calendar:universal_time()})
         end,
     {atomic, Res} = mnesia:transaction(Fun),
     Res.
 
-follow_multiple(Username, Others) ->
+follow_multiple(Id, Others) ->
     lists:foreach(fun(Other) ->
-                    follow(Username, Other)
+                    follow(Id, Other)
                   end, Others).
 
-unfollow_multiple(Username, Others) ->
+unfollow_multiple(Id, Others) ->
     lists:foreach(fun(Other) ->
-                    unfollow(Username, Other)
+                    unfollow(Id, Other)
                   end, Others).
 
 %% follow/unfollow posts
