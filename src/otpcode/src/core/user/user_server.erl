@@ -66,17 +66,17 @@ change_username(Username, CurrentPass, NewUsername) ->
 delete_user(Username) ->
     gen_server:call({global, ?MODULE}, {delete_user, Username}).
 
-follow(Username, Following) ->
-    gen_server:call({global, ?MODULE}, {follow, Username, Following}).
+follow(Id, Following) ->
+    gen_server:call({global, ?MODULE}, {follow, Id, Following}).
 
-unfollow(Username, Following) ->
-    gen_server:call({global, ?MODULE}, {unfollow, Username, Following}).
+unfollow(Id, Following) ->
+    gen_server:call({global, ?MODULE}, {unfollow, Id, Following}).
 
-follow_multiple(Username, Others) ->
-    gen_server:call({global, ?MODULE}, {follow_multiple, Username, Others}).
+follow_multiple(Id, Others) ->
+    gen_server:call({global, ?MODULE}, {follow_multiple, Id, Others}).
 
-unfollow_multiple(Username, Others) ->
-    gen_server:call({global, ?MODULE}, {unfollow_multiple, Username, Others}).
+unfollow_multiple(Id, Others) ->
+    gen_server:call({global, ?MODULE}, {unfollow_multiple, Id, Others}).
 
 save_post(Username, PostId) ->
     gen_server:call({global, ?MODULE}, {save_post, Username, PostId}).
@@ -176,20 +176,20 @@ handle_call({delete_user, Username}, _From, State) ->
     Res = userdb:delete_user(Username),
     {reply, Res, State};
 
-handle_call({follow, Username, Following}, _From, State) ->
-    Res = userdb:follow(Username, Following),
+handle_call({follow, Id, Following}, _From, State) ->
+    Res = userdb:follow(Id, Following),
     {reply, Res, State};
 
-handle_call({unfollow, Username, Following}, _From, State) ->
-    Res = userdb:unfollow(Username, Following),
+handle_call({unfollow, Id, Following}, _From, State) ->
+    Res = userdb:unfollow(Id, Following),
     {reply, Res, State};
 
-handle_call({follow_multiple, Username, Others}, _From, State) ->
-    Res = userdb:follow_multiple(Username, Others),
+handle_call({follow_multiple, Id, Others}, _From, State) ->
+    Res = userdb:follow_multiple(Id, Others),
     {reply, Res, State};
 
-handle_call({unfollow_multiple, Username, Others}, _From, State) ->
-    Res = userdb:unfollow_multiple(Username, Others),
+handle_call({unfollow_multiple, Id, Others}, _From, State) ->
+    Res = userdb:unfollow_multiple(Id, Others),
     {reply, Res, State};
 
 handle_call({save_post, Username, PostId}, _From, State) ->
