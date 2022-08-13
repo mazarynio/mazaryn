@@ -211,7 +211,7 @@ delete_user(Username) ->
 
 follow(Id, Following) ->
     Fun = fun() ->
-            [User] = mnesia:read(user, Id),
+            [User] = mnesia:match_object(#user{id = Id, _ = '_'}),
             NewFollowList = [Following|User#user.following],
             mnesia:write(User#user{following = NewFollowList,
                                    date_updated = calendar:universal_time()}),
@@ -226,7 +226,7 @@ follow(Id, Following) ->
 
 unfollow(Id, Following) ->
     Fun = fun() ->
-            [User] = mnesia:read(user, Id),
+            [User] = mnesia:match_object(#user{id = Id, _ = '_'}),
             NewFollowList = lists:delete(Following, User#user.following),
             mnesia:write(User#user{following = NewFollowList,
                                    date_updated = calendar:universal_time()}),
