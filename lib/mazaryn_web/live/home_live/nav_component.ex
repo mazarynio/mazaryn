@@ -52,9 +52,9 @@ defmodule MazarynWeb.HomeLive.NavComponent do
                                     <div class="flex">
                                         <div class="flex rounded-full pr-6">
                                             <%= if @user.avatar_url do %>
-                                                <img src="https://placeimg.com/192/192/people" class="h-5 w-5 rounded-full"/>
+                                                <img src="https://placeimg.com/192/192/people" class="h-9 w-9 rounded-full"/>
                                             <% else %>
-                                                <img alt="Default user" src={Routes.static_path(@socket, "/images/default-user.svg")} class="h-5 w-5 rounded-full"/>
+                                                <img alt="Default user" src={Routes.static_path(@socket, "/images/default-user.svg")} class="h-9 w-9 rounded-full"/>
                                             <% end %>
                                             <%# <img src="https://placeimg.com/192/192/people" class="h-5 w-5 rounded-full"/> %>
                                         </div>
