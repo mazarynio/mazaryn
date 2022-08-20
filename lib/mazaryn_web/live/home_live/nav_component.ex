@@ -33,7 +33,7 @@ defmodule MazarynWeb.HomeLive.NavComponent do
                 <li class="mx-5 my-0">
                     <div class="relative inline-block text-left">
                         <div>
-                          <button phx-click={Phoenix.LiveView.JS.toggle(to: ".dropdown-menu", in: "fade-in-scale", out: "fade-out-scale")} type="button" class="dropdown inline-flex justify-center w-full rounded-md border border-slate-100 shadow-sm px-4 py-1.5 bg-slate-100 text-sm font-medium text-gray-700 flex-shrink-0 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-100 focus:ring-indigo-500" id="menu-button" aria-expanded="true" aria-haspopup="true">
+                          <button phx-click={Phoenix.LiveView.JS.toggle(to: ".dropdown-menu", in: "fade-in-scale", out: "fade-out-scale")} type="button" class="dropdown inline-flex justify-center w-full rounded-md border border-slate-100 shadow-sm px-4 py-1.5 bg-slate-100 text-sm font-medium text-gray-700 flex-shrink-0 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-100 focus:ring-indigo-500 items-center" id="menu-button" aria-expanded="true" aria-haspopup="true">
                             <div class="rounded-full pr-6 flex-shrink-0">
                             <%= if @user.avatar_url do %>
                                 <img src="https://placeimg.com/192/192/people" class="w-6 rounded-full"/>
