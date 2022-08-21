@@ -2,7 +2,7 @@
 
 ##### OpenSource Social Network which Empower users to benefits Form the Community on a Secure Platform
 
-##### If you're Interested to Joining on the Core team Connect via mail: mazarynxyz@gmail.com
+##### If you're Interested to Joining on the Core team Connect via mail: mazaryn.biz@gmail.com
 
 To start your Phoenix server:
 
