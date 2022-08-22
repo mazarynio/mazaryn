@@ -52,6 +52,7 @@ defmodule MazarynWeb.Router do
     live("/profile/edit", UserLive.Profile, :edit)
     live("/posts", PostLive.Index)
     live("/dashboard", DashboardLive.Index)
+    live("/search", SearchLive.Index)
   end
 
   scope "/api" do
