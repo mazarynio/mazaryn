@@ -1,4 +1,4 @@
-defmodule UserComponent do
+defmodule MazarynWeb.SearchLive.Components.UserComponent do
   use Phoenix.LiveComponent
 
   def render(assigns) do
