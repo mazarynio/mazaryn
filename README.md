@@ -4,6 +4,9 @@
 
 ##### The Current Supported Prjocets: Aeternity, Polkadot & Kusama, Cardano
 
+![image](https://user-images.githubusercontent.com/59366270/186137266-931aa4be-9a85-44fe-b360-3b4c3c79ffae.png)
+
+
 ##### If you're Interested to Joining on the Core team Connect via mail: mazaryn.biz@gmail.com
 
 To start your Phoenix server:
