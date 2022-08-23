@@ -12,4 +12,8 @@ defmodule MazarynWeb.SearchLive.Index do
   defp user_info(email) do
     Users.one_by_email(email)
   end
+
+  defp users_by_search do
+
+  end
 end
