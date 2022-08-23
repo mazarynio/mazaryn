@@ -50,5 +50,11 @@
                  secret_phase,
                  transaction = []}).
 
+-record(ae_wallet, {address,
+                    mnemonic,
+                    balance,
+                    pub_key,
+                    priv_key}).
+
 
 -define(MSG_INSUFFICIENT_FUNDS, <<"Insufficient funds.">>).
