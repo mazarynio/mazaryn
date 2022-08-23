@@ -1,6 +1,8 @@
 # Mazaryn
 
-##### OpenSource Social Network which Empower users to benefits Form the Community on a Secure Platform
+##### OpenSource Social Network which Empower users to benefits Form the Blockchain Projects on a Secure Platform
+
+##### The Current Supported Prjocets: Aeternity, Polkadot & Kusama, Cardano
 
 ##### If you're Interested to Joining on the Core team Connect via mail: mazaryn.biz@gmail.com
 
