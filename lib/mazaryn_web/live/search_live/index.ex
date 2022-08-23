@@ -6,7 +6,14 @@ defmodule MazarynWeb.SearchLive.Index do
   @impl true
   def mount(_params, %{"user_id" => email} = _session, socket) do
     {:ok, user} = user_info(email)
-    {:ok, assign(socket, :user, user)}
+    found_users = []
+
+    socket =
+      socket
+      |> assign(:user, user)
+      |> assign(:found_users, found_users)
+
+    {:ok, socket}
   end
 
   defp user_info(email) do
@@ -14,6 +21,5 @@ defmodule MazarynWeb.SearchLive.Index do
   end
 
   defp users_by_search do
-
   end
 end
