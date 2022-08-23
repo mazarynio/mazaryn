@@ -3,10 +3,11 @@ defmodule MazarynWeb.SearchLive.Components.SearchTopNavigationComponent do
 
   def render(assigns) do
     ~H"""
-    <div class="w-full h-16 rounded-2xl bg-white flex items-center justify-between shadow px-2">
+    <div class="w-full h-16 rounded-2xl bg-white flex items-center justify-between shadow px-6">
       <%= for navigation <- search_top_navigations() do %>
-        <div class="py-2 px-5 rounded-md color-zinc-50 hover:bg-zinc-50" style="color: #AAAAAA;"><%= navigation %></div>
-        <!-- <div class="py-2 px-5 rounded-md bg-zinc-50"><%= navigation %></div> -->
+        <div class="py-2 px-5 rounded-md hover:bg-zinc-50" style="color: #aaaaaa;">
+          <%= navigation %>
+        </div>
       <% end %>
     </div>
     """
