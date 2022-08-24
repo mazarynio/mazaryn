@@ -1,5 +1,9 @@
 import Config
 
+config :mazaryn, :media,
+  uploads_dir: Path.expand("../uploads", __DIR__),
+  host: [scheme: "http", host: "localhost", port: 4000]
+
 # Configure your database
 config :mazaryn, Mazaryn.Repo,
   username: "postgres",
@@ -60,7 +64,7 @@ config :mazaryn, MazarynWeb.Endpoint,
 config :mazaryn, MazarynWeb.Endpoint,
   live_reload: [
     patterns: [
-      ~r"priv/static/[^uploads].*(js|css|png|jpeg|jpg|gif|svg)$",
+      ~r"priv/static/[?!uploads].*(js|css|png|jpeg|jpg|gif|svg)$",
       ~r"priv/gettext/.*(po)$",
       ~r"lib/mazaryn_web/(live|views)/.*(ex)$",
       ~r"lib/mazaryn_web/templates/.*(eex)$"

@@ -74,7 +74,10 @@ defmodule MazarynWeb.HomeLive.CreatePostComponent do
 
   defp consume_upload(socket) do
     consume_uploaded_entries(socket, :media, fn %{path: path}, entry ->
-      dest = Path.join("priv/static/uploads", "#{entry.uuid}.#{ext(entry)}")
+      dir = Mazaryn.config([:media, :uploads_dir])
+
+      dest = Path.join(dir, "#{entry.uuid}.#{ext(entry)}")
+      File.mkdir_p!(Path.dirname(dest))
       File.cp!(path, dest)
       {:ok, Routes.static_path(socket, "/uploads/#{Path.basename(dest)}")}
     end)
