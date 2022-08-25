@@ -64,7 +64,7 @@ if config_env() == :prod do
     secret_key_base: secret_key_base
 
   config :mazaryn, :media,
-    uploads_dir: "/app/uploads",
+    uploads_dir: "/app/bin/uploads",
     host: [scheme: "https", host: host, port: 443]
 
   # ## Configuring the mailer

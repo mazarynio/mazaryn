@@ -20,6 +20,10 @@ processes = []
   exec = []
 
 [[mounts]]
+ destination = "/app/bin/uploads"
+ source = "media_data"
+
+[[mounts]]
   destination = "/app/bin/Mnesia"
   encrypted = false
   processes = []

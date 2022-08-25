@@ -17,7 +17,7 @@ defmodule MazarynWeb.Endpoint do
   #
   # You should set gzip to true if you are running phx.digest
   # when deploying your static files in production.
-  from = if Mix.env() == :prod, do: "../app/uploads", else: "./uploads"
+  from = if Mix.env() == :prod, do: "/app/bin/uploads", else: "./uploads"
   plug(Plug.Static, at: "/uploads", from: from, gzip: false)
 
   plug(Plug.Static,
