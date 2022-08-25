@@ -3,20 +3,24 @@ defmodule MazarynWeb.SearchLive.Components.UserComponent do
 
   def render(assigns) do
     ~H"""
-    <div class="flex">
-      <div>picture</div>
-      <div class="flex flex-col">
-        <div>name</div>
-        <div>tag</div>
+    <div class="flex w-full justify-between items-center my-4">
+      <div class="mr-3">
+        <img class="h-9 w-9 object-cover rounded-full" src={@found_user.avatar_url}>
       </div>
-      <div>
-        <svg class="icon-close" width="12" height="12" viewBox="0 0 11 10" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M5.5416 5.00003L10.2297 9.36919M0.853516 9.36919L5.5416 5.00003L0.853516 9.36919ZM10.2297 0.630859L5.5407 5.00003L10.2297 0.630859ZM5.5407 5.00003L0.853516 0.630859L5.5407 5.00003Z" stroke="#5D5F63" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/>
+      <div class="flex grow flex-col">
+        <div>
+          <%= @found_user.username %>
+        </div>
+        <div class="text-slate-400 text text-sm">
+          <%= @found_user.media %>
+        </div>
+      </div>
+      <div class="flex items-center px-4 h-8 bg-blue-500 text-white rounded-md cursor-pointer">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" class="w-5 h-5 mr-1">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v6m3-3H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
-        <div>Follow</div>
+        <div class="text-sm">Follow</div>
       </div>
-
-      <%= @found_user %>
     </div>
     """
   end

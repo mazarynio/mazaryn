@@ -5,9 +5,9 @@ defmodule MazarynWeb.SearchLive.Components.UsersComponent do
 
   def render(assigns) do
     ~H"""
-    <div>
+    <div class="w-full px-6 py-6">
       <%= for found_user <- @found_users do %>
-        <.live_component module={UserComponent} found_user={found_user} />
+        <.live_component module={UserComponent} found_user={found_user} id={found_user.id} />
       <% end %>
     </div>
     """

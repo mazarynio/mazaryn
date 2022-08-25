@@ -48,9 +48,6 @@ defmodule Account.Users do
     end
   end
 
-  def list() do
-    Core.UserClient.get_all()
-  end
 
   def register(username, pass, email) do
     case UserClient.register(username, pass, email) do
