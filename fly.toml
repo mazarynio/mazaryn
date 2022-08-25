@@ -19,9 +19,10 @@ processes = []
   entrypoint = []
   exec = []
 
-[[mounts]]
- destination = "/app/bin/uploads"
- source = "media_data"
+# only one mount allowed per named process
+# [[mounts]]
+#  destination = "/app/bin/uploads"
+#  source = "media_data"
 
 [[mounts]]
   destination = "/app/bin/Mnesia"
