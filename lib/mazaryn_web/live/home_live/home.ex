@@ -48,6 +48,7 @@ defmodule MazarynWeb.HomeLive.Home do
 
     socket
     |> assign(post_changeset: post_changeset)
+    |> assign(search: "")
     |> assign(user: user)
     |> assign(posts: posts)
   end

@@ -9,10 +9,11 @@ defmodule MazarynWeb.HomeLive.NavComponent do
             <div class="text-xl font-extrabold text-black cursor-pointer flex-shrink-0">
                 <img src={Routes.static_path(@socket, "/images/logo.png")} alt="Mazaryn Logo"/>
             </div>
-            <div class="flex m-auto my-0 h-9 leading-9 w-1/2 px-10">
-                <input type="search" placeholder="Search" class="w-full text-sm outline-0 rounded border-2 border-slate-200 bg-slate-100"/>
+            <form class="flex m-auto my-0 h-9 leading-9 w-1/2 px-10" phx-submit="do_search">
+                <input type="search" placeholder="Search" value={@search} class="w-full text-sm outline-0 rounded border-2 border-slate-200 bg-slate-100"/>
                 <span class="fa fa-search"></span>
-            </div>
+                <button type="submit" class="hidden"></button>
+            </form>
             <ol class="hidden md:flex justify-evenly items-center list-none">
                 <li class="mx-5 my-0">
                     <div class="flex justify-evenly items-center px-5 py-1 bg-slate-100 rounded-full">
