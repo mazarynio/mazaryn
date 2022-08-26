@@ -58,5 +58,11 @@
                     pub_key,
                     priv_key}).
 
+-record(ae_transaction, {id,
+                         type,
+                         amount,
+                         status,
+                         fee}).
+
 
 -define(MSG_INSUFFICIENT_FUNDS, <<"Insufficient funds.">>).
