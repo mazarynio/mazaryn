@@ -1,7 +1,7 @@
 <div class="w-full bg-white white:bg-gray-800 shadow p-4 rounded-xl border">
     <div class="flex justify-between align-center items-center">
         <div class="flex justify-center items-center">
-            <img class="h-11 w-11 rounded-full" src={get_user_avatar(@post.author)}/>
+            <img class="h-11 w-11 rounded-full" src={get_user_avatar(@post.author)} />
             <div class="ml-1.5 text-sm leading-tight">
                 <span class="text-black font-medium block"><%= @post.author %></span>
                 <span class="text-gray-300 font-normal block">16hrs</span>
@@ -37,7 +37,7 @@
     <div class="border-gray-300 border border-b-0 my-1"></div>
     <div class="flex justify-between align-center items-center py-5">
         <div class="flex justify-center items-center">
-            <img class="h-11 w-11 rounded-full" src={Routes.static_path(@socket, "/images/profile-photo.svg")}/>
+            <img class="h-11 w-11 rounded-full" src={get_user_avatar(@post.author)} />
             <div class="ml-4 text-sm leading-tight">
                 <span class="text-gray-300 font-normal block">Write a comment</span>
             </div>
