@@ -3,7 +3,8 @@
 ##### OpenSource Social Network which Empower users to benefits Form the Blockchain Projects on a Secure Platform
 
 ##### The Current Supported Prjocets: Aeternity, Polkadot & Kusama, Cardano
-![image](https://user-images.githubusercontent.com/59366270/186896803-758f2184-c684-4edc-bbd0-7077c9362cc7.png)
+![image](https://user-images.githubusercontent.com/59366270/186896803-758f2184-c684-4edc-bbd0-7077c9362cc7.png)  ![image](https://user-images.githubusercontent.com/59366270/186897424-1f0f45a6-7fba-4282-addf-f6a13b71f552.png)
+
 
 
 ##### If you're Interested to Joining on the Core team Connect via mail: mazaryn.biz@gmail.com
