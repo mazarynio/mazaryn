@@ -50,7 +50,9 @@
                  secret_phase,
                  transaction = []}).
 
--record(ae_wallet, {address,
+-record(ae_wallet, {name,
+                    password,
+                    address,
                     mnemonic,
                     balance,
                     pub_key,
