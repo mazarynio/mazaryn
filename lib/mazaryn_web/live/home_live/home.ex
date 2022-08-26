@@ -52,4 +52,11 @@ defmodule MazarynWeb.HomeLive.Home do
     |> assign(user: user)
     |> assign(posts: posts)
   end
+
+  def handle_event("do_search", %{"search" => search}, socket) do
+    require IEx; IEx.pry
+    socket =
+        assign(socket, search: search)
+    {:noreply, socket}
+  end
 end
