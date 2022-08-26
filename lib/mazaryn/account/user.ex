@@ -31,6 +31,7 @@ defmodule Account.User do
   ]
 
   embedded_schema do
+    field(:form_disabled, :boolean)
     field(:username, :string)
     field(:email, :string)
     field(:password, :string, virtual: true)

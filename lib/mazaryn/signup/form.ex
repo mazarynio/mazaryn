@@ -57,7 +57,7 @@ defmodule Mazaryn.Signup.Form do
     password = changeset |> Ecto.Changeset.get_field(:password)
 
     case Core.UserClient.register(username, password, email) do
-      :ok ->
+      id when is_binary(id) ->
         %User{username: username, email: email, password: password}
 
       :username_existed ->
