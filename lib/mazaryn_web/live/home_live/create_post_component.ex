@@ -1,6 +1,7 @@
 defmodule MazarynWeb.HomeLive.CreatePostComponent do
   use MazarynWeb, :live_component
 
+  alias MazarynWeb.Live.Helper
   alias MazarynWeb.Component.SelectLive
   alias Mazaryn.Schema.Post
   alias Mazaryn.Posts
@@ -27,7 +28,12 @@ defmodule MazarynWeb.HomeLive.CreatePostComponent do
   defp handle_assign(socket) do
     socket
     |> assign(:uploaded_files, [])
-    |> allow_upload(:media, accept: ~w(.png .jpg .jpeg), max_entries: 2)
+    |> allow_upload(:media,
+      accept: ~w(.png .jpg .jpeg .mp4 .gif),
+      max_entries: 2,
+      max_file_size: 20_000_000,
+      chunk_size: 64_000 * 3
+    )
   end
 
   defp handle_save_post(socket, %{"post" => post_params} = _params) do

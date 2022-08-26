@@ -3,9 +3,10 @@ defmodule MazarynWeb.Live.Helper do
   import Phoenix.LiveView.Helpers
 
   alias MazarynWeb.Router.Helpers, as: Routes
-
   alias Phoenix.LiveView.JS
   require Logger
+
+  def handle_avatar(user), do: user.avatar_url || "images/default-user.svg"
 
   def is_disabled(changeset) do
     if Ecto.Changeset.get_field(changeset, :form_disabled) == true do

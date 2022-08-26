@@ -9,12 +9,7 @@
         class="flex flex-col justify-between align-center w-[95%] pt-[5px] pr-[10px] pl-[10px] pb-[20px] my-0 mx-auto"
     >
         <div class="flex relative items-center p-0">
-            <%= if @user.avatar_url do %>
-                <img src="https://placeimg.com/192/192/people" class="h-11 w-11  max-h-[40px] max-w-[40px] rounded-full"/>
-            <% else %>
-                <img alt="Default user" src={Routes.static_path(@socket, "/images/default-user.svg")} class="h-11 w-11  max-h-[40px] max-w-[40px]  rounded-full"/>
-            <% end %>
-            <%# <img class="h-11 w-11 rounded-full" src="https://placeimg.com/192/192/people" /> %>
+            <img src={Helper.handle_avatar(@user)} class="h-11 w-11  max-h-[40px] max-w-[40px] rounded-full"/>
             <div class="mt-[20px] ml-4 text-sm leading-tight w-full">
                 <%= textarea f, 
                     :content, 
@@ -31,8 +26,8 @@
                 <p class="alert alert-danger"> <%= Phoenix.Naming.humanize(msg) %> </p>
             <% end %>
 
-            <%= for entry <- @uploads.media.entries do %>
-                <div class="flex flex-row gap-4 justify-center align-center items-center mt-[30px]">
+            <div class="w-full grid grid-cols-6 gap-4 justify-center align-center items-center mt-[30px]">
+                <%= for entry <- @uploads.media.entries do %>
                     <div class="w-5/6">
                         <%= live_img_preview entry, class: "pb-2" %>
                         <progress max="100" value={entry.progress} class="w-full"/>
@@ -40,8 +35,8 @@
                     <div class="w-1/6"> 
                         <%= Heroicons.icon("x", class: "h-5 w-5 mr-3 fill-red-500 icon", phx_click: "cancel-entry", phx_value_ref: "#{entry.ref}", phx_target: @myself )  %>
                     </div>
-                </div>
-            <% end %>
+                <% end %>
+            </div>
         </div>
 
         <div class="flex flex-row justify-between items-center pt-[10px] px-0">
