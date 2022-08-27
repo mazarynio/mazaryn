@@ -55,10 +55,12 @@
                     address,
                     mnemonic,
                     balance,
+                    token,
                     pub_key,
                     priv_key}).
 
 -record(ae_transaction, {id,
+                         signature,
                          type,
                          amount,
                          status,
