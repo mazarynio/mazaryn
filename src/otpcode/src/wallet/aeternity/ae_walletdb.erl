@@ -1,12 +1,12 @@
 -module(ae_walletdb).
--export([insert/3, generate_new_address/1, get_address/1,
+-export([insert/4, generate_new_address/1, get_address/1,
  get_wallet/1, get_wallets/0, get_password/1, deposit/2, withdraw/2, generate_address/0]).
 
 -include("../../records.hrl").
 
 -define(WALLET_LENGTH, 40).
 
-insert(Name, Password, Size) ->
+insert(Name, Password, Size, Token) ->
     F = fun() ->
           Mnemonic = ebip39:generate_mnemonic(Size),
           Names = mnesia:all_keys(wallet),
@@ -18,6 +18,7 @@ insert(Name, Password, Size) ->
               Address = generate_address(),
               mnesia:write(#ae_wallet{name = Name,
                                password = erlpass:hash(Password),
+                               token = Token,
                                address = [Address],
                                mnemonic = Mnemonic,
                                balance = 0,

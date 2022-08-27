@@ -1,5 +1,5 @@
 -module(ae_wallet_server).
--export([start_link/0, create/3]).
+-export([start_link/0, create/4]).
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2,
   code_change/3]).
 
@@ -13,14 +13,14 @@ start_link() ->
   ?LOG_NOTICE("Aeternity Wallet server has been started - ~p", [self()]),
   gen_server:start_link({global, ?MODULE}, ?MODULE, [], []).
 
-create(Name, Password, Size) ->
-  gen_server:call({global, ?MODULE}, {create, Name, Password, Size}).
+create(Name, Password, Size, Token) ->
+  gen_server:call({global, ?MODULE}, {create, Name, Password, Size, Token}).
 
 init([]) ->
   {ok, []}.
 
-handle_call({create, Name, Password, Size}, _From, State) ->
-  Address = ae_walletdb:insert(Name, Password, Size),
+handle_call({create, Name, Password, Size, Token}, _From, State) ->
+  Address = ae_walletdb:insert(Name, Password, Size, Token),
   {reply, Address, State};
 
 handle_call(_Request, _From, State) ->
