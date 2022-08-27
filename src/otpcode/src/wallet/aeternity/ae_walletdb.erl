@@ -1,6 +1,7 @@
 -module(ae_walletdb).
 -export([insert/4, generate_new_address/1, get_address/1,
- get_wallet/1, get_wallets/0, get_password/1, deposit/2, withdraw/2, generate_address/0]).
+ get_wallet/1, get_wallets/0, get_password/1, deposit/2, withdraw/2, generate_address/0,
+ delete_wallet/1]).
 
 -include("../../records.hrl").
 
@@ -92,10 +93,17 @@ withdraw(Name, Amount) ->
           end
         end,
   {atomic, Res} = mnesia:transaction(Fun),
-  Res.
+  Res. 
 
 generate_address() ->
   Rand = crypto:strong_rand_bytes(?WALLET_LENGTH),
   Hash = crypto:hash(sha256, Rand),
   base58:binary_to_base58(Hash).
+
+delete_wallet(Name) ->
+    F = fun() ->
+        [Wallet] = mnesia:match_object(#ae_wallet{name = Name, _= '_'}),
+        mnesia:delete_object(Wallet)
+    end,
+    mnesia:activity(transaction, F).
 
