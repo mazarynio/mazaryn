@@ -96,6 +96,7 @@ defmodule MazarynWeb.SearchLive.Index do
     socket =
       socket
       |> assign(:user, user)
+      |> assign(:search, [])
       |> assign(:found_users, found_users)
 
     {:ok, socket}

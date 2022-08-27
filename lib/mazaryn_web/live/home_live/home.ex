@@ -48,7 +48,15 @@ defmodule MazarynWeb.HomeLive.Home do
 
     socket
     |> assign(post_changeset: post_changeset)
+    |> assign(search: "")
     |> assign(user: user)
     |> assign(posts: posts)
+  end
+
+  def handle_event("do_search", %{"search" => search}, socket) do
+    socket =
+        assign(socket , search: search)
+
+    {:noreply, socket |> push_redirect(to: Routes.live_path(socket, MazarynWeb.SearchLive.Index))}
   end
 end
