@@ -1,0 +1,36 @@
+<main>
+  <header class="bg-black shadow">
+    <div class="flex justify-between items-center max-w-[1440px] w-[90%] px-0 mx-auto py-6 md:px-4 sm:px-6 lg:px-8">
+      <h1 class="flex justify-left items-center text-2xl md:text-3xl leading-0 font-thin text-[#E5E5E5]"><img class="logo brightness-150 h-[42px] md:h-auto" src="images/logo.png" alt="Elixir Social Network" /><span class="ml-[10px]">Blog</span></h1>
+      <div>
+        <a class="hidden md:block justify-center text-[#D3D3D3] hover:text-[#fff]" href="/login">
+            Connect with Mazaryn
+        </a>
+        <div class="menuToggle md:hidden">
+          <input type="checkbox" phx-click={toggle_menu()} />
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+      </div>
+    </div>
+    <div class="menu-content w-[90%] mx-auto hidden">
+      <a class="justify-center text-[#D3D3D3] hover:text-[#fff]" href="/login">
+        Connect with Mazaryn
+      </a>
+    </div>
+
+  </header>
+
+  <div class="my-[40px] mx-0">
+    <div class="mx-auto max-w-[1280px] w-[90%] md:w-[80%]">
+      <a class="block my-[40px] border-radius-[20px] group cursor-pointer">
+          <div class="rounded-2xl">
+              <img class="rounded-2xl block border-[6px] opacity-70 transition-opacity group-hover:opacity-100" src="images/home-mazaryn-blog.jpg" alt="Mazaryn Blog" title="Mazaryn Blog" />
+          </div>
+          <span class="block text-xl md:text-2xl font-[600] text-blue-700 mt-[25px] mb-[15px] mx-0">Features & Technologies</span>
+          <h2 class="text-2xl md:text-4xl font-[700] leading-[2.25rem] md:leading-[2.8rem] text-black hover:text-blue-700">Mazaryn is an Smart and OpenSource Platform of Inspiration & innovation. We take Care of User's Privacy and Content's Quality to Make the Happier Moments.</h2>
+      </a>
+    </div>
+  </div>
+</main>

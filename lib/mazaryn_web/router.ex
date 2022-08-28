@@ -35,7 +35,7 @@ defmodule MazarynWeb.Router do
     live_session :default,
       on_mount: [MazarynWeb.UserLiveAuth] do
       live("/login", AuthLive.Login)
-
+      live("/blog", BlogLive.Index)
       live("/reset", AuthLive.Reset)
       live("/signup", AuthLive.Signup)
       live("/messages/:id", ChatLive.Index)
