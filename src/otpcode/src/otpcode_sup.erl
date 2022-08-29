@@ -55,6 +55,10 @@ start_link() ->
                                  {disc_copies, [node()]},
                                  {type, ordered_set}]),
 
+    mnesia:create_table(ae_wallet, [{attributes, record_info(fields, ae_wallet)},
+                                    {dic_copies, [node()]},
+                                    {type, ordered_set}]),
+
     mnesia:add_table_index(user, email),
 
     supervisor:start_link({local, ?SERVER}, ?MODULE, []).
@@ -91,7 +95,14 @@ init([]) ->
                     restart => permanent,
                     shutdown => 5000,
                     type => worker,
-                    modules => [wallet_server]}
+                    modules => [wallet_server]},
+
+                  #{id => ae_wallet_server,
+                    start => {ae_wallet_server, start_link, []},
+                    restart => permanent,
+                    shutdown => 5000,
+                    type => worker,
+                    modules => [ae_wallet_server]}
 
                   ],
     {ok, {SupFlags, ChildSpecs}}.
