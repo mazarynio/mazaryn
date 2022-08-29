@@ -1,4 +1,4 @@
-defmodule MazarynWeb.BlogLive.Index do
+defmodule MazarynWeb.BlogLive.Post.Index do
   use MazarynWeb, :live_view
 
   alias Phoenix.LiveView.JS
@@ -11,5 +11,6 @@ defmodule MazarynWeb.BlogLive.Index do
     js
     |> JS.toggle(to: ".menu-content", in: "fade-overflow")
   end
+
 
 end
