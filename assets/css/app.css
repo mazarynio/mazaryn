@@ -991,48 +991,101 @@
 
  /* Blog Post Page */
 
- .post .image-cover {
-  margin-bottom: 40px;
-  border-radius: 20px;
-  width: 100%;
+ .post-wrapper article {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    max-width: 1280px;
+    margin: 0 auto;
  }
 
- .post .lead p {
+ @media(max-width: 750px) {
+  .post-wrapper article {
+    grid-template-columns: unset;
+    grid-template-columns: unset;
+  }
+ }
+
+ .post__section .image-cover {
+  margin: 20px 0 60px;
+  border-radius: 20px;
+  width: 100%;
+  transform: scale(1.08);
+  aspect-ratio: 16 / 10;
+  object-fit: cover;
+ }
+
+
+ @media(max-width: 750px) {
+  .post__section .image-cover {
+    border-radius: 0;
+    margin: 0 0 40px;
+    transform: scale(1.2);
+  }
+ }
+
+ .post__section .lead p {
   font-size: 18px;
   color: #00008;
   opacity: 0.7;
-  padding: 10px 0;
+  padding: 20px 0;
  }
 
- .post .lead h3 {
+ .post__section .lead h3 {
   font-size: 28px;
   font-weight: 600;
   color: #1d4edb;
   padding: 40px 0 25px 0;
  }
 
- .post .lead ul {
-  list-style: disc;
+ @media(max-width: 750px) {
+  .post__section .lead h3 {
+    font-size: 24px;
+    padding: 30px 0 15px 0;
+   }
  }
 
- .post .lead ul li {
+ .post__section .lead ul {
+  list-style: disc;
+  list-style-position: outside; 
+  margin-left: 40px;
+ }
+
+ @media(max-width: 750px) {
+  .post__section .lead ul {
+    width: 88%;
+    margin-left: 30px;
+  }
+ }
+
+
+ .post__section .lead ul li {
   font-size: 18px;
   color: #000008bf;
-  margin: 10px 0;
+  margin: 30px 0;
  }
 
- .post .lead ul li::marker,
- .post .lead ol li::marker {
+ .post__section .lead ul li::marker,
+ .post__section .lead ol li::marker {
   color: #1d4edb;
  }
 
- .post .lead ol {
+ .post__section .lead ol {
   list-style: decimal;
+  margin-left: 40px;
+  list-style-position: outside; 
  }
 
- .post .lead ol li {
-  font-size: 18px;
+ @media(max-width: 750px) {
+  .post__section .lead ol {
+    width: 88%;
+    margin-left: 30px;
+    
+  }
+ }
+
+ .post__section .lead ol li {
+  font-size: 20px;
   color: #000008bf;
-  margin: 10px 0;
+  margin: 15px 0 0 0;
+  font-weight: 600;
  }
-

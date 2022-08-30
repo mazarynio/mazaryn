@@ -1,4 +1,4 @@
-defmodule MazarynWeb.BlogLive.Post.Index do
+defmodule MazarynWeb.BlogLive.Post.Mazaryn do
   use MazarynWeb, :live_view
 
   alias Phoenix.LiveView.JS

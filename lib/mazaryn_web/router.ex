@@ -36,7 +36,9 @@ defmodule MazarynWeb.Router do
       on_mount: [MazarynWeb.UserLiveAuth] do
       live("/login", AuthLive.Login)
       live("/blog", BlogLive.Index)
-      live("/blog/post", BlogLive.Post.Index)
+      live("/blog/mazaryn", BlogLive.Post.Mazaryn)
+      live("/blog/polkadot", BlogLive.Post.Polkadot)
+      live("/blog/kusama", BlogLive.Post.Kusama)
       live("/reset", AuthLive.Reset)
       live("/signup", AuthLive.Signup)
       live("/messages/:id", ChatLive.Index)
