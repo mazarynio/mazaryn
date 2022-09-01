@@ -1,11 +1,11 @@
 defmodule Account.UserNotifier do
-  use Phoenix.Swoosh, view: Sample.UserNotifierView
+  use Phoenix.Swoosh, view: MazarynWeb.UserNotifierView
 
   def welcome(user) do
     new()
     |> from("no-reply@mazaryn.io")
     |> to(user.email)
-    |> subject("Hello, Noble!")
+    |> subject("mail verification")
     |> render_body("welcome.html", %{name: name})
   end
 
