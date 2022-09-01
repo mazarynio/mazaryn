@@ -1,4 +1,13 @@
 defmodule Account.UserNotifier do
+  use Phoenix.Swoosh, view: Sample.UserNotifierView
+
+  def welcome(user) do
+    new()
+    |> from("no-reply@mazaryn.io")
+    |> to(user.email)
+    |> subject("Hello, Noble!")
+    |> render_body("welcome.html", %{name: name})
+  end
 
   defp deliver(to, body) do
     require Logger
