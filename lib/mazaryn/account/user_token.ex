@@ -11,6 +11,15 @@ defmodule Account.UserToken do
   @change_email_validity_in_days 7
   @session_validity_in_days 60
 
+  @optional_fields ~w(
+    sent_to
+  )a
+
+  @required_fields ~w(
+    token
+    context
+  )a
+
   embedded_schema do
     field(:token, :binary)
     field(:context, :string)
@@ -26,5 +35,15 @@ defmodule Account.UserToken do
       context: context,
       sent_to: sent_to
     })
+  end
+
+  def changeset(user_token, attrs \\ %{}) do
+    user_token
+    |> cast(attrs, @optional_fields ++ @required_fields)
+    |> validate_required(@required_fields)
+  end
+
+  def build(changeset) do
+    apply_action(changeset, :build)
   end
 end
