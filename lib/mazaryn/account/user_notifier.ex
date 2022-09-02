@@ -1,50 +1,65 @@
-# defmodule Account.UserNotifier do
-#   use Phoenix.Swoosh, view: MazarynWeb.UserNotifierView
+defmodule Account.UserNotifier do
+  import Swoosh.Email
 
-#   def welcome(user) do
-#     new()
-#     |> from("no-reply@mazaryn.io")
-#     |> to(user.email)
-#     |> subject("mail verification")
-#     |> render_body("welcome.html", %{name: name})
-#   end
+  alias Mazaryn.Mailer
 
-#   defp deliver(to, body) do
-#     require Logger
-#     Logger.debug(body)
-#     {:ok, %{to: to, body: body}}
-#   end
+  # Delivers the email using the application mailer.
+  defp deliver(recipient, subject, body) do
+    email =
+      new()
+      |> to(recipient)
+      |> from({"Mazaryn", "no-reply@mazaryn.io"})
+      |> reply_to("admin@mazaryn.io")
+      |> subject(subject)
+      |> text_body(body)
 
-#   def deliver_confirmation_instructions(user, url) do
-#     deliver(user.email, """
-#     ==============================
-#     Hi #{user.email},
-#     You can confirm your account by visiting the URL below:
-#     #{url}
-#     If you didn't create an account with us, please ignore this.
-#     ==============================
-#     """)
-#   end
+    with {:ok, _metadata} <- Mailer.deliver(email) do
+      {:ok, email}
+    end
+  end
 
-#   def deliver_reset_password_instructions(user, url) do
-#     deliver(user.email, """
-#     ==============================
-#     Hi #{user.email},
-#     You can reset your password by visiting the URL below:
-#     #{url}
-#     If you didn't request this change, please ignore this.
-#     ==============================
-#     """)
-#   end
 
-#   def deliver_update_email_instructions(user, url) do
-#     deliver(user.email, """
-#     ==============================
-#     Hi #{user.email},
-#     You can change your email by visiting the URL below:
-#     #{url}
-#     If you didn't request this change, please ignore this.
-#     ==============================
-#     """)
-#   end
-# end
+  @doc """
+  Deliver instructions to confirm account.
+  """
+  def deliver_confirmation_instructions(user, url) do
+    deliver(user.email, "Confirmation instructions", """
+    ==============================
+    Hi #{user.email},
+    You can confirm your account by visiting the URL below:
+    #{url}
+    If you didn't create an account with us, please ignore this.
+    ==============================
+    """)
+  end
+
+  @doc """
+  Deliver instructions to reset a user password.
+  """
+  def deliver_reset_password_instructions(user, url) do
+    deliver(user.email, "Reset password instructions", """
+    ==============================
+    Hi #{user.email},
+    You can reset your password by visiting the URL below:
+    #{url}
+    If you didn't request this change, please ignore this.
+    ==============================
+    """)
+  end
+
+  @doc """
+  Deliver instructions to update a user email.
+  """
+  def deliver_update_email_instructions(user, url) do
+    deliver(user.email, "Update email instructions", """
+    ==============================
+    Hi #{user.email},
+    You can change your email by visiting the URL below:
+    #{url}
+    If you didn't request this change, please ignore this.
+    ==============================
+    """)
+  end
+
+
+end
