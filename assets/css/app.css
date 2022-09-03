@@ -1009,7 +1009,7 @@
   margin: 20px 0 60px;
   border-radius: 20px;
   width: 100%;
-  transform: scale(1.08);
+  transform: scale(1.04);
   aspect-ratio: 16 / 10;
   object-fit: cover;
  }
@@ -1028,6 +1028,10 @@
   color: #00008;
   opacity: 0.7;
   padding: 20px 0;
+ }
+
+ .post__section a {
+  color: #3B8CFA;
  }
 
  .post__section .lead h3 {
