@@ -11,3 +11,4 @@ crate-type = ["cdylib"]
 
 [dependencies]
 rustler = "0.26.0"
+polkadot = { git = "https://github.com/paritytech/polkadot", branch = "master" }
