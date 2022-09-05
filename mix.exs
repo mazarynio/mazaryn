@@ -67,7 +67,9 @@ defmodule Mazaryn.MixProject do
 
       # Graphql APIs
       {:absinthe, "~> 1.7"},
-      {:absinthe_plug, "~> 1.5"}
+      {:absinthe_plug, "~> 1.5"},
+
+      {:rustler, "~> 0.26.0"}
     ]
   end
 
