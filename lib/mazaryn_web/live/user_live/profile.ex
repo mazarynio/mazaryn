@@ -22,6 +22,7 @@ defmodule MazarynWeb.UserLive.Profile do
       |> assign(post_changeset: post_changeset)
       |> assign(user_changeset: user_changeset)
       |> assign(user: user)
+      |> assign(search: nil)
 
     {:ok, socket}
   end
@@ -38,6 +39,7 @@ defmodule MazarynWeb.UserLive.Profile do
       |> assign(post_changeset: post_changeset)
       |> assign(user_changeset: User.changeset(%User{}))
       |> assign(user: user_info(email))
+      |> assign(search: nil)
 
     {:ok, socket}
   end

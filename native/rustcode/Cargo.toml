@@ -1,14 +1,14 @@
 [package]
-name = "rustcode"
-version = "0.1.0"
-authors = []
-edition = "2018"
+  name = "rustcode"
+  version = "0.1.0"
+  authors = []
+  edition = "2018"
 
 [lib]
-name = "rustcode"
-path = "src/lib.rs"
-crate-type = ["cdylib"]
+  name = "rustcode"
+  path = "src/lib.rs"
+  crate-type = ["cdylib"]
 
 [dependencies]
-rustler = "0.26.0"
-polkadot = { git = "https://github.com/paritytech/polkadot", branch = "master" }
+  rustler = "0.26.0"
+  polkadot = { git = "https://github.com/paritytech/polkadot", branch = "master" }

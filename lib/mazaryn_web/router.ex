@@ -54,7 +54,9 @@ defmodule MazarynWeb.Router do
     pipe_through(:restricted)
     live("/home", HomeLive.Home)
     live("/coins", CoinLive.Index)
+    # profile
     live("/profile", UserLive.Profile)
+    live("/profile/:user_id", UserLive.Profile.Show)
     live("/profile/edit", UserLive.Profile, :edit)
     live("/posts", PostLive.Index)
     live("/dashboard", DashboardLive.Index)

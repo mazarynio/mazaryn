@@ -105,5 +105,4 @@ defmodule MazarynWeb.HomeLive.NavComponent do
     </div>
     """
   end
-
 end

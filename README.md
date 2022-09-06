@@ -2,7 +2,7 @@
 
 ##### OpenSource Social Network which Empower users to benefits Form the Blockchain Projects on a Secure Platform
 
-##### The Current Supported Prjocets: Aeternity, Polkadot & Kusama, Cardano
+##### The Current Supported Projects: Aeternity, Polkadot & Kusama, Cardano
  ![image](https://user-images.githubusercontent.com/59366270/186899335-8d643e93-6f69-4ae9-8079-ebe2670d474b.png)
  ![image](https://user-images.githubusercontent.com/59366270/186899239-0e5be8cf-ad6b-478a-b2c1-698fe7295bb2.png)
  ![image](https://user-images.githubusercontent.com/59366270/186899085-265ee32e-5b39-431a-b62e-3d490e572991.png)

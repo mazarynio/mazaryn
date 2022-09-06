@@ -1,0 +1,98 @@
+
+<.live_component module={MazarynWeb.HomeLive.NavComponent} id="navigation" user={@user} search={@search} />
+
+<div class="flex flex-wrap h-screen">
+  <div class="w-full lg:w-1/6 bg-gray-100 py-10 pl-10">
+    <.live_component module={MazarynWeb.HomeLive.LeftSidebarComponent} id="leftside" user={@user} />
+  </div>
+
+  <div class="w-full lg:w-5/6 bg-gray-100 px-10">
+    <div class="relative block" style="height: 300px;">
+      <%= if @user.avatar_url do %>
+        <div class="w-full h-full bg-center bg-cover rounded-b-3xl"
+        style='background-image: url("https://images.unsplash.com/photo-1499336315816-097655dcfbda?ixlib=rb-1.2.1&amp;ixid=eyJhcHBfaWQiOjEyMDd9&amp;auto=format&amp;fit=crop&amp;w=2710&amp;q=80");'>
+        </div>
+      <% else %>
+        <div class="w-full h-full bg-center bg-cover rounded-b-3xl bg-gray-400"> </div>
+      <% end %>
+    </div>
+
+    <div class="relative flex flex-col bg-white w-full mb-6 mt-8 shadow-xl rounded-3xl">
+      <div class="flex flex-wrap justify-center">
+        <div class="w-full lg:w-2/12 lg:order-1 flex justify-center">
+          <div class="relative">
+            <%= if @user.avatar_url do %>
+              <img alt="..." src="https://placeimg.com/192/192/people"
+              class="shadow-xl rounded-full h-auto align-middle border-none absolute -m-16 -ml-20 lg:-ml-20 ring-8 ring-gray-100"
+              style="max-width: 150px;" />
+            <% else %>
+                <img alt="Default user" src={Routes.static_path(@socket, "/images/default-user.svg")} class="rounded-full bg-gray-100 h-auto align-middle border-none absolute -m-16 -ml-20 lg:-ml-20 ring-8 ring-gray-100"
+                style="max-width: 150px;"/>
+            <% end %>
+          </div>
+        </div>
+
+        <div class="w-full lg:w-6/12 lg:order-2 px-2 pt-6">
+          <div class="mr-4 p-3 text-left">
+            <span class="text-xl font-bold block tracking-wide text-gray-700"><%=@user.username%>
+                  <a class="ml-4 text-sm font-medium ">@<%=@user.username%></a>
+            </span>
+            <span class="text-sm"> Bitcoin Design Contributor | UI/UX Designer</span>
+          </div>
+        </div>
+
+        <div class="w-full lg:w-3/12 px-4 lg:order-3 lg:text-right lg:self-center">
+          <div class="py-6 px-3 mt-32 sm:mt-0">
+            <button phx-click="follow_user" phx-value-username={"#{@user.username}"} type="button" class="py-2.5 px-5  mb-2 text-sm font-medium text-white focus:outline-none bg-blue-700 rounded-lg border border-gray-200 hover:bg-white hover:text-gray-700 focus:z-10 focus:ring-4 focus:ring-gray-200">Follow</button>
+          </div>
+        </div>
+      </div>
+      <div class="flex p-4">
+        <div class="mr-8 p-3 text-center flex">
+          <i><%= Heroicons.icon("location-marker", class: "h-5 w-5 mr-2") %> </i>
+          <a class="font-bold text-gray-700 mr-1"><%= if @user.country do @user.country else "N/A" end %></a>
+        </div>
+        <div class="mr-8 p-3 text-center flex">
+          <i><%= Heroicons.icon("newspaper", class: "h-5 w-5 mr-2") %> </i>
+          <a class="font-bold text-gray-700 mr-1"><%= length(@user.posts) %></a>
+          <a class="text-gray-500">Posts</a>
+        </div>
+        <div class="mr-8 p-3 text-center flex">
+          <i><%= Heroicons.icon("users", class: "h-5 w-5 mr-2") %> </i>
+          <a class="font-bold text-gray-700 mr-1"><%= length(@user.following) %></a>
+          <a class="text-gray-500">Followings</a>
+        </div>
+        <div class="p-3 text-center flex">
+          <i><%= Heroicons.icon("users", class: "h-5 w-5 mr-2") %> </i>
+          <a class="font-bold text-gray-700 mr-1"><%= length(@user.follower) %></a>
+          <a class="text-gray-500">Followers</a>
+        </div>
+      </div>
+
+    </div>
+
+
+    <div class="flex flex-wrap h-screen ">
+      <div class="w-full lg:w-3/5 bg-gray-100">
+        <ul class="flex flex-wrap text-sm font-medium text-center text-gray-500 bg-white white:bg-gray-800 rounded-xl border">
+          <li class="w-full lg:w-1/5">
+            <a href="#" aria-current="page" class="inline-block p-4 text-blue-600 bg-gray-100  active ">TIMELINE</a>
+          </li>
+          <li class="w-full lg:w-1/5">
+            <a href="#" class="inline-block p-4 hover:text-gray-600 hover:bg-gray-50">PHOTO</a>
+          </li>
+          <li class="w-full lg:w-1/5">
+            <a href="#" class="inline-block p-4 hover:text-gray-600 hover:bg-gray-50">VIDEO</a>
+          </li>
+          <li class="w-full lg:w-1/5">
+            <a href="#" class="inline-block p-4 hover:text-gray-600 hover:bg-gray-50">TAGGED</a>
+          </li>
+          <li class="w-full lg:w-1/5">
+            <a href="#" class="inline-block p-4 hover:text-gray-600 hover:bg-gray-50">INTEREST</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+

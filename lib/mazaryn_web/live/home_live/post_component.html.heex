@@ -3,7 +3,8 @@
         <div class="flex justify-center items-center">
             <img class="h-11 w-11 rounded-full" src={get_user_avatar(@post.author)} />
             <div class="ml-1.5 text-sm leading-tight">
-                <span class="text-black font-medium block"><%= @post.author %></span>
+                <%= live_patch @post.author, to: Routes.live_path(@socket, MazarynWeb.UserLive.Profile.Show, @post.author), class: "text-black font-medium block" %>
+                <%# <span class="text-black font-medium block"><%= @post.author %1></span> %>
                 <span class="text-gray-300 font-normal block">16hrs</span>
             </div>
         </div>

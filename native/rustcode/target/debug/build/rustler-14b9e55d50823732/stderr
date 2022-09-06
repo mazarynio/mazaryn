@@ -1,0 +1,1 @@
+RUSTLER_NIF_VERSION env var is not set. Using version from Erlang: 2.16
