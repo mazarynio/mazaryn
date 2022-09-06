@@ -13,7 +13,8 @@
          get_save_posts/1,
          change_username/3, change_password/3, change_email/3,
          get_following/1, get_follower/1,
-         block/2, unblock/2, get_blocked/1, add_media/3, get_media/2]).
+         block/2, unblock/2, get_blocked/1, add_media/3, get_media/2,
+         search_user_pattern/1]).
 
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2,
@@ -117,6 +118,8 @@ add_media(Username, MediaType, Url) ->
 get_media(Username, MediaType) ->
     gen_server:call({global, ?MODULE}, {get_media, Username, MediaType}).
 
+search_user_pattern(Pattern) ->
+    gen_server:call({global, ?MODULE}, {search_user_pattern, Pattern}).
 %% INTERNAL HANDLERS
 
 init([]) ->
@@ -242,6 +245,10 @@ handle_call({add_media, Username, MediaType, Url}, _From, State) ->
 
 handle_call({get_media, Username, MediaType}, _From, State) ->
     Res = userdb:get_media(Username, MediaType),
+    {reply, Res, State};
+
+handle_call({search_user_pattern, Pattern}, _From, State) ->
+    Res = userdb:search_user_pattern(Pattern),
     {reply, Res, State};
 
 handle_call(_Request, _From, State) ->

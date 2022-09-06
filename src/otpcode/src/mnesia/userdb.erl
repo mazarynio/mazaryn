@@ -10,7 +10,9 @@
          follow/2, unfollow/2, follow_multiple/2, unfollow_multiple/2,
          save_post/2, save_posts/2, unsave_post/2, unsave_posts/2,
          get_save_posts/1, get_follower/1, get_following/1,
-         block/2, unblock/2, get_blocked/1]).
+         block/2, unblock/2, get_blocked/1, search_user_pattern/1]).
+
+-define(LIMIT_SEARCH, 50).
 
 %%% check user credentials
 -spec login(Email :: term(), Password :: term()) -> wrong_email_or_password | logged_in.
@@ -374,3 +376,22 @@ get_blocked(Username) ->
         end,
   {atomic, Res} = mnesia:transaction(Fun),
   Res.
+
+search_user_pattern(Pattern) ->
+    Fun = fun() ->
+          mnesia:all_keys(user)
+        end,
+
+  {atomic, Names} = mnesia:transaction(Fun),
+  search_user_pattern(Pattern, Names, ?LIMIT_SEARCH, []).
+
+
+search_user_pattern(_Pattern, [], ?LIMIT_SEARCH, Acc) -> Acc;
+search_user_pattern(_Pattern, _Names, ?LIMIT_SEARCH, Acc) when ?LIMIT_SEARCH == length(Acc) -> Acc;
+search_user_pattern(Pattern, [H|T]= _Names, ?LIMIT_SEARCH, Acc) ->
+  case re:run(H, Pattern, [caseless]) of
+    nomatch ->
+      search_user_pattern(Pattern, T, ?LIMIT_SEARCH, Acc);
+    {match, _} ->
+      search_user_pattern(Pattern, T, ?LIMIT_SEARCH, [H|Acc])
+  end.
