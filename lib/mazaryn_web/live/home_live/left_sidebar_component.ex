@@ -8,7 +8,7 @@ defmodule MazarynWeb.HomeLive.LeftSidebarComponent do
       <div class="flex justify-between align-center items-center py-5">
         <div class="flex justify-center items-center">
             <ul class="">
-                <%= live_patch to: Routes.live_path(@socket, MazarynWeb.HomeLive.Home), replace: false, class: "flex align-center items-center text-l px-2 py-4 text-gray-500 font-semibold hover:text-blue-500" do %>
+                <%= live_redirect to: Routes.live_path(@socket, MazarynWeb.HomeLive.Home), replace: false, class: "flex align-center items-center text-l px-2 py-4 text-gray-500 font-semibold hover:text-blue-500" do %>
                     <i><%= Heroicons.icon("home", class: "h-5 w-5 mr-3") %></i>
                     Home
                     <% end %>
