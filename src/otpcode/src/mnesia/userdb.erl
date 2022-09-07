@@ -301,11 +301,14 @@ get_following(Id) ->
   end.
 
 get_follower(Id) ->
-  {atomic, Res} = mnesia:transaction(fun() ->
-                                      [User] = mnesia:read(user, Id),
-                                      User#user.follower
-                                     end),
-  Res.
+  Res = mnesia:transaction(fun() ->
+                               mnesia:match_object(#user{id = Id, _= '_'})
+                           end),
+  case Res of 
+    {atomic, []} -> user_not_exist;
+    {atomic, [User]} -> User#user.follower;
+    _ -> error
+  end.
 
 get_user_info(Username, Fields) ->
   Fun = fun() ->

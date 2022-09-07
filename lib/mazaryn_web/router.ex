@@ -56,7 +56,7 @@ defmodule MazarynWeb.Router do
     live("/coins", CoinLive.Index)
     # profile
     live("/profile", UserLive.Profile)
-    live("/profile/:user_id", UserLive.Profile.Show)
+    live("/profile/:username", UserLive.Profile.Show)
     live("/profile/edit", UserLive.Profile, :edit)
     live("/posts", PostLive.Index)
     live("/dashboard", DashboardLive.Index)

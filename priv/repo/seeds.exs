@@ -12,12 +12,16 @@
 
 alias Mazaryn.Signup.Form
 
-params = %{
-  email: "user2@example.com",
-  password: "password!123!",
-  password_confirmation: "password!123!",
-  accepts_conditions: true
-}
+1..10
+|> Enum.each(fn number ->
+  params = %{
+    username: "user#{number}",
+    email: "user#{number}@example.com",
+    password: "password!123!",
+    password_confirmation: "password!123!",
+    accepts_conditions: true
+  }
 
-Form.changeset(%Form{}, params)
-|> Form.create_user()
+  Form.changeset(%Form{}, params)
+  |> Form.create_user()
+end)

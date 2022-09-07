@@ -52,10 +52,28 @@ defmodule Core.UserClient do
     :user_server.delete_user(username)
   end
 
+  @doc """
+  follow a specific profile
+
+    iex> id = 1234
+    iex> following = username1234
+    iex> follow(id, following)
+    :ok
+  """
+  @spec follow(Binary.t(), String.t()) :: :ok | any()
   def follow(id, following) do
     :user_server.follow(id, following)
   end
 
+  @doc """
+  unfollow a specific profile
+
+    iex> id = 1234
+    iex> following = username1234
+    iex> unfollow(id, following)
+    :ok
+  """
+  @spec unfollow(Binary.t(), String.t()) :: :ok | any()
   def unfollow(id, following) do
     :user_server.unfollow(id, following)
   end
