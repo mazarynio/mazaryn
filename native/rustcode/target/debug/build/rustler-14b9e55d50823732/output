@@ -1,5 +1,0 @@
-cargo:rustc-cfg=nif_version_2_14
-cargo:rustc-cfg=nif_version_2_15
-cargo:rustc-cfg=nif_version_2_16
-cargo:rerun-if-changed=build.rs
-cargo:rerun-if-env-changed=RUSTLER_NIF_VERSION
