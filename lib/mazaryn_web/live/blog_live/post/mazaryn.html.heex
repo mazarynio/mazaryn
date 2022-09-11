@@ -42,7 +42,7 @@
 
 <%# Post Is Here %>
 
-<div class="post-wrapper w-[90%] md:w-[100%] mx-auto py-[30px] md:px-[6rem] md:py-[60px]">
+<div class="post-wrapper max-w-[1440px] w-[95%] md:w-[100%] mx-auto py-[30px] md:px-[4rem] md:py-[60px]">
     <article>
         <dl class="md:mt-[80px]">
             <dd class="flex items-center space-x-3 mb-7">
@@ -57,8 +57,8 @@
             </dd>
            
         </dl>
-        <section class="post__section relative md:w-[90%] max-w-[800px] md:w-[70%] mx-auto">
-            <div class="">
+        <section class="post__section relative w-[100%] md:w-[80%] max-w-[800px] mx-auto">
+            <div>
                 <div class="flex items-center">
                     <a href="/blog" class="cursor-pointer text-sm font-[500] uppercase text-blue-500">Blog</a>
                     <span class="text-[#000008] opacity-70 text-sm font-[500] mx-2">/</span>
@@ -70,9 +70,8 @@
             </div>
             <img class="image-cover" src="../images/home-mazaryn-blog.jpg" alt="" title="" />
             <div class="lead">
-                <p>Mazaryn is an Smart and OpenSource Platform of Inspiration & innovation. We take Care of User's Privacy and Content's Quality to Make the Happier Moments,
-                    Mazaryn was founded in 2022 by Arvand Azadvar, Dat Huynh and Paulo Riosa.</p>
-                 <%# Google in-article Ad %>
+                <p>Mazaryn is an Smart and OpenSource Platform of Inspiration & innovation. We take Care of User's Privacy and Content's Quality to Make the Happier Moments.</p>
+                <%# Google in-article Ad %>
                 <div id="adswrapper2" phx-update="ignore">
                     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5319093423466090" crossorigin="anonymous"></script>
                     <ins class="adsbygoogle"
@@ -87,7 +86,21 @@
                 </div>
             </div>
         </section>
-        <dl>
+        <dl class="hidden md:block md:w-[100%]">
+            <div class="block top-0 sticky w-[300px]" id="adswrapperaside" phx-update="ignore">
+               <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5319093423466090"
+                    crossorigin="anonymous"></script>
+                <!-- mazaryn-display -->
+                <ins class="adsbygoogle"
+                    style="display:block"
+                    data-ad-client="ca-pub-5319093423466090"
+                    data-ad-slot="1536507325"
+                    data-ad-format="auto"
+                    data-full-width-responsive="true"></ins>
+                <script>
+                    (adsbygoogle = window.adsbygoogle || []).push({});
+                </script>
+            </div>
         </dl>
     </article>
 </div>
