@@ -66,5 +66,10 @@
                          status,
                          fee}).
 
+-record(nft, {
+    music,
+    art
+}).
+
 
 -define(MSG_INSUFFICIENT_FUNDS, <<"Insufficient funds.">>).
