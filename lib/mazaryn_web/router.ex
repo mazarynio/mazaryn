@@ -43,6 +43,7 @@ defmodule MazarynWeb.Router do
       live("/blog/aeternity", BlogLive.Post.Aeternity)
       live("/blog/joy-of-elixir-and-phoenix", BlogLive.Post.Joyofelixirandphoenix)
       live("/blog/nft", BlogLive.Post.NFT)
+      live("/blog/phoenix-and-absinthe", BlogLive.Post.Phoenixandabsinthe)
       live("/reset", AuthLive.Reset)
       live("/signup", AuthLive.Signup)
       live("/messages/:id", ChatLive.Index)
