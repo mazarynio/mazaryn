@@ -17,6 +17,11 @@
 //
 //     import "some-package"
 //
+// import Alpine
+import Alpine from "alpinejs";
+// Add this before your liveSocket call.
+window.Alpine = Alpine;
+Alpine.start();
 
 // Include phoenix_html to handle method=PUT/DELETE in forms and buttons.
 import "phoenix_html";
@@ -39,8 +44,6 @@ let liveSocket = new LiveSocket("/live", Socket, {
 topbar.config({ barColors: { 0: "#29d" }, shadowColor: "rgba(0, 0, 0, .3)" });
 window.addEventListener("phx:page-loading-start", (info) => topbar.show());
 window.addEventListener("phx:page-loading-stop", (info) => topbar.hide());
-
-
 
 // connect if there are any LiveViews on the page
 liveSocket.connect();
