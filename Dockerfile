@@ -52,6 +52,9 @@ COPY lib lib
 
 COPY src src
 
+RUN npm install \
+  alpinejs \
+
 COPY assets assets
 
 # compile assets
