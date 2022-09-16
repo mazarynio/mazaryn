@@ -15,6 +15,8 @@ defmodule MazarynWeb.UserLive.Profile.Show do
         %{"session_uuid" => session_uuid} = _session,
         socket
       ) do
+    {:ok, current_user} = Users.get_by_session_uuid(session_uuid)
+
     post_changeset = Post.changeset(%Post{})
     user_changeset = User.changeset(%User{})
 
@@ -26,13 +28,14 @@ defmodule MazarynWeb.UserLive.Profile.Show do
       |> assign(post_changeset: post_changeset)
       |> assign(user_changeset: user_changeset)
       |> assign(user: user)
+      |> assign(current_user: current_user)
 
     {:ok, socket}
   end
 
   @impl true
   def handle_params(%{"username" => username} = _params, _uri, socket) do
-    current_user = socket.assigns.user
+    current_user = socket.assigns.current_user
     post_changeset = Post.changeset(%Post{})
     user_changeset = User.changeset(%User{})
 
@@ -45,6 +48,7 @@ defmodule MazarynWeb.UserLive.Profile.Show do
       |> assign(user_changeset: user_changeset)
       |> assign(user: user)
       |> assign(search: nil)
+      |> assign(current_user: current_user)
       |> handle_assigns(current_user.id, username)
 
     {:noreply, socket}
@@ -52,13 +56,13 @@ defmodule MazarynWeb.UserLive.Profile.Show do
 
   @impl true
   def handle_event("follow_user", %{"username" => username}, socket) do
-    user_id = socket.assigns.user.id
+    user_id = socket.assigns.current_user.id
     UserClient.follow(user_id, username)
     {:noreply, handle_assigns(socket, user_id, username)}
   end
 
   def handle_event("unfollow_user", %{"username" => username}, socket) do
-    user_id = socket.assigns.user.id
+    user_id = socket.assigns.current_user.id
     UserClient.unfollow(user_id, username)
     {:noreply, handle_assigns(socket, user_id, username)}
   end
