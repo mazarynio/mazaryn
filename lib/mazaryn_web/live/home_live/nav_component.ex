@@ -32,22 +32,26 @@ defmodule MazarynWeb.HomeLive.NavComponent do
                     </div>
                 </li>
                 <li class="mx-5 my-0">
-                    <div class="relative inline-block text-left">
-                        <div>
-                          <button phx-click={Phoenix.LiveView.JS.toggle(to: ".dropdown-menu", in: "fade-in-scale", out: "fade-out-scale")} type="button" class="dropdown inline-flex justify-center w-full rounded-md border border-slate-100 shadow-sm px-4 py-1.5 bg-slate-100 text-sm font-medium text-gray-700 flex-shrink-0 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-100 focus:ring-indigo-500 items-center" id="menu-button" aria-expanded="true" aria-haspopup="true">
+                    <div x-data="{ open: false, toggle() { this.open = ! this.open } }" class="relative inline-block text-left">
+                          <button @click="toggle()" type="button" class="dropdown inline-flex justify-center w-full rounded-md border border-slate-100 shadow-sm px-4 py-1.5 bg-slate-100 text-sm font-medium text-gray-700 flex-shrink-0 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-100 focus:ring-indigo-500 items-center" id="menu-button" aria-expanded="true" aria-haspopup="true">
                             <div class="rounded-full pr-6 flex-shrink-0">
                             <%= if @user.avatar_url do %>
                                 <img src="https://placeimg.com/192/192/people" class="w-6 rounded-full"/>
                             <% else %>
                                 <img alt="Default user" src={Routes.static_path(@socket, "/images/default-user.svg")} class="w-6 rounded-full"/>
                             <% end %>
-                            <%# <img src="https://placeimg.com/192/192/people" class="w-6 rounded-full"/> %>
                             </div>
                             <%= @user.username %>
                             <i><%= Heroicons.icon("chevron-down", class: "-mr-1 ml-2 h-5 w-5") %> </i>
                           </button>
-                        </div>
-                        <div class="dropdown-menu hidden origin-top-right absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 divide-y divide-gray-100 focus:outline-none"  role="menu" aria-orientation="vertical" aria-labelledby="menu-button" tabindex="-1">
+                          <div x-show="open"
+                                x-transition:enter="transition ease-out duration-200"
+                                x-transition:enter-start="opacity-0"
+                                x-transition:enter-end="opacity-100"
+                                x-transition:leave="transition ease-in duration-200"
+                                x-transition:leave-start="opacity-100"
+                                x-transition:leave-end="opacity-0"
+                          class="origin-top-right absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 divide-y divide-gray-100 focus:outline-none"  role="menu" aria-orientation="vertical" aria-labelledby="menu-button" tabindex="-1">
                             <div class="py-1" role="none">
                               <%= link to: Routes.live_path(@socket, MazarynWeb.UserLive.Profile),  class: "text-gray-700 block px-4 py-2 text-sm", role: "menuitem", tabindex: "-1", id: "menu-item-0" do %>
                                     <div class="flex">
@@ -57,7 +61,6 @@ defmodule MazarynWeb.HomeLive.NavComponent do
                                             <% else %>
                                                 <img alt="Default user" src={Routes.static_path(@socket, "/images/default-user.svg")} class="h-9 w-9 rounded-full"/>
                                             <% end %>
-                                            <%# <img src="https://placeimg.com/192/192/people" class="h-5 w-5 rounded-full"/> %>
                                         </div>
                                         <div class="flex flex-col">
                                             <h1><%= @user.username %></h1>
@@ -75,10 +78,9 @@ defmodule MazarynWeb.HomeLive.NavComponent do
             </ol>
             <!-- Mobile menu button -->
             <div class="md:hidden flex items-center">
-                <button  phx-click={Phoenix.LiveView.JS.toggle(to: ".mobile-menu", in: "fade-in-scale", out: "fade-out-scale")} class="outline-none mobile-menu-button">
+                <button phx-click={Phoenix.LiveView.JS.toggle(to: ".mobile-menu", in: "fade-in-scale", out: "fade-out-scale")} class="outline-none mobile-menu-button">
                     <svg
                         class="w-6 h-6 text-gray-500"
-                        x-show="!showMenu"
                         fill="none"
                         stroke-linecap="round"
                         stroke-linejoin="round"

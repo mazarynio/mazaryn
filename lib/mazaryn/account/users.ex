@@ -8,6 +8,34 @@ defmodule Account.Users do
   alias Mazaryn.Mailer
   require Logger
 
+  def signing_salt do
+    salt = MazarynWeb.Endpoint.config(:live_view)[:signing_salt]
+
+    salt ||
+      raise MazarynWeb.AuthenticationError, message: "missing signing_salt"
+  end
+
+  def get_by_session_uuid(session_uuid) do
+    case :ets.lookup(:mazaryn_auth_table, :"#{session_uuid}") do
+      [{_, token}] ->
+        token
+        |> verify_token()
+        |> one_by_email()
+
+      _ ->
+        nil
+    end
+  end
+
+  def verify_token(token) do
+    MazarynWeb.Endpoint
+    |> Phoenix.Token.verify(signing_salt(), token, max_age: 806_400)
+    |> case do
+      {:ok, email} -> email
+      _ -> nil
+    end
+  end
+
   @spec one_by_username(keyword) :: %User{} | nil
   def one_by_username(username) do
     case Core.UserClient.get_user(username) do
