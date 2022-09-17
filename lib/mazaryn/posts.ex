@@ -44,6 +44,24 @@ defmodule Mazaryn.Posts do
     end
   end
 
+  def get_posts_by_author(author) do
+    case PostClient.get_posts_by_author(author) do
+      posts when is_list(posts) ->
+        for post <- posts do
+          {:ok, post} =
+            post
+            |> Post.erl_changeset()
+            |> Post.build()
+
+          post
+        end
+        |> Enum.sort_by(& &1.date_created, &>=/2)
+
+      _ ->
+        Logger.error("handle here")
+    end
+  end
+
   def get_home_posts do
     case PostClient.get_posts() do
       posts when is_list(posts) ->
