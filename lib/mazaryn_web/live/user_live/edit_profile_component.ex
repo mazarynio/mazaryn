@@ -5,13 +5,26 @@ defmodule MazarynWeb.UserLive.EditProfileComponent do
   alias Phoenix.LiveView.JS
 
   @impl true
-  def mount(_params, _session, socket) do
+  def mount(socket) do
     {:ok, socket}
+  end
+
+  def handle_event("validate", _params, socket) do
+    {:noreply, socket}
+  end
+
+  def handle_event("save", params, socket) do
+    {:noreply, socket}
+  end
+
+  def preload(list_of_assigns) do
+    Enum.map(list_of_assigns, fn assigns ->
+      assigns
+    end)
   end
 
   def toggle_tab1(js \\ %JS{}) do
     js
-    |> IO.inspect()
     |> JS.remove_class("acc-active", to: ".js--accordion.acc-2", transition: "fade-out-scale")
     |> JS.remove_class("acc-active", to: ".js--accordion.acc-3", transition: "fade-out-scale")
     |> JS.add_class("acc-active", to: ".js--accordion.acc-1", transition: "ease-in duration-300")
@@ -19,7 +32,6 @@ defmodule MazarynWeb.UserLive.EditProfileComponent do
 
   def toggle_tab2(js \\ %JS{}) do
     js
-    |> IO.inspect()
     |> JS.remove_class("acc-active", to: ".js--accordion.acc-1", transition: "fade-out-scale")
     |> JS.remove_class("acc-active", to: ".js--accordion.acc-3", transition: "fade-out-scale")
     |> JS.add_class("acc-active", to: ".js--accordion.acc-2", transition: "ease-in duration-300")

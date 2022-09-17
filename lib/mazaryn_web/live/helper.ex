@@ -134,12 +134,18 @@ defmodule MazarynWeb.Live.Helper do
     end
   end
 
+  @doc """
+  <button phx-click={Phoenix.LiveView.JS.toggle(to: "#modal")}>Open Modal</button>
+
+
+  <.modal>
+    ...content
+  </modal>
+  """
   @impl true
   def modal(assigns) do
-    assigns = assign_new(assigns, :return_to, fn -> nil end)
-
     ~H"""
-    <div id="modal" class="phx-modal fade-in" phx-remove={hide_modal()}>
+    <div id="modal" class="hidden phx-modal fade-in" phx-remove={hide_modal()}>
       <div
         id="modal-content"
         class="phx-modal-content fade-in-scale mx-auto border-[#888] border-0 md:border my-[60px] md:my-[30px] md:rounded-[20px]"
@@ -147,21 +153,11 @@ defmodule MazarynWeb.Live.Helper do
         phx-window-keydown={JS.dispatch("click", to: "#close")}
         phx-key="escape"
       >
-        <%= if @return_to do %>
-
-          <%= live_patch to: @return_to, id: "close", class: "phx-modal-close p", phx_click: hide_modal() do %>
-            <svg class="icon-close" width="12" height="12" viewBox="0 0 11 10" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M5.5416 5.00003L10.2297 9.36919M0.853516 9.36919L5.5416 5.00003L0.853516 9.36919ZM10.2297 0.630859L5.5407 5.00003L10.2297 0.630859ZM5.5407 5.00003L0.853516 0.630859L5.5407 5.00003Z" stroke="#5D5F63" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          <% end %>
-        <% else %>
-          <a id="close" data-phx-link="patch" data-phx-link-state="push" href="/profile" class="phx-modal-close" phx-click={hide_modal()}>
-            <svg class="icon-close" width="12" height="12" viewBox="0 0 11 10" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <a id="close" data-phx-link="patch" data-phx-link-state="push"  class="phx-modal-close" phx-click={hide_modal()}>
+            <svg class="icon-close" width="10" height="10" viewBox="0 0 11 10" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M5.5416 5.00003L10.2297 9.36919M0.853516 9.36919L5.5416 5.00003L0.853516 9.36919ZM10.2297 0.630859L5.5407 5.00003L10.2297 0.630859ZM5.5407 5.00003L0.853516 0.630859L5.5407 5.00003Z" stroke="#5D5F63" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
           </a>
-        <% end %>
-
         <%= render_slot(@inner_block) %>
       </div>
     </div>

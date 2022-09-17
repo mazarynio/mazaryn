@@ -25,10 +25,10 @@
                   <label class="form-input-label">First Name</label>
                 </div>
                 <div class="w-[100%]">
-                  <%= text_input f, :username, [class: "group form-input max-w-[580px]", placeholder: "Your first name", aria_describedby: "form_firstname_detail", aria_required: "true", autofocus: "1"] %>
+                  <%= text_input f, :firstname, [class: "group form-input max-w-[580px]", placeholder: "Your first name", aria_describedby: "form_firstname_detail", aria_required: "true", autofocus: "1"] %>
                 </div>
                 
-                <div aria-live="polite"  id="form_username_detail" class={"#{detail_error f, @changeset, :firstname}"}>
+                <div aria-live="polite"  id="form_firstname_detail" class={"#{detail_error f, @changeset, :firstname}"}>
                   <span class="text-sm"> <%= push_error_tag f, :firstname %></span>
                 </div>
               </div>
@@ -37,10 +37,10 @@
                   <label class="form-input-label">Last Name</label>
                 </div>
                 <div class="w-[100%]">
-                  <%= text_input f, :username, [class: "form-input max-w-[580px]", placeholder: "Your last name", aria_describedby: "form_firstname_detail", aria_required: "true", autofocus: "1"] %>
+                  <%= text_input f, :lastname, [class: "form-input max-w-[580px]", placeholder: "Your last name", aria_describedby: "form_firstname_detail", aria_required: "true", autofocus: "1"] %>
                 </div>
                 
-                <div aria-live="polite"  id="form_username_detail" class={"#{detail_error f, @changeset, :lastname}"}>
+                <div aria-live="polite"  id="form_lastname_detail" class={"#{detail_error f, @changeset, :lastname}"}>
                     <span class="text-sm"> <%= push_error_tag f, :lastname %></span>
                 </div>
               </div>
@@ -61,7 +61,7 @@
                   <label class="form-input-label">Location</label>
                 </div>
                 <div  class="w-[100%]">
-                  <%= text_input f, :username, [class: "form-input max-w-[580px] ", placeholder: "Your location", aria_describedby: "form_location_detail", aria_required: "true", autofocus: "1"] %>
+                  <%= text_input f, :location, [class: "form-input max-w-[580px] ", placeholder: "Your location", aria_describedby: "form_location_detail", aria_required: "true", autofocus: "1"] %>
                 </div>
                 
                 <div aria-live="polite"  id="form_location_detail" class={"#{detail_error f, @changeset, :location}"}>
@@ -82,7 +82,6 @@
         </div>
       </div>
     </div>
-    <!-- accordion-tab -->
     <!-- accordion-tab  -->
     <div class="form-container w-[100%]">
       <div class="outline-none accordion-section" tabindex="2">
@@ -105,7 +104,7 @@
                 <label class="form-input-label">Bio</label>
               </div>
               <div class="w-[100%] mt-[8px]">
-                <%= textarea f, :description, [class: "form-text-area w-[100%] font-['Inter'] text-[16px] leading-[24px] rounded-[10px] border-[#D2D2D1] py-[12px] px-[24px] mb-[30px] ", placeholder: "Your Bio", cols: "72", rows: "5"] %>
+                <%= textarea f, :biography, [class: "form-text-area w-[100%] font-['Inter'] text-[16px] leading-[24px] rounded-[10px] border-[#D2D2D1] py-[12px] px-[24px] mb-[30px] ", placeholder: "Your Bio", cols: "72", rows: "5"] %>
               </div>
               <div class="mb-[30px] ml-auto">
                 <%= submit submit_value(@changeset, "Save"), [class: "bg-blue-500 hover:bg-blue-700 text-white py-3 px-14 rounded-md"] %>
@@ -139,7 +138,7 @@
                 <div class="w-full max-h-[260px]">
                   <div>
                     <label class="form__label-cover-image block w-[100%] h-[164px]">
-                      <%= file_input f, :username, [id: "file-input-profile-photo", class: "form-file-input hidden"]  %>  
+                      <%= file_input f, :profile_photo, [id: "file-input-profile-photo", class: "form-file-input hidden"]  %>  
                       <figure class="w-full max-h-[164px]">
                         <img class="h-[164px] object-cover w-[100%] z-20 cursor-pointer" src="https://avatars1.githubusercontent.com/u/11435231?s=460&v=4" alt="cover photo"> 
                         <figcaption class="contents">
@@ -155,7 +154,7 @@
                   </div>
                   <div class="flex">
                     <label class="form__label-profile-photo z-20 cursor-pointer">
-                    <%= file_input f, :username, [id: "file-input-profile-photo", class: "form-file-input hidden"]  %>  
+                    <%= file_input f, :profile_banner, [id: "file-input-profile-banner", class: "form-file-input hidden"]  %>  
                       <figure class="w-full relative top-[40%] left-[30px] max-w-[150px] max-h-[80px] ">
                         <img class="block mt-[-82px] z-30 cursor-pointer rounded-[50%]" src="https://avatars1.githubusercontent.com/u/11435231?s=460&v=4" alt="profile-photo">
                         <figcaption class="contents">
@@ -178,8 +177,5 @@
         </div>
       </div>
     </div>
-
-    <!--<div>
-      <%= submit "Save", phx_disable_with: "Saving..." %>
-    </div> -->   
+    <%= submit "Save", phx_disable_with: "Saving..." %>
 </div>
