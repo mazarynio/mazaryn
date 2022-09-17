@@ -13,9 +13,15 @@ defmodule MazarynWeb.HomeLive.CompleteProfileComponent do
 
         <div class="flex justify-center items-center">
           <ul class="">
-            <li class="active"><a href="index.html" class="block text-l px-2 py-4 text-gray-300 font-semibold">Verify your email</a></li>
-            <li class="active"><a href="index.html" class="block text-l px-2 py-4 text-gray-500 font-semibold">Set your username</a></li>
-            <li class="active"><a href="index.html" class="block text-l px-2 py-4 text-gray-500 font-semibold">Set your profile picture</a></li>
+            <li class="active">
+              <%= live_patch "Verify your email", to: Routes.live_path(@socket, MazarynWeb.UserLive.Profile, @user.username), class: "block text-l px-2 py-4 text-gray-300 font-semibold" %>
+            </li>
+            <li class="active">
+              <%= live_patch "Set your username", to: Routes.live_path(@socket, MazarynWeb.UserLive.Profile, @user.username), class: "block text-l px-2 py-4 text-gray-500 font-semibold" %>
+            </li>
+            <li class="active">
+              <%= live_patch "Set your profile picture", to: Routes.live_path(@socket, MazarynWeb.UserLive.Profile, @user.username), class: "block text-l px-2 py-4 text-gray-500 font-semibold" %>
+            </li>
           </ul>
         </div>
       </div>
