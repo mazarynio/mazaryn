@@ -11,6 +11,4 @@ defmodule MazarynWeb.BlogLive.Post.Aeternity do
     js
     |> JS.toggle(to: ".menu-content", in: "fade-overflow")
   end
-
-
 end

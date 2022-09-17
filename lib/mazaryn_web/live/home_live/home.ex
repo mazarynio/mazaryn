@@ -54,8 +54,7 @@ defmodule MazarynWeb.HomeLive.Home do
   end
 
   def handle_event("do_search", %{"search" => search}, socket) do
-    socket =
-        assign(socket , search: search)
+    socket = assign(socket, search: search)
 
     {:noreply, socket |> push_redirect(to: Routes.live_path(socket, MazarynWeb.SearchLive.Index))}
   end

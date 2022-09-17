@@ -1,5 +1,4 @@
 defmodule Wallet.Aeternity.AE_wallet_client do
-
   def start do
     :ae_wallet_server.start_link()
   end
