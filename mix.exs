@@ -5,7 +5,7 @@ defmodule Mazaryn.MixProject do
     [
       app: :mazaryn,
       version: "0.1.0",
-      elixir: "~> 1.13",
+      elixir: "~> 1.14",
       elixirc_paths: elixirc_paths(Mix.env()),
       compilers: [] ++ Mix.compilers(),
       start_permanent: Mix.env() == :prod,
@@ -34,27 +34,27 @@ defmodule Mazaryn.MixProject do
   # Type `mix help deps` for examples and options.
   defp deps do
     [
-      {:phoenix, "~> 1.6.9"},
+      {:phoenix, "~> 1.6.12"},
       {:phoenix_ecto, "~> 4.4"},
       {:ecto_sql, "~> 3.8"},
       {:postgrex, ">= 0.0.0"},
       {:phoenix_html, "~> 3.2"},
       {:phoenix_live_reload, "~> 1.3", only: :dev},
-      {:phoenix_live_view, "~> 0.17.9"},
-      {:floki, ">= 0.32.1", only: :test},
+      {:phoenix_live_view, "~> 0.17.11"},
+      {:floki, ">= 0.33.1", only: :test},
       {:phoenix_live_dashboard, "~> 0.6"},
-      {:esbuild, "~> 0.4", runtime: Mix.env() == :dev},
+      {:esbuild, "~> 0.5", runtime: Mix.env() == :dev},
       {:telemetry_metrics, "~> 0.6"},
       {:telemetry_poller, "~> 1.0"},
-      {:gettext, "~> 0.19"},
-      {:jason, "~> 1.3"},
+      {:gettext, "~> 0.20"},
+      {:jason, "~> 1.4"},
       {:plug_cowboy, "~> 2.5"},
-      {:joken, "~> 2.4"},
-      {:tarams, "~> 1.5"},
+      {:joken, "~> 2.5"},
+      {:tarams, "~> 1.6"},
       {:tailwind, "~> 0.1", runtime: Mix.env() == :dev},
-      {:swoosh, "~> 1.6"},
+      {:swoosh, "~> 1.8"},
       {:phoenix_swoosh, "~> 1.0"},
-      {:timex, "~> 3.0"},
+      {:timex, "~> 3.7"},
 
       # Erlang dependencies
       {:erlpass, git: "https://github.com/ferd/erlpass.git"},
@@ -63,7 +63,7 @@ defmodule Mazaryn.MixProject do
       {:erl_base58, "~> 0.0.1"},
 
       # Icons
-      {:ex_heroicons, "~> 0.6.0"},
+      {:ex_heroicons, "~> 2.0"},
 
       # Graphql APIs
       {:absinthe, "~> 1.7"},
