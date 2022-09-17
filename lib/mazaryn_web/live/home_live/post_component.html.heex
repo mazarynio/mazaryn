@@ -4,7 +4,7 @@
             <img class="h-11 w-11 rounded-full" src={get_user_avatar(@post.author)} />
             <div class="ml-1.5 text-sm leading-tight">
                     <%= live_redirect @post.author, to: Routes.live_path(@socket, MazarynWeb.UserLive.Profile, @post.author), class: "text-black font-medium block" %>
-                <span class="text-gray-300 font-normal block">16hrs</span>
+                    <span class="text-gray-300 font-normal block mt-1"><%= Timex.from_now(@post.date_created) %></span>
             </div>
         </div>
         <div class="flex flex-row justify-evenly items-center ml-1.5 text-sm leading-tight">
@@ -20,8 +20,9 @@
                     x-transition:leave-end="opacity-0"
                     class="absolute top-4 right-4 bg-white rounded rounded-md text-blue-900 border p-3 border-blue space-y-2">
                     <%= if @post.author != @current_user.username  do %>
-                        <li class="w-full"><p class="text-gray-500 m-2 cursor-pointer" phx-click={@follow_event} phx-value-username={"#{@post.author}"} phx-target={@myself}><%= @follow_text %></p></li>
+                        <li class=""><p class="text-gray-500 m-2 cursor-pointer" phx-click={@follow_event} phx-value-username={"#{@post.author}"} phx-target={@myself}><%= @follow_text %></p></li>
                         <li class=""><p class="text-gray-500 m-2 cursor-pointer">Block</p></li>
+                        <li class=""><p class="text-gray-500 m-2 cursor-pointer">Report</p></li>
                     <% else %>
                         <li class=""><p class="text-gray-500 m-2 cursor-pointer">Delete Post</p></li>
                     <% end %>
