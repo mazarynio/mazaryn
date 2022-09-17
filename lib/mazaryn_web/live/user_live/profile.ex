@@ -12,27 +12,6 @@ defmodule MazarynWeb.UserLive.Profile do
 
   @impl true
   def mount(
-        _params,
-        %{"session_uuid" => session_uuid} = _session,
-        socket
-      ) do
-    {:ok, current_user} = Users.get_by_session_uuid(session_uuid)
-
-    post_changeset = Post.changeset(%Post{})
-    user_changeset = User.changeset(%User{})
-
-    socket =
-      socket
-      |> assign(posts: PostClient.get_posts_by_author(current_user.username))
-      |> assign(post_changeset: post_changeset)
-      |> assign(user_changeset: user_changeset)
-      |> assign(current_user: current_user)
-
-    {:ok, socket}
-  end
-
-  @impl true
-  def mount(
         %{"username" => username} = _params,
         %{"session_uuid" => session_uuid} = _session,
         socket
@@ -49,6 +28,28 @@ defmodule MazarynWeb.UserLive.Profile do
       |> assign(post_changeset: post_changeset)
       |> assign(user_changeset: user_changeset)
       |> assign(user: user)
+      |> assign(current_user: current_user)
+      |> handle_assigns(current_user.id, username)
+
+    {:ok, socket}
+  end
+
+  @impl true
+  def mount(
+        _params,
+        %{"session_uuid" => session_uuid} = _session,
+        socket
+      ) do
+    {:ok, current_user} = Users.get_by_session_uuid(session_uuid)
+
+    post_changeset = Post.changeset(%Post{})
+    user_changeset = User.changeset(%User{})
+
+    socket =
+      socket
+      |> assign(posts: PostClient.get_posts_by_author(current_user.username))
+      |> assign(post_changeset: post_changeset)
+      |> assign(user_changeset: user_changeset)
       |> assign(current_user: current_user)
 
     {:ok, socket}

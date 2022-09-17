@@ -8,7 +8,7 @@ defmodule MazarynWeb.Component.SelectLive do
       <button  phx-click={Phoenix.LiveView.JS.toggle(to: ".dropdown-menu-globe", in: "fade-in-scale", out: "fade-out-scale" )} type="button"
     class="dropdown inline-flex justify-center w-full rounded-md border border-slate-100 shadow-sm px-4 py-1.5 bg-slate-100 text-sm font-medium text-gray-700 flex-shrink-0 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-100 focus:ring-indigo-500" aria-expanded="true" aria-haspopup="true">
       <div class="rounded-full  flex-shrink-0">
-        <i><%= Heroicons.icon("globe", class: "h-5 w-5 mr-3 fill-gray-500" ) %></i>
+        <i><%= Heroicons.icon("globe-asia-australia", class: "h-5 w-5 mr-3 fill-gray-500" ) %></i>
       </div>
       <p class="capitalize"><%= @selected_option %></p>
       <i><%= Heroicons.icon("chevron-down", class: "-mr-1 ml-2 h-5 w-5") %> </i>
