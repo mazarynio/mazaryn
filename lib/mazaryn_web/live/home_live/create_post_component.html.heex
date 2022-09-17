@@ -41,7 +41,7 @@
 
         <div class="flex flex-row justify-between items-center pt-[10px] px-0">
             <div class="flex flex-row items-center">
-                <i><%= Heroicons.icon("face-smile", type: "outline", class: "h-5 w-5 mr-3 fill-gray-500" ) %></i>
+                <i><%= Heroicons.icon("face-smile", type: "solid", class: "h-5 w-5 mr-3 fill-gray-500" ) %></i>
                 <i><%= Heroicons.icon("hashtag", class: "h-5 w-5 mr-3 fill-gray-500" ) %></i>
                 <i id="upload-area" phx-drop-target={@uploads.media.ref} phx-click={Phoenix.LiveView.JS.dispatch("click", to: "##{@uploads.media.ref}", bubbles: false)}>
                     <%= Heroicons.icon("photo", class: "h-5 w-5 mr-3 fill-gray-500 icon" )  %>
