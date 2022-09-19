@@ -20,8 +20,9 @@ defmodule Account.User do
     blocked
     saved_posts
     notifications
-    avatar_url
     country
+    avatar_url
+    banner_url
   )a
 
   @required_attrs [
@@ -50,14 +51,28 @@ defmodule Account.User do
     field(:notifications, {:array, :string}, default: [])
 
     # TODO: ADD to mnesia
-    field(:avatar_url, :string)
+    field(:avatar_url, :string, default: "")
+    field(:banner_url, :string, default: "")
     field(:country, :string)
   end
 
   def erl_changeset(
         {:user, username, id, password, email, media, posts, following, follower, blocked,
-         saved_posts, other_info, private, date_created, date_updated}
+         saved_posts, other_info, private, date_created, date_updated, avatar_url,
+         banner_url} = user
       ) do
+    avatar_url =
+      case avatar_url do
+        :undefined -> nil
+        value -> value
+      end
+
+    banner_url =
+      case banner_url do
+        :undefined -> nil
+        value -> value
+      end
+
     %__MODULE__{}
     |> cast(
       %{
@@ -74,12 +89,16 @@ defmodule Account.User do
         other_info: Enum.into(other_info, %{}),
         private: private,
         date_created: date_created,
-        date_updated: date_updated
+        date_updated: date_updated,
+        avatar_url: avatar_url,
+        banner_url: banner_url
       },
       @optional_fields ++ @required_attrs
     )
     |> validate_required(@required_attrs)
   end
+
+  def erl_changeset(value), do: raise(value)
 
   def changeset(user, params \\ %{}) do
     user

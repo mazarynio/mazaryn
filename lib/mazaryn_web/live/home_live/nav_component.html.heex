@@ -30,7 +30,7 @@
                     <button  type="button" class="dropdown inline-flex justify-center w-full rounded-md border border-slate-100 shadow-sm px-4 py-1.5 bg-slate-100 text-sm font-medium text-gray-700 flex-shrink-0 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-100 focus:ring-indigo-500 items-center" id="menu-button" aria-expanded="true" aria-haspopup="true">
                         <div class="rounded-full pr-6 flex-shrink-0">
                             <%= if @user.avatar_url do %>
-                                <img src="https://placeimg.com/192/192/people" class="w-6 rounded-full"/>
+                                <img src={"#{@user.avatar_url}"} class="w-6 rounded-full"/>
                             <% else %>
                                 <img alt="Default user" src={Routes.static_path(@socket, "/images/default-user.svg")} class="w-6 rounded-full"/>
                             <% end %>
