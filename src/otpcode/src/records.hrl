@@ -32,6 +32,7 @@
                   date_created}).
 
 -record(message, { id,
+                   receiver,
                    text,
                    media = [],
                    timestamp }).

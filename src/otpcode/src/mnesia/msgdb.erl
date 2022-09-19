@@ -14,3 +14,9 @@ get_message_by_id(Id) ->
     {atomic, [Message]} -> Message;
     _ -> error
   end.
+
+delete_message(Id) ->
+    F = fun() ->
+            mnesia:delete({message, Id})
+        end,
+    mnesia:activity(transaction, F).
