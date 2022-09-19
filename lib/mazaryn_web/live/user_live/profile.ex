@@ -19,6 +19,7 @@ defmodule MazarynWeb.UserLive.Profile do
     {:ok, current_user} = Users.get_by_session_uuid(session_uuid)
 
     post_changeset = Post.changeset(%Post{})
+
     user_changeset = User.changeset(%User{})
 
     {:ok, user} = get_user_by_username(username)

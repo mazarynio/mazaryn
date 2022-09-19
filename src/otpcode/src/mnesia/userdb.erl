@@ -10,7 +10,8 @@
          follow/2, unfollow/2, follow_multiple/2, unfollow_multiple/2,
          save_post/2, save_posts/2, unsave_post/2, unsave_posts/2,
          get_save_posts/1, get_follower/1, get_following/1,
-         block/2, unblock/2, get_blocked/1, search_user_pattern/1]).
+         block/2, unblock/2, get_blocked/1, search_user_pattern/1,
+        insert_avatar/2, insert_banner/2]).
 
 -define(LIMIT_SEARCH, 50).
 
@@ -87,6 +88,33 @@ insert_media(Username, Type, Url) ->
         end,
   {atomic, Res} = mnesia:transaction(Fun),
   Res.
+
+insert_avatar(Username, AvatarUrl) -> 
+  Fun = fun() -> 
+            [User] = mnesia:read(user, Username),
+            mnesia:write(User#user{avatar_url = AvatarUrl,
+                                   date_updated = calendar:universal_time()}),
+            User
+        end,
+  {atomic, Res} = mnesia:transaction(Fun),
+  case Res of
+    {atomic, [User]} -> User;
+    Res -> Res 
+  end.
+
+insert_banner(Username, BannerUrl) -> 
+  Fun = fun() -> 
+            [User] = mnesia:read(user, Username),
+            mnesia:write(User#user{banner_url = BannerUrl,
+                                   date_updated = calendar:universal_time()}),
+            User
+        end,
+  {atomic, Res} = mnesia:transaction(Fun),
+  case Res of
+    {atomic, [User]} -> User;
+    Res -> Res 
+  end.
+
 
 get_media(Username, Type) ->
   Fun = fun() ->

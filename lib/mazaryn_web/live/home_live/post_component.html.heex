@@ -7,9 +7,9 @@
                     <span class="text-gray-300 font-normal block mt-1"><%= Timex.from_now(@post.date_created) %></span>
             </div>
         </div>
-        <div class="flex flex-row justify-evenly items-center ml-1.5 text-sm leading-tight">
+        <div class="w-90 flex  justify-evenly items-center ml-1.5 text-sm ">
             <span class="text-gray-300 font-normal block">23.15k views</span> 
-            <div class="relative w-90">
+            <div class="relative">
                 <i @click="open = !open" ><%= Heroicons.icon("ellipsis-vertical", type: "outline", class: "h-6 w-5 ml-5 fill-gray-800 cursor-pointer") %></i>
                 <ul x-show="open"
                     x-transition:enter="transition ease-out duration-200"
@@ -18,7 +18,7 @@
                     x-transition:leave="transition ease-in duration-200"
                     x-transition:leave-start="opacity-100"
                     x-transition:leave-end="opacity-0"
-                    class="absolute top-4 right-4 bg-white rounded rounded-md text-blue-900 border p-3 border-blue space-y-2">
+                    class="absolute top-4 right-4 bg-white rounded rounded-md text-blue-900 border p-3 border-blue space-y-2 w-32" >
                     <%= if @post.author != @current_user.username  do %>
                         <li class=""><p class="text-gray-500 m-2 cursor-pointer" phx-click={@follow_event} phx-value-username={"#{@post.author}"} phx-target={@myself}><%= @follow_text %></p></li>
                         <li class=""><p class="text-gray-500 m-2 cursor-pointer">Block</p></li>

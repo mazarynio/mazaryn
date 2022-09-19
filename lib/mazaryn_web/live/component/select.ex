@@ -13,7 +13,7 @@ defmodule MazarynWeb.Component.SelectLive do
       <p class="capitalize"><%= @selected_option %></p>
       <i><%= Heroicons.icon("chevron-down", class: "-mr-1 ml-2 h-5 w-5") %> </i>
     </button>
-    <ul class="dropdown-menu-globe hidden max-w-[135px] origin-top-right absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none"
+    <ul class="hidden dropdown-menu-globe  max-w-[135px] origin-top-right absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none"
     role="menu" aria-orientation="vertical" aria-labelledby="menu-button" tabindex="-1">
         <%= for {option, idx} <- Enum.with_index(@options) do %>
           <li phx-click="select-item" phx-value-selected-item={"#{option}"} phx-target={@myself}  id={"#{idx}"} class="capitalize text-gray-700 block px-8 py-2 text-sm hover:bg-gray-100" role="menuitem" tabindex="-1">

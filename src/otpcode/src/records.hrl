@@ -12,7 +12,9 @@
                 other_info = [], %location, birthday
                 private = false,
                 date_created,
-                date_updated}).
+                date_updated,
+                avatar_url,
+                banner_url}).
 
 -record(post, { id,
                 content,
