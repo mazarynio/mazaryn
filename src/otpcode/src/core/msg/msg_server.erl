@@ -16,6 +16,9 @@ start_link() ->
 get_message_by_id(Id) ->
   gen_server:call({global, ?MODULE}, {get_message_by_id, Id}).
 
+get_user_by_id(Id) ->
+  gen_server:call({global, ?MODULE}, {get_user_by_id, Id}).
+
 delete_message(Id) ->
   gen_server:call({global, ?MODULE}, {delete_message, Id}).
 
