@@ -31,7 +31,7 @@ handle_call({get_user_by_id, Id}, _From, State) ->
   {reply, Res, State};
 
 handle_call({delete_message, Id}, _From, State) ->
-  msgdb:delete_message(Id),
+  Res = msgdb:delete_message(Id),
   {reply, Res, State};
 
 handle_call(_Request, _From, State) ->
