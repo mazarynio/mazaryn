@@ -35,7 +35,7 @@ start_link() ->
                                 {disc_copies, [node()]},
                                 {type, ordered_set}]),
 
-    mnesia:create_table(msg, [{attributes, record_info(fields, msg)},
+    mnesia:create_table(message, [{attributes, record_info(fields, message)},
                               {disc_copies, [node()]},
                               {type, ordered_set}]),
 
@@ -89,6 +89,13 @@ init([]) ->
                     shutdown => 5000,
                     type => worker,
                     modules => [post_server]},
+
+                  #{id => msg_server,
+                    start => {msg_server, start_link, []},
+                    restart => permanent,
+                    shutdown => 5000,
+                    type => worker,
+                    modules => [msg_server]},
 
                   #{id => wallet_server,
                     start => {wallet_server, start_link, []},

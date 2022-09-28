@@ -8,12 +8,12 @@ defmodule MazarynWeb.Component.SelectLive do
       <button  phx-click={Phoenix.LiveView.JS.toggle(to: ".dropdown-menu-globe", in: "fade-in-scale", out: "fade-out-scale" )} type="button"
     class="dropdown inline-flex justify-center w-full rounded-md border border-slate-100 shadow-sm px-4 py-1.5 bg-slate-100 text-sm font-medium text-gray-700 flex-shrink-0 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-100 focus:ring-indigo-500" aria-expanded="true" aria-haspopup="true">
       <div class="rounded-full  flex-shrink-0">
-        <i><%= Heroicons.icon("globe", class: "h-5 w-5 mr-3 fill-gray-500" ) %></i>
+        <i><%= Heroicons.icon("globe-asia-australia", class: "h-5 w-5 mr-3 fill-gray-500" ) %></i>
       </div>
       <p class="capitalize"><%= @selected_option %></p>
       <i><%= Heroicons.icon("chevron-down", class: "-mr-1 ml-2 h-5 w-5") %> </i>
     </button>
-    <ul class="dropdown-menu-globe hidden max-w-[135px] origin-top-right absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none"
+    <ul class="hidden dropdown-menu-globe  max-w-[135px] origin-top-right absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none"
     role="menu" aria-orientation="vertical" aria-labelledby="menu-button" tabindex="-1">
         <%= for {option, idx} <- Enum.with_index(@options) do %>
           <li phx-click="select-item" phx-value-selected-item={"#{option}"} phx-target={@myself}  id={"#{idx}"} class="capitalize text-gray-700 block px-8 py-2 text-sm hover:bg-gray-100" role="menuitem" tabindex="-1">

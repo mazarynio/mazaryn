@@ -36,6 +36,20 @@ defmodule Account.Users do
     end
   end
 
+  def insert_avatar(username, avatar_url) do
+    username
+    |> Core.UserClient.insert_avatar(avatar_url)
+    |> User.erl_changeset()
+    |> User.build()
+  end
+
+  def insert_banner(username, banner_url) do
+    username
+    |> Core.UserClient.insert_banner(banner_url)
+    |> User.erl_changeset()
+    |> User.build()
+  end
+
   @spec one_by_username(keyword) :: %User{} | nil
   def one_by_username(username) do
     case Core.UserClient.get_user(username) do

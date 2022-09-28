@@ -15,7 +15,7 @@ defmodule MazarynWeb.HomeLive.LeftSidebarComponent do
 
                 <li class="flex align-center items-center">
                     <a href="index.html" class="flex items-center text-l px-2 py-4 text-gray-500 font-semibold hover:text-blue-500 ">
-                        <i><%= Heroicons.icon("chat-alt-2", class: "h-5 w-5 mr-3") %></i>
+                        <i><%= Heroicons.icon("chat-bubble-oval-left", class: "h-5 w-5 mr-3") %></i>
                         Chat
                     </a>
                 </li>
@@ -52,9 +52,9 @@ defmodule MazarynWeb.HomeLive.LeftSidebarComponent do
                     <% end %>
                 </li>
                 <li class="flex align-center items-center group">
-                    <%= live_patch to: Routes.live_path(@socket, MazarynWeb.UserLive.Profile), replace: false, class: "flex items-center text-l px-2 py-4 text-gray-500 font-semibold group-hover:text-blue-500" do %>
+                    <%= live_patch to: Routes.live_path(@socket, MazarynWeb.UserLive.Profile,  @user.username), replace: false, class: "flex items-center text-l px-2 py-4 text-gray-500 font-semibold group-hover:text-blue-500" do %>
                         <%= if @user.avatar_url do %>
-                            <img src="https://placeimg.com/192/192/people" class="w-4 mr-3 rounded-full ring-blue-500 group-hover:ring"/>
+                            <img src={"#{@user.avatar_url}"} class="w-4 mr-3 rounded-full ring-blue-500 group-hover:ring"/>
                         <% else %>
                             <img alt="Default user" src={Routes.static_path(@socket, "/images/default-user.svg")} class="w-4 mr-3 rounded-full ring-blue-500 group-hover:ring"/>
                         <% end %>
@@ -79,13 +79,13 @@ defmodule MazarynWeb.HomeLive.LeftSidebarComponent do
                 </li>
                 <li class="flex align-center items-center">
                     <a href="index.html" class="flex items-center text-l px-2 py-4 text-gray-500 font-semibold hover:text-blue-500">
-                        <i><%= Heroicons.icon("search", class: "h-5 w-5 mr-3") %></i>
+                        <i><%= Heroicons.icon("magnifying-glass", class: "h-5 w-5 mr-3") %></i>
                        Jobs
                     </a>
                 </li>
                 <li class="flex align-center items-center">
                     <a href="index.html" class="flex items-center text-l px-2 py-4 text-gray-500 font-semibold hover:text-blue-500">
-                        <i><%= Heroicons.icon("office-building", class: "h-5 w-5 mr-3") %></i>
+                        <i><%= Heroicons.icon("building-office", class: "h-5 w-5 mr-3") %></i>
                       Marketplace
                     </a>
                 </li>

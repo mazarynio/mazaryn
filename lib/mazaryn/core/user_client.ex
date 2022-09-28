@@ -4,6 +4,14 @@ defmodule Core.UserClient do
     :user_server.create_account(username, password, email)
   end
 
+  def insert_avatar(username, avatar_url) do
+    :user_server.insert_avatar(username, avatar_url)
+  end
+
+  def insert_banner(username, banner_url) do
+    :user_server.insert_banner(username, banner_url)
+  end
+
   def login(email, password) do
     :user_server.login(email, password)
   end

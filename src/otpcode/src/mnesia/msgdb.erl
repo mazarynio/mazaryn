@@ -2,24 +2,21 @@
 -compile([export_all, nowarn_export_all]).
 -include("../records.hrl").
 -include_lib("stdlib/include/qlc.hrl").
--import(userdb, [get_password/1]).
 
-insert_message(Sender, Receiver, Content) ->
-    ReceiverExists = case get_password(Receiver) of 
-        undefined -> false;
-        _         -> true
-    end,
-    SenderExists = case get_password(Sender) of 
-        undefined -> false;
-        _         -> true 
-    end,
-    Msg = #msg{receiver = Receiver, sender = Sender,
-                content = Content, timestamp = erlang:system_time()},
-    Fun = fun() ->
-        mnesia:write(Msg)
-    end,
-    case ReceiverExists and SenderExists of
-        true  -> {atomic, Status} = mnesia:transaction(Fun),
-                 Status;
-        false -> {error, unknown_user}
-    end.
+
+get_message_by_id(Id) ->
+  Res = mnesia:transaction(
+          fun() ->
+              mnesia:match_object(#message{id = Id, _= '_'})
+          end),
+  case Res of
+    {atomic, []} -> message_not_exist;
+    {atomic, [Message]} -> Message;
+    _ -> error
+  end.
+
+delete_message(Id) ->
+    F = fun() ->
+            mnesia:delete({message, Id})
+        end,
+    mnesia:activity(transaction, F).

@@ -18,7 +18,6 @@ defmodule Account.UserNotifier do
     end
   end
 
-
   @doc """
   Deliver instructions to confirm account.
   """
@@ -60,6 +59,4 @@ defmodule Account.UserNotifier do
     ==============================
     """)
   end
-
-
 end

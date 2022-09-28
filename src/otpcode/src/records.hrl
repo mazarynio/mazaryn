@@ -12,7 +12,9 @@
                 other_info = [], %location, birthday
                 private = false,
                 date_created,
-                date_updated}).
+                date_updated,
+                avatar_url,
+                banner_url}).
 
 -record(post, { id,
                 content,
@@ -29,9 +31,14 @@
                   content=[],
                   date_created}).
 
+-record(message, { id,
+                   receiver,
+                   text,
+                   media = [],
+                   timestamp }).
+
 -record(group, {id, gp_name, num_members, members}).
 -record(event, {name, date, loc, desc}).
--record(msg, {sender, receiver, content, timestamp}).
 -record(follower, {id, username}).
 -record(following, {id, username}).
 

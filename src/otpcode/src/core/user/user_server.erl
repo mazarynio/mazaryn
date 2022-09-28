@@ -14,7 +14,7 @@
          change_username/3, change_password/3, change_email/3,
          get_following/1, get_follower/1,
          block/2, unblock/2, get_blocked/1, add_media/3, get_media/2,
-         search_user_pattern/1]).
+         search_user_pattern/1, insert_avatar/2, insert_banner/2]).
 
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2,
@@ -33,6 +33,12 @@ create_account(Username, Password, Email) ->
 
 login(Email, Password) ->
     gen_server:call({global, ?MODULE}, {login, Email, Password}).
+
+insert_avatar(Username, AvatarUrl) ->
+    gen_server:call({global, ?MODULE}, {insert_avatar, Username, AvatarUrl}).
+
+insert_banner(Username, BannerUrl) ->
+    gen_server:call({global, ?MODULE}, {insert_banner, Username, BannerUrl}).
 
 set_user_info(Username, Fields, Values) ->
     gen_server:call({global, ?MODULE}, {set_user_info, Username, Fields, Values}).
@@ -125,6 +131,14 @@ search_user_pattern(Pattern) ->
 init([]) ->
     ?LOG_NOTICE("User server has been started - ~p", [self()]),
     {ok, #state{}}.
+
+handle_call({insert_avatar, Username, AvatarUrl}, _From, State = #state{}) ->
+    Res = userdb:insert_avatar(Username, AvatarUrl),
+    {reply, Res, State};
+
+handle_call({insert_banner, Username, BannerUrl}, _From, State = #state{}) ->
+    Res = userdb:insert_banner(Username, BannerUrl),
+    {reply, Res, State};
 
 handle_call({create_account, Username, Password, Email}, _From, State = #state{}) ->
     Res = userdb:insert(Username, Password, Email),
