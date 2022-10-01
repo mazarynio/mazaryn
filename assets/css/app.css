@@ -1093,3 +1093,16 @@
   margin: 15px 0 0 0;
   font-weight: 600;
  }
+
+
+ /* Privacy Policy */
+
+ .privacy-policy p {
+  margin-bottom: 20px;
+ }
+
+ @media(max-width: 750px) {
+  .privacy-policy a {
+    word-break: break-all;
+   }
+ }

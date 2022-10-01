@@ -51,6 +51,11 @@ defmodule MazarynWeb.Router do
     end
 
     get("/", PageController, :index)
+
+    get("/contact", PageController, :contact)
+    get("/about", PageController, :about)
+    get("/privacy-policy", PageController, :privacy)
+    get("/careers", PageController, :careers)
   end
 
   scope "/", MazarynWeb do
