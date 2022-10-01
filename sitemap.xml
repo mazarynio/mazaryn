@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset
+      xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9
+            http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
+<!-- created with Free Online Sitemap Generator www.xml-sitemaps.com -->
+
+
+<url>
+  <loc>https://mazaryn.io/</loc>
+  <lastmod>2022-09-30T21:43:47+00:00</lastmod>
+  <priority>1.00</priority>
+</url>
+<url>
+  <loc>https://mazaryn.io/blog</loc>
+  <lastmod>2022-09-30T21:43:47+00:00</lastmod>
+  <priority>0.80</priority>
+</url>
+<url>
+  <loc>https://mazaryn.io/signup</loc>
+  <lastmod>2022-09-30T21:43:47+00:00</lastmod>
+  <priority>0.80</priority>
+</url>
+<url>
+  <loc>https://mazaryn.io/login</loc>
+  <lastmod>2022-09-30T21:43:47+00:00</lastmod>
+  <priority>0.80</priority>
+</url>
+<url>
+  <loc>https://mazaryn.io/contact</loc>
+  <lastmod>2022-09-30T21:43:47+00:00</lastmod>
+  <priority>0.80</priority>
+</url>
+<url>
+  <loc>https://mazaryn.io/about</loc>
+  <lastmod>2022-09-30T21:43:47+00:00</lastmod>
+  <priority>0.80</priority>
+</url>
+<url>
+  <loc>https://mazaryn.io/careers</loc>
+  <lastmod>2022-09-30T21:43:47+00:00</lastmod>
+  <priority>0.80</priority>
+</url>
+<url>
+  <loc>https://mazaryn.io/privacy-policy</loc>
+  <lastmod>2022-09-30T21:43:47+00:00</lastmod>
+  <priority>0.80</priority>
+</url>
+<url>
+  <loc>https://mazaryn.io/blog/mazaryn</loc>
+  <lastmod>2022-09-30T21:43:47+00:00</lastmod>
+  <priority>0.64</priority>
+</url>
+<url>
+  <loc>https://mazaryn.io/blog/polkadot</loc>
+  <lastmod>2022-09-30T21:43:47+00:00</lastmod>
+  <priority>0.64</priority>
+</url>
+<url>
+  <loc>https://mazaryn.io/blog/kusama</loc>
+  <lastmod>2022-09-30T21:43:47+00:00</lastmod>
+  <priority>0.64</priority>
+</url>
+<url>
+  <loc>https://mazaryn.io/blog/cardano</loc>
+  <lastmod>2022-09-30T21:43:47+00:00</lastmod>
+  <priority>0.64</priority>
+</url>
+<url>
+  <loc>https://mazaryn.io/blog/joy-of-elixir-and-phoenix</loc>
+  <lastmod>2022-09-30T21:43:47+00:00</lastmod>
+  <priority>0.64</priority>
+</url>
+<url>
+  <loc>https://mazaryn.io/blog/aeternity</loc>
+  <lastmod>2022-09-30T21:43:47+00:00</lastmod>
+  <priority>0.64</priority>
+</url>
+<url>
+  <loc>https://mazaryn.io/blog/nft</loc>
+  <lastmod>2022-09-30T21:43:47+00:00</lastmod>
+  <priority>0.64</priority>
+</url>
+<url>
+  <loc>https://mazaryn.io/blog/phoenix-and-absinthe</loc>
+  <lastmod>2022-09-30T21:43:47+00:00</lastmod>
+  <priority>0.64</priority>
+</url>
+<url>
+  <loc>https://mazaryn.io/blog/ai-nft</loc>
+  <lastmod>2022-09-30T21:43:47+00:00</lastmod>
+  <priority>0.64</priority>
+</url>
+<url>
+  <loc>https://mazaryn.io/reset</loc>
+  <lastmod>2022-09-30T21:43:47+00:00</lastmod>
+  <priority>0.64</priority>
+</url>
+
+
+</urlset>

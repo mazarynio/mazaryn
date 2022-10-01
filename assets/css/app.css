@@ -1097,8 +1097,42 @@
 
  /* Privacy Policy */
 
+
+
+ .privacy-policy h3 {
+  font-size: 1.875em;
+  font-weight: 600;
+  margin: 30px 0;
+  color: #000008bf;
+ }
+
+ @media(max-width: 800px) {
+  .privacy-policy h3 {
+    font-size: 1.4em;
+  }
+ }
+
  .privacy-policy p {
   margin-bottom: 20px;
+ }
+
+ .privacy-policy ul {
+  list-style: disc;
+  list-style-position: outside; 
+  width: 90%;
+  margin: 30px auto;
+ }
+
+ .privacy-policy a {
+  color: #1d4edb;
+ }
+
+ .privacy-policy ul li{
+  margin: 20px 0;
+ }
+
+ .privacy-policy p span {
+  font-weight: 600;
  }
 
  @media(max-width: 750px) {
