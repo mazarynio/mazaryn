@@ -13,6 +13,7 @@
 To start your Phoenix server:
   
   * First, Install Rust Language https://www.rust-lang.org/tools/install
+  * Git clone the repo git clone https://github.com/mazarynio/mazaryn
   * Install dependencies with `mix deps.get`
   * Create and migrate your database with `mix ecto.setup`
   * Start Phoenix endpoint with `mix phx.server` or inside IEx with `iex -S mix phx.server`
