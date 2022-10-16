@@ -10,6 +10,8 @@ erl_crash.dump
 .elixir_ls/
 /priv/static/assets/
 /priv/static/uploads/
+npm-debug.log
+/assets/node_modules/
 /Mnesia
 Mnesia
 mazaryn-front
