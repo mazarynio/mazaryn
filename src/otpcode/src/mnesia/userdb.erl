@@ -59,7 +59,9 @@ insert(Username, Password, Email) ->
               {undefined, undefined} ->
                 Now = calendar:universal_time(),
                 Id = id_gen:generate(),
+                TokenID = id_gen:generate(),
                 User = #user{id = Id,
+                             token_id = TokenID,
                              username = Username,
                              password = erlpass:hash(Password),
                              email = Email,
