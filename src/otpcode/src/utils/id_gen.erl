@@ -35,6 +35,9 @@ generate() ->
 to_string(<<_:288>> = UUID) ->
   binary_to_list(UUID).
 
+random_numbers() -> 
+    [rand:uniform(10) || _ <- lists:seq(1, 6)].
+
 
 
 
