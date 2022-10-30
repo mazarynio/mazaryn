@@ -22,7 +22,7 @@ init([]) ->
     ?LOG_NOTICE("Token server has been started - ~p", [self()]),
     {ok, #state{}}.
 
-handle_call({validate, TokeID}, _From, State) ->
+handle_call({validate, TokenID}, _From, State) ->
     Token = userdb:get_token_by_id(TokenID),
     {reply, Token, State};
 

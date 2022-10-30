@@ -59,7 +59,7 @@ insert(Username, Password, Email) ->
               {undefined, undefined} ->
                 Now = calendar:universal_time(),
                 Id = id_gen:generate(),
-                TokenID = id_gen:random_numbers(),
+                TokenID = list_to_integer(lists:concat(id_gen:random_numbers())),
                 User = #user{id = Id,
                              token_id = TokenID,
                              username = Username,
