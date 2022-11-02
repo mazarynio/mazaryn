@@ -188,7 +188,7 @@ get_user_by_id(Id) ->
 get_token_by_id(TokenID) ->
   Res = mnesia:transaction(
           fun() ->
-              mnesia:match_object(#user{token_id, _= '_'})
+              mnesia:match_object(#user{token_id = TokenID, _= '_'})
           end),
   case Res of 
     {atomic, []} -> token_not_exist;
