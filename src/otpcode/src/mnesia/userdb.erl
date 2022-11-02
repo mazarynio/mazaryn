@@ -193,6 +193,7 @@ get_token_by_id(TokenID) ->
   case Res of 
     {atomic, []} -> token_not_exist;
     {atomic, [User]} -> User;
+    _ -> error
   end.
 
 % TODO: change password, email, username
