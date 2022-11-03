@@ -14,7 +14,7 @@
                 date_created,
                 date_updated,
                 avatar_url,
-                banner_url, 
+                banner_url,
                 token_id }).
 
 -record(post, { id,
@@ -81,3 +81,4 @@
 
 
 -define(MSG_INSUFFICIENT_FUNDS, <<"Insufficient funds.">>).
+-define(TIMEOUT,   timer:seconds(600)).
