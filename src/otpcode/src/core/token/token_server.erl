@@ -2,6 +2,8 @@
 
 -include_lib("kernel/include/logger.hrl").
 
+-include("../records.hrl").
+
 -export([start_link/0, validate/1]).
 
 %% gen_server callbacks
@@ -13,10 +15,10 @@
 -record(state, {}).
 
 start_link() ->
-    gen_server:start_link({global, ?SERVER}, ?MODULE, [], []). 
+    gen_server:start_link({global, ?SERVER}, ?MODULE, [], []).
 
 validate(TokenID) ->
-    gen_server:call({global, ?MODULE}, {validate, TokenID}).
+    gen_server:call({global, ?MODULE}, {validate, TokenID}, ?TIMEOUT).
 
 init([]) ->
     ?LOG_NOTICE("Token server has been started - ~p", [self()]),
