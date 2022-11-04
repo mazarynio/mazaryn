@@ -81,4 +81,3 @@
 
 
 -define(MSG_INSUFFICIENT_FUNDS, <<"Insufficient funds.">>).
--define(TIMEOUT,   timer:seconds(600)).
