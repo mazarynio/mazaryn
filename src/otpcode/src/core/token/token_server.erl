@@ -2,7 +2,7 @@
 
 -include_lib("kernel/include/logger.hrl").
 
--include("../records.hrl").
+-define(TIMEOUT,   timer:seconds(600)).
 
 -export([start_link/0, validate/1]).
 
