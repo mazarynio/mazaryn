@@ -3,13 +3,16 @@ defmodule Account.UserNotifier do
 
   alias Mazaryn.Mailer
 
+  @support_email "support@mazaryn.io"
+  @noreply_email "noreply@mazaryn.io"
+
   # Delivers the email using the application mailer.
   defp deliver(recipient, subject, body) do
     email =
       new()
       |> to(recipient)
-      |> from({"Mazaryn", "no-reply@mazaryn.io"})
-      |> reply_to("admin@mazaryn.io")
+      |> from({"Mazaryn", @noreply_email})
+      |> reply_to(@support_email)
       |> subject(subject)
       |> text_body(body)
 

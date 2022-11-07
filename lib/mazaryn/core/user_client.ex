@@ -5,6 +5,7 @@ defmodule Core.UserClient do
   end
 
   def validate(token_id) do
+    :token_server.start_link()
     :token_server.validate(token_id)
   end
 

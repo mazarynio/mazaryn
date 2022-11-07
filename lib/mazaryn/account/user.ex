@@ -50,16 +50,16 @@ defmodule Account.User do
 
     field(:notifications, {:array, :string}, default: [])
 
-    # TODO: ADD to mnesia
     field(:avatar_url, :string, default: "")
     field(:banner_url, :string, default: "")
+    field(:token_id, :string)
     field(:country, :string)
   end
 
   def erl_changeset(
         {:user, username, id, password, email, media, posts, following, follower, blocked,
-         saved_posts, other_info, private, date_created, date_updated, avatar_url,
-         banner_url} = user
+         saved_posts, other_info, private, date_created, date_updated, avatar_url, banner_url,
+         token_id} = _user
       ) do
     avatar_url =
       case avatar_url do
@@ -73,29 +73,32 @@ defmodule Account.User do
         value -> value
       end
 
+    token_id =
+      case token_id do
+        :undefined -> nil
+        value -> value
+      end
+
     %__MODULE__{}
-    |> cast(
-      %{
-        username: username,
-        id: id,
-        password: password,
-        email: email,
-        media: media,
-        posts: posts,
-        following: following,
-        follower: follower,
-        blocked: blocked,
-        saved_posts: saved_posts,
-        other_info: Enum.into(other_info, %{}),
-        private: private,
-        date_created: date_created,
-        date_updated: date_updated,
-        avatar_url: avatar_url,
-        banner_url: banner_url
-      },
-      @optional_fields ++ @required_attrs
-    )
-    |> validate_required(@required_attrs)
+    |> change(%{
+      username: username,
+      id: id,
+      password: password,
+      email: email,
+      media: media,
+      posts: posts,
+      following: following,
+      follower: follower,
+      blocked: blocked,
+      saved_posts: saved_posts,
+      other_info: Enum.into(other_info, %{}),
+      private: private,
+      date_created: date_created,
+      date_updated: date_updated,
+      avatar_url: avatar_url,
+      banner_url: banner_url,
+      token_id: token_id
+    })
   end
 
   def erl_changeset(value), do: raise(value)

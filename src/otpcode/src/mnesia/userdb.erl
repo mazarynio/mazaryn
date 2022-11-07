@@ -185,6 +185,7 @@ get_user_by_id(Id) ->
     _ -> error
   end.
 
+% TODO: add verified or confirmed field 
 get_token_by_id(TokenID) ->
   Res = mnesia:transaction(
           fun() ->

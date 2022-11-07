@@ -58,7 +58,8 @@ defmodule Mazaryn.Signup.Form do
 
     case Core.UserClient.register(username, password, email) do
       id when is_binary(id) ->
-        %User{username: username, email: email, password: password}
+        {:ok, user} = Account.Users.one_by_id(id)
+        user
 
       :username_existed ->
         :username_existed

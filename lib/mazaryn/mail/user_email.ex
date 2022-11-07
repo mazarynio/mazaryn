@@ -18,6 +18,6 @@ defmodule Mail.UserEmail do
     |> Email.from(from())
   end
 
-  def from, do: {"Mazaryn", "support@mazaryn.xyz"}
+  def from, do: {"Mazaryn", "support@mazaryn.io"}
   def html_body(body), do: body
 end

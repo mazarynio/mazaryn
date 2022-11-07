@@ -31,6 +31,7 @@ defmodule MazarynWeb.Router do
     pipe_through(:browser)
 
     get("/logout", LogoutController, :index)
+    get("/confirm/:token", ConfirmAccountController, :index)
 
     live_session :default,
       on_mount: [MazarynWeb.UserLiveAuth] do
