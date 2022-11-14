@@ -68,7 +68,7 @@ defmodule Account.Users do
     case Core.UserClient.get_user_by_email(email) do
       :user_not_exist ->
         Logger.error("[Users] Failed to find #{email}")
-        nil
+        {:error, :user_not_exist}
 
       erl_user ->
         erl_user
