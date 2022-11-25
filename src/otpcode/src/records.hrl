@@ -58,6 +58,8 @@
                  secret_phase,
                  transaction = []}).
 
+-record(hed_wallet, { id, password, date_created }).
+
 -record(ae_wallet, {name,
                     password,
                     address,
