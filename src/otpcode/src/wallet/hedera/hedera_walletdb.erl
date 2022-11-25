@@ -1,6 +1,7 @@
 -module(hedera_walletdb).
 -export([insert/1]).
--record(hed_wallet, {id, password, date_created}).
+
+-include("../../records.hrl").
 
 insert(Password) ->
   Fun = fun() ->
