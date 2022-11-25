@@ -127,7 +127,7 @@ init([]) ->
                   restart => permanent,
                   shutdown => 5000,
                   type => worker,
-                  modules => [token_server]}
+                  modules => [hedera_wallet_server]}
 
                   ],
     {ok, {SupFlags, ChildSpecs}}.
