@@ -8,7 +8,7 @@ insert(Password) ->
     Now = calendar:universal_time(),
     Id = id_gen:generate(),
     mnesia:write(#hed_wallet{id = Id,
-                             password = Password,
+                             password = erlpass:hash(Password),
                              date_created = Now}),
     Id
   end,

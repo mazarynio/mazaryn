@@ -13,7 +13,7 @@
 -record(state, {}).
 
 start_link() ->
-    gen_server:start_link({global, ?SERVER}, ?MODULE, [], []).
+    gen_server:start_link({global, ?MODULE}, ?MODULE, [], []).
 
 create_account(Password) ->
     gen_server:call({global, ?MODULE}, {create_account, Password}).
@@ -22,7 +22,7 @@ init([]) ->
     ?LOG_NOTICE("User server has been started - ~p", [self()]),
     {ok, #state{}}.
 
-handle_call({create_account, Password}, _From, State) ->
+handle_call({create_account, Password}, _From, State = #state{}) ->
     Id = hedera_walletdb:insert(Password),
     {reply, Id, State};
 
