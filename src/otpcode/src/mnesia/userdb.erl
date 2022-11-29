@@ -2,7 +2,7 @@
 -include("../records.hrl").
 
 -export([set_user_info/3, get_user_info/2,
-         insert/3, insert_media/3, get_media/2,
+         insert/3, generate_token_and_wait_verify/2, verify_token/2, insert_media/3, get_media/2,
          login/2, verify_token/2,
          get_user/1, get_user_by_email/1, get_user_by_id/1, get_token_by_id/1,
          get_users/0, delete_user/1, get_password/1,
@@ -111,8 +111,8 @@ insert_media(Username, Type, Url) ->
   {atomic, Res} = mnesia:transaction(Fun),
   Res.
 
-insert_avatar(Username, AvatarUrl) -> 
-  Fun = fun() -> 
+insert_avatar(Username, AvatarUrl) ->
+  Fun = fun() ->
             [User] = mnesia:read(user, Username),
             mnesia:write(User#user{avatar_url = AvatarUrl,
                                    date_updated = calendar:universal_time()}),
@@ -121,11 +121,11 @@ insert_avatar(Username, AvatarUrl) ->
   {atomic, Res} = mnesia:transaction(Fun),
   case Res of
     {atomic, [User]} -> User;
-    Res -> Res 
+    Res -> Res
   end.
 
-insert_banner(Username, BannerUrl) -> 
-  Fun = fun() -> 
+insert_banner(Username, BannerUrl) ->
+  Fun = fun() ->
             [User] = mnesia:read(user, Username),
             mnesia:write(User#user{banner_url = BannerUrl,
                                    date_updated = calendar:universal_time()}),
@@ -134,7 +134,7 @@ insert_banner(Username, BannerUrl) ->
   {atomic, Res} = mnesia:transaction(Fun),
   case Res of
     {atomic, [User]} -> User;
-    Res -> Res 
+    Res -> Res
   end.
 
 
@@ -205,13 +205,13 @@ get_user_by_id(Id) ->
     _ -> error
   end.
 
-% TODO: add verified or confirmed field 
+% TODO: add verified or confirmed field
 get_token_by_id(TokenID) ->
   Res = mnesia:transaction(
           fun() ->
               mnesia:match_object(#user{token_id = TokenID, _= '_'})
           end),
-  case Res of 
+  case Res of
     {atomic, []} -> token_not_exist;
     {atomic, [User]} -> User;
     _ -> error
@@ -366,7 +366,7 @@ get_follower(Id) ->
   Res = mnesia:transaction(fun() ->
                                mnesia:match_object(#user{id = Id, _= '_'})
                            end),
-  case Res of 
+  case Res of
     {atomic, []} -> user_not_exist;
     {atomic, [User]} -> User#user.follower;
     _ -> error
