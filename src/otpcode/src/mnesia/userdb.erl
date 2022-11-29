@@ -3,7 +3,7 @@
 
 -export([set_user_info/3, get_user_info/2,
          insert/3, insert_media/3, get_media/2,
-         login/2,
+         login/2, verify_token/2,
          get_user/1, get_user_by_email/1, get_user_by_id/1, get_token_by_id/1,
          get_users/0, delete_user/1, get_password/1,
          change_username/3, change_password/3, change_email/3,
@@ -14,6 +14,8 @@
         insert_avatar/2, insert_banner/2]).
 
 -define(LIMIT_SEARCH, 50).
+
+-record(user_reg, {email, pid}).
 
 %%% check user credentials
 -spec login(Email :: term(), Password :: term()) -> wrong_email_or_password | logged_in.
@@ -32,7 +34,7 @@ set_user_info(Username, Fields, Values) ->
   List = lists:zip(Fields, Values),
   Fun = fun() ->
           case get_user_in_transaction(Username) of
-            [] -> not_exist;
+            not_existed -> not_existed;
             User ->
               CurrentFields = User#user.other_info,
               NewFields =
@@ -59,22 +61,40 @@ insert(Username, Password, Email) ->
               {undefined, undefined} ->
                 Now = calendar:universal_time(),
                 Id = id_gen:generate(),
-                TokenID = list_to_integer(lists:concat(id_gen:random_numbers())),
                 User = #user{id = Id,
-                             token_id = TokenID,
                              username = Username,
                              password = erlpass:hash(Password),
                              email = Email,
                              date_created = Now},
                 mnesia:write(User),
                 Id;
-              {username_existed, _} -> username_existed;
-              {_, email_existed} -> email_existed;
+              {username_existed, _} -> username_and_email_existed;
+              {_, email_existed} -> username_and_email_existed;
               {username_existed, email_existed} -> username_and_email_existed
             end
       end,
     {atomic, Res} = mnesia:transaction(Fun),
+    case Res of
+      username_and_email_existed -> username_and_email_existed;
+      Id ->
+        %% send token with timeout by using timeout
+        generate_token_and_wait_verify(Username, Email),
+        Id
+    end,
     Res.
+
+generate_token_and_wait_verify(Username, Email) ->
+  {ok, Pid} = user_reg:start_link(Username, Email),
+  ets:insert(user_reg, #user_reg{pid = Pid, email = Email}).
+
+verify_token(Email, Token) ->
+%%  get process pid from ets table
+  User = ets:lookup(user_reg, Email),
+  case User of
+    [] -> timeout;
+    [User] ->
+      gen_statem:cast({global, Email}, {token_resp, Token})
+  end.
 
 insert_media(Username, Type, Url) ->
   Fun = fun() ->
@@ -141,7 +161,7 @@ get_user(Username) ->
 get_user_in_transaction(Username) ->
     Res = mnesia:read(user, Username),
     case Res of
-      [] -> not_exist;
+      [] -> not_existed;
       [User] -> User
     end.
 

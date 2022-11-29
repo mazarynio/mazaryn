@@ -9,7 +9,7 @@
                 follower = [],
                 blocked = [],
                 saved_posts = [],
-                other_info = [], %location, birthday
+                other_info = [{verified,false}], %location, birthday
                 private = false,
                 date_created,
                 date_updated,
