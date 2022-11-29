@@ -56,11 +56,11 @@ start_link() ->
                                  {type, ordered_set}]),
 
     mnesia:create_table(ae_wallet, [{attributes, record_info(fields, ae_wallet)},
-                                    {dic_copies, [node()]},
+                                    {disc_copies, [node()]},
                                     {type, ordered_set}]),
 
     mnesia:create_table(hed_wallet, [{attributes, record_info(fields, hed_wallet)},
-                                    {dic_copies, [node()]},
+                                    {disc_copies, [node()]},
                                     {type, ordered_set}]),
 
     mnesia:add_table_index(user, email),
