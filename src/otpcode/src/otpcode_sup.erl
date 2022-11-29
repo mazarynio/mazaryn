@@ -22,6 +22,12 @@ start_link() ->
     mnesia:start(),
     mnesia:change_table_copy_type(schema, node(), disc_copies),
 
+    %% enable httpc
+    ssl:start(),
+    application:start(inets),
+    %% create ETS table to store user_reg process
+    ets:new(user_reg, [set, named_table, public]),
+
     % create tables
     mnesia:create_table(event, [{attributes, record_info(fields, event)},
                                 {disc_copies, [node()]},

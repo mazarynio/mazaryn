@@ -59,6 +59,7 @@ defmodule Mazaryn.MixProject do
       # Erlang dependencies
       {:erlpass, git: "https://github.com/ferd/erlpass.git"},
       {:bcrypt, git: "https://github.com/erlangpack/bcrypt.git", override: true},
+      {:jiffy, git: "https://github.com/davisp/jiffy.git"},
       {:epgsql, "~> 4.6"},
       {:erl_base58, "~> 0.0.1"},
 
@@ -87,5 +88,6 @@ defmodule Mazaryn.MixProject do
       test: ["ecto.create --quiet", "ecto.migrate --quiet", "test"],
       "assets.deploy": ["tailwind default --minify", "esbuild default --minify", "phx.digest"]
     ]
+
   end
 end
