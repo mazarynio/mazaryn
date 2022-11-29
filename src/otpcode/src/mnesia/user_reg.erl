@@ -14,7 +14,7 @@
 -export([start_link/2]).
 
 %% state callback functions
--export([send_mailjet/2]).
+-export([send_mailjet/2, send_mailjet_handler/2]).
 
 -export([send_token/3, waiting_for_rep/3,
          token_validated/3]).
