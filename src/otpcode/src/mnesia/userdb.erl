@@ -3,7 +3,7 @@
 
 -export([set_user_info/3, get_user_info/2,
          insert/3, insert_media/3, get_media/2,
-         login/2, verify_token/2,
+         login/2, 
          get_user/1, get_user_by_email/1, get_user_by_id/1, get_token_by_id/1,
          get_users/0, delete_user/1, get_password/1,
          change_username/3, change_password/3, change_email/3,
