@@ -2,7 +2,7 @@
 -include("../records.hrl").
 
 -export([set_user_info/3, get_user_info/2,
-         insert/3, generate_token_and_wait_verify/2, verify_token/2, insert_media/3, get_media/2,
+         insert/3, insert_media/3, get_media/2,
          login/2, verify_token/2,
          get_user/1, get_user_by_email/1, get_user_by_id/1, get_token_by_id/1,
          get_users/0, delete_user/1, get_password/1,
@@ -74,27 +74,7 @@ insert(Username, Password, Email) ->
             end
       end,
     {atomic, Res} = mnesia:transaction(Fun),
-    case Res of
-      username_and_email_existed -> username_and_email_existed;
-      Id ->
-        %% send token with timeout by using timeout
-        generate_token_and_wait_verify(Username, Email),
-        Id
-    end,
     Res.
-
-generate_token_and_wait_verify(Username, Email) ->
-  {ok, Pid} = user_reg:start_link(Username, Email),
-  ets:insert(user_reg, #user_reg{pid = Pid, email = Email}).
-
-verify_token(Email, Token) ->
-%%  get process pid from ets table
-  User = ets:lookup(user_reg, Email),
-  case User of
-    [] -> timeout;
-    [User] ->
-      gen_statem:cast({global, Email}, {token_resp, Token})
-  end.
 
 insert_media(Username, Type, Url) ->
   Fun = fun() ->
