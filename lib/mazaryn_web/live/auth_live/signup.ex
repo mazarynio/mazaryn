@@ -98,7 +98,7 @@ defmodule MazarynWeb.AuthLive.Signup do
   @impl true
   def handle_info({:disable_form, changeset}, %{assigns: %{:key => key}} = socket) do
     case Signup.Form.create_user(changeset) do
-      %Account.User{email: email} = user ->
+      {:ok, %Account.User{email: email} = user} ->
         verification_url =
           MazarynWeb.Router.Helpers.url(socket) <>
             Routes.confirm_account_path(socket, :index, user.token_id)
@@ -113,7 +113,7 @@ defmodule MazarynWeb.AuthLive.Signup do
 
         if connected?(socket), do: {:noreply, socket}
 
-      :username_existed ->
+      :username_and_email_existed ->
         changeset =
           changeset
           |> Ecto.Changeset.add_error(:password, "This account has been created before.")

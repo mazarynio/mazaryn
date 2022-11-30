@@ -60,8 +60,10 @@ insert(Username, Password, Email) ->
             case {check_username(Username), check_email(Email)} of
               {undefined, undefined} ->
                 Now = calendar:universal_time(),
-                Id = id_gen:generate(),
+                Id = id_gen:generate(), 
+                TokenID = list_to_integer(lists:concat(id_gen:random_numbers())),
                 User = #user{id = Id,
+                             token_id = TokenID,
                              username = Username,
                              password = erlpass:hash(Password),
                              email = Email,
