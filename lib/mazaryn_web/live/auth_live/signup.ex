@@ -99,11 +99,11 @@ defmodule MazarynWeb.AuthLive.Signup do
   def handle_info({:disable_form, changeset}, %{assigns: %{:key => key}} = socket) do
     case Signup.Form.create_user(changeset) do
       {:ok, %Account.User{email: email} = user} ->
-        verification_url =
-          MazarynWeb.Router.Helpers.url(socket) <>
-            Routes.confirm_account_path(socket, :index, user.token_id)
+        # verification_url =
+        #   MazarynWeb.Router.Helpers.url(socket) <>
+        #     Routes.confirm_account_path(socket, :index, user.token_id)
 
-        Account.UserNotifier.deliver_confirmation_instructions(user, verification_url)
+        # Account.UserNotifier.deliver_confirmation_instructions(user, verification_url)
         insert_session_token(key, email)
 
         socket =
