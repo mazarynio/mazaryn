@@ -1,5 +1,21 @@
 -module(userdb).
--include("../records.hrl").
+-record(user, { username,
+                id,
+                password,
+                email,
+                media= [],
+                post = [],
+                following = [],
+                follower = [],
+                blocked = [],
+                saved_posts = [],
+                other_info = [{verified,false}], %location, birthday
+                private = false,
+                date_created,
+                date_updated,
+                avatar_url,
+                banner_url,
+                token_id }).
 
 -export([set_user_info/3, get_user_info/2,
          insert/3, insert_media/3, get_media/2,
