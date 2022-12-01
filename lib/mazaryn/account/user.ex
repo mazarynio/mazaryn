@@ -57,7 +57,7 @@ defmodule Account.User do
   end
 
   def erl_changeset(
-        {:user, username, id, password, email, media, posts, following, follower, blocked,
+        {:user, id, username, password, email, media, posts, following, follower, blocked,
          saved_posts, other_info, private, date_created, date_updated, avatar_url, banner_url,
          token_id} = _user
       ) do
@@ -81,8 +81,8 @@ defmodule Account.User do
 
     %__MODULE__{}
     |> change(%{
-      username: username,
       id: id,
+      username: username,
       password: password,
       email: email,
       media: media,

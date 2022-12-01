@@ -1,21 +1,5 @@
 -module(userdb).
--record(user, { username,
-                id,
-                password,
-                email,
-                media= [],
-                post = [],
-                following = [],
-                follower = [],
-                blocked = [],
-                saved_posts = [],
-                other_info = [{verified,false}], %location, birthday
-                private = false,
-                date_created,
-                date_updated,
-                avatar_url,
-                banner_url,
-                token_id }).
+-include("../records.hrl").
 
 -export([set_user_info/3, get_user_info/2,
          insert/3, insert_media/3, get_media/2,
@@ -79,11 +63,11 @@ insert(Username, Password, Email) ->
                 Id = id_gen:generate(), 
                 TokenID = list_to_integer(lists:concat(id_gen:random_numbers())),
                 User = #user{id = Id,
-                             token_id = TokenID,
                              username = Username,
                              password = erlpass:hash(Password),
                              email = Email,
-                             date_created = Now},
+                             date_created = Now, 
+                             token_id = TokenID},
                 mnesia:write(User),
                 Id;
               {username_existed, _} -> username_and_email_existed;

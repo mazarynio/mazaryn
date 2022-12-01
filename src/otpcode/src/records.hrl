@@ -1,6 +1,6 @@
 %% TODO: change id order for testing, modify later
--record(user, { username,
-                id,
+-record(user, { id,
+                username,       
                 password,
                 email,
                 media= [],
