@@ -61,11 +61,13 @@ insert(Username, Password, Email) ->
               {undefined, undefined} ->
                 Now = calendar:universal_time(),
                 Id = id_gen:generate(), 
+                TokenID = list_to_integer(lists:concat(id_gen:random_numbers())),
                 User = #user{id = Id,
                              username = Username,
                              password = erlpass:hash(Password),
                              email = Email,
-                             date_created = Now},
+                             date_created = Now, 
+                             token_id = TokenID},
                 mnesia:write(User),
                 Id;
               {username_existed, _} -> username_and_email_existed;
