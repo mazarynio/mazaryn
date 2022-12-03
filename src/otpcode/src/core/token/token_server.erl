@@ -15,7 +15,7 @@
 -record(state, {}).
 
 start_link() ->
-    gen_server:start_link({global, ?SERVER}, ?MODULE, [], []).
+    gen_server:start_link({global, ?MODULE}, ?MODULE, [], []).
 
 validate(TokenID) ->
     gen_server:call({global, ?MODULE}, {validate, TokenID}, ?TIMEOUT).
