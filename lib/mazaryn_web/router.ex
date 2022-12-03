@@ -69,6 +69,7 @@ defmodule MazarynWeb.Router do
     live("/:username", UserLive.Profile)
     live("/posts", PostLive.Index)
     live("/dashboard", DashboardLive.Index)
+    live("/dashboard/hedera-wallet", DashboardLive.Wallet.HederaWallet)
     live("/search", SearchLive.Index)
   end
 
