@@ -3,7 +3,7 @@
 
 -export([set_user_info/3, get_user_info/2,
          insert/3, insert_media/3, get_media/2,
-         login/2, 
+         login/2,
          get_user/1, get_user_by_email/1, get_user_by_id/1, get_token_by_id/1,
          get_users/0, delete_user/1, get_password/1,
          change_username/3, change_password/3, change_email/3,
@@ -60,16 +60,16 @@ insert(Username, Password, Email) ->
             case {check_username(Username), check_email(Email)} of
               {undefined, undefined} ->
                 Now = calendar:universal_time(),
-                Id = id_gen:generate(), 
-                TokenID = list_to_integer(lists:concat(id_gen:random_numbers())),
+                Id = id_gen:generate(),
+                TokenID = id_gen:generate(),
                 User = #user{id = Id,
                              username = Username,
                              password = erlpass:hash(Password),
                              email = Email,
-                             date_created = Now, 
+                             date_created = Now,
                              token_id = TokenID},
                 mnesia:write(User),
-                Id;
+                TokenID;
               {username_existed, _} -> username_and_email_existed;
               {_, email_existed} -> username_and_email_existed;
               {username_existed, email_existed} -> username_and_email_existed
