@@ -69,7 +69,7 @@ insert(Username, Password, Email) ->
                              date_created = Now,
                              token_id = TokenID},
                 mnesia:write(User),
-                TokenID;
+                Id;
               {username_existed, _} -> username_and_email_existed;
               {_, email_existed} -> username_and_email_existed;
               {username_existed, email_existed} -> username_and_email_existed
