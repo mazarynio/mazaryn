@@ -2,7 +2,7 @@ defmodule MazarynWeb.ConfirmAccountController do
   use MazarynWeb, :controller
 
   def index(conn, %{"token" => token}) do
-    case validate_user(String.to_integer(token)) do
+    case validate_user(token) do
       {:ok, _user} ->
         conn
         |> put_flash(:info, "Verified account")

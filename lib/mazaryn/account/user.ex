@@ -52,7 +52,7 @@ defmodule Account.User do
 
     field(:avatar_url, :string, default: "")
     field(:banner_url, :string, default: "")
-    field(:token_id, :integer)
+    field(:token_id, :string)
     field(:country, :string)
   end
 
