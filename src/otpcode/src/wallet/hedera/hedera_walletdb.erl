@@ -1,5 +1,5 @@
 -module(hedera_walletdb).
--export([insert/1]).
+-export([insert/1, get_wallets/0]).
 
 -include("../../records.hrl").
 
@@ -14,3 +14,10 @@ insert(Password) ->
   end,
   {atomic, Res} = mnesia:transaction(Fun),
   Res.
+
+get_wallets() ->
+    Fun = fun() ->
+            mnesia:all_keys(hed_wallet)
+          end,
+    {atomic, Res} = mnesia:transaction(Fun),
+    Res.

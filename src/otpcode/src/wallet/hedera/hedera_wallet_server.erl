@@ -2,7 +2,7 @@
 
 -include_lib("kernel/include/logger.hrl").
 
--export([start_link/0, create_account/1]).
+-export([start_link/0, create_account/1, get_wallets/0]).
 
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2,
@@ -18,6 +18,9 @@ start_link() ->
 create_account(Password) ->
     gen_server:call({global, ?MODULE}, {create_account, Password}).
 
+get_wallets() ->
+    gen_server:call({global, ?MODULE}, {get_wallets}).
+
 init([]) ->
     ?LOG_NOTICE("User server has been started - ~p", [self()]),
     {ok, #state{}}.
@@ -25,6 +28,10 @@ init([]) ->
 handle_call({create_account, Password}, _From, State = #state{}) ->
     Id = hedera_walletdb:insert(Password),
     {reply, Id, State};
+
+handle_call({get_wallets}, _From, State) ->
+  Res = hedera_walletdb:get_wallets(),
+  {reply, Res, State};
 
 handle_call(_Request, _From, State) ->
     {noreply, State}.
