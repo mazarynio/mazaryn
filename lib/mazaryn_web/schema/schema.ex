@@ -6,12 +6,16 @@ defmodule MazarynWeb.Schema do
   query do
     @desc "Get all users"
     field :users, list_of(:user) do
-      resolve(&Account.UserResolver.all/2)
+      resolve(&Resolvers.UserResolver.all/2)
     end
 
     @desc "Get all posts"
     field :posts, list_of(:post) do
-      resolve(&Post.PostResolver.all/2)
+      resolve(&Resolvers.PostResolver.all/2)
     end
+
+    @desc "Get all wallets"
+    field :wallets, list_of(:hedera_wallet)
+      resolve()
   end
 end
