@@ -4,3 +4,4 @@ defmodule MazarynWeb.Schema.HederaWallet do
   object :hedera_wallet do
     field(:password, :string)
   end
+end

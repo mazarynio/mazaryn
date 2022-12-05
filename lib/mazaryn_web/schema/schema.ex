@@ -2,6 +2,7 @@ defmodule MazarynWeb.Schema do
   use Absinthe.Schema
   import_types(MazarynWeb.Schema.User)
   import_types(MazarynWeb.Schema.Post)
+  import_types(MazarynWeb.Schema.HederaWallet)
 
   query do
     @desc "Get all users"
@@ -15,7 +16,8 @@ defmodule MazarynWeb.Schema do
     end
 
     @desc "Get all wallets"
-    field :wallets, list_of(:hedera_wallet)
-      resolve()
+    field :wallets, list_of(:hedera_wallet) do
+      resolve(&Resolvers.WalletResolvers.all/2)
+    end
   end
 end
