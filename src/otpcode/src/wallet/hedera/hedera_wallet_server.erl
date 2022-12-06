@@ -25,7 +25,7 @@ get_wallets() ->
     gen_server:call({global, ?MODULE}, {get_wallets}).
 
 init([]) ->
-    ?LOG_NOTICE("User server has been started - ~p", [self()]),
+    ?LOG_NOTICE("Wallet server has been started - ~p", [self()]),
     {ok, #state{}}.
 
 handle_call({create_account, Password}, _From, State = #state{}) ->
