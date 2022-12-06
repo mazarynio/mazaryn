@@ -1,14 +1,121 @@
-name: Fly Deploy
+name: Test & Deploy
+
 on:
   push:
     branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
 env:
   FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+  MIX_ENV: test
+
+permissions:
+  contents: read
+
 jobs:
+  check-commit-message:
+    runs-on: ubuntu-latest
+
+    # PURPOSE: skips Github actions, only use this when avoiding test and deploy.
+    # Example usage for this to trigger:
+    # git commit -S -am "fix typo in html [skip ci/cd]"
+    name: check commit message for skipping build(s)
+    if: "contains(github.event.head_commit.message, '[skip ci/cd]')"
+    steps:
+      - name: print message via cli
+        run: echo "Skipping build, based from commit message"
+
+  test:
+    runs-on: ubuntu-latest
+    services:
+      db:
+        image: postgres:14
+        ports: ['5432:5432']
+        env:
+          POSTGRES_PASSWORD: postgres
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+          
+    strategy:
+      matrix:
+        include:
+          # - elixir: 1.13.x
+          #   otp: 23
+          # - elixir: 1.13.x
+          #   otp: 24
+          # - elixir: 1.13.x
+          #   otp: 25
+          # - elixir: 1.14.x
+          #   otp: 23
+          - elixir: 1.14.x
+            otp: 24
+          - elixir: 1.14.x
+            otp: 25
+
+    steps:
+      - name: pull repo
+      - uses: actions/checkout@v3
+
+      - name: setup Elixir/OTP
+      - uses: erlef/setup-beam@v1
+        with:
+          elixir-version: ${{matrix.elixir}}
+          otp-version: ${{matrix.otp}}
+
+      - name: cache deps
+        id: cache-deps
+        uses: actions/cache@v3
+        env:
+          cache-name: cache-elixir-deps
+        with:
+          path: deps
+          key: ${{ runner.os }}-mix-${{ env.cache-name }}-${{ hashFiles('**/mix.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-mix-${{ env.cache-name }}-
+
+      - name: cache compiled build
+        id: cache-build
+        uses: actions/cache@v3
+        env:
+          cache-name: cache-compiled-build
+        with:
+          path: _build
+          key: ${{ runner.os }}-mix-${{ env.cache-name }}-${{ hashFiles('**/mix.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-mix-${{ env.cache-name }}-
+            ${{ runner.os }}-mix-
+
+      - name: install deps
+        run: |
+          mix local.rebar --force
+          mix local.hex --force
+          mix deps.get
+          mix format --check-formatted
+
+      - name: check retired deps
+        run: mix hex.audit
+
+      - name: check unused deps
+        run: mix deps.unlock --check-unused
+
+      - name: compile project
+        run: mix compile --force
+
+      - name: check chromedriver version
+        run: chromedriver --version
+        
+      - name: test
+        run: mix test --trace
+
   deploy:
-      name: Deploy app
-      runs-on: ubuntu-latest
-      steps:
-        - uses: actions/checkout@v3
-        - uses: superfly/flyctl-actions/setup-flyctl@master
-        - run: flyctl deploy --remote-only
+    needs: test
+    name: Deploy app
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: superfly/flyctl-actions/setup-flyctl@master
+      - run: flyctl deploy --remote-only

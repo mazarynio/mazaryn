@@ -1,5 +1,4 @@
 defmodule Core.UserClient do
-
   def register(username, password, email) do
     :user_server.start_link()
     :token_server.start_link()

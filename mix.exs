@@ -69,7 +69,10 @@ defmodule Mazaryn.MixProject do
       # Graphql APIs
       {:absinthe, "~> 1.7"},
       {:absinthe_plug, "~> 1.5"},
-      {:rustler, "~> 0.26.0"}
+      {:rustler, "~> 0.26.0"},
+
+      # exceptions monitoring
+      {:honeybadger, "~> 0.16"}
     ]
   end
 
@@ -85,9 +88,8 @@ defmodule Mazaryn.MixProject do
       "ecto.setup": ["ecto.create", "ecto.migrate", "run priv/repo/seeds.exs"],
       "ecto.reset": ["ecto.drop", "ecto.setup"],
       "ecto.seed": ["run priv/repo/seeds.exs"],
-      test: ["ecto.create --quiet", "ecto.migrate --quiet", "test"],
+      test: ["ecto.create --quiet", "ecto.seed", "test"],
       "assets.deploy": ["tailwind default --minify", "esbuild default --minify", "phx.digest"]
     ]
-
   end
 end

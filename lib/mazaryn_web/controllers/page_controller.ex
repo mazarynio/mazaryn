@@ -18,7 +18,6 @@ defmodule MazarynWeb.PageController do
   end
 
   def careers(conn, _params) do
-      render(conn, "careers.html")
+    render(conn, "careers.html")
   end
-
 end

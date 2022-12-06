@@ -4,5 +4,4 @@ defmodule MazarynWeb.DashboardLive.Wallet.HederaWallet do
   def mount(_params, _session, socket) do
     {:ok, socket}
   end
-  
 end
