@@ -101,8 +101,5 @@ jobs:
       - name: compile project
         run: mix compile --force
 
-      - name: check chromedriver version
-        run: chromedriver --version
-        
       - name: test
         run: mix test --trace
