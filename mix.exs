@@ -72,7 +72,10 @@ defmodule Mazaryn.MixProject do
       {:rustler, "~> 0.26.0"},
 
       # exceptions monitoring
-      {:honeybadger, "~> 0.16"}
+      {:honeybadger, "~> 0.16"},
+      
+      # Machine Learning
+      {:nx, "~> 0.4.1"}
     ]
   end
 
