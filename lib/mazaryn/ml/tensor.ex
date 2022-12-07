@@ -21,4 +21,9 @@ defmodule ML.Tensor do
     y = Nx.tensor(b)
     z = Nx.add(x, y)
   end
+
+  def multiply(list, b) do
+    x = Nx.tensor(list)
+    y = Nx.multiply(x, b)
+  end
 end
