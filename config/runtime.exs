@@ -21,6 +21,12 @@ if System.get_env("PHX_SERVER") do
 end
 
 if config_env() == :prod do
+  config :honeybadger,
+    exclude_envs: [:test],
+    environment_name: :prod,
+    use_logger: true,
+    api_key: System.get_env("HONEYBADGER_API_KEY")
+
   database_url =
     System.get_env("DATABASE_URL") ||
       raise """
