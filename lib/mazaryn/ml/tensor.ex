@@ -26,4 +26,19 @@ defmodule ML.Tensor do
     x = Nx.tensor(list)
     y = Nx.multiply(x, b)
   end
+
+  def asin(list) do
+    x = Nx.tensor(list)
+    y = Nx.asin(x)
+  end
+
+  def asinh(list) do
+    x = Nx.tensor(list)
+    y = Nx.asinh(x)
+  end
+
+  def atan(list) do
+    x = Nx.tensor(list)
+    y = Nx.atan(x)
+  end
 end
