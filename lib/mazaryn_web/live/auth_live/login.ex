@@ -25,7 +25,7 @@ defmodule MazarynWeb.AuthLive.Login do
   end
 
   @impl true
-  def handle_event("save", %{"form" => params}, socket) do
+  def handle_event("save", %{"form" => params}, %{assigns: %{:key => key}} = socket) do
     if Map.get(params, "form_disabled", nil) != "true" do
       changeset =
         Login.Form.changeset(%Login.Form{}, params)
@@ -33,9 +33,20 @@ defmodule MazarynWeb.AuthLive.Login do
         |> Ecto.Changeset.put_change(:form_disabled, true)
         |> Map.put(:action, :insert)
 
-      send(self(), {:disable_form, changeset})
+      case Login.Form.get_user_by_email(changeset) do
+        %Account.User{email: email} ->
+          insert_session_token(key, email)
 
-      {:noreply, assign(socket, changeset: changeset)}
+          {:noreply,
+           push_redirect(socket, to: Routes.live_path(socket, MazarynWeb.HomeLive.Home))}
+
+        changeset ->
+          changeset =
+            changeset
+            |> Ecto.Changeset.put_change(:form_disabled, false)
+
+          {:noreply, assign(socket, changeset: changeset)}
+      end
     else
       {:noreply, socket}
     end
@@ -70,21 +81,5 @@ defmodule MazarynWeb.AuthLive.Login do
       |> Map.put(:action, :insert)
 
     {:noreply, assign(socket, changeset: changeset)}
-  end
-
-  @impl true
-  def handle_info({:disable_form, changeset}, %{assigns: %{:key => key}} = socket) do
-    case Login.Form.get_user_by_email(changeset) do
-      %Account.User{email: email} ->
-        insert_session_token(key, email)
-        {:noreply, push_redirect(socket, to: Routes.live_path(socket, MazarynWeb.HomeLive.Home))}
-
-      changeset ->
-        changeset =
-          changeset
-          |> Ecto.Changeset.put_change(:form_disabled, false)
-
-        {:noreply, assign(socket, changeset: changeset)}
-    end
   end
 end

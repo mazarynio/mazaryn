@@ -1,5 +1,4 @@
 defmodule Wallet.Hedera.HedWalletClient do
-
   def start() do
     :hedera_wallet_server.start_link()
   end

@@ -12,7 +12,7 @@
 
 alias Mazaryn.Signup.Form
 
-1..10
+1..3
 |> Enum.each(fn number ->
   params = %{
     username: "user#{number}",
