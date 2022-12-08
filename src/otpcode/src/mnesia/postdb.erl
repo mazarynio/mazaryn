@@ -7,7 +7,7 @@
          get_all_comments/1, get_single_comment/1]).
 
 -include("../records.hrl").
--include_lib("stdlib/include/qlc.hrl"). 
+-include_lib("stdlib/include/qlc.hrl").
 
 %% if post or comment do not have media,
 %% their value in record are nil
@@ -20,7 +20,7 @@ insert(Author, Content, Media) ->
                              author=Author,
                              media = Media,
                              date_created = calendar:universal_time()}),
-          [User] = mnesia:read({user, Author}),
+          [Post] = mnesia:read({post, Author}),
           Posts = User#user.post,
           mnesia:write(User#user{post = [Id | Posts]}),
           Id
@@ -110,7 +110,7 @@ get_all_posts_from_date(Year, Month, Date, Author) ->
     {atomic, Res} = mnesia:transaction(fun() -> mnesia:match_object(Object) end),
     Res.
 
-get_all_posts_from_month(Year, Month, Author) -> 
+get_all_posts_from_month(Year, Month, Author) ->
     Object =
       case Author of
         [] -> #post{date_created = {{Year, Month, '_'}, '_'},
