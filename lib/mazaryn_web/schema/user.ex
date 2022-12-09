@@ -6,4 +6,9 @@ defmodule MazarynWeb.Schema.User do
     field(:email, :string)
     field(:password, :string)
   end
+
+  object :user_login do
+    field(:email, :string)
+    field(:password, :string)
+  end 
 end
