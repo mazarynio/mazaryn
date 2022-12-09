@@ -6,7 +6,7 @@ defmodule MazarynWeb.Schema do
 
   alias Resolvers.PostResolver
   alias Resolvers.UserResolver
-  alias Resolvers.WalletResolvers
+  alias Resolvers.WalletResolver
 
   query do
     @desc "Get all users"
@@ -29,9 +29,14 @@ defmodule MazarynWeb.Schema do
       resolve(&Resolvers.PostResolver.all/2)
     end
 
+    @desc "Create a Wallet"
+    field :create_wallet, list_of(:hedera_wallet) do
+      resolve(&Resolvers.WalletResolver.create_wallet/1)
+    end
+
     @desc "Get all wallets"
     field :wallets, list_of(:hedera_wallet) do
-      resolve(&Resolvers.WalletResolvers.all/2)
+      resolve(&Resolvers.WalletResolver.all/2)
     end
   end
 end
