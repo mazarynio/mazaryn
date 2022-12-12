@@ -1,5 +1,4 @@
 defmodule ML.Tensor do
-
   def tens(list) do
     Nx.tensor(list)
   end
