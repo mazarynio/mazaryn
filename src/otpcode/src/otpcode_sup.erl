@@ -53,6 +53,9 @@ start_link() ->
                                {disc_copies, [node()]},
                                {type, ordered_set}]),
 
+    % create index key for user -> username 
+    mnesia:add_table_index(user, username)
+
     mnesia:create_table(comment, [{attributes, record_info(fields, comment)},
                                {disc_copies, [node()]},
                                {type, ordered_set}]),

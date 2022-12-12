@@ -131,7 +131,7 @@ get_media(Username, Type) ->
 
 get_user(Username) ->
     F = fun() ->
-        mnesia:read(user, Username)
+        mnesia:index_read(user, Username, username)
         end,
     Res = mnesia:transaction(F),
     case Res of

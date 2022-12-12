@@ -4,7 +4,7 @@ defmodule Resolvers.WalletResolver do
   def create_wallet(password) do
     {:ok, HedWalletClient.create(password)}
   end
-  
+
   def all(_args, _info) do
     {:ok, HedWalletClient.get_wallets()}
   end
