@@ -13,6 +13,7 @@ defmodule Mazaryn.Posts do
 
   def create_post(%Ecto.Changeset{changes: %{author: author, content: content}} = changeset) do
     media = Ecto.Changeset.get_field(changeset, :media, [])
+    hashtag = Ecto.Changeset.get_field(changeset, :hashtag, [])
 
     case create(author, content, media, hashtag) do
       {:ok, post_id} ->
