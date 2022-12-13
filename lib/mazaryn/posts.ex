@@ -14,7 +14,7 @@ defmodule Mazaryn.Posts do
   def create_post(%Ecto.Changeset{changes: %{author: author, content: content}} = changeset) do
     media = Ecto.Changeset.get_field(changeset, :media, [])
 
-    case create(author, content, media) do
+    case create(author, content, media, hashtag) do
       {:ok, post_id} ->
         one_by_id(post_id)
 
@@ -24,8 +24,8 @@ defmodule Mazaryn.Posts do
   end
 
   @spec create(String.t(), String.t(), list(String.t()), list(String.t())) :: any
-  def create(author, content, media, _other \\ []) do
-    case PostClient.create(author, content, media) do
+  def create(author, content, media, hashtag, _other \\ []) do
+    case PostClient.create(author, content, media, hashtag) do
       post_id when is_binary(post_id) ->
         {:ok, post_id}
 
@@ -61,6 +61,25 @@ defmodule Mazaryn.Posts do
         Logger.error("handle here")
     end
   end
+
+  def get_posts_by_hashtag(hashtag) do
+    case PostClient.get_posts_by_hashtag(hashtag) do
+      posts when is_list(posts) ->
+        for post <- posts do
+          {:ok, post} =
+            post
+            |> Post.erl_changeset()
+            |> Post.build()
+
+          post
+        end
+        |> Enum.sort_by(& &1.date_created, &>=/2)
+
+      _ ->
+        Logger.error("handle here")
+    end
+  end
+
 
   def get_home_posts do
     case PostClient.get_posts() do
