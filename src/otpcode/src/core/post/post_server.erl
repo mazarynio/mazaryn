@@ -15,8 +15,8 @@
 
 -behaviour(gen_server).
 %% API
--export([start_link/0, insert/3, get_post_by_id/1, modify_post/3,
-         get_posts_by_author/1, get_latest_posts/1, update_post/2, delete_post/1,add_comment/3,
+-export([start_link/0, insert/4, get_post_by_id/1, modify_post/4,
+         get_posts_by_author/1, get_posts_by_hashtag/1, get_latest_posts/1, update_post/2, delete_post/1,add_comment/3,
          update_comment/2, get_single_comment/1, get_all_comments/1,
          get_media/1, get_posts/0,
          get_all_posts_from_date/4, get_all_posts_from_month/3,
@@ -34,17 +34,20 @@ start_link() ->
   ?LOG_NOTICE("Post server has been started - ~p", [self()]),
   gen_server:start_link({global, ?MODULE}, ?MODULE, [], []).
 
-insert(Author, Content, Media) ->
-  gen_server:call({global, ?MODULE}, {insert, Author, Content, Media}).
+insert(Author, Content, Media, Hashtag) ->
+  gen_server:call({global, ?MODULE}, {insert, Author, Content, Media, Hashtag}).
 
-modify_post(Author, NewContent, NewMedia) ->
-  gen_server:call({global, ?MODULE}, {modify_post, Author, NewContent, NewMedia}).
+modify_post(Author, NewContent, NewMedia, NewHashtag) ->
+  gen_server:call({global, ?MODULE}, {modify_post, Author, NewContent, NewMedia, NewHashtag}).
 
 get_post_by_id(Id) ->
   gen_server:call({global, ?MODULE}, {get_post_by_id, Id}).
 
 get_posts_by_author(Author) ->
   gen_server:call({global, ?MODULE}, {get_posts_by_author, Author}).
+
+get_posts_by_hashtag(Hashtag) ->
+  gen_server:call({global, ?MODULE}, {get_posts_by_hashtag, Hashtag}).
 
 get_latest_posts(Author) ->
     gen_server:call({global, ?MODULE}, {get_latest_posts, Author}).
@@ -102,20 +105,24 @@ init([]) ->
     {ok, []}.
 
 
-handle_call({insert, Author, Content, Media}, _From, State) ->
-    Id = postdb:insert(Author, Content, Media),
+handle_call({insert, Author, Content, Media, Hashtag}, _From, State) ->
+    Id = postdb:insert(Author, Content, Media, Hashtag),
     {reply, Id, State};
 
-handle_call({modify_post, Author, NewContent, NewMedia}, _From, State) ->
-  Res = postdb:modify_post(Author, NewContent, NewMedia),
+handle_call({modify_post, Author, NewContent, NewMedia, NewHashtag}, _From, State) ->
+  Res = postdb:modify_post(Author, NewContent, NewMedia, NewHashtag),
   {reply, Res, State};
 
 handle_call({get_post_by_id, Id}, _From, State) ->
     Posts = postdb:get_post_by_id(Id),
     {reply, Posts, State};
 
-handle_call({get_posts_by_author, Author}, _From, State) -> 
+handle_call({get_posts_by_author, Author}, _From, State) ->
     Posts = postdb:get_posts_by_author(Author),
+    {reply, Posts, State};
+
+handle_call({get_posts_by_hashtag, Hashtag}, _From, State) ->
+    Posts = postdb:get_posts_by_hashtag(Hashtag),
     {reply, Posts, State};
 
 handle_call({get_latest_posts, Author}, _From, State) ->
@@ -149,7 +156,7 @@ handle_call({get_all_comments, PostId}, _From, State) ->
 
 handle_call({get_media, Media}, _From, State) ->
     postdb:get_media(Media),
-    {reply, ok, State}; 
+    {reply, ok, State};
 
 handle_call({get_posts}, _From, State) ->
     Res = postdb:get_posts(),
