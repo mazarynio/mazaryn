@@ -1,6 +1,6 @@
 %% TODO: change id order for testing, modify later
 -record(user, { id,
-                username,       
+                username,
                 password,
                 email,
                 media= [],
@@ -17,10 +17,11 @@
                 banner_url,
                 token_id }).
 
--record(post, { id,
+-record(post, { id, 
                 content,
                 comments = [],
                 media = [],
+                hashtag = [],
                 author,
                 other = [],
                 date_created,
