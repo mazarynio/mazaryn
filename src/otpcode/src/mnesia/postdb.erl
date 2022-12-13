@@ -1,6 +1,7 @@
 -module(postdb).
--export([insert/3, get_post_by_id/1,
-         modify_post/3, get_posts_by_author/1, update_post/2,
+-export([insert/4, get_post_by_id/1,
+         modify_post/4, get_posts_by_author/1, 
+         get_posts_by_hashtag/1, update_post/2,
          delete_post/1, get_posts/0,
          get_all_posts_from_date/4, get_all_posts_from_month/3,
          add_comment/3, update_comment/2,
@@ -12,13 +13,14 @@
 %% if post or comment do not have media,
 %% their value in record are nil
 
-insert(Author, Content, Media) ->
+insert(Author, Content, Media, Hashtag) ->
     F = fun() ->
           Id = id_gen:generate(),
           mnesia:write(#post{id=Id,
                              content=Content,
                              author=Author,
                              media = Media,
+                             hashtag = Hashtag,
                              date_created = calendar:universal_time()}),
           [User] = mnesia:index_read(user, Author, username),
           Posts = User#user.post,
@@ -28,11 +30,12 @@ insert(Author, Content, Media) ->
     {atomic, Res} = mnesia:transaction(F),
     Res.
 
-modify_post(Author, NewContent, NewMedia) ->
+modify_post(Author, NewContent, NewMedia, NewHashtag) ->
   Fun = fun() ->
           [Post] = mnesia:read({post, Author}),
           mnesia:write(Post#post{content = NewContent,
                                  media = NewMedia,
+                                 hashtag = NewHashtag,
                                  date_updated = calendar:universal_time()})
         end,
   {atomic, Res} = mnesia:transaction(Fun),
@@ -56,6 +59,14 @@ get_posts_by_author(Author) ->
     Fun = fun() ->
             mnesia:match_object(#post{author = Author,
                                        _ = '_'})
+            end,
+    {atomic, Res} = mnesia:transaction(Fun),
+    Res.
+
+get_posts_by_hashtag(Hashtag) ->
+    Fun = fun() ->
+            mnesia:match_object(#post{hashtag = Hashtag,
+                                      _ = '_'})
             end,
     {atomic, Res} = mnesia:transaction(Fun),
     Res.
