@@ -10,6 +10,7 @@ defmodule Mazaryn.Schema.Post do
   @optional_fields ~w(
     id
     media
+    hashtag 
     photo_url
     author
     other
@@ -29,6 +30,7 @@ defmodule Mazaryn.Schema.Post do
   embedded_schema do
     field(:content, :string)
     field(:media, {:array, :string}, default: [])
+    field(:hashtag, :string)
     field(:author, :string)
     field(:other, {:array, :string}, default: [])
     # TODO: Add to mnesia
@@ -42,12 +44,13 @@ defmodule Mazaryn.Schema.Post do
   end
 
   def erl_changeset(
-        {:post, id, content, comments, media, author, other, date_created, date_updated}
+        {:post, id, content, hashtag, comments, media, author, other, date_created, date_updated}
       ) do
     %__MODULE__{}
     |> changeset(%{
       id: id,
       content: content,
+      hashtag: hashtag,
       comments: comments,
       media: media,
       author: author,
