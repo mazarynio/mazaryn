@@ -4,6 +4,7 @@
                 password,
                 email,
                 media= [],
+
                 post = [],
                 following = [],
                 follower = [],
@@ -15,13 +16,14 @@
                 date_updated,
                 avatar_url,
                 banner_url,
-                token_id }).
+                token_id,
+                notification = [] }).
 
--record(post, { id, 
+-record(post, { id,
                 content,
                 comments = [],
                 media = [],
-                hashtag = [],
+                hashtag,
                 author,
                 other = [],
                 date_created,
