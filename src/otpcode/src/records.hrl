@@ -4,7 +4,6 @@
                 password,
                 email,
                 media= [],
-
                 post = [],
                 following = [],
                 follower = [],
