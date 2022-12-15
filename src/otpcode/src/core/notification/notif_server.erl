@@ -3,7 +3,7 @@
 -include_lib("kernel/include/logger.hrl").
 
 
--export([start_link/0, notify/3]).
+-export([start_link/0, notify/1, notify/3]).
 
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2,
@@ -16,6 +16,9 @@
 start_link() ->
     gen_server:start_link({global, ?MODULE}, ?MODULE, [], []).
 
+notify(Message) ->
+    gen_server:call({global, ?MODULE}, {notify, Message}).
+
 notify(From, To, Message) ->
     gen_server:call({global, ?MODULE}, {notify, From, To, Message}).
 
@@ -25,6 +28,10 @@ get_notif_by_id(Id) ->
 init([]) ->
     ?LOG_NOTICE("Notif server has been started - ~p", [self()]),
     {ok, #state{}}.
+
+handle_call({notify, Message}, _From, State) ->
+    Res = notifdb:insert(Message),
+    {reply, Res, State};
 
 handle_call({notify, From, To, Message}, _From, State) ->
     Res = notifdb:insert(From, To, Message),
