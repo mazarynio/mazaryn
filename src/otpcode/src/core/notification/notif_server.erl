@@ -18,12 +18,19 @@ start_link() ->
 notify(From, To, Message) ->
     gen_server:call({global, ?MODULE}, {notify, From, To, Message}).
 
+get_notif_by_id(Id) ->
+    gen_server:call({global, ?MODULE}, {get_notif_by_id, Id}).
+
 init([]) ->
     ?LOG_NOTICE("Notif server has been started - ~p", [self()]),
     {ok, #state{}}.
 
 handle_Call({notify, From, To, Message}, _From, State) ->
     Res = notifdb:insert(From, To, Message),
+    {reply, Res, State};
+
+handle_call({get_notif_by_id, Id}, _From, State) ->
+    Res = notifdb:get_notif_by_id(Id),
     {reply, Res, State};
 
 handle_call(_Request, _From, State) ->
