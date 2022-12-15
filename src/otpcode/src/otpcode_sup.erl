@@ -49,11 +49,15 @@ start_link() ->
                                {disc_copies, [node()]},
                                {type, ordered_set}]),
 
+    mnesia:create_table(notification, [{attributes, record_info(fields, notification)},
+                                       {disc_copies, [node()]},
+                                       {type, ordered_Set}]),
+
     mnesia:create_table(user, [{attributes, record_info(fields, user)},
                                {disc_copies, [node()]},
                                {type, ordered_set}]),
 
-    % create index key for user -> username 
+    % create index key for user -> username
     mnesia:add_table_index(user, username),
 
     mnesia:create_table(comment, [{attributes, record_info(fields, comment)},
@@ -102,6 +106,13 @@ init([]) ->
                     shutdown => 5000,
                     type => worker,
                     modules => [post_server]},
+
+                  #{id => notif_server,
+                    start => {notif_server, start_link, []},
+                    restart => permanent,
+                    shutdown => 5000,
+                    type => worker,
+                    modules => [notif_server]},
 
                   #{id => msg_server,
                     start => {msg_server, start_link, []},
