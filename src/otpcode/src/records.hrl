@@ -18,6 +18,11 @@
                 token_id,
                 notification = [] }).
 
+-record(notification, { id,
+                        from,
+                        to,
+                        message }).
+
 -record(post, { id,
                 content,
                 comments = [],
