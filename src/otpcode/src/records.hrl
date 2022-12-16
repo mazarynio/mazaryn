@@ -27,7 +27,7 @@
                 content,
                 comments = [],
                 media = [],
-                hashtag,
+                hashtag = [],
                 author,
                 other = [],
                 date_created,
