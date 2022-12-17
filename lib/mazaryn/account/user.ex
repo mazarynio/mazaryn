@@ -19,7 +19,7 @@ defmodule Account.User do
     follower
     blocked
     saved_posts
-    notifications
+    notification
     country
     avatar_url
     banner_url
@@ -48,7 +48,7 @@ defmodule Account.User do
     field(:blocked, {:array, :string}, default: [])
     field(:saved_posts, {:array, :string}, default: [])
 
-    field(:notifications, {:array, :string}, default: [])
+    field(:notification, {:array, :string}, default: [])
 
     field(:avatar_url, :string, default: "")
     field(:banner_url, :string, default: "")
