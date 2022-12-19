@@ -1,12 +1,14 @@
 <div>
-    <nav class="flex justify-evenly items-center bg-white relative text-center px-9 py-3 shadow-lg">
-        <div class="text-xl font-extrabold text-black cursor-pointer flex-shrink-0">
-            <img src={Routes.static_path(@socket, "/images/logo.png")} alt="Mazaryn Logo"/>
+    <nav class="flex justify-evenly items-center h-16 bg-white relative text-center px-9 py-2.5 shadow-lg">
+        <div class="mr-auto text-xl font-extrabold text-black cursor-pointer flex-shrink-0">
+            <img src={Routes.static_path(@socket, "/images/logo-dark.svg")} alt="Mazaryn Logo"/>
         </div>
-        <form class="flex m-auto my-0 h-9 leading-9 w-1/2 px-10" phx-submit="do_search">
-            <input type="search" placeholder="Search" name="search" value={@search} class="w-full text-sm outline-0 rounded border-2 border-slate-200 bg-slate-100"/>
+        <form class="flex w-[50%] mx-auto my-auto h-10 leading-9 outline-0 rounded-[10px] border-2 border-slate-200 bg-slate-100" phx-submit="do_search">
+            <button type="submit" class="p-2 ml-2">
+                <%= Heroicons.icon("magnifying-glass", class: "w-5 h-5 fill-[#AAAAAA]") %>
+            </button>
+            <input type="search" placeholder="Search" name="search" value={@search} class="w-full text-sm outline-none border-none bg-transparent hover:ring-transparent "/>
             <span class="fa fa-search"></span>
-            <button type="submit" class="hidden"></button>
         </form>
         <ol x-data="{ open: false, toggle() { this.open = ! this.open } }" x-on:click.outside="open = false" class="hidden md:flex justify-evenly items-center list-none">
             <li class="mx-5 my-0">
@@ -14,14 +16,14 @@
                     <div class="rounded-full pr-4 flex-shrink-0">
                         <img src={Routes.static_path(@socket, "/images/mazaryn-symbol.svg")} alt="Mazaryn symbol" class="w-4 rounded-full"/>
                     </div>
-                    <h1>0.23</h1>
-                </div>
+                    <h1>0.1</h1>
+                </div> 
             </li>
             <li class="mx-5 my-0">
                 <div class="w-8 h-8 bg-slate-100 center rounded-full p-1">
                     <span class="relative inline-block">
                         <i><%= Heroicons.icon("bell", class: "w-6 rounded-full text-gray-600 fill-gray-400") %></i>
-                        <span class="absolute top-0 left-5 px-1.5 py-1 text-xs font-bold leading-none text-red-100 transform bg-red-600 rounded-full">9</span>
+                        <%!-- <span class="absolute top-0 left-5 px-1.5 py-1 text-xs font-bold leading-none text-red-100 transform bg-red-600 rounded-full">9</span> --%>
                     </span>
                 </div>
             </li>
