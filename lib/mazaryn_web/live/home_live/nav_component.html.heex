@@ -3,14 +3,14 @@
         <div class="mr-auto text-xl font-extrabold text-black cursor-pointer flex-shrink-0">
             <img src={Routes.static_path(@socket, "/images/logo-dark.svg")} alt="Mazaryn Logo"/>
         </div>
-        <form class="flex w-[50%] mx-auto my-auto h-10 leading-9 outline-0 rounded-[10px] border-2 border-slate-200 bg-slate-100" phx-submit="do_search">
+        <form class="flex w-[47%] mx-auto my-auto h-10 leading-9 outline-0 rounded-[10px] border-2 border-slate-200 bg-slate-100" phx-submit="do_search">
             <button type="submit" class="p-2 ml-2">
                 <%= Heroicons.icon("magnifying-glass", class: "w-5 h-5 fill-[#AAAAAA]") %>
             </button>
             <input type="search" placeholder="Search" name="search" value={@search} class="w-full text-sm outline-none border-none bg-transparent hover:ring-transparent "/>
             <span class="fa fa-search"></span>
         </form>
-        <ol x-data="{ open: false, toggle() { this.open = ! this.open } }" x-on:click.outside="open = false" class="hidden md:flex justify-evenly items-center list-none">
+        <ol x-data="{ open: false, toggle() { this.open = ! this.open } }" x-on:click.outside="open = false" class="hidden ml-auto md:flex justify-evenly items-center list-none">
             <li class="mx-5 my-0">
                 <div class="flex justify-evenly items-center px-5 py-1 bg-slate-100 rounded-full">
                     <div class="rounded-full pr-4 flex-shrink-0">
