@@ -221,7 +221,14 @@
   }
 }
 
- /* Main Page (index) */
+
+/* Restricted (NAV BAR) */
+
+.dropdown_user_account.show {
+  display: block;
+}
+
+/* Main Page (index) */
 
  .hero-section {
     position: relative;

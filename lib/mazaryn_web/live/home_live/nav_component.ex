@@ -4,5 +4,4 @@ defmodule MazarynWeb.HomeLive.NavComponent do
   def mount(socket) do
     {:ok, socket}
   end
-
 end

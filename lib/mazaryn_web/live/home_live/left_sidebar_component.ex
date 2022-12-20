@@ -4,31 +4,31 @@ defmodule MazarynWeb.HomeLive.LeftSidebarComponent do
   def render(assigns) do
     ~H"""
     <div>
-    <div class="w-full bg-white white:bg-gray-800 shadow p-4 rounded-xl border">
-      <div class="flex justify-between align-center items-center py-5">
+    <div class="w-full bg-white white:bg-gray-800 shadow py-6 px-5 rounded-xl border">
+      <div class="flex justify-between align-center items-center">
         <div class="flex justify-center items-center">
             <ul class="">
                 <%= live_redirect to: Routes.live_path(@socket, MazarynWeb.HomeLive.Home), replace: false, class: "flex align-center items-center text-l px-2 py-4 text-gray-500 font-semibold hover:text-blue-500" do %>
                     <i><%= Heroicons.icon("home", class: "h-5 w-5 mr-3") %></i>
-                    Home
-                    <% end %>
+                    <div>Home</div>
+                <% end %>
 
                 <li class="flex align-center items-center">
                     <a href="index.html" class="flex items-center text-l px-2 py-4 text-gray-500 font-semibold hover:text-blue-500 ">
                         <i><%= Heroicons.icon("chat-bubble-oval-left", class: "h-5 w-5 mr-3") %></i>
-                        Chat
+                        <div>Chat</div>
                     </a>
                 </li>
                 <li class="flex align-center items-center">
                     <a href="index.html" class="flex items-center text-l px-2 py-4 text-gray-500 font-semibold hover:text-blue-500">
                         <i><%= Heroicons.icon("users", class: "h-5 w-5 mr-3") %></i>
-                        Group
+                        <div>Group</div>
                     </a>
                 </li>
                 <li class="flex align-center items-center">
                     <a href="index.html" class="flex items-center text-l px-2 py-4 text-gray-500 font-semibold hover:text-blue-500">
                         <i><%= Heroicons.icon("cog", class: "h-5 w-5 mr-3") %></i>
-                        Settings
+                        <div>Settings</div>
                     </a>
                 </li>
             </ul>
