@@ -1,6 +1,6 @@
 <div class="relative bg-white">
     <nav class="relative w-[90%] mx-auto h-16 py-2.5 flex justify-evenly items-center text-center">
-        <div class="w-[12%] mr-14 text-xl font-extrabold text-black cursor-pointer flex-shrink-0">
+        <div class="w-[17%] mr-14 text-xl font-extrabold text-black cursor-pointer flex-shrink-0">
             <%= link to: Routes.live_path(@socket, MazarynWeb.HomeLive.Home), class: "block" do %>
                 <img src={Routes.static_path(@socket, "/images/logo-dark.svg")} alt="Mazaryn Logo"/>
             <% end %>
@@ -11,7 +11,7 @@
                 <%= Heroicons.icon("magnifying-glass", class: "magnifying_glass_icon w-5 h-5 fill-[#AAAAAA]") %>
             </button>
         </form>
-        <ol class="hidden w-[61.6%] ml-14 md:flex justify-evenly items-center list-none">
+        <ol class="hidden w-[55%] ml-14 md:flex justify-evenly items-center list-none">
             <li class="ml-auto my-0">
                 <div class="flex justify-evenly items-center py-2 px-2.5 bg-[#FAFAFA] rounded-[10px]">
                     <div class="rounded-full pr-4 flex-shrink-0">

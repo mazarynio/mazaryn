@@ -1,16 +1,21 @@
-<div class="w-full bg-white white:bg-gray-800 shadow p-4 rounded-xl border">
+<div class="w-full bg-white white:bg-gray-800 custom-box-shadow pr-[1.35rem] pl-[1.6rem] pb-2 pt-5 mt-8 rounded-[20px]">
     <div x-data="{ open: false }" x-on:click.outside="open = false" class="flex justify-between align-center items-center">
         <div class="flex justify-center items-center">
             <img class="h-11 w-11 rounded-full" src={get_user_avatar(@post.author)} />
-            <div class="ml-1.5 text-sm leading-tight">
-                    <%= live_redirect @post.author, to: Routes.live_path(@socket, MazarynWeb.UserLive.Profile, @post.author), class: "text-black font-medium block" %>
-                    <span class="text-gray-300 font-normal block mt-1"><%= Timex.from_now(@post.date_created) %></span>
+            <div class="ml-3.5 text-sm leading-tight">
+                <%= live_redirect @post.author, to: Routes.live_path(@socket, MazarynWeb.UserLive.Profile, @post.author), class: "block text-black text-base font-semibold" %>
+                <span class="block text-[#60616D] text-sm"><%= Timex.from_now(@post.date_created) %></span>
             </div>
         </div>
-        <div class="w-90 flex  justify-evenly items-center ml-1.5 text-sm ">
-            <span class="text-gray-300 font-normal block">23.15k views</span> 
+        <div class="w-90 flex justify-evenly items-center ml-1.5 text-sm self-start">
             <div class="relative">
-                <i @click="open = !open" ><%= Heroicons.icon("ellipsis-vertical", type: "outline", class: "h-6 w-5 ml-5 fill-gray-800 cursor-pointer") %></i>
+                <i @click="open = !open">
+                    <svg class="h-9 w-7 fill-[##C4C4C4] cursor-pointer" width="15" height="35" viewBox="0 0 15 35" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="7.5" cy="7.5" r="2.5" fill="#C4C4C4"/>
+                        <circle cx="7.5" cy="17.5" r="2.5" fill="#C4C4C4"/>
+                        <circle cx="7.5" cy="27.5" r="2.5" fill="#C4C4C4"/>
+                    </svg>
+                </i>
                 <ul x-show="open"
                     x-transition:enter="transition ease-out duration-200"
                     x-transition:enter-start="opacity-0"
@@ -30,7 +35,7 @@
             </div>
         </div> 
     </div>
-    <p class="text-black block text-xl leading-snug mt-3"><%= @post.content %> <span class="text-blue-300 text-sm"><%= Enum.join(@post.profile_tags, " ") %></span></p>
+    <p class="text-black block text-base mt-3"><%= @post.content %> <span class="text-blue-300 text-sm"><%= Enum.join(@post.profile_tags, " ") %></span></p>
 
     <div class="w-full grid grid-cols-4 gap-4">
         <%= for media_url <- @post.media do%>
@@ -38,24 +43,29 @@
         <% end %>
     </div>
 
-    <div class="text-gray-500 flex mt-3 py-3">
-        <div class="flex items-center mr-6">
-            <%= Heroicons.icon("hand-thumb-up", type: "solid", class: "h-4 w-4 fill-gray-500" )  %>
-            <span class="ml-3 text-sm"><%= @post.like_count %></span>
+    <div class="text-gray-500 flex mt-3 pt-10 pb-5">
+        <div class="flex items-start mr-7">
+            <svg class="h-5 w-5" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path fill-rule="evenodd" clip-rule="evenodd" d="M0.654297 8.40238H5.10742C5.46712 8.40238 5.76172 8.74338 5.76172 9.16161V19.2426C5.76172 19.659 5.46712 20.0019 5.10742 20.0019H0.654297C0.294596 20.0019 0 19.6609 0 19.2426V9.16161C0 8.74338 0.294596 8.40238 0.654297 8.40238ZM10.2637 0.840213C10.6087 -1.18503 13.4733 0.680077 13.6621 3.94496C13.7191 4.94345 13.6296 6.10585 13.418 7.40389H17.5114C19.2139 7.48113 20.6999 8.89221 19.6501 11.2095C19.8893 12.2193 19.9251 13.4043 19.2757 13.8715C19.3571 15.4653 18.9762 16.4525 18.2633 17.2324C18.2161 18.0294 18.0697 18.7377 17.7376 19.2822C17.1875 20.1808 16.7415 19.9661 15.8757 19.9661H8.96322C7.86784 19.9661 7.27051 19.6175 6.55436 18.5776V9.66651C8.61491 9.0222 9.71029 5.7592 10.2637 3.61715V0.840213Z" fill="#CFD0DD"/>
+            </svg>
+            <span class="ml-2.5  text-[#CFD0DD] text-base"><%= @post.like_count %></span>
         </div>
-        <div class="flex items-center mr-6">
-            <%= Heroicons.icon("hand-thumb-down", type: "solid", class: "h-4 w-4 fill-gray-500" )  %>
-            <span class="ml-3 text-sm"><%= @post.like_count %></span>
+        <div class="flex items-baseline mr-7">
+            <svg class="h-5 w-7" width="25" height="16" viewBox="0 0 25 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M23.9922 11.0781C23.8477 10.7266 23.5039 10.4648 23.125 10.4648H21.25V4.875C21.25 3.15234 19.8477 1.75 18.125 1.75H13.125C12.4348 1.75 11.875 2.30898 11.875 3C11.875 3.69102 12.4348 4.25 13.125 4.25H18.125C18.4688 4.25 18.75 4.53125 18.75 4.875V10.4648H16.875C16.6896 10.4649 16.5084 10.52 16.3542 10.623C16.2001 10.7261 16.0799 10.8726 16.009 11.0439C15.9381 11.2152 15.9195 11.4037 15.9557 11.5856C15.9919 11.7674 16.0812 11.9345 16.2123 12.0656L19.3373 15.1914C19.5196 15.4102 19.7617 15.5 20 15.5C20.2383 15.5 20.4797 15.4084 20.6629 15.2254L23.7879 12.0996C24.0547 11.832 24.1368 11.4297 23.9922 11.0781ZM11.875 11.75H6.87503C6.53128 11.75 6.25003 11.4688 6.25003 11.125V5.5H8.12503C8.31046 5.49991 8.4917 5.44486 8.64584 5.3418C8.79998 5.23873 8.92011 5.09228 8.99105 4.92096C9.06198 4.74964 9.08053 4.56113 9.04435 4.37927C9.00818 4.19741 8.9189 4.03035 8.7878 3.89922L5.6628 0.773438C5.4805 0.591406 5.23831 0.5 5.00003 0.5C4.76175 0.5 4.51956 0.591406 4.33597 0.774609L1.21097 3.90039C0.944172 4.16797 0.863703 4.57031 1.00902 4.92188C1.15433 5.27344 1.49613 5.5 1.87503 5.5H3.75003V11.125C3.75003 12.8477 5.15238 14.25 6.87503 14.25H11.875C12.5653 14.25 13.125 13.691 13.125 13C13.125 12.309 12.5664 11.75 11.875 11.75Z" fill="#CFD0DD"/>
+            </svg>
         </div>
-        <div class="flex items-center mr-6">
-            <%= Heroicons.icon("chat-bubble-oval-left", type: "solid", class: "h-4 w-4 fill-gray-500" )  %>
-            <span class="ml-3 text-sm"><%= Enum.count(@post.comments) %></span>
+        <div class="flex items-start mr-7">
+           <svg class="h-5 w-5" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+             <path d="M10 0.5C4.48603 0.5 2.68755e-05 4.53733 2.68755e-05 9.5C2.68755e-05 11.235 0.549027 12.9153 1.58936 14.368C1.39236 16.547 0.86436 18.1647 0.0976936 18.931C-0.00363979 19.0323 -0.0289731 19.1873 0.0350269 19.3153C0.0920269 19.4297 0.20836 19.5 0.33336 19.5C0.348694 19.5 0.36436 19.499 0.380027 19.4967C0.515027 19.4777 3.65103 19.026 5.91903 17.7173C7.20736 18.237 8.57936 18.5 10 18.5C15.514 18.5 20 14.4627 20 9.5C20 4.53733 15.514 0.5 10 0.5Z" fill="#CFD0DD"/>
+           </svg>
+           <span class="ml-2.5 text-[#CFD0DD] text-base"><%= Enum.count(@post.comments) %></span>
         </div>
     </div>
     <div class="flex items-center mr-6">
-        <span class="text-blue-400 text-sm">View <%= Enum.count(@post.comments) %> comments</span>
+        <span class="text-[#4385F5] text-base">View <%= Enum.count(@post.comments) %> comments</span>
     </div>
-    <div class="border-gray-300 border border-b-0 my-1"></div>
+    <div class="border-[#E5E5E5] border border-b-0 my-7"></div>
     <div class="flex justify-between align-center items-center py-5">
         <div class="flex justify-center items-center">
             <img class="h-11 w-11 rounded-full" src={get_user_avatar(@post.author)} />
