@@ -1,133 +1,138 @@
 <.live_component module={MazarynWeb.HomeLive.NavComponent} id="navigation" user={@current_user} search={@search} />
 
-<div class="flex flex-wrap h-screen">
-  <div class="w-full lg:w-1/6 bg-gray-100 py-10 pl-10">
-    <.live_component module={MazarynWeb.HomeLive.LeftSidebarComponent} id="leftside" user={@current_user} />
-  </div>
+<div class="bg-[#FAFAFA]">
+  <div class="flex w-[90%] mx-auto">
 
-  <div class="w-full lg:w-5/6 bg-gray-100 px-10">
-    <div class="block" style="height: 300px;">
-      <%= if @user.avatar_url do %>
-        <div class="w-full h-full bg-center bg-cover rounded-b-3xl"
-             style={"background-image: url('#{@user.avatar_url}');"}>
-        </div>
-      <% else %>
-        <div class="w-full h-full bg-center bg-cover rounded-b-3xl bg-gray-400"> </div>
-      <% end %>
+    <div class="w-full lg:w-[18%] py-6 ">
+      <.live_component module={MazarynWeb.HomeLive.LeftSidebarComponent} id="leftside" user={@current_user} />
     </div>
 
-    <div class="relative flex flex-col bg-white w-full mb-6 mt-8 shadow-xl rounded-3xl">
-      <div class="flex flex-wrap justify-center">
-        <div class="w-full lg:w-2/12 lg:order-1 flex justify-center">
-          <div class="relative">
-            <%= if @user.avatar_url do %>
-              <img alt="..." src={"#{@user.avatar_url}"}
-                             class="shadow-xl rounded-full h-auto align-middle border-none absolute -m-16 -ml-20 lg:-ml-20 ring-8 ring-gray-100"
-                             style="max-width: 150px;" />
-            <% else %>
-              <img alt="Default user" src={Routes.static_path(@socket, "/images/default-user.svg")} class="rounded-full bg-gray-100 h-auto align-middle border-none absolute -m-16 -ml-20 lg:-ml-20 ring-8 ring-gray-100"
-                                                                                                    style="max-width: 150px;"/>
-            <% end %>
+    <div class="w-full lg:w-[79.5%] ml-auto">
+
+      <div class="block h-80">
+        <%= if @user.avatar_url do %>
+          <div class="w-full h-full bg-center bg-cover rounded-b-3xl"
+              style={"background-image: url('#{@user.avatar_url}');"}>
+          </div>
+        <% else %>
+          <div class="w-full h-full bg-center bg-cover rounded-b-3xl bg-[#CFD0DD]"> </div>
+        <% end %>
+      </div>
+
+      <div class="relative flex flex-col bg-white w-full mb-6 mt-8 shadow-xl rounded-3xl">
+        <div class="flex flex-wrap justify-center">
+          <div class="w-full lg:w-2/12 lg:order-1 flex justify-center">
+            <div class="relative">
+              <%= if @user.avatar_url do %>
+                <img alt="..." src={"#{@user.avatar_url}"}
+                              class="shadow-xl rounded-full h-auto align-middle border-none absolute -m-16 -ml-20 lg:-ml-20 ring-8 ring-gray-100"
+                              style="max-width: 150px;" />
+              <% else %>
+                <img alt="Default user" src={Routes.static_path(@socket, "/images/default-user.svg")} class="rounded-full bg-gray-100 h-auto align-middle border-none absolute -m-16 -ml-20 lg:-ml-20 ring-8 ring-gray-100"
+                                                                                                      style="max-width: 150px;"/>
+              <% end %>
+            </div>
+          </div>
+
+          <div class="w-full lg:w-6/12 lg:order-2 px-2 pt-6">
+            <div class="mr-4 p-3 text-left">
+              <span class="text-xl font-bold block tracking-wide text-gray-700"><%=@user.username%>
+                <a class="ml-4 text-sm font-medium ">@<%=@user.username%></a>
+              </span>
+              <span class="text-sm">Bitcoin Design Contributor | UI/UX Designer</span>
+            </div>
+          </div>
+
+          <div class="w-full lg:w-3/12 px-4 lg:order-3 lg:text-right lg:self-center">
+            <div class="py-6 px-3 mt-32 sm:mt-0">
+
+              <%= if @user.username == @current_user.username do %>
+                <button phx-click={Phoenix.LiveView.JS.toggle(to: "#modal")} class="py-2.5 px-5  mb-2 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200">Edit Profile</button>
+              <% end %>
+
+              <%= if @user.username != @current_user.username do %>
+                <button phx-click={@follow_event} phx-value-username={"#{@user.username}"} type="button" class="py-2.5 px-5  mb-2 text-sm font-medium text-white focus:outline-none bg-blue-700 rounded-lg border border-gray-200 hover:bg-white hover:text-gray-700 focus:z-10 focus:ring-4 focus:ring-gray-200"><%= @follow_text %></button>
+              <% end %>
+
+            </div>
           </div>
         </div>
 
-        <div class="w-full lg:w-6/12 lg:order-2 px-2 pt-6">
-          <div class="mr-4 p-3 text-left">
-            <span class="text-xl font-bold block tracking-wide text-gray-700"><%=@user.username%>
-              <a class="ml-4 text-sm font-medium ">@<%=@user.username%></a>
-            </span>
-            <span class="text-sm">Bitcoin Design Contributor | UI/UX Designer</span>
+        <div class="flex p-4">
+          <div class="mr-8 p-3 text-center flex">
+            <i><%= Heroicons.icon("map-pin", class: "h-5 w-5 mr-2") %> </i>
+            <a class="font-bold text-gray-700 mr-1"><%= @user.country || "N/A"  %></a>
           </div>
-        </div>
-
-        <div class="w-full lg:w-3/12 px-4 lg:order-3 lg:text-right lg:self-center">
-          <div class="py-6 px-3 mt-32 sm:mt-0">
-
-            <%= if @user.username == @current_user.username do %>
-              <button phx-click={Phoenix.LiveView.JS.toggle(to: "#modal")} class="py-2.5 px-5  mb-2 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200">Edit Profile</button>
-            <% end %>
-
-            <%= if @user.username != @current_user.username do %>
-              <button phx-click={@follow_event} phx-value-username={"#{@user.username}"} type="button" class="py-2.5 px-5  mb-2 text-sm font-medium text-white focus:outline-none bg-blue-700 rounded-lg border border-gray-200 hover:bg-white hover:text-gray-700 focus:z-10 focus:ring-4 focus:ring-gray-200"><%= @follow_text %></button>
-            <% end %>
-
+          <div class="mr-8 p-3 text-center flex">
+            <i><%= Heroicons.icon("newspaper", class: "h-5 w-5 mr-2") %> </i>
+            <a class="font-bold text-gray-700 mr-1"><%= Enum.count(@user.posts) %></a>
+            <a class="text-gray-500">Posts</a>
+          </div>
+          <div class="mr-8 p-3 text-center flex">
+            <i><%= Heroicons.icon("users", class: "h-5 w-5 mr-2") %> </i>
+            <a class="font-bold text-gray-700 mr-1"><%= Enum.count(@user.following) %></a>
+            <a class="text-gray-500">Followings</a>
+          </div>
+          <div class="p-3 text-center flex">
+            <i><%= Heroicons.icon("users", class: "h-5 w-5 mr-2") %> </i>
+            <a class="font-bold text-gray-700 mr-1"><%= Enum.count(@user.follower) %></a>
+            <a class="text-gray-500">Followers</a>
           </div>
         </div>
       </div>
-      <div class="flex p-4">
-        <div class="mr-8 p-3 text-center flex">
-          <i><%= Heroicons.icon("map-pin", class: "h-5 w-5 mr-2") %> </i>
-          <a class="font-bold text-gray-700 mr-1"><%= @user.country || "N/A"  %></a>
-        </div>
-        <div class="mr-8 p-3 text-center flex">
-          <i><%= Heroicons.icon("newspaper", class: "h-5 w-5 mr-2") %> </i>
-          <a class="font-bold text-gray-700 mr-1"><%= Enum.count(@user.posts) %></a>
-          <a class="text-gray-500">Posts</a>
-        </div>
-        <div class="mr-8 p-3 text-center flex">
-          <i><%= Heroicons.icon("users", class: "h-5 w-5 mr-2") %> </i>
-          <a class="font-bold text-gray-700 mr-1"><%= Enum.count(@user.following) %></a>
-          <a class="text-gray-500">Followings</a>
-        </div>
-        <div class="p-3 text-center flex">
-          <i><%= Heroicons.icon("users", class: "h-5 w-5 mr-2") %> </i>
-          <a class="font-bold text-gray-700 mr-1"><%= Enum.count(@user.follower) %></a>
-          <a class="text-gray-500">Followers</a>
-        </div>
-      </div>
 
-    </div>
+      <div class="flex flex-wrap">
+        <div class="w-full lg:w-3/5">
+
+          <ul class="profile_nav mb-8 flex flex-wrap text-sm font-medium text-center text-gray-500 bg-white white:bg-gray-800 rounded-xl border">
+            <li class="w-full lg:w-1/5">
+              <a href="#" aria-current="page" class="inline-block p-4 text-blue-600 bg-gray-100  active ">TIMELINE</a>
+            </li>
+            <li class="w-full lg:w-1/5">
+              <a href="#" class="inline-block p-4  hover:text-gray-600 hover:bg-gray-50">PHOTO</a>
+            </li>
+            <li class="w-full lg:w-1/5">
+              <a href="#" class="inline-block p-4  hover:text-gray-600 hover:bg-gray-50">VIDEO</a>
+            </li>
+            <li class="w-full lg:w-1/5">
+              <a href="#" class="inline-block p-4  hover:text-gray-600 hover:bg-gray-50">TAGGED</a>
+            </li>
+            <li class="w-full lg:w-1/5">
+              <a href="#" class="inline-block p-4  hover:text-gray-600 hover:bg-gray-50">INTEREST</a>
+            </li>
+          </ul>
+
+          <%= if @user.username == @current_user.username do %>
+            <div class="w-full bg-white white:bg-gray-800 custom-box-shadow pr-8 pl-7 pb-7 pt-4 rounded-[20px]">
+              <.live_component module={MazarynWeb.HomeLive.CreatePostComponent} id="posting" changeset={@post_changeset} user={@user} />
+            </div>
+          <% end %>
 
 
-    <div class="flex flex-wrap h-screen ">
-      <div class="w-full lg:w-3/5 bg-gray-100">
-        <ul class="flex flex-wrap text-sm font-medium text-center text-gray-500 bg-white white:bg-gray-800 rounded-xl border">
-          <li class="w-full lg:w-1/5">
-            <a href="#" aria-current="page" class="inline-block p-4 text-blue-600 bg-gray-100  active ">TIMELINE</a>
-          </li>
-          <li class="w-full lg:w-1/5">
-            <a href="#" class="inline-block p-4  hover:text-gray-600 hover:bg-gray-50">PHOTO</a>
-          </li>
-          <li class="w-full lg:w-1/5">
-            <a href="#" class="inline-block p-4  hover:text-gray-600 hover:bg-gray-50">VIDEO</a>
-          </li>
-          <li class="w-full lg:w-1/5">
-            <a href="#" class="inline-block p-4  hover:text-gray-600 hover:bg-gray-50">TAGGED</a>
-          </li>
-          <li class="w-full lg:w-1/5">
-            <a href="#" class="inline-block p-4  hover:text-gray-600 hover:bg-gray-50">INTEREST</a>
-          </li>
-        </ul>
+          <div class="flex flex-wrap justify-center align-center my-5 gap-y-4">
+              <%= for post <- @posts do %>
+                  <.live_component module={MazarynWeb.HomeLive.PostComponent} id={"post-#{post.id}"} post={post} current_user={@current_user} />
+              <% end %>
+          </div>
+        </div>
 
         <%= if @user.username == @current_user.username do %>
-          <div class="w-full bg-white white:bg-gray-800 shadow my-5  rounded-xl border">
-            <.live_component module={MazarynWeb.HomeLive.CreatePostComponent} id="posting" changeset={@post_changeset} user={@user} />
+          <div class="w-full lg:w-2/5 pl-10">
+            <.live_component module={MazarynWeb.Component.CompleteProfile} id="completing" user={@current_user} />
           </div>
         <% end %>
-
-
-        <div class="flex flex-wrap justify-center align-center my-5 gap-y-4">
-            <%= for post <- @posts do %>
-                <.live_component module={MazarynWeb.HomeLive.PostComponent} id={"post-#{post.id}"} post={post} current_user={@current_user} />
-            <% end %>
-        </div>
       </div>
 
-      <%= if @user.username == @current_user.username do %>
-        <div class="w-full lg:w-2/5 bg-gray-100 pl-10">
-          <.live_component module={MazarynWeb.Component.CompleteProfile} id="completing" user={@current_user} />
-        </div>
-      <% end %>
     </div>
 
+    <.modal>
+      <.live_component
+        module={MazarynWeb.UserLive.EditProfileComponent}
+        id={@user.username}
+        title="Edit Profile"
+        current_user={@current_user}
+        changeset={@user_changeset}
+      />
+    </.modal>
   </div>
-  <.modal>
-    <.live_component
-   module={MazarynWeb.UserLive.EditProfileComponent}
-   id={@user.username}
-   title="Edit Profile"
-   current_user={@current_user}
-   changeset={@user_changeset}
-   />
- </.modal>
 </div>

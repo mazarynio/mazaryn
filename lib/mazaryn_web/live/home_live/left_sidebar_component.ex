@@ -87,7 +87,7 @@ defmodule MazarynWeb.HomeLive.LeftSidebarComponent do
                         </li>
 
                         <li class="flex align-center items-center mx-2 group">
-                            <%= live_patch to: Routes.live_path(@socket, MazarynWeb.UserLive.Profile,  @user.username), replace: false, class: "flex items-center text-xl text-gray-500 font-semibold group-hover:text-blue-500" do %>
+                            <%= live_redirect to: Routes.live_path(@socket, MazarynWeb.UserLive.Profile,  @user.username), replace: false, class: "flex items-center text-xl text-gray-500 font-semibold group-hover:text-blue-500" do %>
                                 <%= if @user.avatar_url do %>
                                     <img src={"#{@user.avatar_url}"} class="h-5 w-5 mr-3.5 rounded-full ring-blue-500 group-hover:ring"/>
                                 <% else %>

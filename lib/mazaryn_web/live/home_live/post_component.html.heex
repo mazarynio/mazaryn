@@ -10,7 +10,7 @@
         <div class="w-90 flex justify-evenly items-center ml-1.5 text-sm self-start">
             <div class="relative">
                 <i @click="open = !open">
-                    <svg class="h-9 w-7 fill-[##C4C4C4] cursor-pointer" width="15" height="35" viewBox="0 0 15 35" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <svg class="h-10 w-7 fill-[#C4C4C4] cursor-pointer" width="15" height="35" viewBox="0 0 15 35" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <circle cx="7.5" cy="7.5" r="2.5" fill="#C4C4C4"/>
                         <circle cx="7.5" cy="17.5" r="2.5" fill="#C4C4C4"/>
                         <circle cx="7.5" cy="27.5" r="2.5" fill="#C4C4C4"/>
@@ -44,13 +44,13 @@
     </div>
 
     <div class="text-gray-500 flex mt-3 pt-10 pb-5">
-        <div class="flex items-start mr-7">
+        <div class="flex items-start mr-6">
             <svg class="h-5 w-5" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path fill-rule="evenodd" clip-rule="evenodd" d="M0.654297 8.40238H5.10742C5.46712 8.40238 5.76172 8.74338 5.76172 9.16161V19.2426C5.76172 19.659 5.46712 20.0019 5.10742 20.0019H0.654297C0.294596 20.0019 0 19.6609 0 19.2426V9.16161C0 8.74338 0.294596 8.40238 0.654297 8.40238ZM10.2637 0.840213C10.6087 -1.18503 13.4733 0.680077 13.6621 3.94496C13.7191 4.94345 13.6296 6.10585 13.418 7.40389H17.5114C19.2139 7.48113 20.6999 8.89221 19.6501 11.2095C19.8893 12.2193 19.9251 13.4043 19.2757 13.8715C19.3571 15.4653 18.9762 16.4525 18.2633 17.2324C18.2161 18.0294 18.0697 18.7377 17.7376 19.2822C17.1875 20.1808 16.7415 19.9661 15.8757 19.9661H8.96322C7.86784 19.9661 7.27051 19.6175 6.55436 18.5776V9.66651C8.61491 9.0222 9.71029 5.7592 10.2637 3.61715V0.840213Z" fill="#CFD0DD"/>
             </svg>
             <span class="ml-2.5  text-[#CFD0DD] text-base"><%= @post.like_count %></span>
         </div>
-        <div class="flex items-baseline mr-7">
+        <div class="flex items-baseline mr-6">
             <svg class="h-5 w-7" width="25" height="16" viewBox="0 0 25 16" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M23.9922 11.0781C23.8477 10.7266 23.5039 10.4648 23.125 10.4648H21.25V4.875C21.25 3.15234 19.8477 1.75 18.125 1.75H13.125C12.4348 1.75 11.875 2.30898 11.875 3C11.875 3.69102 12.4348 4.25 13.125 4.25H18.125C18.4688 4.25 18.75 4.53125 18.75 4.875V10.4648H16.875C16.6896 10.4649 16.5084 10.52 16.3542 10.623C16.2001 10.7261 16.0799 10.8726 16.009 11.0439C15.9381 11.2152 15.9195 11.4037 15.9557 11.5856C15.9919 11.7674 16.0812 11.9345 16.2123 12.0656L19.3373 15.1914C19.5196 15.4102 19.7617 15.5 20 15.5C20.2383 15.5 20.4797 15.4084 20.6629 15.2254L23.7879 12.0996C24.0547 11.832 24.1368 11.4297 23.9922 11.0781ZM11.875 11.75H6.87503C6.53128 11.75 6.25003 11.4688 6.25003 11.125V5.5H8.12503C8.31046 5.49991 8.4917 5.44486 8.64584 5.3418C8.79998 5.23873 8.92011 5.09228 8.99105 4.92096C9.06198 4.74964 9.08053 4.56113 9.04435 4.37927C9.00818 4.19741 8.9189 4.03035 8.7878 3.89922L5.6628 0.773438C5.4805 0.591406 5.23831 0.5 5.00003 0.5C4.76175 0.5 4.51956 0.591406 4.33597 0.774609L1.21097 3.90039C0.944172 4.16797 0.863703 4.57031 1.00902 4.92188C1.15433 5.27344 1.49613 5.5 1.87503 5.5H3.75003V11.125C3.75003 12.8477 5.15238 14.25 6.87503 14.25H11.875C12.5653 14.25 13.125 13.691 13.125 13C13.125 12.309 12.5664 11.75 11.875 11.75Z" fill="#CFD0DD"/>
             </svg>
@@ -65,17 +65,24 @@
     <div class="flex items-center mr-6">
         <span class="text-[#4385F5] text-base">View <%= Enum.count(@post.comments) %> comments</span>
     </div>
-    <div class="border-[#E5E5E5] border border-b-0 my-7"></div>
+    <div class="border-[#E5E5E5] border border-b-0 mt-7 mb-3.5"></div>
     <div class="flex justify-between align-center items-center py-5">
-        <div class="flex justify-center items-center">
+        <div class="relative flex justify-center items-center w-full">
             <img class="h-11 w-11 rounded-full" src={get_user_avatar(@post.author)} />
-            <div class="ml-4 text-sm leading-tight">
-                <span class="text-gray-300 font-normal block">Write a comment</span>
+            <div class="relative top-2.5 w-full ml-4 text-sm leading-tight">
+                <textarea class="w-full border-none px-0 resize-none focus:text-black focus:ring-0 font-normal leading-[24px] block placeholder:text-[#C5C7C8]" id="post_content" name="post[content]" placeholder="Write a comment"></textarea>
             </div>
         </div>
         <div class="flex flex-row justify-evenly items-center ml-1.5 text-sm leading-tight">
-            <button class="text-gray-500 font-normal block">
-                <%= Heroicons.icon("chat-bubble-oval-left", type: "outline", class: "h-6 w-6" )  %>
+            <button class="text-gray-500 font-normal block mr-3.5">
+               <%= Heroicons.icon("face-smile", type: "solid", class: "h-5 w-5 fill-[#60616D]") %>
+            </button>
+            <button>
+                <i class="block icon-drop-shadow" id="upload-area" phx-drop-target={@uploads.media.ref} phx-click={Phoenix.LiveView.JS.dispatch("click", to: "##{@uploads.media.ref}", bubbles: false)}>
+                    <svg class="icon h-5 w-5 fill-[#60616D]" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path fill-rule="evenodd" clip-rule="evenodd" d="M15.1725 6.95497C15.477 6.95538 15.7745 7.07249 16.0275 7.29149C16.2805 7.51049 16.4776 7.82154 16.5939 8.18534C16.7102 8.54914 16.7404 8.94934 16.6808 9.33537C16.6212 9.7214 16.4745 10.0759 16.2591 10.3541C16.0437 10.6323 15.7693 10.8217 15.4707 10.8983C15.1721 10.975 14.8626 10.9354 14.5813 10.7847C14.3001 10.634 14.0597 10.3788 13.8906 10.0515C13.7215 9.72416 13.6312 9.33935 13.6312 8.94571C13.631 8.68402 13.6707 8.42486 13.7481 8.18307C13.8255 7.94128 13.9391 7.72162 14.0823 7.53668C14.2255 7.35174 14.3955 7.20516 14.5826 7.10533C14.7697 7.00551 14.9701 6.95441 15.1725 6.95497ZM16.3916 2.27904V1.64773H1.27931V15.6397H2.00034V17.2938H1.12143C0.825035 17.2946 0.540521 17.1432 0.330414 16.8729C0.226658 16.7391 0.144464 16.5799 0.0885884 16.4047C0.0327129 16.2296 0.0042656 16.0418 0.00489297 15.8523V1.44992C0.00531762 1.06663 0.122934 0.699117 0.332094 0.427505C0.541254 0.155894 0.82499 0.00222153 1.12143 0L16.5495 0C16.8468 0.000556656 17.1318 0.153494 17.342 0.425285C17.5522 0.697077 17.6705 1.06555 17.6709 1.44992V2.27904H16.3916ZM17.8825 18.3481L15.2132 12.8367C15.1582 12.7232 15.0817 12.6297 14.991 12.5648C14.9004 12.5 14.7985 12.466 14.6948 12.466C14.5912 12.466 14.4893 12.5 14.3986 12.5648C14.308 12.6297 14.2315 12.7232 14.1764 12.8367L12.9167 15.4609L14.2871 18.3481H13.724L9.98048 10.6292C9.91645 10.4975 9.82762 10.3889 9.72229 10.3137C9.61697 10.2384 9.4986 10.1989 9.37827 10.1989C9.25793 10.1989 9.13956 10.2384 9.03424 10.3137C8.92892 10.3889 8.84008 10.4975 8.77605 10.6292L5.12208 18.3481H4.60939V5.64604H18.7175V18.3481H17.8825ZM18.8802 19.9916H4.45151C4.15463 19.9905 3.87014 19.8377 3.66007 19.5664C3.44999 19.2952 3.33138 18.9276 3.33009 18.5438V5.44192C3.33223 5.05882 3.45122 4.69228 3.66121 4.42197C3.87119 4.15166 4.15519 3.99942 4.45151 3.99832H18.8802C19.1769 3.99943 19.4613 4.15232 19.6711 4.4236C19.8809 4.69487 19.9992 5.06249 20 5.44613V18.5564C19.9962 18.9377 19.8767 19.3017 19.6672 19.5702C19.4578 19.8386 19.1751 19.99 18.8802 19.9916V19.9916Z" fill="#AAAAAA"/>
+                    </svg>
+                </i>
             </button>
         </div>
     </div>
