@@ -8,7 +8,6 @@
     </div>
 
     <div class="w-full lg:w-[79.5%] ml-auto">
-
       <div class="block h-80">
         <%= if @user.avatar_url do %>
           <div class="w-full h-full bg-center bg-cover rounded-b-3xl"
@@ -28,7 +27,7 @@
                   class="shadow-xl rounded-full max-w-[150px] h-auto align-middle border-none absolute -m-16 -ml-20 lg:-ml-20 ring-8 ring-gray-100"
                 />
               <% else %>
-                <img alt="Default user" src={Routes.static_path(@socket, "/images/default-user.svg")} class="rounded-full bg-gray-100 h-auto align-middle border-none absolute -m-16 -ml-20 lg:-ml-20 ring-8 ring-gray-100" style="max-width: 150px;" />
+                <img alt="Default user" src={Routes.static_path(@socket, "/images/default-user.svg")} class="rounded-full max-w-[150px] bg-gray-100 h-auto align-middle border-none absolute -m-16 -ml-20 lg:-ml-20 ring-8 ring-gray-100" />
               <% end %>
             </div>
           </div>
@@ -69,12 +68,12 @@
             <a class="text-black">Posts</a>
           </div>
           <div class="mr-10 p-3 text-center flex items-center">
-            <i><%= Heroicons.icon("users", class: "h-5 w-5 mr-2  fill-[#60616D]") %> </i>
+            <i><%= Heroicons.icon("users", class: "h-5 w-5 mr-2 fill-[#60616D]") %> </i>
             <a class="font-semibold text-black mr-1"><%= Enum.count(@user.following) %></a>
             <a class="text-black">Follows</a>
           </div>
           <div class="mr-10 p-3 text-center flex items-center">
-            <i><%= Heroicons.icon("users", class: "h-5 w-5 mr-2  fill-[#60616D]") %> </i>
+            <i><%= Heroicons.icon("users", class: "h-5 w-5 mr-2 fill-[#60616D]") %> </i>
             <a class="font-semibold text-black mr-1"><%= Enum.count(@user.follower) %></a>
             <a class="text-black">Followers</a>
           </div>
@@ -84,21 +83,21 @@
       <div class="flex flex-wrap">
         <div class="w-full lg:w-3/5">
 
-          <ul class="profile_nav mb-8 py-4 px-2 flex flex-wrap text-base text-center text-[#60616D] bg-white custom-box-shadow rounded-[20px]">
+          <ul class="profile_nav mb-8 py-4 px-2 flex flex-wrap text-base text-center bg-white custom-box-shadow rounded-[20px]">
             <li class="w-full lg:w-1/5">
               <a href="#" aria-current="page" class="inline-block py-2 px-4 text-black bg-[#FAFAFA] rounded-[10px] active">TIMELINE</a>
             </li>
             <li class="w-full lg:w-1/5">
-              <a href="#" class="inline-block py-2 px-4 hover:text-gray-600 hover:bg-gray-50">PHOTO</a>
+              <a href="#" class="inline-block py-2 px-4 text-[#60616D] hover:text-black hover:bg-[#FAFAFA] hover:rounded-[10px]">PHOTO</a>
             </li>
             <li class="w-full lg:w-1/5">
-              <a href="#" class="inline-block py-2 px-4 hover:text-gray-600 hover:bg-gray-50">VIDEO</a>
+              <a href="#" class="inline-block py-2 px-4 text-[#60616D] hover:text-black hover:bg-[#FAFAFA] hover:rounded-[10px]">VIDEO</a>
             </li>
             <li class="w-full lg:w-1/5">
-              <a href="#" class="inline-block py-2 px-4 hover:text-gray-600 hover:bg-gray-50">TAGGED</a>
+              <a href="#" class="inline-block py-2 px-4 text-[#60616D] hover:text-black hover:bg-[#FAFAFA] hover:rounded-[10px]">TAGGED</a>
             </li>
             <li class="w-full lg:w-1/5">
-              <a href="#" class="inline-block py-2 px-4 hover:text-gray-600 hover:bg-gray-50">INTEREST</a>
+              <a href="#" class="inline-block py-2 px-4 text-[#60616D] hover:text-black hover:bg-[#FAFAFA] hover:rounded-[10px]">INTEREST</a>
             </li>
           </ul>
 
