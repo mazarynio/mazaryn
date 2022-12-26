@@ -152,8 +152,8 @@ defmodule Core.UserClient do
     :user_server.add_media(username, mediaType, url)
   end
 
-  def get_media(username, mediaType) do
-    :user_server.get_media(username, mediaType)
+  def get_media(username, type) do
+    :user_server.get_media(username, type)
   end
 
   def search_user_pattern(pattern) do

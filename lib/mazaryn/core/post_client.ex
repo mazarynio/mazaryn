@@ -71,22 +71,22 @@ defmodule Core.PostClient do
   end
 
   def save_post(username, post_id) do
-    :post_server.save_post(username, post_id)
+    :user_server.save_post(username, post_id)
   end
 
   def unsave_post(username, post_id) do
-    :post_server.unsave_post(username, post_id)
+    :user_server.unsave_post(username, post_id)
   end
 
   def save_posts(username, post_ids) do
-    :post_server.save_posts(username, post_ids)
+    :user_server.save_posts(username, post_ids)
   end
 
   def unsave_posts(username, post_ids) do
-    :post_server.unsave_posts(username, post_ids)
+    :user_server.unsave_posts(username, post_ids)
   end
 
   def get_save_posts(username) do
-    :post_server.get_save_posts(username)
+    :user_server.get_save_posts(username)
   end
 end
