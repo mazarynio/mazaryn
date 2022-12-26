@@ -1,6 +1,6 @@
 -module(user_server).
 
--include_lib("kernel/include/logger.hrl"). 
+-include_lib("kernel/include/logger.hrl").
 
 -export([start_link/0,
          create_account/3,login/2,
@@ -26,13 +26,16 @@
 
 
 start_link() ->
-    gen_server:start_link({global, ?SERVER}, ?MODULE, [], []).  
+    gen_server:start_link({global, ?SERVER}, ?MODULE, [], []).
 
 create_account(Username, Password, Email) ->
     gen_server:call({global, ?MODULE}, {create_account, Username, Password, Email}).
 
 login(Email, Password) ->
     gen_server:call({global, ?MODULE}, {login, Email, Password}).
+
+add_media(Username, MediaType, Url) ->
+    gen_server:call({global, ?MODULE}, {add_media, Username, MediaType, Url}).
 
 insert_avatar(Username, AvatarUrl) ->
     gen_server:call({global, ?MODULE}, {insert_avatar, Username, AvatarUrl}).
@@ -43,8 +46,11 @@ insert_banner(Username, BannerUrl) ->
 set_user_info(Username, Fields, Values) ->
     gen_server:call({global, ?MODULE}, {set_user_info, Username, Fields, Values}).
 
+get_media(Username, Type) ->
+    gen_server:call({global, ?MODULE}, {get_media, Username, Type}).
+
 get_user(Username) ->
-    gen_server:call({global, ?MODULE}, {get_user, Username}). 
+    gen_server:call({global, ?MODULE}, {get_user, Username}).
 
 get_user_in_transaction(Username) ->
     gen_server:call({global, ?MODULE}, {get_user_in_transaction, Username}).
@@ -56,7 +62,7 @@ get_password(Username) ->
     gen_server:call({global, ?MODULE}, {get_password, Username}).
 
 get_user_by_email(Email) ->
-    gen_server:call({global, ?MODULE}, {get_user_by_email, Email}). 
+    gen_server:call({global, ?MODULE}, {get_user_by_email, Email}).
 
 get_user_by_id(Id) ->
     gen_server:call({global, ?MODULE}, {get_user_by_id, Id}).
@@ -64,8 +70,8 @@ get_user_by_id(Id) ->
 change_password(Username, CurrentPass, NewPass) ->
     gen_server:call({global, ?MODULE}, {change_password, Username, CurrentPass, NewPass}).
 
-change_email(Username, CurrentPass, NewEmail) -> 
-    gen_server:call({global, ?MODULE}, {change_email, Username, CurrentPass, NewEmail}).
+change_email(Username, Password, NewEmail) ->
+    gen_server:call({global, ?MODULE}, {change_email, Username, Password, NewEmail}).
 
 change_username(Username, CurrentPass, NewUsername) ->
     gen_server:call({global, ?MODULE}, {change_username, Username, CurrentPass, NewUsername}).
@@ -104,7 +110,7 @@ get_following(Id) ->
     gen_server:call({global, ?MODULE}, {get_following, Id}).
 
 get_follower(Id) ->
-    gen_server:call({global, ?MODULE}, {get_follower, Id}). 
+    gen_server:call({global, ?MODULE}, {get_follower, Id}).
 
 get_user_info(Username, Fields) ->
     gen_server:call({global, ?MODULE}, {get_user_info, Username, Fields}).
@@ -118,12 +124,6 @@ unblock(Username, Unblocked) ->
 get_blocked(Username) ->
     gen_server:call({global, ?MODULE}, {get_blocked, Username}).
 
-add_media(Username, MediaType, Url) ->
-    gen_server:call({global, ?MODULE}, {add_media, Username, MediaType, Url}).
-
-get_media(Username, MediaType) ->
-    gen_server:call({global, ?MODULE}, {get_media, Username, MediaType}).
-
 search_user_pattern(Pattern) ->
     gen_server:call({global, ?MODULE}, {search_user_pattern, Pattern}).
 %% INTERNAL HANDLERS
@@ -131,6 +131,15 @@ search_user_pattern(Pattern) ->
 init([]) ->
     ?LOG_NOTICE("User server has been started - ~p", [self()]),
     {ok, #state{}}.
+
+handle_call({create_account, Username, Password, Email}, _From, State = #state{}) ->
+    Res = userdb:insert(Username, Password, Email),
+    ?LOG_INFO("User ~p was added", [Username]),
+    {reply, Res, State};
+
+handle_call({add_media, Username, MediaType, Url}, _From, State) ->
+    Res = userdb:insert_media(Username, MediaType, Url),
+    {reply, Res, State};
 
 handle_call({insert_avatar, Username, AvatarUrl}, _From, State = #state{}) ->
     Res = userdb:insert_avatar(Username, AvatarUrl),
@@ -140,17 +149,16 @@ handle_call({insert_banner, Username, BannerUrl}, _From, State = #state{}) ->
     Res = userdb:insert_banner(Username, BannerUrl),
     {reply, Res, State};
 
-handle_call({create_account, Username, Password, Email}, _From, State = #state{}) ->
-    Res = userdb:insert(Username, Password, Email),
-    ?LOG_INFO("User ~p was added", [Username]),
-    {reply, Res, State};
-
 handle_call({login, Email, Password}, _From, State = #state{}) ->
     Res = userdb:login(Email, Password),
     {reply, Res, State};
 
 handle_call({set_user_info, Username, Fields, Values}, _From, State) ->
     Res = userdb:set_user_info(Username, Fields, Values),
+    {reply, Res, State};
+
+handle_call({get_media, Username, Type}, _From, State) ->
+    Res = userdb:get_media(Username, Type),
     {reply, Res, State};
 
 handle_call({get_user, Username}, _From, State) ->
@@ -181,8 +189,8 @@ handle_call({change_password, Username, CurrentPass, NewPass}, _From, State) ->
     Res = userdb:change_password(Username, CurrentPass, NewPass),
     {reply, Res, State};
 
-handle_call({change_email, Username, CurrentPass, NewEmail}, _From, State) ->
-    Res = userdb:change_email(Username, CurrentPass, NewEmail),
+handle_call({change_email, Username, Password, NewEmail}, _From, State) ->
+    Res = userdb:change_email(Username, Password, NewEmail),
     {reply, Res, State};
 
 handle_call({change_username, Username, CurrentPass, NewUsername}, _From, State) ->
@@ -253,32 +261,21 @@ handle_call({get_blocked, Username}, _From, State) ->
     Res = userdb:get_blocked(Username),
     {reply, Res, State};
 
-handle_call({add_media, Username, MediaType, Url}, _From, State) ->
-    Res = userdb:insert_media(Username, MediaType, Url),
-    {reply, Res, State};
-
-handle_call({get_media, Username, MediaType}, _From, State) ->
-    Res = userdb:get_media(Username, MediaType),
-    {reply, Res, State};
-
 handle_call({search_user_pattern, Pattern}, _From, State) ->
     Res = userdb:search_user_pattern(Pattern),
     {reply, Res, State};
 
 handle_call(_Request, _From, State) ->
     {noreply, State}.
-    
+
 handle_cast(_Request, State) ->
     {noreply, State}.
-    
+
 handle_info(_Info, State) ->
     {noreply, State}.
-    
+
 terminate(_Reason, _State) ->
     ok.
-    
+
 code_change(_OldVsn, State, _Extra) ->
     {ok, State}.
-
-
-
