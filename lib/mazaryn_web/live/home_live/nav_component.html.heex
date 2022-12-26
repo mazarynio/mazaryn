@@ -1,5 +1,5 @@
 <div class="relative bg-white">
-    <nav class="relative w-[90%] mx-auto h-16 py-2.5 flex justify-evenly items-center text-center">
+    <nav class="relative w-[90%] max-w-[1440px] mx-auto h-16 py-2.5 flex justify-evenly items-center text-center">
         <div class="w-[17%] mr-14 text-xl font-extrabold text-black cursor-pointer flex-shrink-0">
             <%= link to: Routes.live_path(@socket, MazarynWeb.HomeLive.Home), class: "block" do %>
                 <img src={Routes.static_path(@socket, "/images/logo-dark.svg")} alt="Mazaryn Logo"/>
