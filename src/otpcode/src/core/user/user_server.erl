@@ -67,8 +67,8 @@ get_user_by_email(Email) ->
 get_user_by_id(Id) ->
     gen_server:call({global, ?MODULE}, {get_user_by_id, Id}).
 
-get_token_by_id(TokenId) ->
-  gen_server:call({global, ?MODULE}, {get_token_by_id, Id}).
+get_token_by_id(TokenID) ->
+  gen_server:call({global, ?MODULE}, {get_token_by_id, TokenID}).
 
 change_password(Username, CurrentPass, NewPass) ->
     gen_server:call({global, ?MODULE}, {change_password, Username, CurrentPass, NewPass}).
@@ -188,8 +188,8 @@ handle_call({get_user_by_id, Id}, _From, State) ->
     Res = userdb:get_user_by_id(Id),
     {reply, Res, State};
 
-handle_call({get_token_by_id, Id}, _From, State) ->
-    Res = userdb:get_token_by_id(Id),
+handle_call({get_token_by_id, TokenID}, _From, State) ->
+    Res = userdb:get_token_by_id(TokenID),
     {reply, Res, State};
 
 handle_call({change_password, Username, CurrentPass, NewPass}, _From, State) ->
