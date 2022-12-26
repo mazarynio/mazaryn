@@ -1,10 +1,10 @@
 defmodule Core.PostClient do
+
   def start do
     :post_server.start_link()
   end
 
   def create(author, content, media \\ [], hashtag) do
-    :post_server.start_link()
     :post_server.insert(author, content, media, hashtag)
   end
 
@@ -36,6 +36,10 @@ defmodule Core.PostClient do
     :post_server.delete_post(id)
   end
 
+  def get_posts() do
+    :post_server.get_posts()
+  end
+
   def add_comment(author, postID, content) do
     :post_server.add_comment(author, postID, content)
   end
@@ -52,9 +56,7 @@ defmodule Core.PostClient do
     :post_server.get_all_comments(postId)
   end
 
-  def get_posts() do
-    :post_server.get_posts()
-  end
+
 
   def get_all_posts_from_date(year, month, date, author) do
     :post_server.get_all_posts_from_date(year, month, date, author)
