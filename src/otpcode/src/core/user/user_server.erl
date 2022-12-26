@@ -5,7 +5,7 @@
 -export([start_link/0,
          create_account/3,login/2,
          get_user/1, get_user_in_transaction/1, get_users/0, delete_user/1,
-         get_user_by_email/1, get_user_by_id/1, get_password/1,
+         get_user_by_email/1, get_user_by_id/1, get_token_by_id/1, get_password/1,
          set_user_info/3, get_user_info/2,
          follow/2, unfollow/2,
          follow_multiple/2, unfollow_multiple/2,
@@ -66,6 +66,9 @@ get_user_by_email(Email) ->
 
 get_user_by_id(Id) ->
     gen_server:call({global, ?MODULE}, {get_user_by_id, Id}).
+
+get_token_by_id(TokenId) ->
+  gen_server:call({global, ?MODULE}, {get_token_by_id, Id}).
 
 change_password(Username, CurrentPass, NewPass) ->
     gen_server:call({global, ?MODULE}, {change_password, Username, CurrentPass, NewPass}).
@@ -183,6 +186,10 @@ handle_call({get_user_by_email, Email}, _From, State) ->
 
 handle_call({get_user_by_id, Id}, _From, State) ->
     Res = userdb:get_user_by_id(Id),
+    {reply, Res, State};
+
+handle_call({get_token_by_id, Id}, _From, State) ->
+    Res = userdb:get_token_by_id(Id),
     {reply, Res, State};
 
 handle_call({change_password, Username, CurrentPass, NewPass}, _From, State) ->
