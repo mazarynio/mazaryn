@@ -29,14 +29,6 @@ start_link() ->
     ets:new(user_reg, [set, named_table, public]),
 
     % create tables
-    mnesia:create_table(event, [{attributes, record_info(fields, event)},
-                                {disc_copies, [node()]},
-                                {type, ordered_set}]),
-
-    mnesia:create_table(group, [{attributes, record_info(fields, group)},
-                                {disc_copies, [node()]},
-                                {type, ordered_set}]),
-
     mnesia:create_table(post, [{attributes, record_info(fields, post)},
                                {disc_copies, [node()]},
                                {type, ordered_set}]),
@@ -70,13 +62,6 @@ init([]) ->
                  intensity => 50,
                  period => 1},
     ChildSpecs = [
-                  #{id => event_server,
-                    start => {event_server, start_link, []},
-                    restart => permanent,
-                    shutdown => 5000,
-                    type => worker,
-                    modules => [event_server]},
-
                   #{id => user_server,
                     start => {user_server, start_link, []},
                     restart => permanent,
