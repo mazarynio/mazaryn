@@ -39,30 +39,16 @@
                   content=[],
                   date_created}).
 
--record(group, {id, gp_name, num_members, members}).
 -record(event, {name, date, loc, desc}).
 -record(follower, {id, username}).
 -record(following, {id, username}).
 
-%% crypto wallet and transaction
--record(transaction, {id,
-                      type,
-                      amount,
-                      status}).
 
 -record(hed_wallet, { id, password, date_created }).
 
--record(ae_transaction, {id,
-                         signature,
-                         type,
-                         amount,
-                         status,
-                         fee}).
 
--record(nft, {
-    music,
-    art
-}).
+
+
 
 
 -define(MSG_INSUFFICIENT_FUNDS, <<"Insufficient funds.">>).
