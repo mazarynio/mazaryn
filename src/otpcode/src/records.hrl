@@ -50,25 +50,7 @@
                       amount,
                       status}).
 
--record(wallet, {name,
-                 password,
-                 address,
-                 balance,
-                 pub_key,
-                 priv_key,
-                 secret_phase,
-                 transaction = []}).
-
 -record(hed_wallet, { id, password, date_created }).
-
--record(ae_wallet, {name,
-                    password,
-                    address,
-                    mnemonic,
-                    balance,
-                    token,
-                    pub_key,
-                    priv_key}).
 
 -record(ae_transaction, {id,
                          signature,
