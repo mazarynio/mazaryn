@@ -48,10 +48,6 @@ start_link() ->
                                {disc_copies, [node()]},
                                {type, ordered_set}]),
 
-    mnesia:create_table(hed_wallet, [{attributes, record_info(fields, hed_wallet)},
-                                    {disc_copies, [node()]},
-                                    {type, ordered_set}]),
-
     mnesia:add_table_index(user, email),
 
     supervisor:start_link({local, ?SERVER}, ?MODULE, []).
@@ -88,14 +84,7 @@ init([]) ->
                     restart => permanent,
                     shutdown => 5000,
                     type => worker,
-                    modules => [token_server]},
-
-                  #{id => hedera_wallet_server,
-                    start => {hedera_wallet_server, start_link, []},
-                    restart => permanent,
-                    shutdown => 5000,
-                    type => worker,
-                    modules => [hedera_wallet_server]}
+                    modules => [token_server]}
 
                   ],
     {ok, {SupFlags, ChildSpecs}}.
