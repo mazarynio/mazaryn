@@ -39,12 +39,6 @@
                   content=[],
                   date_created}).
 
--record(message, { id,
-                   receiver,
-                   text,
-                   media = [],
-                   timestamp }).
-
 -record(group, {id, gp_name, num_members, members}).
 -record(event, {name, date, loc, desc}).
 -record(follower, {id, username}).
