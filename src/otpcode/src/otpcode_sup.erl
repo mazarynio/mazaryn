@@ -33,10 +33,6 @@ start_link() ->
                                 {disc_copies, [node()]},
                                 {type, ordered_set}]),
 
-    mnesia:create_table(follower, [{attributes, record_info(fields, follower)},
-                                    {disc_copies, [node()]},
-                                        {type, ordered_set}]),
-
     mnesia:create_table(group, [{attributes, record_info(fields, group)},
                                 {disc_copies, [node()]},
                                 {type, ordered_set}]),
@@ -59,14 +55,6 @@ start_link() ->
     mnesia:create_table(comment, [{attributes, record_info(fields, comment)},
                                {disc_copies, [node()]},
                                {type, ordered_set}]),
-
-    mnesia:create_table(wallet, [{attributes, record_info(fields, wallet)},
-                                 {disc_copies, [node()]},
-                                 {type, ordered_set}]),
-
-    mnesia:create_table(ae_wallet, [{attributes, record_info(fields, ae_wallet)},
-                                    {disc_copies, [node()]},
-                                    {type, ordered_set}]),
 
     mnesia:create_table(hed_wallet, [{attributes, record_info(fields, hed_wallet)},
                                     {disc_copies, [node()]},
@@ -109,20 +97,6 @@ init([]) ->
                     shutdown => 5000,
                     type => worker,
                     modules => [notif_server]},
-
-                  #{id => wallet_server,
-                    start => {wallet_server, start_link, []},
-                    restart => permanent,
-                    shutdown => 5000,
-                    type => worker,
-                    modules => [wallet_server]},
-
-                  #{id => ae_wallet_server,
-                    start => {ae_wallet_server, start_link, []},
-                    restart => permanent,
-                    shutdown => 5000,
-                    type => worker,
-                    modules => [ae_wallet_server]},
 
                   #{id => token_server,
                   start => {token_server, start_link, []},
