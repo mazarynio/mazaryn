@@ -84,18 +84,18 @@ init([]) ->
                     modules => [notif_server]},
 
                   #{id => token_server,
-                  start => {token_server, start_link, []},
-                  restart => permanent,
-                  shutdown => 5000,
-                  type => worker,
-                  modules => [token_server]},
+                    start => {token_server, start_link, []},
+                    restart => permanent,
+                    shutdown => 5000,
+                    type => worker,
+                    modules => [token_server]},
 
                   #{id => hedera_wallet_server,
-                  start => {hedera_wallet_server, start_link, []},
-                  restart => permanent,
-                  shutdown => 5000,
-                  type => worker,
-                  modules => [hedera_wallet_server]}
+                    start => {hedera_wallet_server, start_link, []},
+                    restart => permanent,
+                    shutdown => 5000,
+                    type => worker,
+                    modules => [hedera_wallet_server]}
 
                   ],
     {ok, {SupFlags, ChildSpecs}}.
