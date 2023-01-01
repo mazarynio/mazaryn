@@ -34,20 +34,20 @@ create_account(Username, Password, Email) ->
 login(Email, Password) ->
     gen_server:call({global, ?MODULE}, {login, Email, Password}).
 
-add_media(Username, MediaType, Url) ->
-    gen_server:call({global, ?MODULE}, {add_media, Username, MediaType, Url}).
+add_media(Id, MediaType, Url) ->
+    gen_server:call({global, ?MODULE}, {add_media, Id, MediaType, Url}).
 
-insert_avatar(Username, AvatarUrl) ->
-    gen_server:call({global, ?MODULE}, {insert_avatar, Username, AvatarUrl}).
+insert_avatar(Id, AvatarUrl) ->
+    gen_server:call({global, ?MODULE}, {insert_avatar, Id, AvatarUrl}).
 
-insert_banner(Username, BannerUrl) ->
-    gen_server:call({global, ?MODULE}, {insert_banner, Username, BannerUrl}).
+insert_banner(Id, BannerUrl) ->
+    gen_server:call({global, ?MODULE}, {insert_banner, Id, BannerUrl}).
 
 set_user_info(Username, Fields, Values) ->
     gen_server:call({global, ?MODULE}, {set_user_info, Username, Fields, Values}).
 
-get_media(Username, Type) ->
-    gen_server:call({global, ?MODULE}, {get_media, Username, Type}).
+get_media(Id, Type) ->
+    gen_server:call({global, ?MODULE}, {get_media, Id, Type}).
 
 get_user(Username) ->
     gen_server:call({global, ?MODULE}, {get_user, Username}).
@@ -58,8 +58,8 @@ get_user_in_transaction(Username) ->
 get_users() ->
     gen_server:call({global, ?MODULE}, {get_users}).
 
-get_password(Username) ->
-    gen_server:call({global, ?MODULE}, {get_password, Username}).
+get_password(Id) ->
+    gen_server:call({global, ?MODULE}, {get_password, Id}).
 
 get_user_by_email(Email) ->
     gen_server:call({global, ?MODULE}, {get_user_by_email, Email}).
@@ -94,20 +94,20 @@ follow_multiple(Id, Others) ->
 unfollow_multiple(Id, Others) ->
     gen_server:call({global, ?MODULE}, {unfollow_multiple, Id, Others}).
 
-save_post(Username, PostId) ->
-    gen_server:call({global, ?MODULE}, {save_post, Username, PostId}).
+save_post(Id, PostId) ->
+    gen_server:call({global, ?MODULE}, {save_post, Id, PostId}).
 
-unsave_post(Username, PostId) ->
-    gen_server:call({global, ?MODULE}, {unsave_post, Username, PostId}).
+unsave_post(Id, PostId) ->
+    gen_server:call({global, ?MODULE}, {unsave_post, Id, PostId}).
 
-save_posts(Username, PostIds) ->
-    gen_server:call({global, ?MODULE}, {save_posts, Username, PostIds}).
+save_posts(Id, PostIds) ->
+    gen_server:call({global, ?MODULE}, {save_posts, Id, PostIds}).
 
-unsave_posts(Username, PostIds) ->
-    gen_server:call({global, ?MODULE}, {unsave_posts, Username, PostIds}).
+unsave_posts(Id, PostIds) ->
+    gen_server:call({global, ?MODULE}, {unsave_posts, Id, PostIds}).
 
-get_save_posts(Username) ->
-    gen_server:call({global, ?MODULE}, {get_save_posts, Username}).
+get_save_posts(Id) ->
+    gen_server:call({global, ?MODULE}, {get_save_posts, Id}).
 
 get_following(Id) ->
     gen_server:call({global, ?MODULE}, {get_following, Id}).
@@ -118,14 +118,14 @@ get_follower(Id) ->
 get_user_info(Username, Fields) ->
     gen_server:call({global, ?MODULE}, {get_user_info, Username, Fields}).
 
-block(Username, Blocked) ->
-    gen_server:call({global, ?MODULE}, {user_block, Username, Blocked}).
+block(Id, Blocked) ->
+    gen_server:call({global, ?MODULE}, {user_block, Id, Blocked}).
 
-unblock(Username, Unblocked) ->
-    gen_server:call({global, ?MODULE}, {user_unblock, Username, Unblocked}).
+unblock(Id, Unblocked) ->
+    gen_server:call({global, ?MODULE}, {user_unblock, Id, Unblocked}).
 
-get_blocked(Username) ->
-    gen_server:call({global, ?MODULE}, {get_blocked, Username}).
+get_blocked(Id) ->
+    gen_server:call({global, ?MODULE}, {get_blocked, Id}).
 
 search_user_pattern(Pattern) ->
     gen_server:call({global, ?MODULE}, {search_user_pattern, Pattern}).
@@ -140,16 +140,16 @@ handle_call({create_account, Username, Password, Email}, _From, State = #state{}
     ?LOG_INFO("User ~p was added", [Username]),
     {reply, Res, State};
 
-handle_call({add_media, Username, MediaType, Url}, _From, State) ->
-    Res = userdb:insert_media(Username, MediaType, Url),
+handle_call({add_media, Id, MediaType, Url}, _From, State) ->
+    Res = userdb:insert_media(Id, MediaType, Url),
     {reply, Res, State};
 
-handle_call({insert_avatar, Username, AvatarUrl}, _From, State = #state{}) ->
-    Res = userdb:insert_avatar(Username, AvatarUrl),
+handle_call({insert_avatar, Id, AvatarUrl}, _From, State = #state{}) ->
+    Res = userdb:insert_avatar(Id, AvatarUrl),
     {reply, Res, State};
 
-handle_call({insert_banner, Username, BannerUrl}, _From, State = #state{}) ->
-    Res = userdb:insert_banner(Username, BannerUrl),
+handle_call({insert_banner, Id, BannerUrl}, _From, State = #state{}) ->
+    Res = userdb:insert_banner(Id, BannerUrl),
     {reply, Res, State};
 
 handle_call({login, Email, Password}, _From, State = #state{}) ->
@@ -160,8 +160,8 @@ handle_call({set_user_info, Username, Fields, Values}, _From, State) ->
     Res = userdb:set_user_info(Username, Fields, Values),
     {reply, Res, State};
 
-handle_call({get_media, Username, Type}, _From, State) ->
-    Res = userdb:get_media(Username, Type),
+handle_call({get_media, Id, Type}, _From, State) ->
+    Res = userdb:get_media(Id, Type),
     {reply, Res, State};
 
 handle_call({get_user, Username}, _From, State) ->
@@ -176,8 +176,8 @@ handle_call({get_users}, _From, State = #state{}) ->
     Res = userdb:get_users(),
     {reply, Res, State};
 
-handle_call({get_password, Username}, _From, State) ->
-    Res = userdb:get_password(Username),
+handle_call({get_password, Id}, _From, State) ->
+    Res = userdb:get_password(Id),
     {reply, Res, State};
 
 handle_call({get_user_by_email, Email}, _From, State) ->
@@ -224,24 +224,24 @@ handle_call({unfollow_multiple, Id, Others}, _From, State) ->
     Res = userdb:unfollow_multiple(Id, Others),
     {reply, Res, State};
 
-handle_call({save_post, Username, PostId}, _From, State) ->
-    Res = userdb:save_post(Username, PostId),
+handle_call({save_post, Id, PostId}, _From, State) ->
+    Res = userdb:save_post(Id, PostId),
     {reply, Res, State};
 
-handle_call({unsave_post, Username, PostId}, _From, State) ->
-    Res = userdb:unsave_post(Username, PostId),
+handle_call({unsave_post, Id, PostId}, _From, State) ->
+    Res = userdb:unsave_post(Id, PostId),
     {reply, Res, State};
 
-handle_call({save_posts, Username, PostIds}, _From, State) ->
-    Res = userdb:save_posts(Username, PostIds),
+handle_call({save_posts, Id, PostIds}, _From, State) ->
+    Res = userdb:save_posts(Id, PostIds),
     {reply, Res, State};
 
-handle_call({unsave_posts, Username, PostIds}, _From, State) ->
-    Res = userdb:unsave_posts(Username, PostIds),
+handle_call({unsave_posts, Id, PostIds}, _From, State) ->
+    Res = userdb:unsave_posts(Id, PostIds),
     {reply, Res, State};
 
-handle_call({get_save_posts, Username}, _From, State) ->
-    Res = userdb:get_save_posts(Username),
+handle_call({get_save_posts, Id}, _From, State) ->
+    Res = userdb:get_save_posts(Id),
     {reply, Res, State};
 
 handle_call({get_following, Id}, _From, State) ->
@@ -256,16 +256,16 @@ handle_call({get_user_info, Username, Fields}, _From, State) ->
     Res = userdb:get_user_info(Username, Fields),
     {reply, Res, State};
 
-handle_call({user_block, Username, Blocked}, _From, State) ->
-    Res = userdb:block(Username, Blocked),
+handle_call({user_block, Id, Blocked}, _From, State) ->
+    Res = userdb:block(Id, Blocked),
     {reply, Res, State};
 
-handle_call({user_unblock, Username, Unblocked}, _From, State) ->
-    Res = userdb:unblock(Username, Unblocked),
+handle_call({user_unblock, Id, Unblocked}, _From, State) ->
+    Res = userdb:unblock(Id, Unblocked),
     {reply, Res, State};
 
-handle_call({get_blocked, Username}, _From, State) ->
-    Res = userdb:get_blocked(Username),
+handle_call({get_blocked, Id}, _From, State) ->
+    Res = userdb:get_blocked(Id),
     {reply, Res, State};
 
 handle_call({search_user_pattern, Pattern}, _From, State) ->
