@@ -15,8 +15,6 @@
 
 -define(LIMIT_SEARCH, 50).
 
--record(user_reg, {email, pid}).
-
 %%% check user credentials
 -spec login(Email :: term(), Password :: term()) -> wrong_email_or_password | logged_in.
 login(Email, Password) ->
@@ -78,9 +76,9 @@ insert(Username, Password, Email) ->
     {atomic, Res} = mnesia:transaction(Fun),
     Res.
 
-insert_media(Username, Type, Url) ->
+insert_media(Id, Type, Url) ->
   Fun = fun() ->
-          [User] =  mnesia:read(user, Username),
+          [User] =  mnesia:read(user, Id),
           Media = User#user.media,
           NewMedia = case lists:keymember(Type, 1, Media) of
                         true ->
@@ -93,9 +91,9 @@ insert_media(Username, Type, Url) ->
   {atomic, Res} = mnesia:transaction(Fun),
   Res.
 
-insert_avatar(Username, AvatarUrl) ->
+insert_avatar(Id, AvatarUrl) ->
   Fun = fun() ->
-            [User] = mnesia:read(user, Username),
+            [User] = mnesia:read(user, Id),
             mnesia:write(User#user{avatar_url = AvatarUrl,
                                    date_updated = calendar:universal_time()}),
             User
@@ -106,9 +104,9 @@ insert_avatar(Username, AvatarUrl) ->
     Res -> Res
   end.
 
-insert_banner(Username, BannerUrl) ->
+insert_banner(Id, BannerUrl) ->
   Fun = fun() ->
-            [User] = mnesia:read(user, Username),
+            [User] = mnesia:read(user, Id),
             mnesia:write(User#user{banner_url = BannerUrl,
                                    date_updated = calendar:universal_time()}),
             User
@@ -120,9 +118,9 @@ insert_banner(Username, BannerUrl) ->
   end.
 
 
-get_media(Username, Type) ->
+get_media(Id, Type) ->
   Fun = fun() ->
-          [User] = mnesia:read({user, Username}),
+          [User] = mnesia:read({user, Id}),
           Media = User#user.media,
           proplists:get_value(Type, Media, undefined)
         end,
@@ -154,11 +152,12 @@ get_users() ->
     {atomic, Res} = mnesia:transaction(Fun),
     Res.
 
-get_password(Username) ->
+get_password(Id) ->
     F = fun() ->
-        mnesia:read(user, Username)
+        mnesia:read(user, Id)
         end,
     Res = mnesia:transaction(F),
+    io:format("~p ~p ~n", [is_binary(Id), Res]),
     case Res of
       {atomic, [User]} -> User#user.password;
       {atomic, []} -> user_not_existed;
@@ -296,9 +295,9 @@ unfollow_multiple(Id, Others) ->
                   end, Others).
 
 %% follow/unfollow posts
-save_post(Username, PostId) ->
+save_post(Id, PostId) ->
     Fun = fun() ->
-                [User] = mnesia:read(user, Username),
+                [User] = mnesia:read(user, Id),
                 NewFollowList = [PostId|User#user.saved_posts],
                 mnesia:write(User#user{saved_posts = NewFollowList,
                                        date_updated = calendar:universal_time()})
@@ -306,29 +305,29 @@ save_post(Username, PostId) ->
     {atomic, Res} = mnesia:transaction(Fun),
     Res.
 
-unsave_post(Username, PostId) ->
+unsave_post(Id, PostId) ->
     Fun = fun() ->
-                [User] = mnesia:read(user, Username),
+                [User] = mnesia:read(user, Id),
                 NewFollowList = lists:delete(PostId, User#user.saved_posts),
                 mnesia:write(User#user{saved_posts = NewFollowList,
                                        date_updated = calendar:universal_time()})
           end,
     mnesia:transaction(Fun).
 
-save_posts(Username, PostIds) ->
+save_posts(Id, PostIds) ->
     lists:foreach(fun(PostId) ->
-                    save_post(Username, PostId)
+                    save_post(Id, PostId)
                   end, PostIds).
 
-unsave_posts(Username, PostIds) ->
+unsave_posts(Id, PostIds) ->
     lists:foreach(fun(PostId) ->
-                    unsave_post(Username, PostId)
+                    unsave_post(Id, PostId)
                   end, PostIds).
 
 %% get save post, follower, following
-get_save_posts(Username) ->
+get_save_posts(Id) ->
   {atomic, Res} = mnesia:transaction(fun() ->
-                                      [User] = mnesia:read(user, Username),
+                                      [User] = mnesia:read(user, Id),
                                       User#user.saved_posts
                                      end),
   Res.
@@ -354,9 +353,9 @@ get_follower(Id) ->
     _ -> error
   end.
 
-get_user_info(Username, Fields) ->
+get_user_info(Id, Fields) ->
   Fun = fun() ->
-          [User] = mnesia:read(user, Username),
+          [User] = mnesia:read(user, Id),
           Dict = User#user.other_info,
           lists:map(fun(Field) ->
                       proplists:get_value(Field, Dict, undefined)
@@ -398,27 +397,27 @@ check_user_credential(Email, Password) ->
       end
   end.
 
-block(Username, Blocked) ->
+block(Id, Blocked) ->
   Fun = fun() ->
-          [#user{blocked = BlockedList} = User] = mnesia:read(user, Username),
+          [#user{blocked = BlockedList} = User] = mnesia:read(user, Id),
           mnesia:write(User#user{blocked = [Blocked|BlockedList],
                                  date_updated = calendar:universal_time()})
         end,
   {atomic, Res} = mnesia:transaction(Fun),
   Res.
 
-unblock(Username, Unblocked) ->
+unblock(Id, Unblocked) ->
   Fun = fun() ->
-          [#user{blocked = BlockedList} = User] = mnesia:read(user, Username),
+          [#user{blocked = BlockedList} = User] = mnesia:read(user, Id),
           mnesia:write(User#user{blocked = lists:delete(Unblocked, BlockedList),
                                  date_updated = calendar:universal_time()})
         end,
   {atomic, Res} = mnesia:transaction(Fun),
   Res.
 
-get_blocked(Username) ->
+get_blocked(Id) ->
   Fun = fun() ->
-          [#user{blocked = BlockedList}] = mnesia:read(user, Username),
+          [#user{blocked = BlockedList}] = mnesia:read(user, Id),
           BlockedList
         end,
   {atomic, Res} = mnesia:transaction(Fun),
