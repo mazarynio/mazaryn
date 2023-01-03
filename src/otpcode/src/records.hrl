@@ -19,9 +19,9 @@
                 notification = [] }).
 
 -record(notification, { id,
-                        from,
+                        message,
                         to,
-                        message }).
+                        date_created }).
 
 -record(post, { id,
                 content,
@@ -43,10 +43,7 @@
 -record(follower, {id, username}).
 -record(following, {id, username}).
 
-
 -record(hed_wallet, { id, password, date_created }).
-
-
 
 
 
