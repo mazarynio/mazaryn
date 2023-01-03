@@ -5,7 +5,7 @@
 -include_lib("stdlib/include/qlc.hrl").
 
 insert(Message) ->
-    Id = id_gen:generate(),
+    Id = nanoid:gen(),
     Notification = #notification{id = Id,
                                  message = Message},
     F = fun() ->
@@ -15,7 +15,7 @@ insert(Message) ->
 
 insert(From, To, Message) ->
     Fun = fun() ->
-        Id = id_gen:generate(),
+        Id = nanoid:gen(),
         Notification = #notification{id = Id,
                                      from = From,
                                      to = To,

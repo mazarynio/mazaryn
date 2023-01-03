@@ -58,8 +58,8 @@ insert(Username, Password, Email) ->
             case {check_username(Username), check_email(Email)} of
               {undefined, undefined} ->
                 Now = calendar:universal_time(),
-                Id = id_gen:generate(),
-                TokenID = id_gen:generate(),
+                Id = nanoid:gen(),
+                TokenID = nanoid:gen(),
                 User = #user{id = Id,
                              username = Username,
                              password = erlpass:hash(Password),

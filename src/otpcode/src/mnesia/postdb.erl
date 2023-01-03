@@ -15,7 +15,7 @@
 
 insert(Author, Content, Media, Hashtag) ->
     F = fun() ->
-          Id = id_gen:generate(),
+          Id = nanoid:gen(),
           mnesia:write(#post{id=Id,
                              content=Content,
                              author=Author,
@@ -136,7 +136,7 @@ get_all_posts_from_month(Year, Month, Author) ->
 %% Content = [{text, Text}, {media, Media}, {mention, Name}, {like, Like}]
 add_comment(Author, PostID, Content) ->
   Fun = fun() ->
-          Id =id_gen:generate(),
+          Id = nanoid:gen(),
           mnesia:write(#comment{id = Id,
                                 post = PostID,
                                 author = Author,
