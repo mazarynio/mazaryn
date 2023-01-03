@@ -5,7 +5,7 @@ defmodule Core.UserClient do
     :user_server.create_account(username, password, email)
   end
 
-  def validate(token_id) do
+  def validate(token_id) do 
     :token_server.start_link()
     :token_server.validate(token_id)
   end
@@ -137,15 +137,15 @@ defmodule Core.UserClient do
   end
 
   def block(id, blocked) do
-    :user_server.block(username, blocked)
+    :user_server.block(id, blocked)
   end
 
   def unblock(id, unblocked) do
-    :user_server.unblock(username, unblocked)
+    :user_server.unblock(id, unblocked)
   end
 
   def get_blocked(id) do
-    :user_server.get_blocked(username)
+    :user_server.get_blocked(id)
   end
 
   def add_media(id, mediaType, url) do
