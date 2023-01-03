@@ -1,4 +1,4 @@
-defmodule Core.UserClient do
+defmodule Core.UserClient do 
 
   def register(username, password, email) do
     :user_server.start_link()
@@ -10,11 +10,11 @@ defmodule Core.UserClient do
     :token_server.validate(token_id)
   end
 
-  def insert_avatar(username, avatar_url) do
-    :user_server.insert_avatar(username, avatar_url)
+  def insert_avatar(id, avatar_url) do
+    :user_server.insert_avatar(id, avatar_url)
   end
 
-  def insert_banner(username, banner_url) do
+  def insert_banner(id, banner_url) do
     :user_server.insert_banner(username, banner_url)
   end
 
@@ -38,8 +38,8 @@ defmodule Core.UserClient do
     :user_server.get_users()
   end
 
-  def get_pass(username) do
-    :user_server.get_password(username)
+  def get_pass(id) do
+    :user_server.get_password(id)
   end
 
   def get_user_by_email(email) do
@@ -104,23 +104,23 @@ defmodule Core.UserClient do
     :user_server.unfollow_multiple(id, others)
   end
 
-  def save_post(username, postId) do
-    :user_server.save_post(username, postId)
+  def save_post(id, postId) do
+    :user_server.save_post(id, postId)
   end
 
-  def unsave_post(username, postId) do
-    :user_server.unsave_post(username, postId)
+  def unsave_post(id, postId) do
+    :user_server.unsave_post(id, postId)
   end
 
-  def save_posts(username, postIds) do
+  def save_posts(id, postIds) do
     :user_server.save_posts(username, postIds)
   end
 
-  def unsave_posts(username, postIds) do
+  def unsave_posts(id, postIds) do
     :user_server.unsave_posts(username, postIds)
   end
 
-  def get_save_posts(username) do
+  def get_save_posts(id) do
     :user_server.get_save_posts(username)
   end
 
@@ -136,24 +136,24 @@ defmodule Core.UserClient do
     :user_server.get_user_info(username, fields)
   end
 
-  def block(username, blocked) do
+  def block(id, blocked) do
     :user_server.block(username, blocked)
   end
 
-  def unblock(username, unblocked) do
+  def unblock(id, unblocked) do
     :user_server.unblock(username, unblocked)
   end
 
-  def get_blocked(username) do
+  def get_blocked(id) do
     :user_server.get_blocked(username)
   end
 
-  def add_media(username, mediaType, url) do
-    :user_server.add_media(username, mediaType, url)
+  def add_media(id, mediaType, url) do
+    :user_server.add_media(id, mediaType, url)
   end
 
-  def get_media(username, type) do
-    :user_server.get_media(username, type)
+  def get_media(id, type) do
+    :user_server.get_media(id, type)
   end
 
   def search_user_pattern(pattern) do
