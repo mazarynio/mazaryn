@@ -157,7 +157,6 @@ get_password(Id) ->
         mnesia:read(user, Id)
         end,
     Res = mnesia:transaction(F),
-    io:format("~p ~p ~n", [is_binary(Id), Res]),
     case Res of
       {atomic, [User]} -> User#user.password;
       {atomic, []} -> user_not_existed;
