@@ -72,13 +72,6 @@ init([]) ->
                     type => worker,
                     modules => [post_server]},
 
-                  #{id => notif_server,
-                    start => {notif_server, start_link, []},
-                    restart => permanent,
-                    shutdown => 5000,
-                    type => worker,
-                    modules => [notif_server]},
-
                   #{id => token_server,
                     start => {token_server, start_link, []},
                     restart => permanent,
