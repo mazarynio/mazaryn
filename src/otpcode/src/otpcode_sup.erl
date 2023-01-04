@@ -33,7 +33,7 @@ start_link() ->
                                {disc_copies, [node()]},
                                {type, ordered_set}]),
 
-    mnesia:create_table(notification, [{attributes, record_info(fields, notification)},
+    mnesia:create_table(notif, [{attributes, record_info(fields, notif)},
                                        {disc_copies, [node()]},
                                        {type, ordered_Set}]),
 

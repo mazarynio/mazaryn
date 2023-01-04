@@ -5,6 +5,7 @@
                 email,
                 media= [],
                 post = [],
+                notif = [],
                 following = [],
                 follower = [],
                 blocked = [],
@@ -15,13 +16,12 @@
                 date_updated,
                 avatar_url,
                 banner_url,
-                token_id,
-                notification = [] }).
+                token_id}).
 
--record(notification, { id,
-                        message,
-                        to,
-                        date_created }).
+-record(notif, { id,
+                 user_id,
+                 message,
+                 date_created }).
 
 -record(post, { id,
                 content,
