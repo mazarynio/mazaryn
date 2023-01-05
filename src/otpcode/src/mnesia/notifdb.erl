@@ -16,5 +16,6 @@ insert(UserID, Message) ->
             mnesia:write(User#user{notif = [Id|Notifs]}),
             Id
           end,
-    mnesia:transaction(Fun).
+    {atomic, Res} = mnesia:transaction(Fun),
+    Res.
     
