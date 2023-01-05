@@ -35,7 +35,7 @@ start_link() ->
 
     mnesia:create_table(notif, [{attributes, record_info(fields, notif)},
                                        {disc_copies, [node()]},
-                                       {type, ordered_Set}]),
+                                       {type, ordered_set}]),
 
     mnesia:create_table(user, [{attributes, record_info(fields, user)},
                                {disc_copies, [node()]},
