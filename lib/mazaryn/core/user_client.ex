@@ -7,7 +7,7 @@ defmodule Core.UserClient do
 
   def validate(token_id) do 
     :token_server.start_link()
-    :token_server.validate(token_id)
+    :token_server.validate(token_id) 
   end
 
   def insert_avatar(id, avatar_url) do
@@ -15,7 +15,7 @@ defmodule Core.UserClient do
   end
 
   def insert_banner(id, banner_url) do
-    :user_server.insert_banner(username, banner_url)
+    :user_server.insert_banner(id, banner_url)
   end
 
   def login(email, password) do
@@ -113,15 +113,15 @@ defmodule Core.UserClient do
   end
 
   def save_posts(id, postIds) do
-    :user_server.save_posts(username, postIds)
+    :user_server.save_posts(id, postIds)
   end
 
   def unsave_posts(id, postIds) do
-    :user_server.unsave_posts(username, postIds)
+    :user_server.unsave_posts(id, postIds)
   end
 
   def get_save_posts(id) do
-    :user_server.get_save_posts(username)
+    :user_server.get_save_posts(id)
   end
 
   def get_following(id) do
