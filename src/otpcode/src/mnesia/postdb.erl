@@ -4,7 +4,7 @@
          get_posts_by_hashtag/1, update_post/2,
          delete_post/1, get_posts/0,
          get_all_posts_from_date/4, get_all_posts_from_month/3,
-         add_comment/3, update_comment/2,
+         like_post/2, unlike_post/2, add_comment/3, update_comment/2,
          get_all_comments/1, get_single_comment/1]).
 
 -include("../records.hrl").
@@ -132,6 +132,24 @@ get_all_posts_from_month(Year, Month, Author) ->
       end,
     {atomic, Res} = mnesia:transaction(fun() -> mnesia:match_object(Object) end),
     Res.
+
+like_post(Id, PostId) -> 
+  Fun = fun() ->
+          [Post] = mnesia:read(post, PostId),
+          Like = [PostId | Post#post.other],
+          mnesia:write(Post#post{other = Like,
+                                 date_created = calendar:universal_time()})
+        end,
+  {atomic, Res} = mnesia:transaction(Fun).
+
+unlike_post(Id, PostId) ->
+  Fun = fun() ->
+          [Post] = mnesia:read(post, PostId),
+          Unlike = lists:delete(PostId, Post#post.other),
+          mnesia:write(Post#post{other = Unlike,
+                                 date_created = calendar:universal_time()})
+        end,
+  {atomic, Res} = mnesia:transaction(Fun).
 
 %% Content = [{text, Text}, {media, Media}, {mention, Name}, {like, Like}]
 add_comment(Author, PostID, Content) ->
