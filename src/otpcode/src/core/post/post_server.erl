@@ -16,7 +16,8 @@
 -behaviour(gen_server).
 %% API
 -export([start_link/0, insert/4, get_post_by_id/1, modify_post/4,
-         get_posts_by_author/1, get_posts_by_hashtag/1, get_latest_posts/1, update_post/2, delete_post/1,add_comment/3,
+         get_posts_by_author/1, get_posts_by_hashtag/1, get_latest_posts/1, update_post/2, delete_post/1, 
+         like_post/2, unlike_post/2, add_comment/3,
          update_comment/2, get_single_comment/1, get_all_comments/1,
          get_media/1, get_posts/0,
          get_all_posts_from_date/4, get_all_posts_from_month/3,
@@ -57,6 +58,12 @@ update_post(PostId, NewContent) ->
 
 delete_post(Id) ->
   gen_server:call({global, ?MODULE}, {delete_post, Id}).
+
+like_post(Id, PostId) ->
+    gen_server:call({global, ?MODULE}, {like_post, Id, PostId}).
+
+unlike_post(Id, PostId) ->
+    gen_server:call({global, ?MODULE}, {unlike_post, Id, PostId}).
 
 add_comment(Author, PostID, Content) ->
   gen_server:call({global, ?MODULE}, {add_comment, Author, PostID, Content}).
@@ -137,6 +144,14 @@ handle_call({update_post, PostId, NewContent}, _From, State) ->
 handle_call({delete_post, Id}, _From, State) ->
     postdb:delete_post(Id),
     {reply, ok, State};
+
+handle_call({like_post, Id, PostId}, _From, State) ->
+    Res = postdb:like_post(Id, PostId),
+    {reply, Res, State};
+
+handle_call({unlike_post, Id, PostId}, _From, State) ->
+    Res = postdb:unlike_post(Id, PostId),
+    {reply, Res, State};
 
 handle_call({add_comment, Author, PostID, Content}, _From, State) ->
     Id = postdb:add_comment(Author, PostID, Content),
