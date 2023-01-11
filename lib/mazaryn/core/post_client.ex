@@ -41,6 +41,14 @@ defmodule Core.PostClient do
     :post_server.get_posts()
   end
 
+  def like_post(id, postID) do
+    :post_server.like_post(id, postID)
+  end
+
+  def unlike_post(id, postID) do
+    :post_server.unlike_post(id, postID)
+  end
+
   def add_comment(author, postID, content) do
     :post_server.add_comment(author, postID, content)
   end
