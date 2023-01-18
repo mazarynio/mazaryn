@@ -81,7 +81,6 @@ defmodule Mazaryn.Posts do
     end
   end
 
-
   def get_home_posts do
     case PostClient.get_posts() do
       posts when is_list(posts) ->

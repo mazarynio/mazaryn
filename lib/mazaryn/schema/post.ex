@@ -47,7 +47,7 @@ defmodule Mazaryn.Schema.Post do
         {:post, id, content, comments, media, hashtag, author, other, date_created, date_updated}
       ) do
     %__MODULE__{}
-    |> changeset(%{
+    |> change(%{
       id: id,
       content: content,
       comments: comments,

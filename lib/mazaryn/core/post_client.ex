@@ -1,5 +1,4 @@
 defmodule Core.PostClient do
-
   def start do
     :post_server.start_link()
   end
@@ -64,8 +63,6 @@ defmodule Core.PostClient do
   def get_all_comments(postId) do
     :post_server.get_all_comments(postId)
   end
-
-
 
   def get_all_posts_from_date(year, month, date, author) do
     :post_server.get_all_posts_from_date(year, month, date, author)

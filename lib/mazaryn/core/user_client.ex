@@ -1,17 +1,16 @@
-defmodule Core.UserClient do 
-
+defmodule Core.UserClient do
   def register(username, password, email) do
     :user_server.start_link()
     :user_server.create_account(username, password, email)
   end
 
   def insert_notif(userID, message) do
-    :user_server.insert_notif(userID, message) 
+    :user_server.insert_notif(userID, message)
   end
 
-  def validate(token_id) do 
+  def validate(token_id) do
     :token_server.start_link()
-    :token_server.validate(token_id) 
+    :token_server.validate(token_id)
   end
 
   def insert_avatar(id, avatar_url) do

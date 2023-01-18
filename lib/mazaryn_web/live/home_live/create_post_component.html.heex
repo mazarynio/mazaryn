@@ -35,7 +35,7 @@
                         <progress max="100" value={entry.progress} class="w-full"/>
                     </div>
                     <div class="w-1/6"> 
-                        <%= Heroicons.icon("x", class: "h-5 w-5 mr-3 fill-red-500 icon", phx_click: "cancel-entry", phx_value_ref: "#{entry.ref}", phx_target: @myself )  %>
+                        <%= Heroicons.icon("x-mark", class: "h-5 w-5 mr-3 fill-red-500 icon", phx_click: "cancel-entry", phx_value_ref: "#{entry.ref}", phx_target: @myself )  %>
                     </div>
                 <% end %>
             </div>
