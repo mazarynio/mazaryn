@@ -9,6 +9,7 @@ defmodule MazarynWeb.UserLive.Profile do
   alias Account.Users
   alias Mazaryn.Schema.Post
   alias Core.PostClient
+  alias Mazaryn.Posts
 
   @impl true
   def mount(
@@ -33,6 +34,12 @@ defmodule MazarynWeb.UserLive.Profile do
       |> handle_assigns(current_user.id, username)
 
     {:ok, socket}
+  end
+
+  @impl true
+  def handle_info(:reload_posts, socket) do
+    current_user = socket.assigns.current_user
+    {:noreply, assign(socket, posts: Posts.get_posts_by_author(current_user.username))}
   end
 
   @impl true

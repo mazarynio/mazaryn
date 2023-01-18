@@ -65,7 +65,7 @@ defmodule Mazaryn.Schema.Post do
 
   def changeset(post, attrs \\ %{}) do
     post
-    |> cast(attrs, @optional_fields ++ @required_fields)
+    |> cast(attrs, @required_fields ++ @optional_fields)
     |> validate_required(@required_fields)
   end
 
