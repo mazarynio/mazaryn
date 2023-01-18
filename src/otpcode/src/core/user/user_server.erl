@@ -3,7 +3,7 @@
 -include_lib("kernel/include/logger.hrl").
 
 -export([start_link/0,
-         create_account/3,login/2,
+         create_account/3,login/2, insert_notif/2,
          get_user/1, get_user_in_transaction/1, get_users/0, delete_user/1,
          get_user_by_email/1, get_user_by_id/1, get_token_by_id/1, get_password/1,
          set_user_info/3, get_user_info/2,
@@ -32,7 +32,10 @@ create_account(Username, Password, Email) ->
     gen_server:call({global, ?MODULE}, {create_account, Username, Password, Email}).
 
 login(Email, Password) ->
-    gen_server:call({global, ?MODULE}, {login, Email, Password}).
+    gen_server:call({global, ?MODULE}, {login, Email, Password}). 
+
+insert_notif(UserID, Message) ->
+    gen_server:call({global, ?MODULE}, {insert_notif, UserID, Message}).
 
 add_media(Id, MediaType, Url) ->
     gen_server:call({global, ?MODULE}, {add_media, Id, MediaType, Url}).
@@ -138,6 +141,10 @@ init([]) ->
 handle_call({create_account, Username, Password, Email}, _From, State = #state{}) ->
     Res = userdb:insert(Username, Password, Email),
     ?LOG_INFO("User ~p was added", [Username]),
+    {reply, Res, State};
+
+handle_call({insert_notif, UserID, Message}, _From, State) ->
+    Res = notifdb:insert(UserID, Message),
     {reply, Res, State};
 
 handle_call({add_media, Id, MediaType, Url}, _From, State) ->
