@@ -73,7 +73,7 @@ defmodule MazarynWeb.UserLive.Profile do
       |> assign(search: nil)
       |> assign(current_user: current_user)
       |> assign(posts: posts)
-      |> handle_assigns(current_user.id, username)
+      |> handle_assigns(current_user.id, user.id)
 
     {:noreply, socket}
   end
@@ -95,16 +95,18 @@ defmodule MazarynWeb.UserLive.Profile do
   end
 
   @impl true
-  def handle_event("follow_user", %{"username" => username}, socket) do
+  def handle_event("follow_user", %{"userid" => id}, socket) do
+    id = to_charlist(id)
     user_id = socket.assigns.current_user.id
-    UserClient.follow(user_id, username)
-    {:noreply, handle_assigns(socket, user_id, username)}
+    UserClient.follow(user_id, id)
+    {:noreply, handle_assigns(socket, user_id, id)}
   end
 
-  def handle_event("unfollow_user", %{"username" => username}, socket) do
+  def handle_event("unfollow_user", %{"userid" => id}, socket) do
+    id = to_charlist(id)
     user_id = socket.assigns.current_user.id
-    UserClient.unfollow(user_id, username)
-    {:noreply, handle_assigns(socket, user_id, username)}
+    UserClient.unfollow(user_id, id)
+    {:noreply, handle_assigns(socket, user_id, id)}
   end
 
   def handle_event("block_user", %{"username" => username}, socket) do
@@ -125,12 +127,12 @@ defmodule MazarynWeb.UserLive.Profile do
     {:noreply, assign(socket, :delete, username)}
   end
 
-  defp handle_assigns(socket, user_id, username) do
+  defp handle_assigns(socket, user_id, id) do
     socket
-    |> assign(:follow_event, follow_event(user_id, username))
-    |> assign(:follow_text, follow_text(user_id, username))
+    |> assign(:follow_event, follow_event(user_id, id))
+    |> assign(:follow_text, follow_text(user_id, id))
     |> assign(:followers, followers(user_id))
-    |> assign(followings: followings(user_id))
+    |> assign(:followings, followings(user_id))
   end
 
   defp get_user_by_username(username), do: Users.one_by_username(username)
@@ -153,14 +155,14 @@ defmodule MazarynWeb.UserLive.Profile do
       else: "follow_user"
   end
 
-  defp followers(username) do
-    username
+  defp followers(user_id) do
+    user_id
     |> UserClient.get_follower()
     |> Enum.count()
   end
 
-  defp followings(username) do
-    username
+  defp followings(user_id) do
+    user_id
     |> UserClient.get_following()
     |> Enum.count()
   end

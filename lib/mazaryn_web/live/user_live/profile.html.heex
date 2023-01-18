@@ -9,9 +9,9 @@
 
     <div class="w-full lg:w-[78.6%] ml-11">
       <div class="relative block h-72">
-        <%= if @user.avatar_url do %>
+        <%= if @user.banner_url do %>
           <div class="w-full h-full bg-center bg-cover rounded-b-3xl"
-              style={"background-image: url('#{@user.avatar_url}');"}>
+              style={"background-image: url('#{@user.banner_url}');"}>
           </div>
         <% else %>
           <div class="w-full h-full bg-center bg-cover rounded-b-3xl bg-[#CFD0DD]"></div>
@@ -55,7 +55,7 @@
               <% end %>
 
               <%= if @user.username != @current_user.username do %>
-                <button phx-click={@follow_event} phx-value-username={"#{@user.username}"} type="button" class="py-2.5 px-5 text-sm font-medium text-white focus:outline-none bg-blue-700 rounded-lg border border-gray-200 hover:bg-white hover:text-gray-700 focus:z-10 focus:ring-4 focus:ring-gray-200"><%= @follow_text %></button>
+                <button phx-click={@follow_event} phx-value-userid={"#{@user.id}"} type="button" class="py-2.5 px-5 text-sm font-medium text-white focus:outline-none bg-blue-700 rounded-lg border border-gray-200 hover:bg-white hover:text-gray-700 focus:z-10 focus:ring-4 focus:ring-gray-200"><%= @follow_text %></button>
               <% end %>
 
             </div>
