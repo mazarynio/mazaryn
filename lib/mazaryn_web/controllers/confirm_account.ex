@@ -23,6 +23,7 @@ defmodule MazarynWeb.ConfirmAccountController do
 
   defp validate_user(token_id) do
     token_id
+    |> to_charlist()
     |> Core.UserClient.validate()
     |> Account.User.erl_changeset()
     |> Account.User.build()

@@ -56,10 +56,11 @@ defmodule Account.User do
     field(:country, :string)
   end
 
+  # {:user, 'bO9brIwoWNvKUN5uUOU2_', "sample9", "$2a$12$4mn.6dmq59mTM3nO7/KDF.qc9PuEv589xRwSuP3ypQHE69pWUaDxK", "sample9@example.com", [], [], [], [], [], [], [], [], false, {{2023, 1, 18}, {13, 14, 9}}, :undefined, :undefined, :undefined, 'MYF5JU6c--RF20Ajv4xq3'}
   def erl_changeset(
-        {:user, id, username, password, email, media, posts, following, follower, blocked,
-         saved_posts, other_info, private, date_created, date_updated, avatar_url, banner_url,
-         token_id, notification} = _user
+        {:user, id, username, password, email, media, posts, notification, following, follower,
+         blocked, saved_posts, other_info, private, date_created, date_updated, avatar_url,
+         banner_url, token_id} = _user
       ) do
     avatar_url =
       case avatar_url do
