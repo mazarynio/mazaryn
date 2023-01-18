@@ -60,6 +60,7 @@ defmodule Mazaryn.MixProject do
       {:erlpass, git: "https://github.com/ferd/erlpass.git"},
       {:bcrypt, git: "https://github.com/erlangpack/bcrypt.git", override: true},
       {:jiffy, git: "https://github.com/davisp/jiffy.git"},
+      {:nanoid, git: "https://github.com/zarynio/nanoid.git"},
       {:epgsql, "~> 4.6"},
       {:erl_base58, "~> 0.0.1"},
 
