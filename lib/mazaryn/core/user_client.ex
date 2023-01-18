@@ -5,6 +5,10 @@ defmodule Core.UserClient do
     :user_server.create_account(username, password, email)
   end
 
+  def insert_notif(userID, message) do
+    :user_server.insert_notif(userID, message) 
+  end
+
   def validate(token_id) do 
     :token_server.start_link()
     :token_server.validate(token_id) 
