@@ -16,9 +16,9 @@
 insert(Author, Content, Media, Hashtag) ->
     F = fun() ->
           Id = nanoid:gen(),
-          mnesia:write(#post{id=Id,
-                             content=Content,
-                             author=Author,
+          mnesia:write(#post{id = Id,
+                             content = Content,
+                             author = Author,
                              media = Media,
                              hashtag = Hashtag,
                              date_created = calendar:universal_time()}),

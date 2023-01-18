@@ -32,7 +32,7 @@ defmodule MazarynWeb.UserLive.EditProfileComponent do
 
     case consume_upload(socket, :avatar_url) do
       [avatar_url] ->
-        Account.Users.insert_avatar(current_user.username, avatar_url)
+        Account.Users.insert_avatar(current_user.id, avatar_url)
         {:noreply, socket}
 
       [] ->
@@ -46,9 +46,15 @@ defmodule MazarynWeb.UserLive.EditProfileComponent do
 
   def handle_event("save-banner", params, socket) do
     current_user = socket.assigns.current_user
-    [banner_url] = consume_upload(socket, :banner_url)
-    Account.Users.insert_avatar(current_user.username, banner_url)
-    {:noreply, socket}
+
+    case consume_upload(socket, :banner_url) do
+      [banner_url] ->
+        Account.Users.insert_banner(current_user.id, banner_url)
+        {:noreply, socket}
+
+      [] ->
+        {:noreply, socket}
+    end
   end
 
   def preload(list_of_assigns) do

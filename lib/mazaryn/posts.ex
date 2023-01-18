@@ -24,16 +24,12 @@ defmodule Mazaryn.Posts do
     end
   end
 
-  @spec create(String.t(), String.t(), list(String.t()), list(String.t())) :: any
+  @doc """
+  Currently returns the post_id
+  """
+  @spec create(String.t(), String.t(), list(String.t()), list(String.t())) :: {:ok, any}
   def create(author, content, media, hashtag, _other \\ []) do
-    case PostClient.create(author, content, media, hashtag) do
-      post_id when is_binary(post_id) ->
-        {:ok, post_id}
-
-      something_else ->
-        Logger.warn(something_else)
-        {:error, something_else}
-    end
+    {:ok, PostClient.create(author, content, media, hashtag)}
   end
 
   def one_by_id(id) do
@@ -80,7 +76,6 @@ defmodule Mazaryn.Posts do
         Logger.error("handle here")
     end
   end
-
 
   def get_home_posts do
     case PostClient.get_posts() do

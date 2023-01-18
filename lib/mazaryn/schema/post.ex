@@ -47,7 +47,7 @@ defmodule Mazaryn.Schema.Post do
         {:post, id, content, comments, media, hashtag, author, other, date_created, date_updated}
       ) do
     %__MODULE__{}
-    |> changeset(%{
+    |> change(%{
       id: id,
       content: content,
       comments: comments,
@@ -65,7 +65,7 @@ defmodule Mazaryn.Schema.Post do
 
   def changeset(post, attrs \\ %{}) do
     post
-    |> cast(attrs, @optional_fields ++ @required_fields)
+    |> cast(attrs, @required_fields ++ @optional_fields)
     |> validate_required(@required_fields)
   end
 

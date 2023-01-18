@@ -36,15 +36,15 @@ defmodule Account.Users do
     end
   end
 
-  def insert_avatar(username, avatar_url) do
-    username
+  def insert_avatar(id, avatar_url) do
+    id
     |> Core.UserClient.insert_avatar(avatar_url)
     |> User.erl_changeset()
     |> User.build()
   end
 
-  def insert_banner(username, banner_url) do
-    username
+  def insert_banner(id, banner_url) do
+    id
     |> Core.UserClient.insert_banner(banner_url)
     |> User.erl_changeset()
     |> User.build()
