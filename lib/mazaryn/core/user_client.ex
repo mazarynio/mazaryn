@@ -58,6 +58,14 @@ defmodule Core.UserClient do
     :user_server.get_token_by_id(token_id)
   end
 
+  def get_single_notif(notifID) do
+    :user_server.get_single_notif(notifID)
+  end
+
+  def get_all_notifs(userID) do
+    :user_server.get_all_notifs(userID)
+  end
+
   def change_pass(username, current_pass, new_pass) do
     :user_server.change_password(username, current_pass, new_pass)
   end
