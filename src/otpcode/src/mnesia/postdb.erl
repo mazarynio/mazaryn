@@ -1,26 +1,28 @@
 -module(postdb).
--export([insert/3, get_post_by_id/1,
-         modify_post/3, get_posts_by_author/1, update_post/2,
+-export([insert/4, get_post_by_id/1,
+         modify_post/4, get_posts_by_author/1, 
+         get_posts_by_hashtag/1, update_post/2,
          delete_post/1, get_posts/0,
          get_all_posts_from_date/4, get_all_posts_from_month/3,
-         add_comment/3, update_comment/2,
-         get_all_comments/1, get_single_comment/1]).
+         like_post/2, unlike_post/2, add_comment/3, update_comment/2,
+         get_all_comments/1, get_likes/1, get_single_comment/1]).
 
 -include("../records.hrl").
--include_lib("stdlib/include/qlc.hrl"). 
+-include_lib("stdlib/include/qlc.hrl").
 
 %% if post or comment do not have media,
 %% their value in record are nil
 
-insert(Author, Content, Media) ->
+insert(Author, Content, Media, Hashtag) ->
     F = fun() ->
-          Id = id_gen:generate(),
+          Id = nanoid:gen(),
           mnesia:write(#post{id=Id,
                              content=Content,
                              author=Author,
                              media = Media,
+                             hashtag = Hashtag,
                              date_created = calendar:universal_time()}),
-          [User] = mnesia:read({user, Author}),
+          [User] = mnesia:index_read(user, Author, username),
           Posts = User#user.post,
           mnesia:write(User#user{post = [Id | Posts]}),
           Id
@@ -28,11 +30,12 @@ insert(Author, Content, Media) ->
     {atomic, Res} = mnesia:transaction(F),
     Res.
 
-modify_post(Author, NewContent, NewMedia) ->
+modify_post(Author, NewContent, NewMedia, NewHashtag) ->
   Fun = fun() ->
           [Post] = mnesia:read({post, Author}),
           mnesia:write(Post#post{content = NewContent,
                                  media = NewMedia,
+                                 hashtag = NewHashtag,
                                  date_updated = calendar:universal_time()})
         end,
   {atomic, Res} = mnesia:transaction(Fun),
@@ -56,6 +59,14 @@ get_posts_by_author(Author) ->
     Fun = fun() ->
             mnesia:match_object(#post{author = Author,
                                        _ = '_'})
+            end,
+    {atomic, Res} = mnesia:transaction(Fun),
+    Res.
+
+get_posts_by_hashtag(Hashtag) ->
+    Fun = fun() ->
+            mnesia:match_object(#post{hashtag = Hashtag,
+                                      _ = '_'})
             end,
     {atomic, Res} = mnesia:transaction(Fun),
     Res.
@@ -110,7 +121,7 @@ get_all_posts_from_date(Year, Month, Date, Author) ->
     {atomic, Res} = mnesia:transaction(fun() -> mnesia:match_object(Object) end),
     Res.
 
-get_all_posts_from_month(Year, Month, Author) -> 
+get_all_posts_from_month(Year, Month, Author) ->
     Object =
       case Author of
         [] -> #post{date_created = {{Year, Month, '_'}, '_'},
@@ -122,10 +133,33 @@ get_all_posts_from_month(Year, Month, Author) ->
     {atomic, Res} = mnesia:transaction(fun() -> mnesia:match_object(Object) end),
     Res.
 
+like_post(Id, PostId) ->  
+  Fun = fun() ->
+          ID = nanoid:gen(),
+          mnesia:write(#like{id = ID,
+                             post = PostId,
+                             date_created = calendar:universal_time()}),
+          [Post] = mnesia:read({post, PostId}),
+          Like = Post#post.likes,
+          mnesia:write(Post#post{like = [ID|Like]}),
+          ID
+        end,
+  {atomic, Res} = mnesia:transaction(Fun),
+  Res.
+
+unlike_post(Id, PostId) ->
+  Fun = fun() ->
+          [Post] = mnesia:read(post, PostId),
+          Unlike = lists:delete(PostId, Post#post.other),
+          mnesia:write(Post#post{other = Unlike,
+                                 date_created = calendar:universal_time()})
+        end,
+  {atomic, Res} = mnesia:transaction(Fun).
+
 %% Content = [{text, Text}, {media, Media}, {mention, Name}, {like, Like}]
 add_comment(Author, PostID, Content) ->
   Fun = fun() ->
-          Id =id_gen:generate(),
+          Id = nanoid:gen(),
           mnesia:write(#comment{id = Id,
                                 post = PostID,
                                 author = Author,
@@ -175,6 +209,21 @@ get_all_comments(PostId) ->
                         [Comment|Acc]
                       end,
                       [], Post#post.comments)
+
+        end,
+  {atomic, Res} = mnesia:transaction(Fun),
+  Res.
+
+get_likes(PostId) ->
+  Fun = fun() ->
+          mnesia:match_object(#like{post = PostId,
+                                              _ = '_'}),
+          [Post] = mnesia:read({post, PostId}),
+          lists:foldl(fun(ID, Acc) ->
+                        [Like] = mnesia:read({like, ID}),
+                        [Like|Acc]
+                      end,
+                      [], Post#post.like)
 
         end,
   {atomic, Res} = mnesia:transaction(Fun),
