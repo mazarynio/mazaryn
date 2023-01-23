@@ -18,10 +18,9 @@
 -export([start_link/0, insert/4, get_post_by_id/1, modify_post/4,
          get_posts_by_author/1, get_posts_by_hashtag/1, get_latest_posts/1, update_post/2, delete_post/1, 
          like_post/2, unlike_post/2, add_comment/3,
-         update_comment/2, get_single_comment/1, get_all_comments/1,
+         update_comment/2, get_single_comment/1, get_all_comments/1, get_likes/1,
          get_media/1, get_posts/0,
-         get_all_posts_from_date/4, get_all_posts_from_month/3,
-         get_comments/1]).
+         get_all_posts_from_date/4, get_all_posts_from_month/3]).
 
 -export([save_post/2, unsave_post/2,
          save_posts/2, unsave_posts/2,
@@ -76,6 +75,9 @@ get_single_comment(CommentId) ->
 
 get_all_comments(PostId) ->
     gen_server:call({global, ?MODULE}, {get_all_comments, PostId}).
+
+get_likes(PostID) ->
+    gen_server:call({global, ?MODULE}, {get_likes, PostID}).
 
 get_media(Media) ->
     gen_server:call({global, ?MODULE}, {get_media, Media}).
@@ -169,6 +171,10 @@ handle_call({get_all_comments, PostId}, _From, State) ->
     postdb:get_all_comments(PostId),
     {reply, ok, State};
 
+handle_call({get_likes, PostID}, _From, State) ->
+    Res = postdb:get_likes(PostID),
+    {reply, Res, State};
+
 handle_call({get_media, Media}, _From, State) ->
     postdb:get_media(Media),
     {reply, ok, State};
@@ -184,10 +190,6 @@ handle_call({get_all_posts_from_date, Year, Month, Date, Author}, _From, State) 
 handle_call({get_all_posts_from_month, Year, Month, Author}, _From, State) ->
     Posts = postdb:get_all_posts_from_month(Year, Month, Author),
     {reply, Posts, State};
-
-handle_call({get_comments, Id}, _From, State) ->
-    Comments = postdb:get_comments(Id),
-    {reply, Comments, State};
 
 %% Save post for reading alter
 handle_call({save_post, Username, PostId}, _From, State) ->
