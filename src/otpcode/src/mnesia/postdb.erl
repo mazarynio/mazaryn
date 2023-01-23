@@ -55,6 +55,7 @@ get_post_by_id(Id) ->
   {atomic, Res} = mnesia:transaction(Fun),
   Res.
 
+%% get_posts_by_author(Username)
 get_posts_by_author(Author) ->
     Fun = fun() ->
             mnesia:match_object(#post{author = Author,
@@ -89,7 +90,7 @@ update_post(PostId, NewContent) ->
   {atomic, Res} = mnesia:transaction(Fun),
   Res.
 
-
+%% delete_post(PostID)
 delete_post(Id) ->
     F = fun() ->
             mnesia:delete({post, Id})
@@ -133,6 +134,7 @@ get_all_posts_from_month(Year, Month, Author) ->
     {atomic, Res} = mnesia:transaction(fun() -> mnesia:match_object(Object) end),
     Res.
 
+%% like_post(MyID, PoastID)
 like_post(Id, PostId) ->  
   Fun = fun() ->
           ID = nanoid:gen(),
@@ -209,7 +211,6 @@ get_all_comments(PostId) ->
                         [Comment|Acc]
                       end,
                       [], Post#post.comments)
-
         end,
   {atomic, Res} = mnesia:transaction(Fun),
   Res.
@@ -224,7 +225,6 @@ get_likes(PostID) ->
                         [Like|Acc]
                       end,
                       [], Post#post.likes)
-
         end,
   {atomic, Res} = mnesia:transaction(Fun),
   Res.
