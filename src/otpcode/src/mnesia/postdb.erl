@@ -5,7 +5,7 @@
          delete_post/1, get_posts/0,
          get_all_posts_from_date/4, get_all_posts_from_month/3,
          like_post/2, unlike_post/2, add_comment/3, update_comment/2,
-         get_all_comments/1, get_single_comment/1]).
+         get_all_comments/1, get_likes/1, get_single_comment/1]).
 
 -include("../records.hrl").
 -include_lib("stdlib/include/qlc.hrl").
@@ -133,16 +133,21 @@ get_all_posts_from_month(Year, Month, Author) ->
     {atomic, Res} = mnesia:transaction(fun() -> mnesia:match_object(Object) end),
     Res.
 
-like_post(Id, PostId) -> 
+like_post(Id, PostId) ->  
   Fun = fun() ->
-          [Post] = mnesia:read(post, PostId),
-          Like = [PostId | Post#post.other],
-          mnesia:write(Post#post{other = Like,
-                                 date_created = calendar:universal_time()})
+          ID = nanoid:gen(),
+          mnesia:write(#like{id = ID,
+                             post = PostId,
+                             date_created = calendar:universal_time()}),
+          [Post] = mnesia:read({post, PostId}),
+          Likes = Post#post.likes,
+          mnesia:write(Post#post{likes = [ID|Likes]}),
+          ID
         end,
-  {atomic, Res} = mnesia:transaction(Fun).
+  {atomic, Res} = mnesia:transaction(Fun),
+  Res.
 
-unlike_post(Id, PostId) ->
+unlike_post(Id, PostId) -> 
   Fun = fun() ->
           [Post] = mnesia:read(post, PostId),
           Unlike = lists:delete(PostId, Post#post.other),
@@ -208,6 +213,22 @@ get_all_comments(PostId) ->
         end,
   {atomic, Res} = mnesia:transaction(Fun),
   Res.
+
+get_likes(PostID) ->
+  Fun = fun() ->
+          mnesia:match_object(#like{post = PostID,
+                                              _ = '_'}),
+          [Post] = mnesia:read({post, PostID}),
+          lists:foldl(fun(ID, Acc) ->
+                        [Like] = mnesia:read({like, ID}),
+                        [Like|Acc]
+                      end,
+                      [], Post#post.likes)
+
+        end,
+  {atomic, Res} = mnesia:transaction(Fun),
+  Res.
+
 
 get_media(Media) ->
   case Media of
