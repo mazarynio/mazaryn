@@ -48,6 +48,10 @@ start_link() ->
                                {disc_copies, [node()]},
                                {type, ordered_set}]),
 
+    mnesia:create_table(like, [{attributes, record_info(fields, like)},
+                               {disc_copies, [node()]},
+                               {type, ordered_set}]),
+
     mnesia:add_table_index(user, email),
 
     supervisor:start_link({local, ?SERVER}, ?MODULE, []).
