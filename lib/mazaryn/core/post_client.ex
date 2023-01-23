@@ -64,6 +64,10 @@ defmodule Core.PostClient do
     :post_server.get_all_comments(postId)
   end
 
+  def get_likes(postID) do
+    :post_server.get_likes(postID)
+  end
+
   def get_all_posts_from_date(year, month, date, author) do
     :post_server.get_all_posts_from_date(year, month, date, author)
   end
