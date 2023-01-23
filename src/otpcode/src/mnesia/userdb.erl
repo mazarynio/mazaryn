@@ -253,6 +253,7 @@ delete_user(Username) ->
     end,
     mnesia:activity(transaction, F).
 
+%% follow(myID, UserID)
 follow(Id, Following) ->
     Fun = fun() ->
             [User] = mnesia:match_object(#user{id = Id, _ = '_'}),
@@ -268,6 +269,7 @@ follow(Id, Following) ->
     {atomic, Res} = mnesia:transaction(Fun),
     Res.
 
+%% unfollow(MyID, UserID)
 unfollow(Id, Following) ->
     Fun = fun() ->
             [User] = mnesia:match_object(#user{id = Id, _ = '_'}),
