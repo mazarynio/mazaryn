@@ -26,6 +26,7 @@
 -record(post, { id,
                 content,
                 comments = [],
+                likes = [],
                 media = [],
                 hashtag = [],
                 author,
@@ -38,6 +39,10 @@
                   author,
                   content=[],
                   date_created}).
+
+-record(like, {id,
+               post,
+               date_created}).
 
 -record(event, {name, date, loc, desc}).
 -record(follower, {id, username}).
