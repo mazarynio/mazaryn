@@ -37,7 +37,7 @@ defmodule Mazaryn.Schema.Post do
     # TODO: Add to mnesia
     field(:comments, {:array, :string}, default: [])
     field(:profile_tags, {:array, :string}, default: [])
-    field(:like_count, :integer, default: 0)
+    field(:likes, {:array, :integer}, default: [])
 
     field(:photo_url, :string)
     field(:date_created, :utc_datetime)
