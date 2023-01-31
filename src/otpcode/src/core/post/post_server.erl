@@ -1,5 +1,5 @@
 %%%-------------------------------------------------------------------
-%%% @author dhuynh
+%%% @author Mazaryn 
 %%% @copyright (C) 2022, <COMPANY>
 %%% @doc
 %%%
@@ -7,7 +7,7 @@
 %%% Created : 14. May 2022 9:45 PM
 %%%-------------------------------------------------------------------
 -module(post_server).
--author("dhuynh").
+-author("mazaryn").
 
 -define(NUM, 5).
 
@@ -90,9 +90,6 @@ get_all_posts_from_date(Year, Month, Date, Author) ->
 
 get_all_posts_from_month(Year, Month, Author) ->
   gen_server:call({global, ?MODULE}, {get_all_posts_from_month, Year, Month, Author}).
-
-get_comments(Id) ->
-  gen_server:call({global, ?MODULE}, {get_comments, Id}).
 
 save_post(Username, PostId) ->
     gen_server:call({global, ?MODULE}, {save_post, Username, PostId}).
