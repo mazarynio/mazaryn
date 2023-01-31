@@ -1,6 +1,6 @@
 -module(post_test).
--export([insert_test/0, insert_test2/0, get_post_by_id_test/1, get_posts_by_author_test/1,
-    get_posts_by_hashtag_test/1, update_post_test/2, delete_post_test/1, get_posts_test/0]).
+-export([insert_test2/0, get_post_by_id_test/1, get_posts_by_author_test/1,
+    get_posts_by_hashtag_test/1, update_post_test/2, delete_post_test/1 ]).
 
 -include_lib("eunit/include/eunit.hrl"). 
 
