@@ -19,7 +19,7 @@ defmodule Account.User do
     follower
     blocked
     saved_posts
-    notification
+    notif
     country
     avatar_url
     banner_url
@@ -48,7 +48,7 @@ defmodule Account.User do
     field(:blocked, {:array, :string}, default: [])
     field(:saved_posts, {:array, :string}, default: [])
 
-    field(:notification, {:array, :string}, default: [])
+    field(:notif, {:array, :string}, default: [])
 
     field(:avatar_url, :string, default: "")
     field(:banner_url, :string, default: "")
@@ -57,7 +57,7 @@ defmodule Account.User do
   end
 
   def erl_changeset(
-        {:user, id, username, password, email, media, posts, notification, following, follower,
+        {:user, id, username, password, email, media, posts, notif, following, follower,
          blocked, saved_posts, other_info, private, date_created, date_updated, avatar_url,
          banner_url, token_id} = _user
       ) do
@@ -98,7 +98,7 @@ defmodule Account.User do
       avatar_url: avatar_url,
       banner_url: banner_url,
       token_id: token_id,
-      notification: notification
+      notif: notif
     })
   end
 
