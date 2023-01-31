@@ -58,11 +58,11 @@ update_post(PostId, NewContent) ->
 delete_post(Id) ->
   gen_server:call({global, ?MODULE}, {delete_post, Id}).
 
-like_post(Id, PostId) ->
-    gen_server:call({global, ?MODULE}, {like_post, Id, PostId}).
+like_post(UserID, PostId) ->
+    gen_server:call({global, ?MODULE}, {like_post, UserID, PostId}).
 
-unlike_post(Id, PostId) ->
-    gen_server:call({global, ?MODULE}, {unlike_post, Id, PostId}).
+unlike_post(UserID, PostId) ->
+    gen_server:call({global, ?MODULE}, {unlike_post, UserID, PostId}).
 
 add_comment(Author, PostID, Content) ->
   gen_server:call({global, ?MODULE}, {add_comment, Author, PostID, Content}).
@@ -147,12 +147,12 @@ handle_call({delete_post, Id}, _From, State) ->
     postdb:delete_post(Id),
     {reply, ok, State};
 
-handle_call({like_post, Id, PostId}, _From, State) ->
-    Res = postdb:like_post(Id, PostId),
+handle_call({like_post, UserID, PostId}, _From, State) ->
+    Res = postdb:like_post(UserID, PostId),
     {reply, Res, State};
 
-handle_call({unlike_post, Id, PostId}, _From, State) ->
-    Res = postdb:unlike_post(Id, PostId),
+handle_call({unlike_post, UserID, PostId}, _From, State) ->
+    Res = postdb:unlike_post(UserID, PostId),
     {reply, Res, State};
 
 handle_call({add_comment, Author, PostID, Content}, _From, State) ->
