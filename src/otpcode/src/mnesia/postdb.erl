@@ -135,11 +135,12 @@ get_all_posts_from_month(Year, Month, Author) ->
     Res.
 
 %% like_post(MyID, PoastID)
-like_post(Id, PostId) ->  
+like_post(UserID, PostId) ->  
   Fun = fun() ->
           ID = nanoid:gen(),
           mnesia:write(#like{id = ID,
                              post = PostId,
+                             userID = UserID,
                              date_created = calendar:universal_time()}),
           [Post] = mnesia:read({post, PostId}),
           Likes = Post#post.likes,
@@ -149,14 +150,16 @@ like_post(Id, PostId) ->
   {atomic, Res} = mnesia:transaction(Fun),
   Res.
 
-unlike_post(Id, PostId) -> 
-  Fun = fun() ->
+unlike_post(UserID, PostId) -> 
+    Fun = fun() ->
           [Post] = mnesia:read(post, PostId),
-          Unlike = lists:delete(PostId, Post#post.other),
-          mnesia:write(Post#post{other = Unlike,
+          Unlike = mnesia:delete({post, PostId}),
+          mnesia:write(Post#post{likes = Unlike,
                                  date_created = calendar:universal_time()})
-        end,
-  {atomic, Res} = mnesia:transaction(Fun).
+          end,
+    {atomic, Res} = mnesia:transaction(Fun),
+    Res.
+          
 
 %% Content = [{text, Text}, {media, Media}, {mention, Name}, {like, Like}]
 add_comment(Author, PostID, Content) ->
