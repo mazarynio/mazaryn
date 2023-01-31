@@ -40,12 +40,12 @@ defmodule Core.PostClient do
     :post_server.get_posts()
   end
 
-  def like_post(id, postID) do
-    :post_server.like_post(id, postID)
+  def like_post(userID, postId) do
+    :post_server.like_post(userID, postId)
   end
 
-  def unlike_post(id, postID) do
-    :post_server.unlike_post(id, postID)
+  def unlike_post(userID, postId) do
+    :post_server.unlike_post(userID, postId)
   end
 
   def add_comment(author, postID, content) do
@@ -76,8 +76,8 @@ defmodule Core.PostClient do
     :post_server.get_all_posts_from_month(year, month, author)
   end
 
-  def get_comments(id) do
-    :post_server.get_comments(id)
+  def get_comments(postID) do
+    :post_server.get_all_comments(postID)
   end
 
   def save_post(username, post_id) do
