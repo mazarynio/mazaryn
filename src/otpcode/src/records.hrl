@@ -42,6 +42,7 @@
 
 -record(like, {id,
                post,
+               userID,
                date_created}).
 
 -record(event, {name, date, loc, desc}).
