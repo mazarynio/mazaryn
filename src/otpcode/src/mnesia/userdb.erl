@@ -10,8 +10,8 @@
          follow/2, unfollow/2, follow_multiple/2, unfollow_multiple/2,
          save_post/2, save_posts/2, unsave_post/2, unsave_posts/2,
          get_save_posts/1, get_follower/1, get_following/1,
-         block/2, unblock/2, get_blocked/1, search_user_pattern/1,
-        insert_avatar/2, insert_banner/2]).
+         block/2, unblock/2, get_blocked/1, search_user/1, search_user_pattern/1,
+         insert_avatar/2, insert_banner/2]).
 
 -define(LIMIT_SEARCH, 50).
 
@@ -423,6 +423,16 @@ get_blocked(Id) ->
         end,
   {atomic, Res} = mnesia:transaction(Fun),
   Res.
+
+search_user(Username) ->
+    Pattern = {user, '_', Username, '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_'},
+
+    Fun = fun() ->
+          mnesia:match_object(Pattern)
+        end,
+
+    mnesia:transaction(Fun).
+
 
 search_user_pattern(Pattern) ->
     Fun = fun() ->
