@@ -15,7 +15,8 @@
          change_username/3, change_password/3, change_email/3,
          get_following/1, get_follower/1,
          block/2, unblock/2, get_blocked/1, add_media/3, get_media/2,
-         search_user_pattern/1, insert_avatar/2, insert_banner/2]).
+         search_user/1, search_user_pattern/1, insert_avatar/2,
+         insert_banner/2]).
 
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2,
@@ -136,6 +137,9 @@ unblock(Id, Unblocked) ->
 
 get_blocked(Id) ->
     gen_server:call({global, ?MODULE}, {get_blocked, Id}).
+
+search_user(Username) ->
+    gen_server:call({global, ?MODULE}, {search_user, Username}).
 
 search_user_pattern(Pattern) ->
     gen_server:call({global, ?MODULE}, {search_user_pattern, Pattern}).
@@ -288,6 +292,10 @@ handle_call({user_unblock, Id, Unblocked}, _From, State) ->
 
 handle_call({get_blocked, Id}, _From, State) ->
     Res = userdb:get_blocked(Id),
+    {reply, Res, State};
+
+handle_call({search_user, Username}, _From, State) ->
+    Res = userdb:search_user(Username),
     {reply, Res, State};
 
 handle_call({search_user_pattern, Pattern}, _From, State) ->

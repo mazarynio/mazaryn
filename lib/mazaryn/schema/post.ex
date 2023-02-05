@@ -45,7 +45,8 @@ defmodule Mazaryn.Schema.Post do
   end
 
   def erl_changeset(
-        {:post, id, content, comments, likes, media, hashtag, author, other, date_created, date_updated}
+        {:post, id, content, comments, likes, media, hashtag, author, other, date_created,
+         date_updated}
       ) do
     %__MODULE__{}
     |> change(%{

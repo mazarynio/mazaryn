@@ -67,11 +67,11 @@ defmodule MazarynWeb.Router do
     live("/home", HomeLive.Home)
     live("/coins", CoinLive.Index)
     # profile
+    live("/search", SearchLive.Index)
     live("/:username", UserLive.Profile)
     live("/posts", PostLive.Index)
     live("/dashboard", DashboardLive.Index)
     live("/dashboard/hedera-wallet", DashboardLive.Wallet.HederaWallet)
-    live("/search", SearchLive.Index)
   end
 
   scope "/api" do

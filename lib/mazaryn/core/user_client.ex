@@ -167,6 +167,10 @@ defmodule Core.UserClient do
     :user_server.get_media(id, type)
   end
 
+  def search_user(username) do
+    :user_server.search_user(username)
+  end
+
   def search_user_pattern(pattern) do
     :user_server.search_user_pattern(pattern)
   end
