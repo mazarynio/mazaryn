@@ -1,11 +1,10 @@
-<div> 
-    <div class='flex'>
-        <h3 class='font-bold'>
-            Notification
-        </h3>
-        <div className='rounded-full h-5 w-5 flex items-center justify-center bg-green-400'>
-            2
-        </div>
+<.live_component module={MazarynWeb.HomeLive.NavComponent} id="navigation" user={@current_user} search={@search} />
+
+<div class="bg-[#FAFAFA]">
+  <div class="flex w-[90%] max-w-[1440px] mx-auto">
+
+    <div class="w-full lg:w-[18%] py-6">
+      <.live_component module={MazarynWeb.HomeLive.LeftSidebarComponent} id="leftside" user={@current_user} />
     </div>
+  </div>
 </div>
-    
