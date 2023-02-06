@@ -17,6 +17,7 @@ defmodule MazarynWeb.NotificationLive.Index do
     {:noreply, handle_notif(socket, userID, message)}
   end
 
+  @impl true
   def handle_event("get_notif", %{"notifID" => notifID}, socket) do
     UserClient.get_single_notif(notifID)
     {:noreply, get_notification(socket, notifID)}
@@ -24,7 +25,7 @@ defmodule MazarynWeb.NotificationLive.Index do
 
   defp handle_notif(socket, userID, message) do
     socket
-    |> assign(:notification, new_notif(userID, message))
+    |> assign(:new_notif, new_notif(userID, message))
   end
 
   defp get_notification(socket, notifID) do
