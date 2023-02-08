@@ -10,11 +10,7 @@
         <div class="w-90 flex justify-evenly items-center ml-1.5 text-sm self-start">
             <div class="relative">
                 <i @click="open = !open">
-                    <svg class="h-10 w-7 fill-[#C4C4C4] cursor-pointer" width="15" height="35" viewBox="0 0 15 35" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <circle cx="7.5" cy="7.5" r="2.5" fill="#C4C4C4"/>
-                        <circle cx="7.5" cy="17.5" r="2.5" fill="#C4C4C4"/>
-                        <circle cx="7.5" cy="27.5" r="2.5" fill="#C4C4C4"/>
-                    </svg>
+                    <%= Heroicons.icon("ellipsis-vertical", type: "solid", class: "h-7 w-7 fill-[#60616D] cursor-pointer") %>
                 </i>
                 <ul x-show="open"
                     x-transition:enter="transition ease-out duration-200"
@@ -70,7 +66,7 @@
         <div class="relative flex justify-center items-center w-full">
             <img class="h-11 w-11 rounded-full" src={get_user_avatar(@post.author)} />
             <div class="relative top-2.5 w-full ml-4 text-sm leading-tight">
-                <textarea class="w-full border-none px-0 resize-none focus:text-black focus:ring-0 font-normal leading-[24px] block placeholder:text-[#C5C7C8]" id="post_content" name="post[content]" placeholder="Write a comment"></textarea>
+                <textarea class="w-full border-none px-0 resize-none focus:text-black focus:ring-0 font-normal leading-[24px] block placeholder:text-[#C5C7C8]" name="post[content]" placeholder="Write a comment"></textarea>
             </div>
         </div>
         <div class="flex flex-row justify-evenly items-center ml-1.5 text-sm leading-tight">
@@ -78,7 +74,7 @@
                <%= Heroicons.icon("face-smile", type: "solid", class: "h-5 w-5 fill-[#60616D]") %>
             </button>
             <button>
-                <i class="block icon-drop-shadow" id="upload-area" phx-drop-target={@uploads.media.ref} phx-click={Phoenix.LiveView.JS.dispatch("click", to: "##{@uploads.media.ref}", bubbles: false)}>
+                <i class="block icon-drop-shadow" phx-drop-target={@uploads.media.ref} phx-click={Phoenix.LiveView.JS.dispatch("click", to: "##{@uploads.media.ref}", bubbles: false)}>
                     <svg class="icon h-5 w-5 fill-[#60616D]" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path fill-rule="evenodd" clip-rule="evenodd" d="M15.1725 6.95497C15.477 6.95538 15.7745 7.07249 16.0275 7.29149C16.2805 7.51049 16.4776 7.82154 16.5939 8.18534C16.7102 8.54914 16.7404 8.94934 16.6808 9.33537C16.6212 9.7214 16.4745 10.0759 16.2591 10.3541C16.0437 10.6323 15.7693 10.8217 15.4707 10.8983C15.1721 10.975 14.8626 10.9354 14.5813 10.7847C14.3001 10.634 14.0597 10.3788 13.8906 10.0515C13.7215 9.72416 13.6312 9.33935 13.6312 8.94571C13.631 8.68402 13.6707 8.42486 13.7481 8.18307C13.8255 7.94128 13.9391 7.72162 14.0823 7.53668C14.2255 7.35174 14.3955 7.20516 14.5826 7.10533C14.7697 7.00551 14.9701 6.95441 15.1725 6.95497ZM16.3916 2.27904V1.64773H1.27931V15.6397H2.00034V17.2938H1.12143C0.825035 17.2946 0.540521 17.1432 0.330414 16.8729C0.226658 16.7391 0.144464 16.5799 0.0885884 16.4047C0.0327129 16.2296 0.0042656 16.0418 0.00489297 15.8523V1.44992C0.00531762 1.06663 0.122934 0.699117 0.332094 0.427505C0.541254 0.155894 0.82499 0.00222153 1.12143 0L16.5495 0C16.8468 0.000556656 17.1318 0.153494 17.342 0.425285C17.5522 0.697077 17.6705 1.06555 17.6709 1.44992V2.27904H16.3916ZM17.8825 18.3481L15.2132 12.8367C15.1582 12.7232 15.0817 12.6297 14.991 12.5648C14.9004 12.5 14.7985 12.466 14.6948 12.466C14.5912 12.466 14.4893 12.5 14.3986 12.5648C14.308 12.6297 14.2315 12.7232 14.1764 12.8367L12.9167 15.4609L14.2871 18.3481H13.724L9.98048 10.6292C9.91645 10.4975 9.82762 10.3889 9.72229 10.3137C9.61697 10.2384 9.4986 10.1989 9.37827 10.1989C9.25793 10.1989 9.13956 10.2384 9.03424 10.3137C8.92892 10.3889 8.84008 10.4975 8.77605 10.6292L5.12208 18.3481H4.60939V5.64604H18.7175V18.3481H17.8825ZM18.8802 19.9916H4.45151C4.15463 19.9905 3.87014 19.8377 3.66007 19.5664C3.44999 19.2952 3.33138 18.9276 3.33009 18.5438V5.44192C3.33223 5.05882 3.45122 4.69228 3.66121 4.42197C3.87119 4.15166 4.15519 3.99942 4.45151 3.99832H18.8802C19.1769 3.99943 19.4613 4.15232 19.6711 4.4236C19.8809 4.69487 19.9992 5.06249 20 5.44613V18.5564C19.9962 18.9377 19.8767 19.3017 19.6672 19.5702C19.4578 19.8386 19.1751 19.99 18.8802 19.9916V19.9916Z" fill="#AAAAAA"/>
                     </svg>

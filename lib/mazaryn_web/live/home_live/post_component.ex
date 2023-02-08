@@ -36,6 +36,13 @@ defmodule MazarynWeb.HomeLive.PostComponent do
     end)
   end
 
+  def get_user_avatar(author) do
+    case Users.one_by_username(author) do
+      {:ok, user} -> Helper.handle_avatar(user)
+      _ -> "/images/default-user.png"
+    end
+  end
+
   defp handle_assigns(socket, user_id, username) do
     socket
     |> assign(:follow_event, follow_event(user_id, username))
@@ -72,12 +79,5 @@ defmodule MazarynWeb.HomeLive.PostComponent do
     username
     |> UserClient.get_following()
     |> Enum.count()
-  end
-
-  def get_user_avatar(author) do
-    case Users.one_by_username(author) do
-      {:ok, user} -> Helper.handle_avatar(user)
-      _ -> "/images/default-user.png"
-    end
   end
 end
