@@ -18,7 +18,8 @@
 -export([start_link/0, insert/4, get_post_by_id/1, modify_post/4,
          get_posts_by_author/1, get_posts_by_hashtag/1, get_latest_posts/1, update_post/2, delete_post/1, 
          like_post/2, unlike_post/2, add_comment/3,
-         update_comment/2, get_single_comment/1, get_all_comments/1, get_likes/1,
+         update_comment/2, get_single_comment/1, get_all_comments/1, delete_comment/2,
+          get_likes/1,
          get_media/1, get_posts/0,
          get_all_posts_from_date/4, get_all_posts_from_month/3]).
 
@@ -75,6 +76,9 @@ get_single_comment(CommentId) ->
 
 get_all_comments(PostId) ->
     gen_server:call({global, ?MODULE}, {get_all_comments, PostId}).
+
+delete_comment(CommentID, PostId) ->
+    gen_server:call({global, ?MODULE}, {delete_comment, CommentID, PostId}).
 
 get_likes(PostID) ->
     gen_server:call({global, ?MODULE}, {get_likes, PostID}).
@@ -166,6 +170,10 @@ handle_call({get_single_comment, CommentId}, _From, State) ->
 
 handle_call({get_all_comments, PostId}, _From, State) ->
     postdb:get_all_comments(PostId),
+    {reply, ok, State};
+
+handle_call({delete_comment, CommentID, PostId}, _From, State) ->
+    postdb:delete_comment(CommentID, PostId),
     {reply, ok, State};
 
 handle_call({get_likes, PostID}, _From, State) ->
