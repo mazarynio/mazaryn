@@ -134,7 +134,7 @@ get_all_posts_from_month(Year, Month, Author) ->
     {atomic, Res} = mnesia:transaction(fun() -> mnesia:match_object(Object) end),
     Res.
 
-%% like_post(MyID, PoastID)
+%% like_post(MyID, PostID)
 like_post(UserID, PostId) ->  
   Fun = fun() ->
           ID = nanoid:gen(),

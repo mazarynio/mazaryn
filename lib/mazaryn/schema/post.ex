@@ -48,12 +48,18 @@ defmodule Mazaryn.Schema.Post do
         {:post, id, content, comments, likes, media, hashtag, author, other, date_created,
          date_updated}
       ) do
+    new_likes =
+      case likes do
+        list when is_list(list) -> list
+        _ -> []
+      end
+
     %__MODULE__{}
     |> change(%{
       id: id,
       content: content,
       comments: comments,
-      likes: likes,
+      likes: new_likes,
       media: media,
       hashtag: hashtag,
       author: author,

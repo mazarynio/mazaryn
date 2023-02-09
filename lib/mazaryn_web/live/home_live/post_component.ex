@@ -6,6 +6,7 @@ defmodule MazarynWeb.HomeLive.PostComponent do
   alias Home.Post
   alias Account.Users
   alias Core.UserClient
+  alias Core.PostClient
 
   @impl true
   def mount(socket) do
@@ -28,11 +29,27 @@ defmodule MazarynWeb.HomeLive.PostComponent do
     {:noreply, handle_assigns(socket, user_id, username)}
   end
 
+  def handle_event("like_post", %{"post-id" => post_id}, socket) do
+    post_id = post_id |> to_charlist
+    user_id = socket.assigns.current_user.id
+    PostClient.like_post(user_id, post_id)
+    {:noreply, socket}
+  end
+
+  def handle_event("unlike_post", %{"post-id" => post_id}, socket) do
+    post_id = post_id |> to_charlist
+    user_id = socket.assigns.current_user.id
+    PostClient.unlike_post(user_id, post_id)
+    {:noreply, socket}
+  end
+
   def preload(list_of_assigns) do
     Enum.map(list_of_assigns, fn assigns ->
       assigns
       |> Map.put(:follow_event, follow_event(assigns.current_user.id, assigns.post.author))
       |> Map.put(:follow_text, follow_text(assigns.current_user.id, assigns.post.author))
+      |> Map.put(:like_icon, like_icon(assigns.current_user.id, assigns.post.id))
+      |> Map.put(:like_event, like_event(assigns.current_user.id, assigns.post.id))
     end)
   end
 
@@ -79,5 +96,26 @@ defmodule MazarynWeb.HomeLive.PostComponent do
     username
     |> UserClient.get_following()
     |> Enum.count()
+  end
+
+  defp one_of_likes?(user_id, post_id) do
+    post_id
+    |> PostClient.get_likes()
+    |> Enum.map(fn like ->
+      like |> Home.Like.erl_changeset() |> Home.Like.build() |> elem(1)
+    end)
+    |> Enum.any?(&(&1.user_id == user_id))
+  end
+
+  defp like_icon(user_id, post_id) do
+    if one_of_likes?(user_id, post_id),
+      do: "hand-thumb-down",
+      else: "hand-thumb-up"
+  end
+
+  defp like_event(user_id, post_id) do
+    if one_of_likes?(user_id, post_id),
+      do: "unlike_post",
+      else: "like_post"
   end
 end
