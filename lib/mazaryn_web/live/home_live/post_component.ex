@@ -33,14 +33,42 @@ defmodule MazarynWeb.HomeLive.PostComponent do
     post_id = post_id |> to_charlist
     user_id = socket.assigns.current_user.id
     PostClient.like_post(user_id, post_id)
-    {:noreply, socket}
+
+    {:ok, post} =
+      PostClient.get_by_id(post_id)
+      |> Mazaryn.Schema.Post.erl_changeset()
+      |> Mazaryn.Schema.Post.build()
+
+    {:noreply,
+     socket
+     |> assign(:post, post)
+     |> assign(:like_icon, like_icon(user_id, post_id))
+     |> assign(:like_event, like_event(user_id, post_id))}
   end
 
   def handle_event("unlike_post", %{"post-id" => post_id}, socket) do
     post_id = post_id |> to_charlist
     user_id = socket.assigns.current_user.id
-    PostClient.unlike_post(user_id, post_id)
-    {:noreply, socket}
+
+    like =
+      post_id
+      |> PostClient.get_likes()
+      |> Enum.map(&(&1 |> Home.Like.erl_changeset() |> Home.Like.build() |> elem(1)))
+      |> Enum.filter(&(&1.user_id == user_id))
+      |> hd()
+
+    PostClient.unlike_post(like.id, post_id)
+
+    {:ok, post} =
+      PostClient.get_by_id(post_id)
+      |> Mazaryn.Schema.Post.erl_changeset()
+      |> Mazaryn.Schema.Post.build()
+
+    {:noreply,
+     socket
+     |> assign(:post, post)
+     |> assign(:like_icon, like_icon(user_id, post_id))
+     |> assign(:like_event, like_event(user_id, post_id))}
   end
 
   def preload(list_of_assigns) do

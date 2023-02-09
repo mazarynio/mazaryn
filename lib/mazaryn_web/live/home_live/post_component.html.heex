@@ -42,7 +42,7 @@
     <div class="text-gray-500 flex mt-3 pt-10 pb-5">
         <div class="flex items-start mr-3">
             <%= Heroicons.icon(@like_icon, type: "solid", class: "h-5 w-7 fill-[#cfd0dd] cursor-pointer", phx_click: @like_event, phx_value_post_id: @post.id, phx_target: @myself) %> 
-            <span class="ml-2.5  text-[#CFD0DD] text-base"><%= 0 %></span>
+            <span class="ml-2.5  text-[#CFD0DD] text-base"><%= Enum.count(@post.likes) %></span>
         </div>
         <div class="flex items-baseline mr-6">
             <svg class="h-5 w-7" width="25" height="16" viewBox="0 0 25 16" fill="none" xmlns="http://www.w3.org/2000/svg">
