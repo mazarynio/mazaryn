@@ -150,10 +150,10 @@ like_post(UserID, PostId) ->
   {atomic, Res} = mnesia:transaction(Fun),
   Res.
 
-unlike_post(UserID, PostId) -> 
-    Fun = fun() ->
+unlike_post(LikeID, PostId) ->  
+    Fun = fun() -> 
           [Post] = mnesia:read(post, PostId),
-          Unlike = mnesia:delete({post, PostId}),
+          Unlike = lists:delete(LikeID, Post#post.likes),
           mnesia:write(Post#post{likes = Unlike,
                                  date_created = calendar:universal_time()})
           end,
