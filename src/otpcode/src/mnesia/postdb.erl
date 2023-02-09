@@ -5,7 +5,8 @@
          delete_post/1, get_posts/0,
          get_all_posts_from_date/4, get_all_posts_from_month/3,
          like_post/2, unlike_post/2, add_comment/3, update_comment/2,
-         get_all_comments/1, get_likes/1, get_single_comment/1, get_media/1 ]).
+         get_all_comments/1, delete_comment/2, get_likes/1,
+          get_single_comment/1, get_media/1 ]).
 
 -include("../records.hrl").
 -include_lib("stdlib/include/qlc.hrl").
@@ -134,7 +135,7 @@ get_all_posts_from_month(Year, Month, Author) ->
     {atomic, Res} = mnesia:transaction(fun() -> mnesia:match_object(Object) end),
     Res.
 
-%% like_post(MyID, PostID)
+%% like_post(MyID, PoastID)
 like_post(UserID, PostId) ->  
   Fun = fun() ->
           ID = nanoid:gen(),
@@ -217,6 +218,16 @@ get_all_comments(PostId) ->
         end,
   {atomic, Res} = mnesia:transaction(Fun),
   Res.
+
+delete_comment(CommentID, PostId) ->
+  Fun = fun() -> 
+          [Post] = mnesia:read(post, PostId),
+          Update = lists:delete(CommentID, Post#post.comments),
+          mnesia:write(Post#post{comments = Update,
+                                 date_created = calendar:universal_time()})
+          end,
+    {atomic, Res} = mnesia:transaction(Fun),
+    Res.
 
 get_likes(PostID) ->
   Fun = fun() ->
