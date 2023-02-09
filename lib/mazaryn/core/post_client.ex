@@ -44,8 +44,8 @@ defmodule Core.PostClient do
     :post_server.like_post(userID, postId)
   end
 
-  def unlike_post(like_id, postId) do
-    :post_server.unlike_post(like_id, postId)
+  def unlike_post(userID, postId) do
+    :post_server.unlike_post(userID, postId)
   end
 
   def add_comment(author, postID, content) do
@@ -62,6 +62,10 @@ defmodule Core.PostClient do
 
   def get_all_comments(postId) do
     :post_server.get_all_comments(postId)
+  end
+
+  def delete_comment(commentID, postId) do
+    :post_server.delete_comment(commentID, postId)
   end
 
   def get_likes(postID) do
