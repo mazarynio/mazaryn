@@ -37,7 +37,7 @@
 -record(comment, {id,
                   post,
                   author,
-                  content=[],
+                  content,
                   date_created}).
 
 -record(like, {id,

@@ -5,8 +5,27 @@ defmodule MazarynWeb.HomeLive.PostComponent do
   alias MazarynWeb.Component.SelectLive
   alias Home.Post
   alias Account.Users
+  alias Account.User
   alias Core.UserClient
   alias Core.PostClient
+  alias Mazaryn.Schema.Comment
+  alias Mazaryn.Posts
+
+  def preload(list_of_assigns) do
+    changeset = Comment.changeset(%Comment{})
+
+    Enum.map(list_of_assigns, fn assigns ->
+      comments = parse_comments(assigns.post.comments)
+
+      assigns
+      |> Map.put(:follow_event, follow_event(assigns.current_user.id, assigns.post.author))
+      |> Map.put(:follow_text, follow_text(assigns.current_user.id, assigns.post.author))
+      |> Map.put(:like_icon, like_icon(assigns.current_user.id, assigns.post.id))
+      |> Map.put(:like_event, like_event(assigns.current_user.id, assigns.post.id))
+      |> Map.put(:changeset, changeset)
+      |> Map.put(:comments, comments)
+    end)
+  end
 
   @impl true
   def mount(socket) do
@@ -17,6 +36,31 @@ defmodule MazarynWeb.HomeLive.PostComponent do
   end
 
   @impl true
+  def handle_event("validate-comment", %{"comment" => comment_params} = _params, socket) do
+    changeset =
+      %Comment{}
+      |> Comment.changeset(comment_params)
+      |> Map.put(:action, :validate)
+
+    {:noreply, assign(socket, :changeset, changeset)}
+  end
+
+  def handle_event("save-comment", %{"comment" => comment_params} = _params, socket) do
+    %Comment{}
+    |> Comment.changeset(comment_params)
+    |> Posts.create_comment()
+
+    post =
+      comment_params["post_id"]
+      |> to_charlist
+      |> rebuild_post()
+
+    {:noreply,
+     socket
+     |> assign(:post, post)
+     |> assign(:comments, parse_comments(post.comments))}
+  end
+
   def handle_event("follow_user", %{"username" => username}, socket) do
     user_id = socket.assigns.current_user.id
     UserClient.follow(user_id, username)
@@ -34,10 +78,7 @@ defmodule MazarynWeb.HomeLive.PostComponent do
     user_id = socket.assigns.current_user.id
     PostClient.like_post(user_id, post_id)
 
-    {:ok, post} =
-      PostClient.get_by_id(post_id)
-      |> Mazaryn.Schema.Post.erl_changeset()
-      |> Mazaryn.Schema.Post.build()
+    post = rebuild_post(post_id)
 
     {:noreply,
      socket
@@ -59,10 +100,7 @@ defmodule MazarynWeb.HomeLive.PostComponent do
 
     PostClient.unlike_post(like.id, post_id)
 
-    {:ok, post} =
-      PostClient.get_by_id(post_id)
-      |> Mazaryn.Schema.Post.erl_changeset()
-      |> Mazaryn.Schema.Post.build()
+    post = rebuild_post(post_id)
 
     {:noreply,
      socket
@@ -71,21 +109,20 @@ defmodule MazarynWeb.HomeLive.PostComponent do
      |> assign(:like_event, like_event(user_id, post_id))}
   end
 
-  def preload(list_of_assigns) do
-    Enum.map(list_of_assigns, fn assigns ->
-      assigns
-      |> Map.put(:follow_event, follow_event(assigns.current_user.id, assigns.post.author))
-      |> Map.put(:follow_text, follow_text(assigns.current_user.id, assigns.post.author))
-      |> Map.put(:like_icon, like_icon(assigns.current_user.id, assigns.post.id))
-      |> Map.put(:like_event, like_event(assigns.current_user.id, assigns.post.id))
-    end)
-  end
-
   def get_user_avatar(author) do
     case Users.one_by_username(author) do
       {:ok, user} -> Helper.handle_avatar(user)
-      _ -> "/images/default-user.png"
+      _ -> "/images/default-user.svg"
     end
+  end
+
+  defp rebuild_post(post_id) do
+    {:ok, post} =
+      PostClient.get_by_id(post_id)
+      |> Mazaryn.Schema.Post.erl_changeset()
+      |> Mazaryn.Schema.Post.build()
+
+    post
   end
 
   defp handle_assigns(socket, user_id, username) do
@@ -145,5 +182,27 @@ defmodule MazarynWeb.HomeLive.PostComponent do
     if one_of_likes?(user_id, post_id),
       do: "unlike_post",
       else: "like_post"
+  end
+
+  defp parse_comments(comments) do
+    comments
+    |> Enum.map(fn comment ->
+      comment =
+        comment
+        |> Comment.erl_changeset()
+        |> Comment.build()
+        |> elem(1)
+
+      author =
+        Users.one_by_id(comment.author)
+        |> elem(1)
+
+      %{
+        author: author,
+        date_created: comment.date_created,
+        content: comment.content
+      }
+    end)
+    |> Enum.sort_by(& &1.date_created, :desc)
   end
 end

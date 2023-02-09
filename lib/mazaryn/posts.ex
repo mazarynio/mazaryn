@@ -7,6 +7,23 @@ defmodule Mazaryn.Posts do
 
   alias Core.PostClient
   alias Mazaryn.Schema.Post
+  alias Mazaryn.Schema.Comment
+
+  def create_comment(%Ecto.Changeset{valid?: false} = changeset), do: changeset
+
+  def create_comment(%{changes: %{author: author, content: content, post_id: post_id}}) do
+    author = author |> to_charlist
+    post_id = post_id |> to_charlist
+
+    case PostClient.add_comment(author, post_id, content) do
+      comment_id ->
+        PostClient.get_single_comment(comment_id)
+        |> Comment.erl_changeset()
+
+      {:error, some_error} ->
+        {:error, some_error}
+    end
+  end
 
   @spec(create_post(%Ecto.Changeset{}) :: %Post{}, {:error, :string})
   def create_post(%Ecto.Changeset{valid?: false} = changeset), do: changeset

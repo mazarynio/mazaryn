@@ -9,35 +9,38 @@ defmodule Mazaryn.Schema.Comment do
 
   @optional_fields ~w(
     id
+    date_created
   )a
 
   @required_fields ~w(
     content
     author
-    post
-    date_created
+    post_id
   )a
 
   embedded_schema do
-    field(:content, :map)
+    field(:content, :string)
     field(:date_created, :date)
 
     field(:author, :string)
-    field(:post, :string)
+    field(:post_id, :string)
   end
 
   def erl_changeset({:comment, id, post, author, content, date_created}) do
     %__MODULE__{}
-    |> changeset(%{
+    |> change(%{
       id: id,
-      post: post,
+      post_id: post,
       author: author,
-      content: Enum.into(content, %{}),
-      date_created: date_created
+      content: content,
+      date_created: handle_datetime(date_created)
     })
   end
 
-  def changeset(%__MODULE__{} = struct, attrs) do
+  defp handle_datetime(:undefined), do: nil
+  defp handle_datetime(datetime), do: Timex.to_naive_datetime(datetime)
+
+  def changeset(%__MODULE__{} = struct, attrs \\ %{}) do
     struct
     |> cast(attrs, @optional_fields ++ @required_fields)
     |> validate_required(@required_fields)
