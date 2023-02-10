@@ -13,6 +13,7 @@ defmodule MazarynWeb.HomeLive.PostComponent do
 
   def preload(list_of_assigns) do
     changeset = Comment.changeset(%Comment{})
+    update_comment_changeset = Comment.changeset(%Comment{})
 
     Enum.map(list_of_assigns, fn assigns ->
       comments = parse_comments(assigns.post.comments)
@@ -23,6 +24,7 @@ defmodule MazarynWeb.HomeLive.PostComponent do
       |> Map.put(:like_icon, like_icon(assigns.current_user.id, assigns.post.id))
       |> Map.put(:like_event, like_event(assigns.current_user.id, assigns.post.id))
       |> Map.put(:changeset, changeset)
+      |> Map.put(:update_comment_changeset, update_comment_changeset)
       |> Map.put(:comments, comments)
     end)
   end
@@ -36,6 +38,31 @@ defmodule MazarynWeb.HomeLive.PostComponent do
   end
 
   @impl true
+  def handle_event("validate-update-comment", %{"comment" => comment_params} = _params, socket) do
+    changeset =
+      %Comment{}
+      |> Comment.update_changeset(comment_params)
+      |> Map.put(:action, :validate)
+
+    {:noreply, assign(socket, :update_comment_changeset, changeset)}
+  end
+
+  def handle_event("update-comment", %{"comment" => comment_params} = _params, socket) do
+    comment =
+      %Comment{}
+      |> Comment.update_changeset(comment_params)
+      |> Posts.update_comment()
+
+    post =
+      comment.changes.post_id
+      |> rebuild_post()
+
+    {:noreply,
+     socket
+     |> assign(:post, post)
+     |> assign(:comments, parse_comments(post.comments))}
+  end
+
   def handle_event("validate-comment", %{"comment" => comment_params} = _params, socket) do
     changeset =
       %Comment{}
@@ -198,6 +225,7 @@ defmodule MazarynWeb.HomeLive.PostComponent do
         |> elem(1)
 
       %{
+        id: comment.id,
         author: author,
         date_created: comment.date_created,
         content: comment.content

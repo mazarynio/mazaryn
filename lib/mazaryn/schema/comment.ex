@@ -46,6 +46,12 @@ defmodule Mazaryn.Schema.Comment do
     |> validate_required(@required_fields)
   end
 
+  def update_changeset(%__MODULE__{} = struct, attrs \\ %{}) do
+    struct
+    |> cast(attrs, [:id, :content])
+    |> validate_required([:id, :content])
+  end
+
   def build(changeset) do
     apply_action(changeset, :build)
   end

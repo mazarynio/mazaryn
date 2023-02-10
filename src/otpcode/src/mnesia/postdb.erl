@@ -182,17 +182,8 @@ add_comment(Author, PostID, Content) ->
 update_comment(CommentID, NewContent) ->
   Fun = fun() ->
           [Comment] = mnesia:read({comment, CommentID}),
-          Content = Comment#comment.content,
-          UpdatedContent =
-                lists:foldl(fun({Key, Value}, Acc) ->
-                                case lists:keymember(Key, 1, Acc) of
-                                  true ->
-                                    lists:keyreplace(Key, 1, Acc, {Key, Value});
-                                  false ->
-                                    [{Key, Value}|Acc]
-                                end
-                            end, Content, NewContent),
-          mnesia:write(Comment#comment{content = UpdatedContent})
+          mnesia:write(Comment#comment{content = NewContent}),
+          CommentID
         end,
   {atomic, Res} = mnesia:transaction(Fun),
   Res.

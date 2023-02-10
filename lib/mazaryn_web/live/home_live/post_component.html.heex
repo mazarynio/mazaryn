@@ -62,7 +62,7 @@
     <div class="border-[#E5E5E5] border border-b-0 mt-7 mb-3.5"></div>
     <div class="flex justify-between align-center items-center py-5">
         <.form let={f} for={@changeset} phx-change="validate-comment" phx-target={@myself}  phx-submit="save-comment" class="relative flex justify-center items-center w-full">
-        <img class="h-11 w-11 rounded-full" src={get_user_avatar(@post.author)} />
+        <img class="h-8 w-8 rounded-full" src={get_user_avatar(@post.author)} />
         <div class="relative top-2.5 w-full ml-4 text-sm leading-tight">
             <%= hidden_input f, :post_id, value: @post.id %> 
             <%= hidden_input f, :author, value: @current_user.id %> 
@@ -84,15 +84,47 @@
                 <%#     </button> %>
             <%# </div> %>
     </div>
-    <div id="view-comments" class="hidden w-full flex flex-col justify-start items-center">
+    <div  id="view-comments" class="w-full flex flex-col justify-start items-center">
         <%= for comment <- @comments do %>
-            <div class="w-full flex justify-start items-center pt-2 pb-2">
-                <img src={get_user_avatar(comment.author.id)} class="h-8 w-8 rounded-full mr-3 mb-3 "  />
-                <div class="flex flex-col justify-center items-start">
-                    <p class="text-sm font-normal"> <%= comment.author.username %> </p> 
-                    <p class="text-xs font-normal text-gray-400"> <%= Timex.from_now(comment.date_created) %> </p> 
-                    <p class="text-sm font-normal text-gray-600 mt-3"> <%= comment.content %> </p> 
+            <div x-data="{open: false, openComment: false}"  x-on:click.outside="open = false; openComment = false" class="w-full flex flex-row justify-between items-start pt-2 pb-2">
+                <div class="flex">
+                    <img src={get_user_avatar(comment.author.id)} class="h-8 w-8 rounded-full mr-3 mb-3 "  />
+                    <div class="flex flex-col justify-center items-start">
+                        <p class="text-sm font-normal"> <%= comment.author.username %> </p> 
+                        <p class="text-xs font-normal text-gray-400"> <%= Timex.from_now(comment.date_created) %> </p> 
+                        <p class="text-sm font-normal text-gray-600 mt-5" x-show="!openComment"> <%= comment.content %> </p> 
+                        <.form let={f} for={@update_comment_changeset} phx-change="validate-update-comment" phx-target={@myself}  phx-submit="update-comment" x-show="openComment" class=" flex justify-center items-center w-full">
+                        <div class="w-fulltext-sm leading-tight">
+                            <%= hidden_input f, :id, value: comment.id %> 
+                            <%= text_input f, :content, class: "w-full border-none px-0 resize-none focus:text-black focus:ring-0 font-normal leading-[24px] block placeholder:text-[#C5C7C8]", placeholder: "Type something" %>
+                            <div @click="openComment = false; open = false">
+                                <%= submit "Send", style: "display: none;" %>
+                            </div>
+                        </div>
+                        </.form>
+                    </div>
                 </div>
+                <div class="relative">
+                    <i  @click="open = !open">
+                        <%= Heroicons.icon("ellipsis-vertical", type: "solid", class: "relative h-7 w-7 fill-[#60616D] cursor-pointer") %>
+                    </i>
+                    <ul x-show="open"
+                        x-transition:enter="transition ease-out duration-200"
+                        x-transition:enter-start="opacity-0"
+                        x-transition:enter-end="opacity-100"
+                        x-transition:leave="transition ease-in duration-200"
+                        x-transition:leave-start="opacity-100"
+                        x-transition:leave-end="opacity-0"
+                        class="absolute top-4 right-4 bg-white rounded rounded-md text-blue-900 border p-3 border-blue space-y-2 w-32" >
+                        <%= if comment.author.id != @current_user.id  do %>
+                            <li class=""><p class="text-gray-500 m-2 cursor-pointer">Report</p></li>
+                        <% else %>
+                            <li class=""><p class="text-gray-500 m-2 cursor-pointer" @click="openComment = !openComment">Update</p></li>
+                            <li class=""><p class="text-gray-500 m-2 cursor-pointer">Delete</p></li>
+                        <% end %>
+                    </ul>
+                </div>
+
             </div>
         <% end %>
     </div>
