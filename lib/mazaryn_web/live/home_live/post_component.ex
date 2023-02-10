@@ -38,6 +38,25 @@ defmodule MazarynWeb.HomeLive.PostComponent do
   end
 
   @impl true
+  def handle_event(
+        "delete-comment",
+        %{"comment-id" => comment_id, "post-id" => post_id} = _params,
+        socket
+      ) do
+    post_id = post_id |> to_charlist
+    comment_id = comment_id |> to_charlist
+    PostClient.delete_comment(comment_id, post_id)
+
+    post =
+      post_id
+      |> rebuild_post()
+
+    {:noreply,
+     socket
+     |> assign(:post, post)
+     |> assign(:comments, parse_comments(post.comments))}
+  end
+
   def handle_event("validate-update-comment", %{"comment" => comment_params} = _params, socket) do
     changeset =
       %Comment{}
@@ -228,7 +247,8 @@ defmodule MazarynWeb.HomeLive.PostComponent do
         id: comment.id,
         author: author,
         date_created: comment.date_created,
-        content: comment.content
+        content: comment.content,
+        post_id: comment.post_id
       }
     end)
     |> Enum.sort_by(& &1.date_created, :desc)

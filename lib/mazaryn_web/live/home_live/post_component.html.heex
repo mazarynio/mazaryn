@@ -120,7 +120,7 @@
                             <li class=""><p class="text-gray-500 m-2 cursor-pointer">Report</p></li>
                         <% else %>
                             <li class=""><p class="text-gray-500 m-2 cursor-pointer" @click="openComment = !openComment">Update</p></li>
-                            <li class=""><p class="text-gray-500 m-2 cursor-pointer">Delete</p></li>
+                            <li class=""><p class="text-gray-500 m-2 cursor-pointer" phx-click="delete-comment" phx-value-comment-id={comment.id} phx-value-post-id={comment.post_id} phx-target={@myself}>Delete</p></li>
                         <% end %>
                     </ul>
                 </div>
