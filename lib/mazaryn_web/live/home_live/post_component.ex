@@ -39,6 +39,18 @@ defmodule MazarynWeb.HomeLive.PostComponent do
 
   @impl true
   def handle_event(
+        "delete-post",
+        %{"post-id" => post_id} = _params,
+        socket
+      ) do
+    post_id = post_id |> to_charlist
+    PostClient.delete_post(post_id)
+    send(self(), :reload_posts)
+
+    {:noreply, socket}
+  end
+
+  def handle_event(
         "delete-comment",
         %{"comment-id" => comment_id, "post-id" => post_id} = _params,
         socket

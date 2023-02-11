@@ -25,7 +25,7 @@
                         <li class=""><p class="text-gray-500 m-2 cursor-pointer">Block</p></li>
                         <li class=""><p class="text-gray-500 m-2 cursor-pointer">Report</p></li>
                     <% else %>
-                        <li class=""><p class="text-gray-500 m-2 cursor-pointer">Delete Post</p></li>
+                        <li class=""><p class="text-gray-500 m-2 cursor-pointer" phx-click="delete-post" phx-value-post-id={@post.id}  phx-target={@myself}>Delete</p></li>
                     <% end %>
                 </ul>
             </div>
@@ -84,9 +84,9 @@
                 <%#     </button> %>
             <%# </div> %>
     </div>
-    <div  id="view-comments" class="w-full flex flex-col justify-start items-center">
+    <div id="view-comments" class="w-full flex flex-col justify-start items-center">
         <%= for comment <- @comments do %>
-            <div x-data="{open: false, openComment: false}"  x-on:click.outside="open = false; openComment = false" class="w-full flex flex-row justify-between items-start pt-2 pb-2">
+            <div x-data="{open: false, openComment: false}" x-on:click.outside="open = false; openComment = false" class="w-full flex flex-row justify-between items-start pt-2 pb-2">
                 <div class="flex">
                     <img src={get_user_avatar(comment.author.id)} class="h-8 w-8 rounded-full mr-3 mb-3 "  />
                     <div class="flex flex-col justify-center items-start">
