@@ -5,9 +5,6 @@ kill_signal = "SIGTERM"
 kill_timeout = 5
 processes = []
 
-[deploy]
-  release_command = "/app/bin/migrate"
-
 [env]
   PHX_HOST = "mazaryn.io"
   PORT = "8080"
@@ -18,11 +15,6 @@ processes = []
   cmd = []
   entrypoint = []
   exec = []
-
-# only one mount allowed per named process
-# [[mounts]]
-#  destination = "/app/bin/uploads"
-#  source = "media_data"
 
 [[mounts]]
   destination = "/app/bin/Mnesia"
