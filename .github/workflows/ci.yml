@@ -2,6 +2,7 @@ name: CI
 
 on:
   pull_request:
+    branches: ["main"]
 
 env:
   MIX_ENV: test
@@ -15,9 +16,9 @@ jobs:
 
     # PURPOSE: skips Github actions, only use this when avoiding test and deploy.
     # Example usage for this to trigger:
-    # git commit -S -am "fix typo in html [skip ci/cd]"
+    # git commit -S -am "fix typo in html [skip ci]"
     name: check commit message for skipping build(s)
-    if: "contains(github.event.head_commit.message, '[skip ci/cd]')"
+    if: "contains(github.event.head_commit.message, '[skip ci]')"
     steps:
       - name: print message via cli
         run: echo "Skipping build, based from commit message"

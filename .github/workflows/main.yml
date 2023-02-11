@@ -2,7 +2,7 @@ name: Fly Deploy
 
 on:
   push:
-    branches: [ main ]
+    branches: ["main"]
 
 env:
   FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
@@ -11,6 +11,7 @@ jobs:
   deploy:
     name: Deploy app
     runs-on: ubuntu-latest
+    if: "contains(github.event.head_commit.message, '[deploy fly]')"
     steps:
       - uses: actions/checkout@v3
       - uses: superfly/flyctl-actions/setup-flyctl@master
