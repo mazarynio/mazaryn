@@ -65,6 +65,7 @@ defmodule MazarynWeb.Router do
     pipe_through(:restricted)
 
     live("/home", HomeLive.Home)
+    live("/approve", HomeLive.Approve)
     live("/coins", CoinLive.Index)
     # profile
     live("/search", SearchLive.Index)
