@@ -110,7 +110,6 @@ defmodule MazarynWeb.AuthLive.Signup do
 
         socket =
           socket
-          |> put_flash(:info, "Kindly confirm you account by visiting your email")
           |> push_redirect(to: "/approve")
 
         if connected?(socket), do: {:noreply, socket}
