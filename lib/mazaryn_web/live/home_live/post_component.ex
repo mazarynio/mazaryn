@@ -247,6 +247,7 @@ defmodule MazarynWeb.HomeLive.PostComponent do
     |> Enum.map(fn comment ->
       comment =
         comment
+        |> PostClient.get_single_comment()
         |> Comment.erl_changeset()
         |> Comment.build()
         |> elem(1)

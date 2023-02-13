@@ -130,6 +130,8 @@ defmodule Account.Users do
   end
 
   def get_following(id) do
+    UserClient.get_following(id) |> raise
+
     case UserClient.get_following(id) do
       :not_exist ->
         Logger.error("[Users] Failed to find followings #{id}")
