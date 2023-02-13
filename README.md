@@ -27,10 +27,6 @@ Now you can visit [`localhost:4000`](http://localhost:4000) from your browser.
 
 Ready to run in production? Please [check our deployment guides](https://hexdocs.pm/phoenix/deployment.html).
 
-##### If you find this Project Helpful Please Consider to Donate Us Via Cardano (ADA):
- ##### addr1qydemhctgxp42fvnx8c74we6lau6tzxp7448k8frehlpauclfuzuuk7ftzvufxm9cwaw9gtqpd7q4zqhszra6ysx8w9sz7gv9p
-
-
 ### Screenshots 
 
 ![2022-04-20_13-08](https://user-images.githubusercontent.com/59366270/166201589-1b2b932d-5c54-4297-83ac-259b85885e50.png)
