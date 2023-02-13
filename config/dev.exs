@@ -4,16 +4,6 @@ config :mazaryn, :media,
   uploads_dir: Path.expand("../uploads", __DIR__),
   host: [scheme: "http", host: "localhost", port: 4000]
 
-# Configure your database
-config :mazaryn, Mazaryn.Repo,
-  username: "postgres",
-  password: "postgres",
-  hostname: "localhost",
-  database: "mazaryn_dev",
-  stacktrace: true,
-  show_sensitive_data_on_connection_error: true,
-  pool_size: 10
-
 # For development, we disable any cache and enable
 # debugging and code reloading.
 #

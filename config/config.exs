@@ -7,9 +7,6 @@
 # General application configuration
 import Config
 
-config :mazaryn,
-  ecto_repos: [Mazaryn.Repo]
-
 config :ex_heroicons, type: "solid"
 
 # Configures the endpoint
