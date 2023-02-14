@@ -25,7 +25,7 @@
                         <li class=""><p class="text-gray-500 m-2 cursor-pointer">Block</p></li>
                         <li class=""><p class="text-gray-500 m-2 cursor-pointer">Report</p></li>
                     <% else %>
-                        <li class=""><p class="text-gray-500 m-2 cursor-pointer" phx-click="delete-post" phx-value-post-id={@post.id}  phx-target={@myself}>Delete</p></li>
+                        <li class=""><p class="text-gray-500 m-2 cursor-pointer" phx-click="delete-post" phx-value-post-id={@post.id} }>Delete</p></li>
                     <% end %>
                 </ul>
             </div>
@@ -57,7 +57,7 @@
         </div>
     </div>
     <div class="flex items-center mr-6">
-        <span class="text-[#4385F5] text-base" phx-click={Phoenix.LiveView.JS.toggle(to: "#view-comments")}>View <%= Enum.count(@post.comments) %> comments</span>
+        <span class="text-[#4385F5] text-base cursor-pointer" phx-click={Phoenix.LiveView.JS.toggle(to: "#view-comments")}>View <%= Enum.count(@post.comments) %> comments</span>
     </div>
     <div class="border-[#E5E5E5] border border-b-0 mt-7 mb-3.5"></div>
     <div class="flex justify-between align-center items-center py-5">
@@ -86,7 +86,7 @@
     </div>
     <div id="view-comments" class="w-full flex flex-col justify-start items-center">
         <%= for comment <- @comments do %>
-            <div x-data="{open: false, openComment: false}" x-on:click.outside="open = false; openComment = false" class="w-full flex flex-row justify-between items-start pt-2 pb-2">
+            <div x-data="{open: false, openComment: false}"  x-on:click.outside="open = false; openComment = false" class="w-full flex flex-row justify-between items-start pt-2 pb-2">
                 <div class="flex">
                     <img src={get_user_avatar(comment.author.id)} class="h-8 w-8 rounded-full mr-3 mb-3 "  />
                     <div class="flex flex-col justify-center items-start">

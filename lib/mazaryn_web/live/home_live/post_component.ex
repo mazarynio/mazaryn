@@ -247,23 +247,27 @@ defmodule MazarynWeb.HomeLive.PostComponent do
     |> Enum.map(fn comment ->
       comment =
         comment
-        |> PostClient.get_single_comment()
         |> Comment.erl_changeset()
         |> Comment.build()
-        |> elem(1)
+        |> case do
+          map when map == %{} ->
+            %{}
 
-      author =
-        Users.one_by_id(comment.author)
-        |> elem(1)
+          {:ok, comment} ->
+            author =
+              Users.one_by_id(comment.author)
+              |> elem(1)
 
-      %{
-        id: comment.id,
-        author: author,
-        date_created: comment.date_created,
-        content: comment.content,
-        post_id: comment.post_id
-      }
+            %{
+              id: comment.id,
+              author: author,
+              date_created: comment.date_created,
+              content: comment.content,
+              post_id: comment.post_id
+            }
+        end
     end)
+    |> Enum.filter(&(&1 != %{}))
     |> Enum.sort_by(& &1.date_created, :desc)
   end
 end

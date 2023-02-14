@@ -37,6 +37,8 @@ defmodule Mazaryn.Schema.Comment do
     })
   end
 
+  def erl_changeset(_), do: %{}
+
   defp handle_datetime(:undefined), do: nil
   defp handle_datetime(datetime), do: Timex.to_naive_datetime(datetime)
 
@@ -51,6 +53,8 @@ defmodule Mazaryn.Schema.Comment do
     |> cast(attrs, [:id, :content])
     |> validate_required([:id, :content])
   end
+
+  def build(map) when map == %{}, do: %{}
 
   def build(changeset) do
     apply_action(changeset, :build)
