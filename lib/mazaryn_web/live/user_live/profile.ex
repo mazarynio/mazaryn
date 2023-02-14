@@ -68,6 +68,7 @@ defmodule MazarynWeb.UserLive.Profile do
     current_user = socket.assigns.current_user
     post_changeset = Post.changeset(%Post{})
     user_changeset = User.changeset(%User{})
+
     posts = Mazaryn.Posts.get_posts_by_author(username)
 
     {:ok, user} = get_user_by_username(username)

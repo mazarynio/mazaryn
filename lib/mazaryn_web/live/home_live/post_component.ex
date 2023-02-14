@@ -16,8 +16,6 @@ defmodule MazarynWeb.HomeLive.PostComponent do
     update_comment_changeset = Comment.changeset(%Comment{})
 
     Enum.map(list_of_assigns, fn assigns ->
-      comments = parse_comments(assigns.post.comments)
-
       assigns
       |> Map.put(:follow_event, follow_event(assigns.current_user.id, assigns.post.author))
       |> Map.put(:follow_text, follow_text(assigns.current_user.id, assigns.post.author))
@@ -25,7 +23,7 @@ defmodule MazarynWeb.HomeLive.PostComponent do
       |> Map.put(:like_event, like_event(assigns.current_user.id, assigns.post.id))
       |> Map.put(:changeset, changeset)
       |> Map.put(:update_comment_changeset, update_comment_changeset)
-      |> Map.put(:comments, comments)
+      |> Map.put(:comments, assigns.post.comments)
     end)
   end
 
@@ -66,7 +64,7 @@ defmodule MazarynWeb.HomeLive.PostComponent do
     {:noreply,
      socket
      |> assign(:post, post)
-     |> assign(:comments, parse_comments(post.comments))}
+     |> assign(:comments, post.comments)}
   end
 
   def handle_event("validate-update-comment", %{"comment" => comment_params} = _params, socket) do
@@ -91,7 +89,7 @@ defmodule MazarynWeb.HomeLive.PostComponent do
     {:noreply,
      socket
      |> assign(:post, post)
-     |> assign(:comments, parse_comments(post.comments))}
+     |> assign(:comments, post.comments)}
   end
 
   def handle_event("validate-comment", %{"comment" => comment_params} = _params, socket) do
@@ -116,7 +114,7 @@ defmodule MazarynWeb.HomeLive.PostComponent do
     {:noreply,
      socket
      |> assign(:post, post)
-     |> assign(:comments, parse_comments(post.comments))}
+     |> assign(:comments, post.comments)}
   end
 
   def handle_event("follow_user", %{"username" => username}, socket) do
@@ -240,34 +238,5 @@ defmodule MazarynWeb.HomeLive.PostComponent do
     if one_of_likes?(user_id, post_id),
       do: "unlike_post",
       else: "like_post"
-  end
-
-  defp parse_comments(comments) do
-    comments
-    |> Enum.map(fn comment ->
-      comment =
-        comment
-        |> Comment.erl_changeset()
-        |> Comment.build()
-        |> case do
-          map when map == %{} ->
-            %{}
-
-          {:ok, comment} ->
-            author =
-              Users.one_by_id(comment.author)
-              |> elem(1)
-
-            %{
-              id: comment.id,
-              author: author,
-              date_created: comment.date_created,
-              content: comment.content,
-              post_id: comment.post_id
-            }
-        end
-    end)
-    |> Enum.filter(&(&1 != %{}))
-    |> Enum.sort_by(& &1.date_created, :desc)
   end
 end
