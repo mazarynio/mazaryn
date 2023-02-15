@@ -25,7 +25,7 @@
                         <li class=""><p class="text-gray-500 m-2 cursor-pointer">Block</p></li>
                         <li class=""><p class="text-gray-500 m-2 cursor-pointer">Report</p></li>
                     <% else %>
-                        <li class=""><p class="text-gray-500 m-2 cursor-pointer" phx-click="delete-post" phx-value-post-id={@post.id} }>Delete</p></li>
+                        <li class=""><p class="text-gray-500 m-2 cursor-pointer" phx-click="delete-post" phx-value-post-id={@post.id} phx-target={@myself}>Delete</p></li>
                     <% end %>
                 </ul>
             </div>
