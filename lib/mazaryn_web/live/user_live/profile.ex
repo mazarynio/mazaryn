@@ -129,6 +129,18 @@ defmodule MazarynWeb.UserLive.Profile do
     {:noreply, assign(socket, :unblock, username)}
   end
 
+  def handle_event("get-follower", %{"id" => id}, socket) do
+    id = id |> to_charlist
+    UserClient.get_follower(id)
+    {:noreply, socket}
+  end
+
+  def handle_event("get-following", %{"id" => id}, socket) do
+    id = id |> to_charlist
+    UserClient.get_following(id)
+    {:noreply, socket}
+  end
+
   def handle_event("delete_user", %{"username" => username}, socket) do
     username = UserClient.get_user(username)
     UserClient.delete_user(username)
