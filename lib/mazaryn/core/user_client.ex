@@ -81,27 +81,13 @@ defmodule Core.UserClient do
     :user_server.delete_user(username)
   end
 
-  @doc """
-  follow a specific profile
-
-    iex> id = 1234
-    iex> following = username1234
-    iex> follow(id, following)
-    :ok
-  """
+  # id = MyID, following = UserID
   @spec follow(Binary.t(), String.t()) :: :ok | any()
   def follow(id, following) do
     :user_server.follow(id, following)
   end
 
-  @doc """
-  unfollow a specific profile
-
-    iex> id = 1234
-    iex> following = username1234
-    iex> unfollow(id, following)
-    :ok
-  """
+  # id = MyID, following = UserID
   @spec unfollow(Binary.t(), String.t()) :: :ok | any()
   def unfollow(id, following) do
     :user_server.unfollow(id, following)
@@ -147,6 +133,7 @@ defmodule Core.UserClient do
     :user_server.get_user_info(username, fields)
   end
 
+  # id= MyID, blocked = UserID
   def block(id, blocked) do
     :user_server.block(id, blocked)
   end
