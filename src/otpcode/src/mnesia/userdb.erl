@@ -398,6 +398,7 @@ check_user_credential(Email, Password) ->
       end
   end.
 
+%% Id = MyID, Blocked = UserID
 block(Id, Blocked) ->
   Fun = fun() ->
           [#user{blocked = BlockedList} = User] = mnesia:read(user, Id),
@@ -407,6 +408,7 @@ block(Id, Blocked) ->
   {atomic, Res} = mnesia:transaction(Fun),
   Res.
 
+%% Id = MyID, Unblocked = UserID 
 unblock(Id, Unblocked) ->
   Fun = fun() ->
           [#user{blocked = BlockedList} = User] = mnesia:read(user, Id),
