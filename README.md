@@ -13,7 +13,7 @@
 
 
 
-##### If you're Interested to Joining on the Core team Connect via mail: support@mazaryn.io
+#### If you're Interested to Joining on the Core team Connect via mail: support@mazaryn.io
 
 To start your Phoenix server:
   
