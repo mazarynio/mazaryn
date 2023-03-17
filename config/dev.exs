@@ -17,7 +17,7 @@ config :mazaryn, MazarynWeb.Endpoint,
   check_origin: false,
   code_reloader: true,
   debug_errors: true,
-  secret_key_base: "JmhZ1wTiu1VifuJVeoLzhThdyT3EynZTscxAq6KYT/Pa9foj4PQEuxsjm9WkTrHQ",
+  secret_key_base: "JmhZ1wTiu1VifuJVeoLzhThdyT3EynZTscxAq6KYT/",
   watchers: [
     # Start the esbuild watcher by calling Esbuild.install_and_run(:default, args)
     esbuild: {Esbuild, :install_and_run, [:default, ~w(--sourcemap=inline --watch)]},

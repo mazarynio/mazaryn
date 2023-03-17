@@ -9,14 +9,14 @@ defmodule MazarynWeb.HomeLive.LeftSidebarComponent do
                 <div class="flex justify-center items-center">
                     <ul>
                         <li class="flex align-center items-center mx-2 mb-7">
-                            <%= live_redirect to: Routes.live_path(@socket, MazarynWeb.HomeLive.Home), replace: false, class: "group flex align-center items-start text-base text-gray-500 font-semibold hover:text-blue-500" do %>
+                            <.link navigate={~p(/home)} class="group flex align-center items-start text-base text-gray-500 font-semibold hover:text-blue-500" >
                                 <i>
                                     <svg class="h-5 w-5 mr-3.5 group-hover:fill-[#4385F5]" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
                                         <path class="fill-[#60616D] group-hover:fill-[#4385F5]" d="M19.6488 7.86157L17.1463 5.82204V2.56025C17.1463 2.19294 16.8474 1.89407 16.4801 1.89407H14.9055C14.5382 1.89407 14.2393 2.19294 14.2393 2.56025V3.45274L10.8955 0.72753C10.6537 0.530462 10.3349 0.421875 9.99789 0.421875C9.66226 0.421875 9.34497 0.529796 9.10442 0.725834L0.351262 7.86151C-0.046447 8.18558 -0.0225857 8.46785 0.0270144 8.60727C0.0764932 8.74638 0.235831 8.97978 0.746729 8.97978H1.94531V18.3636C1.94531 19.0333 2.48867 19.5781 3.15654 19.5781H6.94164C7.60389 19.5781 8.1226 19.0446 8.1226 18.3636V14.5155C8.1226 14.1857 8.42571 13.8853 8.7585 13.8853H11.3021C11.6193 13.8853 11.8774 14.168 11.8774 14.5155V18.3636C11.8774 19.0219 12.446 19.5781 13.1189 19.5781H16.8435C17.5114 19.5781 18.0547 19.0333 18.0547 18.3636V8.97978H19.2533C19.7642 8.97978 19.9235 8.74638 19.973 8.60727C20.0226 8.46785 20.0465 8.18558 19.6488 7.86157Z" />
                                     </svg>
                                 </i>
                                 <div class="text-[#60616D] text-base leading-6 group-hover:text-[#4385F5]">Home</div>
-                            <% end %>
+                            </.link>
                         </li>
                         <li class="flex align-center items-center mx-2 mb-7">
                             <a href="/" class="group flex items-start text-base text-gray-500 font-semibold hover:text-blue-500 ">
@@ -87,7 +87,7 @@ defmodule MazarynWeb.HomeLive.LeftSidebarComponent do
                         </li>
 
                         <li class="flex align-center items-center mx-2 group">
-                            <%= live_redirect to: Routes.live_path(@socket, MazarynWeb.UserLive.Profile,  @user.username), replace: false, class: "group flex items-center text-base text-[#60616D] font-semibold" do %>
+                            <.link navigate={~p(/#{@user.username})} class="group flex items-center text-base text-[#60616D] font-semibold">
                                 <%= if @user.avatar_url do %>
                                     <img src={"#{@user.avatar_url}"} class="h-5 w-5 mr-3.5 rounded-full ring-blue-500 group-hover:ring"/>
                                 <% else %>
@@ -97,7 +97,7 @@ defmodule MazarynWeb.HomeLive.LeftSidebarComponent do
                                 <div class="leading-6 text-[#60616D] group-hover:text-[#4385F5]">
                                     @<%= @user.username %>
                                 </div>
-                            <% end %>
+                            </.link>
                         </li>
                     </ul>
                 </div>
