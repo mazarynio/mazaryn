@@ -50,7 +50,7 @@
 -record(following, {id, username}).
 
 -record(hed_wallet, { id, password, date_created }).
-
+-record(chat, {id, title, peer_ids, type, inserted_at, updated_at}).
 
 
 
