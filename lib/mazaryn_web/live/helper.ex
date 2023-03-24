@@ -1,6 +1,5 @@
 defmodule MazarynWeb.Live.Helper do
-  import Phoenix.LiveView
-  import Phoenix.LiveView.Helpers
+  use MazarynWeb, :live_view
 
   alias MazarynWeb.Router.Helpers, as: Routes
   alias Phoenix.LiveView.JS

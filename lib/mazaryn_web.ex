@@ -27,6 +27,7 @@ defmodule MazarynWeb do
     end
   end
 
+  # todo: depracate
   def view do
     quote do
       use Phoenix.View,
@@ -45,7 +46,7 @@ defmodule MazarynWeb do
   def live_view do
     quote do
       use Phoenix.LiveView,
-        layout: {MazarynWeb.LayoutView, "live.html"}
+        layout: {MazarynWeb.Layouts, :app}
 
       unquote(view_helpers())
     end
@@ -98,6 +99,44 @@ defmodule MazarynWeb do
       import MazarynWeb.ErrorHelpers
       import MazarynWeb.Gettext
       alias MazarynWeb.Router.Helpers, as: Routes
+    end
+  end
+
+  def html do
+    quote do
+      use Phoenix.Component
+
+      # Import convenience functions from controllers
+      import Phoenix.Controller,
+        only: [get_csrf_token: 0, view_module: 1, view_template: 1]
+
+      # Include general helpers for rendering HTML
+      unquote(html_helpers())
+    end
+  end
+
+  defp html_helpers do
+    quote do
+      # HTML escaping functionality
+      import Phoenix.HTML
+      # Core UI components and translation
+      import MazarynWeb.CoreComponents
+      import MazarynWeb.Gettext
+
+      # Shortcut for generating JS commands
+      alias Phoenix.LiveView.JS
+
+      # Routes generation with the ~p sigil
+      unquote(verified_routes())
+    end
+  end
+
+  def verified_routes do
+    quote do
+      use Phoenix.VerifiedRoutes,
+        endpoint: MazarynWeb.Endpoint,
+        router: MazarynWeb.Router,
+        statics: MazarynWeb.static_paths()
     end
   end
 
