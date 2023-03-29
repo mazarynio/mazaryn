@@ -36,6 +36,7 @@ defmodule Mazaryn.MixProject do
     [
       {:phoenix, "~> 1.7"},
       {:phoenix_ecto, "~> 4.4"},
+      {:phoenix_view, "~> 2.0"},
       {:ecto_sql, "~> 3.9"},
       {:postgrex, ">= 0.0.0"},
       {:phoenix_html, "~> 3.3"},
