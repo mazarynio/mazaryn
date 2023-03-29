@@ -17,6 +17,8 @@ defmodule MazarynWeb do
   and import those modules here.
   """
 
+  def static_paths, do: ~w(assets fonts images favicon.ico robots.txt)
+
   def controller do
     quote do
       use Phoenix.Controller, namespace: MazarynWeb
@@ -24,6 +26,8 @@ defmodule MazarynWeb do
       import Plug.Conn
       import MazarynWeb.Gettext
       alias MazarynWeb.Router.Helpers, as: Routes
+
+      unquote(verified_routes())
     end
   end
 
@@ -99,6 +103,8 @@ defmodule MazarynWeb do
       import MazarynWeb.ErrorHelpers
       import MazarynWeb.Gettext
       alias MazarynWeb.Router.Helpers, as: Routes
+
+      unquote(verified_routes())
     end
   end
 
