@@ -19,10 +19,7 @@ config :mazaryn, MazarynWeb.Endpoint,
   debug_errors: true,
   secret_key_base: "bojtbQHzqjb95b/X29OIGdE6lWBYc4ndgpjlPzl+l7rYEb4StXvin8n2uqdThKc0",
   watchers: [
-    # Start the esbuild watcher by calling Esbuild.install_and_run(:default, args)
     esbuild: {Esbuild, :install_and_run, [:default, ~w(--sourcemap=inline --watch)]},
-
-    # Start the tailwind watcher by calling Tailwind.install_and_run(:default, args)
     tailwind: {Tailwind, :install_and_run, [:default, ~w(--watch)]}
   ]
 
@@ -54,12 +51,14 @@ config :mazaryn, MazarynWeb.Endpoint,
 config :mazaryn, MazarynWeb.Endpoint,
   live_reload: [
     patterns: [
-      ~r"priv/static/[?!uploads].*(js|css|png|jpeg|jpg|gif|svg)$",
+      ~r"priv/static/.*(js|css|png|jpeg|jpg|gif|svg)$",
       ~r"priv/gettext/.*(po)$",
-      ~r"lib/mazaryn_web/(live|views)/.*(ex)$",
-      ~r"lib/mazaryn_web/templates/.*(eex)$"
+      ~r"lib/mazaryn_web/(controllers|live|components)/.*(ex|heex)$"
     ]
   ]
+
+# Enable dev routes for dashboard and mailbox
+config :mazaryn, dev_routes: true
 
 # Do not include metadata nor timestamps in development logs
 config :logger, :console, format: "[$level] $message\n"
@@ -70,5 +69,8 @@ config :phoenix, :stacktrace_depth, 20
 
 # Initialize plugs at runtime for faster development compilation
 config :phoenix, :plug_init_mode, :runtime
+
+# Disable swoosh api client as it is only required for production adapters.
+config :swoosh, :api_client, false
 
 config :joken, default_signer: "secret"
