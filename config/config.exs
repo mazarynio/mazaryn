@@ -12,9 +12,12 @@ config :ex_heroicons, type: "solid"
 # Configures the endpoint
 config :mazaryn, MazarynWeb.Endpoint,
   url: [host: "localhost"],
-  render_errors: [view: MazarynWeb.ErrorView, accepts: ~w(html json), layout: false],
+  render_errors: [
+    formats: [html: MazarynWeb.ErrorHTML, json: MazarynWeb.ErrorJSON],
+    layout: false
+  ],
   pubsub_server: Mazaryn.PubSub,
-  live_view: [signing_salt: "3rPgguT0"]
+  live_view: [signing_salt: "un3aCFjC"]
 
 # Configures the mailer
 #
@@ -33,7 +36,7 @@ config :swoosh, :api_client, false
 
 # Configure esbuild (the version is required)
 config :esbuild,
-  version: "0.14.29",
+  version: "0.17.11",
   default: [
     args:
       ~w(js/app.js --bundle --target=es2017 --outdir=../priv/static/assets --external:/fonts/* --external:/images/*),
@@ -43,13 +46,13 @@ config :esbuild,
 
 # Configure Tailwind (the version is required)
 config :tailwind,
-  version: "3.0.24",
+  version: "3.2.7",
   default: [
     args: ~w(
-    --config=tailwind.config.js
-    --input=css/app.css
-    --output=../priv/static/assets/app.css
-  ),
+      --config=tailwind.config.js
+      --input=css/app.css
+      --output=../priv/static/assets/app.css
+    ),
     cd: Path.expand("../assets", __DIR__)
   ]
 

@@ -17,6 +17,8 @@ defmodule MazarynWeb do
   and import those modules here.
   """
 
+  def static_paths, do: ~w(assets fonts images favicon.ico robots.txt)
+
   def controller do
     quote do
       use Phoenix.Controller, namespace: MazarynWeb
@@ -24,9 +26,11 @@ defmodule MazarynWeb do
       import Plug.Conn
       import MazarynWeb.Gettext
       alias MazarynWeb.Router.Helpers, as: Routes
+
     end
   end
 
+  # todo: depracate
   def view do
     quote do
       use Phoenix.View,
@@ -45,7 +49,7 @@ defmodule MazarynWeb do
   def live_view do
     quote do
       use Phoenix.LiveView,
-        layout: {MazarynWeb.LayoutView, "live.html"}
+      layout: {MazarynWeb.LayoutView, "live.html"}
 
       unquote(view_helpers())
     end
@@ -98,6 +102,7 @@ defmodule MazarynWeb do
       import MazarynWeb.ErrorHelpers
       import MazarynWeb.Gettext
       alias MazarynWeb.Router.Helpers, as: Routes
+
     end
   end
 
