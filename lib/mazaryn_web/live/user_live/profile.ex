@@ -117,17 +117,17 @@ defmodule MazarynWeb.UserLive.Profile do
     {:noreply, handle_assigns(socket, user_id, id)}
   end
 
-  #def handle_event("block_user", %{"id" => id}, socket) do
-    #id = socket.assigns.current_user.id
-    #UserClient.block(id, blocked)
-    #{:noreply, socket}
-  #end
+  # def handle_event("block_user", %{"id" => id}, socket) do
+  # id = socket.assigns.current_user.id
+  # UserClient.block(id, blocked)
+  # {:noreply, socket}
+  # end
 
-  #def handle_event("unblock_user", %{"id" => id}, socket) do
-    #id = socket.assigns.current_user.id
-    #UserClient.unblock(id, umnlocked)
-    #{:noreply, socket}
-  #end
+  # def handle_event("unblock_user", %{"id" => id}, socket) do
+  # id = socket.assigns.current_user.id
+  # UserClient.unblock(id, umnlocked)
+  # {:noreply, socket}
+  # end
 
   def handle_event("get-follower", %{"id" => id}, socket) do
     id = id |> to_charlist

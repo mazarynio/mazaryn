@@ -22,7 +22,7 @@ defmodule Mazaryn.Chats.Chat do
   @doc false
   def changeset(chat, attrs) do
     attrs = %{attrs | peer_ids: Enum.map(attrs.peer_ids, &to_string(&1))}
-    attrs = attrs[:id] && %{attrs | id: to_string(attrs.id)} || attrs
+    attrs = (attrs[:id] && %{attrs | id: to_string(attrs.id)}) || attrs
 
     chat
     |> cast(attrs, @required_fields ++ @optional_fields)
@@ -33,6 +33,7 @@ defmodule Mazaryn.Chats.Chat do
   @doc false
   def erl_changeset({:chat, _id, _title, _peer_ids, _type, _inserted_at, _updated_at} = record) do
     params = params(record)
+
     %__MODULE__{}
     |> changeset(params)
     |> apply_action(:insert)
@@ -40,6 +41,7 @@ defmodule Mazaryn.Chats.Chat do
 
   defp params(record) when is_tuple(record) do
     keys = [:id, :title, :peer_ids, :type, :inserted_at, :updated_at]
+
     record
     |> Tuple.to_list()
     |> tl()

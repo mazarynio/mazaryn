@@ -1,214 +1,321 @@
 <div class="container xl">
   <div class="left-0 w-full font-semibold text-[20px] leading-[24px] text-black border-b border-b-[#AAA] pb-5 mb-10 mr-10">
     <%= @title %>
-  </div>  
-    <!-- accordion-tab  -->
-    <div class="form-container w-[100%]">
-      <div class="outline-none accordion-section w-[100%]" tabindex="1">
-        <div phx-click={toggle_tab1()} class="js--tabs-label items-center text-gray-500 cursor-pointer relative">
-          <div class="font-semibold text-[20px] leading-[24px] mb-[25px] text-black">
-            About Info
-          </div>
-        </div>
-        <div  class="js--accordion acc-1  form-body w-[100%] group-focus:max-h-screen max-h-0 overflow-hidden transition ease duration-500">
-          <div class="form-input-container">
-            <.form
-              let={f}
-              for={@changeset}
-              class="w-full"
-              phx-target={@myself}
-              phx-change="validate"
-              phx-submit="save"
-            > 
-              <div class="form-input-container"> 
-                <div>
-                  <label class="form-input-label">First Name</label>
-                </div>
-                <div class="w-[100%]">
-                  <%= text_input f, :firstname, [class: "group form-input max-w-[580px]", placeholder: "Your first name", aria_describedby: "form_firstname_detail", aria_required: "true", autofocus: "1"] %>
-                </div>
-                
-                <div aria-live="polite"  id="form_firstname_detail" class={"#{detail_error f, @changeset, :firstname}"}>
-                  <span class="text-sm"> <%= push_error_tag f, :firstname %></span>
-                </div>
-              </div>
-              <div class="form-input-container"> 
-                <div>
-                  <label class="form-input-label">Last Name</label>
-                </div>
-                <div class="w-[100%]">
-                  <%= text_input f, :lastname, [class: "form-input max-w-[580px]", placeholder: "Your last name", aria_describedby: "form_firstname_detail", aria_required: "true", autofocus: "1"] %>
-                </div>
-                
-                <div aria-live="polite"  id="form_lastname_detail" class={"#{detail_error f, @changeset, :lastname}"}>
-                    <span class="text-sm"> <%= push_error_tag f, :lastname %></span>
-                </div>
-              </div>
-              <div class="form-input-container"> 
-                <div>
-                  <label class="form-input-label">User Name</label>
-                </div>
-                <div  class="w-[100%]">
-                  <%= text_input f, :username, [class: "form-input max-w-[580px]", placeholder: "Your user name", aria_describedby: "form_username_detail", aria_required: "true", autofocus: "1"] %>
-                </div>
-                
-                <div aria-live="polite"  id="form_username_detail" class={"#{detail_error f, @changeset, :username}"}>
-                    <span class="text-sm"> <%= push_error_tag f, :username %></span>
-                </div>
-              </div>
-              <div class="form-input-container"> 
-                <div>
-                  <label class="form-input-label">Location</label>
-                </div>
-                <div  class="w-[100%]">
-                  <%= text_input f, :location, [class: "form-input max-w-[580px] ", placeholder: "Your location", aria_describedby: "form_location_detail", aria_required: "true", autofocus: "1"] %>
-                </div>
-                
-                <div aria-live="polite"  id="form_location_detail" class={"#{detail_error f, @changeset, :location}"}>
-                    <span class="text-sm"> <%= push_error_tag f, :location %></span>
-                </div>
-              </div>
-              <div class="flex space-between flex-col md:flex-row mt-[30px] md:mt-[50px] mb-[30px]">
-                  <div class="flex flex-row mb-[15px] md:mb-0 items-center">
-                    <!-- <%= checkbox f, :accepts_conditions, [phx_click: "toggle", class: "rounded"] %> -->
-                    <%# <label class="ml-2 text-sm font-medium text-gray-900">
-                      Make my date of birth public
-                    </label> %>
-                  </div>
-                  <%= submit "Save", [phx_disabled_with: "Save", class: "ml-auto bg-blue-500 hover:bg-blue-700 text-white py-3 px-14 rounded-md"] %>
-              </div>
-            </.form>
-          </div>
+  </div>
+  <!-- accordion-tab  -->
+  <div class="form-container w-[100%]">
+    <div class="outline-none accordion-section w-[100%]" tabindex="1">
+      <div
+        phx-click={toggle_tab1()}
+        class="js--tabs-label items-center text-gray-500 cursor-pointer relative"
+      >
+        <div class="font-semibold text-[20px] leading-[24px] mb-[25px] text-black">
+          About Info
         </div>
       </div>
-    </div>
-    <!-- accordion-tab  -->
-    <div class="form-container w-[100%]">
-      <div class="outline-none accordion-section" tabindex="2">
-        <div phx-click={toggle_tab2()} class="js--tabs-label items-center text-gray-500 cursor-pointer relative">
-          <div class="mb-[25px] font-semibold text-[20px] leading-[24px] text-black">
-            Bio
-          </div>
-        </div>
-        <div class="js--accordion acc-2 form-body w-[100%] group-focus:max-h-screen max-h-0 overflow-hidden transition ease duration-500">
+      <div class="js--accordion acc-1  form-body w-[100%] group-focus:max-h-screen max-h-0 overflow-hidden transition ease duration-500">
+        <div class="form-input-container">
           <.form
-            let={f}
+            :let={f}
             for={@changeset}
-            id="edit-form-bioinfo"
             class="w-full"
             phx-target={@myself}
+            phx-change="validate"
             phx-submit="save"
-          > 
+          >
             <div class="form-input-container">
               <div>
-                <label class="form-input-label">Bio</label>
+                <label class="form-input-label">First Name</label>
               </div>
-              <div class="w-[100%] mt-[8px]">
-                <%= textarea f, :biography, [class: "form-text-area w-[100%] font-['Inter'] text-[16px] leading-[24px] rounded-[10px] border-[#D2D2D1] py-[12px] px-[24px] mb-[30px] ", placeholder: "Your Bio", cols: "72", rows: "5"] %>
+              <div class="w-[100%]">
+                <%= text_input(f, :firstname,
+                  class: "group form-input max-w-[580px]",
+                  placeholder: "Your first name",
+                  aria_describedby: "form_firstname_detail",
+                  aria_required: "true",
+                  autofocus: "1"
+                ) %>
               </div>
-              <div class="mb-[30px] ml-auto">
-                <%= submit submit_value(@changeset, "Save"), [phx_disabled_with: "Saving...", class: "bg-blue-500 hover:bg-blue-700 text-white py-3 px-14 rounded-md"] %>
+
+              <div
+                aria-live="polite"
+                id="form_firstname_detail"
+                class={"#{detail_error f, @changeset, :firstname}"}
+              >
+                <span class="text-sm"><%= push_error_tag(f, :firstname) %></span>
               </div>
-              
+            </div>
+            <div class="form-input-container">
+              <div>
+                <label class="form-input-label">Last Name</label>
+              </div>
+              <div class="w-[100%]">
+                <%= text_input(f, :lastname,
+                  class: "form-input max-w-[580px]",
+                  placeholder: "Your last name",
+                  aria_describedby: "form_firstname_detail",
+                  aria_required: "true",
+                  autofocus: "1"
+                ) %>
+              </div>
+
+              <div
+                aria-live="polite"
+                id="form_lastname_detail"
+                class={"#{detail_error f, @changeset, :lastname}"}
+              >
+                <span class="text-sm"><%= push_error_tag(f, :lastname) %></span>
+              </div>
+            </div>
+            <div class="form-input-container">
+              <div>
+                <label class="form-input-label">User Name</label>
+              </div>
+              <div class="w-[100%]">
+                <%= text_input(f, :username,
+                  class: "form-input max-w-[580px]",
+                  placeholder: "Your user name",
+                  aria_describedby: "form_username_detail",
+                  aria_required: "true",
+                  autofocus: "1"
+                ) %>
+              </div>
+
+              <div
+                aria-live="polite"
+                id="form_username_detail"
+                class={"#{detail_error f, @changeset, :username}"}
+              >
+                <span class="text-sm"><%= push_error_tag(f, :username) %></span>
+              </div>
+            </div>
+            <div class="form-input-container">
+              <div>
+                <label class="form-input-label">Location</label>
+              </div>
+              <div class="w-[100%]">
+                <%= text_input(f, :location,
+                  class: "form-input max-w-[580px] ",
+                  placeholder: "Your location",
+                  aria_describedby: "form_location_detail",
+                  aria_required: "true",
+                  autofocus: "1"
+                ) %>
+              </div>
+
+              <div
+                aria-live="polite"
+                id="form_location_detail"
+                class={"#{detail_error f, @changeset, :location}"}
+              >
+                <span class="text-sm"><%= push_error_tag(f, :location) %></span>
+              </div>
+            </div>
+            <div class="flex space-between flex-col md:flex-row mt-[30px] md:mt-[50px] mb-[30px]">
+              <div class="flex flex-row mb-[15px] md:mb-0 items-center">
+                <!-- <%= checkbox f, :accepts_conditions, [phx_click: "toggle", class: "rounded"] %> -->
+              </div>
+              <%= submit("Save",
+                phx_disabled_with: "Save",
+                class: "ml-auto bg-blue-500 hover:bg-blue-700 text-white py-3 px-14 rounded-md"
+              ) %>
             </div>
           </.form>
         </div>
       </div>
     </div>
-    <!-- accordion-tab  -->
-    <div class="form-container w-full">
-      <div class="outline-none accordion-section w-[100%]" tabindex="3">
-        <div phx-click={toggle_tab3()} class="js--tabs-label items-center text-gray-500 cursor-pointer relative">
-          <div class="mb-[25px] font-semibold text-[20px] leading-[24px]  text-black">
-           Profile Image 
+  </div>
+  <!-- accordion-tab  -->
+  <div class="form-container w-[100%]">
+    <div class="outline-none accordion-section" tabindex="2">
+      <div
+        phx-click={toggle_tab2()}
+        class="js--tabs-label items-center text-gray-500 cursor-pointer relative"
+      >
+        <div class="mb-[25px] font-semibold text-[20px] leading-[24px] text-black">
+          Bio
+        </div>
+      </div>
+      <div class="js--accordion acc-2 form-body w-[100%] group-focus:max-h-screen max-h-0 overflow-hidden transition ease duration-500">
+        <.form
+          :let={f}
+          for={@changeset}
+          id="edit-form-bioinfo"
+          class="w-full"
+          phx-target={@myself}
+          phx-submit="save"
+        >
+          <div class="form-input-container">
+            <div>
+              <label class="form-input-label">Bio</label>
+            </div>
+            <div class="w-[100%] mt-[8px]">
+              <%= textarea(f, :biography,
+                class:
+                  "form-text-area w-[100%] font-['Inter'] text-[16px] leading-[24px] rounded-[10px] border-[#D2D2D1] py-[12px] px-[24px] mb-[30px] ",
+                placeholder: "Your Bio",
+                cols: "72",
+                rows: "5"
+              ) %>
+            </div>
+            <div class="mb-[30px] ml-auto">
+              <%= submit(submit_value(@changeset, "Save"),
+                phx_disabled_with: "Saving...",
+                class: "bg-blue-500 hover:bg-blue-700 text-white py-3 px-14 rounded-md"
+              ) %>
+            </div>
           </div>
-          <div class="js--accordion acc-3 form-body w-full group-focus:max-h-screen max-h-0 overflow-hidden transition ease duration-500">
-           <.form
-             let={f}
-              for={@changeset}
-              class="w-full"
-              phx-target={@myself}
-              phx-change="validate-profile-photo"
-              phx-submit="save-profile-photo"
-              multipart
-            >
-              <div class="form-input-container">
-                <div class="w-full max-h-[260px]"> 
-                  <div class="flex">
-                    <label class="form__label-profile-photo z-20 cursor-pointer">
-                      <figure class="w-full relative max-w-[150px] max-h-[80px]"  phx-drop-target={@uploads.avatar_url.ref} phx-click={Phoenix.LiveView.JS.dispatch("click", to: "##{@uploads.avatar_url.ref}", bubbles: false)}>
+        </.form>
+      </div>
+    </div>
+  </div>
+  <!-- accordion-tab  -->
+  <div class="form-container w-full">
+    <div class="outline-none accordion-section w-[100%]" tabindex="3">
+      <div
+        phx-click={toggle_tab3()}
+        class="js--tabs-label items-center text-gray-500 cursor-pointer relative"
+      >
+        <div class="mb-[25px] font-semibold text-[20px] leading-[24px]  text-black">
+          Profile Image
+        </div>
+        <div class="js--accordion acc-3 form-body w-full group-focus:max-h-screen max-h-0 overflow-hidden transition ease duration-500">
+          <.form
+            :let={f}
+            for={@changeset}
+            class="w-full"
+            phx-target={@myself}
+            phx-change="validate-profile-photo"
+            phx-submit="save-profile-photo"
+            multipart
+          >
+            <div class="form-input-container">
+              <div class="w-full max-h-[260px]">
+                <div class="flex">
+                  <label class="form__label-profile-photo z-20 cursor-pointer">
+                    <figure
+                      class="w-full relative max-w-[150px] max-h-[80px]"
+                      phx-drop-target={@uploads.avatar_url.ref}
+                      phx-click={
+                        Phoenix.LiveView.JS.dispatch("click",
+                          to: "##{@uploads.avatar_url.ref}",
+                          bubbles: false
+                        )
+                      }
+                    >
+                      <img
+                        class="block cursor-pointer rounded-[50%]"
+                        src="https://avatars1.githubusercontent.com/u/11435231?s=460&v=4"
+                        alt="profile-photo"
+                      />
+                      <figcaption class="contents">
+                        <svg
+                          class="relative invisible left-[55px] top-[-95px] z-30 cursor-pointer ease duration-200"
+                          width="40"
+                          height="40"
+                          viewBox="0 0 40 40"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <circle cx="20" cy="20" r="20" fill="#ebebeb" fill-opacity="0.5" />
+                          <path
+                            d="M14.1172 17.1328C14.6055 17.6207 15.3969 17.6211 15.8848 17.1329L18.75 14.2695V23.75C18.75 24.4402 19.3098 25 20 25C20.6902 25 21.25 24.4402 21.25 23.75V14.2695L24.1164 17.1359C24.6043 17.6238 25.3957 17.6238 25.884 17.1359C26.3719 16.648 26.3719 15.8566 25.884 15.3683L20.884 10.3683C20.6406 10.1221 20.3203 10 20 10C19.6797 10 19.3594 10.1221 19.1172 10.3662L14.1172 15.3672C13.6281 15.8555 13.6281 16.6445 14.1172 17.1328ZM28.75 23.75H22.5C22.5 25.1309 21.3809 26.25 20 26.25C18.6191 26.25 17.5 25.1309 17.5 23.75H11.25C10.5598 23.75 10 24.3098 10 25V28.75C10 29.4402 10.5598 30 11.25 30H28.75C29.4402 30 30 29.4402 30 28.75V25C30 24.3086 29.4414 23.75 28.75 23.75ZM26.875 27.8125C26.3594 27.8125 25.9375 27.3906 25.9375 26.875C25.9375 26.3594 26.3594 25.9375 26.875 25.9375C27.3906 25.9375 27.8125 26.3594 27.8125 26.875C27.8125 27.3906 27.3906 27.8125 26.875 27.8125Z"
+                            fill="#FAFAFA"
+                          />
+                        </svg>
+                      </figcaption>
+                    </figure>
+                  </label>
 
-                          <img class="block cursor-pointer rounded-[50%]" src="https://avatars1.githubusercontent.com/u/11435231?s=460&v=4" alt="profile-photo">
-                        <figcaption class="contents">
-                          <svg class="relative invisible left-[55px] top-[-95px] z-30 cursor-pointer ease duration-200"  width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <circle cx="20" cy="20" r="20" fill="#ebebeb" fill-opacity="0.5"/>
-                            <path d="M14.1172 17.1328C14.6055 17.6207 15.3969 17.6211 15.8848 17.1329L18.75 14.2695V23.75C18.75 24.4402 19.3098 25 20 25C20.6902 25 21.25 24.4402 21.25 23.75V14.2695L24.1164 17.1359C24.6043 17.6238 25.3957 17.6238 25.884 17.1359C26.3719 16.648 26.3719 15.8566 25.884 15.3683L20.884 10.3683C20.6406 10.1221 20.3203 10 20 10C19.6797 10 19.3594 10.1221 19.1172 10.3662L14.1172 15.3672C13.6281 15.8555 13.6281 16.6445 14.1172 17.1328ZM28.75 23.75H22.5C22.5 25.1309 21.3809 26.25 20 26.25C18.6191 26.25 17.5 25.1309 17.5 23.75H11.25C10.5598 23.75 10 24.3098 10 25V28.75C10 29.4402 10.5598 30 11.25 30H28.75C29.4402 30 30 29.4402 30 28.75V25C30 24.3086 29.4414 23.75 28.75 23.75ZM26.875 27.8125C26.3594 27.8125 25.9375 27.3906 25.9375 26.875C25.9375 26.3594 26.3594 25.9375 26.875 25.9375C27.3906 25.9375 27.8125 26.3594 27.8125 26.875C27.8125 27.3906 27.3906 27.8125 26.875 27.8125Z" fill="#FAFAFA"/>
-                          </svg>
-                        </figcaption>
-                      </figure>
-                    </label>
-                    <%# <%= for entry <- @uploads.avatar_url.entries do %1> %>
-                    <%#   <%= live_img_preview entry, class: "block rounded-[50%]", alt: "profile-photo" %1> %> 
-                    <%# <% end %1> %> 
-
-                    <%= for {_ref, msg} <- @uploads.avatar_url.errors do %>
-                      <p class="alert alert-danger"><%= Phoenix.Naming.humanize(msg) %></p>
-                    <% end %>
-                    <%= live_file_input @uploads.avatar_url, hidden: true %>
-                  </div>
-                </div>
-                <div class="mt-[90px] md:mt-[60px] mb-[30px] ml-auto">
-                  <%= submit "Save", [phx_disabled_with: "Saving...", class: "bg-blue-500 hover:bg-blue-700 text-white py-3 px-14 rounded-md"] %>
+                  <%= for {_ref, msg} <- @uploads.avatar_url.errors do %>
+                    <p class="alert alert-danger"><%= Phoenix.Naming.humanize(msg) %></p>
+                  <% end %>
+                  <%= live_file_input(@uploads.avatar_url, hidden: true) %>
                 </div>
               </div>
-            </.form>
-          </div>
+              <div class="mt-[90px] md:mt-[60px] mb-[30px] ml-auto">
+                <%= submit("Save",
+                  phx_disabled_with: "Saving...",
+                  class: "bg-blue-500 hover:bg-blue-700 text-white py-3 px-14 rounded-md"
+                ) %>
+              </div>
+            </div>
+          </.form>
         </div>
       </div>
     </div>
-    <div class="form-container w-full">
-      <div class="outline-none accordion-section w-[100%]" tabindex="3">
-        <div phx-click={toggle_tab4()} class="js--tabs-label items-center text-gray-500 cursor-pointer relative">
-          <div class="mb-[25px] font-semibold text-[20px] leading-[24px]  text-black">
-           Banner 
-          </div>
-          <div class="js--accordion acc-4 form-body w-full group-focus:max-h-screen max-h-0 overflow-hidden transition ease duration-500">
-            <.form
-               let={f}
-               for={@changeset}
-               class="w-full"
-               phx-target={@myself}
-               phx-change="validate-banner"
-               phx-submit="save-banner"
-               multipart
-               >
-               <div class="form-input-container">
-                 <div class="w-full max-h-[260px]">
-
-                   <div>
-                     <label class="form__label-cover-image block w-[100%] h-[164px]">
-                       <figure class="w-full max-h-[164px]" id="upload-banner-area" phx-drop-target={@uploads.banner_url.ref} phx-click={Phoenix.LiveView.JS.dispatch("click", to: "##{@uploads.banner_url.ref}", bubbles: false)}>
-                         <img class="h-[164px] object-cover w-[100%] z-20 cursor-pointer" src="https://avatars1.githubusercontent.com/u/11435231?s=460&v=4" alt="cover photo"> 
-                         <figcaption class="contents">
-                           <svg class="relative invisible z-30 cursor-pointer  left-[45%] top-[45%] translate-y-[-100px]"  width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-                             <circle cx="20" cy="20" r="20" fill="#ebebeb" fill-opacity="0.5"/>
-                             <path d="M14.1172 17.1328C14.6055 17.6207 15.3969 17.6211 15.8848 17.1329L18.75 14.2695V23.75C18.75 24.4402 19.3098 25 20 25C20.6902 25 21.25 24.4402 21.25 23.75V14.2695L24.1164 17.1359C24.6043 17.6238 25.3957 17.6238 25.884 17.1359C26.3719 16.648 26.3719 15.8566 25.884 15.3683L20.884 10.3683C20.6406 10.1221 20.3203 10 20 10C19.6797 10 19.3594 10.1221 19.1172 10.3662L14.1172 15.3672C13.6281 15.8555 13.6281 16.6445 14.1172 17.1328ZM28.75 23.75H22.5C22.5 25.1309 21.3809 26.25 20 26.25C18.6191 26.25 17.5 25.1309 17.5 23.75H11.25C10.5598 23.75 10 24.3098 10 25V28.75C10 29.4402 10.5598 30 11.25 30H28.75C29.4402 30 30 29.4402 30 28.75V25C30 24.3086 29.4414 23.75 28.75 23.75ZM26.875 27.8125C26.3594 27.8125 25.9375 27.3906 25.9375 26.875C25.9375 26.3594 26.3594 25.9375 26.875 25.9375C27.3906 25.9375 27.8125 26.3594 27.8125 26.875C27.8125 27.3906 27.3906 27.8125 26.875 27.8125Z" fill="#FAFAFA"/>
-                           </svg>
-                         </figcaption>
-                       </figure>
-
-                     </label>
-                     <%= live_file_input @uploads.banner_url, hidden: true %>
-                     <!-- -->
-                   </div> 
-                 </div>
-                 <div class="mt-[90px] md:mt-[60px] mb-[30px] ml-auto">
-                   <%= submit "Save", [phx_disabled_with: "Saving...", class: "bg-blue-500 hover:bg-blue-700 text-white py-3 px-14 rounded-md"] %>
-                 </div>
-               </div>
-               </.form>
-          </div>
+  </div>
+  <div class="form-container w-full">
+    <div class="outline-none accordion-section w-[100%]" tabindex="3">
+      <div
+        phx-click={toggle_tab4()}
+        class="js--tabs-label items-center text-gray-500 cursor-pointer relative"
+      >
+        <div class="mb-[25px] font-semibold text-[20px] leading-[24px]  text-black">
+          Banner
+        </div>
+        <div class="js--accordion acc-4 form-body w-full group-focus:max-h-screen max-h-0 overflow-hidden transition ease duration-500">
+          <.form
+            :let={f}
+            for={@changeset}
+            class="w-full"
+            phx-target={@myself}
+            phx-change="validate-banner"
+            phx-submit="save-banner"
+            multipart
+          >
+            <div class="form-input-container">
+              <div class="w-full max-h-[260px]">
+                <div>
+                  <label class="form__label-cover-image block w-[100%] h-[164px]">
+                    <figure
+                      class="w-full max-h-[164px]"
+                      id="upload-banner-area"
+                      phx-drop-target={@uploads.banner_url.ref}
+                      phx-click={
+                        Phoenix.LiveView.JS.dispatch("click",
+                          to: "##{@uploads.banner_url.ref}",
+                          bubbles: false
+                        )
+                      }
+                    >
+                      <img
+                        class="h-[164px] object-cover w-[100%] z-20 cursor-pointer"
+                        src="https://avatars1.githubusercontent.com/u/11435231?s=460&v=4"
+                        alt="cover photo"
+                      />
+                      <figcaption class="contents">
+                        <svg
+                          class="relative invisible z-30 cursor-pointer  left-[45%] top-[45%] translate-y-[-100px]"
+                          width="40"
+                          height="40"
+                          viewBox="0 0 40 40"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <circle cx="20" cy="20" r="20" fill="#ebebeb" fill-opacity="0.5" />
+                          <path
+                            d="M14.1172 17.1328C14.6055 17.6207 15.3969 17.6211 15.8848 17.1329L18.75 14.2695V23.75C18.75 24.4402 19.3098 25 20 25C20.6902 25 21.25 24.4402 21.25 23.75V14.2695L24.1164 17.1359C24.6043 17.6238 25.3957 17.6238 25.884 17.1359C26.3719 16.648 26.3719 15.8566 25.884 15.3683L20.884 10.3683C20.6406 10.1221 20.3203 10 20 10C19.6797 10 19.3594 10.1221 19.1172 10.3662L14.1172 15.3672C13.6281 15.8555 13.6281 16.6445 14.1172 17.1328ZM28.75 23.75H22.5C22.5 25.1309 21.3809 26.25 20 26.25C18.6191 26.25 17.5 25.1309 17.5 23.75H11.25C10.5598 23.75 10 24.3098 10 25V28.75C10 29.4402 10.5598 30 11.25 30H28.75C29.4402 30 30 29.4402 30 28.75V25C30 24.3086 29.4414 23.75 28.75 23.75ZM26.875 27.8125C26.3594 27.8125 25.9375 27.3906 25.9375 26.875C25.9375 26.3594 26.3594 25.9375 26.875 25.9375C27.3906 25.9375 27.8125 26.3594 27.8125 26.875C27.8125 27.3906 27.3906 27.8125 26.875 27.8125Z"
+                            fill="#FAFAFA"
+                          />
+                        </svg>
+                      </figcaption>
+                    </figure>
+                  </label>
+                  <%= live_file_input(@uploads.banner_url, hidden: true) %>
+                  <!-- -->
+                </div>
+              </div>
+              <div class="mt-[90px] md:mt-[60px] mb-[30px] ml-auto">
+                <%= submit("Save",
+                  phx_disabled_with: "Saving...",
+                  class: "bg-blue-500 hover:bg-blue-700 text-white py-3 px-14 rounded-md"
+                ) %>
+              </div>
+            </div>
+          </.form>
         </div>
       </div>
     </div>
+  </div>
 </div>

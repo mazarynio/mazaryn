@@ -1,145 +1,194 @@
-<%# Header %> 
-
 <header class="bg-black shadow">
-    <div class="flex justify-between items-center max-w-[1440px] w-[90%] px-0 mx-auto py-6 md:px-4 sm:px-6 lg:px-8">
-        <a href="/blog">
-          <h1 class="flex justify-left items-center text-2xl md:text-3xl leading-0 font-thin text-[#E5E5E5]"><img class="logo brightness-150 h-[42px] md:h-auto" src="../images/logo.png" alt="Elixir Social Network" /><span class="ml-[10px]">Blog</span></h1>
-        </a>
-        <div>
-        <a class="hidden md:block justify-center text-[#D3D3D3] hover:text-[#fff]" href="/login">
-            Connect with Mazaryn
-        </a>
-        <div class="menuToggle md:hidden">
-            <input type="checkbox" phx-click={toggle_menu()} />
-            <span></span>
-            <span></span>
-            <span></span>
-        </div>
-        </div>
-    </div>
-    <div class="menu-content w-[90%] mx-auto hidden">
-        <a class="justify-center text-[#D3D3D3] hover:text-[#fff]" href="/login">
+  <div class="flex justify-between items-center max-w-[1440px] w-[90%] px-0 mx-auto py-6 md:px-4 sm:px-6 lg:px-8">
+    <a href="/blog">
+      <h1 class="flex justify-left items-center text-2xl md:text-3xl leading-0 font-thin text-[#E5E5E5]">
+        <img
+          class="logo brightness-150 h-[42px] md:h-auto"
+          src="../images/logo.png"
+          alt="Elixir Social Network"
+        /><span class="ml-[10px]">Blog</span>
+      </h1>
+    </a>
+    <div>
+      <a class="hidden md:block justify-center text-[#D3D3D3] hover:text-[#fff]" href="/login">
         Connect with Mazaryn
-        </a>
+      </a>
+      <div class="menuToggle md:hidden">
+        <input type="checkbox" phx-click={toggle_menu()} />
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
     </div>
+  </div>
+  <div class="menu-content w-[90%] mx-auto hidden">
+    <a class="justify-center text-[#D3D3D3] hover:text-[#fff]" href="/login">
+      Connect with Mazaryn
+    </a>
+  </div>
 </header>
 
-<%# Ad top%>
 <div align="center" id="adswrappertop" phx-update="ignore">
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5319093423466090"
-     crossorigin="anonymous"></script>
-    <!-- mazaryn-display -->
-    <ins class="adsbygoogle"
-        style="display:block"
-        data-ad-client="ca-pub-5319093423466090"
-        data-ad-slot="1536507325"
-        data-ad-format="auto"
-        data-full-width-responsive="true"></ins>
-    <script>
-        (adsbygoogle = window.adsbygoogle || []).push({});
-    </script>
+  <script
+    async
+    src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5319093423466090"
+    crossorigin="anonymous"
+  >
+  </script>
+  <!-- mazaryn-display -->
+  <ins
+    class="adsbygoogle"
+    style="display:block"
+    data-ad-client="ca-pub-5319093423466090"
+    data-ad-slot="1536507325"
+    data-ad-format="auto"
+    data-full-width-responsive="true"
+  >
+  </ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
 </div>
 
 <div class="post-wrapper max-w-[1440px] w-[95%] md:w-[100%] mx-auto py-[30px] md:px-[4rem] md:py-[60px]">
-    <article>
-        <dl class="md:mt-[80px]">
-            <dd class="flex items-center space-x-3 mb-7">
-                <img src="../images/nftai.jpg" alt="Arvand" class="w-10 h-10 object-cover rounded-xl" srcset=""/>
-                 <dl>
-                    <dt class="sr-only">Author</dt>
-                    <dd class="text-md text-blue-700">Peter Usoro</dd>
-                    <dd>
-                        <a class="text-sm text-blue-500" href="https://twitter.com/kingslayer449" target="_blank">@peter</a>
-                    </dd>
-                 </dl>
-            </dd>
-           
+  <article>
+    <dl class="md:mt-[80px]">
+      <dd class="flex items-center space-x-3 mb-7">
+        <img
+          src="../images/nftai.jpg"
+          alt="Arvand"
+          class="w-10 h-10 object-cover rounded-xl"
+          srcset=""
+        />
+        <dl>
+          <dt class="sr-only">Author</dt>
+          <dd class="text-md text-blue-700">Peter Usoro</dd>
+          <dd>
+            <a
+              class="text-sm text-blue-500"
+              href="https://twitter.com/kingslayer449"
+              target="_blank"
+            >
+              @peter
+            </a>
+          </dd>
         </dl>
-        <section class="post__section relative  w-[100%] md:w-[80%] max-w-[800px] mx-auto">
-            <div>
-                <div class="flex items-center">
-                    <a href="/blog" class="cursor-pointer text-sm font-[500] uppercase text-blue-500">Blog</a>
-                    <span class="text-[#000008] opacity-70 text-sm font-[500] mx-2">/</span>
-                    <span class="uppercase text-[#000008] text-sm font-[500] opacity-70 ">Features & Technologies</span>
-                </div>
-            </div>
-            <div class="pt-4 pb-12 md:pt-12 md:pb-14">
-                <h2 class="font-[600] md:ml-[40px] text-[1.75rem] md:text-[2.4rem] leading-[2.8rem] text-blue-600">AI NFTs; the future of NFTs</h2>
-            </div>
-            <img class="image-cover" src="../images/nftai.jpg" alt="NFT" title="NFT" />
-            <div class="lead">
-                <p> A non-fungible token (NFT) is a type of cryptographic token that represents a unique asset. NFTs are tokenized versions of digital or real-world assets.
-                    In a lame man's explanation, everything you see in the real world like cars, trees, rivers, 
-                    feelings and emotions can be stored or expressed on the Blockchain, when these get into the Blockchain it's called NFTs.
-                </p>
-                <p>Artificial intelligence refers to a non-human model which is capable of solving sophisticated tasks and performing cognitive functions like learning, problem solving,
-                   reasoning and perceiving. Today, developers have found a way to use this advanced technology in the Blockchain which brings us to Artificial intelligence Non fungi token (iNFT).
-                   Currently, many mechanisms are available for creating AI art, including procedural 'rule-based' generation of images applying mathematical patterns, algorithms which simulate brush strokes and other painted effects,
-                   and artificial intelligence or deep learning algorithms such as generative adversarial networks and transformers.An AI NFT is a non-fungible token embedded with a Generative Pre-trained Transformer 3 (GPT-3) language model prompt as an aspect of its smart contract.
-                   This kind of intelligent NFT is not only intelligent but appears with other properties like animation, interactivity and many other generative capabilities still evolving.
-                </p>
-                <h3>"Is an AI an artist or a tool?"</h3>
-                <p>In the space for few months now, one specific creative application of AI technology has acquired intensive and extensive acceptance: image creation. Training AI models to turn text-based prompts into images is nothing new.
-                   But we’ve recently seen images generated via OpenAI’s DALL-E program flood our feeds as such AI-based tools become more user-friendly. According to OpenAI’s website, DALL-E works by using its vast language database to turn text-based inputs from users into easily recognizable images matching or approximating the text input.
-                   This allows DALL-E to recognize parameters within the text-based input, such as the spatial relationships of the objects specified in the input as well as the individual properties of objects included in the prompt. Interestingly enough, nearly every pop culture character you can think of is included in DALL-E’s data banks.
-                </p>
-                <h3>How AI Will Be Impacted By the Rise of NFTs?</h3>
-                <p>in fact, the Bored Ape Yacht Club market exploded to more than $1 billion over the course of the year, with prominent celebrities like rapper Eminem and NBA star Stephen Curry jumping on the trend.
-                   But it isn’t just artwork that is making waves in the NFT market. The president of Square Enix, the developer of the famous RPG series Final Fantasy, put out a statement detailing how he felt that NFTs would be a major development in gaming in 2022.
-                </p>
-                <p>Another use of an NFT is to prove ownership of a specific perk. One popular form of NFT that is found in everyday life is the fan token. It is a vehicle by which sports teams sell digital influence; for a small price, a supporter can own an NFT which gives them voting rights on certain topics or access to unique content.
-                   These tokens can be sold as well as bought and retain a value for the owner. That’s not the only form of NFT that has made it into pop culture; the rock band Kings of Leon released an entire album as an NFT early last year. This is very much the accepted ‘base level’, with innovation happening all the time, not least in the field of AI.
-                </p>
-                <%# Google in-article Ad %>
-                    <div id="adswrapper2" phx-update="ignore">
-                        <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5319093423466090" crossorigin="anonymous"></script>
-                        <ins class="adsbygoogle"
-                            style="display:block; text-align:center;"
-                            data-ad-layout="in-article"
-                            data-ad-format="fluid"
-                            data-ad-client="ca-pub-5319093423466090"
-                            data-ad-slot="8766830319"></ins>
-                        <script>
-                            (adsbygoogle = window.adsbygoogle || []).push({});
-                        </script>
-                    </div>
-                <div>
-                    <h3>AI Created Art as NFTs</h3>
-                    <p>There has been extensive work done in the past several years around getting Artificial Intelligence to create new works of art.
-                       While many of the NFT artworks that can be seen online at the moment have been created using randomly generated features in a JPEG, true AI artwork would see far more variety and creativity than has been found in this area of the NFT marketplace. With the ability to create unique works of art quickly,
-                       this could be a great way for future NFT minters to make a profit.
-                    </p>
-                    <h3>NFT Avatars</h3>
-                    <p>AI companions are already in our homes in the form of Alexa and Siri, who help us to run household tasks such as adjusting our heating or lighting in the home. Work is being done to create AI-based avatars for this technology, which opens up the possibility for NFTs to be incorporated into the technology.
-                       They could provide proof of ownership for specific avatars for AI companions, allowing for a market to be created for specific skins or features that are developed.
-                    </p>
-                    <h3>Intelligent NFT Marketplaces</h3>
-                    <p>The real benefit that AI will introduce to the NFT market will be in the form of an intelligent and adaptive approach to running the marketplace.
-                       An AI capable of pointing out trends in the NFT marketplace and adding adjusting prices, listings, and other market parameters on the fly will be necessary in every online shop but will have particular benefits for an emerging market like NFTs.
-                       By making the shopping experience more intuitive and adaptable, it will encourage buy-in from new customers.
-                    </p>
-                    <h3>Mazaryn's vision in AI NFT</h3>
-                    <p>Mazaryn network is determined to utilized iNFT in a whole innovative way to satisfy human imaginative thinking. Lots of challenges have been encountered in the mission to build iNFT in the industry, making Mazaryn to saviour to all. Using AI to create art is expected to gain more momentum.
-                       The increasing popularity of the metaverse would certainly propel AI-based NFTs.
-                    </p>
-                </div>
-            </div>
-        </section>
-        <dl class="hidden md:block md:w-[100%]">
-            <div class="block top-0 sticky w-[300px]" id="adswrapperaside" phx-update="ignore">
-               <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5319093423466090"
-                    crossorigin="anonymous"></script>
-                <!-- mazaryn-display -->
-                <ins class="adsbygoogle"
-                    style="display:block"
-                    data-ad-client="ca-pub-5319093423466090"
-                    data-ad-slot="1536507325"
-                    data-ad-format="auto"
-                    data-full-width-responsive="true"></ins>
-                <script>
-                    (adsbygoogle = window.adsbygoogle || []).push({});
-                </script>
-            </div>
-        </dl>
-    </article>
+      </dd>
+    </dl>
+    <section class="post__section relative  w-[100%] md:w-[80%] max-w-[800px] mx-auto">
+      <div>
+        <div class="flex items-center">
+          <a href="/blog" class="cursor-pointer text-sm font-[500] uppercase text-blue-500">
+            Blog
+          </a>
+          <span class="text-[#000008] opacity-70 text-sm font-[500] mx-2">/</span>
+          <span class="uppercase text-[#000008] text-sm font-[500] opacity-70 ">
+            Features & Technologies
+          </span>
+        </div>
+      </div>
+      <div class="pt-4 pb-12 md:pt-12 md:pb-14">
+        <h2 class="font-[600] md:ml-[40px] text-[1.75rem] md:text-[2.4rem] leading-[2.8rem] text-blue-600">
+          AI NFTs; the future of NFTs
+        </h2>
+      </div>
+      <img class="image-cover" src="../images/nftai.jpg" alt="NFT" title="NFT" />
+      <div class="lead">
+        <p>
+          A non-fungible token (NFT) is a type of cryptographic token that represents a unique asset. NFTs are tokenized versions of digital or real-world assets.
+          In a lame man's explanation, everything you see in the real world like cars, trees, rivers,
+          feelings and emotions can be stored or expressed on the Blockchain, when these get into the Blockchain it's called NFTs.
+        </p>
+        <p>
+          Artificial intelligence refers to a non-human model which is capable of solving sophisticated tasks and performing cognitive functions like learning, problem solving,
+          reasoning and perceiving. Today, developers have found a way to use this advanced technology in the Blockchain which brings us to Artificial intelligence Non fungi token (iNFT).
+          Currently, many mechanisms are available for creating AI art, including procedural 'rule-based' generation of images applying mathematical patterns, algorithms which simulate brush strokes and other painted effects,
+          and artificial intelligence or deep learning algorithms such as generative adversarial networks and transformers.An AI NFT is a non-fungible token embedded with a Generative Pre-trained Transformer 3 (GPT-3) language model prompt as an aspect of its smart contract.
+          This kind of intelligent NFT is not only intelligent but appears with other properties like animation, interactivity and many other generative capabilities still evolving.
+        </p>
+        <h3>"Is an AI an artist or a tool?"</h3>
+        <p>
+          In the space for few months now, one specific creative application of AI technology has acquired intensive and extensive acceptance: image creation. Training AI models to turn text-based prompts into images is nothing new.
+          But we’ve recently seen images generated via OpenAI’s DALL-E program flood our feeds as such AI-based tools become more user-friendly. According to OpenAI’s website, DALL-E works by using its vast language database to turn text-based inputs from users into easily recognizable images matching or approximating the text input.
+          This allows DALL-E to recognize parameters within the text-based input, such as the spatial relationships of the objects specified in the input as well as the individual properties of objects included in the prompt. Interestingly enough, nearly every pop culture character you can think of is included in DALL-E’s data banks.
+        </p>
+        <h3>How AI Will Be Impacted By the Rise of NFTs?</h3>
+        <p>
+          in fact, the Bored Ape Yacht Club market exploded to more than $1 billion over the course of the year, with prominent celebrities like rapper Eminem and NBA star Stephen Curry jumping on the trend.
+          But it isn’t just artwork that is making waves in the NFT market. The president of Square Enix, the developer of the famous RPG series Final Fantasy, put out a statement detailing how he felt that NFTs would be a major development in gaming in 2022.
+        </p>
+        <p>
+          Another use of an NFT is to prove ownership of a specific perk. One popular form of NFT that is found in everyday life is the fan token. It is a vehicle by which sports teams sell digital influence; for a small price, a supporter can own an NFT which gives them voting rights on certain topics or access to unique content.
+          These tokens can be sold as well as bought and retain a value for the owner. That’s not the only form of NFT that has made it into pop culture; the rock band Kings of Leon released an entire album as an NFT early last year. This is very much the accepted ‘base level’, with innovation happening all the time, not least in the field of AI.
+        </p>
+        <div id="adswrapper2" phx-update="ignore">
+          <script
+            async
+            src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5319093423466090"
+            crossorigin="anonymous"
+          >
+          </script>
+          <ins
+            class="adsbygoogle"
+            style="display:block; text-align:center;"
+            data-ad-layout="in-article"
+            data-ad-format="fluid"
+            data-ad-client="ca-pub-5319093423466090"
+            data-ad-slot="8766830319"
+          >
+          </ins>
+          <script>
+            (adsbygoogle = window.adsbygoogle || []).push({});
+          </script>
+        </div>
+        <div>
+          <h3>AI Created Art as NFTs</h3>
+          <p>
+            There has been extensive work done in the past several years around getting Artificial Intelligence to create new works of art.
+            While many of the NFT artworks that can be seen online at the moment have been created using randomly generated features in a JPEG, true AI artwork would see far more variety and creativity than has been found in this area of the NFT marketplace. With the ability to create unique works of art quickly,
+            this could be a great way for future NFT minters to make a profit.
+          </p>
+          <h3>NFT Avatars</h3>
+          <p>
+            AI companions are already in our homes in the form of Alexa and Siri, who help us to run household tasks such as adjusting our heating or lighting in the home. Work is being done to create AI-based avatars for this technology, which opens up the possibility for NFTs to be incorporated into the technology.
+            They could provide proof of ownership for specific avatars for AI companions, allowing for a market to be created for specific skins or features that are developed.
+          </p>
+          <h3>Intelligent NFT Marketplaces</h3>
+          <p>
+            The real benefit that AI will introduce to the NFT market will be in the form of an intelligent and adaptive approach to running the marketplace.
+            An AI capable of pointing out trends in the NFT marketplace and adding adjusting prices, listings, and other market parameters on the fly will be necessary in every online shop but will have particular benefits for an emerging market like NFTs.
+            By making the shopping experience more intuitive and adaptable, it will encourage buy-in from new customers.
+          </p>
+          <h3>Mazaryn's vision in AI NFT</h3>
+          <p>
+            Mazaryn network is determined to utilized iNFT in a whole innovative way to satisfy human imaginative thinking. Lots of challenges have been encountered in the mission to build iNFT in the industry, making Mazaryn to saviour to all. Using AI to create art is expected to gain more momentum.
+            The increasing popularity of the metaverse would certainly propel AI-based NFTs.
+          </p>
+        </div>
+      </div>
+    </section>
+    <dl class="hidden md:block md:w-[100%]">
+      <div class="block top-0 sticky w-[300px]" id="adswrapperaside" phx-update="ignore">
+        <script
+          async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5319093423466090"
+          crossorigin="anonymous"
+        >
+        </script>
+        <!-- mazaryn-display -->
+        <ins
+          class="adsbygoogle"
+          style="display:block"
+          data-ad-client="ca-pub-5319093423466090"
+          data-ad-slot="1536507325"
+          data-ad-format="auto"
+          data-full-width-responsive="true"
+        >
+        </ins>
+        <script>
+          (adsbygoogle = window.adsbygoogle || []).push({});
+        </script>
+      </div>
+    </dl>
+  </article>
 </div>

@@ -165,11 +165,11 @@ defmodule MazarynWeb.HomeLive.PostComponent do
      |> assign(:like_event, like_event(user_id, post_id))}
   end
 
-  #def handle_event("get_likes", %{"postID" => postID}, socket) do
-    #post_id = post_id |> to_charlist
-    #PostClient.get_likes(postID)
-    #{:noreply, socket}
-  #end
+  # def handle_event("get_likes", %{"postID" => postID}, socket) do
+  # post_id = post_id |> to_charlist
+  # PostClient.get_likes(postID)
+  # {:noreply, socket}
+  # end
 
   def get_user_avatar(author) do
     case Users.one_by_username(author) do

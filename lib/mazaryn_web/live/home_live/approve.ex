@@ -25,9 +25,7 @@ defmodule MazarynWeb.HomeLive.Approve do
   end
 
   defp do_mount(email, socket) do
-
     {:ok, user} = Users.one_by_email(email)
-
 
     socket
     |> assign(search: "")
