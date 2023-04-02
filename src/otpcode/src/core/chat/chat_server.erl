@@ -7,7 +7,7 @@
 -behaviour(gen_server).
 
 %% API
--export([start_link/0, create_chat/2, get_chat_by_id/1]).
+-export([start_link/0, create_chat/2, get_chat_by_id/1, get_user_chats/1]).
 
 %% CALLBACKS
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
@@ -22,6 +22,9 @@ create_chat(Peer_Ids, Title) ->
 get_chat_by_id(Id) ->
     gen_server:call({global, ?MODULE}, {get_by_id, Id}).
 
+get_user_chats(Id) ->
+    gen_server:call({global, ?MODULE}, {get_user_chats, Id}).
+
 %% PRIVATE FUNCS
 init([]) ->
     {ok, []}.
@@ -33,7 +36,11 @@ handle_call({insert, Peer_Ids, _Title}, _From, State) ->
 
 handle_call({get_by_id, Id}, _From, State) ->
     Chat = chatdb:get_chat_by_id(Id),
-    {reply, Chat, State}.
+    {reply, Chat, State};
+
+handle_call({get_user_chats, Id}, _From, State) ->
+    Chats = chatdb:get_user_chats(Id),
+    {reply, Chats, State}.
 
 handle_cast(_Request, State) ->
     {noreply, State}.

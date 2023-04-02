@@ -26,7 +26,6 @@ defmodule MazarynWeb do
       import Plug.Conn
       import MazarynWeb.Gettext
       alias MazarynWeb.Router.Helpers, as: Routes
-
     end
   end
 
@@ -49,7 +48,7 @@ defmodule MazarynWeb do
   def live_view do
     quote do
       use Phoenix.LiveView,
-      layout: {MazarynWeb.LayoutView, "live.html"}
+        layout: {MazarynWeb.LayoutView, "live.html"}
 
       unquote(view_helpers())
     end
@@ -102,7 +101,16 @@ defmodule MazarynWeb do
       import MazarynWeb.ErrorHelpers
       import MazarynWeb.Gettext
       alias MazarynWeb.Router.Helpers, as: Routes
+      unquote(verified_routes())
+    end
+  end
 
+  def verified_routes do
+    quote do
+      use Phoenix.VerifiedRoutes,
+        endpoint: MazarynWeb.Endpoint,
+        router: MazarynWeb.Router,
+        statics: MazarynWeb.static_paths()
     end
   end
 
