@@ -1,0 +1,10 @@
+{application,epgsql,
+             [{description,"PostgreSQL Client"},
+              {vsn,"4.6.0"},
+              {modules,[]},
+              {registered,[]},
+              {applications,[kernel,stdlib,ssl]},
+              {env,[]},
+              {included_applications,[]},
+              {licenses,["BSD"]},
+              {links,[{"Github","https://github.com/epgsql/epgsql"}]}]}.
