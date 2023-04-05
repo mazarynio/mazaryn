@@ -52,6 +52,10 @@ start_link() ->
                                {disc_copies, [node()]},
                                {type, ordered_set}]),
 
+    mnesia:create_table(chat, [{attributes, record_info(fields, chat)},
+                               {disc_copies, [node()]},
+                               {type, ordered_set}]),
+
     mnesia:add_table_index(user, email),
 
     % create chat tables
@@ -86,9 +90,9 @@ init([]) ->
                     type => worker,
                     modules => [token_server]},
 
-                  #{id => chat_server, 
+                  #{id => chat_server,
                     start => {chat_server, start_link, []},
-                    restart => permanent, 
+                    restart => permanent,
                     shutdown => 5000,
                     type => worker,
                     modules => [chat_server]}

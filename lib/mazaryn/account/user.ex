@@ -23,6 +23,7 @@ defmodule Account.User do
     country
     avatar_url
     banner_url
+    chat
   )a
 
   @required_attrs [
@@ -54,12 +55,13 @@ defmodule Account.User do
     field(:banner_url, :string, default: "")
     field(:token_id, :string)
     field(:country, :string)
+    field(:chat, {:array, :string}, default: [])
   end
 
   def erl_changeset(
         {:user, id, username, password, email, media, posts, notif, following, follower, blocked,
          saved_posts, other_info, private, date_created, date_updated, avatar_url, banner_url,
-         token_id} = _user
+         token_id, chat} = _user
       ) do
     avatar_url =
       case avatar_url do
@@ -98,7 +100,8 @@ defmodule Account.User do
       avatar_url: avatar_url,
       banner_url: banner_url,
       token_id: token_id,
-      notif: notif
+      notif: notif,
+      chat: chat
     })
   end
 

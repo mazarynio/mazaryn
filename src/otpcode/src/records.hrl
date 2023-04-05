@@ -1,5 +1,5 @@
 %% TODO: change id order for testing, modify later
--record(user, { id,
+-record(user, { id, 
                 username,
                 password,
                 email,
@@ -16,7 +16,8 @@
                 date_updated,
                 avatar_url,
                 banner_url,
-                token_id}).
+                token_id,
+                chat = []}).
 
 -record(notif, { id,
                  user_id,
@@ -45,12 +46,17 @@
                userID,
                date_created}).
 
+-record(chat, {id,
+               user_id,
+               recipient_id,
+               body,
+               date_created,
+               date_updated}).
+
 -record(event, {name, date, loc, desc}).
 -record(follower, {id, username}).
 -record(following, {id, username}).
-
 -record(hed_wallet, { id, password, date_created }).
--record(chat, {id, title, peer_ids, type, inserted_at, updated_at}).
 
 
 
