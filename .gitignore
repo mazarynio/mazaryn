@@ -2,7 +2,6 @@
 /cover
 /deps
 /doc
-/log
 /.fetch
 erl_crash.dump
 *.ez
@@ -11,6 +10,7 @@ erl_crash.dump
 .elixir_ls/
 /priv/static/assets/
 /priv/static/uploads/
+src/otpcode/log/
 npm-debug.log
 /assets/node_modules/
 /Mnesia
