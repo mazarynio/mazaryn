@@ -13,7 +13,7 @@ defmodule Mazaryn.Chats.Chat do
   @required_fields ~w(peer_ids)a
   @optional_fields ~w(title id)a
   embedded_schema do
-    field(:title, :string)
+    field(:title, :string, default: "Peer Chat")
     field(:type, :string)
     field(:peer_ids, {:array, :string})
     timestamps()

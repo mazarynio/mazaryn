@@ -75,8 +75,8 @@ handle_call({edit_msg, ChatID, NewContent}, _From, State) ->
 handle_call({delete_msg, ChatID}, _From, State) ->
     Res = chatdb:delete_msg(ChatID),
     {reply, Res, State};
-handle_call({insert, Peer_Ids, _Title}, _From, State) ->
-    Id = chatdb:create_chat(Peer_Ids),
+handle_call({insert, Peer_Ids, Title}, _From, State) ->
+    Id = chatdb:create_chat(Peer_Ids, Title),
     Chat = chatdb:get_chat_by_id(Id),
     {reply, Chat, State};
 handle_call({get_by_id, Id}, _From, State) ->

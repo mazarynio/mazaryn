@@ -3,6 +3,7 @@ defmodule MazarynWeb.ChatsLive.Index do
   require Logger
 
   import MazarynWeb.Live.Helper
+  import MazarynWeb.ChatsLive.Components
 
   alias Mazaryn.Chats
   alias Account.Users
@@ -11,7 +12,7 @@ defmodule MazarynWeb.ChatsLive.Index do
 
   @impl true
   def mount(_params, _session, socket) do
-    assigns = [search: nil, found_users: []]
+    assigns = [search: nil, found_users: [], chats: [], users_without_chats: []]
     {:ok, assign(socket, assigns)}
   end
 
@@ -21,30 +22,27 @@ defmodule MazarynWeb.ChatsLive.Index do
   end
 
   ## Private
-  defp apply_action(%{assigns: %{user: actor_id}} = socket, :index, _params) do
-    assign(socket, chats: Chats.get_user_chats(actor_id))
+  defp apply_action(%{assigns: %{user: actor}} = socket, :index, _params) do
+    assign(socket,
+      chats: Chats.get_user_chats(actor.id),
+      users_without_chats: Chats.get_users_without_chat(actor.id)
+    )
   end
 
   defp apply_action(%{assigns: %{user: actor_id}} = socket, :show, %{"id" => chat_id}) do
-    chat = Chats.get_by_chat_id(chat_id, actor_id)
+    chat = Chats.get_chat_by_id(chat_id, actor_id)
     # latest_messages = Chats.get_latest_messages(chat_id, actor_id)
     assign(socket, chat: chat, messages: [])
   end
 
-  defp apply_action(%{assigns: %{user: actor_id}} = socket, :new, %{
+  defp apply_action(%{assigns: %{user: actor}} = socket, :new, %{
          "recipient_id" => recipient_id
        }) do
-    recipient = Users.get_by_id(recipient_id)
-
-    actor_id
-    |> Users.get_by_id()
-    |> Chats.create_chat(recipient)
-    |> case do
-      {:ok, chat} ->
-        socket |> put_flash(:info, "New chat created") |> push_navigate(to: ~p(/chats/#{chat.id}))
-
-      {:error, _changeset} ->
-        put_flash(socket, :error, "Error creating chat")
+    with {:ok, recipient} <- recipient_id |> to_charlist |> Users.one_by_id(),
+         {:ok, chat} <- Chats.create_chat(actor, recipient) do
+      socket |> put_flash(:info, "New chat created") |> push_navigate(to: ~p(/chats/#{chat.id}))
+    else
+      _ -> put_flash(socket, :error, "Error creating chat")
     end
   end
 end

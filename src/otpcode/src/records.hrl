@@ -46,7 +46,10 @@
                userID,
                date_created}).
 
--record(chat, {id,
+-record(chat, {id, peer_ids, title, messages, inserted_at, updated_at}).
+
+-record(message, {id,
+                chat_id,
                user_id,
                recipient_id,
                body,
@@ -57,7 +60,5 @@
 -record(follower, {id, username}).
 -record(following, {id, username}).
 -record(hed_wallet, { id, password, date_created }).
-
-
 
 -define(MSG_INSUFFICIENT_FUNDS, <<"Insufficient funds.">>).
