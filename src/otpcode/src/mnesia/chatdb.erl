@@ -1,26 +1,62 @@
 -module(chatdb).
 -author("Zaryn Technologies").
--export([send_msg/3, get_msg/1, get_all_msg/1, edit_msg/2, delete_msg/1]). 
+-export([create_chat/3, get_chat_from_sender/2, get_chat_from_recipient/2,
+ send_msg/3, get_msg/1, get_all_msg/1, edit_msg/2, delete_msg/1]). 
 
 -include("../records.hrl").
 -include_lib("stdlib/include/qlc.hrl").
 
-send_msg(UserID, RecipientID, Body) ->
+create_chat(UserID, RecipientID, Title) ->
     Fun = fun() ->
             Id = nanoid:gen(),
             mnesia:write(#chat{id = Id,
                                user_id = UserID,
                                recipient_id = RecipientID,
-                               body = Body,
+                               title = Title,
                                date_created = calendar:universal_time()}),
             [RecipientUser] = mnesia:read(user, RecipientID),
             Chats = RecipientUser#user.chat,
             mnesia:write(RecipientUser#user{chat = [Id|Chats]}),
             io:fwrite("~p~n", [Id]),
-            io:fwrite("~p~n", [Body])
+            io:fwrite("~p~n", [Title])
           end,
     {atomic, Res} = mnesia:transaction(Fun),
     Res.
+
+get_chat_from_sender(UserID, ChatID) ->
+    Fun = fun() ->
+            mnesia:match_object(#chat{user_id = UserID, _ = '_'}),
+            [Chat] = mnesia:read({chat, ChatID}),
+            Chat
+          end,
+    {atomic, Res} = mnesia:transaction(Fun),
+    Res. 
+
+get_chat_from_recipient(RecipientID, ChatID) ->
+    Fun = fun() ->
+            mnesia:match_object(#chat{recipient_id = RecipientID, _ = '_'}),
+            [Chat] = mnesia:read({chat, ChatID}),
+            Chat
+          end,
+    {atomic, Res} = mnesia:transaction(Fun),
+    Res.
+
+send_msg(UserID, RecipientID, Body) ->
+        Fun = fun() ->
+                Id = nanoid:gen(),
+                mnesia:write(#chat{id = Id,
+                                   user_id = UserID,
+                                   recipient_id = RecipientID,
+                                   body = Body,
+                                   date_created = calendar:universal_time()}),
+                [RecipientUser] = mnesia:read(user, RecipientID),
+                Chats = RecipientUser#user.chat,
+                mnesia:write(RecipientUser#user{chat = [Id|Chats]}),
+                io:fwrite("~p~n", [Id]),
+                io:fwrite("~p~n", [Body])
+              end,
+        {atomic, Res} = mnesia:transaction(Fun),
+        Res.
 
 get_msg(ChatID) ->
     Fun = fun() ->
