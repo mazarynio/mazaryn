@@ -22,18 +22,13 @@
       id="search_top_navigation_component"
     />
     <!-- main -->
-    <div class="w-full rounded-3xl bg-white flex items-center justify-between shadow px-2 mt-5 border mb-5">
-      <.live_component
-        module={MazarynWeb.SearchLive.Components.UsersComponent}
-        id="users_component"
-        found_users={@found_users}
-      />
+    <div class="social-box w-full rounded-[20px] bg-white white:bg-gray-800 flex items-center justify-between px-2 mt-5 mb-5">
+      <.chat :if={not @blank_chat?} recipient={@current_recipient} messages={@current_chat} />
     </div>
   </div>
   <!-- end of middle column-->
   <div class=" w-full lg:w-2/6 bg-gray-100 py-10 pr-10">
-    <.chat_list chats={@chats} />
-    <.group_list />
-    <.user_list users={@users_without_chats} />
+    <.chat_list contacts={@contacts} title="Chats" />
+    <.chat_list contacts={@other_users} title="People you may know" />
   </div>
 </div>

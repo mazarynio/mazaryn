@@ -5,14 +5,15 @@ defmodule MazarynWeb.ChatsLive.Index do
   import MazarynWeb.Live.Helper
   import MazarynWeb.ChatsLive.Components
 
-  alias Mazaryn.Chats
   alias Account.Users
+  alias Account.User
 
   on_mount {MazarynWeb.UserLiveAuth, :user_resource}
 
   @impl true
   def mount(_params, _session, socket) do
     assigns = [search: nil, found_users: [], chats: [], users_without_chats: []]
+    MazarynWeb.Endpoint.subscribe("chats:#{socket.assigns.user.id}")
     {:ok, assign(socket, assigns)}
   end
 
@@ -22,27 +23,48 @@ defmodule MazarynWeb.ChatsLive.Index do
   end
 
   ## Private
-  defp apply_action(%{assigns: %{user: actor}} = socket, :index, _params) do
+
+  # index page loads most recent chat, and filters messages by the chat's recipient
+  # index page also looks up for the specific chat given the recipient_id
+  defp apply_action(%{assigns: %{user: actor}} = socket, :index, params) do
+    recipient =
+      (to_charlist(params["recipient_id"]) ||
+         actor.chat
+         |> Enum.sort_by(& &1.date_updated, :desc)
+         |> List.first()
+         |> then(&(&1 || %{}))
+         |> Map.get(:recipient_id))
+      |> case do
+        chat -> chat |> Users.one_by_id() |> elem(1)
+        _ -> nil
+      end
+
+    # todo: chat may be just be id??? 
+    chats =
+      (recipient || %{})
+      |> Map.get(:chat, [])
+      |> Kernel.++(actor.chat)
+      |> Enum.filter(&(&1.recipient_id == actor.id or &1.recipient_id == recipient.id))
+      |> Enum.sort_by(& &1.date_updated, :desc)
+
+    previous_contacts =
+      actor.chat
+      |> Enum.map(& &1.recipient_id)
+      |> Enum.uniq()
+      |> case do
+        [] -> []
+        ids -> Enum.reduce(ids, &[Users.one_by_id(&1.recipient_id) | &2])
+      end
+
     assign(socket,
-      chats: Chats.get_user_chats(actor.id),
-      users_without_chats: Chats.get_users_without_chat(actor.id)
+      current_recipient: struct(recipient || %Account.User{}, chat: []),
+      blank_chat?: is_nil(recipient),
+      current_chat: chats,
+      contacts: previous_contacts,
+      other_users:
+        Users.list()
+        |> Enum.map(&(&1 |> Users.one_by_id() |> elem(1)))
+        |> Kernel.--(previous_contacts)
     )
-  end
-
-  defp apply_action(%{assigns: %{user: actor_id}} = socket, :show, %{"id" => chat_id}) do
-    chat = Chats.get_chat_by_id(chat_id, actor_id)
-    # latest_messages = Chats.get_latest_messages(chat_id, actor_id)
-    assign(socket, chat: chat, messages: [])
-  end
-
-  defp apply_action(%{assigns: %{user: actor}} = socket, :new, %{
-         "recipient_id" => recipient_id
-       }) do
-    with {:ok, recipient} <- recipient_id |> to_charlist |> Users.one_by_id(),
-         {:ok, chat} <- Chats.create_chat(actor, recipient) do
-      socket |> put_flash(:info, "New chat created") |> push_navigate(to: ~p(/chats/#{chat.id}))
-    else
-      _ -> put_flash(socket, :error, "Error creating chat")
-    end
   end
 end

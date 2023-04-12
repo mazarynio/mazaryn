@@ -37,6 +37,9 @@ defmodule MazarynWeb.UserLiveAuth do
     if socket.assigns.user, do: {:cont, socket}, else: {:halt, redirect(socket, to: ~p"/home")}
   end
 
+  # def on_mount({:pubsub_subscribe, topics: topics}, _params, _session, socket) do
+  # end
+
   def get_user_id(%{"session_uuid" => session_uuid}) do
     case :ets.lookup(:mazaryn_auth_table, :"#{session_uuid}") do
       [{_, token}] ->

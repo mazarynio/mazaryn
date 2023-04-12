@@ -46,10 +46,7 @@
                userID,
                date_created}).
 
--record(chat, {id, peer_ids, title, messages, inserted_at, updated_at}).
-
--record(message, {id,
-                chat_id,
+-record(chat, {id,
                user_id,
                recipient_id,
                body,
