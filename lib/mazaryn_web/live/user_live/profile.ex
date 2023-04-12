@@ -146,10 +146,6 @@ defmodule MazarynWeb.UserLive.Profile do
     IO.puts("====from params=====")
     IO.inspect(username)
     IO.puts("=========")
-    user = UserClient.get_user(username)
-    IO.puts("====get user=====")
-    IO.inspect(user)
-    IO.puts("=========")
     UserClient.delete_user(username)
     {:noreply, 
       socket
