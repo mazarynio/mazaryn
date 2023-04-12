@@ -10,6 +10,7 @@ defmodule MazarynWeb.UserLive.Profile do
   alias Mazaryn.Schema.Post
   alias Core.PostClient
   alias Mazaryn.Posts
+  alias MazarynWeb.Router.Helpers, as: Routes
 
   @impl true
   def mount(
@@ -142,9 +143,19 @@ defmodule MazarynWeb.UserLive.Profile do
   end
 
   def handle_event("delete_user", %{"username" => username}, socket) do
-    username = UserClient.get_user(username)
+    IO.puts("====from params=====")
+    IO.inspect(username)
+    IO.puts("=========")
+    user = UserClient.get_user(username)
+    IO.puts("====get user=====")
+    IO.inspect(user)
+    IO.puts("=========")
     UserClient.delete_user(username)
-    {:noreply, socket}
+    {:noreply, 
+      socket
+      |> put_flash(:info, "successfully deleted")
+      |> push_redirect(to:  Routes.live_path(MazarynWeb.HomeLive.Home))      
+    }
   end
 
   defp handle_assigns(socket, user_id, id) do
