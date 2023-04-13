@@ -143,14 +143,11 @@ defmodule MazarynWeb.UserLive.Profile do
   end
 
   def handle_event("delete_user", %{"username" => username}, socket) do
-    IO.puts("====from params=====")
-    IO.inspect(username)
-    IO.puts("=========")
     UserClient.delete_user(username)
     {:noreply, 
       socket
       |> put_flash(:info, "successfully deleted")
-      |> push_redirect(to:  Routes.live_path(MazarynWeb.HomeLive.Home))      
+      |> push_redirect(to:  Routes.page_path(socket, :index))      
     }
   end
 
