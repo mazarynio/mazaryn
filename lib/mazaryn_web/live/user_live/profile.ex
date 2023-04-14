@@ -28,6 +28,7 @@ defmodule MazarynWeb.UserLive.Profile do
 
     socket =
       socket
+      |> assign(session_uuid: session_uuid)
       |> assign(post_changeset: post_changeset)
       |> assign(user_changeset: user_changeset)
       |> assign(user: user)
@@ -56,6 +57,7 @@ defmodule MazarynWeb.UserLive.Profile do
 
     socket =
       socket
+      |> assign(session_uuid: session_uuid)
       |> assign(posts: PostClient.get_posts_by_author(current_user.username))
       |> assign(post_changeset: post_changeset)
       |> assign(user_changeset: user_changeset)
@@ -144,6 +146,8 @@ defmodule MazarynWeb.UserLive.Profile do
 
   def handle_event("delete_user", %{"username" => username}, socket) do
     UserClient.delete_user(username)
+    session_id = socket.assigns.session_uuid
+    :ets.delete(:mazaryn_auth_table, :"#{session_id}")
     {:noreply, 
       socket
       |> put_flash(:info, "successfully deleted")
