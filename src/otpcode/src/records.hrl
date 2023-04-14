@@ -49,6 +49,7 @@
 -record(chat, {id,
                user_id,
                recipient_id,
+               title,
                body,
                date_created,
                date_updated}).
