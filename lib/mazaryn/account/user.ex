@@ -15,6 +15,7 @@ defmodule Account.User do
     other_info
     media
     posts
+    blog_post
     following
     follower
     blocked
@@ -44,6 +45,7 @@ defmodule Account.User do
     field(:date_updated, :utc_datetime)
 
     field(:posts, {:array, :string}, default: [])
+    field(:blog_post, {:array, :string}, default: [])
     field(:following, {:array, :string}, default: [])
     field(:follower, {:array, :string}, default: [])
     field(:blocked, {:array, :string}, default: [])
@@ -59,7 +61,7 @@ defmodule Account.User do
   end
 
   def erl_changeset(
-        {:user, id, username, password, email, media, posts, notif, following, follower, blocked,
+        {:user, id, username, password, email, media, posts, blog_post, notif, following, follower, blocked,
          saved_posts, other_info, private, date_created, date_updated, avatar_url, banner_url,
          token_id, chat} = _user
       ) do
@@ -89,6 +91,7 @@ defmodule Account.User do
       email: email,
       media: media,
       posts: posts,
+      blog_post: blog_post,
       following: following,
       follower: follower,
       blocked: blocked,

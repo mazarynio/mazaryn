@@ -41,6 +41,10 @@ start_link() ->
                                {disc_copies, [node()]},
                                {type, ordered_set}]),
 
+    mnesia:create_table(blog_post, [{attributes, record_info(fields, blog_post)},
+                                    {disc_copies, [node()]},
+                                    {type, ordered_set}]),
+
     % create index key for user -> username
     mnesia:add_table_index(user, username),
 
@@ -92,7 +96,14 @@ init([]) ->
                     restart => permanent,
                     shutdown => 5000,
                     type => worker,
-                    modules => [chat_server]}
+                    modules => [chat_server]},
+
+                  #{id => blog_server, 
+                    start => {blog_server, start_link, []},
+                    restart => permanent,
+                    shutdown => 5000,
+                    type => worker,
+                    modules => [blog_server]}
 
                   ],
     {ok, {SupFlags, ChildSpecs}}.

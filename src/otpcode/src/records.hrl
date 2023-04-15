@@ -5,6 +5,7 @@
                 email,
                 media= [],
                 post = [],
+                blog_post = [],
                 notif = [],
                 following = [],
                 follower = [],
@@ -34,6 +35,14 @@
                 other = [],
                 date_created,
                 date_updated}).
+
+-record(blog_post, {id,
+                    content,
+                    comments = [],
+                    media,
+                    author,
+                    date_created,
+                    date_updated}).
 
 -record(comment, {id,
                   post,
