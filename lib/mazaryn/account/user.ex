@@ -16,6 +16,7 @@ defmodule Account.User do
     media
     posts
     blog_post
+
     following
     follower
     blocked
