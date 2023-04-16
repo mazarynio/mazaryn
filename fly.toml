@@ -8,7 +8,7 @@ processes = []
 [env]
   PHX_HOST = "mazaryn.io"
   PORT = "8080"
-  RELEASE_COOKIE = "unhXH9igbaYvd_FyVKxckfNkgAqNuuuGZFYbUOH4UMyYeB5JcF1l_A=="
+  
 
 [experimental]
   allowed_public_ports = []
