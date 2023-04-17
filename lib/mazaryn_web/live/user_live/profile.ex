@@ -148,10 +148,10 @@ defmodule MazarynWeb.UserLive.Profile do
     UserClient.delete_user(username)
     session_id = socket.assigns.session_uuid
     :ets.delete(:mazaryn_auth_table, :"#{session_id}")
-    {:noreply, 
+    {:noreply,
       socket
       |> put_flash(:info, "successfully deleted")
-      |> push_redirect(to:  Routes.page_path(socket, :index))      
+      |> push_redirect(to:  Routes.page_path(socket, :index))
     }
   end
 
