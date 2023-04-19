@@ -150,7 +150,9 @@ defmodule MazarynWeb.HomeLive.PostComponent do
     like =
       post_id
       |> PostClient.get_likes()
+      |> IO.inspect(label: "likes=============================")
       |> Enum.map(&(&1 |> Home.Like.erl_changeset() |> Home.Like.build() |> elem(1)))
+      |> IO.inspect(label: "==========================unlike")
       |> Enum.filter(&(&1.user_id == user_id))
       |> hd()
 
@@ -165,11 +167,18 @@ defmodule MazarynWeb.HomeLive.PostComponent do
      |> assign(:like_event, like_event(user_id, post_id))}
   end
 
-  #def handle_event("get_likes", %{"postID" => postID}, socket) do
-    #post_id = post_id |> to_charlist
-    #PostClient.get_likes(postID)
-    #{:noreply, socket}
-  #end
+  def handle_event("show_likes", %{"post-id" => post_id}, socket) do
+    post_id = post_id |> to_charlist
+
+    post_id
+    |> PostClient.get_likes()
+    |> IO.inspect(label: "likes=============================")
+    |> Enum.map(&(&1 |> Home.Like.erl_changeset() |> Home.Like.build() |> elem(1)))
+    |> Enum.map(fn like -> like.user_id |> Core.UserClient.get_user_by_id() end)
+    |> IO.inspect(label: "==============ooooooooooooooooooooooooooo")
+
+    {:noreply, socket}
+  end
 
   def get_user_avatar(author) do
     case Users.one_by_username(author) do
