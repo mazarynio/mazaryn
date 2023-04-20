@@ -1,5 +1,5 @@
 %% TODO: change id order for testing, modify later
--record(user, { id, 
+-record(user, { id,
                 username,
                 password,
                 email,
