@@ -1,4 +1,4 @@
-defmodule MazarynWeb.NewBlogLive.Index do
+defmodule MazarynWeb.UserBlog.Index do
   use MazarynWeb, :live_view
 
   alias Account.Users
