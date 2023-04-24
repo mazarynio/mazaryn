@@ -42,7 +42,7 @@ defmodule Mazaryn.Chats do
     |> elem(1)
     |> Enum.sort_by(& &1.date_created, :desc)
     |> then(fn chats ->
-      if Enum.empty?(ids), do: chats, else: Enum.filter(chats, &(&1.id in ids))
+      if Enum.empty?(ids), do: chats, else: Enum.filter(chats, &(to_charlist(&1.id) in ids))
     end)
   end
 
@@ -62,22 +62,21 @@ defmodule Mazaryn.Chats do
     do: id |> to_charlist() |> Users.one_by_id() |> elem(1)
 
   def get_latest_recipient(%User{} = actor) do
-    actor.chat
-    |> get_chats()
-    |> Enum.sort_by(& &1.date_created, :desc)
-    |> List.first()
+    actor
+    |> get_users_with_chats()
     |> case do
-      [%{recipient_id: id}] -> id |> Users.one_by_id() |> elem(1)
+      [recipient | _] -> recipient
       _ -> nil
     end
   end
 
-  @spec get_chats(User.t(), User.t()) :: list
-  def get_chats(%User{} = actor, %User{} = recipient) do
+  @spec get_chat_messages(User.t(), User.t()) :: list
+  def get_chat_messages(%User{} = actor, %User{} = recipient) do
     actor.chat
+    |> Kernel.++(recipient.chat)
     |> get_chats()
-    |> Enum.filter(&(&1.recipient_id == recipient.id))
+    |> Enum.filter(&(to_charlist(&1.recipient_id) in [recipient.id, actor.id]))
   end
 
-  def get_chats(_, _), do: []
+  def get_chat_messages(_, _), do: []
 end

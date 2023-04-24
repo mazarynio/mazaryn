@@ -38,13 +38,13 @@ defmodule MazarynWeb.ChatsLive.Index do
   # index page also looks up for the specific chat given the recipient_id
   defp apply_action(%{assigns: %{user: actor}} = socket, :index, params) do
     previous_contacts = Chats.get_users_with_chats(actor)
-    current_recipient = Chats.get_latest_recipient(params["recipient_id"] || actor) |> dbg
-    current_chat = Chats.get_chats(actor, current_recipient)
+    current_recipient = Chats.get_latest_recipient(params["recipient_id"] || actor)
+    messages = Chats.get_chat_messages(actor, current_recipient)
 
     assign(socket,
       current_recipient: current_recipient || struct(%User{}, chat: []),
       blank_chat?: is_nil(current_recipient),
-      current_chat: current_chat,
+      messages: messages,
       contacts: previous_contacts,
       other_users:
         Users.list()
