@@ -17,7 +17,8 @@
     delete_msg/1,
     create_chat/2,
     get_chat_by_id/1,
-    get_user_chats/1
+    get_user_chats/1,
+    list_chats/0
 ]).
 
 %% gen_server callbacks
@@ -56,6 +57,9 @@ get_chat_by_id(Id) ->
 get_user_chats(Id) ->
     gen_server:call({global, ?MODULE}, {get_user_chats, Id}).
 
+list_chats() ->
+    gen_server:call({global, ?MODULE}, list_chats).
+
 init([]) ->
     ?LOG_NOTICE("Chat server has been started - ~p", [self()]),
     {ok, #state{}}.
@@ -85,6 +89,10 @@ handle_call({get_by_id, Id}, _From, State) ->
 handle_call({get_user_chats, Id}, _From, State) ->
     Chats = chatdb:get_user_chats(Id),
     {reply, Chats, State};
+handle_call(list_chats, _From, State) ->
+    Chats = chatdb:list_chats(),
+    {reply, Chats, State};
+
 handle_call(_Request, _From, State) ->
     {noreply, State}.
 

@@ -1,6 +1,6 @@
 -module(chatdb).
 -author("Zaryn Technologies").
--export([send_msg/3, get_msg/1, get_all_msg/1, edit_msg/2, delete_msg/1]). 
+-export([send_msg/3, get_msg/1, get_all_msg/1, edit_msg/2, delete_msg/1, list_chats/0]). 
 
 -include("../records.hrl").
 -include_lib("stdlib/include/qlc.hrl").
@@ -16,8 +16,7 @@ send_msg(UserID, RecipientID, Body) ->
                 [RecipientUser] = mnesia:read(user, RecipientID),
                 Chats = RecipientUser#user.chat,
                 mnesia:write(RecipientUser#user{chat = [Id|Chats]}),
-                io:fwrite("~p~n", [Id]),
-                io:fwrite("~p~n", [Body])
+                Id
               end,
         {atomic, Res} = mnesia:transaction(Fun),
         Res.
@@ -59,3 +58,10 @@ delete_msg(ChatID) ->
         mnesia:delete({chat, ChatID})
     end,
     mnesia:activity(transaction, Fun).
+
+list_chats() ->
+    Fun = fun() ->
+        mnesia:all_keys(chat)
+    end,
+    {atomic, Res} = mnesia:transaction(Fun),
+    Res.

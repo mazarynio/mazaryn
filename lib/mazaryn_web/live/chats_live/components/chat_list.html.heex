@@ -11,13 +11,13 @@
     <div class="w-full flex justify-between items-center">
       <ul class="w-full">
         <%= for user <- @contacts  do %>
-          <a href={~p"/chats?recipient_id=#{to_string(user.id)}"}>
+          <.link patch={~p"/chats?recipient_id=#{to_string(user.id)}"}>
             <li class="active pb-3">
               <div class="flex justify-between align-center items-center">
                 <div class="flex flex-row items-center">
                   <div class="rounded-full flex-shrink-0">
                     <img
-                      src={~p"/images/profile-photo.svg"}
+                      src={handle_avatar(user)}
                       alt="Mazaryn symbol"
                       class="w-10 rounded-full"
                     />
@@ -40,7 +40,7 @@
                 </div>
               </div>
             </li>
-          </a>
+          </.link>
         <% end %>
       </ul>
     </div>

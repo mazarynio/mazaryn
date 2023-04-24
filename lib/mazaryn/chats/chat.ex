@@ -1,37 +1,36 @@
 defmodule Mazaryn.Chats.Chat do
-  @moduledoc """
-  `Mazaryn.Chats.Chat` maps a chat object.
-  A chat can include a list of `peer_ids`, ie `Mazaryn.Accounts.User` id.
-  A `title` to describe the chat.
-
-  ### Constraints
-  * unique peers
-  """
+  @moduledoc false
   use Ecto.Schema
   import Ecto.Changeset
 
-  @required_fields ~w(peer_ids)a
-  @optional_fields ~w(title id)a
+  @fields ~w(id user_id recipient_id body date_created date_updated)a
+  @required_fields ~w(user_id recipient_id body)a
   embedded_schema do
-    field(:title, :string, default: "Peer Chat")
-    field(:type, :string)
-    field(:peer_ids, {:array, :string})
-    timestamps()
+    field(:user_id, :string)
+    field(:recipient_id, :string)
+    field(:body, :string)
+    field(:date_created, :utc_datetime)
+    field(:date_updated, :utc_datetime)
   end
 
   @doc false
   def changeset(chat, attrs) do
-    attrs = %{attrs | peer_ids: Enum.map(attrs.peer_ids, &to_string(&1))}
-    attrs = (attrs[:id] && %{attrs | id: to_string(attrs.id)}) || attrs
+    attrs =
+      Enum.reduce(
+        [:id, :user_id, :recipient_id],
+        attrs,
+        &((&2[&1] && Map.put(&2, &1, to_string(&2[&1]))) || &2)
+      )
 
     chat
-    |> cast(attrs, @required_fields ++ @optional_fields)
+    |> cast(attrs, @fields)
     |> validate_required(@required_fields)
-    |> validate_unique_peers()
   end
 
   @doc false
-  def erl_changeset({:chat, _id, _title, _peer_ids, _type, _inserted_at, _updated_at} = record) do
+  def erl_changeset(
+        {:chat, _id, _user_id, _recipient_id, _body, _date_created, _date_updated} = record
+      ) do
     params = params(record)
 
     %__MODULE__{}
@@ -40,29 +39,15 @@ defmodule Mazaryn.Chats.Chat do
   end
 
   defp params(record) when is_tuple(record) do
-    keys = [:id, :title, :peer_ids, :type, :inserted_at, :updated_at]
-
     record
     |> Tuple.to_list()
     |> tl()
-    |> then(&Enum.zip(keys, &1))
+    |> then(&Enum.zip(@fields, &1))
     |> Enum.map(fn
       {k, :undefined} -> {k, nil}
+      {k, v} when k in [:date_created, :date_updated] -> {k, Timex.to_naive_datetime(v)}
       {k, v} -> {k, v}
     end)
     |> Map.new()
-  end
-
-  defp validate_unique_peers(changeset) do
-    peer_ids = get_field(changeset, :peer_ids) || []
-
-    peer_ids
-    |> Enum.uniq()
-    |> case do
-      [_] -> add_error(changeset, :peer_ids, "You can't chat with self")
-      [_, _] -> put_change(changeset, :type, "p2p")
-      [_ | _] -> put_change(changeset, :type, "group")
-      _ -> changeset
-    end
   end
 end

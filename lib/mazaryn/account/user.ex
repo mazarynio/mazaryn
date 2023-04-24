@@ -51,7 +51,7 @@ defmodule Account.User do
 
     field(:notif, {:array, :string}, default: [])
 
-    field(:avatar_url, :string, default: "")
+    field(:avatar_url, :string, default: "/images/default-user.svg")
     field(:banner_url, :string, default: "")
     field(:token_id, :string)
     field(:country, :string)

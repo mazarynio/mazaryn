@@ -5,7 +5,7 @@ defmodule MazarynWeb.Live.Helper do
   alias Phoenix.LiveView.JS
   require Logger
 
-  def handle_avatar(user), do: user.avatar_url || "images/default-user.svg"
+  def handle_avatar(user), do: user.avatar_url || ~p"/images/default-user.svg"
 
   def is_disabled(changeset) do
     if Ecto.Changeset.get_field(changeset, :form_disabled) == true do
