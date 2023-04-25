@@ -60,6 +60,10 @@ start_link() ->
                                {disc_copies, [node()]},
                                {type, ordered_set}]),
 
+    mnesia:create_table(media, [{attributes, record_info(fields, media)},
+                                {disc_copies, [node()]},
+                                {type, ordered_set}]),
+
     mnesia:add_table_index(user, email),
 
     supervisor:start_link({local, ?SERVER}, ?MODULE, []).
@@ -103,7 +107,14 @@ init([]) ->
                     restart => permanent,
                     shutdown => 5000,
                     type => worker,
-                    modules => [blog_server]}
+                    modules => [blog_server]},
+
+                  #{id => media_server,
+                    start => {media_server, start_link, []},
+                    restart => permanent,
+                    shutdown => 5000,
+                    type => worker,
+                    modules => [media_server]}
 
                   ],
     {ok, {SupFlags, ChildSpecs}}.
