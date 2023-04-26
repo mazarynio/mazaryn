@@ -2,6 +2,7 @@ defmodule MazarynWeb.HomeLive.PostComponent do
   use MazarynWeb, :live_component
 
   alias MazarynWeb.Live.Helper
+  import MazarynWeb.Live.Helper
   alias MazarynWeb.Component.SelectLive
   alias Home.Post
   alias Account.Users
