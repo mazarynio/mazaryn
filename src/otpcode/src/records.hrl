@@ -69,10 +69,6 @@
 
 -record(hed_wallet, { id, password, date_created }).
 
--record(media, {video = [], music = [], image = []}).
-
--record(music, {id, single, album = [], date_created, date_updated}).
-
--record(video, {id, single, album = [], date_created, date_updated}).
+-record(media, {id, user_id, file, files, type, date_created}).
 
 -define(MSG_INSUFFICIENT_FUNDS, <<"Insufficient funds.">>).

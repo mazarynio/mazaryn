@@ -2,11 +2,11 @@
 -include_lib("kernel/include/logger.hrl").
 
 -behaviour(gen_server).
--define(SERVER, ?MODULE).
+-define(SERVER, ?MODULE). 
 -record(state, {}).
 
 %%API
--export([start_link/0, insert_music/2, insert_video/2]).
+-export([start_link/0, insert_media/2, delete_file/1, get_media/1, get_all_media/1]).
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2,
   code_change/3]).
@@ -14,22 +14,36 @@
 start_link() ->
     gen_server:start_link({global, ?SERVER}, ?MODULE, [], []).
 
-insert_music(Username, Single) ->
-    gen_server:call({global, ?MODULE}, {insert_music, Username, Single}).
+insert_media(UserID, File) ->
+    gen_server:call({global, ?MODULE}, {insert_media, UserID, File}).
 
-insert_video(Username, Single) ->
-    gen_server:call({global, ?MODULE}, {insert_video, Username, Single}).
+delete_file(MediaID) ->
+    gen_server:call({global, ?MODULE}, {delete_file, MediaID}).
+
+get_media(MediaID) ->
+    gen_server:call({global, ?MODULE}, {get_media, MediaID}).
+
+get_all_media(UserID) ->
+    gen_server:call({global, ?MODULE}, {get_all_media, UserID}).
 
 init([]) ->
     ?LOG_NOTICE("Media server has been started - ~p", [self()]),
     {ok, #state{}}.
 
-handle_call({insert_music, Username, Single}, _From, State) ->
-    Res = mediadb:insert_music(Username, Single),
+handle_call({insert_media, UserID, File}, _From, State) ->
+    Res = mediadb:insert_media(UserID, File),
     {reply, Res, State};
 
-handle_call({insert_video, Username, Single}, _From, State) ->
-    Res = mediadb:insert_video(Username, Single),
+handle_call({delete_file, MediaID}, _From, State) ->
+    Res = mediadb:delete_file(MediaID),
+    {reply, Res, State};
+
+handle_call({get_media, MediaID}, _From, State) ->
+    Res = mediadb:get_media(MediaID),
+    {reply, Res, State};
+
+handle_call({get_all_media, UserID}, _From, State) ->
+    Res = mediadb:get_all_media(UserID),
     {reply, Res, State};
 
 handle_call(_Request, _From, State) ->
