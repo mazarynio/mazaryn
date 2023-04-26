@@ -90,12 +90,7 @@
         phx_value_post_id: @post.id,
         phx_target: @myself
       ) %>
-      <span
-        class="ml-2.5  text-[#CFD0DD] text-base "
-        phx-click="show_likes"
-        phx-target={@myself}
-        phx-value-post-id={@post.id}
-      >
+      <span class="ml-2.5 text-[#CFD0DD] text-base cursor-pointer" phx-click={Helper.open_modal()}>
         <%= Enum.count(@post.likes) %>
       </span>
     </div>
@@ -251,5 +246,8 @@
         </div>
       </div>
     <% end %>
+    <.modal>
+      <.live_component module={MazarynWeb.HomeLive.ShowLikersComponent} id={@post.id} />
+    </.modal>
   </div>
 </div>
