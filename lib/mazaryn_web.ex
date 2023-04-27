@@ -27,6 +27,8 @@ defmodule MazarynWeb do
       import MazarynWeb.Gettext
       alias MazarynWeb.Router.Helpers, as: Routes
 
+      unquote(verified_routes())
+
     end
   end
 
@@ -103,6 +105,16 @@ defmodule MazarynWeb do
       import MazarynWeb.Gettext
       alias MazarynWeb.Router.Helpers, as: Routes
 
+      unquote(verified_routes())
+    end
+  end
+
+  def verified_routes do
+    quote do
+      use Phoenix.VerifiedRoutes,
+        endpoint: MazarynWeb.Endpoint,
+        router: MazarynWeb.Router,
+        statics: MazarynWeb.static_paths()
     end
   end
 
