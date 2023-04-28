@@ -69,7 +69,6 @@
 
 -record(hed_wallet, { id, password, date_created }).
 
-
-
+-record(media, {id, user_id, file, files, type, date_created, date_updated}).
 
 -define(MSG_INSUFFICIENT_FUNDS, <<"Insufficient funds.">>).
