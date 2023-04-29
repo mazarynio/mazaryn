@@ -149,7 +149,6 @@ defmodule MazarynWeb.Live.Helper do
   end
 
   def modal(assigns) do
-    _delete_action = assigns.delete_action
     is_hidden =  assigns.is_hidden
     IO.inspect(assigns)
 
