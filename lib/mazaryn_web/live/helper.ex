@@ -148,10 +148,8 @@ defmodule MazarynWeb.Live.Helper do
     {:noreply, socket}
   end
 
-
-  @impl true
   def modal(assigns) do
-    delete_action = assigns.delete_action
+    _delete_action = assigns.delete_action
     is_hidden =  assigns.is_hidden
     IO.inspect(assigns)
 
@@ -181,19 +179,18 @@ defmodule MazarynWeb.Live.Helper do
     """
   end
 
+  def open_modal(js \\ %JS{}) do
+    js
+    |> JS.show(to: "#modal", transition: "fade-in")
+  end
 
+  def hide_modal(js \\ %JS{}) do
+    js
+    |> JS.hide(to: "#modal", transition: "fade-out")
+  end
 
-  # def hide_modal(js \\ %JS{}) do
-  #   js
-  #   |> JS.hide(to: "#modal", transition: "fade-out")
-  # end
-
-  # def show_modal(js \\ %JS{}) do
-  #   js
-  #   |> JS.show(to: "#modal", transition: "fade-in")
-  # end
-
-
-
-
+  def show_modal(js \\ %JS{}) do
+    js
+    |> JS.show(to: "#modal", transition: "fade-in")
+  end
 end
