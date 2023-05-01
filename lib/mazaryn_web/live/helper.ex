@@ -142,22 +142,12 @@ defmodule MazarynWeb.Live.Helper do
     ...content
   </modal>
   """
-  def handle_event("close_modal", _, socket) do
-    IO.puts "ON #{inspect(self())}"
-    assign(socket, :is_hidden, true)
-    {:noreply, socket}
-  end
 
   def modal(assigns) do
-    is_hidden =  assigns.is_hidden
-    IO.inspect(assigns)
-
-    is_hidden? = if is_hidden, do: "hidden", else: ""
-
 
     ~H"""
-    <div id="modal" class={is_hidden? <> " phx-modal fade-in"}>
-      <div phx-click="close_modal" class="phx-overlay" >
+    <div id="modal" class="hidden phx-modal fade-in">
+      <div class="phx-overlay" phx-click={hide_modal()}>
       </div>
       <div
         id="modal-content"
@@ -167,7 +157,7 @@ defmodule MazarynWeb.Live.Helper do
         phx-key="escape"
       >
 
-          <a id="close" data-phx-link="patch" data-phx-link-state="push"  class="phx-modal-close" phx-click="close_modal">
+      <a id="close" data-phx-link="patch" data-phx-link-state="push"  class="phx-modal-close" phx-click={hide_modal()}>
             <svg class="icon-close" width="10" height="10" viewBox="0 0 11 10" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M5.5416 5.00003L10.2297 9.36919M0.853516 9.36919L5.5416 5.00003L0.853516 9.36919ZM10.2297 0.630859L5.5407 5.00003L10.2297 0.630859ZM5.5407 5.00003L0.853516 0.630859L5.5407 5.00003Z" stroke="#5D5F63" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>

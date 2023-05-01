@@ -34,8 +34,6 @@ defmodule MazarynWeb.UserLive.Profile do
       |> assign(user: user)
       |> assign(current_user: current_user)
       |> handle_assigns(current_user.id, username)
-      |> assign(delete_action: :false)
-      |> assign(is_hidden: true)
 
 
     {:ok, socket}
@@ -157,22 +155,6 @@ defmodule MazarynWeb.UserLive.Profile do
       |> push_redirect(to:  Routes.page_path(socket, :index))
     }
   end
-
-  def handle_event("open_modal", %{"action" => action}, socket) do
-    delete_action =
-      case action do
-        "edit" -> :false
-        "delete" -> :true
-        _ -> :false
-      end
-      IO.puts "ON #{inspect(self())}"
-      socket =
-        socket
-        |> assign(delete_action: delete_action, is_hidden: false)
-
-      {:noreply, socket}
-  end
-
 
   defp handle_assigns(socket, user_id, id) do
     socket
