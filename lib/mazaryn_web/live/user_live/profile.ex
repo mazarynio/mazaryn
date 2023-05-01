@@ -10,6 +10,7 @@ defmodule MazarynWeb.UserLive.Profile do
   alias Mazaryn.Schema.Post
   alias Core.PostClient
   alias Mazaryn.Posts
+  alias Phoenix.LiveView.JS
   alias MazarynWeb.Router.Helpers, as: Routes
 
   @impl true
@@ -35,6 +36,8 @@ defmodule MazarynWeb.UserLive.Profile do
       |> assign(current_user: current_user)
       |> handle_assigns(current_user.id, username)
       |> assign(delete_action: :false)
+      |> assign(edit_action: :false)
+      |> assign(follower_action: :false)
       |> assign(is_hidden: true)
 
 
@@ -159,16 +162,18 @@ defmodule MazarynWeb.UserLive.Profile do
   end
 
   def handle_event("open_modal", %{"action" => action}, socket) do
-    delete_action =
+    action =
       case action do
-        "edit" -> :false
+        "edit" -> :true
         "delete" -> :true
+        "follower" -> :true
         _ -> :false
       end
+
       IO.puts "ON #{inspect(self())}"
       socket =
         socket
-        |> assign(delete_action: delete_action, is_hidden: false)
+        |> assign(delete_action: action, follower_action: action, edit_action: action, is_hidden: false)
 
       {:noreply, socket}
   end

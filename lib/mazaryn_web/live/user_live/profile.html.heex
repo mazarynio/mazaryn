@@ -95,7 +95,7 @@
           <div class="mr-10 p-3 text-center flex items-center">
             <i><%= Heroicons.icon("users", class: "h-5 w-5 mr-2 fill-[#60616D]") %> </i>
             <a class="font-semibold text-black mr-1"><%= Enum.count(@user.follower) %></a>
-            <a class="text-black">Followers</a>
+            <a class="text-black" phx-click={JS.push("open_modal") |> open_modal()} phx-value-action="follower")>Followers</a>
           </div>
         </div>
       </div>
@@ -145,11 +145,12 @@
 
     </div>
 
-    <.modal 
+   
+    <%= if @delete_action == :true do %>
+       <.modal 
       delete_action={@delete_action}
       is_hidden={@is_hidden}
-    >
-      <%= if @delete_action == :true do %>
+        >
         <.live_component
           module={MazarynWeb.UserLive.DeleteProfileComponent}
           id={@user.username}
@@ -158,16 +159,29 @@
           current_user={@current_user}
           changeset={@user_changeset}
         />
-      <% else %>
-        <.live_component
+          </.modal>
+      <% end %>
+  
+   <%= if @edit_action == :true do %>
+   <.modal>
+       <.live_component
           module={MazarynWeb.UserLive.EditProfileComponent}
           id={@user.username}
           title="Edit Profile"
           current_user={@current_user}
           changeset={@user_changeset}
         />
+        </.modal>
       <% end %>
-    </.modal>
 
+   <%= if @follower_action == :true do %>
+   <.modal>
+      <.live_component
+        module={MazarynWeb.UserLive.FollowerComponent} 
+        id={@user.username}
+        current_user={@current_user}
+      />
+      </.modal>
+    <% end %>
   </div>
 </div>
