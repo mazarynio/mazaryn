@@ -1,11 +1,11 @@
-defmodule MazarynWeb.UserLive.FollowerComponent do
+defmodule MazarynWeb.UserLive.FollowsComponent do
     use MazarynWeb, :live_component
     import MazarynWeb.Live.Helper
 
     def render(assigns) do
         ~H"""
-        <div id="followers">
-        <%= for {:ok, user} <- @followers do %>
+        <div id="follows">
+        <%= for {:ok, user} <- @following do %>
         <div class="flex w-full justify-between items-center my-4">
           <div class="mr-3">
             <%= if user.avatar_url do %>
@@ -48,28 +48,24 @@ defmodule MazarynWeb.UserLive.FollowerComponent do
             </div>
           </div>
         </div>
-      <% end %>
-    </div>
+        <% end %>
+        </div>
         
         """
     end
       
-    def update(%{current_user: %Account.User{follower: follower_ids}} = assigns, socket) do
+    def update(%{current_user: %Account.User{following: following_ids}} = assigns, socket) do
         {:ok,
         socket
         |> assign(assigns)
-        |> assign(followers: get_followers(follower_ids))}
+        |> assign(following: get_following(following_ids))}
     end
       
-    defp get_followers(follower_ids) do
-      follower_ids
+    defp get_following(following_ids) do
+      following_ids
     #   |> Core.PostClient.get_likes()
     #   |> Enum.map(&(&1 |> Home.Like.erl_changeset() |> Home.Like.build() |> elem(1)))
-      |> Enum.map(fn follower_id -> follower_id |> Core.UserClient.get_user_by_id() end)
+      |> Enum.map(fn following_id -> following_id |> Core.UserClient.get_user_by_id() end)
       |> Enum.map(&(&1 |> elem(2) |> Account.Users.one_by_username()))
     end
 end
-
-
-
-

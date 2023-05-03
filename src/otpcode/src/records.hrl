@@ -36,7 +36,7 @@
                 date_created,
                 date_updated}).
 
--record(blog_post, {id,
+-record(blog_post, {id, 
                     content,
                     comments = [],
                     media,
@@ -49,6 +49,12 @@
                   author,
                   content,
                   date_created}).
+
+-record(blog_comment, {id,
+                       blog_post,
+                       author, 
+                       content,
+                       date_created}).
 
 -record(like, {id,
                post,

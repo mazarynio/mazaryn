@@ -35,11 +35,9 @@ defmodule MazarynWeb.UserLive.Profile do
       |> assign(user: user)
       |> assign(current_user: current_user)
       |> handle_assigns(current_user.id, username)
-      |> assign(delete_action: :false)
-      |> assign(edit_action: :false)
-      |> assign(follower_action: :false)
-      |> assign(is_hidden: true)
-
+      |> assign(edit_action: false)
+      |> assign(follower_action: false)
+      |> assign(follows_action: false)
 
     {:ok, socket}
   end
@@ -125,6 +123,17 @@ defmodule MazarynWeb.UserLive.Profile do
     {:noreply, handle_assigns(socket, user_id, id)}
   end
 
+  def handle_event("open_modal", %{"action" => "follower"}, socket) do
+    {:noreply, socket |> assign(follower_action: true, edit_action: false, follows_action: false )}
+  end
+
+  def handle_event("open_modal", %{"action" => "edit"}, socket) do
+    {:noreply, socket |> assign(edit_action: true, follower_action: false, follows_action: false)}
+  end
+
+  def handle_event("open_modal", %{"action" => "follows"}, socket) do
+    {:noreply, socket |> assign(follows_action: true, edit_action: false, follower_action: false)}
+  end
   #def handle_event("block_user", %{"id" => id}, socket) do
     #id = socket.assigns.current_user.id
     #UserClient.block(id, blocked)
@@ -160,24 +169,6 @@ defmodule MazarynWeb.UserLive.Profile do
       |> push_redirect(to:  Routes.page_path(socket, :index))
     }
   end
-
-  def handle_event("open_modal", %{"action" => action}, socket) do
-    action =
-      case action do
-        "edit" -> :true
-        "delete" -> :true
-        "follower" -> :true
-        _ -> :false
-      end
-
-      IO.puts "ON #{inspect(self())}"
-      socket =
-        socket
-        |> assign(delete_action: action, follower_action: action, edit_action: action, is_hidden: false)
-
-      {:noreply, socket}
-  end
-
 
   defp handle_assigns(socket, user_id, id) do
     socket
@@ -220,3 +211,4 @@ defmodule MazarynWeb.UserLive.Profile do
   end
 
 end
+

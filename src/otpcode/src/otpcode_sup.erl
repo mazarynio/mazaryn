@@ -52,6 +52,10 @@ start_link() ->
                                {disc_copies, [node()]},
                                {type, ordered_set}]),
 
+    mnesia:create_table(blog_comment, [{attributes, record_info(fields, blog_comment)},
+                               {disc_copies, [node()]},
+                               {type, ordered_set}]),
+
     mnesia:create_table(like, [{attributes, record_info(fields, like)},
                                {disc_copies, [node()]},
                                {type, ordered_set}]),

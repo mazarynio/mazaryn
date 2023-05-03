@@ -127,7 +127,7 @@ defmodule MazarynWeb.HomeLive.LeftSidebarComponent do
                                             </svg>
                                         </i>
                                         <div class="text-[#60616D] text-base leading-6 group-hover:text-[#4385F5]">Blog</div>
-                                    <% end %> --%>
+                                    <% end %>
                             </a>
                         </li>
                         <li class="flex align-center items-center group mx-2 mb-7">
