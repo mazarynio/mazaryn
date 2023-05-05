@@ -63,8 +63,6 @@ defmodule MazarynWeb.UserLive.FollowsComponent do
       
     defp get_following(following_ids) do
       following_ids
-    #   |> Core.PostClient.get_likes()
-    #   |> Enum.map(&(&1 |> Home.Like.erl_changeset() |> Home.Like.build() |> elem(1)))
       |> Enum.map(fn following_id -> following_id |> Core.UserClient.get_user_by_id() end)
       |> Enum.map(&(&1 |> elem(2) |> Account.Users.one_by_username()))
     end
