@@ -51,7 +51,7 @@
             <div class="inline-flex mt-4">
 
               <%= if @user.username == @current_user.username do %>
-                <button phx-click={open_modal()} class="py-2.5 px-5	text-base text-black focus:outline-none bg-[#FAFAFA] rounded-[10px] hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200">
+                <button phx-click={JS.push("open_modal") |> open_modal()} phx-value-action="edit") class="py-2.5 px-5	text-base text-black focus:outline-none bg-[#FAFAFA] rounded-[10px] hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200">
                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125" />
                   </svg>
@@ -90,12 +90,20 @@
           <div class="mr-10 p-3 text-center flex items-center">
             <i><%= Heroicons.icon("users", class: "h-5 w-5 mr-2 fill-[#60616D]") %> </i>
             <a class="font-semibold text-black mr-1"><%= Enum.count(@user.following) %></a>
-            <a class="text-black">Follows</a>
+            <%= if Enum.count(@user.following) == 0 do %>
+                <a class="text-black">Follows</a>
+             <% else %>
+                <a class="text-black cursor-pointer" phx-click={JS.push("open_modal") |> open_modal()} phx-value-action="follows")>Follows</a>
+            <% end %>  
           </div>
           <div class="mr-10 p-3 text-center flex items-center">
             <i><%= Heroicons.icon("users", class: "h-5 w-5 mr-2 fill-[#60616D]") %> </i>
             <a class="font-semibold text-black mr-1"><%= Enum.count(@user.follower) %></a>
-            <a class="text-black">Followers</a>
+             <%= if Enum.count(@user.follower) == 0 do %>
+                 <a class="text-black"> Followers </a>
+              <% else %>
+                <a class="text-black cursor-pointer" phx-click={JS.push("open_modal") |> open_modal()} phx-value-action="follower")>Followers</a>
+            <% end %>
           </div>
         </div>
       </div>
@@ -145,6 +153,7 @@
 
     </div>
 
+  <%= if @edit_action do %>
     <.modal>
       <.live_component
         module={MazarynWeb.UserLive.EditProfileComponent}
@@ -154,6 +163,27 @@
         changeset={@user_changeset}
       />
     </.modal>
+  <% end %>
 
+  <%= if @follower_action do %>
+    <.modal>
+      <.live_component
+        module={MazarynWeb.UserLive.FollowerComponent} 
+        id={@user.username}
+        current_user={@current_user}
+      />
+    </.modal>
+  <% end %>
+  
+  <%= if @follows_action do %>
+    <.modal>
+      <.live_component
+        module={MazarynWeb.UserLive.FollowsComponent}
+        id={@user.username}
+        current_user={@current_user}
+      />
+    </.modal>
+  <% end %>
+  
   </div>
 </div>
