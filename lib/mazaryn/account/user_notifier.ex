@@ -29,7 +29,9 @@ defmodule Account.UserNotifier do
     ==============================
     Hi #{user.email},
     You can confirm your account by visiting the URL below:
-    #{url}
+
+    <a href="#{url}">#{url}</a>
+
     If you didn't create an account with us, please ignore this.
     ==============================
     """)

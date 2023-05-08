@@ -41,10 +41,18 @@ start_link() ->
                                {disc_copies, [node()]},
                                {type, ordered_set}]),
 
+    mnesia:create_table(blog_post, [{attributes, record_info(fields, blog_post)},
+                                    {disc_copies, [node()]},
+                                    {type, ordered_set}]),
+
     % create index key for user -> username
     mnesia:add_table_index(user, username),
 
     mnesia:create_table(comment, [{attributes, record_info(fields, comment)},
+                               {disc_copies, [node()]},
+                               {type, ordered_set}]),
+
+    mnesia:create_table(blog_comment, [{attributes, record_info(fields, blog_comment)},
                                {disc_copies, [node()]},
                                {type, ordered_set}]),
 
@@ -55,6 +63,10 @@ start_link() ->
     mnesia:create_table(chat, [{attributes, record_info(fields, chat)},
                                {disc_copies, [node()]},
                                {type, ordered_set}]),
+
+    mnesia:create_table(media, [{attributes, record_info(fields, media)},
+                                {disc_copies, [node()]},
+                                {type, ordered_set}]),
 
     mnesia:add_table_index(user, email),
 
@@ -95,7 +107,21 @@ init([]) ->
                     restart => permanent,
                     shutdown => 5000,
                     type => worker,
-                    modules => [chat_server]}
+                    modules => [chat_server]},
+
+                  #{id => blog_server, 
+                    start => {blog_server, start_link, []},
+                    restart => permanent,
+                    shutdown => 5000,
+                    type => worker,
+                    modules => [blog_server]},
+
+                  #{id => media_server,
+                    start => {media_server, start_link, []},
+                    restart => permanent,
+                    shutdown => 5000,
+                    type => worker,
+                    modules => [media_server]}
 
                   ],
     {ok, {SupFlags, ChildSpecs}}.

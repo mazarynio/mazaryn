@@ -1,10 +1,11 @@
 %% TODO: change id order for testing, modify later
--record(user, { id, 
+-record(user, { id,
                 username,
                 password,
                 email,
                 media= [],
                 post = [],
+                blog_post = [],
                 notif = [],
                 following = [],
                 follower = [],
@@ -35,11 +36,25 @@
                 date_created,
                 date_updated}).
 
+-record(blog_post, {id, 
+                    content,
+                    comments = [],
+                    media,
+                    author,
+                    date_created,
+                    date_updated}).
+
 -record(comment, {id,
                   post,
                   author,
                   content,
                   date_created}).
+
+-record(blog_comment, {id,
+                       blog_post,
+                       author, 
+                       content,
+                       date_created}).
 
 -record(like, {id,
                post,
@@ -49,6 +64,7 @@
 -record(chat, {id,
                user_id,
                recipient_id,
+               title,
                body,
                date_created,
                date_updated}).
@@ -57,5 +73,7 @@
 -record(follower, {id, username}).
 -record(following, {id, username}).
 -record(hed_wallet, { id, password, date_created }).
+
+-record(media, {id, user_id, file, files, type, date_created, date_updated}).
 
 -define(MSG_INSUFFICIENT_FUNDS, <<"Insufficient funds.">>).

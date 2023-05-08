@@ -26,6 +26,9 @@ defmodule MazarynWeb do
       import Plug.Conn
       import MazarynWeb.Gettext
       alias MazarynWeb.Router.Helpers, as: Routes
+
+      unquote(verified_routes())
+
     end
   end
 

@@ -10,6 +10,8 @@ defmodule MazarynWeb.UserLive.Profile do
   alias Mazaryn.Schema.Post
   alias Core.PostClient
   alias Mazaryn.Posts
+  alias Phoenix.LiveView.JS
+  alias MazarynWeb.Router.Helpers, as: Routes
 
   @impl true
   def mount(
@@ -27,11 +29,15 @@ defmodule MazarynWeb.UserLive.Profile do
 
     socket =
       socket
+      |> assign(session_uuid: session_uuid)
       |> assign(post_changeset: post_changeset)
       |> assign(user_changeset: user_changeset)
       |> assign(user: user)
       |> assign(current_user: current_user)
       |> handle_assigns(current_user.id, username)
+      |> assign(edit_action: false)
+      |> assign(follower_action: false)
+      |> assign(follows_action: false)
 
     {:ok, socket}
   end
@@ -55,6 +61,7 @@ defmodule MazarynWeb.UserLive.Profile do
 
     socket =
       socket
+      |> assign(session_uuid: session_uuid)
       |> assign(posts: PostClient.get_posts_by_author(current_user.username))
       |> assign(post_changeset: post_changeset)
       |> assign(user_changeset: user_changeset)
@@ -98,7 +105,6 @@ defmodule MazarynWeb.UserLive.Profile do
       |> assign(search: nil)
       |> assign(user: current_user)
       |> assign(current_user: current_user)
-
     {:noreply, socket}
   end
 
@@ -117,11 +123,23 @@ defmodule MazarynWeb.UserLive.Profile do
     {:noreply, handle_assigns(socket, user_id, id)}
   end
 
-  # def handle_event("block_user", %{"id" => id}, socket) do
-  # id = socket.assigns.current_user.id
-  # UserClient.block(id, blocked)
-  # {:noreply, socket}
-  # end
+  def handle_event("open_modal", %{"action" => "follower"}, socket) do
+    {:noreply, socket |> assign(follower_action: true, edit_action: false, follows_action: false )}
+  end
+
+  def handle_event("open_modal", %{"action" => "edit"}, socket) do
+    {:noreply, socket |> assign(edit_action: true, follower_action: false, follows_action: false)}
+  end
+
+  def handle_event("open_modal", %{"action" => "follows"}, socket) do
+    {:noreply, socket |> assign(follows_action: true, edit_action: false, follower_action: false)}
+  end
+  
+  #def handle_event("block_user", %{"id" => id}, socket) do
+    #id = socket.assigns.current_user.id
+    #UserClient.block(id, blocked)
+    #{:noreply, socket}
+  #end
 
   # def handle_event("unblock_user", %{"id" => id}, socket) do
   # id = socket.assigns.current_user.id
@@ -141,10 +159,16 @@ defmodule MazarynWeb.UserLive.Profile do
     {:noreply, socket}
   end
 
+
   def handle_event("delete_user", %{"username" => username}, socket) do
-    username = UserClient.get_user(username)
     UserClient.delete_user(username)
-    {:noreply, socket}
+    session_id = socket.assigns.session_uuid
+    :ets.delete(:mazaryn_auth_table, :"#{session_id}")
+    {:noreply,
+      socket
+      |> put_flash(:info, "successfully deleted")
+      |> push_redirect(to:  Routes.page_path(socket, :index))
+    }
   end
 
   defp handle_assigns(socket, user_id, id) do
@@ -186,4 +210,5 @@ defmodule MazarynWeb.UserLive.Profile do
     |> UserClient.get_following()
     |> Enum.count()
   end
+
 end

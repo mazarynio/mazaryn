@@ -2,6 +2,7 @@ defmodule MazarynWeb.HomeLive.PostComponent do
   use MazarynWeb, :live_component
 
   alias MazarynWeb.Live.Helper
+  import MazarynWeb.Live.Helper
   alias MazarynWeb.Component.SelectLive
   alias Home.Post
   alias Account.Users
@@ -165,11 +166,18 @@ defmodule MazarynWeb.HomeLive.PostComponent do
      |> assign(:like_event, like_event(user_id, post_id))}
   end
 
-  # def handle_event("get_likes", %{"postID" => postID}, socket) do
-  # post_id = post_id |> to_charlist
-  # PostClient.get_likes(postID)
-  # {:noreply, socket}
-  # end
+  def handle_event("show_likes", %{"post-id" => post_id}, socket) do
+    post_id = post_id |> to_charlist
+
+    users =
+      post_id
+      |> PostClient.get_likes()
+      |> Enum.map(&(&1 |> Home.Like.erl_changeset() |> Home.Like.build() |> elem(1)))
+      |> Enum.map(fn like -> like.user_id |> Core.UserClient.get_user_by_id() end)
+      |> Enum.map(&(&1 |> elem(2) |> Account.Users.one_by_username()))
+
+    {:noreply, assign(socket, users: users)}
+  end
 
   def get_user_avatar(author) do
     case Users.one_by_username(author) do

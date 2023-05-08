@@ -133,6 +133,7 @@ defmodule MazarynWeb.Live.Helper do
     end
   end
 
+
   @doc """
   <button phx-click={Phoenix.LiveView.JS.toggle(to: "#modal")}>Open Modal</button>
 
@@ -141,13 +142,16 @@ defmodule MazarynWeb.Live.Helper do
     ...content
   </modal>
   """
-  @impl true
+
   def modal(assigns) do
+
     ~H"""
-    <div id="modal" class="hidden phx-modal fade-in" phx-remove={hide_modal()}>
+    <div id="modal" class="hidden phx-modal fade-in">
+      <div class="phx-overlay" phx-click={hide_modal()}>
+      </div>
       <div
         id="modal-content"
-        class="phx-modal-content fade-in-scale mx-auto border-[#888] border-0 md:border my-[60px] md:my-[30px] md:rounded-[20px]"
+        class="phx-modal-content mx-auto border-[#888] border-0 md:border my-[60px] md:my-[30px] md:rounded-[20px]"
         phx-click-away={JS.dispatch("click", to: "#close")}
         phx-window-keydown={JS.dispatch("click", to: "#close")}
         phx-key="escape"
@@ -182,9 +186,18 @@ defmodule MazarynWeb.Live.Helper do
     """
   end
 
-  defp hide_modal(js \\ %JS{}) do
+  def open_modal(js \\ %JS{}) do
+    js
+    |> JS.show(to: "#modal", transition: "fade-in")
+  end
+
+  def hide_modal(js \\ %JS{}) do
     js
     |> JS.hide(to: "#modal", transition: "fade-out")
-    |> JS.hide(to: "#modal-content", transition: "fade-out-scale")
+  end
+
+  def show_modal(js \\ %JS{}) do
+    js
+    |> JS.show(to: "#modal", transition: "fade-in")
   end
 end
