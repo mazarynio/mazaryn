@@ -1,10 +1,16 @@
 <main>
   <header class="bg-black shadow">
     <div class="flex justify-between items-center max-w-[1440px] w-[90%] px-0 mx-auto py-6 md:px-4 sm:px-6 lg:px-8">
-      <h1 class="flex justify-left items-center text-2xl md:text-3xl leading-0 font-thin text-[#E5E5E5]"><img class="logo brightness-150 h-[42px] md:h-auto" src="images/logo.png" alt="Elixir Social Network" /><span class="ml-[10px]">Blog</span></h1>
+      <h1 class="flex justify-left items-center text-2xl md:text-3xl leading-0 font-thin text-[#E5E5E5]">
+        <img
+          class="logo brightness-150 h-[42px] md:h-auto"
+          src="images/logo.png"
+          alt="Elixir Social Network"
+        /><span class="ml-[10px]">Blog</span>
+      </h1>
       <div>
         <a class="hidden md:block justify-center text-[#D3D3D3] hover:text-[#fff]" href="/login">
-            Connect with Mazaryn
+          Connect with Mazaryn
         </a>
         <div class="menuToggle md:hidden">
           <input type="checkbox" phx-click={toggle_menu()} />
@@ -23,14 +29,26 @@
 
   <div class="pb-[30px] md:pt-[40px] md:pb-[60px] mx-0">
     <div class="mx-auto w-[90%] md:w-[90%] 2xl:w-[75%]">
-      <a href="/blog/mazaryn" class="block mx-auto my-[40px] border-radius-[20px] group cursor-pointer">
-          <div class="rounded-2xl">
-              <img class="aspect-[16/12] md:aspect-[16/8] object-top object-cover rounded-2xl block border-[1px] opacity-100 md:opacity-70 transition-opacity group-hover:opacity-100" src="images/home-mazaryn-blog.jpg" alt="Mazaryn Blog" title="Mazaryn Blog" />
-          </div>
-          <div class="w-[98%] mx-auto">
-            <span class="block text-xl md:text-2xl font-[600] text-blue-700 mt-[25px] mb-[15px] mx-0">Community</span>
-            <h2 class="text-2xl md:text-4xl font-[700] leading-[2.25rem] md:leading-[2.8rem] text-black hover:text-blue-700">Mazaryn - an Online Community?</h2>
-          </div>
+      <a
+        href="/blog/mazaryn"
+        class="block mx-auto my-[40px] border-radius-[20px] group cursor-pointer"
+      >
+        <div class="rounded-2xl">
+          <img
+            class="aspect-[16/12] md:aspect-[16/8] object-top object-cover rounded-2xl block border-[1px] opacity-100 md:opacity-70 transition-opacity group-hover:opacity-100"
+            src="images/home-mazaryn-blog.jpg"
+            alt="Mazaryn Blog"
+            title="Mazaryn Blog"
+          />
+        </div>
+        <div class="w-[98%] mx-auto">
+          <span class="block text-xl md:text-2xl font-[600] text-blue-700 mt-[25px] mb-[15px] mx-0">
+            Community
+          </span>
+          <h2 class="text-2xl md:text-4xl font-[700] leading-[2.25rem] md:leading-[2.8rem] text-black hover:text-blue-700">
+            Mazaryn - an Online Community?
+          </h2>
+        </div>
       </a>
     </div>
   </div>
@@ -38,25 +56,49 @@
   <div class="border-y-2">
     <div class="flex flex-col md:flex-row justify-between lg:justify-center gap-[5px] w-[90%] px-0 my-[40px] mx-auto py-6 md:px-4 sm:px-6 lg:px-8">
       <div class="mb-[40px] md:mb-0">
-        <a href="/blog/polkadot" class="block md:w-[95%] mx-auto border-radius-[20px] group cursor-pointer" >
+        <a
+          href="/blog/polkadot"
+          class="block md:w-[95%] mx-auto border-radius-[20px] group cursor-pointer"
+        >
           <div>
-            <img class="aspect-[16/9] object-cover rounded-2xl block border-[1px] opacity-100 md:opacity-70 transition-opacity group-hover:opacity-100" src="images/polkadot.png" alt="polkadot" title="polkadot" />
+            <img
+              class="aspect-[16/9] object-cover rounded-2xl block border-[1px] opacity-100 md:opacity-70 transition-opacity group-hover:opacity-100"
+              src="images/polkadot.png"
+              alt="polkadot"
+              title="polkadot"
+            />
           </div>
           <div class="w-[98%] mx-auto">
-            <span class="block text-xl md:text-2xl font-[600] text-blue-700 mt-[25px] mb-[15px] mx-0">Features & Technologies</span>
-            <h3 class="text-xl md:text-2xl font-[700] leading-[2.4rem] text-black hover:text-blue-700">Why Choose Polkadot ?</h3>
+            <span class="block text-xl md:text-2xl font-[600] text-blue-700 mt-[25px] mb-[15px] mx-0">
+              Features & Technologies
+            </span>
+            <h3 class="text-xl md:text-2xl font-[700] leading-[2.4rem] text-black hover:text-blue-700">
+              Why Choose Polkadot ?
+            </h3>
           </div>
         </a>
       </div>
 
       <div>
-        <a href="/blog/kusama" class="block md:w-[95%] mx-auto border-radius-[20px] group cursor-pointer">
+        <a
+          href="/blog/kusama"
+          class="block md:w-[95%] mx-auto border-radius-[20px] group cursor-pointer"
+        >
           <div>
-            <img class="aspect-[16/9] object-cover rounded-2xl block border-[1px] opacity-100 md:opacity-70 transition-opacity group-hover:opacity-100" src="images/kusama.png" alt="kusama" title="kusama" />
+            <img
+              class="aspect-[16/9] object-cover rounded-2xl block border-[1px] opacity-100 md:opacity-70 transition-opacity group-hover:opacity-100"
+              src="images/kusama.png"
+              alt="kusama"
+              title="kusama"
+            />
           </div>
           <div class="w-[98%] mx-auto">
-            <span class="block text-xl md:text-2xl font-[600] text-blue-700 mt-[25px] mb-[15px] mx-0">Features & Technologies</span>
-            <h3 class="text-xl md:text-2xl font-[700] leading-[2.4rem] text-black hover:text-blue-700">Why Choose Kusama ?</h3>
+            <span class="block text-xl md:text-2xl font-[600] text-blue-700 mt-[25px] mb-[15px] mx-0">
+              Features & Technologies
+            </span>
+            <h3 class="text-xl md:text-2xl font-[700] leading-[2.4rem] text-black hover:text-blue-700">
+              Why Choose Kusama ?
+            </h3>
           </div>
         </a>
       </div>
@@ -66,149 +108,237 @@
   <div>
     <div class="flex flex-col md:flex-row justify-between gap-[15px] max-w-[1440px] w-[90%] px-0 md:my-[60px] mx-auto md:py-8 md:px-4 sm:px-6 lg:px-8">
       <div class="mb-[40px] md:mb-0">
-        <a href="/blog/cardano" class="block md:w-[95%] mx-auto border-radius-[20px] group cursor-pointer" >
+        <a
+          href="/blog/cardano"
+          class="block md:w-[95%] mx-auto border-radius-[20px] group cursor-pointer"
+        >
           <div>
-            <img class="aspect-[16/9] object-cover rounded-2xl block border-[1px] opacity-100 md:opacity-70 transition-opacity group-hover:opacity-100" src="images/cardano.png" alt="cardano" title="cardano" />
+            <img
+              class="aspect-[16/9] object-cover rounded-2xl block border-[1px] opacity-100 md:opacity-70 transition-opacity group-hover:opacity-100"
+              src="images/cardano.png"
+              alt="cardano"
+              title="cardano"
+            />
           </div>
           <div class="w-[98%] mx-auto">
-            <span class="block text-xl md:text-2xl font-[600] text-blue-700 mt-[25px] mb-[15px] mx-0">Features & Technologies</span>
-            <h3 class="text-xl md:text-2xl font-[700] leading-[2.4rem] text-black hover:text-blue-700">Why Choose Cardano ?</h3>
+            <span class="block text-xl md:text-2xl font-[600] text-blue-700 mt-[25px] mb-[15px] mx-0">
+              Features & Technologies
+            </span>
+            <h3 class="text-xl md:text-2xl font-[700] leading-[2.4rem] text-black hover:text-blue-700">
+              Why Choose Cardano ?
+            </h3>
           </div>
         </a>
       </div>
 
       <div class="mb-[40px] md:mb-0">
-        <a href="/blog/joy-of-elixir-and-phoenix" class="block md:w-[95%] mx-auto border-radius-[20px] group cursor-pointer">
+        <a
+          href="/blog/joy-of-elixir-and-phoenix"
+          class="block md:w-[95%] mx-auto border-radius-[20px] group cursor-pointer"
+        >
           <div>
-            <img class="aspect-[16/9] object-cover rounded-2xl block border-[1px] opacity-100 md:opacity-70 transition-opacity group-hover:opacity-100" src="images/joy-of-elixir-and-phoenix.png" alt="Joy of elixir and phoenix" title="Joy of elixir and phoenix" />
+            <img
+              class="aspect-[16/9] object-cover rounded-2xl block border-[1px] opacity-100 md:opacity-70 transition-opacity group-hover:opacity-100"
+              src="images/joy-of-elixir-and-phoenix.png"
+              alt="Joy of elixir and phoenix"
+              title="Joy of elixir and phoenix"
+            />
           </div>
           <div class="w-[98%] mx-auto">
-            <span class="block text-xl md:text-2xl font-[600] text-blue-700 mt-[25px] mb-[15px] mx-0">Engineering & Design</span>
-            <h3 class="text-xl md:text-2xl font-[700] leading-[2.4rem] text-black hover:text-blue-700">Joy of Elixir & Phoenix </h3>
+            <span class="block text-xl md:text-2xl font-[600] text-blue-700 mt-[25px] mb-[15px] mx-0">
+              Engineering & Design
+            </span>
+            <h3 class="text-xl md:text-2xl font-[700] leading-[2.4rem] text-black hover:text-blue-700">
+              Joy of Elixir & Phoenix
+            </h3>
           </div>
         </a>
       </div>
 
       <div class="mb-[40px] md:mb-0">
-        <a href="/blog/aeternity" class="block md:w-[95%] mx-auto border-radius-[20px] group cursor-pointer">
+        <a
+          href="/blog/aeternity"
+          class="block md:w-[95%] mx-auto border-radius-[20px] group cursor-pointer"
+        >
           <div>
-            <img class="aspect-[16/9] object-cover rounded-2xl block border-[1px] opacity-100 md:opacity-70 transition-opacity group-hover:opacity-100" src="images/aeternity.png" alt="aeternity" title="aeternity" />
+            <img
+              class="aspect-[16/9] object-cover rounded-2xl block border-[1px] opacity-100 md:opacity-70 transition-opacity group-hover:opacity-100"
+              src="images/aeternity.png"
+              alt="aeternity"
+              title="aeternity"
+            />
           </div>
           <div class="w-[98%] mx-auto">
-            <span class="block text-xl md:text-2xl font-[600] text-blue-700 mt-[25px] mb-[15px] mx-0">Features & Technologies</span>
-            <h3 class="text-xl md:text-2xl font-[700] leading-[2.4rem] text-black hover:text-blue-700">Why Choose Aeternity ?</h3>
+            <span class="block text-xl md:text-2xl font-[600] text-blue-700 mt-[25px] mb-[15px] mx-0">
+              Features & Technologies
+            </span>
+            <h3 class="text-xl md:text-2xl font-[700] leading-[2.4rem] text-black hover:text-blue-700">
+              Why Choose Aeternity ?
+            </h3>
           </div>
         </a>
       </div>
-
-       
     </div>
   </div>
 
   <div class="bg-blue-50 relative md:py-[10px]">
     <div class="flex flex-col md:flex-row justify-between items-center lg:justify-left gap-[5px] max-w-[1440px] w-[90%] px-0 md:my-[40px] mx-auto py-6 md:px-4 sm:px-6 lg:px-8">
       <div class="mb-[20px] md:mb-[40px] md:mb-0">
-        <a href="/blog/nft" class="block md:w-[95%] mx-auto border-radius-[20px] group cursor-pointer" >
+        <a
+          href="/blog/nft"
+          class="block md:w-[95%] mx-auto border-radius-[20px] group cursor-pointer"
+        >
           <div class="w-[98%] mx-auto">
-          <span class="block text-xl md:text-3xl font-[600] text-blue-700 mt-[25px] mb-[25px] mx-0">Features & Technologies</span>
+            <span class="block text-xl md:text-3xl font-[600] text-blue-700 mt-[25px] mb-[25px] mx-0">
+              Features & Technologies
+            </span>
           </div>
           <div>
-            <img class="aspect-[16/9] object-cover rounded-2xl block border-[1px] opacity-100 md:opacity-70 transition-opacity group-hover:opacity-100" src="/images/nftnft.jpg" alt="polkadot" title="polkadot" />
+            <img
+              class="aspect-[16/9] object-cover rounded-2xl block border-[1px] opacity-100 md:opacity-70 transition-opacity group-hover:opacity-100"
+              src="/images/nftnft.jpg"
+              alt="polkadot"
+              title="polkadot"
+            />
           </div>
         </a>
       </div>
       <div class="w-[95%] md:w-[30%] mx-auto md:py-[40px]">
-          <a href="/blog/nft" class="block">
-            <h3 class="text-xl md:text-2xl font-[700] leading-[2.4rem] md:pt-[40px] mb-[10px] md:mb-[25px] text-black hover:text-blue-700">What is NFT ?</h3>
-          </a>
-          <small class="block text-lg font-[500] text-black pb-[20px] md:pb-[30px]">
+        <a href="/blog/nft" class="block">
+          <h3 class="text-xl md:text-2xl font-[700] leading-[2.4rem] md:pt-[40px] mb-[10px] md:mb-[25px] text-black hover:text-blue-700">
+            What is NFT ?
+          </h3>
+        </a>
+        <small class="block text-lg font-[500] text-black pb-[20px] md:pb-[30px]">
           Non-fungible tokens, commonly known as NFTs, are unique cryptographic tokens that exist on a blockchain and cannot be...
-          </small>
-          <a  href="/blog/nft" class="block h-[45px] w-[145px] capitalize py-[8px] px-[18px] text-[#fff] hover:bg-blue-700 text-center bg-blue-600 rounded-[25px] cursor-pointer">
-            Read more
-          </a>
+        </small>
+        <a
+          href="/blog/nft"
+          class="block h-[45px] w-[145px] capitalize py-[8px] px-[18px] text-[#fff] hover:bg-blue-700 text-center bg-blue-600 rounded-[25px] cursor-pointer"
+        >
+          Read more
+        </a>
       </div>
-
     </div>
   </div>
   <div class="bg-pink-100 relative md:py-[10px]">
     <div class="flex flex-col md:flex-row-reverse justify-between items-center lg:justify-left gap-[5px] max-w-[1440px] w-[90%] px-0 md:my-[40px] mx-auto py-6 md:px-4 sm:px-6 lg:px-8">
       <div class="mb-[20px] md:mb-[40px] md:mb-0">
-        <a href="/blog/phoenix-and-absinthe" class="block md:w-[95%] mx-auto border-radius-[20px] group cursor-pointer" >
+        <a
+          href="/blog/phoenix-and-absinthe"
+          class="block md:w-[95%] mx-auto border-radius-[20px] group cursor-pointer"
+        >
           <div class="w-[98%] mx-auto">
-          <span class="block text-xl md:text-right md:text-3xl font-[600] text-blue-700 mt-[25px] mb-[25px] mx-0">Features & Technologies</span>
+            <span class="block text-xl md:text-right md:text-3xl font-[600] text-blue-700 mt-[25px] mb-[25px] mx-0">
+              Features & Technologies
+            </span>
           </div>
           <div>
-            <img class="aspect-[16/9] object-cover rounded-2xl block border-[1px] opacity-100 md:opacity-70 transition-opacity group-hover:opacity-100" src="/images/phoenix-absinthe.jpg" alt="Phoenix and Absinthe" title="Phoenix and Absinthe" />
+            <img
+              class="aspect-[16/9] object-cover rounded-2xl block border-[1px] opacity-100 md:opacity-70 transition-opacity group-hover:opacity-100"
+              src="/images/phoenix-absinthe.jpg"
+              alt="Phoenix and Absinthe"
+              title="Phoenix and Absinthe"
+            />
           </div>
         </a>
       </div>
       <div class="w-[95%] md:w-[30%] mx-auto md:py-[40px]">
-          <a href="/blog/phoenix-and-absinthe" class="block">
-            <h3 class="text-xl md:text-2xl font-[700] leading-[2.4rem] md:pt-[40px] mb-[10px] md:mb-[25px] text-black hover:text-blue-700">Phoenix & Absinthe</h3>
-          </a>
-          <small class="block text-lg font-[500] text-black pb-[20px] md:pb-[30px]">
-           Phoenix using Absinthe which is a GraphQL toolkit for Elixir...
-          </small>
-          <a  href="/blog/phoenix-and-absinthe" class="block h-[45px] w-[145px] capitalize py-[8px] px-[18px] text-[#fff] hover:bg-blue-700 text-center bg-blue-600 rounded-[25px] cursor-pointer">
-            Read more
-          </a>
+        <a href="/blog/phoenix-and-absinthe" class="block">
+          <h3 class="text-xl md:text-2xl font-[700] leading-[2.4rem] md:pt-[40px] mb-[10px] md:mb-[25px] text-black hover:text-blue-700">
+            Phoenix & Absinthe
+          </h3>
+        </a>
+        <small class="block text-lg font-[500] text-black pb-[20px] md:pb-[30px]">
+          Phoenix using Absinthe which is a GraphQL toolkit for Elixir...
+        </small>
+        <a
+          href="/blog/phoenix-and-absinthe"
+          class="block h-[45px] w-[145px] capitalize py-[8px] px-[18px] text-[#fff] hover:bg-blue-700 text-center bg-blue-600 rounded-[25px] cursor-pointer"
+        >
+          Read more
+        </a>
       </div>
-
     </div>
   </div>
   <div class="bg-yellow-50 relative md:py-[10px]">
     <div class="flex flex-col md:flex-row justify-between items-center lg:justify-left gap-[5px] max-w-[1440px] w-[90%] px-0 md:my-[40px] mx-auto py-6 md:px-4 sm:px-6 lg:px-8">
       <div class="mb-[20px] md:mb-[40px] md:mb-0">
-        <a href="/blog/ai-nft" class="block md:w-[95%] mx-auto border-radius-[20px] group cursor-pointer" >
+        <a
+          href="/blog/ai-nft"
+          class="block md:w-[95%] mx-auto border-radius-[20px] group cursor-pointer"
+        >
           <div class="w-[98%] mx-auto">
-          <span class="block text-xl md:text-3xl font-[600] text-blue-700 mt-[25px] mb-[25px] mx-0">Features & Technologies</span>
+            <span class="block text-xl md:text-3xl font-[600] text-blue-700 mt-[25px] mb-[25px] mx-0">
+              Features & Technologies
+            </span>
           </div>
           <div>
-            <img class="aspect-[16/9] object-cover rounded-2xl block border-[1px] opacity-100 md:opacity-70 transition-opacity group-hover:opacity-100" src="/images/nftai.jpg" alt="AI NFT - The future trnds" title="AI NFT - The future trnds" />
+            <img
+              class="aspect-[16/9] object-cover rounded-2xl block border-[1px] opacity-100 md:opacity-70 transition-opacity group-hover:opacity-100"
+              src="/images/nftai.jpg"
+              alt="AI NFT - The future trnds"
+              title="AI NFT - The future trnds"
+            />
           </div>
         </a>
       </div>
       <div class="w-[95%] md:w-[30%] mx-auto md:py-[40px]">
-          <a href="/blog/ai-nft" class="block">
-            <h3 class="text-xl md:text-2xl font-[700] leading-[2.4rem] md:pt-[40px] mb-[10px] md:mb-[25px] text-black hover:text-blue-700">AI NFTs; the future of NFTs</h3>
-          </a>
-          <small class="block text-lg font-[500] text-black pb-[20px] md:pb-[30px]">
+        <a href="/blog/ai-nft" class="block">
+          <h3 class="text-xl md:text-2xl font-[700] leading-[2.4rem] md:pt-[40px] mb-[10px] md:mb-[25px] text-black hover:text-blue-700">
+            AI NFTs; the future of NFTs
+          </h3>
+        </a>
+        <small class="block text-lg font-[500] text-black pb-[20px] md:pb-[30px]">
           A non-fungible token (NFT) is a type of cryptographic token that represents a unique asset. NFTs are tokenized versions of digital...
-          </small>
-          <a  href="/blog/ai-nft" class="block h-[45px] w-[145px] capitalize py-[8px] px-[18px] text-[#fff] hover:bg-blue-700 text-center bg-blue-600 rounded-[25px] cursor-pointer">
-            Read more
-          </a>
+        </small>
+        <a
+          href="/blog/ai-nft"
+          class="block h-[45px] w-[145px] capitalize py-[8px] px-[18px] text-[#fff] hover:bg-blue-700 text-center bg-blue-600 rounded-[25px] cursor-pointer"
+        >
+          Read more
+        </a>
       </div>
-
     </div>
   </div>
   <div class="bg-white-100 relative md:py-[10px]">
     <div class="flex flex-col md:flex-row-reverse justify-between items-center lg:justify-left gap-[5px] max-w-[1440px] w-[90%] px-0 md:my-[40px] mx-auto py-6 md:px-4 sm:px-6 lg:px-8">
-        <div class="mb-[20px] md:mb-[40px] md:mb-0">
-          <a href="/blog/blockchain" class="block md:w-[95%] mx-auto border-radius-[20px] group cursor-pointer" >
-            <div class="w-[98%] mx-auto">
-            <span class="block text-xl md:text-right md:text-3xl font-[600] text-blue-700 mt-[25px] mb-[25px] mx-0">Features & Technologies</span>
-            </div>
-            <div>
-              <img class="aspect-[16/9]  md:h-[400px] object-cover rounded-2xl block border-[1px] opacity-100 md:opacity-70 transition-opacity group-hover:opacity-100" src="/images/blockchain.jpg" alt="Blockchain" title="Blockchain" />
-            </div>
-          </a>
-        </div>
-        <div class="w-[95%] md:w-[30%] mx-auto md:py-[40px]">
-            <a href="/blog/blockchain" class="block">
-              <h3 class="text-xl md:text-2xl font-[700] leading-[2.4rem] md:pt-[40px] mb-[10px] md:mb-[25px] text-black hover:text-blue-700">Blockchain</h3>
-            </a>
-            <small class="block text-lg font-[500] text-black pb-[20px] md:pb-[30px]">
-            Blockchain; is it really worth your time and? Are your data secured? Why don't we stick to...
-            </small>
-            <a  href="/blog/blockchain" class="block h-[45px] w-[145px] capitalize py-[8px] px-[18px] text-[#fff] hover:bg-blue-700 text-center bg-blue-600 rounded-[25px] cursor-pointer">
-              Read more
-            </a>
-        </div>
+      <div class="mb-[20px] md:mb-[40px] md:mb-0">
+        <a
+          href="/blog/blockchain"
+          class="block md:w-[95%] mx-auto border-radius-[20px] group cursor-pointer"
+        >
+          <div class="w-[98%] mx-auto">
+            <span class="block text-xl md:text-right md:text-3xl font-[600] text-blue-700 mt-[25px] mb-[25px] mx-0">
+              Features & Technologies
+            </span>
+          </div>
+          <div>
+            <img
+              class="aspect-[16/9]  md:h-[400px] object-cover rounded-2xl block border-[1px] opacity-100 md:opacity-70 transition-opacity group-hover:opacity-100"
+              src="/images/blockchain.jpg"
+              alt="Blockchain"
+              title="Blockchain"
+            />
+          </div>
+        </a>
+      </div>
+      <div class="w-[95%] md:w-[30%] mx-auto md:py-[40px]">
+        <a href="/blog/blockchain" class="block">
+          <h3 class="text-xl md:text-2xl font-[700] leading-[2.4rem] md:pt-[40px] mb-[10px] md:mb-[25px] text-black hover:text-blue-700">
+            Blockchain
+          </h3>
+        </a>
+        <small class="block text-lg font-[500] text-black pb-[20px] md:pb-[30px]">
+          Blockchain; is it really worth your time and? Are your data secured? Why don't we stick to...
+        </small>
+        <a
+          href="/blog/blockchain"
+          class="block h-[45px] w-[145px] capitalize py-[8px] px-[18px] text-[#fff] hover:bg-blue-700 text-center bg-blue-600 rounded-[25px] cursor-pointer"
+        >
+          Read more
+        </a>
+      </div>
     </div>
   </div>
-  
-
-
 </main>

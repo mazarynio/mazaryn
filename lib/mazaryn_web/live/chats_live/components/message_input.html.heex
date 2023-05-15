@@ -2,11 +2,11 @@
   <.form
     :let={f}
     for={@changeset}
-    phx-change="validate-post"
-    phx-submit="save-post"
+    phx-change="validate-message"
+    phx-submit="send-message"
     phx-target={@myself}
-    multipart
     class="flex flex-col justify-between align-center w-full m-0"
+    id="message-form"
   >
     <div class="flex relative items-center p-0">
       <img
@@ -16,16 +16,18 @@
       <div class="relative top-2.5 ml-1 text-sm leading-tight w-full">
         <%= textarea(
           f,
-          :content,
+          :body,
           class:
             "w-full border-none resize-none focus:text-black focus:ring-0 font-normal leading-[24px] block placeholder:text-[#C5C7C8]",
-          placeholder: "Type something"
+          placeholder: "Write your message"
         ) %>
+        <%= hidden_input(f, :user_id, value: @user.id) %>
+        <%= hidden_input(f, :recipient_id, value: @recipient.id) %>
       </div>
     </div>
 
     <div>
-      <span class="text-sm"><%= push_error_tag(f, :content) %></span>
+      <span class="text-sm"><%= push_error_tag(f, :body) %></span>
     </div>
 
     <div class="flex-flex-row justify-between items-center px-5 md:hidden">
@@ -97,18 +99,14 @@
 
           <%= live_file_input(@uploads.media, hidden: true) %>
         </i>
-        <%= live_component(SelectLive,
-          id: "privacy-select",
-          f: f,
-          name: :privacy,
-          options: ["public", "private", "only me"]
-        ) %>
       </div>
-      <%= submit("Post",
-        class:
-          "bg-[#4385F5] text-white rounded-[10px] py-1.5 px-6 self-auto min-h-[40px] min-w-[100px]",
-        phx_disabled_with: "Posting..."
-      ) %>
+      <button
+        type="submit"
+        form="message-form"
+        class="bg-[#4385F5] text-white rounded-[10px] py-1.5 px-6 self-auto min-h-[40px] min-w-[100px]"
+      >
+        Send
+      </button>
     </div>
   </.form>
 </div>

@@ -5,7 +5,7 @@ defmodule MazarynWeb.Live.Helper do
   alias Phoenix.LiveView.JS
   require Logger
 
-  def handle_avatar(user), do: user.avatar_url || "images/default-user.svg"
+  def handle_avatar(user), do: user.avatar_url || ~p"/images/default-user.svg"
 
   def is_disabled(changeset) do
     if Ecto.Changeset.get_field(changeset, :form_disabled) == true do
@@ -156,12 +156,30 @@ defmodule MazarynWeb.Live.Helper do
         phx-window-keydown={JS.dispatch("click", to: "#close")}
         phx-key="escape"
       >
-
-      <a id="close" data-phx-link="patch" data-phx-link-state="push"  class="phx-modal-close" phx-click={hide_modal()}>
-            <svg class="icon-close" width="10" height="10" viewBox="0 0 11 10" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M5.5416 5.00003L10.2297 9.36919M0.853516 9.36919L5.5416 5.00003L0.853516 9.36919ZM10.2297 0.630859L5.5407 5.00003L10.2297 0.630859ZM5.5407 5.00003L0.853516 0.630859L5.5407 5.00003Z" stroke="#5D5F63" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          </a>
+        <a
+          id="close"
+          data-phx-link="patch"
+          data-phx-link-state="push"
+          class="phx-modal-close"
+          phx-click={hide_modal()}
+        >
+          <svg
+            class="icon-close"
+            width="10"
+            height="10"
+            viewBox="0 0 11 10"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M5.5416 5.00003L10.2297 9.36919M0.853516 9.36919L5.5416 5.00003L0.853516 9.36919ZM10.2297 0.630859L5.5407 5.00003L10.2297 0.630859ZM5.5407 5.00003L0.853516 0.630859L5.5407 5.00003Z"
+              stroke="#5D5F63"
+              stroke-width="1.25"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+        </a>
         <%= render_slot(@inner_block) %>
       </div>
     </div>

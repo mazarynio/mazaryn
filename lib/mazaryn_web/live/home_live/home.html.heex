@@ -1,141 +1,194 @@
 <!-- navigation -->
-<.live_component module={MazarynWeb.HomeLive.NavComponent} id="navigation" user={@user} search={@search} />
-
+<.live_component
+  module={MazarynWeb.HomeLive.NavComponent}
+  id="navigation"
+  user={@user}
+  search={@search}
+/>
 <!-- Three columns -->
 <div class="bg-[#FAFAFA]">
-    <div class="flex flex-wrap w-[90%] max-w-[1440px] mx-auto">
-        <div class="w-full lg:w-[18%] py-6">
-            <.live_component module={MazarynWeb.HomeLive.LeftSidebarComponent} id="leftsidebar" user={@user} />
-        </div>
-        <!-- middle column -->
-        <div class="w-full lg:w-[54%] py-6 pl-11 pr-8">
-            <div class="w-full bg-white white:bg-gray-800 custom-box-shadow pr-8 pl-7 pb-7 pt-4 rounded-[20px]">
-                <.live_component module={MazarynWeb.HomeLive.CreatePostComponent} id="posting" changeset={@post_changeset} user={@user} />
-            </div>
-            <div class="flex flex-wrap justify-center align-center mb-6">
-                <%= for post <- @posts do %>
-                    <.live_component module={MazarynWeb.HomeLive.PostComponent} id={"post-#{post.id}"} post={post} current_user={@user} />
-                <% end %>
-            </div>
-        </div>
-        <!-- end of middle column-->
-
-
-        <div class="w-full lg:w-[28%] py-6">
-            <.live_component module={MazarynWeb.Component.CompleteProfile} user={@user} id="completing"  />
-
-            <!-- Trending -->
-            <div class="w-full bg-white white:bg-gray-800 custom-box-shadow py-7 pl-8 pr-7 rounded-[20px] my-7">
-                <div class="flex flex-row justify-between">
-                    <h1 class="block flex items-center text-l font-semibold">
-                        <i>
-                            <svg class="h-7 w-7 mr-3 fill-red-500" width="22" height="24" viewBox="0 0 22 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M17.625 6.99959C17.625 8.87459 17 11.3746 14 12.3746C14.875 10.2496 15 8.12459 14.375 6.12459C13.5 3.49959 10.625 1.49959 8.625 0.374594C8.125 -0.000406042 7.25 0.499594 7.375 1.24959C7.375 2.62459 7 4.62459 4.875 6.74959C2.125 9.49959 0.75 12.3746 0.75 15.1246C0.75 18.7496 3.25 23.2496 8.25 23.2496C3.25 18.2496 7 13.8746 7 13.8746C8 21.2496 13.25 23.2496 15.75 23.2496C17.875 23.2496 22 21.7496 22 15.2496C22 11.3746 20.375 8.37459 19 6.62459C18.625 5.99959 17.75 6.37459 17.625 6.99959Z" fill="#FF7A00"/>
-                            </svg>
-                        </i>
-                        Trending
-                    </h1>
-                    <a href="#" class="block text-base text-[#4385F5]">See more</a>
-                </div>
-                <div class="border-[#C5C7C8] border border-b-0 mt-6 mb-7"></div>
-                <div class="flex justify-between align-center items-center">
-                    <div class="w-full flex justify-between items-center">
-                        <ul class="w-full">
-                            <li class="active mb-7">
-                                <div class="flex justify-between align-center items-center">
-                                    <div class="flex flex-col">
-                                        <a href="index.html" class="text-base text-[#5D5F63] font-semibold">#TECH</a>
-                                        <span class="text-sm text-[#60616D]">345 posts</span>
-                                    </div>
-
-                                    <div class="flex space-x-2 justify-center">
-                                        <button type="button" class="inline-block flex items-center px-4 py-2.5 border border-gray-400  text-gray-400 font-medium text-xs leading-tight uppercase rounded-lg transition duration-150 ease-in-out hover:bg-gray-100">
-                                            <i><%= Heroicons.icon("plus-circle", type: "outline",class: "h-5 w-5 mr-2") %></i>
-                                            Follow
-                                        </button>
-                                    </div>
-                                </div>
-                            </li>
-                            <li class="active">
-                                <div class="flex justify-between align-center items-center">
-                                    <div class="flex flex-col">
-                                        <a href="index.html" class="text-base text-[#5D5F63] font-semibold">#METAVERSE</a>
-                                        <span class="text-sm text-[#60616D]">200 posts</span>
-                                    </div>
-                                    <div class="flex space-x-2 justify-center">
-                                        <button type="button" class="inline-block flex items-center px-4 py-2.5 border border-gray-400  text-gray-400 font-medium text-xs leading-tight uppercase rounded-lg transition duration-150 ease-in-out hover:bg-gray-100">
-                                            <i><%= Heroicons.icon("plus-circle", type: "outline",class: "h-5 w-5 mr-2") %></i>
-                                            Follow
-                                        </button>
-                                    </div>
-                                </div>
-                            </li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Groups -->
-            <div class="w-full opacity-0 bg-white white:bg-gray-800 custom-box-shadow py-7 pl-8 pr-7 rounded-[20px] my-7">
-                <div class="flex flex-row justify-between">
-                    <h1 class="block flex items-center text-base font-semibold">
-                        <i><%= Heroicons.icon("users", class: "h-7 w-7 mr-3 fill-blue-500") %></i>
-                        Groups
-                    </h1>
-                    <a href="#" class="block text-base text-[#4385F5]">See more</a>
-                </div>
-                <div class="border-[#C5C7C8] border border-b-0 mt-6 mb-7"></div>
-                <div class="flex justify-between align-center items-center">
-                    <div class="w-full flex justify-between items-center">
-                        <ul class="w-full">
-                            <li class="active mb-7">
-                                <div class="flex justify-between align-center items-center">
-
-                                    <div class="flex flex-row items-center">
-                                        <div class="rounded-full flex-shrink-0">
-                                            <img src={Routes.static_path(@socket, "/images/profile-photo.svg")} alt="Mazaryn symbol" class="w-10 rounded-full"/>
-                                        </div>
-                                        <div class="flex flex-col items-center ml-2.5">
-                                            <a href="index.html" class="text-l px-2 text-[#5D5F63] font-semibold">Sports</a>
-                                            <span class="text-sm text-[#60616D]">20k members</span>
-                                        </div>
-                                    </div>
-
-
-                                    <div class="flex space-x-2 justify-center">
-                                        <button type="button" class="inline-block flex items-center px-4 py-2.5 border border-gray-400  text-gray-400 font-medium text-xs leading-tight uppercase rounded-lg transition duration-150 ease-in-out hover:bg-gray-100">
-                                            <i><%= Heroicons.icon("plus-circle", type: "outline",class: "h-5 w-5 mr-2") %></i>
-                                            Join
-                                        </button>
-                                    </div>
-                                </div>
-                            </li>
-                            <li class="active pb-3">
-                                <div class="flex justify-between align-center items-center">
-
-                                    <div class="flex flex-row items-center">
-                                        <div class="rounded-full flex-shrink-0">
-                                            <img src={Routes.static_path(@socket, "/images/profile-photo.svg")} alt="Mazaryn symbol" class="w-10 rounded-full"/>
-                                        </div>
-                                        <div class="flex flex-col items-center ml-2.5">
-                                            <a href="index.html" class="text-l px-2 text-[#5D5F63]font-semibold">Crypto-edu</a>
-                                            <span class="text-sm text-[#60616D]">20k members</span>
-                                        </div>
-                                    </div>
-
-
-                                    <div class="flex space-x-2 justify-center">
-                                        <button type="button" class="inline-block flex items-center px-4 py-2.5 border border-gray-400  text-gray-400 font-medium text-xs leading-tight uppercase rounded-lg transition duration-150 ease-in-out hover:bg-gray-100">
-                                            <i><%= Heroicons.icon("plus-circle", type: "outline",class: "h-5 w-5 mr-2") %></i>
-                                            Join
-                                        </button>
-                                    </div>
-                                </div>
-                            </li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-        </div>
+  <div class="flex flex-wrap w-[90%] max-w-[1440px] mx-auto">
+    <div class="w-full lg:w-[18%] py-6">
+      <.live_component
+        module={MazarynWeb.HomeLive.LeftSidebarComponent}
+        id="leftsidebar"
+        user={@user}
+      />
     </div>
+    <!-- middle column -->
+    <div class="w-full lg:w-[54%] py-6 pl-11 pr-8">
+      <div class="w-full bg-white white:bg-gray-800 custom-box-shadow pr-8 pl-7 pb-7 pt-4 rounded-[20px]">
+        <.live_component
+          module={MazarynWeb.HomeLive.CreatePostComponent}
+          id="posting"
+          changeset={@post_changeset}
+          user={@user}
+        />
+      </div>
+      <div class="flex flex-wrap justify-center align-center mb-6">
+        <%= for post <- @posts do %>
+          <.live_component
+            module={MazarynWeb.HomeLive.PostComponent}
+            id={"post-#{post.id}"}
+            post={post}
+            current_user={@user}
+          />
+        <% end %>
+      </div>
+    </div>
+    <!-- end of middle column-->
+    <div class="w-full lg:w-[28%] py-6">
+      <.live_component module={MazarynWeb.Component.CompleteProfile} user={@user} id="completing" />
+      <!-- Trending -->
+      <div class="w-full bg-white white:bg-gray-800 custom-box-shadow py-7 pl-8 pr-7 rounded-[20px] my-7">
+        <div class="flex flex-row justify-between">
+          <h1 class="block flex items-center text-l font-semibold">
+            <i>
+              <svg
+                class="h-7 w-7 mr-3 fill-red-500"
+                width="22"
+                height="24"
+                viewBox="0 0 22 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M17.625 6.99959C17.625 8.87459 17 11.3746 14 12.3746C14.875 10.2496 15 8.12459 14.375 6.12459C13.5 3.49959 10.625 1.49959 8.625 0.374594C8.125 -0.000406042 7.25 0.499594 7.375 1.24959C7.375 2.62459 7 4.62459 4.875 6.74959C2.125 9.49959 0.75 12.3746 0.75 15.1246C0.75 18.7496 3.25 23.2496 8.25 23.2496C3.25 18.2496 7 13.8746 7 13.8746C8 21.2496 13.25 23.2496 15.75 23.2496C17.875 23.2496 22 21.7496 22 15.2496C22 11.3746 20.375 8.37459 19 6.62459C18.625 5.99959 17.75 6.37459 17.625 6.99959Z"
+                  fill="#FF7A00"
+                />
+              </svg>
+            </i>
+            Trending
+          </h1>
+          <a href="#" class="block text-base text-[#4385F5]">See more</a>
+        </div>
+        <div class="border-[#C5C7C8] border border-b-0 mt-6 mb-7"></div>
+        <div class="flex justify-between align-center items-center">
+          <div class="w-full flex justify-between items-center">
+            <ul class="w-full">
+              <li class="active mb-7">
+                <div class="flex justify-between align-center items-center">
+                  <div class="flex flex-col">
+                    <a href="index.html" class="text-base text-[#5D5F63] font-semibold">#TECH</a>
+                    <span class="text-sm text-[#60616D]">345 posts</span>
+                  </div>
+
+                  <div class="flex space-x-2 justify-center">
+                    <button
+                      type="button"
+                      class="inline-block flex items-center px-4 py-2.5 border border-gray-400  text-gray-400 font-medium text-xs leading-tight uppercase rounded-lg transition duration-150 ease-in-out hover:bg-gray-100"
+                    >
+                      <i>
+                        <%= Heroicons.icon("plus-circle", type: "outline", class: "h-5 w-5 mr-2") %>
+                      </i>
+                      Follow
+                    </button>
+                  </div>
+                </div>
+              </li>
+              <li class="active">
+                <div class="flex justify-between align-center items-center">
+                  <div class="flex flex-col">
+                    <a href="index.html" class="text-base text-[#5D5F63] font-semibold">
+                      #METAVERSE
+                    </a>
+                    <span class="text-sm text-[#60616D]">200 posts</span>
+                  </div>
+                  <div class="flex space-x-2 justify-center">
+                    <button
+                      type="button"
+                      class="inline-block flex items-center px-4 py-2.5 border border-gray-400  text-gray-400 font-medium text-xs leading-tight uppercase rounded-lg transition duration-150 ease-in-out hover:bg-gray-100"
+                    >
+                      <i>
+                        <%= Heroicons.icon("plus-circle", type: "outline", class: "h-5 w-5 mr-2") %>
+                      </i>
+                      Follow
+                    </button>
+                  </div>
+                </div>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <!-- Groups -->
+      <div class="w-full opacity-0 bg-white white:bg-gray-800 custom-box-shadow py-7 pl-8 pr-7 rounded-[20px] my-7">
+        <div class="flex flex-row justify-between">
+          <h1 class="block flex items-center text-base font-semibold">
+            <i><%= Heroicons.icon("users", class: "h-7 w-7 mr-3 fill-blue-500") %></i> Groups
+          </h1>
+          <a href="#" class="block text-base text-[#4385F5]">See more</a>
+        </div>
+        <div class="border-[#C5C7C8] border border-b-0 mt-6 mb-7"></div>
+        <div class="flex justify-between align-center items-center">
+          <div class="w-full flex justify-between items-center">
+            <ul class="w-full">
+              <li class="active mb-7">
+                <div class="flex justify-between align-center items-center">
+                  <div class="flex flex-row items-center">
+                    <div class="rounded-full flex-shrink-0">
+                      <img
+                        src={Routes.static_path(@socket, "/images/profile-photo.svg")}
+                        alt="Mazaryn symbol"
+                        class="w-10 rounded-full"
+                      />
+                    </div>
+                    <div class="flex flex-col items-center ml-2.5">
+                      <a href="index.html" class="text-l px-2 text-[#5D5F63] font-semibold">
+                        Sports
+                      </a>
+                      <span class="text-sm text-[#60616D]">20k members</span>
+                    </div>
+                  </div>
+
+                  <div class="flex space-x-2 justify-center">
+                    <button
+                      type="button"
+                      class="inline-block flex items-center px-4 py-2.5 border border-gray-400  text-gray-400 font-medium text-xs leading-tight uppercase rounded-lg transition duration-150 ease-in-out hover:bg-gray-100"
+                    >
+                      <i>
+                        <%= Heroicons.icon("plus-circle", type: "outline", class: "h-5 w-5 mr-2") %>
+                      </i>
+                      Join
+                    </button>
+                  </div>
+                </div>
+              </li>
+              <li class="active pb-3">
+                <div class="flex justify-between align-center items-center">
+                  <div class="flex flex-row items-center">
+                    <div class="rounded-full flex-shrink-0">
+                      <img
+                        src={Routes.static_path(@socket, "/images/profile-photo.svg")}
+                        alt="Mazaryn symbol"
+                        class="w-10 rounded-full"
+                      />
+                    </div>
+                    <div class="flex flex-col items-center ml-2.5">
+                      <a href="index.html" class="text-l px-2 text-[#5D5F63]font-semibold">
+                        Crypto-edu
+                      </a>
+                      <span class="text-sm text-[#60616D]">20k members</span>
+                    </div>
+                  </div>
+
+                  <div class="flex space-x-2 justify-center">
+                    <button
+                      type="button"
+                      class="inline-block flex items-center px-4 py-2.5 border border-gray-400  text-gray-400 font-medium text-xs leading-tight uppercase rounded-lg transition duration-150 ease-in-out hover:bg-gray-100"
+                    >
+                      <i>
+                        <%= Heroicons.icon("plus-circle", type: "outline", class: "h-5 w-5 mr-2") %>
+                      </i>
+                      Join
+                    </button>
+                  </div>
+                </div>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>

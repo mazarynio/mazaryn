@@ -1,198 +1,293 @@
-<%# Header %>
-
 <header class="bg-black shadow">
-    <div class="flex justify-between items-center max-w-[1440px] w-[90%] px-0 mx-auto py-6 md:px-4 sm:px-6 lg:px-8">
-        <a href="/blog">
-          <h1 class="flex justify-left items-center text-2xl md:text-3xl leading-0 font-thin text-[#E5E5E5]"><img class="logo brightness-150 h-[42px] md:h-auto" src="../images/logo.png" alt="Elixir Social Network" /><span class="ml-[10px]">Blog</span></h1>
-        </a>
-        <div>
-        <a class="hidden md:block justify-center text-[#D3D3D3] hover:text-[#fff]" href="/login">
-            Connect with Mazaryn
-        </a>
-        <div class="menuToggle md:hidden">
-            <input type="checkbox" phx-click={toggle_menu()} />
-            <span></span>
-            <span></span>
-            <span></span>
-        </div>
-        </div>
-    </div>
-    <div class="menu-content w-[90%] mx-auto hidden">
-        <a class="justify-center text-[#D3D3D3] hover:text-[#fff]" href="/login">
+  <div class="flex justify-between items-center max-w-[1440px] w-[90%] px-0 mx-auto py-6 md:px-4 sm:px-6 lg:px-8">
+    <a href="/blog">
+      <h1 class="flex justify-left items-center text-2xl md:text-3xl leading-0 font-thin text-[#E5E5E5]">
+        <img
+          class="logo brightness-150 h-[42px] md:h-auto"
+          src="../images/logo.png"
+          alt="Elixir Social Network"
+        /><span class="ml-[10px]">Blog</span>
+      </h1>
+    </a>
+    <div>
+      <a class="hidden md:block justify-center text-[#D3D3D3] hover:text-[#fff]" href="/login">
         Connect with Mazaryn
-        </a>
+      </a>
+      <div class="menuToggle md:hidden">
+        <input type="checkbox" phx-click={toggle_menu()} />
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
     </div>
+  </div>
+  <div class="menu-content w-[90%] mx-auto hidden">
+    <a class="justify-center text-[#D3D3D3] hover:text-[#fff]" href="/login">
+      Connect with Mazaryn
+    </a>
+  </div>
 </header>
 
-<%# Ad top%>
 <div align="center" id="adswrappertop" phx-update="ignore">
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5319093423466090"
-     crossorigin="anonymous"></script>
-    <!-- mazaryn-display -->
-    <ins class="adsbygoogle"
-        style="display:block"
-        data-ad-client="ca-pub-5319093423466090"
-        data-ad-slot="1536507325"
-        data-ad-format="auto"
-        data-full-width-responsive="true"></ins>
-    <script>
-        (adsbygoogle = window.adsbygoogle || []).push({});
-    </script>
+  <script
+    async
+    src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5319093423466090"
+    crossorigin="anonymous"
+  >
+  </script>
+  <!-- mazaryn-display -->
+  <ins
+    class="adsbygoogle"
+    style="display:block"
+    data-ad-client="ca-pub-5319093423466090"
+    data-ad-slot="1536507325"
+    data-ad-format="auto"
+    data-full-width-responsive="true"
+  >
+  </ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
 </div>
 
 <div class="post-wrapper max-w-[1440px] w-[90%] md:w-[100%] mx-auto py-[30px] md:px-[4rem] md:py-[60px]">
-    <article>
-        <dl class="md:mt-[80px]">
-            <dd class="flex items-center space-x-3 mb-7">
-                <img src="../images/arvand-avatar.jpg" alt="Arvand" class="w-10 h-10 object-cover rounded-xl" srcset=""/>
-                 <dl>
-                    <dt class="sr-only">Author</dt>
-                    <dd class="text-md text-blue-700">Arvand Azadvar</dd>
-                    <dd>
-                        <a class="text-sm text-blue-500" href="https://github.com/arvand-io" target="_blank">@arvand</a>
-                    </dd>
-                 </dl>
-            </dd>
-           
+  <article>
+    <dl class="md:mt-[80px]">
+      <dd class="flex items-center space-x-3 mb-7">
+        <img
+          src="../images/arvand-avatar.jpg"
+          alt="Arvand"
+          class="w-10 h-10 object-cover rounded-xl"
+          srcset=""
+        />
+        <dl>
+          <dt class="sr-only">Author</dt>
+          <dd class="text-md text-blue-700">Arvand Azadvar</dd>
+          <dd>
+            <a class="text-sm text-blue-500" href="https://github.com/arvand-io" target="_blank">
+              @arvand
+            </a>
+          </dd>
         </dl>
-        <section class="post__section relative  w-[100%] md:w-[80%] max-w-[800px] mx-auto">
-            <div>
-                <div class="flex items-center">
-                    <a href="/blog" class="cursor-pointer text-sm font-[500] uppercase text-blue-500">Blog</a>
-                    <span class="text-[#000008] opacity-70 text-sm font-[500] mx-2">/</span>
-                    <span class="uppercase text-[#000008] text-sm font-[500] opacity-70 ">Features & Technologies</span>
-                </div>
-            </div>
-            <div class="pt-4 pb-12 md:pt-12 md:pb-14">
-                <h2 class="font-[600] md:ml-[40px] text-[1.75rem] md:text-[2.4rem] leading-[2.8rem] text-blue-600">What is NFT ?</h2>
-            </div>
-            <img class="image-cover" src="../images/nftnft.jpg" alt="NFT" title="NFT" />
-            <div class="lead">
-                <p>Non-fungible tokens, commonly known as NFTs, are unique cryptographic tokens that exist on a blockchain and cannot be replicated—having a unique identification code and metadata.
-                   NFTs function like communicators or information tokens,
-                   but unlike cryptocurrencies such as Bitcoin or Ethereum, NFTs are not mutually interchangeable and are not fungible.
-                </p>
-                <p>A Non-fungible Token (NFT) is basically a digital asset or can be called a cryptographic asset having a unique identification code and metadata which differentiate it from a fungible token.
-                   As with cryptocurrencies, they cannot be traded or exchanged at equivalent values.
-                   The difference between fungible tokens and cryptos is that cryptos are exactly the same and, therefore, can be used for commercial transactions.
-                </p>
-                <h3>How do NFTs Work?</h3>
-                <p>It is best to think of a blockchain as a special kind of database that stores data in groups (known as blocks), digitally chained together. Each block of data has a limited capacity, and when that capacity becomes full, additional data goes into another block, chained to the original.
-                   Ultimately, all the chained blocks create a long history that remains permanent. So, for example, every time an NFT sells, the new ownership details get added to a new chain in the blockchain, ensuring that the history of that NFT remains intact and ownership is secure.
-                </p>
-                <p>NFTs have one significant advantage: by being backed by something already known as finance-related (for example, Ethereum), there are existing mechanisms for issuing, recording, and trading them.
-                   They have many of the same advantages that crypto currencies have. They are borderless and comparatively easy to create and then to transfer ownership. 
-                </p>
-                <p>Each NFT token has a unique identifier. They are not directly interchangeable with other tokens.
-                   Each has an identified owner and can be bought and sold on a relevant blockchain marketplace.
-                </p>
-                <p>Creators set the level of scarcity for an NFT. In some cases, the creator of NFT may choose to mine multiple replicas. For example, if you mine NFTs as tickets to an event, each ticket will essentially be identical, apart from the seat number and the event's date/time.
-                   You could, however, mint tickets at different levels for different types of seats. Or you could choose to make each ticket wholly different and a collector's item. Each distinct NFT, however, has a unique identifier.
-                </p>
-                <%# Google in-article Ad %>
-                <div id="adswrapper2" phx-update="ignore">
-                    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5319093423466090" crossorigin="anonymous"></script>
-                    <ins class="adsbygoogle"
-                        style="display:block; text-align:center;"
-                        data-ad-layout="in-article"
-                        data-ad-format="fluid"
-                        data-ad-client="ca-pub-5319093423466090"
-                        data-ad-slot="8766830319"></ins>
-                    <script>
-                        (adsbygoogle = window.adsbygoogle || []).push({});
-                    </script>
-                </div>
-                <ol>
-                <h3>Distant Non Fungible Tokens Characteristics
-                    – What Does it Include? </h3>
-                <li>Non-Interoperable</li>
-                <p>As NFTs follow the standard ERC-721, they’re considered to be non-interoperable which means the information stored in them can’t be exchanged or used in any manner.</p>
-                <li>Rare</li>
-                <p>Presently, the total number of NFTs is very less in the world and they’re very scarce. This not only makes them rare but also makes their value high. In simple terms, the lesser the number of NFs, the pricier they’ll be.</p>
-                <li>Indestructible</li>
-                <p>The NFTs are stored and managed through Blockchain that results in a greater level of security for them. This means they can never be destroyed or removed at any cost.</p>
-                <li>Indivisble</li>
-                <p>You can’t send a portion of NFT cryptocoins to anyone (unlike other cryptocurrencies) because they’re non-fungible and don’t have a defined value. For instance, one bitcoin will possess the same value after transfer but NFT won’t.</p>
-                <li>Unique</li>
-                <p>Resonating with real artwork, NFTs use blockchain to stay apart from the crowd and determine the authenticity of a state of art. It also allows you to distinguish original items from their replicated copies.</p>
-                <h3>Type of NFTs</h3>
-                <li>Collectibles</li>
-                <p>Collectibles are sets of NFTs that each have unique traits. Like traditional collectibles (eg baseball cards), people consider rarity, cultural significance, and community when evaluating collectible NFTs. </p>
-                <li>In-game NFTs</li>
-                <p>In-game NFTs enable gamers to purchase and own in-game assets as NFTs. This is a nascent space with huge potential as gaming is by far the most popular entertainment category globally. Axie Infinity is a leading player in this space. The game is especially popular in developing countries like the Philippines where players can earn a living by buying, breeding, and battling digital pets.</p>
-                <li>Digital real estate</li>
-                <p>Digital real estate includes NFTs that represent plots of land in a digital setting. As people spend more time in the metaverse, creating spaces for them to interact has become a lucrative market. Settings like Decentraland sell plots of digital real estate on a blockchain for creators to build upon.</p>
-                <li>Music NFTs</li>
-                <p>Music NFTs make it easier for artists to fund their work and for fans to share in the upside of an artists’ success. Royal is an example of an NFT platform in this space.</p>
-            </ol>
+      </dd>
+    </dl>
+    <section class="post__section relative  w-[100%] md:w-[80%] max-w-[800px] mx-auto">
+      <div>
+        <div class="flex items-center">
+          <a href="/blog" class="cursor-pointer text-sm font-[500] uppercase text-blue-500">
+            Blog
+          </a>
+          <span class="text-[#000008] opacity-70 text-sm font-[500] mx-2">/</span>
+          <span class="uppercase text-[#000008] text-sm font-[500] opacity-70 ">
+            Features & Technologies
+          </span>
         </div>
-        </section>
-        <dl class="hidden md:block md:w-[100%]">
-            <div class="block top-0 sticky w-[300px]" id="adswrapperaside" phx-update="ignore">
-               <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5319093423466090"
-                    crossorigin="anonymous"></script>
-                <!-- mazaryn-display -->
-                <ins class="adsbygoogle"
-                    style="display:block"
-                    data-ad-client="ca-pub-5319093423466090"
-                    data-ad-slot="1536507325"
-                    data-ad-format="auto"
-                    data-full-width-responsive="true"></ins>
-                <script>
-                    (adsbygoogle = window.adsbygoogle || []).push({});
-                </script>
-            </div>
-        </dl>
-    </article>
+      </div>
+      <div class="pt-4 pb-12 md:pt-12 md:pb-14">
+        <h2 class="font-[600] md:ml-[40px] text-[1.75rem] md:text-[2.4rem] leading-[2.8rem] text-blue-600">
+          What is NFT ?
+        </h2>
+      </div>
+      <img class="image-cover" src="../images/nftnft.jpg" alt="NFT" title="NFT" />
+      <div class="lead">
+        <p>
+          Non-fungible tokens, commonly known as NFTs, are unique cryptographic tokens that exist on a blockchain and cannot be replicated—having a unique identification code and metadata.
+          NFTs function like communicators or information tokens,
+          but unlike cryptocurrencies such as Bitcoin or Ethereum, NFTs are not mutually interchangeable and are not fungible.
+        </p>
+        <p>
+          A Non-fungible Token (NFT) is basically a digital asset or can be called a cryptographic asset having a unique identification code and metadata which differentiate it from a fungible token.
+          As with cryptocurrencies, they cannot be traded or exchanged at equivalent values.
+          The difference between fungible tokens and cryptos is that cryptos are exactly the same and, therefore, can be used for commercial transactions.
+        </p>
+        <h3>How do NFTs Work?</h3>
+        <p>
+          It is best to think of a blockchain as a special kind of database that stores data in groups (known as blocks), digitally chained together. Each block of data has a limited capacity, and when that capacity becomes full, additional data goes into another block, chained to the original.
+          Ultimately, all the chained blocks create a long history that remains permanent. So, for example, every time an NFT sells, the new ownership details get added to a new chain in the blockchain, ensuring that the history of that NFT remains intact and ownership is secure.
+        </p>
+        <p>
+          NFTs have one significant advantage: by being backed by something already known as finance-related (for example, Ethereum), there are existing mechanisms for issuing, recording, and trading them.
+          They have many of the same advantages that crypto currencies have. They are borderless and comparatively easy to create and then to transfer ownership.
+        </p>
+        <p>
+          Each NFT token has a unique identifier. They are not directly interchangeable with other tokens.
+          Each has an identified owner and can be bought and sold on a relevant blockchain marketplace.
+        </p>
+        <p>
+          Creators set the level of scarcity for an NFT. In some cases, the creator of NFT may choose to mine multiple replicas. For example, if you mine NFTs as tickets to an event, each ticket will essentially be identical, apart from the seat number and the event's date/time.
+          You could, however, mint tickets at different levels for different types of seats. Or you could choose to make each ticket wholly different and a collector's item. Each distinct NFT, however, has a unique identifier.
+        </p>
+        <div id="adswrapper2" phx-update="ignore">
+          <script
+            async
+            src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5319093423466090"
+            crossorigin="anonymous"
+          >
+          </script>
+          <ins
+            class="adsbygoogle"
+            style="display:block; text-align:center;"
+            data-ad-layout="in-article"
+            data-ad-format="fluid"
+            data-ad-client="ca-pub-5319093423466090"
+            data-ad-slot="8766830319"
+          >
+          </ins>
+          <script>
+            (adsbygoogle = window.adsbygoogle || []).push({});
+          </script>
+        </div>
+        <ol>
+          <h3>Distant Non Fungible Tokens Characteristics
+            – What Does it Include?</h3>
+          <li>Non-Interoperable</li>
+          <p>
+            As NFTs follow the standard ERC-721, they’re considered to be non-interoperable which means the information stored in them can’t be exchanged or used in any manner.
+          </p>
+          <li>Rare</li>
+          <p>
+            Presently, the total number of NFTs is very less in the world and they’re very scarce. This not only makes them rare but also makes their value high. In simple terms, the lesser the number of NFs, the pricier they’ll be.
+          </p>
+          <li>Indestructible</li>
+          <p>
+            The NFTs are stored and managed through Blockchain that results in a greater level of security for them. This means they can never be destroyed or removed at any cost.
+          </p>
+          <li>Indivisble</li>
+          <p>
+            You can’t send a portion of NFT cryptocoins to anyone (unlike other cryptocurrencies) because they’re non-fungible and don’t have a defined value. For instance, one bitcoin will possess the same value after transfer but NFT won’t.
+          </p>
+          <li>Unique</li>
+          <p>
+            Resonating with real artwork, NFTs use blockchain to stay apart from the crowd and determine the authenticity of a state of art. It also allows you to distinguish original items from their replicated copies.
+          </p>
+          <h3>Type of NFTs</h3>
+          <li>Collectibles</li>
+          <p>
+            Collectibles are sets of NFTs that each have unique traits. Like traditional collectibles (eg baseball cards), people consider rarity, cultural significance, and community when evaluating collectible NFTs.
+          </p>
+          <li>In-game NFTs</li>
+          <p>
+            In-game NFTs enable gamers to purchase and own in-game assets as NFTs. This is a nascent space with huge potential as gaming is by far the most popular entertainment category globally. Axie Infinity is a leading player in this space. The game is especially popular in developing countries like the Philippines where players can earn a living by buying, breeding, and battling digital pets.
+          </p>
+          <li>Digital real estate</li>
+          <p>
+            Digital real estate includes NFTs that represent plots of land in a digital setting. As people spend more time in the metaverse, creating spaces for them to interact has become a lucrative market. Settings like Decentraland sell plots of digital real estate on a blockchain for creators to build upon.
+          </p>
+          <li>Music NFTs</li>
+          <p>
+            Music NFTs make it easier for artists to fund their work and for fans to share in the upside of an artists’ success. Royal is an example of an NFT platform in this space.
+          </p>
+        </ol>
+      </div>
+    </section>
+    <dl class="hidden md:block md:w-[100%]">
+      <div class="block top-0 sticky w-[300px]" id="adswrapperaside" phx-update="ignore">
+        <script
+          async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5319093423466090"
+          crossorigin="anonymous"
+        >
+        </script>
+        <!-- mazaryn-display -->
+        <ins
+          class="adsbygoogle"
+          style="display:block"
+          data-ad-client="ca-pub-5319093423466090"
+          data-ad-slot="1536507325"
+          data-ad-format="auto"
+          data-full-width-responsive="true"
+        >
+        </ins>
+        <script>
+          (adsbygoogle = window.adsbygoogle || []).push({});
+        </script>
+      </div>
+    </dl>
+  </article>
 </div>
-
-<%# Related Posts %>
 
 <div class="max-w-[1440px] w-[95%] md:w-[100%] mx-auto py-[30px]">
-    <div class="md:w-[95%] mx-auto">
-        <span class="font-[500] md:ml-[25px] text-[1.75rem] md:text-[2rem] leading-[2.25rem] text-blue-700 capitalize">Related posts</span>
-        <div>
-            <div class="flex flex-col md:flex-row justify-between gap-[15px] w-[100%] px-0 py-8 md:my-[45px] mx-auto md:py-0 md:px-4 sm:px-6">
-                <div class="mb-[40px] md:mb-0">
-                    <a href="/blog/cardano" class="block md:w-[95%] mx-auto border-radius-[20px] group cursor-pointer" >
-                        <div>
-                            <img class="aspect-[16/9] object-cover rounded-2xl block border-[1px] opacity-100 md:opacity-70 transition-opacity group-hover:opacity-100" src="../images/cardano.png" alt="cardano" title="cardano" />
-                        </div>
-                        <div class="w-[98%] mx-auto">
-                            <span class="block text-xl md:text-2xl font-[600] text-blue-700 mt-[25px] mb-[15px] mx-0">Features & Technologies</span>
-                            <h3 class="text-xl md:text-2xl font-[700] leading-[2.4rem] text-black hover:text-blue-700">Why Choose Cardano ?</h3>
-                        </div>
-                    </a>
-                </div>
-
-                <div align="center" id="adswrappersquared" phx-update="ignore" class="mb-[40px] md:mb-0 w-[32%]">
-                   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5319093423466090"
-                        crossorigin="anonymous"></script>
-                    <!-- mazaryn-square -->
-                    <ins class="adsbygoogle"
-                        style="display:block"
-                        data-ad-client="ca-pub-5319093423466090"
-                        data-ad-slot="7660388930"
-                        data-ad-format="auto"
-                        data-full-width-responsive="true"></ins>
-                    <script>
-                        (adsbygoogle = window.adsbygoogle || []).push({});
-                    </script>
-                </div>
-
-                <div class="mb-[40px] md:mb-0">
-                    <a href="/blog/aeternity" class="block md:w-[95%] mx-auto border-radius-[20px] group cursor-pointer">
-                        <div>
-                            <img class="aspect-[16/9] object-cover rounded-2xl block border-[1px] opacity-100 md:opacity-70 transition-opacity group-hover:opacity-100" src="../images/aeternity.png" alt="aeternity" title="aeternity" />
-                        </div>
-                        <div class="w-[98%] mx-auto">
-                            <span class="block text-xl md:text-2xl font-[600] text-blue-700 mt-[25px] mb-[15px] mx-0">Features & Technologies</span>
-                            <h3 class="text-xl md:text-2xl font-[700] leading-[2.4rem] text-black hover:text-blue-700">Why Choose Aeternity ?</h3>
-                        </div>
-                    </a>
-                </div>
+  <div class="md:w-[95%] mx-auto">
+    <span class="font-[500] md:ml-[25px] text-[1.75rem] md:text-[2rem] leading-[2.25rem] text-blue-700 capitalize">
+      Related posts
+    </span>
+    <div>
+      <div class="flex flex-col md:flex-row justify-between gap-[15px] w-[100%] px-0 py-8 md:my-[45px] mx-auto md:py-0 md:px-4 sm:px-6">
+        <div class="mb-[40px] md:mb-0">
+          <a
+            href="/blog/cardano"
+            class="block md:w-[95%] mx-auto border-radius-[20px] group cursor-pointer"
+          >
+            <div>
+              <img
+                class="aspect-[16/9] object-cover rounded-2xl block border-[1px] opacity-100 md:opacity-70 transition-opacity group-hover:opacity-100"
+                src="../images/cardano.png"
+                alt="cardano"
+                title="cardano"
+              />
             </div>
+            <div class="w-[98%] mx-auto">
+              <span class="block text-xl md:text-2xl font-[600] text-blue-700 mt-[25px] mb-[15px] mx-0">
+                Features & Technologies
+              </span>
+              <h3 class="text-xl md:text-2xl font-[700] leading-[2.4rem] text-black hover:text-blue-700">
+                Why Choose Cardano ?
+              </h3>
+            </div>
+          </a>
         </div>
-    </div>
-</div>
 
+        <div
+          align="center"
+          id="adswrappersquared"
+          phx-update="ignore"
+          class="mb-[40px] md:mb-0 w-[32%]"
+        >
+          <script
+            async
+            src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5319093423466090"
+            crossorigin="anonymous"
+          >
+          </script>
+          <!-- mazaryn-square -->
+          <ins
+            class="adsbygoogle"
+            style="display:block"
+            data-ad-client="ca-pub-5319093423466090"
+            data-ad-slot="7660388930"
+            data-ad-format="auto"
+            data-full-width-responsive="true"
+          >
+          </ins>
+          <script>
+            (adsbygoogle = window.adsbygoogle || []).push({});
+          </script>
+        </div>
+
+        <div class="mb-[40px] md:mb-0">
+          <a
+            href="/blog/aeternity"
+            class="block md:w-[95%] mx-auto border-radius-[20px] group cursor-pointer"
+          >
+            <div>
+              <img
+                class="aspect-[16/9] object-cover rounded-2xl block border-[1px] opacity-100 md:opacity-70 transition-opacity group-hover:opacity-100"
+                src="../images/aeternity.png"
+                alt="aeternity"
+                title="aeternity"
+              />
+            </div>
+            <div class="w-[98%] mx-auto">
+              <span class="block text-xl md:text-2xl font-[600] text-blue-700 mt-[25px] mb-[15px] mx-0">
+                Features & Technologies
+              </span>
+              <h3 class="text-xl md:text-2xl font-[700] leading-[2.4rem] text-black hover:text-blue-700">
+                Why Choose Aeternity ?
+              </h3>
+            </div>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

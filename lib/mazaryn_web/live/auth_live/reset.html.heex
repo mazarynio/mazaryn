@@ -1,56 +1,64 @@
 <div class="reset min-h-[110vh] md:min-h-screen h-full h-full md:h-screen flex-col md:flex-row">
-    <div class="split left">
-        <div class="welcome-left-title">
-            <img class="logo mb-5 mr-auto md:mr-0 brightness-150"  src="images/logo.png" alt="" title="" />
-        </div>
-
-         <div class="welcome-left-text hidden md:block h-[25vh] md:h-full top-[100%] md:top-[82%]">
-            <p class="relative md:static left-0 bottom-[-40px] max-w-[310px] md:max-w-[420px] text-color-[#E5E5E5] md:full mx-auto md:mx-0">Online Comunity <b>makes</b> <br />
-            people <b>more</b> creative</p>
-        </div>
-        
-        <div class="welcome-layer-style"></div>
-        
-        <div class="welcome-left-logo"></div>
+  <div class="split left">
+    <div class="welcome-left-title">
+      <img class="logo mb-5 mr-auto md:mr-0 brightness-150" src="images/logo.png" alt="" title="" />
     </div>
 
-    <div class="split right h-[50vh] md:h-full">
-        <div class="centered">
-            <div class="form-container md:w-[540px]">
-                <div class="form-header">
-                    Reset Your Password
-                </div>
+    <div class="welcome-left-text hidden md:block h-[25vh] md:h-full top-[100%] md:top-[82%]">
+      <p class="relative md:static left-0 bottom-[-40px] max-w-[310px] md:max-w-[420px] text-color-[#E5E5E5] md:full mx-auto md:mx-0">
+        Online Comunity <b>makes</b> <br /> people <b>more</b> creative
+      </p>
+    </div>
 
-                <div class="form-header-explanation font-light">
-                    To request a new password, enter your email
-                </div>
+    <div class="welcome-layer-style"></div>
 
-                <div class="form-body w-[100%]">
-                    <form phx-submit="reset">
-                        <div class="form-input-container">
-                            <div>
-                                <label class="form-input-label">Enter your email</label>
-                            </div>
+    <div class="welcome-left-logo"></div>
+  </div>
 
-                            <div class="w-[100%]">
-                                <input class="form-input" type="text" name="email" placeholder="Your email address" autofocus value="danilo1@gmail.com" />
-                            </div>
-                        </div>
+  <div class="split right h-[50vh] md:h-full">
+    <div class="centered">
+      <div class="form-container md:w-[540px]">
+        <div class="form-header">
+          Reset Your Password
+        </div>
 
-                        <div class="form-button">
-                            <button type="submit">
-                                Continue
-                            </button>
-                        </div>
-                    </form>
-                </div>
+        <div class="form-header-explanation font-light">
+          To request a new password, enter your email
+        </div>
+
+        <div class="form-body w-[100%]">
+          <form phx-submit="reset">
+            <div class="form-input-container">
+              <div>
+                <label class="form-input-label">Enter your email</label>
+              </div>
+
+              <div class="w-[100%]">
+                <input
+                  class="form-input"
+                  type="text"
+                  name="email"
+                  placeholder="Your email address"
+                  autofocus
+                  value="danilo1@gmail.com"
+                />
+              </div>
             </div>
-        </div>
-    </div>
 
-    <div class="welcome-left-text mobile md:hidden">
-        <p class="absolute left-[10%] text-color-[#E5E5E5]">Online Comunity <b>makes</b> <br />
-            people <b>more</b> creative
-        </p>
+            <div class="form-button">
+              <button type="submit">
+                Continue
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
     </div>
+  </div>
+
+  <div class="welcome-left-text mobile md:hidden">
+    <p class="absolute left-[10%] text-color-[#E5E5E5]">
+      Online Comunity <b>makes</b> <br /> people <b>more</b> creative
+    </p>
+  </div>
 </div>

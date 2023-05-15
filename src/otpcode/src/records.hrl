@@ -64,7 +64,6 @@
 -record(chat, {id,
                user_id,
                recipient_id,
-               title,
                body,
                date_created,
                date_updated}).
@@ -72,7 +71,6 @@
 -record(event, {name, date, loc, desc}).
 -record(follower, {id, username}).
 -record(following, {id, username}).
-
 -record(hed_wallet, { id, password, date_created }).
 
 -record(media, {id, user_id, file, files, type, date_created, date_updated}).

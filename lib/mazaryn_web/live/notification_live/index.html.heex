@@ -1,10 +1,18 @@
-<.live_component module={MazarynWeb.HomeLive.NavComponent} id="navigation" user={@current_user} search={@search} />
+<.live_component
+  module={MazarynWeb.HomeLive.NavComponent}
+  id="navigation"
+  user={@current_user}
+  search={@search}
+/>
 
 <div class="bg-[#FAFAFA]">
   <div class="flex w-[90%] max-w-[1440px] mx-auto">
-
     <div class="w-full lg:w-[18%] py-6">
-      <.live_component module={MazarynWeb.HomeLive.LeftSidebarComponent} id="leftside" user={@current_user} />
+      <.live_component
+        module={MazarynWeb.HomeLive.LeftSidebarComponent}
+        id="leftside"
+        user={@current_user}
+      />
     </div>
   </div>
 </div>

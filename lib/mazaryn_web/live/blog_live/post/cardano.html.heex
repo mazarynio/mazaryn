@@ -1,179 +1,274 @@
-<%# Header %>
-
 <header class="bg-black shadow">
-    <div class="flex justify-between items-center max-w-[1440px] w-[90%] px-0 mx-auto py-6 md:px-4 sm:px-6 lg:px-8">
-        <a href="/blog">
-          <h1 class="flex justify-left items-center text-2xl md:text-3xl leading-0 font-thin text-[#E5E5E5]"><img class="logo brightness-150 h-[42px] md:h-auto" src="../images/logo.png" alt="Elixir Social Network" /><span class="ml-[10px]">Blog</span></h1>
-        </a>
-        <div>
-        <a class="hidden md:block justify-center text-[#D3D3D3] hover:text-[#fff]" href="/login">
-            Connect with Mazaryn
-        </a>
-        <div class="menuToggle md:hidden">
-            <input type="checkbox" phx-click={toggle_menu()} />
-            <span></span>
-            <span></span>
-            <span></span>
-        </div>
-        </div>
-    </div>
-    <div class="menu-content w-[90%] mx-auto hidden">
-        <a class="justify-center text-[#D3D3D3] hover:text-[#fff]" href="/login">
+  <div class="flex justify-between items-center max-w-[1440px] w-[90%] px-0 mx-auto py-6 md:px-4 sm:px-6 lg:px-8">
+    <a href="/blog">
+      <h1 class="flex justify-left items-center text-2xl md:text-3xl leading-0 font-thin text-[#E5E5E5]">
+        <img
+          class="logo brightness-150 h-[42px] md:h-auto"
+          src="../images/logo.png"
+          alt="Elixir Social Network"
+        /><span class="ml-[10px]">Blog</span>
+      </h1>
+    </a>
+    <div>
+      <a class="hidden md:block justify-center text-[#D3D3D3] hover:text-[#fff]" href="/login">
         Connect with Mazaryn
-        </a>
+      </a>
+      <div class="menuToggle md:hidden">
+        <input type="checkbox" phx-click={toggle_menu()} />
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
     </div>
+  </div>
+  <div class="menu-content w-[90%] mx-auto hidden">
+    <a class="justify-center text-[#D3D3D3] hover:text-[#fff]" href="/login">
+      Connect with Mazaryn
+    </a>
+  </div>
 </header>
 
-<%# Ad top%>
 <div align="center" id="adswrappertop" phx-update="ignore">
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5319093423466090"
-     crossorigin="anonymous"></script>
-    <!-- mazaryn-display -->
-    <ins class="adsbygoogle"
-        style="display:block"
-        data-ad-client="ca-pub-5319093423466090"
-        data-ad-slot="1536507325"
-        data-ad-format="auto"
-        data-full-width-responsive="true"></ins>
-    <script>
-        (adsbygoogle = window.adsbygoogle || []).push({});
-    </script>
+  <script
+    async
+    src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5319093423466090"
+    crossorigin="anonymous"
+  >
+  </script>
+  <!-- mazaryn-display -->
+  <ins
+    class="adsbygoogle"
+    style="display:block"
+    data-ad-client="ca-pub-5319093423466090"
+    data-ad-slot="1536507325"
+    data-ad-format="auto"
+    data-full-width-responsive="true"
+  >
+  </ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
 </div>
-
-
-<%# Post Is Here %>
 
 <div class="post-wrapper max-w-[1440px] w-[95%] md:w-[100%] mx-auto py-[30px] md:px-[4rem] md:py-[60px]">
-    <article>
-        <dl class="md:mt-[80px]">
-            <dd class="flex items-center space-x-3 mb-7">
-                <img src="../images/arvand-avatar.jpg" alt="Arvand" class="w-10 h-10 object-cover rounded-xl" srcset=""/>
-                 <dl>
-                    <dt class="sr-only">Author</dt>
-                    <dd class="text-md text-blue-700">Arvand Azadvar</dd>
-                    <dd>
-                        <a class="text-sm text-blue-500" href="https://github.com/arvand-io" target="_blank">@arvand</a>
-                    </dd>
-                </dl>
-            </dd>
+  <article>
+    <dl class="md:mt-[80px]">
+      <dd class="flex items-center space-x-3 mb-7">
+        <img
+          src="../images/arvand-avatar.jpg"
+          alt="Arvand"
+          class="w-10 h-10 object-cover rounded-xl"
+          srcset=""
+        />
+        <dl>
+          <dt class="sr-only">Author</dt>
+          <dd class="text-md text-blue-700">Arvand Azadvar</dd>
+          <dd>
+            <a class="text-sm text-blue-500" href="https://github.com/arvand-io" target="_blank">
+              @arvand
+            </a>
+          </dd>
         </dl>
-        <section class="post__section relative  w-[100%] md:w-[80%] max-w-[800px] mx-auto">
-            <div>
-                <div class="flex items-center">
-                    <a href="/blog" class="cursor-pointer text-sm font-[500] uppercase text-blue-500">Blog</a>
-                    <span class="text-[#000008] opacity-70 text-sm font-[500] mx-2">/</span>
-                    <span class="uppercase text-[#000008] text-sm font-[500] opacity-70 ">Features & Technologies</span>
-                </div>
-            </div>
-            <div class="pt-4 pb-12 md:pt-12 md:pb-14">
-                <h2 class="font-[600] md:ml-[40px] text-[1.75rem] md:text-[2.4rem] leading-[2.8rem] text-blue-600">Why Choose Cardano ?</h2>
-            </div>
-            <img class="image-cover" src="../images/cardano.png" alt="cardano" title="cardano" />
-            <div class="lead">
-                <p>Mazaryn Using Cardano to Empower Users access to Most Advanced Blockchain Tools, Earn ADA Token and Pay each other From their Multi Asset Secure Wallets.</p>
-                <%# Google in-article Ad %>
-                <div id="adswrapper2" phx-update="ignore">
-                    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5319093423466090" crossorigin="anonymous"></script>
-                    <ins class="adsbygoogle"
-                        style="display:block; text-align:center;"
-                        data-ad-layout="in-article"
-                        data-ad-format="fluid"
-                        data-ad-client="ca-pub-5319093423466090"
-                        data-ad-slot="8766830319"></ins>
-                    <script>
-                        (adsbygoogle = window.adsbygoogle || []).push({});
-                    </script>
-                </div>
-                <p>Cardano is a blockchain project founded by Charles Hoskinson, co-founder of ethereum, to “provide a more balanced and sustainable ecosystem” for cryptocurrencies. According to its website, ADA is the only coin with a “scientific philosophy and research-driven approach.” In practical terms, this means that its open-source blockchain undergoes a rigorous peer-review process by scientists and programmers in academia.</p>
-                <p>Cardano validates blockchain transactions with a proof-of-stake protocol called Ouroboros. In proof of stake, any of a blockchain's token holders can set up their own network node and become validators. They must stake their crypto tokens to do this, meaning they pledge their tokens to the blockchain.</p>
-                <p>For each block of transactions that need to be verified, the Ouroboros protocol pseudo-randomly selects a validator node. Selections are based in part on the amount of ADA tokens the node has staked. The more ADA tokens you stake, the more likely you are to be chosen.</p>
-                <p>After a validator node confirms a block of transactions and adds it to the blockchain, it receives the block reward. Block rewards are paid in ADA tokens, which gives token holders an incentive to stake.</p>
-                <h3>Advantages of Cardano</h3>
-                <ol>
-                    <li>Academic Research</li>
-                    <p>Formal methods, such as mathematical specifications, property-based tests, and proofs, are the best way to deliver high assurance software systems and give confidence to users for the management of digital funds. Cardano has been built using formal methods to achieve strong guarantees on the functional correctness of core components of the system. All of the research and technical specifications that underpin Cardano are publicly available, and all Cardano development activity is published online.</p>
-                    <li>System Design</li>
-                    <p>Cardano is written in Haskell, a secure functional programming language that encourages building a system using pure functions, which leads to a design where components are conveniently testable in isolation. Furthermore, advanced features of Haskell enable us to employ a whole range of powerful methods for ensuring correctness of the code, such as basing the implementation on formal and executable specifications, extensive property-based testing, and running tests in simulation.</p>
-                    <li>Security</li>
-                    <p>Ouroboros (the Cardano proof-of-stake protocol) establishes rigorous security guarantees; it was delivered with several peer-reviewed papers presented in top-tier conferences and publications in the area of cybersecurity and cryptography.</p>
-                    <li>Energy Efficiency</li>
-                    <p>Cardano is a proof-of-stake blockchain. In contrast to proof-of-work blockchains, Cardano requires much less energy and computational power. The Bitcoin network is secured through computers doing ever-more-energy-intensive computations – proof of work – which is unsustainable in the long term. Cambridge University has an online tool that shows the computers powering</p>
-                    <p>Bitcoin already consume more electricity than some countries, like Switzerland for example.</p>
-                    <li>Hydra Scaling</li>
-                    <p>Hydra’s attempt to make Cardano the fastest blockchain network in the world seems to be successful now. Following the footsteps of Ethereum, they plan to make Cardano even bigger than Ethereum. Hydra aims at improving scalability all around the network. This can be done by introducing off-chain transactions.</p>
-                </ol>
-                <h3>What is ADA ?</h3>
-                <p>ADA is the cryptocurrency for the Cardano platform. Cardano’s coin is named after Ada Lovelace, a 19th-century mathematician known as the first computer programmer.People use ADA tokens to pay transaction fees for using the platform. It’s also given out to the validators as a reward for running the proof of stake system.</p>
-                <h3>Plutus</h3>
-                <p>Plutus is the smart contract platform of the Cardano blockchain. It allows you to write applications that interact with the Cardano blockchain. Check here to get more info.</p>
-            </div>
-        </section>
-        <dl class="hidden md:block md:w-[100%]">
-            <div class="block top-0 sticky w-[300px]" id="adswrapperaside" phx-update="ignore">
-               <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5319093423466090"
-                    crossorigin="anonymous"></script>
-                <!-- mazaryn-display -->
-                <ins class="adsbygoogle"
-                    style="display:block"
-                    data-ad-client="ca-pub-5319093423466090"
-                    data-ad-slot="1536507325"
-                    data-ad-format="auto"
-                    data-full-width-responsive="true"></ins>
-                <script>
-                    (adsbygoogle = window.adsbygoogle || []).push({});
-                </script>
-            </div>
-        </dl>
-    </article>
+      </dd>
+    </dl>
+    <section class="post__section relative  w-[100%] md:w-[80%] max-w-[800px] mx-auto">
+      <div>
+        <div class="flex items-center">
+          <a href="/blog" class="cursor-pointer text-sm font-[500] uppercase text-blue-500">
+            Blog
+          </a>
+          <span class="text-[#000008] opacity-70 text-sm font-[500] mx-2">/</span>
+          <span class="uppercase text-[#000008] text-sm font-[500] opacity-70 ">
+            Features & Technologies
+          </span>
+        </div>
+      </div>
+      <div class="pt-4 pb-12 md:pt-12 md:pb-14">
+        <h2 class="font-[600] md:ml-[40px] text-[1.75rem] md:text-[2.4rem] leading-[2.8rem] text-blue-600">
+          Why Choose Cardano ?
+        </h2>
+      </div>
+      <img class="image-cover" src="../images/cardano.png" alt="cardano" title="cardano" />
+      <div class="lead">
+        <p>
+          Mazaryn Using Cardano to Empower Users access to Most Advanced Blockchain Tools, Earn ADA Token and Pay each other From their Multi Asset Secure Wallets.
+        </p>
+        <div id="adswrapper2" phx-update="ignore">
+          <script
+            async
+            src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5319093423466090"
+            crossorigin="anonymous"
+          >
+          </script>
+          <ins
+            class="adsbygoogle"
+            style="display:block; text-align:center;"
+            data-ad-layout="in-article"
+            data-ad-format="fluid"
+            data-ad-client="ca-pub-5319093423466090"
+            data-ad-slot="8766830319"
+          >
+          </ins>
+          <script>
+            (adsbygoogle = window.adsbygoogle || []).push({});
+          </script>
+        </div>
+        <p>
+          Cardano is a blockchain project founded by Charles Hoskinson, co-founder of ethereum, to “provide a more balanced and sustainable ecosystem” for cryptocurrencies. According to its website, ADA is the only coin with a “scientific philosophy and research-driven approach.” In practical terms, this means that its open-source blockchain undergoes a rigorous peer-review process by scientists and programmers in academia.
+        </p>
+        <p>
+          Cardano validates blockchain transactions with a proof-of-stake protocol called Ouroboros. In proof of stake, any of a blockchain's token holders can set up their own network node and become validators. They must stake their crypto tokens to do this, meaning they pledge their tokens to the blockchain.
+        </p>
+        <p>
+          For each block of transactions that need to be verified, the Ouroboros protocol pseudo-randomly selects a validator node. Selections are based in part on the amount of ADA tokens the node has staked. The more ADA tokens you stake, the more likely you are to be chosen.
+        </p>
+        <p>
+          After a validator node confirms a block of transactions and adds it to the blockchain, it receives the block reward. Block rewards are paid in ADA tokens, which gives token holders an incentive to stake.
+        </p>
+        <h3>Advantages of Cardano</h3>
+        <ol>
+          <li>Academic Research</li>
+          <p>
+            Formal methods, such as mathematical specifications, property-based tests, and proofs, are the best way to deliver high assurance software systems and give confidence to users for the management of digital funds. Cardano has been built using formal methods to achieve strong guarantees on the functional correctness of core components of the system. All of the research and technical specifications that underpin Cardano are publicly available, and all Cardano development activity is published online.
+          </p>
+          <li>System Design</li>
+          <p>
+            Cardano is written in Haskell, a secure functional programming language that encourages building a system using pure functions, which leads to a design where components are conveniently testable in isolation. Furthermore, advanced features of Haskell enable us to employ a whole range of powerful methods for ensuring correctness of the code, such as basing the implementation on formal and executable specifications, extensive property-based testing, and running tests in simulation.
+          </p>
+          <li>Security</li>
+          <p>
+            Ouroboros (the Cardano proof-of-stake protocol) establishes rigorous security guarantees; it was delivered with several peer-reviewed papers presented in top-tier conferences and publications in the area of cybersecurity and cryptography.
+          </p>
+          <li>Energy Efficiency</li>
+          <p>
+            Cardano is a proof-of-stake blockchain. In contrast to proof-of-work blockchains, Cardano requires much less energy and computational power. The Bitcoin network is secured through computers doing ever-more-energy-intensive computations – proof of work – which is unsustainable in the long term. Cambridge University has an online tool that shows the computers powering
+          </p>
+          <p>
+            Bitcoin already consume more electricity than some countries, like Switzerland for example.
+          </p>
+          <li>Hydra Scaling</li>
+          <p>
+            Hydra’s attempt to make Cardano the fastest blockchain network in the world seems to be successful now. Following the footsteps of Ethereum, they plan to make Cardano even bigger than Ethereum. Hydra aims at improving scalability all around the network. This can be done by introducing off-chain transactions.
+          </p>
+        </ol>
+        <h3>What is ADA ?</h3>
+        <p>
+          ADA is the cryptocurrency for the Cardano platform. Cardano’s coin is named after Ada Lovelace, a 19th-century mathematician known as the first computer programmer.People use ADA tokens to pay transaction fees for using the platform. It’s also given out to the validators as a reward for running the proof of stake system.
+        </p>
+        <h3>Plutus</h3>
+        <p>
+          Plutus is the smart contract platform of the Cardano blockchain. It allows you to write applications that interact with the Cardano blockchain. Check here to get more info.
+        </p>
+      </div>
+    </section>
+    <dl class="hidden md:block md:w-[100%]">
+      <div class="block top-0 sticky w-[300px]" id="adswrapperaside" phx-update="ignore">
+        <script
+          async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5319093423466090"
+          crossorigin="anonymous"
+        >
+        </script>
+        <!-- mazaryn-display -->
+        <ins
+          class="adsbygoogle"
+          style="display:block"
+          data-ad-client="ca-pub-5319093423466090"
+          data-ad-slot="1536507325"
+          data-ad-format="auto"
+          data-full-width-responsive="true"
+        >
+        </ins>
+        <script>
+          (adsbygoogle = window.adsbygoogle || []).push({});
+        </script>
+      </div>
+    </dl>
+  </article>
 </div>
-
-<%# Related Posts %>
 
 <div class="max-w-[1440px] w-[95%] md:w-[100%] mx-auto py-[30px]">
-    <div class="md:w-[95%] mx-auto">
-        <span class="font-[500] md:ml-[25px] text-[1.75rem] md:text-[2rem] leading-[2.25rem] text-blue-700 capitalize">Related posts</span>
-        <div>
-            <div class="flex flex-col md:flex-row justify-between gap-[15px] w-[100%] px-0 py-8 md:my-[45px] mx-auto md:py-0 md:px-4 sm:px-6">
-                <div class="mb-[40px] md:mb-0">
-                    <a href="/blog/polkadot" class="block md:w-[95%] mx-auto border-radius-[20px] group cursor-pointer" >
-                    <div>
-                        <img class="aspect-[16/9] object-cover rounded-2xl block border-[1px] opacity-100 md:opacity-70 transition-opacity group-hover:opacity-100" src="../images/polkadot.png" alt="polkadot" title="polkadot" />
-                    </div>
-                    <div class="w-[98%] mx-auto">
-                        <span class="block text-xl md:text-2xl font-[600] text-blue-700 mt-[25px] mb-[15px] mx-0">Features & Technologies</span>
-                        <h3 class="text-xl md:text-2xl font-[700] leading-[2.4rem] text-black hover:text-blue-700">Why Choose Polkadot ?</h3>
-                    </div>
-                    </a>
-                </div>
-
-                <div align="center" id="adswrappersquared" phx-update="ignore" class="mb-[40px] md:mb-0 w-[32%]">
-                   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5319093423466090"
-                        crossorigin="anonymous"></script>
-                    <!-- mazaryn-square -->
-                    <ins class="adsbygoogle"
-                        style="display:block"
-                        data-ad-client="ca-pub-5319093423466090"
-                        data-ad-slot="7660388930"
-                        data-ad-format="auto"
-                        data-full-width-responsive="true"></ins>
-                    <script>
-                        (adsbygoogle = window.adsbygoogle || []).push({});
-                    </script>
-                </div>
-
-                <div class="mb-[40px] md:mb-0">
-                    <a href="/blog/aeternity" class="block md:w-[95%] mx-auto border-radius-[20px] group cursor-pointer">
-                    <div>
-                        <img class="aspect-[16/9] object-cover rounded-2xl block border-[1px] opacity-100 md:opacity-70 transition-opacity group-hover:opacity-100" src="../images/aeternity.png" alt="aeternity" title="aeternity" />
-                    </div>
-                    <div class="w-[98%] mx-auto">
-                        <span class="block text-xl md:text-2xl font-[600] text-blue-700 mt-[25px] mb-[15px] mx-0">Features & Technologies</span>
-                        <h3 class="text-xl md:text-2xl font-[700] leading-[2.4rem] text-black hover:text-blue-700">Why Choose Aeternity ?</h3>
-                    </div>
-                    </a>
-                </div>
+  <div class="md:w-[95%] mx-auto">
+    <span class="font-[500] md:ml-[25px] text-[1.75rem] md:text-[2rem] leading-[2.25rem] text-blue-700 capitalize">
+      Related posts
+    </span>
+    <div>
+      <div class="flex flex-col md:flex-row justify-between gap-[15px] w-[100%] px-0 py-8 md:my-[45px] mx-auto md:py-0 md:px-4 sm:px-6">
+        <div class="mb-[40px] md:mb-0">
+          <a
+            href="/blog/polkadot"
+            class="block md:w-[95%] mx-auto border-radius-[20px] group cursor-pointer"
+          >
+            <div>
+              <img
+                class="aspect-[16/9] object-cover rounded-2xl block border-[1px] opacity-100 md:opacity-70 transition-opacity group-hover:opacity-100"
+                src="../images/polkadot.png"
+                alt="polkadot"
+                title="polkadot"
+              />
             </div>
+            <div class="w-[98%] mx-auto">
+              <span class="block text-xl md:text-2xl font-[600] text-blue-700 mt-[25px] mb-[15px] mx-0">
+                Features & Technologies
+              </span>
+              <h3 class="text-xl md:text-2xl font-[700] leading-[2.4rem] text-black hover:text-blue-700">
+                Why Choose Polkadot ?
+              </h3>
+            </div>
+          </a>
         </div>
-    </div>
-</div>
 
+        <div
+          align="center"
+          id="adswrappersquared"
+          phx-update="ignore"
+          class="mb-[40px] md:mb-0 w-[32%]"
+        >
+          <script
+            async
+            src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5319093423466090"
+            crossorigin="anonymous"
+          >
+          </script>
+          <!-- mazaryn-square -->
+          <ins
+            class="adsbygoogle"
+            style="display:block"
+            data-ad-client="ca-pub-5319093423466090"
+            data-ad-slot="7660388930"
+            data-ad-format="auto"
+            data-full-width-responsive="true"
+          >
+          </ins>
+          <script>
+            (adsbygoogle = window.adsbygoogle || []).push({});
+          </script>
+        </div>
+
+        <div class="mb-[40px] md:mb-0">
+          <a
+            href="/blog/aeternity"
+            class="block md:w-[95%] mx-auto border-radius-[20px] group cursor-pointer"
+          >
+            <div>
+              <img
+                class="aspect-[16/9] object-cover rounded-2xl block border-[1px] opacity-100 md:opacity-70 transition-opacity group-hover:opacity-100"
+                src="../images/aeternity.png"
+                alt="aeternity"
+                title="aeternity"
+              />
+            </div>
+            <div class="w-[98%] mx-auto">
+              <span class="block text-xl md:text-2xl font-[600] text-blue-700 mt-[25px] mb-[15px] mx-0">
+                Features & Technologies
+              </span>
+              <h3 class="text-xl md:text-2xl font-[700] leading-[2.4rem] text-black hover:text-blue-700">
+                Why Choose Aeternity ?
+              </h3>
+            </div>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

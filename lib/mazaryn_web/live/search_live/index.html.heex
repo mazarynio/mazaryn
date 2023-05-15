@@ -1,32 +1,41 @@
 <!-- navigation -->
-<.live_component module={MazarynWeb.HomeLive.NavComponent} id="navigation" user={@user} search={@search} />
-
+<.live_component
+  module={MazarynWeb.HomeLive.NavComponent}
+  id="navigation"
+  user={@user}
+  search={@search}
+/>
 <!-- Three columns -->
 <div class="flex flex-wrap h-screen">
   <div class="w-full lg:w-1/6 bg-gray-100 py-10 pl-10">
-    <.live_component module={MazarynWeb.HomeLive.LeftSidebarComponent} id="leftsidebar" user={@user} />
+    <.live_component
+      module={MazarynWeb.HomeLive.LeftSidebarComponent}
+      id="leftsidebar"
+      user={@user}
+    />
   </div>
   <!-- middle column -->
   <div class="w-full lg:w-3/6 bg-gray-100 p-10">
     <!-- search top navigation -->
-    <.live_component module={MazarynWeb.SearchLive.Components.SearchTopNavigationComponent} id="search_top_navigation_component" />
-    
+    <.live_component
+      module={MazarynWeb.SearchLive.Components.SearchTopNavigationComponent}
+      id="search_top_navigation_component"
+    />
     <!-- main -->
     <div class="w-full rounded-3xl bg-white flex items-center justify-between shadow px-2 mt-5 border mb-5">
-      <.live_component module={MazarynWeb.SearchLive.Components.UsersComponent} id="users_component" found_users={@found_users} />
+      <.live_component
+        module={MazarynWeb.SearchLive.Components.UsersComponent}
+        id="users_component"
+        found_users={@found_users}
+      />
     </div>
-
   </div>
   <!-- end of middle column-->
-
-
   <div class="w-full lg:w-2/6 bg-gray-100 py-10 pr-10">
-    <%# <.live_component module={MazarynWeb.HomeLive.CompleteProfileComponent} id="completing" user_id={@user.id} /> %>
     <div class="w-full bg-white white:bg-gray-800 shadow p-4 rounded-xl border my-5">
       <div class="flex flex-row justify-between">
         <h1 class="block flex items-center text-l font-semibold py-4 px-2">
-          <i><%= Heroicons.icon("fire", class: "h-7 w-7 mr-3 fill-red-500") %></i>
-          Trending
+          <i><%= Heroicons.icon("fire", class: "h-7 w-7 mr-3 fill-red-500") %></i> Trending
         </h1>
         <a href="#" class="block text-l text-blue-400 py-4 px-2">See more</a>
       </div>
@@ -42,9 +51,13 @@
                 </div>
 
                 <div class="flex space-x-2 justify-center">
-                  <button type="button"
-                    class="inline-block flex items-center px-4 py-2.5 border border-gray-400  text-gray-400 font-medium text-xs leading-tight uppercase rounded-lg transition duration-150 ease-in-out hover:bg-gray-100">
-                    <i><%= Heroicons.icon("plus-circle", type: "outline",class: "h-5 w-5 mr-2") %></i>
+                  <button
+                    type="button"
+                    class="inline-block flex items-center px-4 py-2.5 border border-gray-400  text-gray-400 font-medium text-xs leading-tight uppercase rounded-lg transition duration-150 ease-in-out hover:bg-gray-100"
+                  >
+                    <i>
+                      <%= Heroicons.icon("plus-circle", type: "outline", class: "h-5 w-5 mr-2") %>
+                    </i>
                     Follow
                   </button>
                 </div>
@@ -53,13 +66,19 @@
             <li class="active pb-3">
               <div class="flex justify-between align-center items-center">
                 <div class="flex flex-col">
-                  <a href="index.html" class="text-l px-2 text-gray-500 font-semibold">#METAVERSE</a>
+                  <a href="index.html" class="text-l px-2 text-gray-500 font-semibold">
+                    #METAVERSE
+                  </a>
                   <span class="text-md px-2 text-gray-300 font-normal">200 posts</span>
                 </div>
                 <div class="flex space-x-2 justify-center">
-                  <button type="button"
-                    class="inline-block flex items-center px-4 py-2.5 border border-gray-400  text-gray-400 font-medium text-xs leading-tight uppercase rounded-lg transition duration-150 ease-in-out hover:bg-gray-100">
-                    <i><%= Heroicons.icon("plus-circle", type: "outline",class: "h-5 w-5 mr-2") %></i>
+                  <button
+                    type="button"
+                    class="inline-block flex items-center px-4 py-2.5 border border-gray-400  text-gray-400 font-medium text-xs leading-tight uppercase rounded-lg transition duration-150 ease-in-out hover:bg-gray-100"
+                  >
+                    <i>
+                      <%= Heroicons.icon("plus-circle", type: "outline", class: "h-5 w-5 mr-2") %>
+                    </i>
                     Follow
                   </button>
                 </div>
@@ -83,19 +102,25 @@
           <ul class="w-full">
             <li class="active pb-3">
               <div class="flex justify-between align-center items-center">
-
                 <div class="flex flex-row items-center">
                   <div class="rounded-full flex-shrink-0">
-                    <img src={Routes.static_path(@socket, "/images/profile-photo.svg" )} alt="Mazaryn symbol"
-                      class="w-10 rounded-full" />
+                    <img
+                      src={Routes.static_path(@socket, "/images/profile-photo.svg")}
+                      alt="Mazaryn symbol"
+                      class="w-10 rounded-full"
+                    />
                   </div>
                   <a href="index.html" class="text-l px-2 text-gray-500 font-semibold">emilano</a>
                 </div>
 
                 <div class="flex space-x-2 justify-center">
-                  <button type="button"
-                    class="inline-block flex items-center px-4 py-2.5 border border-gray-400  text-gray-400 font-medium text-xs leading-tight uppercase rounded-lg transition duration-150 ease-in-out hover:bg-gray-100">
-                    <i><%= Heroicons.icon("plus-circle", type: "outline",class: "h-5 w-5 mr-2") %></i>
+                  <button
+                    type="button"
+                    class="inline-block flex items-center px-4 py-2.5 border border-gray-400  text-gray-400 font-medium text-xs leading-tight uppercase rounded-lg transition duration-150 ease-in-out hover:bg-gray-100"
+                  >
+                    <i>
+                      <%= Heroicons.icon("plus-circle", type: "outline", class: "h-5 w-5 mr-2") %>
+                    </i>
                     Add
                   </button>
                 </div>
@@ -105,16 +130,23 @@
               <div class="flex justify-between align-center items-center">
                 <div class="flex flex-row items-center">
                   <div class="rounded-full flex-shrink-0">
-                    <img src={Routes.static_path(@socket, "/images/profile-photo.svg" )} alt="Mazaryn symbol"
-                      class="w-10 rounded-full" />
+                    <img
+                      src={Routes.static_path(@socket, "/images/profile-photo.svg")}
+                      alt="Mazaryn symbol"
+                      class="w-10 rounded-full"
+                    />
                   </div>
                   <a href="index.html" class="text-l px-2 text-gray-500 font-semibold">emilano</a>
                 </div>
 
                 <div class="flex space-x-2 justify-center">
-                  <button type="button"
-                    class="inline-block flex items-center px-4 py-2.5 border border-gray-400  text-gray-400 font-medium text-xs leading-tight uppercase rounded-lg transition duration-150 ease-in-out hover:bg-gray-100">
-                    <i><%= Heroicons.icon("plus-circle", type: "outline",class: "h-5 w-5 mr-2") %></i>
+                  <button
+                    type="button"
+                    class="inline-block flex items-center px-4 py-2.5 border border-gray-400  text-gray-400 font-medium text-xs leading-tight uppercase rounded-lg transition duration-150 ease-in-out hover:bg-gray-100"
+                  >
+                    <i>
+                      <%= Heroicons.icon("plus-circle", type: "outline", class: "h-5 w-5 mr-2") %>
+                    </i>
                     Add
                   </button>
                 </div>
@@ -127,8 +159,7 @@
     <div class="w-full bg-white white:bg-gray-800 shadow p-4 rounded-xl border my-5">
       <div class="flex flex-row justify-between">
         <h1 class="block flex items-center text-l font-semibold py-4 px-2">
-          <i><%= Heroicons.icon("users", class: "h-7 w-7 mr-3 fill-blue-500") %></i>
-          Groups
+          <i><%= Heroicons.icon("users", class: "h-7 w-7 mr-3 fill-blue-500") %></i> Groups
         </h1>
         <a href="#" class="block text-l text-blue-400 py-4 px-2">See more</a>
       </div>
@@ -138,23 +169,30 @@
           <ul class="w-full">
             <li class="active pb-3">
               <div class="flex justify-between align-center items-center">
-
                 <div class="flex flex-row items-center">
                   <div class="rounded-full flex-shrink-0">
-                    <img src={Routes.static_path(@socket, "/images/profile-photo.svg" )} alt="Mazaryn symbol"
-                      class="w-10 rounded-full" />
+                    <img
+                      src={Routes.static_path(@socket, "/images/profile-photo.svg")}
+                      alt="Mazaryn symbol"
+                      class="w-10 rounded-full"
+                    />
                   </div>
                   <div class="flex flex-col">
-                    <a href="index.html" class="text-l px-2 text-gray-500 font-semibold">Crypto-edu</a>
+                    <a href="index.html" class="text-l px-2 text-gray-500 font-semibold">
+                      Crypto-edu
+                    </a>
                     <span class="text-md px-2 text-gray-300 font-normal">20k members</span>
                   </div>
                 </div>
 
-
                 <div class="flex space-x-2 justify-center">
-                  <button type="button"
-                    class="inline-block flex items-center px-4 py-2.5 border border-gray-400  text-gray-400 font-medium text-xs leading-tight uppercase rounded-lg transition duration-150 ease-in-out hover:bg-gray-100">
-                    <i><%= Heroicons.icon("plus-circle", type: "outline",class: "h-5 w-5 mr-2") %></i>
+                  <button
+                    type="button"
+                    class="inline-block flex items-center px-4 py-2.5 border border-gray-400  text-gray-400 font-medium text-xs leading-tight uppercase rounded-lg transition duration-150 ease-in-out hover:bg-gray-100"
+                  >
+                    <i>
+                      <%= Heroicons.icon("plus-circle", type: "outline", class: "h-5 w-5 mr-2") %>
+                    </i>
                     Join
                   </button>
                 </div>
@@ -162,23 +200,30 @@
             </li>
             <li class="active pb-3">
               <div class="flex justify-between align-center items-center">
-
                 <div class="flex flex-row items-center">
                   <div class="rounded-full flex-shrink-0">
-                    <img src={Routes.static_path(@socket, "/images/profile-photo.svg" )} alt="Mazaryn symbol"
-                      class="w-10 rounded-full" />
+                    <img
+                      src={Routes.static_path(@socket, "/images/profile-photo.svg")}
+                      alt="Mazaryn symbol"
+                      class="w-10 rounded-full"
+                    />
                   </div>
                   <div class="flex flex-col">
-                    <a href="index.html" class="text-l px-2 text-gray-500 font-semibold">Crypto-edu</a>
+                    <a href="index.html" class="text-l px-2 text-gray-500 font-semibold">
+                      Crypto-edu
+                    </a>
                     <span class="text-md px-2 text-gray-300 font-normal">20k members</span>
                   </div>
                 </div>
 
-
                 <div class="flex space-x-2 justify-center">
-                  <button type="button"
-                    class="inline-block flex items-center px-4 py-2.5 border border-gray-400  text-gray-400 font-medium text-xs leading-tight uppercase rounded-lg transition duration-150 ease-in-out hover:bg-gray-100">
-                    <i><%= Heroicons.icon("plus-circle", type: "outline",class: "h-5 w-5 mr-2") %></i>
+                  <button
+                    type="button"
+                    class="inline-block flex items-center px-4 py-2.5 border border-gray-400  text-gray-400 font-medium text-xs leading-tight uppercase rounded-lg transition duration-150 ease-in-out hover:bg-gray-100"
+                  >
+                    <i>
+                      <%= Heroicons.icon("plus-circle", type: "outline", class: "h-5 w-5 mr-2") %>
+                    </i>
                     Join
                   </button>
                 </div>
@@ -189,5 +234,4 @@
       </div>
     </div>
   </div>
-
 </div>

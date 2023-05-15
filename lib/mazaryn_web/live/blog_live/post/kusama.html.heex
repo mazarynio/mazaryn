@@ -1,176 +1,261 @@
-<%# Header %>
-
 <header class="bg-black shadow">
-    <div class="flex justify-between items-center max-w-[1440px] w-[90%] px-0 mx-auto py-6 md:px-4 sm:px-6 lg:px-8">
-        <a href="/blog">
-          <h1 class="flex justify-left items-center text-2xl md:text-3xl leading-0 font-thin text-[#E5E5E5]"><img class="logo brightness-150 h-[42px] md:h-auto" src="../images/logo.png" alt="Elixir Social Network" /><span class="ml-[10px]">Blog</span></h1>
-        </a>
-        <div>
-        <a class="hidden md:block justify-center text-[#D3D3D3] hover:text-[#fff]" href="/login">
-            Connect with Mazaryn
-        </a>
-        <div class="menuToggle md:hidden">
-            <input type="checkbox" phx-click={toggle_menu()} />
-            <span></span>
-            <span></span>
-            <span></span>
-        </div>
-        </div>
-    </div>
-    <div class="menu-content w-[90%] mx-auto hidden">
-        <a class="justify-center text-[#D3D3D3] hover:text-[#fff]" href="/login">
+  <div class="flex justify-between items-center max-w-[1440px] w-[90%] px-0 mx-auto py-6 md:px-4 sm:px-6 lg:px-8">
+    <a href="/blog">
+      <h1 class="flex justify-left items-center text-2xl md:text-3xl leading-0 font-thin text-[#E5E5E5]">
+        <img
+          class="logo brightness-150 h-[42px] md:h-auto"
+          src="../images/logo.png"
+          alt="Elixir Social Network"
+        /><span class="ml-[10px]">Blog</span>
+      </h1>
+    </a>
+    <div>
+      <a class="hidden md:block justify-center text-[#D3D3D3] hover:text-[#fff]" href="/login">
         Connect with Mazaryn
-        </a>
+      </a>
+      <div class="menuToggle md:hidden">
+        <input type="checkbox" phx-click={toggle_menu()} />
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
     </div>
+  </div>
+  <div class="menu-content w-[90%] mx-auto hidden">
+    <a class="justify-center text-[#D3D3D3] hover:text-[#fff]" href="/login">
+      Connect with Mazaryn
+    </a>
+  </div>
 </header>
 
-
-<%# Ad top%>
 <div align="center" id="adswrappertop" phx-update="ignore">
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5319093423466090"
-     crossorigin="anonymous"></script>
-    <!-- mazaryn-display -->
-    <ins class="adsbygoogle"
-        style="display:block"
-        data-ad-client="ca-pub-5319093423466090"
-        data-ad-slot="1536507325"
-        data-ad-format="auto"
-        data-full-width-responsive="true"></ins>
-    <script>
-        (adsbygoogle = window.adsbygoogle || []).push({});
-    </script>
+  <script
+    async
+    src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5319093423466090"
+    crossorigin="anonymous"
+  >
+  </script>
+  <!-- mazaryn-display -->
+  <ins
+    class="adsbygoogle"
+    style="display:block"
+    data-ad-client="ca-pub-5319093423466090"
+    data-ad-slot="1536507325"
+    data-ad-format="auto"
+    data-full-width-responsive="true"
+  >
+  </ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
 </div>
-
-<%# Post Is Here %>
 
 <div class="post-wrapper max-w-[1440px] w-[95%] md:w-[100%] mx-auto py-[30px] md:px-[4rem] md:py-[60px]">
-    <article>
-        <dl class="md:mt-[80px]">
-            <dd class="flex items-center space-x-3 mb-7">
-                <img src="../images/arvand-avatar.jpg" alt="Arvand" class="w-10 h-10 object-cover rounded-xl" srcset=""/>
-                 <dl>
-                    <dt class="sr-only">Author</dt>
-                    <dd class="text-md text-blue-700">Arvand Azadvar</dd>
-                    <dd>
-                        <a class="text-sm text-blue-500" href="https://github.com/arvand-io" target="_blank">@arvand</a>
-                    </dd>
-                </dl>
-            </dd>
-           
+  <article>
+    <dl class="md:mt-[80px]">
+      <dd class="flex items-center space-x-3 mb-7">
+        <img
+          src="../images/arvand-avatar.jpg"
+          alt="Arvand"
+          class="w-10 h-10 object-cover rounded-xl"
+          srcset=""
+        />
+        <dl>
+          <dt class="sr-only">Author</dt>
+          <dd class="text-md text-blue-700">Arvand Azadvar</dd>
+          <dd>
+            <a class="text-sm text-blue-500" href="https://github.com/arvand-io" target="_blank">
+              @arvand
+            </a>
+          </dd>
         </dl>
-        <section class="post__section relative  w-[100%] md:w-[80%] max-w-[800px] mx-auto">
-            <div>
-                <div class="flex items-center">
-                    <a href="/blog" class="cursor-pointer text-sm font-[500] uppercase text-blue-500">Blog</a>
-                    <span class="text-[#000008] opacity-70 text-sm font-[500] mx-2">/</span>
-                    <span class="uppercase text-[#000008] text-sm font-[500] opacity-70 ">Features & Technologies</span>
-                </div>
-            </div>
-            <div class="pt-4 pb-12 md:pt-12 md:pb-14">
-                <h2 class="font-[600] md:ml-[40px] text-[1.75rem] md:text-[2.4rem] leading-[2.8rem] text-blue-600">Why Choose Kusama ?</h2>
-            </div>
-            <img class="image-cover" src="../images/kusama.png" alt="" title="" />
-            <div class="lead">
-                <p>Mazaryn Using Kusama to Empower Users access to Most Advanced Blockchain Tools, Earn KSM Token and Pay each other From their Multi Asset Secure Wallets.</p>
-                <h3>Here are Some Advantages of the Kusama Network</h3>
-                <p>Kusama is a canary network for Polkadot; an earlier release of the code that is available first and holds real economic value. For developers, Kusama is a proving ground for runtime upgrades, on-chain governance, and parachains. And just as you may have guessed, it was introduced by Gavin Wood who is the founder of Polkadot and also the co-founder of Ethereum. It has been a very crucial platform for developers who want to try out new features and explore more than Polkadot has to offer. As such, it allows for limitless innovation and also guarantees economic security of Polkadot mainnet. In this guide, we will go through the advantages and disadvantages of Kusama as a platform.</p>
-                <%# Google in-article Ad %>
-                <div id="adswrapper2" phx-update="ignore">
-                    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5319093423466090" crossorigin="anonymous"></script>
-                    <ins class="adsbygoogle"
-                        style="display:block; text-align:center;"
-                        data-ad-layout="in-article"
-                        data-ad-format="fluid"
-                        data-ad-client="ca-pub-5319093423466090"
-                        data-ad-slot="8766830319"></ins>
-                    <script>
-                        (adsbygoogle = window.adsbygoogle || []).push({});
-                    </script>
-                </div>
-                <ol>
-                    <li>Low Barrier To Entry</li>
-                    <p>Usually when you want to deploy a parachain or a dApp under the <strong>Polkadot Network</strong>, there are lots of steps that you will have to go through. From strict validation processes to meeting some set thresholds, it would be a bit stiff. However, with Kusama being a good test environment for parachains and multiple projects, it is less strict and there are less barriers to entry. Launching and deploying through it is advantageous to that fact.</p>
-                    <li>Low Bond Requirements For Validators</li>
-                    <p>To be a validator on the Polkadot network, there are lots of things that one must meet. Among them is a certain amount of DOTs and to show full commitment through other means towards the platform. However, Kusama doesn’t have much of that. The low bond requirement for validators encourages more progress on a bigger scale.</p>
-                    <li>Faster Upgrades</li>
-                    <p>Contrary to what most of us may think, Kusama is much faster than Polkadot. In fact it is about four times faster. But how is that possible when it is built on the template of Polkadot? As much as Kusama tends to be a parachain of Polkadot, it has a well modified governance parameter in place. This in turn allows for much faster upgrades. The voting process on the governance and upgrading on Polkadot takes up to 28 days while on Kusama it only takes a maximum of 15 days.</p>
-                    <li>Scalability </li>
-                    <p>Sharded blockchains and open governance make a good combination when it comes to scalability. Kusama provides the infrastructure for applications to deploy and mature.</p>
-                    <li>Parachains </li>
-                    <p>Another feature of Kusama is the use of two blockchains, the main network and the user-generated networks (Parachains). Parachains are quite unique and allow users to run separate layer-1 blockchains in concurrence with the Kusama network. Being able to run unique layer-1s that are tied to the Relay Chain not only ensures the security of the Parachains but greatly increases the scalability and interoperability of the Kusama network.</p>
-                </ol>
-                <h3>What is the KSM Token?</h3>
-                <p>KSM is Kusama’s native token, and it’s the token holders who own Kusama, not a central power. On-chain governance determines any changes to the protocol. So, it’s a community of network participants who vote and govern Kusama and guide the network’s future evolution. Kusama has on-chain governance capabilities similar to Polkadot. It’s permissionless and decentralized, and anyone holding KSM tokens (or parachain tokens) can vote on proposals. These proposals can include such things as upgrades, feature requests, and other changes to the Kusama protocol.</p>
-                <p>other changes to the Kusama protocol.  Although it’s similar, Kusama’s on-chain governance procedure is about 4x faster than Polkadot. With a 15-day voting and enactment period, project development moves at a more rapid pace. So, for those looking to make their mark in the future direction of Kusama, participating in governance is the way to go.</p>
-            </div>
-        </section>
-        <dl class="hidden md:block md:w-[100%]">
-            <div class="block top-0 sticky w-[300px]" id="adswrapperaside" phx-update="ignore">
-               <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5319093423466090"
-                    crossorigin="anonymous"></script>
-                <!-- mazaryn-display -->
-                <ins class="adsbygoogle"
-                    style="display:block"
-                    data-ad-client="ca-pub-5319093423466090"
-                    data-ad-slot="1536507325"
-                    data-ad-format="auto"
-                    data-full-width-responsive="true"></ins>
-                <script>
-                    (adsbygoogle = window.adsbygoogle || []).push({});
-                </script>
-            </div>
-        </dl>
-    </article>
+      </dd>
+    </dl>
+    <section class="post__section relative  w-[100%] md:w-[80%] max-w-[800px] mx-auto">
+      <div>
+        <div class="flex items-center">
+          <a href="/blog" class="cursor-pointer text-sm font-[500] uppercase text-blue-500">
+            Blog
+          </a>
+          <span class="text-[#000008] opacity-70 text-sm font-[500] mx-2">/</span>
+          <span class="uppercase text-[#000008] text-sm font-[500] opacity-70 ">
+            Features & Technologies
+          </span>
+        </div>
+      </div>
+      <div class="pt-4 pb-12 md:pt-12 md:pb-14">
+        <h2 class="font-[600] md:ml-[40px] text-[1.75rem] md:text-[2.4rem] leading-[2.8rem] text-blue-600">
+          Why Choose Kusama ?
+        </h2>
+      </div>
+      <img class="image-cover" src="../images/kusama.png" alt="" title="" />
+      <div class="lead">
+        <p>
+          Mazaryn Using Kusama to Empower Users access to Most Advanced Blockchain Tools, Earn KSM Token and Pay each other From their Multi Asset Secure Wallets.
+        </p>
+        <h3>Here are Some Advantages of the Kusama Network</h3>
+        <p>
+          Kusama is a canary network for Polkadot; an earlier release of the code that is available first and holds real economic value. For developers, Kusama is a proving ground for runtime upgrades, on-chain governance, and parachains. And just as you may have guessed, it was introduced by Gavin Wood who is the founder of Polkadot and also the co-founder of Ethereum. It has been a very crucial platform for developers who want to try out new features and explore more than Polkadot has to offer. As such, it allows for limitless innovation and also guarantees economic security of Polkadot mainnet. In this guide, we will go through the advantages and disadvantages of Kusama as a platform.
+        </p>
+        <div id="adswrapper2" phx-update="ignore">
+          <script
+            async
+            src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5319093423466090"
+            crossorigin="anonymous"
+          >
+          </script>
+          <ins
+            class="adsbygoogle"
+            style="display:block; text-align:center;"
+            data-ad-layout="in-article"
+            data-ad-format="fluid"
+            data-ad-client="ca-pub-5319093423466090"
+            data-ad-slot="8766830319"
+          >
+          </ins>
+          <script>
+            (adsbygoogle = window.adsbygoogle || []).push({});
+          </script>
+        </div>
+        <ol>
+          <li>Low Barrier To Entry</li>
+          <p>
+            Usually when you want to deploy a parachain or a dApp under the <strong>Polkadot Network</strong>, there are lots of steps that you will have to go through. From strict validation processes to meeting some set thresholds, it would be a bit stiff. However, with Kusama being a good test environment for parachains and multiple projects, it is less strict and there are less barriers to entry. Launching and deploying through it is advantageous to that fact.
+          </p>
+          <li>Low Bond Requirements For Validators</li>
+          <p>
+            To be a validator on the Polkadot network, there are lots of things that one must meet. Among them is a certain amount of DOTs and to show full commitment through other means towards the platform. However, Kusama doesn’t have much of that. The low bond requirement for validators encourages more progress on a bigger scale.
+          </p>
+          <li>Faster Upgrades</li>
+          <p>
+            Contrary to what most of us may think, Kusama is much faster than Polkadot. In fact it is about four times faster. But how is that possible when it is built on the template of Polkadot? As much as Kusama tends to be a parachain of Polkadot, it has a well modified governance parameter in place. This in turn allows for much faster upgrades. The voting process on the governance and upgrading on Polkadot takes up to 28 days while on Kusama it only takes a maximum of 15 days.
+          </p>
+          <li>Scalability</li>
+          <p>
+            Sharded blockchains and open governance make a good combination when it comes to scalability. Kusama provides the infrastructure for applications to deploy and mature.
+          </p>
+          <li>Parachains</li>
+          <p>
+            Another feature of Kusama is the use of two blockchains, the main network and the user-generated networks (Parachains). Parachains are quite unique and allow users to run separate layer-1 blockchains in concurrence with the Kusama network. Being able to run unique layer-1s that are tied to the Relay Chain not only ensures the security of the Parachains but greatly increases the scalability and interoperability of the Kusama network.
+          </p>
+        </ol>
+        <h3>What is the KSM Token?</h3>
+        <p>
+          KSM is Kusama’s native token, and it’s the token holders who own Kusama, not a central power. On-chain governance determines any changes to the protocol. So, it’s a community of network participants who vote and govern Kusama and guide the network’s future evolution. Kusama has on-chain governance capabilities similar to Polkadot. It’s permissionless and decentralized, and anyone holding KSM tokens (or parachain tokens) can vote on proposals. These proposals can include such things as upgrades, feature requests, and other changes to the Kusama protocol.
+        </p>
+        <p>
+          other changes to the Kusama protocol.  Although it’s similar, Kusama’s on-chain governance procedure is about 4x faster than Polkadot. With a 15-day voting and enactment period, project development moves at a more rapid pace. So, for those looking to make their mark in the future direction of Kusama, participating in governance is the way to go.
+        </p>
+      </div>
+    </section>
+    <dl class="hidden md:block md:w-[100%]">
+      <div class="block top-0 sticky w-[300px]" id="adswrapperaside" phx-update="ignore">
+        <script
+          async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5319093423466090"
+          crossorigin="anonymous"
+        >
+        </script>
+        <!-- mazaryn-display -->
+        <ins
+          class="adsbygoogle"
+          style="display:block"
+          data-ad-client="ca-pub-5319093423466090"
+          data-ad-slot="1536507325"
+          data-ad-format="auto"
+          data-full-width-responsive="true"
+        >
+        </ins>
+        <script>
+          (adsbygoogle = window.adsbygoogle || []).push({});
+        </script>
+      </div>
+    </dl>
+  </article>
 </div>
 
-<%# Related Posts %>
-
 <div class="max-w-[1440px] w-[95%] md:w-[100%] mx-auto py-[30px]">
-    <div class="md:w-[95%] mx-auto">
-        <span class="font-[500] md:ml-[25px] text-[1.75rem] md:text-[2rem] leading-[2.25rem] text-blue-700 capitalize">Related posts</span>
-        <div>
-            <div class="flex flex-col md:flex-row justify-between gap-[15px] w-[100%] px-0 py-8 md:my-[45px] mx-auto md:py-0 md:px-4 sm:px-6">
-
-                <div class="mb-[40px] md:mb-0">
-                    <a href="/blog/nft" class="block md:w-[95%] mx-auto border-radius-[20px] group cursor-pointer">
-                    <div>
-                        <img class="aspect-[16/9] object-cover rounded-2xl block border-[1px] opacity-100 md:opacity-70 transition-opacity group-hover:opacity-100" src="../images/nftnft.jpg" alt="NFT" title="NFT" />
-                    </div>
-                    <div class="w-[98%] mx-auto">
-                        <span class="block text-xl md:text-2xl font-[600] text-blue-700 mt-[25px] mb-[15px] mx-0">Features & Technologies</span>
-                        <h3 class="text-xl md:text-2xl font-[700] leading-[2.4rem] text-black hover:text-blue-700">What is NFT ?</h3>
-                    </div>
-                    </a>
-                </div>
-
-                <div align="center" id="adswrappersquared" phx-update="ignore" class="mb-[40px] md:mb-0 w-[32%]">
-                   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5319093423466090"
-                        crossorigin="anonymous"></script>
-                    <!-- mazaryn-square -->
-                    <ins class="adsbygoogle"
-                        style="display:block"
-                        data-ad-client="ca-pub-5319093423466090"
-                        data-ad-slot="7660388930"
-                        data-ad-format="auto"
-                        data-full-width-responsive="true"></ins>
-                    <script>
-                        (adsbygoogle = window.adsbygoogle || []).push({});
-                    </script>
-                </div>
-
-                 <div class="mb-[40px] md:mb-0">
-                    <a href="/blog/polkadot" class="block md:w-[95%] mx-auto border-radius-[20px] group cursor-pointer" >
-                    <div>
-                        <img class="aspect-[16/9] object-cover rounded-2xl block border-[1px] opacity-100 md:opacity-70 transition-opacity group-hover:opacity-100" src="../images/polkadot.png" alt="polkadot" title="polkadot" />
-                    </div>
-                    <div class="w-[98%] mx-auto">
-                        <span class="block text-xl md:text-2xl font-[600] text-blue-700 mt-[25px] mb-[15px] mx-0">Features & Technologies</span>
-                        <h3 class="text-xl md:text-2xl font-[700] leading-[2.4rem] text-black hover:text-blue-700">Why Choose Polkadot ?</h3>
-                    </div>
-                    </a>
-                </div>
-
+  <div class="md:w-[95%] mx-auto">
+    <span class="font-[500] md:ml-[25px] text-[1.75rem] md:text-[2rem] leading-[2.25rem] text-blue-700 capitalize">
+      Related posts
+    </span>
+    <div>
+      <div class="flex flex-col md:flex-row justify-between gap-[15px] w-[100%] px-0 py-8 md:my-[45px] mx-auto md:py-0 md:px-4 sm:px-6">
+        <div class="mb-[40px] md:mb-0">
+          <a
+            href="/blog/nft"
+            class="block md:w-[95%] mx-auto border-radius-[20px] group cursor-pointer"
+          >
+            <div>
+              <img
+                class="aspect-[16/9] object-cover rounded-2xl block border-[1px] opacity-100 md:opacity-70 transition-opacity group-hover:opacity-100"
+                src="../images/nftnft.jpg"
+                alt="NFT"
+                title="NFT"
+              />
             </div>
+            <div class="w-[98%] mx-auto">
+              <span class="block text-xl md:text-2xl font-[600] text-blue-700 mt-[25px] mb-[15px] mx-0">
+                Features & Technologies
+              </span>
+              <h3 class="text-xl md:text-2xl font-[700] leading-[2.4rem] text-black hover:text-blue-700">
+                What is NFT ?
+              </h3>
+            </div>
+          </a>
         </div>
+
+        <div
+          align="center"
+          id="adswrappersquared"
+          phx-update="ignore"
+          class="mb-[40px] md:mb-0 w-[32%]"
+        >
+          <script
+            async
+            src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5319093423466090"
+            crossorigin="anonymous"
+          >
+          </script>
+          <!-- mazaryn-square -->
+          <ins
+            class="adsbygoogle"
+            style="display:block"
+            data-ad-client="ca-pub-5319093423466090"
+            data-ad-slot="7660388930"
+            data-ad-format="auto"
+            data-full-width-responsive="true"
+          >
+          </ins>
+          <script>
+            (adsbygoogle = window.adsbygoogle || []).push({});
+          </script>
+        </div>
+
+        <div class="mb-[40px] md:mb-0">
+          <a
+            href="/blog/polkadot"
+            class="block md:w-[95%] mx-auto border-radius-[20px] group cursor-pointer"
+          >
+            <div>
+              <img
+                class="aspect-[16/9] object-cover rounded-2xl block border-[1px] opacity-100 md:opacity-70 transition-opacity group-hover:opacity-100"
+                src="../images/polkadot.png"
+                alt="polkadot"
+                title="polkadot"
+              />
+            </div>
+            <div class="w-[98%] mx-auto">
+              <span class="block text-xl md:text-2xl font-[600] text-blue-700 mt-[25px] mb-[15px] mx-0">
+                Features & Technologies
+              </span>
+              <h3 class="text-xl md:text-2xl font-[700] leading-[2.4rem] text-black hover:text-blue-700">
+                Why Choose Polkadot ?
+              </h3>
+            </div>
+          </a>
+        </div>
+      </div>
     </div>
+  </div>
 </div>

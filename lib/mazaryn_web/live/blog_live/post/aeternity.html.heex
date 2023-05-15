@@ -1,180 +1,277 @@
-<%# Header %>
-
 <header class="bg-black shadow">
-    <div class="flex justify-between items-center max-w-[1440px] w-[90%] px-0 mx-auto py-6 md:px-4 sm:px-6 lg:px-8">
-        <a href="/blog">
-          <h1 class="flex justify-left items-center text-2xl md:text-3xl leading-0 font-thin text-[#E5E5E5]"><img class="logo brightness-150 h-[42px] md:h-auto" src="../images/logo.png" alt="Elixir Social Network" /><span class="ml-[10px]">Blog</span></h1>
-        </a>
-        <div>
-            <a class="hidden md:block justify-center text-[#D3D3D3] hover:text-[#fff]" href="/login">
-                Connect with Mazaryn
-            </a>
-            <div class="menuToggle md:hidden">
-                <input type="checkbox" phx-click={toggle_menu()} />
-                <span></span>
-                <span></span>
-                <span></span>
-            </div>
-        </div>
-    </div>
-    <div class="menu-content w-[90%] mx-auto hidden">
-        <a class="justify-center text-[#D3D3D3] hover:text-[#fff]" href="/login">
+  <div class="flex justify-between items-center max-w-[1440px] w-[90%] px-0 mx-auto py-6 md:px-4 sm:px-6 lg:px-8">
+    <a href="/blog">
+      <h1 class="flex justify-left items-center text-2xl md:text-3xl leading-0 font-thin text-[#E5E5E5]">
+        <img
+          class="logo brightness-150 h-[42px] md:h-auto"
+          src="../images/logo.png"
+          alt="Elixir Social Network"
+        /><span class="ml-[10px]">Blog</span>
+      </h1>
+    </a>
+    <div>
+      <a class="hidden md:block justify-center text-[#D3D3D3] hover:text-[#fff]" href="/login">
         Connect with Mazaryn
-        </a>
+      </a>
+      <div class="menuToggle md:hidden">
+        <input type="checkbox" phx-click={toggle_menu()} />
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
     </div>
+  </div>
+  <div class="menu-content w-[90%] mx-auto hidden">
+    <a class="justify-center text-[#D3D3D3] hover:text-[#fff]" href="/login">
+      Connect with Mazaryn
+    </a>
+  </div>
 </header>
 
-<%# Ad top%>
-
 <div align="center" id="adswrappertop" phx-update="ignore">
-   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5319093423466090"
-     crossorigin="anonymous"></script>
-    <!-- mazaryn-horizontal -->
-    <ins class="adsbygoogle"
-        style="display:block"
-        data-ad-client="ca-pub-5319093423466090"
-        data-ad-slot="2991899072"
-        data-ad-format="auto"
-        data-full-width-responsive="true"></ins>
-    <script>
-        (adsbygoogle = window.adsbygoogle || []).push({});
-    </script>
+  <script
+    async
+    src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5319093423466090"
+    crossorigin="anonymous"
+  >
+  </script>
+  <!-- mazaryn-horizontal -->
+  <ins
+    class="adsbygoogle"
+    style="display:block"
+    data-ad-client="ca-pub-5319093423466090"
+    data-ad-slot="2991899072"
+    data-ad-format="auto"
+    data-full-width-responsive="true"
+  >
+  </ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
 </div>
-
-
-
-
-<%# Post Is Here %>
 
 <div class="post-wrapper max-w-[1440px] w-[95%] md:w-[100%] mx-auto py-[30px] md:px-[4rem] md:py-[60px]">
-    <article>
-        <dl class="md:mt-[80px]">
-            <dd class="flex items-center space-x-3 mb-7">
-                <img src="../images/arvand-avatar.jpg" alt="Arvand" class="w-10 h-10 object-cover rounded-xl" srcset=""/>
-                 <dl>
-                    <dt class="sr-only">Author</dt>
-                    <dd class="text-md text-blue-700">Arvand Azadvar</dd>
-                    <dd>
-                        <a class="text-sm text-blue-500" href="https://github.com/arvand-io" target="_blank">@arvand</a>
-                    </dd>
-                </dl>
-            </dd>
+  <article>
+    <dl class="md:mt-[80px]">
+      <dd class="flex items-center space-x-3 mb-7">
+        <img
+          src="../images/arvand-avatar.jpg"
+          alt="Arvand"
+          class="w-10 h-10 object-cover rounded-xl"
+          srcset=""
+        />
+        <dl>
+          <dt class="sr-only">Author</dt>
+          <dd class="text-md text-blue-700">Arvand Azadvar</dd>
+          <dd>
+            <a class="text-sm text-blue-500" href="https://github.com/arvand-io" target="_blank">
+              @arvand
+            </a>
+          </dd>
         </dl>
-        <section class="post__section relative  w-[100%] md:w-[80%] max-w-[800px] mx-auto">
-            <div>
-                <div class="flex items-center">
-                    <a href="/blog" class="cursor-pointer text-sm font-[500] uppercase text-blue-500">Blog</a>
-                    <span class="text-[#000008] opacity-70 text-sm font-[500] mx-2">/</span>
-                    <span class="uppercase text-[#000008] text-sm font-[500] opacity-70 ">Features & Technologies</span>
-                </div>
-            </div>
-            <div class="pt-4 pb-12 md:pt-12 md:pb-14">
-                <h2 class="font-[600] md:ml-[40px] text-[1.75rem] md:text-[2.4rem] leading-[2.8rem] text-blue-600">Why Choose Aeternity ?</h2>
-            </div>
-            <img class="image-cover" src="../images/aeternity.png" alt="" title="" />
-            <div class="lead">
-                <p>Mazaryn Using Aeternity to Empower Users access to Most Advanced Blockchain Tools, Earn AE Token and Pay each other From their Multi Asset Secure Wallets.</p>
-                <%# Google in-article Ad %>
-                <div id="adswrapper2" phx-update="ignore">
-                    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5319093423466090" crossorigin="anonymous"></script>
-                    <ins class="adsbygoogle"
-                        style="display:block; text-align:center;"
-                        data-ad-layout="in-article"
-                        data-ad-format="fluid"
-                        data-ad-client="ca-pub-5319093423466090"
-                        data-ad-slot="8766830319"></ins>
-                    <script>
-                        (adsbygoogle = window.adsbygoogle || []).push({});
-                    </script>
-                </div>
-                <h3>Here are Some Advantages of the Aeternity Network.</h3>
-                <p>Aeternity is a blockchain network which allows for hosting smart contracts and dapp developments off the main network that makes it run faster. Aeternity blockchain runs faster and seems to be more energy efficient than competing blockchains. It mainly deals with the scalability and offering extra securities for both smart contracts and dapps. Aeternity Blockchain includes a “Decentralized Oracle Machine” that brings in data from outside sources to be used in smart contracts.It was founded by Yanislav Malahov in 2016, who famously calls himself the ‘Godfather of Ethereum’. Evidently, he worked closely with Ethereum’s founder before Ethereum was officially named. The legend has it that Malahov disagreed with how the Ethereum project was progressing, and started his own project to correct those flaws.</p>
-                <h3>What’s So special about Aeternity</h3>
-                <ol>
-                    <li>State Channels</li>
-                    <p>Traditionally, smart contracts are built right into the blockchain. This takes up a lot of space and slows things down. Aeternity has solved this by allowing smart contracts to take place off the blockchain, or ‘off-chain’. It also offers increased privacy. The contracts are only put on the blockchain in the case of a dispute, allowing people to have contracts that can be kept hidden.</p>
-                    <li>Governance</li>
-                    <p>Aeternity has put a major emphasis on community power by giving all stakeholders (token holders) a say in what happens. The more tokens you have, the more weight you carry.</p>
-                    <li>Consensus</li>
-                    <p>Aeternity uses a hybrid proof of work and proof of stake method. Usually, proof of work relies on raw computational power, which takes lots of electricity and only allows people with the most powerful computers to stand a chance in the mining game. Instead, Aeternity uses the “Cuckoo cycle”, which depends on computer memory bandwidth. This proof of work means that theoretically, any device from laptops to tablets can be used to mine AE tokens.</p>
-                    <li>Oracles</li>
-                    <p>Some smart contracts on the Aeternity network might require information that comes from outside the blockchain before they can execute; oracles are the entities on the network that bring that external data onto the blockchain for use by smart contracts. For example, the information that an oracle obtains from the real world and implements onto the blockchain may be information that triggers a smart contracts pre-defined condition — for instance, the result of a political election.</p>
-                    <p>All in all, the goal of the Aeternity blockchain is to provide a foundation for developers to build blockchain networks and decentralized applications without the transaction processing and scaling limitations that plague most blockchain networks. To accomplish this, the Aeternity network leverages the use of state channels which provide a significant advantage in terms of scalability and transaction processing compared to blockchain networks where most of the operations take place on-chain.</p>
-                    <p>Currently, the Bitcoin network is only able to process about 7 transactions per second while Ethereum can only handle 15 transactions per second. On the contrary, the team at Aeternity predicts that the Aeternity blockchain can process around 100 transactions per second — and that does not include the activity that takes place off-chain in state channels.</p>
-                    <li>Based on Erlang</li>
-                    <p>Aeternity coin is being built on Erlang, a functional programming language that has been used in telecommunications for more than three decades. Erlang has proven to be well suited for distributed systems with high-fault tolerance, running highly available applications. It excels in scalability, stability and is easy to upgrade, even on running systems. These characteristics make Erlang uniquely suitable for blockchain.</p>
-                    <li>Æpps</li>
-                    <p>Aeternity coin is being built with the user and developer in mind. Following a mobile-first approach, something uncommon to most blockchain projects, the team aims to produce easy-to-use, intuitive applications that the average user will feel comfortable interacting with. To help developers feel more comfortable with æternity, useful developer tools will be available on mainnet launch. The goal is to make devs build decentralized apps on top of æternity and contribute code to the core blockchain. The development of essential æpps such as an identity manager, blockchain explorer, voting app, and immutable proof generator is in progress.</p>
-                    <li>Sophia</li>
-                    <p>Sophia allows developers to abstract on a higher level than other blockchain programming languages. Sophia is a functional Smart Contract language in the ML family with built-in higher level blockchain concepts like oracles, state-channels, names and more. Sophia is strongly-typed and has a restricted mutable state. Click on this <a class="text-blue-500" href="https://docs.aeternity.com/aesophia/v7.0.1/" target="_blank">link</a> to get more info about Sophia.</p>
-                </ol>
-            </div>
-        </section>
-        <dl class="hidden md:block md:w-[100%]">
-            <div class="block top-0 sticky w-[300px]" id="adswrapperaside" phx-update="ignore">
-               <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5319093423466090"
-                    crossorigin="anonymous"></script>
-                <!-- mazaryn-display -->
-                <ins class="adsbygoogle"
-                    style="display:block"
-                    data-ad-client="ca-pub-5319093423466090"
-                    data-ad-slot="1536507325"
-                    data-ad-format="auto"
-                    data-full-width-responsive="true"></ins>
-                <script>
-                    (adsbygoogle = window.adsbygoogle || []).push({});
-                </script>
-            </div>
-        </dl>
-    </article>
+      </dd>
+    </dl>
+    <section class="post__section relative  w-[100%] md:w-[80%] max-w-[800px] mx-auto">
+      <div>
+        <div class="flex items-center">
+          <a href="/blog" class="cursor-pointer text-sm font-[500] uppercase text-blue-500">
+            Blog
+          </a>
+          <span class="text-[#000008] opacity-70 text-sm font-[500] mx-2">/</span>
+          <span class="uppercase text-[#000008] text-sm font-[500] opacity-70 ">
+            Features & Technologies
+          </span>
+        </div>
+      </div>
+      <div class="pt-4 pb-12 md:pt-12 md:pb-14">
+        <h2 class="font-[600] md:ml-[40px] text-[1.75rem] md:text-[2.4rem] leading-[2.8rem] text-blue-600">
+          Why Choose Aeternity ?
+        </h2>
+      </div>
+      <img class="image-cover" src="../images/aeternity.png" alt="" title="" />
+      <div class="lead">
+        <p>
+          Mazaryn Using Aeternity to Empower Users access to Most Advanced Blockchain Tools, Earn AE Token and Pay each other From their Multi Asset Secure Wallets.
+        </p>
+        <div id="adswrapper2" phx-update="ignore">
+          <script
+            async
+            src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5319093423466090"
+            crossorigin="anonymous"
+          >
+          </script>
+          <ins
+            class="adsbygoogle"
+            style="display:block; text-align:center;"
+            data-ad-layout="in-article"
+            data-ad-format="fluid"
+            data-ad-client="ca-pub-5319093423466090"
+            data-ad-slot="8766830319"
+          >
+          </ins>
+          <script>
+            (adsbygoogle = window.adsbygoogle || []).push({});
+          </script>
+        </div>
+        <h3>Here are Some Advantages of the Aeternity Network.</h3>
+        <p>
+          Aeternity is a blockchain network which allows for hosting smart contracts and dapp developments off the main network that makes it run faster. Aeternity blockchain runs faster and seems to be more energy efficient than competing blockchains. It mainly deals with the scalability and offering extra securities for both smart contracts and dapps. Aeternity Blockchain includes a “Decentralized Oracle Machine” that brings in data from outside sources to be used in smart contracts.It was founded by Yanislav Malahov in 2016, who famously calls himself the ‘Godfather of Ethereum’. Evidently, he worked closely with Ethereum’s founder before Ethereum was officially named. The legend has it that Malahov disagreed with how the Ethereum project was progressing, and started his own project to correct those flaws.
+        </p>
+        <h3>What’s So special about Aeternity</h3>
+        <ol>
+          <li>State Channels</li>
+          <p>
+            Traditionally, smart contracts are built right into the blockchain. This takes up a lot of space and slows things down. Aeternity has solved this by allowing smart contracts to take place off the blockchain, or ‘off-chain’. It also offers increased privacy. The contracts are only put on the blockchain in the case of a dispute, allowing people to have contracts that can be kept hidden.
+          </p>
+          <li>Governance</li>
+          <p>
+            Aeternity has put a major emphasis on community power by giving all stakeholders (token holders) a say in what happens. The more tokens you have, the more weight you carry.
+          </p>
+          <li>Consensus</li>
+          <p>
+            Aeternity uses a hybrid proof of work and proof of stake method. Usually, proof of work relies on raw computational power, which takes lots of electricity and only allows people with the most powerful computers to stand a chance in the mining game. Instead, Aeternity uses the “Cuckoo cycle”, which depends on computer memory bandwidth. This proof of work means that theoretically, any device from laptops to tablets can be used to mine AE tokens.
+          </p>
+          <li>Oracles</li>
+          <p>
+            Some smart contracts on the Aeternity network might require information that comes from outside the blockchain before they can execute; oracles are the entities on the network that bring that external data onto the blockchain for use by smart contracts. For example, the information that an oracle obtains from the real world and implements onto the blockchain may be information that triggers a smart contracts pre-defined condition — for instance, the result of a political election.
+          </p>
+          <p>
+            All in all, the goal of the Aeternity blockchain is to provide a foundation for developers to build blockchain networks and decentralized applications without the transaction processing and scaling limitations that plague most blockchain networks. To accomplish this, the Aeternity network leverages the use of state channels which provide a significant advantage in terms of scalability and transaction processing compared to blockchain networks where most of the operations take place on-chain.
+          </p>
+          <p>
+            Currently, the Bitcoin network is only able to process about 7 transactions per second while Ethereum can only handle 15 transactions per second. On the contrary, the team at Aeternity predicts that the Aeternity blockchain can process around 100 transactions per second — and that does not include the activity that takes place off-chain in state channels.
+          </p>
+          <li>Based on Erlang</li>
+          <p>
+            Aeternity coin is being built on Erlang, a functional programming language that has been used in telecommunications for more than three decades. Erlang has proven to be well suited for distributed systems with high-fault tolerance, running highly available applications. It excels in scalability, stability and is easy to upgrade, even on running systems. These characteristics make Erlang uniquely suitable for blockchain.
+          </p>
+          <li>Æpps</li>
+          <p>
+            Aeternity coin is being built with the user and developer in mind. Following a mobile-first approach, something uncommon to most blockchain projects, the team aims to produce easy-to-use, intuitive applications that the average user will feel comfortable interacting with. To help developers feel more comfortable with æternity, useful developer tools will be available on mainnet launch. The goal is to make devs build decentralized apps on top of æternity and contribute code to the core blockchain. The development of essential æpps such as an identity manager, blockchain explorer, voting app, and immutable proof generator is in progress.
+          </p>
+          <li>Sophia</li>
+          <p>
+            Sophia allows developers to abstract on a higher level than other blockchain programming languages. Sophia is a functional Smart Contract language in the ML family with built-in higher level blockchain concepts like oracles, state-channels, names and more. Sophia is strongly-typed and has a restricted mutable state. Click on this
+            <a
+              class="text-blue-500"
+              href="https://docs.aeternity.com/aesophia/v7.0.1/"
+              target="_blank"
+            >
+              link
+            </a>
+            to get more info about Sophia.
+          </p>
+        </ol>
+      </div>
+    </section>
+    <dl class="hidden md:block md:w-[100%]">
+      <div class="block top-0 sticky w-[300px]" id="adswrapperaside" phx-update="ignore">
+        <script
+          async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5319093423466090"
+          crossorigin="anonymous"
+        >
+        </script>
+        <!-- mazaryn-display -->
+        <ins
+          class="adsbygoogle"
+          style="display:block"
+          data-ad-client="ca-pub-5319093423466090"
+          data-ad-slot="1536507325"
+          data-ad-format="auto"
+          data-full-width-responsive="true"
+        >
+        </ins>
+        <script>
+          (adsbygoogle = window.adsbygoogle || []).push({});
+        </script>
+      </div>
+    </dl>
+  </article>
 </div>
 
-<%# Related Posts %>
-
 <div class="max-w-[1440px] w-[95%] md:w-[100%] mx-auto py-[30px]">
-    <div class="md:w-[95%] mx-auto">
-        <span class="font-[500] md:ml-[25px] text-[1.75rem] md:text-[2rem] leading-[2.25rem] text-blue-700 capitalize">Related posts</span>
-        <div>
-            <div class="flex flex-col md:flex-row justify-between gap-[15px] w-[100%] px-0 py-8 md:my-[45px] mx-auto md:py-0 md:px-4 sm:px-6">
-                <div class="mb-[40px] md:mb-0">
-                    <a href="/blog/polkadot" class="block md:w-[95%] mx-auto border-radius-[20px] group cursor-pointer" >
-                    <div>
-                        <img class="aspect-[16/9] object-cover rounded-2xl block border-[1px] opacity-100 md:opacity-70 transition-opacity group-hover:opacity-100" src="../images/polkadot.png" alt="polkadot" title="polkadot" />
-                    </div>
-                    <div class="w-[98%] mx-auto">
-                        <span class="block text-xl md:text-2xl font-[600] text-blue-700 mt-[25px] mb-[15px] mx-0">Features & Technologies</span>
-                        <h3 class="text-xl md:text-2xl font-[700] leading-[2.4rem] text-black hover:text-blue-700">Why Choose Polkadot ?</h3>
-                    </div>
-                    </a>
-                </div>
-
-                <div align="center" id="adswrappersquared" phx-update="ignore" class="mb-[40px] md:mb-0 w-[32%]">
-                   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5319093423466090"
-                        crossorigin="anonymous"></script>
-                    <!-- mazaryn-square -->
-                    <ins class="adsbygoogle"
-                        style="display:block"
-                        data-ad-client="ca-pub-5319093423466090"
-                        data-ad-slot="7660388930"
-                        data-ad-format="auto"
-                        data-full-width-responsive="true"></ins>
-                    <script>
-                        (adsbygoogle = window.adsbygoogle || []).push({});
-                    </script>
-                </div>
-
-                <div class="mb-[40px] md:mb-0">
-                    <a href="/blog/kusama" class="block md:w-[95%] mx-auto border-radius-[20px] group cursor-pointer">
-                    <div>
-                        <img class="aspect-[16/9] object-cover rounded-2xl block border-[1px] opacity-100 md:opacity-70 transition-opacity group-hover:opacity-100" src="../images/kusama.png" alt="kusama" title="kusama" />
-                    </div>
-                    <div class="w-[98%] mx-auto">
-                        <span class="block text-xl md:text-2xl font-[600] text-blue-700 mt-[25px] mb-[15px] mx-0">Features & Technologies</span>
-                        <h3 class="text-xl md:text-2xl font-[700] leading-[2.4rem] text-black hover:text-blue-700">Why Choose Kusama ?</h3>
-                    </div>
-                    </a>
-                </div>
+  <div class="md:w-[95%] mx-auto">
+    <span class="font-[500] md:ml-[25px] text-[1.75rem] md:text-[2rem] leading-[2.25rem] text-blue-700 capitalize">
+      Related posts
+    </span>
+    <div>
+      <div class="flex flex-col md:flex-row justify-between gap-[15px] w-[100%] px-0 py-8 md:my-[45px] mx-auto md:py-0 md:px-4 sm:px-6">
+        <div class="mb-[40px] md:mb-0">
+          <a
+            href="/blog/polkadot"
+            class="block md:w-[95%] mx-auto border-radius-[20px] group cursor-pointer"
+          >
+            <div>
+              <img
+                class="aspect-[16/9] object-cover rounded-2xl block border-[1px] opacity-100 md:opacity-70 transition-opacity group-hover:opacity-100"
+                src="../images/polkadot.png"
+                alt="polkadot"
+                title="polkadot"
+              />
             </div>
+            <div class="w-[98%] mx-auto">
+              <span class="block text-xl md:text-2xl font-[600] text-blue-700 mt-[25px] mb-[15px] mx-0">
+                Features & Technologies
+              </span>
+              <h3 class="text-xl md:text-2xl font-[700] leading-[2.4rem] text-black hover:text-blue-700">
+                Why Choose Polkadot ?
+              </h3>
+            </div>
+          </a>
         </div>
+
+        <div
+          align="center"
+          id="adswrappersquared"
+          phx-update="ignore"
+          class="mb-[40px] md:mb-0 w-[32%]"
+        >
+          <script
+            async
+            src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5319093423466090"
+            crossorigin="anonymous"
+          >
+          </script>
+          <!-- mazaryn-square -->
+          <ins
+            class="adsbygoogle"
+            style="display:block"
+            data-ad-client="ca-pub-5319093423466090"
+            data-ad-slot="7660388930"
+            data-ad-format="auto"
+            data-full-width-responsive="true"
+          >
+          </ins>
+          <script>
+            (adsbygoogle = window.adsbygoogle || []).push({});
+          </script>
+        </div>
+
+        <div class="mb-[40px] md:mb-0">
+          <a
+            href="/blog/kusama"
+            class="block md:w-[95%] mx-auto border-radius-[20px] group cursor-pointer"
+          >
+            <div>
+              <img
+                class="aspect-[16/9] object-cover rounded-2xl block border-[1px] opacity-100 md:opacity-70 transition-opacity group-hover:opacity-100"
+                src="../images/kusama.png"
+                alt="kusama"
+                title="kusama"
+              />
+            </div>
+            <div class="w-[98%] mx-auto">
+              <span class="block text-xl md:text-2xl font-[600] text-blue-700 mt-[25px] mb-[15px] mx-0">
+                Features & Technologies
+              </span>
+              <h3 class="text-xl md:text-2xl font-[700] leading-[2.4rem] text-black hover:text-blue-700">
+                Why Choose Kusama ?
+              </h3>
+            </div>
+          </a>
+        </div>
+      </div>
     </div>
+  </div>
 </div>

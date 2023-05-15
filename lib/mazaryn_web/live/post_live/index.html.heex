@@ -7,29 +7,35 @@
   <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
     <!-- Replace with your content -->
     <div class="px-4 py-6 sm:px-0">
-
       <div class="grid grid-cols-4 gap-3">
-        <div
-          class=" relative h-52 max-w-sm border-dashed  bg-white  block p-6  rounded-lg border-2 border-gray-200 hover:bg-gray-100">
+        <div class=" relative h-52 max-w-sm border-dashed  bg-white  block p-6  rounded-lg border-2 border-gray-200 hover:bg-gray-100">
           <a href="#">
             <div class="flex justify-center justify-items-center mt-12" @click="open = !open">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-15 w-15" height="70" viewBox="0 0 24 24" fill="none"
-                stroke="#BDBEC2" stroke-width="0.5">
-                <path fill-rule="evenodd"
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-15 w-15"
+                height="70"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="#BDBEC2"
+                stroke-width="0.5"
+              >
+                <path
+                  fill-rule="evenodd"
                   d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
-                  clip-rule="evenodd" />
+                  clip-rule="evenodd"
+                />
               </svg>
             </div>
           </a>
         </div>
         <div class="flex flex-wrap justify-center align-center my-5">
-        <%= for post <- @posts do%>
-        <.live_component module={MazarynWeb.HomeLive.PostComponent} id="posting" post={post} />
-        <% end %>
-      </div>
+          <%= for post <- @posts do %>
+            <.live_component module={MazarynWeb.HomeLive.PostComponent} id="posting" post={post} />
+          <% end %>
+        </div>
       </div>
     </div>
     <!-- /End replace -->
   </div>
-
 </main>

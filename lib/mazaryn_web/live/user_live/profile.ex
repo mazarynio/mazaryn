@@ -134,17 +134,18 @@ defmodule MazarynWeb.UserLive.Profile do
   def handle_event("open_modal", %{"action" => "follows"}, socket) do
     {:noreply, socket |> assign(follows_action: true, edit_action: false, follower_action: false)}
   end
+  
   #def handle_event("block_user", %{"id" => id}, socket) do
     #id = socket.assigns.current_user.id
     #UserClient.block(id, blocked)
     #{:noreply, socket}
   #end
 
-  #def handle_event("unblock_user", %{"id" => id}, socket) do
-    #id = socket.assigns.current_user.id
-    #UserClient.unblock(id, umnlocked)
-    #{:noreply, socket}
-  #end
+  # def handle_event("unblock_user", %{"id" => id}, socket) do
+  # id = socket.assigns.current_user.id
+  # UserClient.unblock(id, umnlocked)
+  # {:noreply, socket}
+  # end
 
   def handle_event("get-follower", %{"id" => id}, socket) do
     id = id |> to_charlist
@@ -211,4 +212,3 @@ defmodule MazarynWeb.UserLive.Profile do
   end
 
 end
-

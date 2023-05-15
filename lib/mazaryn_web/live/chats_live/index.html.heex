@@ -1,0 +1,43 @@
+<!-- navigation -->
+<.live_component
+  module={MazarynWeb.HomeLive.NavComponent}
+  id="navigation"
+  user={@user}
+  search={@search}
+/>
+<!-- Three columns -->
+<div class="flex flex-wrap h-screen min-h-screen">
+  <div class="w-full lg:w-1/6 bg-gray-100 py-10 pl-10">
+    <.live_component
+      module={MazarynWeb.HomeLive.LeftSidebarComponent}
+      id="leftsidebar"
+      user={@user}
+    />
+  </div>
+  <!-- middle column -->
+  <div class="w-full lg:w-3/6 bg-gray-100 p-10">
+    <!-- search top navigation -->
+    <.live_component
+      module={MazarynWeb.SearchLive.Components.SearchTopNavigationComponent}
+      id="search_top_navigation_component"
+    />
+    <!-- chat list -->
+    <div class="social-box w-full rounded-[20px] bg-white white:bg-gray-800 flex items-center justify-between px-2 mt-5 mb-5">
+      <.chat recipient={@current_recipient} actor={@user} messages={@messages} />
+    </div>
+    <!-- new message component -->
+    <div class="bottom-1 w-full bg-white white:bg-gray-800 custom-box-shadow pr-8 pl-7 pb-7 pt-4 rounded-[20px]">
+      <.live_component
+        module={MazarynWeb.ChatsLive.Components.MessageInput}
+        user={@user}
+        recipient={@current_recipient}
+        id="message_box"
+      />
+    </div>
+  </div>
+  <!-- end of middle column-->
+  <div class=" w-full lg:w-2/6 bg-gray-100 py-10 pr-10">
+    <.chat_list contacts={@contacts} title="Chats" />
+    <.chat_list contacts={@other_users} title="People you may know" />
+  </div>
+</div>

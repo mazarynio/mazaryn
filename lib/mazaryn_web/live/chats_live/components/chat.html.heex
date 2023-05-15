@@ -1,0 +1,151 @@
+<div class="flex-1 p:2 sm:p-6 justify-between flex flex-col h-96">
+  <div class="flex sm:items-center justify-between py-3 border-b-2 border-gray-200">
+    <div class="relative flex items-center space-x-4">
+      <div class="relative">
+        <span class="absolute text-green-500 right-0 bottom-0">
+          <svg width="20" height="20">
+            <circle cx="8" cy="8" r="8" fill="currentColor"></circle>
+          </svg>
+        </span>
+        <img
+          src={handle_avatar(@recipient)}
+          alt=""
+          class="w-10 sm:w-16 h-10 sm:h-16 rounded-full"
+        />
+      </div>
+      <div class="flex flex-col leading-tight">
+        <div class="text-2xl mt-1 flex items-center">
+          <span class="text-gray-700 mr-3 capitalize"><%= @recipient.username %></span>
+        </div>
+        <span class="text-lg text-gray-600 capitalize"><%= @recipient.country %></span>
+      </div>
+    </div>
+    <div :if={false} class="flex items-center space-x-2">
+      <button
+        type="button"
+        class="inline-flex items-center justify-center rounded-lg border h-10 w-10 transition duration-500 ease-in-out text-gray-500 hover:bg-gray-300 focus:outline-none"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          class="h-6 w-6"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+          >
+          </path>
+        </svg>
+      </button>
+      <button
+        type="button"
+        class="inline-flex items-center justify-center rounded-lg border h-10 w-10 transition duration-500 ease-in-out text-gray-500 hover:bg-gray-300 focus:outline-none"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          class="h-6 w-6"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+          >
+          </path>
+        </svg>
+      </button>
+      <button
+        type="button"
+        class="inline-flex items-center justify-center rounded-lg border h-10 w-10 transition duration-500 ease-in-out text-gray-500 hover:bg-gray-300 focus:outline-none"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          class="h-6 w-6"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
+          >
+          </path>
+        </svg>
+      </button>
+    </div>
+  </div>
+  <div
+    x-data="{
+      scrollable: null,
+      init: function() {
+        this.scrollable.scrollBottom(0, this.scrollable.scrollHeight);
+      }
+    }"
+    x-init="init()"
+    x-ref="scrollable"
+    class="flex flex-col space-y-4 p-3 overflow-y-auto scrollbar-thumb-blue scrollbar-thumb-rounded scrollbar-track-blue-lighter scrollbar-w-2 scrolling-touch"
+  >
+    <%= for message <- @messages do %>
+      <div :if={message.user_id === "#{@recipient.id}"} class="chat-message">
+        <div class="flex items-end">
+          <div class="flex flex-col space-y-2 text-xs max-w-xs mx-2 order-2 items-start">
+            <div>
+              <span class="px-4 py-2 rounded-lg inline-block rounded-bl-none bg-gray-300 text-gray-600 capitalize">
+                <%= message.body %>
+              </span>
+            </div>
+          </div>
+          <img
+            src={handle_avatar(@recipient)}
+            alt="My profile"
+            class="w-6 h-6 rounded-full order-1"
+          />
+        </div>
+      </div>
+      <div :if={message.user_id == "#{@actor.id}"} class="chat-message">
+        <div class="flex items-end justify-end">
+          <div class="flex flex-col space-y-2 text-xs max-w-xs mx-2 order-1 items-end">
+            <div>
+              <span class="px-4 py-2 rounded-lg inline-block rounded-br-none bg-blue-600 text-white capitalize">
+                <%= message.body %>
+              </span>
+            </div>
+          </div>
+          <img src={handle_avatar(@actor)} alt="My profile" class="w-6 h-6 rounded-full order-2" />
+        </div>
+      </div>
+    <% end %>
+  </div>
+</div>
+
+<style>
+  .scrollbar-w-2::-webkit-scrollbar {
+    width: 0.25rem;
+    height: 0.25rem;
+  }
+
+  .scrollbar-track-blue-lighter::-webkit-scrollbar-track {
+    --bg-opacity: 1;
+    background-color: #f7fafc;
+    background-color: rgba(247, 250, 252, var(--bg-opacity));
+  }
+
+  .scrollbar-thumb-blue::-webkit-scrollbar-thumb {
+    --bg-opacity: 1;
+    background-color: #edf2f7;
+    background-color: rgba(237, 242, 247, var(--bg-opacity));
+  }
+
+  .scrollbar-thumb-rounded::-webkit-scrollbar-thumb {
+    border-radius: 0.25rem;
+  }
+</style>

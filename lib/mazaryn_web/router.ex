@@ -50,7 +50,6 @@ defmodule MazarynWeb.Router do
       live("/blog/blockchain", BlogLive.Post.Blockchain)
       live("/reset", AuthLive.Reset)
       live("/signup", AuthLive.Signup)
-      live("/messages/:id", ChatLive.Index)
     end
 
     get("/", PageController, :index)
@@ -67,6 +66,13 @@ defmodule MazarynWeb.Router do
     live("/home", HomeLive.Home)
     live("/approve", HomeLive.Approve)
     live("/coins", CoinLive.Index)
+
+    # CHATS
+    scope "/chats" do
+      live("/", ChatsLive.Index, :index)
+      live("/:recipient_id", ChatsLive.Index, :index)
+    end
+
     # profile
     live("/search", SearchLive.Index)
     live("/:username", UserLive.Profile)

@@ -39,6 +39,7 @@ defmodule Mazaryn.Application do
   def start_server do
     :user_server.start_link()
     :post_server.start_link()
+    :chat_server.start_link()
   end
 
   # Tell Phoenix to update the endpoint configuration

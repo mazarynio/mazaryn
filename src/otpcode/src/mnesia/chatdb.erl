@@ -1,45 +1,9 @@
 -module(chatdb).
 -author("Zaryn Technologies").
--export([create_chat/3, get_chat_from_sender/2, get_chat_from_recipient/2,
- send_msg/3, get_msg/1, get_all_msg/1, edit_msg/2, delete_msg/1]). 
+-export([send_msg/3, get_msg/1, get_all_msg/1, edit_msg/2, delete_msg/1, list_chats/0]). 
 
 -include("../records.hrl").
 -include_lib("stdlib/include/qlc.hrl").
-
-create_chat(UserID, RecipientID, Title) ->
-    Fun = fun() ->
-            Id = nanoid:gen(),
-            mnesia:write(#chat{id = Id,
-                               user_id = UserID,
-                               recipient_id = RecipientID,
-                               title = Title,
-                               date_created = calendar:universal_time()}),
-            [RecipientUser] = mnesia:read(user, RecipientID),
-            Chats = RecipientUser#user.chat,
-            mnesia:write(RecipientUser#user{chat = [Id|Chats]}),
-            io:fwrite("~p~n", [Id]),
-            io:fwrite("~p~n", [Title])
-          end,
-    {atomic, Res} = mnesia:transaction(Fun),
-    Res.
-
-get_chat_from_sender(UserID, ChatID) ->
-    Fun = fun() ->
-            mnesia:match_object(#chat{user_id = UserID, _ = '_'}),
-            [Chat] = mnesia:read({chat, ChatID}),
-            Chat
-          end,
-    {atomic, Res} = mnesia:transaction(Fun),
-    Res. 
-
-get_chat_from_recipient(RecipientID, ChatID) ->
-    Fun = fun() ->
-            mnesia:match_object(#chat{recipient_id = RecipientID, _ = '_'}),
-            [Chat] = mnesia:read({chat, ChatID}),
-            Chat
-          end,
-    {atomic, Res} = mnesia:transaction(Fun),
-    Res.
 
 send_msg(UserID, RecipientID, Body) ->
         Fun = fun() ->
@@ -52,8 +16,7 @@ send_msg(UserID, RecipientID, Body) ->
                 [RecipientUser] = mnesia:read(user, RecipientID),
                 Chats = RecipientUser#user.chat,
                 mnesia:write(RecipientUser#user{chat = [Id|Chats]}),
-                io:fwrite("~p~n", [Id]),
-                io:fwrite("~p~n", [Body])
+                Id
               end,
         {atomic, Res} = mnesia:transaction(Fun),
         Res.
@@ -95,3 +58,10 @@ delete_msg(ChatID) ->
         mnesia:delete({chat, ChatID})
     end,
     mnesia:activity(transaction, Fun).
+
+list_chats() ->
+    Fun = fun() ->
+        mnesia:all_keys(chat)
+    end,
+    {atomic, Res} = mnesia:transaction(Fun),
+    Res.

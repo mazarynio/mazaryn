@@ -2,19 +2,29 @@
   <h1 class="block text-base font-semibold ">Complete your profile</h1>
   <div class="border border-[#C5C7C8] border-x-0 border-b-0 mt-5 mb-7"></div>
   <div class="w-full bg-gray-200 mb-6">
-    <div class="bg-[#4385F5] h-1.5 rounded-sm" style={"width: #{profile_percentage(@user)}%"}></div>
+    <div class="bg-[#4385F5] h-1.5 rounded-sm" style={"width: #{profile_percentage(@user)}%"}>
+    </div>
   </div>
   <div class="flex justify-between align-center items-center">
     <div class="flex justify-center items-center">
       <ul>
         <li class="active mb-7">
-          <%= live_patch "Verify your email", to: Routes.live_path(@socket, MazarynWeb.UserLive.Profile, @user.username), class: "block text-base #{verified_email(@user)} font-semibold" %>
+          <%= live_patch("Verify your email",
+            to: Routes.live_path(@socket, MazarynWeb.UserLive.Profile, @user.username),
+            class: "block text-base #{verified_email(@user)} font-semibold"
+          ) %>
         </li>
         <li class="active mb-7">
-          <%= live_patch "Set your username", to: Routes.live_path(@socket, MazarynWeb.UserLive.Profile, @user.username), class: "block text-base #{username_set(@user)} font-semibold" %>
+          <%= live_patch("Set your username",
+            to: Routes.live_path(@socket, MazarynWeb.UserLive.Profile, @user.username),
+            class: "block text-base #{username_set(@user)} font-semibold"
+          ) %>
         </li>
         <li class="active">
-          <%= live_patch "Set your profile picture", to: Routes.live_path(@socket, MazarynWeb.UserLive.Profile, @user.username), class: "block text-base #{avatar_set(@user)} font-semibold" %>
+          <%= live_patch("Set your profile picture",
+            to: Routes.live_path(@socket, MazarynWeb.UserLive.Profile, @user.username),
+            class: "block text-base #{avatar_set(@user)} font-semibold"
+          ) %>
         </li>
       </ul>
     </div>

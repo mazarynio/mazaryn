@@ -1,177 +1,269 @@
-<%# Header %>
-
 <header class="bg-black shadow">
-    <div class="flex justify-between items-center max-w-[1440px] w-[90%] px-0 mx-auto py-6 md:px-4 sm:px-6 lg:px-8">
-        <a href="/blog">
-          <h1 class="flex justify-left items-center text-2xl md:text-3xl leading-0 font-thin text-[#E5E5E5]"><img class="logo brightness-150 h-[42px] md:h-auto" src="../images/logo.png" alt="Elixir Social Network" /><span class="ml-[10px]">Blog</span></h1>
-        </a>
-        <div>
-        <a class="hidden md:block justify-center text-[#D3D3D3] hover:text-[#fff]" href="/login">
-            Connect with Mazaryn
-        </a>
-        <div class="menuToggle md:hidden">
-            <input type="checkbox" phx-click={toggle_menu()} />
-            <span></span>
-            <span></span>
-            <span></span>
-        </div>
-        </div>
-    </div>
-    <div class="menu-content w-[90%] mx-auto hidden">
-        <a class="justify-center text-[#D3D3D3] hover:text-[#fff]" href="/login">
+  <div class="flex justify-between items-center max-w-[1440px] w-[90%] px-0 mx-auto py-6 md:px-4 sm:px-6 lg:px-8">
+    <a href="/blog">
+      <h1 class="flex justify-left items-center text-2xl md:text-3xl leading-0 font-thin text-[#E5E5E5]">
+        <img
+          class="logo brightness-150 h-[42px] md:h-auto"
+          src="../images/logo.png"
+          alt="Elixir Social Network"
+        /><span class="ml-[10px]">Blog</span>
+      </h1>
+    </a>
+    <div>
+      <a class="hidden md:block justify-center text-[#D3D3D3] hover:text-[#fff]" href="/login">
         Connect with Mazaryn
-        </a>
+      </a>
+      <div class="menuToggle md:hidden">
+        <input type="checkbox" phx-click={toggle_menu()} />
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
     </div>
+  </div>
+  <div class="menu-content w-[90%] mx-auto hidden">
+    <a class="justify-center text-[#D3D3D3] hover:text-[#fff]" href="/login">
+      Connect with Mazaryn
+    </a>
+  </div>
 </header>
 
-<%# Ad top%>
 <div align="center" id="adswrappertop" phx-update="ignore">
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5319093423466090"
-     crossorigin="anonymous"></script>
-    <!-- mazaryn-display -->
-    <ins class="adsbygoogle"
-        style="display:block"
-        data-ad-client="ca-pub-5319093423466090"
-        data-ad-slot="1536507325"
-        data-ad-format="auto"
-        data-full-width-responsive="true"></ins>
-    <script>
-        (adsbygoogle = window.adsbygoogle || []).push({});
-    </script>
+  <script
+    async
+    src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5319093423466090"
+    crossorigin="anonymous"
+  >
+  </script>
+  <!-- mazaryn-display -->
+  <ins
+    class="adsbygoogle"
+    style="display:block"
+    data-ad-client="ca-pub-5319093423466090"
+    data-ad-slot="1536507325"
+    data-ad-format="auto"
+    data-full-width-responsive="true"
+  >
+  </ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
 </div>
 
 <div class="post-wrapper max-w-[1440px] w-[90%] md:w-[100%] mx-auto py-[30px] md:px-[4rem] md:py-[60px]">
-    <article>
-        <dl class="md:mt-[80px]">
-            <dd class="flex items-center space-x-3 mb-7">
-                <img src="../images/oliver-avatar.jpg" alt="Arvand" class="w-10 h-10 object-cover rounded-xl" srcset=""/>
-                 <dl>
-                    <dt class="sr-only">Author</dt>
-                    <dd class="text-md text-blue-700">Oliver Favalli</dd>
-                    <dd>
-                        <a class="text-sm text-blue-500" href="https://github.com/Oliverhf" target="_blank">@oliverhf</a>
-                    </dd>
-                 </dl>
-            </dd>
-           
+  <article>
+    <dl class="md:mt-[80px]">
+      <dd class="flex items-center space-x-3 mb-7">
+        <img
+          src="../images/oliver-avatar.jpg"
+          alt="Arvand"
+          class="w-10 h-10 object-cover rounded-xl"
+          srcset=""
+        />
+        <dl>
+          <dt class="sr-only">Author</dt>
+          <dd class="text-md text-blue-700">Oliver Favalli</dd>
+          <dd>
+            <a class="text-sm text-blue-500" href="https://github.com/Oliverhf" target="_blank">
+              @oliverhf
+            </a>
+          </dd>
         </dl>
-        <section class="post__section relative  w-[100%] md:w-[80%] max-w-[800px] mx-auto">
-            <div>
-                <div class="flex items-center">
-                    <a href="/blog" class="cursor-pointer text-sm font-[500] uppercase text-blue-500">Blog</a>
-                    <span class="text-[#000008] opacity-70 text-sm font-[500] mx-2">/</span>
-                    <span class="uppercase text-[#000008] text-sm font-[500] opacity-70 ">Features & Technologies</span>
-                </div>
-            </div>
-            <div class="pt-4 pb-12 md:pt-12 md:pb-14">
-                <h2 class="font-[600] md:ml-[40px] text-[1.75rem] md:text-[2.4rem] leading-[2.8rem] text-blue-600">Phoenix & Absinthe</h2>
-            </div>
-            <img class="image-cover" src="../images/phoenix-absinthe.jpg" alt="Phoenix and absinthe" title="Phoenix and absinthe" />
-            <div class="lead">
-                <p>
-                    Phoenix using <a href="https://hexdocs.pm/absinthe/overview.html" target="_blank">Absinthe</a> which is a <a href="https://graphql.org/" target="_blank">GraphQL</a> toolkit for Elixir (a functional programming language designed to enable massive concurrency a top robust application architectures). It saves a lot of time for the development team. 
-                </p>
-                <p>The use of Absinthe in a project will cut down a lot of questions because, GraphQL is great way for self documenting.</p>
-                <p>
-                    Absinthe does support graphical, therefore you can have an endpoint that's graphical and people can just explore what all the queries are and what they take and try to running them, being able to see what comes back.
-                </p>
-                <h3>More advantages</h3>
-                <ol>
-                    <li>GraphQL is faster</li>
-                    <p>It is way faster than other communication APIs because it allows you to choose only the specific fields you want to query.</p>
-                    <li>Avoids over-fetching and under-fetching issues</li>
-                    <p>The main advantage of GraphQL over RESRT is that REST responses contain a lot of data or lack of it, causing the need for another request. GraphQL solves this problem by fetching only the exact and specific data in a single request.</p>
-                    <li>Hierarchical Structure</li>
-                    <p>GraphQL follows a hierarchical structure where relationships between objects are defined in a graphical structure. For every object type, there is a representation of a component, and every relationship field from an object type to another represents a component wrapping another component.</p>
-                    <li>Strongly typed</li>
-                    <p>It is a strongly typed language where each level of a GraphQL query corresponds to a particolar type, and each type describes a set of available fields. It is similar to SQL and provides descriptive error messages before running a query.</p> 
-                </ol>
-                <h3>What are the downsides of using Absinthe?</h3>
-                <p>
-                    The <i>caching</i> can be a bit harder with GraphQL because, you have a lot more possible responses from it.
-                    There are tools that have been made to help with that such as: <a href="https://hexdocs.pm/absinthe/dataloader.html" target="_blank">data loader</a> (main option).
-                </p>
-                <%# Google in-article Ad %>
-                <div id="adswrapper2" phx-update="ignore">
-                    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5319093423466090" crossorigin="anonymous"></script>
-                    <ins class="adsbygoogle"
-                        style="display:block; text-align:center;"
-                        data-ad-layout="in-article"
-                        data-ad-format="fluid"
-                        data-ad-client="ca-pub-5319093423466090"
-                        data-ad-slot="8766830319"></ins>
-                    <script>
-                        (adsbygoogle = window.adsbygoogle || []).push({});
-                    </script>
-                </div>
-            </div>
-        </section>
-        <dl class="hidden md:block md:w-[100%]">
-            <div class="block top-0 sticky w-[300px]" id="adswrapperaside" phx-update="ignore">
-               <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5319093423466090"
-                    crossorigin="anonymous"></script>
-                <!-- mazaryn-display -->
-                <ins class="adsbygoogle"
-                    style="display:block"
-                    data-ad-client="ca-pub-5319093423466090"
-                    data-ad-slot="1536507325"
-                    data-ad-format="auto"
-                    data-full-width-responsive="true"></ins>
-                <script>
-                    (adsbygoogle = window.adsbygoogle || []).push({});
-                </script>
-            </div>
-        </dl>
-    </article>
+      </dd>
+    </dl>
+    <section class="post__section relative  w-[100%] md:w-[80%] max-w-[800px] mx-auto">
+      <div>
+        <div class="flex items-center">
+          <a href="/blog" class="cursor-pointer text-sm font-[500] uppercase text-blue-500">
+            Blog
+          </a>
+          <span class="text-[#000008] opacity-70 text-sm font-[500] mx-2">/</span>
+          <span class="uppercase text-[#000008] text-sm font-[500] opacity-70 ">
+            Features & Technologies
+          </span>
+        </div>
+      </div>
+      <div class="pt-4 pb-12 md:pt-12 md:pb-14">
+        <h2 class="font-[600] md:ml-[40px] text-[1.75rem] md:text-[2.4rem] leading-[2.8rem] text-blue-600">
+          Phoenix & Absinthe
+        </h2>
+      </div>
+      <img
+        class="image-cover"
+        src="../images/phoenix-absinthe.jpg"
+        alt="Phoenix and absinthe"
+        title="Phoenix and absinthe"
+      />
+      <div class="lead">
+        <p>
+          Phoenix using
+          <a href="https://hexdocs.pm/absinthe/overview.html" target="_blank">Absinthe</a>
+          which is a <a href="https://graphql.org/" target="_blank">GraphQL</a>
+          toolkit for Elixir (a functional programming language designed to enable massive concurrency a top robust application architectures). It saves a lot of time for the development team.
+        </p>
+        <p>
+          The use of Absinthe in a project will cut down a lot of questions because, GraphQL is great way for self documenting.
+        </p>
+        <p>
+          Absinthe does support graphical, therefore you can have an endpoint that's graphical and people can just explore what all the queries are and what they take and try to running them, being able to see what comes back.
+        </p>
+        <h3>More advantages</h3>
+        <ol>
+          <li>GraphQL is faster</li>
+          <p>
+            It is way faster than other communication APIs because it allows you to choose only the specific fields you want to query.
+          </p>
+          <li>Avoids over-fetching and under-fetching issues</li>
+          <p>
+            The main advantage of GraphQL over RESRT is that REST responses contain a lot of data or lack of it, causing the need for another request. GraphQL solves this problem by fetching only the exact and specific data in a single request.
+          </p>
+          <li>Hierarchical Structure</li>
+          <p>
+            GraphQL follows a hierarchical structure where relationships between objects are defined in a graphical structure. For every object type, there is a representation of a component, and every relationship field from an object type to another represents a component wrapping another component.
+          </p>
+          <li>Strongly typed</li>
+          <p>
+            It is a strongly typed language where each level of a GraphQL query corresponds to a particolar type, and each type describes a set of available fields. It is similar to SQL and provides descriptive error messages before running a query.
+          </p>
+        </ol>
+        <h3>What are the downsides of using Absinthe?</h3>
+        <p>
+          The <i>caching</i>
+          can be a bit harder with GraphQL because, you have a lot more possible responses from it.
+          There are tools that have been made to help with that such as:
+          <a href="https://hexdocs.pm/absinthe/dataloader.html" target="_blank">data loader</a>
+          (main option).
+        </p>
+        <div id="adswrapper2" phx-update="ignore">
+          <script
+            async
+            src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5319093423466090"
+            crossorigin="anonymous"
+          >
+          </script>
+          <ins
+            class="adsbygoogle"
+            style="display:block; text-align:center;"
+            data-ad-layout="in-article"
+            data-ad-format="fluid"
+            data-ad-client="ca-pub-5319093423466090"
+            data-ad-slot="8766830319"
+          >
+          </ins>
+          <script>
+            (adsbygoogle = window.adsbygoogle || []).push({});
+          </script>
+        </div>
+      </div>
+    </section>
+    <dl class="hidden md:block md:w-[100%]">
+      <div class="block top-0 sticky w-[300px]" id="adswrapperaside" phx-update="ignore">
+        <script
+          async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5319093423466090"
+          crossorigin="anonymous"
+        >
+        </script>
+        <!-- mazaryn-display -->
+        <ins
+          class="adsbygoogle"
+          style="display:block"
+          data-ad-client="ca-pub-5319093423466090"
+          data-ad-slot="1536507325"
+          data-ad-format="auto"
+          data-full-width-responsive="true"
+        >
+        </ins>
+        <script>
+          (adsbygoogle = window.adsbygoogle || []).push({});
+        </script>
+      </div>
+    </dl>
+  </article>
 </div>
-
-<%# Related Posts %>
 
 <div class="max-w-[1440px] w-[95%] md:w-[100%] mx-auto py-[30px]">
-    <div class="md:w-[95%] mx-auto">
-        <span class="font-[500] md:ml-[25px] text-[1.75rem] md:text-[2rem] leading-[2.25rem] text-blue-700 capitalize">Related posts</span>
-        <div>
-            <div class="flex flex-col md:flex-row justify-between gap-[15px] w-[100%] px-0 py-8 md:my-[45px] mx-auto md:py-0 md:px-4 sm:px-6">
-                <div class="mb-[40px] md:mb-0">
-                    <a href="/blog/joy-of-elixir-and-phoenix" class="block md:w-[95%] mx-auto border-radius-[20px] group cursor-pointer" >
-                        <div>
-                            <img class="aspect-[16/9] object-cover rounded-2xl block border-[1px] opacity-100 md:opacity-70 transition-opacity group-hover:opacity-100" src="../images/joy-of-elixir-and-phoenix.png" alt="Joy of Elixir and Phoenix" title="Joy of Elixir and Phoenix" />
-                        </div>
-                        <div class="w-[98%] mx-auto">
-                            <span class="block text-xl md:text-2xl font-[600] text-blue-700 mt-[25px] mb-[15px] mx-0">Features & Technologies</span>
-                            <h3 class="text-xl md:text-2xl font-[700] leading-[2.4rem] text-black hover:text-blue-700">Joy of Elixir & Phoenix</h3>
-                        </div>
-                    </a>
-                </div>
-
-                <div align="center" id="adswrappersquared" phx-update="ignore" class="mb-[40px] md:mb-0 w-[32%]">
-                   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5319093423466090"
-                        crossorigin="anonymous"></script>
-                    <!-- mazaryn-square -->
-                    <ins class="adsbygoogle"
-                        style="display:block"
-                        data-ad-client="ca-pub-5319093423466090"
-                        data-ad-slot="7660388930"
-                        data-ad-format="auto"
-                        data-full-width-responsive="true"></ins>
-                    <script>
-                        (adsbygoogle = window.adsbygoogle || []).push({});
-                    </script>
-                </div>
-
-                <div class="mb-[40px] md:mb-0">
-                    <a href="/blog/nft" class="block md:w-[95%] mx-auto border-radius-[20px] group cursor-pointer">
-                        <div>
-                            <img class="aspect-[16/9] object-cover rounded-2xl block border-[1px] opacity-100 md:opacity-70 transition-opacity group-hover:opacity-100" src="../images/nftnft.jpg" alt="NFT" title="NFT" />
-                        </div>
-                        <div class="w-[98%] mx-auto">
-                            <span class="block text-xl md:text-2xl font-[600] text-blue-700 mt-[25px] mb-[15px] mx-0">Features & Technologies</span>
-                            <h3 class="text-xl md:text-2xl font-[700] leading-[2.4rem] text-black hover:text-blue-700">What is NFT?</h3>
-                        </div>
-                    </a>
-                </div>
+  <div class="md:w-[95%] mx-auto">
+    <span class="font-[500] md:ml-[25px] text-[1.75rem] md:text-[2rem] leading-[2.25rem] text-blue-700 capitalize">
+      Related posts
+    </span>
+    <div>
+      <div class="flex flex-col md:flex-row justify-between gap-[15px] w-[100%] px-0 py-8 md:my-[45px] mx-auto md:py-0 md:px-4 sm:px-6">
+        <div class="mb-[40px] md:mb-0">
+          <a
+            href="/blog/joy-of-elixir-and-phoenix"
+            class="block md:w-[95%] mx-auto border-radius-[20px] group cursor-pointer"
+          >
+            <div>
+              <img
+                class="aspect-[16/9] object-cover rounded-2xl block border-[1px] opacity-100 md:opacity-70 transition-opacity group-hover:opacity-100"
+                src="../images/joy-of-elixir-and-phoenix.png"
+                alt="Joy of Elixir and Phoenix"
+                title="Joy of Elixir and Phoenix"
+              />
             </div>
+            <div class="w-[98%] mx-auto">
+              <span class="block text-xl md:text-2xl font-[600] text-blue-700 mt-[25px] mb-[15px] mx-0">
+                Features & Technologies
+              </span>
+              <h3 class="text-xl md:text-2xl font-[700] leading-[2.4rem] text-black hover:text-blue-700">
+                Joy of Elixir & Phoenix
+              </h3>
+            </div>
+          </a>
         </div>
-    </div>
-</div>
 
+        <div
+          align="center"
+          id="adswrappersquared"
+          phx-update="ignore"
+          class="mb-[40px] md:mb-0 w-[32%]"
+        >
+          <script
+            async
+            src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5319093423466090"
+            crossorigin="anonymous"
+          >
+          </script>
+          <!-- mazaryn-square -->
+          <ins
+            class="adsbygoogle"
+            style="display:block"
+            data-ad-client="ca-pub-5319093423466090"
+            data-ad-slot="7660388930"
+            data-ad-format="auto"
+            data-full-width-responsive="true"
+          >
+          </ins>
+          <script>
+            (adsbygoogle = window.adsbygoogle || []).push({});
+          </script>
+        </div>
+
+        <div class="mb-[40px] md:mb-0">
+          <a
+            href="/blog/nft"
+            class="block md:w-[95%] mx-auto border-radius-[20px] group cursor-pointer"
+          >
+            <div>
+              <img
+                class="aspect-[16/9] object-cover rounded-2xl block border-[1px] opacity-100 md:opacity-70 transition-opacity group-hover:opacity-100"
+                src="../images/nftnft.jpg"
+                alt="NFT"
+                title="NFT"
+              />
+            </div>
+            <div class="w-[98%] mx-auto">
+              <span class="block text-xl md:text-2xl font-[600] text-blue-700 mt-[25px] mb-[15px] mx-0">
+                Features & Technologies
+              </span>
+              <h3 class="text-xl md:text-2xl font-[700] leading-[2.4rem] text-black hover:text-blue-700">
+                What is NFT?
+              </h3>
+            </div>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

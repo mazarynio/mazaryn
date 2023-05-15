@@ -1,149 +1,231 @@
-<%# Header %>
-
 <header class="bg-black shadow">
-    <div class="flex justify-between items-center max-w-[1440px] w-[90%] px-0 mx-auto py-6 md:px-4 sm:px-6 lg:px-8">
-        <a href="/blog">
-          <h1 class="flex justify-left items-center text-2xl md:text-3xl leading-0 font-thin text-[#E5E5E5]"><img class="logo brightness-150 h-[42px] md:h-auto" src="../images/logo.png" alt="Elixir Social Network" /><span class="ml-[10px]">Blog</span></h1>
-        </a>
-        <div>
-            <a class="hidden md:block justify-center text-[#D3D3D3] hover:text-[#fff]" href="/login">
-                Connect with Mazaryn
-            </a>
-            <div class="menuToggle md:hidden">
-                <input type="checkbox" phx-click={toggle_menu()} />
-                <span></span>
-                <span></span>
-                <span></span>
-            </div>
-        </div>
-    </div>
-    <div class="menu-content w-[90%] mx-auto hidden">
-        <a class="justify-center text-[#D3D3D3] hover:text-[#fff]" href="/login">
+  <div class="flex justify-between items-center max-w-[1440px] w-[90%] px-0 mx-auto py-6 md:px-4 sm:px-6 lg:px-8">
+    <a href="/blog">
+      <h1 class="flex justify-left items-center text-2xl md:text-3xl leading-0 font-thin text-[#E5E5E5]">
+        <img
+          class="logo brightness-150 h-[42px] md:h-auto"
+          src="../images/logo.png"
+          alt="Elixir Social Network"
+        /><span class="ml-[10px]">Blog</span>
+      </h1>
+    </a>
+    <div>
+      <a class="hidden md:block justify-center text-[#D3D3D3] hover:text-[#fff]" href="/login">
         Connect with Mazaryn
-        </a>
+      </a>
+      <div class="menuToggle md:hidden">
+        <input type="checkbox" phx-click={toggle_menu()} />
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
     </div>
+  </div>
+  <div class="menu-content w-[90%] mx-auto hidden">
+    <a class="justify-center text-[#D3D3D3] hover:text-[#fff]" href="/login">
+      Connect with Mazaryn
+    </a>
+  </div>
 </header>
 
-<%# Ad top%>
-
 <div align="center" id="adswrappertop" phx-update="ignore">
-   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5319093423466090"
-     crossorigin="anonymous"></script>
-    <!-- mazaryn-horizontal -->
-    <ins class="adsbygoogle"
-        style="display:block"
-        data-ad-client="ca-pub-5319093423466090"
-        data-ad-slot="2991899072"
-        data-ad-format="auto"
-        data-full-width-responsive="true"></ins>
-    <script>
-        (adsbygoogle = window.adsbygoogle || []).push({});
-    </script>
+  <script
+    async
+    src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5319093423466090"
+    crossorigin="anonymous"
+  >
+  </script>
+  <!-- mazaryn-horizontal -->
+  <ins
+    class="adsbygoogle"
+    style="display:block"
+    data-ad-client="ca-pub-5319093423466090"
+    data-ad-slot="2991899072"
+    data-ad-format="auto"
+    data-full-width-responsive="true"
+  >
+  </ins>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
 </div>
 
-
-
-<%# Post Is Here %>
-
 <div class="post-wrapper max-w-[1440px] w-[95%] md:w-[100%] mx-auto py-[30px] md:px-[4rem] md:py-[60px]">
-    <article>
-        <dl class="md:mt-[80px]">
-            <dd class="flex items-center space-x-3 mb-7">
-                <img src="../images/arvand-avatar.jpg" alt="Arvand" class="w-10 h-10 object-cover rounded-xl" srcset=""/>
-                 <dl>
-                    <dt class="sr-only">Author</dt>
-                    <dd class="text-md text-blue-700">Arvand Azadvar</dd>
-                    <dd>
-                        <a class="text-sm text-blue-500" href="https://github.com/arvand-io" target="_blank">@arvand</a>
-                    </dd>
-                </dl>
-            </dd>
+  <article>
+    <dl class="md:mt-[80px]">
+      <dd class="flex items-center space-x-3 mb-7">
+        <img
+          src="../images/arvand-avatar.jpg"
+          alt="Arvand"
+          class="w-10 h-10 object-cover rounded-xl"
+          srcset=""
+        />
+        <dl>
+          <dt class="sr-only">Author</dt>
+          <dd class="text-md text-blue-700">Arvand Azadvar</dd>
+          <dd>
+            <a class="text-sm text-blue-500" href="https://github.com/arvand-io" target="_blank">
+              @arvand
+            </a>
+          </dd>
         </dl>
-        <section class="post__section relative  w-[100%] md:w-[80%] max-w-[800px] mx-auto">
-            <div>
-                <div class="flex items-center">
-                    <a href="/blog" class="cursor-pointer text-sm font-[500] uppercase text-blue-500">Blog</a>
-                    <span class="text-[#000008] opacity-70 text-sm font-[500] mx-2">/</span>
-                    <span class="uppercase text-[#000008] text-sm font-[500] opacity-70 ">Engineering & Design</span>
-                </div>
-            </div>
-            <div class="pt-4 pb-12 md:pt-12 md:pb-14">
-                <h2 class="font-[600] md:ml-[40px] text-[1.75rem] md:text-[2.4rem] leading-[2.8rem] text-blue-600">Joy of Elixir & Phoenix</h2>
-            </div>
-            <img class="image-cover" src="../images/joy-of-elixir-and-phoenix.png" alt="Joy of elixir and phoenix" title="Joy of elixir and phoenix" />
-            <div class="lead">
-                <p>Elixir is a process-oriented, functional, concurrent programming language created by José Valim. that runs on the Erlang virtual machine (BEAM) and is widely used to build fault-tolerant, scalable, and maintainable applications. The language provides scalability, concurrency, fault tolerance, and low latency. The language was influenced by Ruby. This inspiration can be seen and felt in Elixir’s ecosystem and tooling options. Elixir is known to be easy to learn and widely applicable within the software development industry.</p>
-                <%# Google in-article Ad %>
-                <div id="adswrapper2" phx-update="ignore">
-                    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5319093423466090" crossorigin="anonymous"></script>
-                    <ins class="adsbygoogle"
-                        style="display:block; text-align:center;"
-                        data-ad-layout="in-article"
-                        data-ad-format="fluid"
-                        data-ad-client="ca-pub-5319093423466090"
-                        data-ad-slot="8766830319"></ins>
-                    <script>
-                        (adsbygoogle = window.adsbygoogle || []).push({});
-                    </script>
-                </div>
-                <p><strong>Mazaryn</strong> Was created on Top of Elixir & Phoenix and here We describe why It’s the most suitable option for us to Develop the Application.</p>
-                <h3>Elixir features and tools</h3>
-                <p>Elixir has many great features such as:</p>
-                <ul>
-                    <li>Elixir compiles to bytecode for the Erlang VM</li>
-                    <li>Elixir is dynamically typed, so all types are checked at runtime rather than at compilation</li>
-                    <li>Pattern matching</li>
-                    <li>Emphasis on higher-order functions and recursion</li>
-                    <li>Lazy and async collections with streams</li>
-                    <li>Built-in tooling for things like remote debugging, dependency management, code compilation, and more</li>
-                    <li>Erlang functions can be called from Elixir, and vice versa, without run time impact, due to compilation to Erlang bytecode</li>
-                    <li><a href="https://en.wikipedia.org/wiki/Unicode" target="_blank">Unicode</a> support and <a href="https://en.wikipedia.org/wiki/UTF-8" target="_blank">UTF-8</a> strings</li>
-                    <li>Meta programming allowing direct manipulation of abstract syntax tree (AST)</li>
-                </ul>
-                <p>Elixir is a functional programming language. With functional languages like Elixir, we can make better use of our CPU multi-cores and write shorter and more explicit code. To better understand functional programming, I should first introduce the following fundamental principles: <strong>immutability</strong>, <strong>functions</strong>, and <strong>declarative code.</strong></p>
-                <p>In functional programming, all values created in the program are immutable. By default, each function has a stable value, which means that lock mechanisms aren’t needed. This simplifies parallel work. Immutability is showing up more in conventional programming languages. These languages typically provide the immutable mechanism by giving an immutable data type alternative or a method to turn a value immutable.</p>
-                <h3>Phoenix Framework</h3>
-                <p>Introduced in 2015, Phoenix is now the go-to framework for creating web applications with Elixir. Like Rails, Phoenix uses a server-side model-view-controller (MVC) pattern and builds on Elixir’s <a href="https://hexdocs.pm/phoenix/up_and_running.html" target="_blank">developer productivity and speed</a> philosophy.</p>
-                <p>Phoenix has several key features that improve product execution, including:</p>
-                <ul>
-                    <li><a href="https://hexdocs.pm/phoenix/overview.html#cowboy" target="_blank">Cowboy</a>: the default web server</li>
-                    <li><a href="https://hexdocs.pm/phoenix/ecto.html" target="_blank">Ecto</a>: a language for reading and writing databases.</li>
-                    <li><a href="https://hexdocs.pm/phoenix_live_view/Phoenix.LiveView.html" target="_blank">LiveView:</a> a way to easily implement real-time updates of server-side rendered HTML pages.</li>
-                </ul>
-                <p>Other features of LiveView Includes:</p>
-                <ol>
-                    <li>Declarative module for rendering HTML on the server-side.</li>
-                    <li>Smart templating and change tracking.</li>
-                    <li>Live form validation (which also includes file upload support).</li>
-                    <li> Rich integration API included.</li>
-                    <li> Code reuse via components.</li>
-                    <li>Live navigation for link enrichment and redirects.</li>
-                    <li>A latency simulator.</li>
-                </ol>
-                <ul>
-                    <li><a href="https://hexdocs.pm/phoenix_live_view/Phoenix.Component.html" target="_blank">Components</a>: a way to have a server-side rendered HTML page with component architecture similar to React to better support SPA (single page applications).</li>
-                    <li><a href="https://hexdocs.pm/plug/readme.html" target="_blank">Plug</a>: a way to achieve easy guards for controllers and implement a robust permissions system.</li>
-                    <li><a href="https://hexdocs.pm/phoenix/channels.html" target="_blank">Built-in Channels</a>: a way to quickly implement real-time communication with and between millions of connected clients</li>
-                    <li><strong>Functional</strong>. In contrast to most other top web frameworks, Phoenix is written in a functional programming language, which helps to write more reliable, maintainable, and easier-to-test code. If you want to do or learn functional programming while working on a web project, this is one of your best options.</li>
-                    <li><strong>Productive</strong>. Phoenix helps you be productive while exposing the behind-the-scenes magic to anyone that is willing to explore it. In contrast to some of the more “opinionated” frameworks, it is also rather customizable.</li>
-                </ul>
-            </div>
-        </section>
-        <dl class="hidden md:block md:w-[100%]">
-            <div class="block top-0 sticky w-[300px]" id="adswrapperaside" phx-update="ignore">
-               <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5319093423466090"
-                    crossorigin="anonymous"></script>
-                <!-- mazaryn-display -->
-                <ins class="adsbygoogle"
-                    style="display:block"
-                    data-ad-client="ca-pub-5319093423466090"
-                    data-ad-slot="1536507325"
-                    data-ad-format="auto"
-                    data-full-width-responsive="true"></ins>
-                <script>
-                    (adsbygoogle = window.adsbygoogle || []).push({});
-                </script>
-            </div>
-        </dl>
-    </article>
+      </dd>
+    </dl>
+    <section class="post__section relative  w-[100%] md:w-[80%] max-w-[800px] mx-auto">
+      <div>
+        <div class="flex items-center">
+          <a href="/blog" class="cursor-pointer text-sm font-[500] uppercase text-blue-500">
+            Blog
+          </a>
+          <span class="text-[#000008] opacity-70 text-sm font-[500] mx-2">/</span>
+          <span class="uppercase text-[#000008] text-sm font-[500] opacity-70 ">
+            Engineering & Design
+          </span>
+        </div>
+      </div>
+      <div class="pt-4 pb-12 md:pt-12 md:pb-14">
+        <h2 class="font-[600] md:ml-[40px] text-[1.75rem] md:text-[2.4rem] leading-[2.8rem] text-blue-600">
+          Joy of Elixir & Phoenix
+        </h2>
+      </div>
+      <img
+        class="image-cover"
+        src="../images/joy-of-elixir-and-phoenix.png"
+        alt="Joy of elixir and phoenix"
+        title="Joy of elixir and phoenix"
+      />
+      <div class="lead">
+        <p>
+          Elixir is a process-oriented, functional, concurrent programming language created by José Valim. that runs on the Erlang virtual machine (BEAM) and is widely used to build fault-tolerant, scalable, and maintainable applications. The language provides scalability, concurrency, fault tolerance, and low latency. The language was influenced by Ruby. This inspiration can be seen and felt in Elixir’s ecosystem and tooling options. Elixir is known to be easy to learn and widely applicable within the software development industry.
+        </p>
+        <div id="adswrapper2" phx-update="ignore">
+          <script
+            async
+            src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5319093423466090"
+            crossorigin="anonymous"
+          >
+          </script>
+          <ins
+            class="adsbygoogle"
+            style="display:block; text-align:center;"
+            data-ad-layout="in-article"
+            data-ad-format="fluid"
+            data-ad-client="ca-pub-5319093423466090"
+            data-ad-slot="8766830319"
+          >
+          </ins>
+          <script>
+            (adsbygoogle = window.adsbygoogle || []).push({});
+          </script>
+        </div>
+        <p>
+          <strong>Mazaryn</strong>
+          Was created on Top of Elixir & Phoenix and here We describe why It’s the most suitable option for us to Develop the Application.
+        </p>
+        <h3>Elixir features and tools</h3>
+        <p>Elixir has many great features such as:</p>
+        <ul>
+          <li>Elixir compiles to bytecode for the Erlang VM</li>
+          <li>
+            Elixir is dynamically typed, so all types are checked at runtime rather than at compilation
+          </li>
+          <li>Pattern matching</li>
+          <li>Emphasis on higher-order functions and recursion</li>
+          <li>Lazy and async collections with streams</li>
+          <li>
+            Built-in tooling for things like remote debugging, dependency management, code compilation, and more
+          </li>
+          <li>
+            Erlang functions can be called from Elixir, and vice versa, without run time impact, due to compilation to Erlang bytecode
+          </li>
+          <li>
+            <a href="https://en.wikipedia.org/wiki/Unicode" target="_blank">Unicode</a>
+            support and <a href="https://en.wikipedia.org/wiki/UTF-8" target="_blank">UTF-8</a>
+            strings
+          </li>
+          <li>Meta programming allowing direct manipulation of abstract syntax tree (AST)</li>
+        </ul>
+        <p>
+          Elixir is a functional programming language. With functional languages like Elixir, we can make better use of our CPU multi-cores and write shorter and more explicit code. To better understand functional programming, I should first introduce the following fundamental principles: <strong>immutability</strong>, <strong>functions</strong>, and
+          <strong>declarative code.</strong>
+        </p>
+        <p>
+          In functional programming, all values created in the program are immutable. By default, each function has a stable value, which means that lock mechanisms aren’t needed. This simplifies parallel work. Immutability is showing up more in conventional programming languages. These languages typically provide the immutable mechanism by giving an immutable data type alternative or a method to turn a value immutable.
+        </p>
+        <h3>Phoenix Framework</h3>
+        <p>
+          Introduced in 2015, Phoenix is now the go-to framework for creating web applications with Elixir. Like Rails, Phoenix uses a server-side model-view-controller (MVC) pattern and builds on Elixir’s
+          <a href="https://hexdocs.pm/phoenix/up_and_running.html" target="_blank">
+            developer productivity and speed
+          </a>
+          philosophy.
+        </p>
+        <p>Phoenix has several key features that improve product execution, including:</p>
+        <ul>
+          <li>
+            <a href="https://hexdocs.pm/phoenix/overview.html#cowboy" target="_blank">Cowboy</a>: the default web server
+          </li>
+          <li>
+            <a href="https://hexdocs.pm/phoenix/ecto.html" target="_blank">Ecto</a>: a language for reading and writing databases.
+          </li>
+          <li>
+            <a href="https://hexdocs.pm/phoenix_live_view/Phoenix.LiveView.html" target="_blank">
+              LiveView:
+            </a>
+            a way to easily implement real-time updates of server-side rendered HTML pages.
+          </li>
+        </ul>
+        <p>Other features of LiveView Includes:</p>
+        <ol>
+          <li>Declarative module for rendering HTML on the server-side.</li>
+          <li>Smart templating and change tracking.</li>
+          <li>Live form validation (which also includes file upload support).</li>
+          <li>Rich integration API included.</li>
+          <li>Code reuse via components.</li>
+          <li>Live navigation for link enrichment and redirects.</li>
+          <li>A latency simulator.</li>
+        </ol>
+        <ul>
+          <li>
+            <a href="https://hexdocs.pm/phoenix_live_view/Phoenix.Component.html" target="_blank">Components</a>: a way to have a server-side rendered HTML page with component architecture similar to React to better support SPA (single page applications).
+          </li>
+          <li>
+            <a href="https://hexdocs.pm/plug/readme.html" target="_blank">Plug</a>: a way to achieve easy guards for controllers and implement a robust permissions system.
+          </li>
+          <li>
+            <a href="https://hexdocs.pm/phoenix/channels.html" target="_blank">Built-in Channels</a>: a way to quickly implement real-time communication with and between millions of connected clients
+          </li>
+          <li>
+            <strong>Functional</strong>. In contrast to most other top web frameworks, Phoenix is written in a functional programming language, which helps to write more reliable, maintainable, and easier-to-test code. If you want to do or learn functional programming while working on a web project, this is one of your best options.
+          </li>
+          <li>
+            <strong>Productive</strong>. Phoenix helps you be productive while exposing the behind-the-scenes magic to anyone that is willing to explore it. In contrast to some of the more “opinionated” frameworks, it is also rather customizable.
+          </li>
+        </ul>
+      </div>
+    </section>
+    <dl class="hidden md:block md:w-[100%]">
+      <div class="block top-0 sticky w-[300px]" id="adswrapperaside" phx-update="ignore">
+        <script
+          async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5319093423466090"
+          crossorigin="anonymous"
+        >
+        </script>
+        <!-- mazaryn-display -->
+        <ins
+          class="adsbygoogle"
+          style="display:block"
+          data-ad-client="ca-pub-5319093423466090"
+          data-ad-slot="1536507325"
+          data-ad-format="auto"
+          data-full-width-responsive="true"
+        >
+        </ins>
+        <script>
+          (adsbygoogle = window.adsbygoogle || []).push({});
+        </script>
+      </div>
+    </dl>
+  </article>
 </div>
