@@ -27,6 +27,26 @@ defmodule MazarynWeb.UserLive.EditProfileComponent do
     {:noreply, socket}
   end
 
+  def handle_event("validate-info", params, socket) do
+    {:noreply, socket}
+  end
+
+  def handle_event("save-info", %{"user" => params}, socket) do
+    current_user = socket.assigns.current_user
+    fields = Map.keys(params)
+    values = Map.values(params)
+
+    IO.inspect(current_user, label: "=========================user")
+
+    Core.UserClient.set_user_info(current_user.id, fields, values)
+
+    {:ok, current_user} = Account.Users.get_by_session_uuid(socket.assigns.session_uuid)
+
+    current_user |> IO.inspect(label: "=============================")
+
+    {:noreply, socket}
+  end
+
   def handle_event("save-profile-photo", params, socket) do
     current_user = socket.assigns.current_user
 
