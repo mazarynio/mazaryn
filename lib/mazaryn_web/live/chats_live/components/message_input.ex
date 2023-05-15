@@ -2,15 +2,14 @@ defmodule MazarynWeb.ChatsLive.Components.MessageInput do
   use MazarynWeb, :live_component
 
   alias MazarynWeb.Live.Helper
-  alias MazarynWeb.Component.SelectLive
-
   alias Mazaryn.Chats
+  alias Mazaryn.Chats.Chat
 
   @impl true
   def mount(socket) do
     {:ok,
      socket
-     |> assign(uploaded_files: [])
+     |> assign(uploaded_files: [], changeset: Chat.changeset(%Chat{}, %{}), message: %Chat{})
      |> allow_upload(:media, accept: ~w(.png .jpg .jpeg), max_entries: 2)}
   end
 
@@ -19,7 +18,7 @@ defmodule MazarynWeb.ChatsLive.Components.MessageInput do
     socket.assigns.message
     |> Chats.Chat.changeset(params)
     |> struct(action: :validate)
-    |> then(&{:noreply, assign(socket, :message_changeset, &1)})
+    |> then(&{:noreply, assign(socket, :changeset, &1)})
   end
 
   @impl true
@@ -31,14 +30,11 @@ defmodule MazarynWeb.ChatsLive.Components.MessageInput do
         put_flash(socket, :error, "Can not chat with your self...")
 
       {:error, changeset} ->
-        assign(socket, :message_changeset, changeset)
+        assign(socket, :changeset, changeset)
 
       {:ok, chat} ->
-        send(self, {:new_message, chat})
-
-        socket
-        |> put_flash(:info, "Message saved!")
-        |> push_navigate(to: ~p(/chats?recipient_id=#{chat.recipient_id}))
+        send(self(), {:send_message, chat})
+        assign(socket, :changeset, Chat.changeset(%Chat{}, %{}))
     end
     |> then(&{:noreply, &1})
   end

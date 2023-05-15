@@ -70,7 +70,7 @@ defmodule MazarynWeb.Router do
     # CHATS
     scope "/chats" do
       live("/", ChatsLive.Index, :index)
-      live("/:id", ChatsLive.Index, :index)
+      live("/:recipient_id", ChatsLive.Index, :index)
     end
 
     # profile

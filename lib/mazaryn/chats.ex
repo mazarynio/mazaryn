@@ -52,7 +52,7 @@ defmodule Mazaryn.Chats do
   def get_users_with_chats(actor) do
     actor.chat
     |> get_chats()
-    |> Enum.map(&to_charlist(&1.recipient_id))
+    |> Enum.map(&to_charlist(&1.user_id))
     |> Enum.uniq()
     |> Enum.map(&(&1 |> Users.one_by_id() |> elem(1)))
   end
