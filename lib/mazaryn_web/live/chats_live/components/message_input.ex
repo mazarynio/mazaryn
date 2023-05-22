@@ -4,6 +4,7 @@ defmodule MazarynWeb.ChatsLive.Components.MessageInput do
   alias MazarynWeb.Live.Helper
   alias Mazaryn.Chats
   alias Mazaryn.Chats.Chat
+  alias :chat_server, as: ChatClient
 
   @impl true
   def mount(socket) do
@@ -37,5 +38,13 @@ defmodule MazarynWeb.ChatsLive.Components.MessageInput do
         assign(socket, :changeset, Chat.changeset(%Chat{}, %{}))
     end
     |> then(&{:noreply, &1})
+  end
+
+  def handle_event("delete-message", %{"chat-id" => chat_id} = _params, socket) do
+    chat_id = chat_id |> to_charlist
+    ChatClient.delete_msg(chat_id)
+    send(self(), :reload_chats)
+
+    {:noreply, socket}
   end
 end
