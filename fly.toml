@@ -1,4 +1,4 @@
-# fly.toml app configuration file generated for mazaryn on 2023-05-02T21:01:05+03:30
+# fly.toml app configuration file generated for mazaryn on 2023-05-24T19:48:05+03:00
 #
 # See https://fly.io/docs/reference/configuration/ for information about how to use this file.
 #
@@ -11,10 +11,14 @@ kill_timeout = "5s"
 [experimental]
   auto_rollback = true
 
-[env]
-  PHX_HOST = "mazaryn.io"
-  PORT = "8080"
+[deploy]
+  release_command = "/app/bin/migrate"
 
+[env]
+  PHX_HOST = "mazaryn.fly.dev"
+  PORT = "8080"
+  ELIXIR_VERSION = "1.14"
+  
 [[mounts]]
   source = "mazaryn_data_machines"
   destination = "/app/bin/Mnesia"
@@ -35,8 +39,8 @@ kill_timeout = "5s"
     handlers = ["tls", "http"]
   [services.concurrency]
     type = "connections"
-    hard_limit = 25
-    soft_limit = 20
+    hard_limit = 1000
+    soft_limit = 1000
 
   [[services.tcp_checks]]
     interval = "15s"
