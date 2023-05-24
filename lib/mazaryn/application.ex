@@ -10,6 +10,8 @@ defmodule Mazaryn.Application do
     children = [
       # Start the Telemetry supervisor
       MazarynWeb.Telemetry,
+      # Start the Ecto repository
+      Mazaryn.Repo,
       # Start the PubSub system
       {Phoenix.PubSub, name: Mazaryn.PubSub},
       # Start the Endpoint (http/https)
