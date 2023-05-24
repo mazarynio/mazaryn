@@ -38,6 +38,8 @@ defmodule MazarynWeb.UserLive.EditProfileComponent do
   end
 
   def handle_event("save-bio", %{"user" => params}, socket) do
+    save_user_info(socket, params).assigns.current_user |> IO.inspect(label: "=======update user======")
+
     {:noreply, save_user_info(socket, params)}
   end
 
@@ -81,8 +83,6 @@ defmodule MazarynWeb.UserLive.EditProfileComponent do
     current_user = socket.assigns.current_user
     fields = Map.keys(params)
     values = Map.values(params)
-
-    IO.inspect(current_user, label: "=========================user")
 
    case Core.UserClient.set_user_info(current_user.id, fields, values) do
     :ok -> socket |> assign(:success_msg, "Successfully Saved")
