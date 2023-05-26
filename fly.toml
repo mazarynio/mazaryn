@@ -11,6 +11,9 @@ kill_timeout = "5s"
 [experimental]
   auto_rollback = true
 
+[deploy]
+  release_command = "/app/bin/mazaryn migrate"
+
 [env]
   PHX_HOST = "mazaryn.fly.dev"
   PORT = "8080"
