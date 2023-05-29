@@ -9,6 +9,8 @@ defmodule MazarynWeb.UserLive.EditProfileComponent do
     {:ok,
      socket
      |> assign(:uploaded_files, [])
+     |> assign(:success_msg, nil)
+     |> assign(:failure_msg, nil)
      |> allow_upload(:avatar_url,
        accept: ~w(.png .jpg .jpeg),
        max_entries: 1,
@@ -25,6 +27,18 @@ defmodule MazarynWeb.UserLive.EditProfileComponent do
 
   def handle_event("validate-profile-photo", params, socket) do
     {:noreply, socket}
+  end
+
+  def handle_event("validate-info", params, socket) do
+    {:noreply, socket}
+  end
+
+  def handle_event("save-info", %{"user" => params}, socket) do
+    {:noreply, save_user_info(socket, params)}
+  end
+
+  def handle_event("save-bio", %{"user" => params}, socket) do
+    {:noreply, save_user_info(socket, params)}
   end
 
   def handle_event("save-profile-photo", params, socket) do
@@ -61,6 +75,17 @@ defmodule MazarynWeb.UserLive.EditProfileComponent do
     Enum.map(list_of_assigns, fn assigns ->
       assigns
     end)
+  end
+
+  defp save_user_info(socket, params) do
+    current_user = socket.assigns.current_user
+    fields = Map.keys(params)
+    values = Map.values(params)
+
+   case Core.UserClient.set_user_info(current_user.id, fields, values) do
+    :ok -> socket |> assign(:success_msg, "Successfully Saved")
+    _ -> socket |> assign(:failure_msg, "Something went wrong not saved")
+   end
   end
 
   defp consume_upload(socket, field) do

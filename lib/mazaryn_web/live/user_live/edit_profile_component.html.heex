@@ -9,6 +9,7 @@
         phx-click={toggle_tab1()}
         class="js--tabs-label items-center text-gray-500 cursor-pointer relative"
       >
+      <div> <%=@success_msg || @failure_msg%> </div>
         <div class="font-semibold text-[20px] leading-[24px] mb-[25px] text-black">
           About Info
         </div>
@@ -20,8 +21,8 @@
             for={@changeset}
             class="w-full"
             phx-target={@myself}
-            phx-change="validate"
-            phx-submit="save"
+            phx-change="validate-info"
+            phx-submit="save-info"
           >
             <div class="form-input-container">
               <div>
@@ -143,7 +144,7 @@
           id="edit-form-bioinfo"
           class="w-full"
           phx-target={@myself}
-          phx-submit="save"
+          phx-submit="save-bio"
         >
           <div class="form-input-container">
             <div>
