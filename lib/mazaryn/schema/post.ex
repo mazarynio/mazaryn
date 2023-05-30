@@ -14,6 +14,8 @@ defmodule Mazaryn.Schema.Post do
     id
     media
     hashtag
+    mention
+    link_url
     photo_url
     author
     other
@@ -33,6 +35,8 @@ defmodule Mazaryn.Schema.Post do
     field(:content, :string)
     field(:media, {:array, :string}, default: [])
     field(:hashtag, :string)
+    field(:mention, :string)
+    field(:link_url, :string)
     field(:author, :string)
     field(:other, {:array, :string}, default: [])
     # TODO: Add to mnesia
@@ -46,8 +50,8 @@ defmodule Mazaryn.Schema.Post do
   end
 
   def erl_changeset(
-        {:post, id, content, comments, likes, media, hashtag, author, other, date_created,
-         date_updated}
+        {:post, id, content, comments, likes, media, hashtag, mention, link_url, author,
+         other, date_created, date_updated}
       ) do
     new_likes =
       case likes do
@@ -65,6 +69,8 @@ defmodule Mazaryn.Schema.Post do
       likes: new_likes,
       media: media,
       hashtag: hashtag,
+      mention: mention,
+      link_url: link_url,
       author: author,
       other: other,
       date_created: handle_datetime(date_created),

@@ -46,8 +46,10 @@ defmodule Mazaryn.Posts do
   def create_post(%Ecto.Changeset{changes: %{author: author, content: content}} = changeset) do
     media = Ecto.Changeset.get_field(changeset, :media, [])
     hashtag = Ecto.Changeset.get_field(changeset, :hashtag)
+    mention = Ecto.Changeset.get_field(changeset, :mention)
+    link_url = Ecto.Changeset.get_field(changeset, :link_url)
 
-    case create(author, content, media, hashtag) do
+    case create(author, content, media, hashtag, mention, link_url) do
       {:ok, post_id} ->
         one_by_id(post_id)
 
@@ -59,9 +61,9 @@ defmodule Mazaryn.Posts do
   @doc """
   Currently returns the post_id
   """
-  @spec create(String.t(), String.t(), list(String.t()), list(String.t())) :: {:ok, any}
-  def create(author, content, media, hashtag, _other \\ []) do
-    {:ok, PostClient.create(author, content, media, hashtag)}
+
+  def create(author, content, media, hashtag, mention, link_url) do
+    {:ok, PostClient.create(author, content, media, hashtag, mention, link_url)}
   end
 
   def one_by_id(id) do

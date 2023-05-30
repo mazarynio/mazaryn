@@ -18,7 +18,7 @@
                 avatar_url,
                 banner_url,
                 token_id,
-                chat = []}).
+                chat = []}). 
 
 -record(notif, { id,
                  user_id,
@@ -31,10 +31,12 @@
                 likes = [],
                 media = [],
                 hashtag = [],
+                mention,
+                link_url,
                 author,
                 other = [],
                 date_created,
-                date_updated}).
+                date_updated}). 
 
 -record(blog_post, {id, 
                     content,

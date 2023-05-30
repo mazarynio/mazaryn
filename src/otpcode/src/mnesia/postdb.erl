@@ -1,6 +1,6 @@
 -module(postdb).
--export([insert/4, get_post_by_id/1,
-         modify_post/4, get_posts_by_author/1, 
+-export([insert/6, get_post_by_id/1,
+         modify_post/6, get_posts_by_author/1, 
          get_posts_by_hashtag/1, update_post/2,
          delete_post/1, get_posts/0,
          get_all_posts_from_date/4, get_all_posts_from_month/3,
@@ -14,7 +14,7 @@
 %% if post or comment do not have media,
 %% their value in record are nil
 
-insert(Author, Content, Media, Hashtag) ->
+insert(Author, Content, Media, Hashtag, Mention, Link_URL) -> 
   F = fun() ->
           Id = nanoid:gen(),
           mnesia:write(#post{id = Id,
@@ -22,6 +22,8 @@ insert(Author, Content, Media, Hashtag) ->
                              author = Author,
                              media = Media,
                              hashtag = Hashtag,
+                             mention = Mention,
+                             link_url = Link_URL,
                              date_created = calendar:universal_time()}),
           [User] = mnesia:index_read(user, Author, username),
           Posts = User#user.post,
@@ -31,12 +33,14 @@ insert(Author, Content, Media, Hashtag) ->
   {atomic, Res} = mnesia:transaction(F),
   Res.
 
-modify_post(Author, NewContent, NewMedia, NewHashtag) ->
+modify_post(Author, NewContent, NewMedia, NewHashtag, NewMention, NewLink_URL) ->
   Fun = fun() ->
             [Post] = mnesia:read({post, Author}),
             mnesia:write(Post#post{content = NewContent,
                                    media = NewMedia,
                                    hashtag = NewHashtag,
+                                   mention = NewMention,
+                                   link_url = NewLink_URL,
                                    date_updated = calendar:universal_time()})
         end,
   {atomic, Res} = mnesia:transaction(Fun),

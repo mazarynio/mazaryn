@@ -3,13 +3,13 @@ defmodule Core.PostClient do
     :post_server.start_link()
   end
 
-  def create(author, content, media \\ [], hashtag) do
+  def create(author, content, media \\ [], hashtag, mention, link_url) do
     :post_server.start_link()
-    :post_server.insert(author, content, media, hashtag)
+    :post_server.insert(author, content, media, hashtag, mention, link_url)
   end
 
-  def modify_post(author, newContent, newMedia, newHashtag) do
-    :post_server.modify_post(author, newContent, newMedia, newHashtag)
+  def modify_post(author, newContent, newMedia, newHashtag, newMention, newLink_url) do
+    :post_server.modify_post(author, newContent, newMedia, newHashtag, newMention, newLink_url)
   end
 
   def get_by_id(id) do
