@@ -35,6 +35,10 @@ Ready to run in production? Please [check our deployment guides](https://hexdocs
 
 ![2022-04-20_13-15](https://user-images.githubusercontent.com/59366270/166201651-1b441cad-cf5f-462c-8ce1-8ac3aa2fd43d.png)
 
+### How to contribute! 
+If you're Interested to Contribute on this Project, you can check Issues here https://github.com/mazarynio/mazaryn/issues and start working on New Updates.
+
+
 ## Learn more
 
   * Official website: https://www.phoenixframework.org/
