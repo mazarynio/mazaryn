@@ -18,10 +18,10 @@
 //     import "some-package"
 //
 // import Alpine
-//import Alpine from "alpinejs";
+import Alpine from "alpinejs";
 // Add this before your liveSocket call.
-//window.Alpine = Alpine;
-//Alpine.start();
+window.Alpine = Alpine;
+Alpine.start();
 
 // Include phoenix_html to handle method=PUT/DELETE in forms and buttons.
 import "phoenix_html";
@@ -39,7 +39,7 @@ let liveSocket = new LiveSocket("/live", Socket, {
   dom: {
     onBeforeElUpdated(from, to) {
       if (from._x_dataStack) {
-      //  window.Alpine.clone(from, to);
+        window.Alpine.clone(from, to);
       }
     },
   },
