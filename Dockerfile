@@ -20,6 +20,8 @@ ARG RUNNER_IMAGE="debian:${DEBIAN_VERSION}"
 
 FROM ${BUILDER_IMAGE} as builder
 
+FROM alpine:latest
+
 # install build dependencies
 RUN apt-get update -y && apt-get install -y build-essential git \
     && apt-get clean && rm -f /var/lib/apt/lists/*_*
@@ -48,6 +50,11 @@ RUN mix deps.compile
 COPY priv priv
 
 COPY lib lib
+
+COPY src src 
+
+RUN npm install alpinejs 
+RUN yarn alpinejs
 
 COPY assets assets
 
