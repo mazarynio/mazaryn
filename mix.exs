@@ -5,7 +5,7 @@ defmodule Mazaryn.MixProject do
     [
       app: :mazaryn,
       version: "0.1.0",
-      elixir: "~> 1.14",
+      elixir: "~> 1.14.5",
       elixirc_paths: elixirc_paths(Mix.env()),
       compilers: [] ++ Mix.compilers(),
       start_permanent: Mix.env() == :prod,
@@ -34,16 +34,16 @@ defmodule Mazaryn.MixProject do
   # Type `mix help deps` for examples and options.
   defp deps do
     [
-      {:phoenix, "~> 1.7.2"},
+      {:phoenix, "~> 1.7.6"},
       {:phoenix_ecto, "~> 4.4"},
       {:phoenix_view, "~> 2.0"},
       {:ecto_sql, "~> 3.10"},
       {:postgrex, ">= 0.0.0"},
       {:phoenix_html, "~> 3.3"},
       {:phoenix_live_reload, "~> 1.4", only: :dev},
-      {:phoenix_live_view, "~> 0.18"},
+      {:phoenix_live_view, "~> 0.19"},
       {:floki, ">= 0.33.1", only: :test},
-      {:phoenix_live_dashboard, "~> 0.7"},
+      {:phoenix_live_dashboard, "~> 0.8"},
       {:esbuild, "~> 0.7", runtime: Mix.env() == :dev},
       {:telemetry_metrics, "~> 0.6"},
       {:telemetry_poller, "~> 1.0"},
@@ -71,7 +71,7 @@ defmodule Mazaryn.MixProject do
       # Graphql APIs
       {:absinthe, "~> 1.7"},
       {:absinthe_plug, "~> 1.5"},
-      {:rustler, "~> 0.27"},
+      {:rustler, "~> 0.28"},
 
       # exceptions monitoring
       {:honeybadger, "~> 0.16"},
