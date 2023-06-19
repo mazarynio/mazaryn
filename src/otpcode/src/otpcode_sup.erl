@@ -26,7 +26,7 @@ start_link() ->
     ssl:start(),
     application:start(inets),
     %% create ETS table to store user_reg process
-    ets:new(user_reg, [set, named_table, public]),
+    %%ets:new(user_reg, [set, named_table, public]),
 
     % create tables
     mnesia:create_table(post, [{attributes, record_info(fields, post)},
