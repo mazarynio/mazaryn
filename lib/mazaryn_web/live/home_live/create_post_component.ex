@@ -37,6 +37,8 @@ defmodule MazarynWeb.HomeLive.CreatePostComponent do
   end
 
   defp handle_save_post(socket, %{"post" => post_params} = _params) do
+    IO.inspect(post_params, label: "pppppppppp")
+
     {:ok, user} =
       socket.assigns.user.id
       |> Users.one_by_id()
@@ -48,9 +50,30 @@ defmodule MazarynWeb.HomeLive.CreatePostComponent do
       |> Map.put("author", user.username)
       |> Map.put("media", urls)
 
+    hashtags = fetch_from_content(~r/#\S[a-zA-Z]*/, post_params)
+    mentions = fetch_from_content(~r/@\S[a-zA-Z]*/, post_params)
+
+    post_params =
+      case {hashtags, mentions} do
+        {"", ""} ->
+          post_params
+
+        {hashtags, ""} ->
+          Map.put(post_params, "hashtag", hashtags)
+
+        {"", mentions} ->
+          Map.put(post_params, "mention", mentions)
+
+        {hashtags, mentions} ->
+          post_params
+          |> Map.put("hashtag", hashtags)
+          |> Map.put("mention", mentions)
+      end
+
     %Post{}
     |> Post.changeset(post_params)
     |> Posts.create_post()
+    |> IO.inspect(label: "[[[[[[[[[[[[[[[[[[[[[[[[CreatePostComponent")
     |> case do
       {:ok, %Post{}} ->
         # send event to parent live-view
@@ -60,6 +83,13 @@ defmodule MazarynWeb.HomeLive.CreatePostComponent do
       other ->
         socket
     end
+  end
+
+  defp fetch_from_content(regex, %{"content" => content}) do
+    regex
+    |> Regex.scan(content)
+    |> List.flatten()
+    |> Enum.join(", ")
   end
 
   defp handle_validate_post(socket, %{"post" => post_params} = _params) do
