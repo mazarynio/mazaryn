@@ -73,8 +73,6 @@ defmodule Mazaryn.MixProject do
       {:absinthe_plug, "~> 1.5"},
       {:rustler, "~> 0.28"},
 
-      # exceptions monitoring
-      {:honeybadger, "~> 0.16"},
 
       # Machine Learning
       {:nx, "~> 0.5"}

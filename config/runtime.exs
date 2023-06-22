@@ -37,12 +37,6 @@ if config_env() == :prod do
     socket_options: maybe_ipv6
 
 
-  config :honeybadger,
-    exclude_envs: [:test],
-    environment_name: :prod,
-    use_logger: true,
-    api_key: System.get_env("HONEYBADGER_API_KEY")
-
   # The secret key base is used to sign/encrypt cookies and other secrets.
   # A default value is used in config/dev.exs and config/test.exs but you
   # want to use a different value for prod and you most likely don't want

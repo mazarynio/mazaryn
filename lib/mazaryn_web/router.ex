@@ -1,7 +1,5 @@
 defmodule MazarynWeb.Router do
   use MazarynWeb, :router
-  use Honeybadger.Plug
-
   import MazarynWeb.Plug.Session, only: [redirect_unauthorized: 2, validate_session: 2]
 
   pipeline :browser do
