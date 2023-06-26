@@ -77,7 +77,8 @@ defmodule Mazaryn.MixProject do
       {:honeybadger, "~> 0.16"},
 
       # Machine Learning
-      {:nx, "~> 0.5"}
+      {:nx, "~> 0.5"},
+      {:earmark, "~> 1.4"}
     ]
   end
 

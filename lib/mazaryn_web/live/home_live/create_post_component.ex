@@ -38,6 +38,17 @@ defmodule MazarynWeb.HomeLive.CreatePostComponent do
 
   defp handle_save_post(socket, %{"post" => post_params} = _params) do
     IO.inspect(post_params, label: "pppppppppp")
+    markdown = "[\#hashtag](https://twitter.com/hashtag/ChezaKamaWewe?src=hashtag_click)"
+
+    content
+    |> String.split(content)
+    |> Enum.map(fn content ->
+      regex = fetch_regex(content)
+      String.replace("#hashtag", markdown)
+    end)
+    |> Enum.join(" ")
+    |> Earmark.as_html!(markdown, compact_output: true)
+    |> IO.inspect(label: "]]]]]]]")
 
     {:ok, user} =
       socket.assigns.user.id
