@@ -37,19 +37,6 @@ defmodule MazarynWeb.HomeLive.CreatePostComponent do
   end
 
   defp handle_save_post(socket, %{"post" => post_params} = _params) do
-    IO.inspect(post_params, label: "pppppppppp")
-    markdown = "[\#hashtag](https://twitter.com/hashtag/ChezaKamaWewe?src=hashtag_click)"
-
-    content
-    |> String.split(content)
-    |> Enum.map(fn content ->
-      regex = fetch_regex(content)
-      String.replace("#hashtag", markdown)
-    end)
-    |> Enum.join(" ")
-    |> Earmark.as_html!(markdown, compact_output: true)
-    |> IO.inspect(label: "]]]]]]]")
-
     {:ok, user} =
       socket.assigns.user.id
       |> Users.one_by_id()
@@ -84,7 +71,6 @@ defmodule MazarynWeb.HomeLive.CreatePostComponent do
     %Post{}
     |> Post.changeset(post_params)
     |> Posts.create_post()
-    |> IO.inspect(label: "[[[[[[[[[[[[[[[[[[[[[[[[CreatePostComponent")
     |> case do
       {:ok, %Post{}} ->
         # send event to parent live-view

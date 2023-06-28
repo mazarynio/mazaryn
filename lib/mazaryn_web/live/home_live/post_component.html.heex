@@ -68,7 +68,7 @@
     </div>
   </div>
   <p class="text-black block text-base mt-3">
-    <%= @post.content %>
+    <%= raw(activate_hashtag(@post.content)) %>
     <span class="text-blue-300 text-sm"><%= Enum.join(@post.profile_tags, " ") %></span>
   </p>
 
