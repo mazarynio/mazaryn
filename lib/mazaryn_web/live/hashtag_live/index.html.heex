@@ -1,0 +1,9 @@
+<%= for post <- @posts do %>
+  <.live_component
+    module={MazarynWeb.HomeLive.PostComponent}
+    id={post.id}
+    current_user={@current_user}
+    ,
+    post={post}
+  />
+<% end %>

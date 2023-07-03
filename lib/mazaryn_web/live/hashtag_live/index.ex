@@ -1,11 +1,20 @@
 defmodule MazarynWeb.HashtagLive.Index do
   use MazarynWeb, :live_view
 
-  def mount(_params, _session, socket) do
-    {:ok, socket}
+  alias Mazaryn.Posts
+  alias Account.Users
+
+  def mount(_params, %{"session_uuid" => session_uuid} = _session, socket) do
+    {:ok, user} = Users.get_by_session_uuid(session_uuid)
+    {:ok, assign(socket, current_user: user)}
   end
 
-  def handle_params(params, _uri, socket) do
+  def handle_params(%{"hashtag_name" => hashtag}, _uri, socket) do
+    posts = Posts.get_posts_by_hashtag(hashtag)
+    {:noreply, assign(socket, posts: posts)}
+  end
+
+  def handle_params(_params, _uri, socket) do
     {:noreply, socket}
   end
 end

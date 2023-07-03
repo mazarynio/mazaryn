@@ -195,7 +195,7 @@ defmodule MazarynWeb.HomeLive.PostComponent do
     post
   end
 
-  defp activate_hashtag(content) do
+  defp activate_hashtag(content, socket) do
     content
     |> String.split()
     |> Enum.map(fn con ->
@@ -207,7 +207,8 @@ defmodule MazarynWeb.HomeLive.PostComponent do
           con
 
         [[hashtag]] ->
-          markdown = "[\ #{hashtag}](https://twitter.com/hashtag/ChezaKamaWewe?src=hashtag_click)"
+          path = Routes.live_path(socket, MazarynWeb.HashtagLive.Index, hashtag)
+          markdown = "[\ #{hashtag}](#{path})"
 
           String.replace(hashtag, hashtag, markdown)
       end
