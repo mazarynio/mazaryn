@@ -5,7 +5,7 @@ defmodule Mazaryn.MixProject do
     [
       app: :mazaryn,
       version: "0.1.0",
-      elixir: "~> 1.15",
+      elixir: "~> 1.15.2",
       elixirc_paths: elixirc_paths(Mix.env()),
       compilers: [] ++ Mix.compilers(),
       start_permanent: Mix.env() == :prod,
@@ -71,7 +71,7 @@ defmodule Mazaryn.MixProject do
       # Graphql APIs
       {:absinthe, "~> 1.7"},
       {:absinthe_plug, "~> 1.5"},
-      {:rustler, "~> 0.28"},
+      {:rustler, "~> 0.29"},
 
 
       # Machine Learning
