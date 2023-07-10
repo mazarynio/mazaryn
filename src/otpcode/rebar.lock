@@ -1,5 +1,8 @@
 {"1.2.0",
-[{<<"bcrypt">>,{pkg,<<"bcrypt">>,<<"1.1.5">>},0},
+[{<<"bcrypt">>,
+  {git,"https://github.com/erlangpack/bcrypt.git",
+       {ref,"257683df59abf9fd8b88248ee89398f9923afdeb"}},
+  0},
  {<<"epgsql">>,{pkg,<<"epgsql">>,<<"4.6.0">>},0},
  {<<"erlpass">>,
   {git,"https://github.com/ferd/erlpass.git",
@@ -12,15 +15,13 @@
  {<<"poolboy">>,{pkg,<<"poolboy">>,<<"1.5.2">>},1},
  {<<"proper">>,
   {git,"https://github.com/manopapad/proper.git",
-       {ref,"3de5f72c893f46abe5ba48c259b34cc2246c0b6d"}},
+       {ref,"def84f172df92635cc62f3356e3e7ad054638eb4"}},
   0}]}.
 [
 {pkg_hash,[
- {<<"bcrypt">>, <<"A6763BD4E1AF46D34776F85B7995E63A02978DE110C077E9570ED17006E03386">>},
  {<<"epgsql">>, <<"A403534D03811C867E79405BB18D6061A5FCEF92ACF0236A9150AC93748CE143">>},
  {<<"poolboy">>, <<"392B007A1693A64540CEAD79830443ABF5762F5D30CF50BC95CB2C1AAAFA006B">>}]},
 {pkg_hash_ext,[
- {<<"bcrypt">>, <<"3418821BC17CE6E96A4A77D1A88D7485BF783E212069FACFC79510AFBFF95352">>},
  {<<"epgsql">>, <<"6BE4910A02551F21EAB6F6F27D97B0D4B1DFFC617F1A64C8C95FDD45652FA9E1">>},
  {<<"poolboy">>, <<"DAD79704CE5440F3D5A3681C8590B9DC25D1A561E8F5A9C995281012860901E3">>}]}
 ].
