@@ -195,6 +195,28 @@ defmodule MazarynWeb.HomeLive.PostComponent do
     post
   end
 
+  defp activate_hashtag(content, socket) do
+    content
+    |> String.split()
+    |> Enum.map(fn con ->
+      regex = ~r/#\S[a-zA-Z]*/
+      hashtag = regex |> Regex.scan(con)
+
+      case hashtag do
+        [] ->
+          con
+
+        [[hashtag]] ->
+          path = Routes.live_path(socket, MazarynWeb.HashtagLive.Index, hashtag)
+          markdown = "[\ #{hashtag}](#{path})"
+
+          String.replace(hashtag, hashtag, markdown)
+      end
+    end)
+    |> Enum.join(" ")
+    |> Earmark.as_html!(compact_output: true)
+  end
+
   defp handle_assigns(socket, user_id, username) do
     socket
     |> assign(:follow_event, follow_event(user_id, username))

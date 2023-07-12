@@ -75,7 +75,8 @@ defmodule Mazaryn.MixProject do
 
 
       # Machine Learning
-      {:nx, "~> 0.5"}
+      {:nx, "~> 0.5"},
+      {:earmark, "~> 1.4"}
     ]
   end
 

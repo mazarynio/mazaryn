@@ -79,6 +79,9 @@ defmodule MazarynWeb.Router do
     live("/dashboard/hedera-wallet", DashboardLive.Wallet.HederaWallet)
     live("/notifications", NotificationLive.Index)
     live("/user_blog", UserBlog.Index)
+
+    # hashtags
+    live "/hashtag/:hashtag_name", HashtagLive.Index
   end
 
   scope "/api" do
