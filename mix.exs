@@ -34,7 +34,7 @@ defmodule Mazaryn.MixProject do
   # Type `mix help deps` for examples and options.
   defp deps do
     [
-      {:phoenix, "~> 1.7.6"},
+      {:phoenix, "~> 1.7.7"},
       {:phoenix_ecto, "~> 4.4"},
       {:phoenix_view, "~> 2.0"},
       {:ecto_sql, "~> 3.10"},
@@ -53,7 +53,7 @@ defmodule Mazaryn.MixProject do
       {:joken, "~> 2.6"},
       {:tarams, "~> 1.7"},
       {:tailwind, "~> 0.2", runtime: Mix.env() == :dev},
-      {:swoosh, "~> 1.9"},
+      {:swoosh, "~> 1.11"},
       {:phoenix_swoosh, "~> 1.2"},
       {:timex, "~> 3.7"},
 
