@@ -1,0 +1,60 @@
+name: Deploy to bare-metal
+
+on:
+  push:
+    branches:
+      - main
+jobs:
+  deploy:
+    name: Build && Deploy || Restore 
+    runs-on: ubuntu-latest
+    steps:
+    - name: executing remote ssh commands to trigger new build
+      id: build
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.SSH_HOST }}
+        username: ${{ secrets.SSH_USER }}
+        password: ${{ secrets.SSH_PASSWORD }}
+        script: |
+           cd mazaryn
+           sudo mv rel/overlays/mazaryn.service /etc/systemd/system/mazaryn.service
+           git reset --hard
+           git checkout main
+           git pull
+           source ~/.bashrc
+           export PATH=/home/linuxbrew/.linuxbrew/bin:/home/linuxbrew/.linuxbrew/sbin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin
+           mix local.hex
+           MIX_ENV=prod mix deps.get
+           MIX_ENV=prod mix release --overwrite --path ../mazaryn_release_new
+
+    - name: executing remote ssh commands to deploy new build
+      id: deployment
+      if: steps.build.outcome == 'success'
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.SSH_HOST }}
+        username: ${{ secrets.SSH_USER }}
+        password: ${{ secrets.SSH_PASSWORD }}
+        script: |
+          sudo systemctl stop mazaryn.service
+          mv mazaryn_release mazaryn_release_backup
+          mv mazaryn_release_new mazaryn_release
+          sudo systemctl start mazaryn.service
+    
+    - name: checking successful deployment otherwise restore older version
+      id: health
+      if: steps.deployment.outcome == 'failure'
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.SSH_HOST }}
+        username: ${{ secrets.SSH_USER }}
+        password: ${{ secrets.SSH_PASSWORD }}
+        script: |
+          journalctl -u mazaryn.service
+          sudo systemctl start mazaryn.service
+          mv mazaryn_release mazaryn_release_failed
+          mv mazaryn_release_backup mazaryn_release
+          sudo systemctl start mazaryn.service
+          echo "BUILD FAILED, PREVIOUS VERSION RESTORED"
+          

@@ -1,0 +1,15 @@
+[Unit]
+Description=Mazaryn Web Service
+After=network.target
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=1
+User=zaryn
+EnvironmentFile=/etc/mazaryn/mazaryn.conf
+ExecStart=/home/zaryn/mazaryn_release/bin/mazaryn start
+
+[Install]
+WantedBy=multi-user.target
