@@ -195,6 +195,30 @@ defmodule MazarynWeb.HomeLive.PostComponent do
     post
   end
 
+  defp activate_mention(post, socket) do
+    post.content
+    |> String.split()
+    |> Enum.map(fn con ->
+      regex = ~r/@\S[a-zA-Z]*/
+      mention = regex |> Regex.scan(con)
+
+
+      case mention do
+        [] ->
+          con
+
+        [[mention]] ->
+          path = Routes.live_path(socket, MazarynWeb.UserLive.Profile, post.mention)
+          markdown = "[\ #{mention}](#{path})"
+
+          String.replace(mention, mention, markdown)
+      end
+    end)
+    |> IO.inspect(label: "====================")
+    |> Enum.join(" ")
+    |> Earmark.as_html!(compact_output: true)
+  end
+
   defp activate_hashtag(content, socket) do
     content
     |> String.split()

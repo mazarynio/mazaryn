@@ -49,7 +49,10 @@ defmodule MazarynWeb.HomeLive.CreatePostComponent do
       |> Map.put("media", urls)
 
     hashtags = fetch_from_content(~r/#\S[a-zA-Z]*/, post_params)
-    mentions = fetch_from_content(~r/@\S[a-zA-Z]*/, post_params)
+    mentions = 
+      ~r/@\S[a-zA-Z]*/
+      |> fetch_from_content(post_params) 
+      |> String.replace("@", "")
 
     post_params =
       case {hashtags, mentions} do
