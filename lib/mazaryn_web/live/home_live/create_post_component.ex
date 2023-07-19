@@ -52,7 +52,6 @@ defmodule MazarynWeb.HomeLive.CreatePostComponent do
     mentions = 
       ~r/@\S[a-zA-Z]*/
       |> fetch_from_content(post_params) 
-      |> String.replace("@", "")
 
     post_params =
       case {hashtags, mentions} do

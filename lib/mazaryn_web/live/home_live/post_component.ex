@@ -196,28 +196,43 @@ defmodule MazarynWeb.HomeLive.PostComponent do
   end
 
   defp activate_mention(post, socket) do
+    IO.inspect(post, label: "====================")
+
     post.content
     |> String.split()
+    
     |> Enum.map(fn con ->
       regex = ~r/@\S[a-zA-Z]*/
       mention = regex |> Regex.scan(con)
-
-
+     
       case mention do
         [] ->
           con
 
         [[mention]] ->
-          path = Routes.live_path(socket, MazarynWeb.UserLive.Profile, post.mention)
+          path =
+            mention
+            |> String.replace("@", "") 
+            |> create_user_path(socket)
           markdown = "[\ #{mention}](#{path})"
 
           String.replace(mention, mention, markdown)
       end
     end)
-    |> IO.inspect(label: "====================")
     |> Enum.join(" ")
     |> Earmark.as_html!(compact_output: true)
   end
+  # <%= raw(@post|> activate_mention(@socket) |> activate_hastag(@socket) |> Earmark.as_html!(compact_output: true)) %>
+
+  defp create_user_path(username, socket) do
+     case Users.one_by_username(username) do
+      :ok ->
+        "#"
+      {:ok, _user} ->
+        Routes.live_path(socket, MazarynWeb.UserLive.Profile, username)
+     end
+  end
+
 
   defp activate_hashtag(content, socket) do
     content
@@ -246,8 +261,6 @@ defmodule MazarynWeb.HomeLive.PostComponent do
     |> assign(:follow_event, follow_event(user_id, username))
     |> assign(:follow_text, follow_text(user_id, username))
   end
-
-  defp get_user_by_username(username), do: Users.one_by_username(username)
 
   defp one_of_following?(id, username) do
     id
