@@ -4,7 +4,7 @@ config :mazaryn, Mazaryn.Repo,
   username: "postgres",
   password: "postgres",
   hostname: "localhost",
-  database: "mazaryn_dev",
+  database: "postgres",
   stacktrace: true,
   show_sensitive_data_on_connection_error: true,
   pool_size: 10
