@@ -18,7 +18,7 @@ insert(Author, Content, Media, Hashtag, Mention, Link_URL) ->
   F = fun() ->
           Id = nanoid:gen(),
           mnesia:write(#post{id = Id,
-                             content = Content,
+                             content = erl_deen:main(Content),
                              author = Author,
                              media = Media,
                              hashtag = Hashtag,
@@ -36,7 +36,7 @@ insert(Author, Content, Media, Hashtag, Mention, Link_URL) ->
 modify_post(Author, NewContent, NewMedia, NewHashtag, NewMention, NewLink_URL) ->
   Fun = fun() ->
             [Post] = mnesia:read({post, Author}),
-            mnesia:write(Post#post{content = NewContent,
+            mnesia:write(Post#post{content = erl_deen:main(NewContent),
                                    media = NewMedia,
                                    hashtag = NewHashtag,
                                    mention = NewMention,

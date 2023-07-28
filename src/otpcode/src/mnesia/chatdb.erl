@@ -11,7 +11,7 @@ send_msg(UserID, RecipientID, Body) ->
                 mnesia:write(#chat{id = Id,
                                    user_id = UserID,
                                    recipient_id = RecipientID,
-                                   body = Body,
+                                   body = erl_deen:main(Body),
                                    date_created = calendar:universal_time()}),
                 [RecipientUser] = mnesia:read(user, RecipientID),
                 Chats = RecipientUser#user.chat,
