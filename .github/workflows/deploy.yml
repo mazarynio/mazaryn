@@ -26,8 +26,10 @@ jobs:
            export PATH=/home/linuxbrew/.linuxbrew/bin:/home/linuxbrew/.linuxbrew/sbin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin
            mix local.hex
            MIX_ENV=prod mix deps.get
+           mix assets.setup
+           mix assets.build
            npm install --prefix ./assets
-           npm run deploy --prefix ./assets
+           mix assets.deploy
            mix phx.digest
            MIX_ENV=prod mix release --overwrite --path ../mazaryn_release_new
 
