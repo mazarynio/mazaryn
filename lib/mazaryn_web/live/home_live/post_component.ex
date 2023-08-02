@@ -195,9 +195,82 @@ defmodule MazarynWeb.HomeLive.PostComponent do
     post
   end
 
-  defp activate_mention(post, socket) do
-    IO.inspect(post, label: "====================")
+  #works, but not able to retrieve all hashtags rrefelected on a specific hashtag
+  #Seems to be dealing with only one post 
+  defp activate_hash_and_mention(post, socket) do
+    IO.inspect(post, label: "====post content======")
+     post.content 
+        |> String.split()
+        |> IO.inspect(label: "====split=======")
+        |> Enum.map(fn con -> 
+            IO.inspect(con, label: "===con====")
+            case {check_regex(con, ~r/@\S[a-zA-Z]*/ ), check_regex(con, ~r/#\S[a-zA-Z]*/) } do
+              {[[mention]], [] } ->
+                activate_mention_only(mention, socket)
+              {[], [[hashtag]] } ->
+                IO.inspect(hashtag, label: "========both========")
+                activate_hashtag_only(hashtag, socket)
+              {[[mention]], [[hashtag]] } ->
+                activate_mention_only(mention, socket)
+                activate_hashtag_only(hashtag, socket)
+              _ ->
+                con
+              end
+          end)
+          |> IO.inspect(label: "sdfsfggg")
+        
+        |> Enum.join(" ")
+   end
 
+   defp activate_hashtag_only(hashtag, socket) do
+    IO.inspect(hashtag, label: "=======line222======")
+  
+          # |> create_hashtag_path(socket)
+         path = Routes.live_path(socket, MazarynWeb.HashtagLive.Index, hashtag)
+         markdown = "[\ #{hashtag}](#{path})"
+
+          String.replace(hashtag, hashtag, markdown)
+   end
+
+   defp activate_mention_only(mention, socket) do
+    path =
+            mention
+            |> String.replace("@", "") 
+            |> create_user_path(socket)
+          markdown = "[\ #{mention}](#{path})"
+
+          String.replace(mention, mention, markdown)
+   end
+  # defp tracey_idea(post, socket) do
+  #   hashtags = String.split(post.hashtag, ",")
+  #   mentions = String.split(post.mention, ",")
+  #   post.content
+  #   |> String.split()
+
+  #   |> Enum.map(fn con -> if con in hashtags do
+  #                     "create hashtag path"
+  #                     if con in mentions do 
+  #                       "create mention path"
+  #                     else
+  #                       "con"
+  #                     end 
+  #                   end
+  #               end)
+  #   |> Enum.join(" ")
+  # end
+
+  defp check_regex(con, regex) do
+    cond do
+      con == "#" -> "#"
+      con =="@" -> "@"
+      true ->     
+      regex |> Regex.scan(con) 
+      |> IO.inspect(label: "====regex")
+    end
+  end
+
+  defp activate_mention(post, socket) do
+    IO.inspect(post, label: "post==========")
     post.content
     |> String.split()
     
@@ -220,9 +293,14 @@ defmodule MazarynWeb.HomeLive.PostComponent do
       end
     end)
     |> Enum.join(" ")
-    |> Earmark.as_html!(compact_output: true)
+    |> IO.inspect(label: "==========")
+    # |> Earmark.as_html!(compact_output: true)
   end
-  # <%= raw(@post|> activate_mention(@socket) |> activate_hastag(@socket) |> Earmark.as_html!(compact_output: true)) %>
+  # <%= raw(@post|> activate_mention(@socket) |> activate_hashtag(@socket) |> Earmark.as_html!(compact_output: true)) %>
+  #handle multiple hashtags in one post 
+  defp create_hashtag_path(hashtag, socket)do
+   
+  end
 
   defp create_user_path(username, socket) do
      case Users.one_by_username(username) do
@@ -237,6 +315,7 @@ defmodule MazarynWeb.HomeLive.PostComponent do
   defp activate_hashtag(content, socket) do
     content
     |> String.split()
+    |> IO.inspect(label: "====split=======")
     |> Enum.map(fn con ->
       regex = ~r/#\S[a-zA-Z]*/
       hashtag = regex |> Regex.scan(con)
@@ -253,7 +332,8 @@ defmodule MazarynWeb.HomeLive.PostComponent do
       end
     end)
     |> Enum.join(" ")
-    |> Earmark.as_html!(compact_output: true)
+    |> IO.inspect(label: "=====fsrgdg======sf")
+    # |> Earmark.as_html!(compact_output: true)
   end
 
   defp handle_assigns(socket, user_id, username) do
