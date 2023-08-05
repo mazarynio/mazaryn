@@ -76,7 +76,10 @@ defmodule Mazaryn.MixProject do
 
       # Machine Learning
       {:nx, "~> 0.5"},
-      {:earmark, "~> 1.4"}
+      {:earmark, "~> 1.4"},
+
+      #OpenAI
+      {:ex_openai, "~> 1.2.1"}
     ]
   end
 
