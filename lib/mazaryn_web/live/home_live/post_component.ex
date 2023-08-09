@@ -195,26 +195,66 @@ defmodule MazarynWeb.HomeLive.PostComponent do
     post
   end
 
-  defp activate_hashtag(content, socket) do
-    content
-    |> String.split()
-    |> Enum.map(fn con ->
-      regex = ~r/#\S[a-zA-Z]*/
-      hashtag = regex |> Regex.scan(con)
+  defp activate_hash_and_mention(post, socket) do
+     post.content
+        |> String.split()
+        |> Enum.map(fn con ->
+            case {check_regex(con, ~r/@\S[a-zA-Z]*/ ), check_regex(con, ~r/#\S[a-zA-Z]*/) } do
+              {[[mention]], [] } ->
+                activate_mention_only(mention, socket)
+              {[], [[hashtag]] } ->
+                activate_hashtag_only(hashtag, socket)
+              {[[mention]], [[hashtag]] } ->
+                activate_mention_only(mention, socket)
+                activate_hashtag_only(hashtag, socket)
+              _ ->
+                escape_char(con)
+              end
+          end)
 
-      case hashtag do
-        [] ->
-          con
+        |> Enum.join(" ")
+        |> Earmark.as_html!(compact_output: true)
+   end
 
-        [[hashtag]] ->
-          path = Routes.live_path(socket, MazarynWeb.HashtagLive.Index, hashtag)
-          markdown = "[\ #{hashtag}](#{path})"
+   defp activate_hashtag_only(hashtag, socket) do
+      path = Routes.live_path(socket, MazarynWeb.HashtagLive.Index, hashtag)
+      markdown = "[\ #{hashtag}](#{path})"
 
-          String.replace(hashtag, hashtag, markdown)
-      end
-    end)
-    |> Enum.join(" ")
-    |> Earmark.as_html!(compact_output: true)
+      String.replace(hashtag, hashtag, markdown)
+   end
+
+   defp activate_mention_only(mention, socket) do
+    path =
+            mention
+            |> String.replace("@", "")
+            |> create_user_path(socket)
+          markdown = "[\ #{mention}](#{path})"
+
+          String.replace(mention, mention, markdown)
+   end
+   defp escape_char(con)do
+    case con do
+      "#" -> "\\#"
+      _ -> con
+    end
+   end
+
+  defp check_regex(con, regex) do
+    cond do
+      con == "#" -> "#"
+      con =="@" -> "@"
+      true ->
+      regex |> Regex.scan(con)
+    end
+  end
+
+  defp create_user_path(username, socket) do
+     case Users.one_by_username(username) do
+      :ok ->
+        "#"
+      {:ok, _user} ->
+        Routes.live_path(socket, MazarynWeb.UserLive.Profile, username)
+     end
   end
 
   defp handle_assigns(socket, user_id, username) do
@@ -222,8 +262,6 @@ defmodule MazarynWeb.HomeLive.PostComponent do
     |> assign(:follow_event, follow_event(user_id, username))
     |> assign(:follow_text, follow_text(user_id, username))
   end
-
-  defp get_user_by_username(username), do: Users.one_by_username(username)
 
   defp one_of_following?(id, username) do
     id
