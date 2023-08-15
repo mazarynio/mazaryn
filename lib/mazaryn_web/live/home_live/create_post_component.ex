@@ -37,6 +37,19 @@ defmodule MazarynWeb.HomeLive.CreatePostComponent do
   end
 
   defp handle_save_post(socket, %{"post" => post_params} = _params) do
+    # Step 1: Saving the Post
+    # 1. Identify the URL from a content
+    # 2. Parse the URL using URI.parse(URL) then verify(uri.host not nil)
+    # 3. With uri.host not nil == true add  the "http i.e "(http://twitter.com) and pass to the params
+    # %{linked_url => "http://twitter.com"}
+
+    # 4. save the post 
+
+    # Step 2: Display the post using markdown
+
+    # 1. Retrieve the post url from post.linked_url
+    # 2. Convert to markdown /reuse the function activate_hash_and_mention(post, socket)
+
     {:ok, user} =
       socket.assigns.user.id
       |> Users.one_by_id()
@@ -49,6 +62,7 @@ defmodule MazarynWeb.HomeLive.CreatePostComponent do
       |> Map.put("media", urls)
 
     hashtags = fetch_from_content(~r/#\S[a-zA-Z]*/, post_params)
+
     mentions =
       ~r/@\S[a-zA-Z]*/
       |> fetch_from_content(post_params)
@@ -73,6 +87,7 @@ defmodule MazarynWeb.HomeLive.CreatePostComponent do
     %Post{}
     |> Post.changeset(post_params)
     |> Posts.create_post()
+    |> IO.inspect(label: "===============================")
     |> case do
       {:ok, %Post{}} ->
         # send event to parent live-view
