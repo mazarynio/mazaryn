@@ -43,7 +43,7 @@ jobs:
         username: ${{ secrets.SSH_USER }}
         password: ${{ secrets.SSH_PASSWORD }}
         script: |
-          sudo systemctl reload
+          sudo systemctl daemon-reload
           sudo systemctl stop mazaryn.service
           rm -rf mazaryn_release_backup_1
           mv -f mazaryn_release_backup mazaryn_release_backup_1 && mv -f mazaryn_release mazaryn_release_backup && mv -f mazaryn_release_new mazaryn_release
