@@ -37,14 +37,6 @@ defmodule MazarynWeb.HomeLive.CreatePostComponent do
   end
 
   defp handle_save_post(socket, %{"post" => post_params} = _params) do
-    # Step 1: Saving the Post
-    # 1. Identify the URL from a content
-    # 2. Parse the URL using URI.parse(URL) then verify(uri.host not nil)
-    # 3. With uri.host not nil == true add  the "http i.e "(http://twitter.com) and pass to the params
-    # %{linked_url => "http://twitter.com"}
-
-    # 4. save the post 
-
     # Step 2: Display the post using markdown
 
     # 1. Retrieve the post url from post.linked_url
@@ -67,27 +59,34 @@ defmodule MazarynWeb.HomeLive.CreatePostComponent do
       ~r/@\S[a-zA-Z]*/
       |> fetch_from_content(post_params)
 
+    link_urls =
+      ~r/([\w+]+\:\/\/)?([\w\d-]+\.)*[\w-]+[\.\:]\w+([\/\?\=\&\#\.]?[\w-]+)*\/?/
+      |> fetch_link_urls_from_content(post_params)
+
     post_params =
-      case {hashtags, mentions} do
-        {"", ""} ->
+      case {hashtags, mentions, link_urls} do
+        {"", "", []} ->
           post_params
 
-        {hashtags, ""} ->
+        {hashtags, "", []} ->
           Map.put(post_params, "hashtag", hashtags)
 
-        {"", mentions} ->
+        {"", mentions, []} ->
           Map.put(post_params, "mention", mentions)
 
-        {hashtags, mentions} ->
+        {"", "", link_urls} ->
+          Map.put(post_params, "link_url", link_urls)
+
+        {hashtags, mentions, link_urls} ->
           post_params
           |> Map.put("hashtag", hashtags)
           |> Map.put("mention", mentions)
+          |> Map.put("link_url", link_urls)
       end
 
     %Post{}
     |> Post.changeset(post_params)
     |> Posts.create_post()
-    |> IO.inspect(label: "===============================")
     |> case do
       {:ok, %Post{}} ->
         # send event to parent live-view
@@ -103,6 +102,13 @@ defmodule MazarynWeb.HomeLive.CreatePostComponent do
     regex
     |> Regex.scan(content)
     |> List.flatten()
+    |> Enum.join(", ")
+  end
+
+  defp fetch_link_urls_from_content(regex, %{"content" => content}) do
+    regex
+    |> Regex.scan(content)
+    |> Enum.map(fn links -> List.first(links) end)
     |> Enum.join(", ")
   end
 
