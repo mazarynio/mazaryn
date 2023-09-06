@@ -37,11 +37,6 @@ defmodule MazarynWeb.HomeLive.CreatePostComponent do
   end
 
   defp handle_save_post(socket, %{"post" => post_params} = _params) do
-    # Step 2: Display the post using markdown
-
-    # 1. Retrieve the post url from post.linked_url
-    # 2. Convert to markdown /reuse the function activate_hash_and_mention(post, socket)
-
     {:ok, user} =
       socket.assigns.user.id
       |> Users.one_by_id()
