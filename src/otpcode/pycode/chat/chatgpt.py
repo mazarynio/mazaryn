@@ -2,7 +2,7 @@ import openai
 import sys
 
 # Set your OpenAI API key
-api_key = "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"
+api_key = "API_KEY"
 
 # Initialize the OpenAI API client
 openai.api_key = api_key
