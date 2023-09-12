@@ -105,7 +105,7 @@ init([]) ->
                   #{id => chat_server,
                     start => {chat_server, start_link, []},
                     restart => permanent,
-                    shutdown => 5000,
+                    shutdown => 500000,
                     type => worker,
                     modules => [chat_server]},
 

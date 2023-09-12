@@ -64,4 +64,6 @@ list_chats() ->
         mnesia:all_keys(chat)
     end,
     {atomic, Res} = mnesia:transaction(Fun),
-    Res.
+    Res. 
+
+

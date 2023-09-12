@@ -10,9 +10,11 @@
 %%API
 -export([
     start_link/0,
-    send_msg/3,
+    send_msg/3, send_msg_bot/2,
     get_msg/1,
+    get_msg_bot/1,
     get_all_msg/1,
+    get_all_msg_bot/1,
     edit_msg/2,
     delete_msg/1,
     create_chat/2,
@@ -36,11 +38,20 @@ start_link() ->
 send_msg(UserID, RecipientID, Body) ->
     gen_server:call({global, ?MODULE}, {send_msg, UserID, RecipientID, Body}).
 
+send_msg_bot(UserID, Body) ->
+    gen_server:call({global, ?MODULE}, {send_msg_bot, UserID, Body}).
+
 get_msg(ChatID) ->
     gen_server:call({global, ?MODULE}, {get_msg, ChatID}).
 
+get_msg_bot(ChatID) ->
+    gen_server:call({global, ?MODULE}, {get_msg_bot, ChatID}).
+
 get_all_msg(RecipientID) ->
     gen_server:call({global, ?MODULE}, {get_all_msg, RecipientID}).
+
+get_all_msg_bot(RecipientID) ->
+    gen_server:call({global, ?MODULE}, {get_all_msg_bot, RecipientID}).
 
 edit_msg(ChatID, NewContent) ->
     gen_server:call({global, ?MODULE}, {edit_msg, ChatID, NewContent}).
@@ -67,11 +78,20 @@ init([]) ->
 handle_call({send_msg, UserID, RecipientID, Body}, _From, State = #state{}) ->
     Res = chatdb:send_msg(UserID, RecipientID, Body),
     {reply, Res, State};
+handle_call({send_msg_bot, UserID, Body}, _From, State = #state{}) ->
+    Res = chatbot:send_msg(UserID, Body),
+    {reply, Res, State};
 handle_call({get_msg, ChatID}, _From, State) ->
     Res = chatdb:get_msg(ChatID),
     {reply, Res, State};
+handle_call({get_msg_bot, ChatID}, _From, State) ->
+    Res = chatbot:get_msg(ChatID),
+    {reply, Res, State};
 handle_call({get_all_msg, RecipientID}, _From, State) ->
     Res = chatdb:get_all_msg(RecipientID),
+    {reply, Res, State};
+handle_call({get_all_msg_bot, RecipientID}, _From, State) ->
+    Res = chatbot:get_all_msg(RecipientID),
     {reply, Res, State};
 handle_call({edit_msg, ChatID, NewContent}, _From, State) ->
     Res = chatdb:edit_msg(ChatID, NewContent),

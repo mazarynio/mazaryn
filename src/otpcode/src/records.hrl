@@ -67,8 +67,10 @@
                user_id,
                recipient_id,
                body,
+               bot,
                date_created,
                date_updated}).
+
 
 -record(event, {name, date, loc, desc}).
 -record(follower, {id, username}).
