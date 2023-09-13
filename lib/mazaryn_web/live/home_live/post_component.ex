@@ -223,7 +223,6 @@ defmodule MazarynWeb.HomeLive.PostComponent do
     end)
     |> Enum.join(" ")
     |> Earmark.as_html!(compact_output: true)
-    |> IO.inspect(label: "[[[[[[[[[[[")
   end
 
   defp activate_hashtag_only(hashtag, socket) do
