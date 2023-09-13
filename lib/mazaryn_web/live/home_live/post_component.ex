@@ -195,66 +195,91 @@ defmodule MazarynWeb.HomeLive.PostComponent do
     post
   end
 
-  defp activate_hash_and_mention(post, socket) do
-     post.content
-        |> String.split()
-        |> Enum.map(fn con ->
-            case {check_regex(con, ~r/@\S[a-zA-Z]*/ ), check_regex(con, ~r/#\S[a-zA-Z]*/) } do
-              {[[mention]], [] } ->
-                activate_mention_only(mention, socket)
-              {[], [[hashtag]] } ->
-                activate_hashtag_only(hashtag, socket)
-              {[[mention]], [[hashtag]] } ->
-                activate_mention_only(mention, socket)
-                activate_hashtag_only(hashtag, socket)
-              _ ->
-                escape_char(con)
-              end
-          end)
+  defp activate_content_characters(post, socket) do
+    link_regex = ~r/([\w+]+\:\/\/)?([\w\d-]+\.)*[\w-]+[\.\:]\w+([\/\?\=\&\#\.]?[\w-]+)*\/?/
 
-        |> Enum.join(" ")
-        |> Earmark.as_html!(compact_output: true)
-   end
+    post.content
+    |> String.split()
+    |> Enum.map(fn con ->
+      case {check_regex(con, ~r/@\S[a-zA-Z]*/), check_regex(con, ~r/#\S[a-zA-Z]*/),
+            check_regex(con, link_regex)} do
+        {[[mention]], [], []} ->
+          activate_mention_only(mention, socket)
 
-   defp activate_hashtag_only(hashtag, socket) do
-      path = Routes.live_path(socket, MazarynWeb.HashtagLive.Index, hashtag)
-      markdown = "[\ #{hashtag}](#{path})"
+        {[], [[hashtag]], []} ->
+          activate_hashtag_only(hashtag, socket)
 
-      String.replace(hashtag, hashtag, markdown)
-   end
+        {[], [], [[url | _rest]]} ->
+          activate_url_only(url)
 
-   defp activate_mention_only(mention, socket) do
+        {[[mention]], [[hashtag]], [[url | _rest]]} ->
+          activate_mention_only(mention, socket)
+          activate_hashtag_only(hashtag, socket)
+          activate_url_only(url)
+
+        _ ->
+          escape_char(con)
+      end
+    end)
+    |> Enum.join(" ")
+    |> Earmark.as_html!(compact_output: true)
+  end
+
+  defp activate_hashtag_only(hashtag, socket) do
+    path = Routes.live_path(socket, MazarynWeb.HashtagLive.Index, hashtag)
+    markdown = "[\ #{hashtag}](#{path})"
+
+    String.replace(hashtag, hashtag, markdown)
+  end
+
+  defp activate_mention_only(mention, socket) do
     path =
-            mention
-            |> String.replace("@", "")
-            |> create_user_path(socket)
-          markdown = "[\ #{mention}](#{path})"
+      mention
+      |> String.replace("@", "")
+      |> create_user_path(socket)
 
-          String.replace(mention, mention, markdown)
-   end
-   defp escape_char(con)do
+    markdown = "[\ #{mention}](#{path})"
+
+    String.replace(mention, mention, markdown)
+  end
+
+  defp activate_url_only("http" <> _rest = url) do
+    url
+  end
+
+  defp activate_url_only(url) do
+    path = "https" <> ":" <> "//" <> "#{url}"
+    "[\ #{url}](#{path})"
+  end
+
+  defp escape_char(con) do
     case con do
       "#" -> "\\#"
       _ -> con
     end
-   end
+  end
 
   defp check_regex(con, regex) do
     cond do
-      con == "#" -> "#"
-      con =="@" -> "@"
+      con == "#" ->
+        "#"
+
+      con == "@" ->
+        "@"
+
       true ->
-      regex |> Regex.scan(con)
+        regex |> Regex.scan(con)
     end
   end
 
   defp create_user_path(username, socket) do
-     case Users.one_by_username(username) do
+    case Users.one_by_username(username) do
       :ok ->
         "#"
+
       {:ok, _user} ->
         Routes.live_path(socket, MazarynWeb.UserLive.Profile, username)
-     end
+    end
   end
 
   defp handle_assigns(socket, user_id, username) do

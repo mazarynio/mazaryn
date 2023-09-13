@@ -49,25 +49,34 @@ defmodule MazarynWeb.HomeLive.CreatePostComponent do
       |> Map.put("media", urls)
 
     hashtags = fetch_from_content(~r/#\S[a-zA-Z]*/, post_params)
+
     mentions =
       ~r/@\S[a-zA-Z]*/
       |> fetch_from_content(post_params)
 
+    link_urls =
+      ~r/([\w+]+\:\/\/)?([\w\d-]+\.)*[\w-]+[\.\:]\w+([\/\?\=\&\#\.]?[\w-]+)*\/?/
+      |> fetch_link_urls_from_content(post_params)
+
     post_params =
-      case {hashtags, mentions} do
-        {"", ""} ->
+      case {hashtags, mentions, link_urls} do
+        {"", "", []} ->
           post_params
 
-        {hashtags, ""} ->
+        {hashtags, "", []} ->
           Map.put(post_params, "hashtag", hashtags)
 
-        {"", mentions} ->
+        {"", mentions, []} ->
           Map.put(post_params, "mention", mentions)
 
-        {hashtags, mentions} ->
+        {"", "", link_urls} ->
+          Map.put(post_params, "link_url", link_urls)
+
+        {hashtags, mentions, link_urls} ->
           post_params
           |> Map.put("hashtag", hashtags)
           |> Map.put("mention", mentions)
+          |> Map.put("link_url", link_urls)
       end
 
     %Post{}
@@ -88,6 +97,13 @@ defmodule MazarynWeb.HomeLive.CreatePostComponent do
     regex
     |> Regex.scan(content)
     |> List.flatten()
+    |> Enum.join(", ")
+  end
+
+  defp fetch_link_urls_from_content(regex, %{"content" => content}) do
+    regex
+    |> Regex.scan(content)
+    |> Enum.map(fn links -> List.first(links) end)
     |> Enum.join(", ")
   end
 
