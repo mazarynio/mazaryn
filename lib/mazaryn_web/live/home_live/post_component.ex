@@ -223,6 +223,7 @@ defmodule MazarynWeb.HomeLive.PostComponent do
     end)
     |> Enum.join(" ")
     |> Earmark.as_html!(compact_output: true)
+    |> IO.inspect(label: "[[[[[[[[[[[")
   end
 
   defp activate_hashtag_only(hashtag, socket) do
@@ -248,7 +249,8 @@ defmodule MazarynWeb.HomeLive.PostComponent do
   end
 
   defp activate_url_only(url) do
-    "http" <> ":" <> "//" <> "#{url}"
+    path = "https" <> ":" <> "//" <> "#{url}"
+    "[\ #{url}](#{path})"
   end
 
   defp escape_char(con) do
