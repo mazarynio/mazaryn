@@ -18,12 +18,15 @@
                 avatar_url,
                 banner_url,
                 token_id,
-                chat = []}). 
+                chat = [],
+                verified = false,
+                data = #{} }). 
 
 -record(notif, { id,
                  user_id,
                  message,
-                 date_created }).
+                 date_created,
+                 data = #{} }).
 
 -record(post, { id,
                 content,
@@ -36,7 +39,8 @@
                 author,
                 other = [],
                 date_created,
-                date_updated}). 
+                date_updated,
+                data = #{} }). 
 
 -record(blog_post, {id, 
                     content,
@@ -44,24 +48,28 @@
                     media,
                     author,
                     date_created,
-                    date_updated}).
+                    date_updated,
+                    data = #{} }).
 
 -record(comment, {id,
                   post,
                   author,
                   content,
-                  date_created}).
+                  date_created,
+                  data = #{} }).
 
 -record(blog_comment, {id,
                        blog_post,
                        author, 
                        content,
-                       date_created}).
+                       date_created,
+                       data = #{} }).
 
 -record(like, {id,
                post,
                userID,
-               date_created}).
+               date_created,
+               data = #{} }).
 
 -record(chat, {id,
                user_id,
@@ -69,14 +77,15 @@
                body,
                bot,
                date_created,
-               date_updated}).
+               date_updated,
+               data = #{} }).
 
 
--record(event, {name, date, loc, desc}).
--record(follower, {id, username}).
--record(following, {id, username}).
--record(hed_wallet, { id, password, date_created }).
+-record(event, {name, date, loc, desc, data = #{} }).
+-record(follower, {id, username, data = #{}}).
+-record(following, {id, username, data = #{} }).
+-record(hed_wallet, { id, password, date_created, data =#{} }).
 
--record(media, {id, user_id, file, files, type, date_created, date_updated}).
+-record(media, {id, user_id, file, files, type, date_created, date_updated, data = #{}}).
 
 -define(MSG_INSUFFICIENT_FUNDS, <<"Insufficient funds.">>).

@@ -70,9 +70,6 @@ start_link() ->
 
     mnesia:add_table_index(user, email),
 
-    % create chat tables
-    mnesia:create_table(chat, [{attributes, record_info(fields, chat)}, {disc_copies, [node()]}, {type, ordered_set}]),
-
     supervisor:start_link({local, ?SERVER}, ?MODULE, []).
 
 

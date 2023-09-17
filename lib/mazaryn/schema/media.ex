@@ -10,6 +10,7 @@ defmodule Mazaryn.Schema.Media do
     files
     type
     date_created
+    data
   )a
 
   @required_fields ~w(
@@ -23,10 +24,11 @@ defmodule Mazaryn.Schema.Media do
     field(:type, :string)
     field(:date_created, :utc_datetime)
     field(:date_updated, :utc_datetime)
+    field(:data, :map)
   end
 
   def erl_changeset(
-        {:media, id, file, files, user_id, type, date_created, date_updated}
+        {:media, id, file, files, user_id, type, date_created, date_updated, data}
       ) do
     %__MODULE__{}
     |> change(%{
@@ -36,7 +38,8 @@ defmodule Mazaryn.Schema.Media do
       user_id: user_id,
       type: type,
       date_created: handle_datetime(date_created),
-      date_updated: handle_datetime(date_updated)
+      date_updated: handle_datetime(date_updated),
+      data: data
     })
   end
 

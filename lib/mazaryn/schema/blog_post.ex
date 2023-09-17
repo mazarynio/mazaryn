@@ -26,11 +26,12 @@ defmodule Mazaryn.Schema.BlogPost do
     field(:author, :string)
     field(:date_created, :utc_datetime)
     field(:date_updated, :utc_datetime)
+    field(:data, :map)
   end
 
   def erl_changeset(
         {:blog_post, id, content, comments, media, author, date_created,
-         date_updated}
+         date_updated, data}
       ) do
 
     preload_comments = preload_comments(comments)
@@ -43,7 +44,8 @@ defmodule Mazaryn.Schema.BlogPost do
       media: media,
       author: author,
       date_created: handle_datetime(date_created),
-      date_updated: handle_datetime(date_created)
+      date_updated: handle_datetime(date_created),
+      data: data
     })
   end
 
