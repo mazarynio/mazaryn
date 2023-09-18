@@ -16,7 +16,7 @@ jobs:
         host: ${{ secrets.SSH_HOST }}
         username: ${{ secrets.SSH_USER }}
         password: ${{ secrets.SSH_PASSWORD }}
-        script: |
+        run: |
            cd mazaryn
            sudo mv rel/overlays/mazaryn.service /etc/systemd/system/mazaryn.service
            git reset --hard
