@@ -26,13 +26,13 @@ jobs:
            export PATH=/home/linuxbrew/.linuxbrew/bin:/home/linuxbrew/.linuxbrew/sbin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin
            mix local.hex --force
            mix local.rebar --force
-           mix deps.get
+           MIX_ENV=prod mix deps.get
            mix assets.setup
            mix assets.build
            npm install --prefix assets
            mix assets.deploy
            mix phx.digest
-           mix release --overwrite --path ../mazaryn_release_new
+           MIX_ENV=prod mix release --overwrite --path ../mazaryn_release_new
 
     - name: executing remote ssh commands to deploy new build
       id: deployment
