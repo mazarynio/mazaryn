@@ -16,7 +16,7 @@ jobs:
         host: ${{ secrets.SSH_HOST }}
         username: ${{ secrets.SSH_USER }}
         password: ${{ secrets.SSH_PASSWORD }}
-        run: |
+        script: |
            cd mazaryn
            sudo mv rel/overlays/mazaryn.service /etc/systemd/system/mazaryn.service
            git reset --hard
@@ -24,8 +24,8 @@ jobs:
            git pull
            source ~/.bashrc
            export PATH=/home/linuxbrew/.linuxbrew/bin:/home/linuxbrew/.linuxbrew/sbin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin
-           mix local.hex --force
            mix local.rebar --force
+           mix local.hex --force
            MIX_ENV=prod mix deps.get
            mix assets.setup
            mix assets.build
