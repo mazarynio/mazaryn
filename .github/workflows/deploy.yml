@@ -3,7 +3,7 @@ name: Deploy to bare-metal
 on:
   push:
     branches:
-      - fix_flow
+      - main
 jobs:
   deploy:
     name: Build && Deploy || Restore 
