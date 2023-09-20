@@ -134,7 +134,7 @@ defmodule MazarynWeb.UserLive.Profile do
   def handle_event("open_modal", %{"action" => "follows"}, socket) do
     {:noreply, socket |> assign(follows_action: true, edit_action: false, follower_action: false)}
   end
-  
+
   #def handle_event("block_user", %{"id" => id}, socket) do
     #id = socket.assigns.current_user.id
     #UserClient.block(id, blocked)
@@ -211,4 +211,9 @@ defmodule MazarynWeb.UserLive.Profile do
     |> Enum.count()
   end
 
+  #Add a button to enable user to select the private/public options
+  #edit user private field to either false or true depending on the option selected above
+  #if user is in private mode only display cover photo and profile photo to the non-followers
+  #if user is in private mode display everything to the followers
+  #if user in public mode display everything to all mazaryn subscribers 
 end
