@@ -37,7 +37,7 @@ jobs:
     - name: Build release
       run: |
         MIX_ENV=prod mix release --overwrite --path ../mazaryn_release_new
-        ll ../mazaryn_release_new
+        ls -alh ../mazaryn_release_new
         tar -czvf mazaryn_release.tar.gz ../mazaryn_release_new
 
     - name: Upload artifact
