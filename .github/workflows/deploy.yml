@@ -16,7 +16,7 @@ jobs:
       uses: erlef/setup-elixir@v1
       with:
         otp-version: '25.3'
-        elixir-version: '1.15.4'
+        elixir-version: '1.15.5'
 
     - name: Install Node.js
       uses: actions/setup-node@v3
