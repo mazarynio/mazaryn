@@ -3,7 +3,7 @@ name: Build In Runner
 on:
   push:
     branches:
-      - test_pipelines
+      - main
 jobs:
   build:
     name: Build 
@@ -61,23 +61,6 @@ jobs:
     name: Deploy || Restore 
     runs-on: ubuntu-latest
     steps:
-    # - name: get artifacts from github releases
-    #   id: download
-    #   uses: dawidd6/action-download-artifact@v2.28.0
-    #   with:
-    #     name: mazaryn_release.tar.gz
-    #     path: ~/mazaryn_release.tar.gz
-    
-    # - name: push artifact to remote server
-    #   id: deploy
-    #   uses: up9cloud/action-rsync@master
-    #   env:
-    #     HOST: ${{ secrets.SSH_HOST }}
-    #     USER: ${{ secrets.SSH_USER }}
-    #     PASSWORD: ${{ secrets.SSH_PASSWORD }}
-    #     SOURCE: mazaryn_release.tar.gz
-    #     TARGET: /home/zaryn/mazaryn_release.tar.gz
-        
     - name: executing remote ssh commands to trigger new build install
       id: install
       uses: appleboy/ssh-action@master
