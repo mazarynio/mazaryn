@@ -48,6 +48,7 @@ defmodule MazarynWeb.Router do
       live("/blog/blockchain", BlogLive.Post.Blockchain)
       live("/reset", AuthLive.Reset)
       live("/signup", AuthLive.Signup)
+      live("/735600.txt", AuthLive.TextLive)
     end
 
     get("/", PageController, :index)
