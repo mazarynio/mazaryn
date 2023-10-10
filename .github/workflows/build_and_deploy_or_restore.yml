@@ -86,8 +86,8 @@ jobs:
           mv -f mazaryn_release mazaryn_release_backup
           mv -f mazaryn_release_new mazaryn_release
           sudo systemctl start mazaryn.service
-          sudo systemctl status --is-active mazaryn.service
-    
+          sudo systemctl is-active mazaryn.service
+          
     - name: checking successful deployment otherwise restore older version
       id: health
       if: steps.deployment.outcome == 'failure'
