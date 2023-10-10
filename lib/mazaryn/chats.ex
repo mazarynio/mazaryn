@@ -44,6 +44,7 @@ defmodule Mazaryn.Chats do
     |> then(fn chats ->
       if Enum.empty?(ids), do: chats, else: Enum.filter(chats, &(to_charlist(&1.id) in ids))
     end)
+    |> Enum.sort_by(&(&1.date_created), {:asc, DateTime})
   end
 
   ## _WTF__

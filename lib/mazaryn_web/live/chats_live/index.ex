@@ -47,8 +47,8 @@ defmodule MazarynWeb.ChatsLive.Index do
       "chats:#{chat.recipient_id}",
       {:new_message, chat}
     )
-
-    {:noreply, assign(socket, :messages, [chat | socket.assigns.messages])}
+    messages = List.insert_at(socket.assigns.messages, -1, chat)
+    {:noreply, assign(socket, :messages, messages)}
   end
 
   ## Private
