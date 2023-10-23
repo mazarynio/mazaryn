@@ -426,14 +426,18 @@ get_blocked(Id) ->
   {atomic, Res} = mnesia:transaction(Fun),
   Res.
 
+% Search user by USername
 search_user(Username) ->
-    Pattern = {user, '_', Username, '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_'},
-
-    Fun = fun() ->
-          mnesia:match_object(Pattern)
-        end,
-
-    mnesia:transaction(Fun).
+    Res = mnesia:transaction(
+            fun() ->
+                mnesia:match_object(#user{username = Username, _= '_'})
+            end),
+    case Res of
+        {atomic, []} -> username_not_exist;
+        {atomic, [User]} -> User;
+        _ -> error
+    end.
+    
 
 
 search_user_pattern(Pattern) ->
