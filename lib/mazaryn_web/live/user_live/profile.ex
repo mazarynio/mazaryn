@@ -4,6 +4,7 @@ defmodule MazarynWeb.UserLive.Profile do
   require Logger
 
   import MazarynWeb.Live.Helper
+  import Phoenix.HTML.Form 
   alias Core.UserClient
   alias Account.User
   alias Account.Users
@@ -212,8 +213,8 @@ defmodule MazarynWeb.UserLive.Profile do
   end
 
   #Add a button to enable user to select the private/public options
-  #edit user private field to either false or true depending on the option selected above
+  #edit user private field in user structto either false or true depending on the option selected above
   #if user is in private mode only display cover photo and profile photo to the non-followers
   #if user is in private mode display everything to the followers
-  #if user in public mode display everything to all mazaryn subscribers 
+  #if user in public mode display everything to all mazaryn subscribers
 end
