@@ -44,7 +44,7 @@ defmodule Mazaryn.Chats do
     |> then(fn chats ->
       if Enum.empty?(ids), do: chats, else: Enum.filter(chats, &(to_charlist(&1.id) in ids))
     end)
-    |> Enum.sort_by(&(&1.date_created), {:asc, DateTime})
+    |> Enum.sort_by(& &1.date_created, {:asc, DateTime})
   end
 
   ## _WTF__
@@ -56,6 +56,15 @@ defmodule Mazaryn.Chats do
     |> Enum.map(&to_charlist(&1.user_id))
     |> Enum.uniq()
     |> Enum.map(&(&1 |> Users.one_by_id() |> elem(1)))
+  end
+
+  def get_users_chatted_to(actor, limit \\ 5) do
+    get_chats()
+    |> Enum.filter(&(to_charlist(&1.user_id) == actor.id))
+    |> Enum.sort_by(& &1.date_created, {:desc, DateTime})
+    |> Enum.uniq_by(& &1.recipient_id)
+    |> Enum.take(limit)
+    |> Enum.map(&(to_charlist(&1.recipient_id) |> Users.one_by_id() |> elem(1)))
   end
 
   @spec get_latest_recipient(binary | User.t()) :: User.t() | nil

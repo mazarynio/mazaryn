@@ -4,6 +4,27 @@
       <i><%= Heroicons.icon("users", class: "h-7 w-7 mr-3 fill-blue-500") %></i>
       <%= @title %>
     </h1>
+    <%= if @show_search do %>
+      <form
+        class="flex items-center w-full min-w-[320px] mx-auto my-auto h-11 outline-0 rounded-[10px] px-3.5 bg-[#FAFAFA] border-2 border-[#D2D2D1]"
+        phx-submit="search_following"
+        phx-change="search_following"
+      >
+        <input
+          type="search_query"
+          autocomplete="off"
+          placeholder="Search"
+          name="search_query"
+          value={@search_query}
+          class="w-full p-0 text-base leading-9 text-[#212121] caret-current placeholder:text-base placeholder:font-normal placeholder:leading-6 placeholder:text-[#AAAAAA] outline-none border-none bg-transparent hover:ring-transparent focus:text-base focus:leading-6 focus:ring-transparent focus-within:bg-transparent focus:bg-transparent"
+        />
+        <button type="submit">
+          <%= Heroicons.icon("magnifying-glass",
+            class: "magnifying_glass_icon w-5 h-5 fill-[#AAAAAA]"
+          ) %>
+        </button>
+      </form>
+    <% end %>
     <a href="#" class="block text-l text-blue-400 py-4 px-2">See more</a>
   </div>
   <div class="border-gray-300 border border-b-0 "></div>
