@@ -437,8 +437,6 @@ search_user(Username) ->
         {atomic, [User]} -> User;
         _ -> error
     end.
-    
-
 
 search_user_pattern(Pattern) ->
     Fun = fun() ->

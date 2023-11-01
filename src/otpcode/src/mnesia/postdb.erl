@@ -109,8 +109,6 @@ get_posts() ->
   {atomic, Res} = mnesia:transaction(Fun),
   Res.
 
-
-%%% Date in tuple format
 %%% {2022,05,01}
 %%% User = [], select all users
 %%% USer = dat for particular
@@ -164,8 +162,6 @@ unlike_post(LikeID, PostId) ->
         end,
   {atomic, Res} = mnesia:transaction(Fun),
   Res.
-
-
 %% Content = [{text, Text}, {media, Media}, {mention, Name}, {like, Like}]
 add_comment(Author, PostID, Content) ->
   Fun = fun() ->
@@ -237,7 +233,6 @@ get_likes(PostID) ->
         end,
   {atomic, Res} = mnesia:transaction(Fun),
   Res.
-
 
 get_media(Media) ->
   case Media of
