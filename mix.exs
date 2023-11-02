@@ -69,16 +69,15 @@ defmodule Mazaryn.MixProject do
       {:ex_heroicons, "~> 2.0"},
 
       # Graphql APIs
-      {:absinthe, "~> 1.7"},
-      {:absinthe_plug, "~> 1.5"},
+      {:absinthe, "~> 1.7.5"},
+      {:absinthe_plug, "~> 1.5.8"},
       {:rustler, "~> 0.29"},
-
 
       # Machine Learning
       {:nx, "~> 0.5"},
       {:earmark, "~> 1.4"},
 
-      #OpenAI
+      # OpenAI
       {:ex_openai, "~> 1.2.1"}
     ]
   end
