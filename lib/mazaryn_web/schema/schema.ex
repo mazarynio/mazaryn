@@ -47,6 +47,24 @@ defmodule MazarynWeb.Schema do
       resolve(&Resolvers.PostResolver.all/2)
     end
 
+    @desc "find post by id"
+    field :find_post_by_id, :find_post_by_id do
+      arg(:id, non_null(:id))
+      resolve(&Resolvers.PostResolver.find_post_by_id/2)
+    end
+
+    @desc "find post by author"
+    field :find_post_by_author, list_of(:post) do
+      arg(:author, non_null(:string))
+      resolve(&Resolvers.PostResolver.find_post_by_author/2)
+    end
+
+    @desc "find post by hashtag"
+    field :find_post_by_hashtag, list_of(:post) do
+      arg(:hashtag, non_null(:string))
+      resolve(&Resolvers.PostResolver.find_post_by_hashtag/2)
+    end
+
     @desc "Create a Wallet"
     field :create_wallet, list_of(:hedera_wallet) do
       resolve(&Resolvers.WalletResolver.create_wallet/1)
