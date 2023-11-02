@@ -1,5 +1,4 @@
 defmodule Resolvers.UserResolver do
-  alias Core.UserClient, as: UserClient
   alias Account.Users
 
   def all(_args, _info) do
