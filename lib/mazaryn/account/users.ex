@@ -145,4 +145,22 @@ defmodule Account.Users do
   def reset_password(%User{} = _user) do
     {:ok, :reseted}
   end
+
+  def list_users() do
+    case UserClient.get_all() do
+      users when is_list(users) ->
+        for user_id <- users do
+          {:ok, user} = one_by_id(user_id)
+          user
+        end
+
+      _ ->
+        Logger.error("error getting users")
+    end
+  end
+
+  def create_user(username, password, email) do
+    UserClient.register(username, password, email)
+    |> one_by_id()
+  end
 end

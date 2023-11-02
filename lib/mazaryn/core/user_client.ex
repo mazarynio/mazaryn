@@ -161,44 +161,4 @@ defmodule Core.UserClient do
   def search_user_pattern(pattern) do
     :user_server.search_user_pattern(pattern)
   end
-
-  def get_all_users_info_by_ids() do
-    list_of_ids = get_all()
-
-    user_data =
-      Enum.map(list_of_ids, fn id ->
-        :user_server.get_user_by_id(id)
-      end)
-
-    # change user data to list of maps instead of list of tuples
-    Enum.map(user_data, fn {:user, id, username, password, email, media, posts, blog_post, notif,
-                            following, follower, blocked, saved_posts, other_info, private,
-                            date_created, date_updated, avatar_url, banner_url, token_id, chat,
-                            verified, data} ->
-      %{
-        id: id,
-        username: username,
-        password: password,
-        email: email,
-        media: media,
-        posts: posts,
-        blog_post: blog_post,
-        notif: notif,
-        following: following,
-        follower: follower,
-        blocked: blocked,
-        saved_posts: saved_posts,
-        other_info: other_info,
-        private: private,
-        date_created: date_created,
-        date_updated: date_updated,
-        avatar_url: avatar_url,
-        banner_url: banner_url,
-        token_id: token_id,
-        chat: chat,
-        verified: verified,
-        data: data
-      }
-    end)
-  end
 end
