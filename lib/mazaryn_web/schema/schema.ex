@@ -8,15 +8,48 @@ defmodule MazarynWeb.Schema do
   alias Resolvers.UserResolver
   alias Resolvers.WalletResolver
 
+  mutation do
+    @desc "Create a user"
+    field :create_user, type: :user do
+      arg(:username, non_null(:string))
+      arg(:password, non_null(:string))
+      arg(:email, non_null(:string))
+
+      resolve(&Resolvers.UserResolver.create_user/3)
+    end
+
+    @desc "Create a post"
+    field :create_post, type: :post do
+      arg(:author, non_null(:string))
+      arg(:content, non_null(:string))
+      arg(:media, list_of(:string))
+      arg(:hashtag, non_null(:string))
+      arg(:mention, non_null(:string))
+      arg(:link_url, non_null(:string))
+
+      resolve(&Resolvers.PostResolver.create_post/6)
+    end
+
+    @desc "Create a wallet"
+    field :create_wallet, type: :hedera_wallet do
+      arg(:password, non_null(:string))
+
+      resolve(&Resolvers.WalletResolver.create_wallet/1)
+    end
+
+    @desc "User Login"
+    field :user_login, type: :user_login do
+      arg(:email, non_null(:string))
+      arg(:password, non_null(:string))
+
+      resolve(&Resolvers.UserResolver.user_login/2)
+    end
+  end
+
   query do
     @desc "Get all users"
     field :users, list_of(:user) do
       resolve(&Resolvers.UserResolver.all/2)
-    end
-
-    @desc "Create a User"
-    field :create_user, list_of(:user) do
-      resolve(&Resolvers.UserResolver.create_user/3)
     end
 
     @desc "User Login"
@@ -63,11 +96,6 @@ defmodule MazarynWeb.Schema do
     field :find_post_by_hashtag, list_of(:post) do
       arg(:hashtag, non_null(:string))
       resolve(&Resolvers.PostResolver.find_post_by_hashtag/2)
-    end
-
-    @desc "Create a Wallet"
-    field :create_wallet, list_of(:hedera_wallet) do
-      resolve(&Resolvers.WalletResolver.create_wallet/1)
     end
 
     @desc "Get all wallets"

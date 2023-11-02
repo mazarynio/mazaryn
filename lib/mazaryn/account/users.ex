@@ -107,13 +107,13 @@ defmodule Account.Users do
     end
   end
 
-  def login(username, pass) do
-    case UserClient.login(username, pass) do
+  def login(email, pass) do
+    case UserClient.login(email, pass) do
       :logged_in ->
         {:ok, :logged_in}
 
       res ->
-        Logger.error("[Users] Failed to login #{username}: #{res}")
+        Logger.error("[Users] Failed to login #{email}: #{res}")
         {:error, res}
     end
   end

@@ -5,6 +5,10 @@ defmodule Resolvers.PostResolver do
     {:ok, Posts.get_posts()}
   end
 
+  def create(author, content, media \\ [], hashtag, mention, link_url) do
+    {:ok, Posts.create_a_post(author, content, media, hashtag, mention, link_url)}
+  end
+
   def find_post_by_id(%{id: id}, _info) do
     {:ok, Posts.one_by_id(id)}
   end

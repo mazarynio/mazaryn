@@ -32,4 +32,12 @@ defmodule MazarynWeb.Schema.Post do
     field(:content, :string)
     field(:author, :string)
   end
+
+  object :create_post do
+    field(:id, :id)
+    field(:comments, :string)
+    field(:date_created, :string)
+    field(:content, :string)
+    field(:author, :string)
+  end
 end
