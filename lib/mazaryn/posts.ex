@@ -140,4 +140,23 @@ defmodule Mazaryn.Posts do
     #   Enum.shuffle(result)
     # end
   end
+
+  def get_posts() do
+    case PostClient.get_posts() do
+      posts when is_list(posts) ->
+        for post_id <- posts do
+          {:ok, post} = one_by_id(post_id)
+          post
+        end
+        |> Enum.sort_by(& &1.date_created, &>=/2)
+
+      _ ->
+        Logger.error("error getting posts")
+    end
+  end
+
+  def create_a_post(author, content, media \\ [], hashtag, mention, link_url) do
+    PostClient.create(author, content, media, hashtag, mention, link_url)
+    |> one_by_id()
+  end
 end
