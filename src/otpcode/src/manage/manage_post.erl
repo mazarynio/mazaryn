@@ -1,7 +1,7 @@
 -module(manage_post).
 -author("Zaryn Technologies").
 -include("../records.hrl").
--export([get_post/1, delete_post/1, delete_hashtag/1]).
+-export([get_post/1, delete_post/1, delete_hashtag/1, delete_post_content/1]).
 
 get_post(ID) ->
   Fun = fun() ->
@@ -24,7 +24,7 @@ delete_post(Id) ->
       end,
   mnesia:activity(transaction, F).
 
-%
+% Delete Hashtag if it's Restricted 
 delete_hashtag(PostID) ->
   Post = postdb:get_post_by_id(PostID),
   BannedList = hashtags:banned_list(),
@@ -40,6 +40,21 @@ delete_hashtag(PostID) ->
       Res;
     false ->
       Hashtag
+  end.
+
+% Delete Post if the Content id Restricted
+delete_post_content(PostID) ->
+  Post = postdb:get_post_by_id(PostID),
+  BannedList = post_content:banned_list(),
+  Content = Post#post.content,
+  case lists:member(Content, BannedList) of
+    true ->
+      F = fun() ->
+          mnesia:delete({post, PostID})
+      end,
+      mnesia:activity(transaction, F);
+    false ->
+      Content
   end.
 
   
