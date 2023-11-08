@@ -189,9 +189,9 @@
           </div>
 
         <div class="relative inline-block text-left mr-10">
-        <.form for="#" phx-change="select"> 
-        <%= select form, :privacy, ["Public": "public", "Private": "private"] %>
-          </.form>
+       <.form for={@form} phx-change="privacy">
+          <%= select @form, :privacy, ["Public": "public", "Private": "private"] %>
+      </.form>
        </div>
     </div>
   </div>

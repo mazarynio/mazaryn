@@ -4,7 +4,8 @@ defmodule MazarynWeb.UserLive.Profile do
   require Logger
 
   import MazarynWeb.Live.Helper
-  import Phoenix.HTML.Form 
+  import Phoenix.HTML.Form
+  import Phoenix.Component
   alias Core.UserClient
   alias Account.User
   alias Account.Users
@@ -39,6 +40,7 @@ defmodule MazarynWeb.UserLive.Profile do
       |> assign(edit_action: false)
       |> assign(follower_action: false)
       |> assign(follows_action: false)
+      |> assign(form: to_form(user_changeset))
 
     {:ok, socket}
   end
@@ -172,6 +174,10 @@ defmodule MazarynWeb.UserLive.Profile do
     }
   end
 
+  def handle_event("privacy", %{"user" => %{"privacy" => privacy}}, socket) do
+      {:noreply, socket}
+  end
+
   defp handle_assigns(socket, user_id, id) do
     socket
     |> assign(:follow_event, follow_event(user_id, id))
@@ -213,8 +219,12 @@ defmodule MazarynWeb.UserLive.Profile do
   end
 
   #Add a button to enable user to select the private/public options
-  #edit user private field in user structto either false or true depending on the option selected above
+  #edit user private field in user struct to either false or true depending on the option selected above
   #if user is in private mode only display cover photo and profile photo to the non-followers
   #if user is in private mode display everything to the followers
   #if user in public mode display everything to all mazaryn subscribers
 end
+
+# <.form for="#" phx-change="select">
+# <%= select form, :privacy, ["Public": "public", "Private": "private"] %>
+#   </.form>
