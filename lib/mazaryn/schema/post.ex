@@ -24,6 +24,7 @@ defmodule Mazaryn.Schema.Post do
     profile_tags
     date_created
     date_updated
+    report
     data
   )a
 
@@ -48,12 +49,13 @@ defmodule Mazaryn.Schema.Post do
     field(:photo_url, :string)
     field(:date_created, :utc_datetime)
     field(:date_updated, :utc_datetime)
+    field(:report, {:array, :string}, default: [])
     field(:data, :map)
   end
 
   def erl_changeset(
         {:post, id, content, comments, likes, media, hashtag, mention, link_url, author,
-         other, date_created, date_updated, data}
+         other, date_created, date_updated, report, data}
       ) do
     new_likes =
       case likes do
@@ -77,6 +79,7 @@ defmodule Mazaryn.Schema.Post do
       other: other,
       date_created: handle_datetime(date_created),
       date_updated: handle_datetime(date_updated),
+      report: report,
       data: data
     })
   end

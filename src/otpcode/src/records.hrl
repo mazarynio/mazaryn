@@ -3,7 +3,7 @@
                 username,
                 password,
                 email,
-                media= [],
+                media = [],
                 post = [],
                 blog_post = [],
                 notif = [],
@@ -20,6 +20,7 @@
                 token_id,
                 chat = [],
                 verified = false,
+                report = [],
                 data = #{} }). 
 
 -record(notif, { id,
@@ -40,6 +41,7 @@
                 other = [],
                 date_created,
                 date_updated,
+                report = [],
                 data = #{} }). 
 
 -record(blog_post, {id, 
@@ -86,14 +88,24 @@
 -record(following, {id, username, data = #{} }).
 -record(hed_wallet, { id, password, date_created, data =#{} }).
 
--record(media, {id, user_id, file, files, type, date_created, date_updated, data = #{}}).
+-record(media, {id, user_id, file, files, type,
+date_created, date_updated, report = [], data = #{}}). 
 -record(suspend, {
+    id,
+    user,
     status = false,
     duration
 }).
 -record(report, {
+    id,
     type,
-    description
+    description,
+    reporter,
+    user,
+    post,
+    media,
+    date_created,
+    data = #{}
 }).
 
 -define(MSG_INSUFFICIENT_FUNDS, <<"Insufficient funds.">>).

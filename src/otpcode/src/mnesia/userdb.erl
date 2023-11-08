@@ -11,7 +11,7 @@
          save_post/2, save_posts/2, unsave_post/2, unsave_posts/2,
          get_save_posts/1, get_follower/1, get_following/1,
          block/2, unblock/2, get_blocked/1, search_user/1, search_user_pattern/1,
-         insert_avatar/2, insert_banner/2]).
+         insert_avatar/2, insert_banner/2, report_user/4]).
 
 -define(LIMIT_SEARCH, 50).
 
@@ -456,3 +456,23 @@ search_user_pattern(Pattern, [H|T]= _Names, ?LIMIT_SEARCH, Acc) ->
     {match, _} ->
       search_user_pattern(Pattern, T, ?LIMIT_SEARCH, [H|Acc])
   end.
+
+% Report User 
+report_user(MyID, UserID, Type, Description) ->
+  Fun = fun() ->
+    ID = nanoid:gen(),
+    mnesia:read(user, MyID),
+        Report = #report{
+          id = ID,
+          type = Type,
+          description = Description,
+          reporter = MyID,
+          user = UserID,
+          date_created = calendar:universal_time()},
+        mnesia:write(Report),
+        ID
+  end,
+  {atomic, Res} = mnesia:transaction(Fun),
+  Res.
+
+    
