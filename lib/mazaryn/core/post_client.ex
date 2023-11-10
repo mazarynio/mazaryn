@@ -103,4 +103,8 @@ defmodule Core.PostClient do
   def get_save_posts(username) do
     :user_server.get_save_posts(username)
   end
+
+  def report_post(my_id, post_id, type, description) do
+    :post_server.report_post(my_id, post_id, type, description)
+  end
 end

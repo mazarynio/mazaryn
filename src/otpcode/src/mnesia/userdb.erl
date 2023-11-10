@@ -1,5 +1,5 @@
 -module(userdb).
--include("../records.hrl").
+-include("../records.hrl"). 
 
 -export([set_user_info/3, get_user_info/2,
          insert/3, insert_media/3, get_media/2,

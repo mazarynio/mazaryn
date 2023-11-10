@@ -15,4 +15,8 @@ defmodule Core.MediaClient do
   def get_all_media(user_id) do
     :media_server.get_all_media(user_id)
   end
+
+  def report_media(my_id, media_id, type, description) do
+    :media_server.report_media(my_id, media_id, type, description)
+  end
 end

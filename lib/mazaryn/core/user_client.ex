@@ -161,4 +161,8 @@ defmodule Core.UserClient do
   def search_user_pattern(pattern) do
     :user_server.search_user_pattern(pattern)
   end
+
+  def report_user(my_id, user_id, type, description) do
+    :user_server.report_user(my_id, user_id, type, description)
+  end
 end
