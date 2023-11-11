@@ -21,6 +21,8 @@
                 chat = [],
                 verified = false,
                 report = [],
+                level, % Includes 5 Levels based on User Activity
+                last_activity,
                 data = #{} }). 
 
 -record(notif, { id,

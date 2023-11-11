@@ -1,4 +1,5 @@
 -module(userdb).
+-author("Zaryn Technologies").
 -include("../records.hrl"). 
 
 -export([set_user_info/3, get_user_info/2,
@@ -11,7 +12,8 @@
          save_post/2, save_posts/2, unsave_post/2, unsave_posts/2,
          get_save_posts/1, get_follower/1, get_following/1,
          block/2, unblock/2, get_blocked/1, search_user/1, search_user_pattern/1,
-         insert_avatar/2, insert_banner/2, report_user/4]).
+         insert_avatar/2, insert_banner/2, report_user/4, update_last_activity/2,
+         last_activity_status/1]).
 
 -define(LIMIT_SEARCH, 50).
 
@@ -65,7 +67,9 @@ insert(Username, Password, Email) ->
                              password = erlpass:hash(Password),
                              email = Email,
                              date_created = Now,
-                             token_id = TokenID},
+                             token_id = TokenID,
+                             level = 1,
+                             last_activity = Now},
                 mnesia:write(User),
                 Id;
               {username_existed, _} -> username_and_email_existed;
@@ -474,5 +478,19 @@ report_user(MyID, UserID, Type, Description) ->
   end,
   {atomic, Res} = mnesia:transaction(Fun),
   Res.
+
+update_last_activity(UserID, Date) ->
+  Fun = fun() ->
+    [User] = mnesia:read(user, UserID),
+    mnesia:write(User#user{last_activity = Date})
+  end,
+  {atomic, Res} = mnesia:transaction(Fun),
+  Res.
+
+last_activity_status(UserID) ->
+  User = get_user_by_id(UserID),
+  LastActivity = User#user.last_activity,
+  LastActivity.
+
 
     

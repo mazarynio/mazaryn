@@ -27,6 +27,8 @@ defmodule Account.User do
     chat
     verified
     report
+    level
+    last_activity
     data
   )a
 
@@ -63,13 +65,15 @@ defmodule Account.User do
     field(:chat, {:array, :string}, default: [])
     field(:verified, :boolean)
     field(:report, {:array, :string}, default: [])
+    field(:level, :integer)
+    field(:last_activity, :utc_datetime)
     field(:data, :map)
   end
 
   def erl_changeset(
         {:user, id, username, password, email, media, posts, blog_post, notif, following, follower, blocked,
          saved_posts, other_info, private, date_created, date_updated, avatar_url, banner_url,
-         token_id, chat, verified, report, data} = _user
+         token_id, chat, verified, report, level, last_activity, data} = _user
       ) do
     avatar_url =
       case avatar_url do
@@ -113,6 +117,8 @@ defmodule Account.User do
       chat: chat,
       verified: verified,
       report: report,
+      level = level,
+      last_activity = last_activity,
       data: data
     })
   end
