@@ -29,6 +29,7 @@ defmodule Account.User do
     report
     level
     last_activity
+    suspend
     data
   )a
 
@@ -67,13 +68,14 @@ defmodule Account.User do
     field(:report, {:array, :string}, default: [])
     field(:level, :integer)
     field(:last_activity, :utc_datetime)
+    field(:suspend, {:array, :string}, default: [])
     field(:data, :map)
   end
 
   def erl_changeset(
         {:user, id, username, password, email, media, posts, blog_post, notif, following, follower, blocked,
          saved_posts, other_info, private, date_created, date_updated, avatar_url, banner_url,
-         token_id, chat, verified, report, level, last_activity, data} = _user
+         token_id, chat, verified, report, level, last_activity, suspend, data} = _user
       ) do
     avatar_url =
       case avatar_url do
@@ -117,8 +119,9 @@ defmodule Account.User do
       chat: chat,
       verified: verified,
       report: report,
-      level = level,
-      last_activity = last_activity,
+      level: level,
+      last_activity: last_activity,
+      suspend: suspend,
       data: data
     })
   end

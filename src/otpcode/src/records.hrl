@@ -23,6 +23,7 @@
                 report = [],
                 level, % Includes 5 Levels based on User Activity
                 last_activity,
+                suspend = [],
                 data = #{} }). 
 
 -record(notif, { id,
@@ -75,10 +76,11 @@
                date_created,
                data = #{} }).
 
--record(chat, {id,
+-record(chat, {id, 
                user_id,
                recipient_id,
                body,
+               media = [],
                bot,
                date_created,
                date_updated,
@@ -96,6 +98,7 @@ date_created, date_updated, report = [], data = #{}}).
     id,
     user,
     status = false,
+    date_created,
     duration
 }).
 -record(report, {

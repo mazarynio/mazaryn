@@ -11,9 +11,9 @@ defmodule Mazaryn.Chats do
     |> Chat.changeset(params)
     |> Ecto.Changeset.apply_action(:validate)
     |> case do
-      {:ok, %{body: body}} ->
+      {:ok, %{body: body, media: media}} ->
         actor_id
-        |> ChatDB.send_msg(recipient_id, body)
+        |> ChatDB.send_msg(recipient_id, body, media)
         |> ChatDB.get_msg()
         |> Chat.erl_changeset()
 

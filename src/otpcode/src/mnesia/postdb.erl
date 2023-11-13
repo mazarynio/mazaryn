@@ -1,4 +1,5 @@
 -module(postdb).
+-author("Zaryn Technologies").
 -export([insert/6, get_post_by_id/1,
          modify_post/6, get_posts_by_author/1, 
          get_posts_by_hashtag/1, update_post/2,

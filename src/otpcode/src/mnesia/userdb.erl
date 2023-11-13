@@ -422,6 +422,7 @@ unblock(Id, Unblocked) ->
   {atomic, Res} = mnesia:transaction(Fun),
   Res.
 
+% Get Blocked USers (MyID)
 get_blocked(Id) ->
   Fun = fun() ->
           [#user{blocked = BlockedList}] = mnesia:read(user, Id),

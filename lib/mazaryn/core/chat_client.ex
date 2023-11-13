@@ -1,8 +1,8 @@
 defmodule Core.ChatClient do
   def start, do: :chat_server.start_link()
 
-  def send_msg(user_id, recipient_id, body) do
-    :chat_server.send_msg(user_id, recipient_id, body)
+  def send_msg(user_id, recipient_id, body, media) do
+    :chat_server.send_msg(user_id, recipient_id, body, media)
   end
 
   def get_msg(chat_id) do
