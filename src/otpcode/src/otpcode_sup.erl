@@ -6,6 +6,7 @@
 -module(otpcode_sup).
 
 -include("records.hrl").
+-include("kademlia/kademlia.hrl").
 
 -behaviour(supervisor).
 
@@ -69,6 +70,10 @@ start_link() ->
                                 {type, ordered_set}]),
 
     mnesia:create_table(report, [{attributes, record_info(fields, report)},
+                                {disc_copies, [node()]},
+                                {type, ordered_set}]),
+
+    mnesia:create_table(k_node, [{attributes, record_info(fields, k_node)},
                                 {disc_copies, [node()]},
                                 {type, ordered_set}]),
 
