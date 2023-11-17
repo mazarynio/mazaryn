@@ -73,7 +73,7 @@ start_link() ->
                                 {disc_copies, [node()]},
                                 {type, ordered_set}]),
 
-    mnesia:create_table(k_node, [{attributes, record_info(fields, k_node)},
+    mnesia:create_table(knode, [{attributes, record_info(fields, knode)},
                                 {disc_copies, [node()]},
                                 {type, ordered_set}]),
 

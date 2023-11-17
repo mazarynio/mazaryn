@@ -1,14 +1,22 @@
--record(k_node, {
+-record(knode, {
     id, % 160-bit Number
     ip,
     port,
+    user, 
     distance
 }).
--record(k_bucket, {
-    k_nodes = []
+-record(kbucket, {
+    knodes = [],
+    size
 }).
 -record(routing_table, {
-    k_node,
-    k_buckets = []
+    knode,
+    kbuckets = [],
+    sender,
+    receiver
+}).
+-record(rpc, {
+    socket,
+    knode 
 }).
 

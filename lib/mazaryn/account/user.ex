@@ -11,6 +11,8 @@ defmodule Account.User do
     username
     email
     password
+    address
+    knode
     private
     other_info
     media
@@ -44,6 +46,8 @@ defmodule Account.User do
     field(:username, :string)
     field(:email, :string)
     field(:password, :string, virtual: true)
+    field(:address, :string)
+    field(:knode, {:array, :string}, default: [])
     field(:private, :boolean)
     field(:other_info, :map)
     field(:media, {:array, :string}, default: [])
@@ -73,9 +77,10 @@ defmodule Account.User do
   end
 
   def erl_changeset(
-        {:user, id, username, password, email, media, posts, blog_post, notif, following, follower, blocked,
-         saved_posts, other_info, private, date_created, date_updated, avatar_url, banner_url,
-         token_id, chat, verified, report, level, last_activity, suspend, data} = _user
+        {:user, id, username, password, email, address, knode, media, posts, blog_post,
+         notif, following, follower, blocked, saved_posts, other_info, private, date_created,
+         date_updated, avatar_url, banner_url, token_id, chat, verified, report, level, last_activity,
+         suspend, data} = _user
       ) do
     avatar_url =
       case avatar_url do
@@ -101,6 +106,8 @@ defmodule Account.User do
       username: username,
       password: password,
       email: email,
+      address: address,
+      knode: knode,
       media: media,
       posts: posts,
       blog_post: blog_post,
