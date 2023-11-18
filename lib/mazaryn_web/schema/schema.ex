@@ -36,14 +36,6 @@ defmodule MazarynWeb.Schema do
 
       resolve(&Resolvers.WalletResolver.create_wallet/1)
     end
-
-    @desc "User Login"
-    field :user_login, type: :user_login do
-      arg(:email, non_null(:string))
-      arg(:password, non_null(:string))
-
-      resolve(&Resolvers.UserResolver.user_login/2)
-    end
   end
 
   query do

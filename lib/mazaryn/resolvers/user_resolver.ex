@@ -13,10 +13,6 @@ defmodule Resolvers.UserResolver do
     Users.create_user(username, password, email)
   end
 
-  def user_login(email, password) do
-    {:ok, Users.login(email, password)}
-  end
-
   def find_user_by_id(%{id: id}, _info) do
     Users.one_by_id(id)
   end
