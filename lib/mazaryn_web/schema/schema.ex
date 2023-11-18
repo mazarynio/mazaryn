@@ -15,7 +15,7 @@ defmodule MazarynWeb.Schema do
       arg(:password, non_null(:string))
       arg(:email, non_null(:string))
 
-      resolve(&Resolvers.UserResolver.create_user/3)
+      resolve(&Resolvers.UserResolver.create_user/2)
     end
 
     @desc "Create a post"

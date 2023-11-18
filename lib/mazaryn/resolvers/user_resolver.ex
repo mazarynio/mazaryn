@@ -5,8 +5,12 @@ defmodule Resolvers.UserResolver do
     {:ok, Users.list_users()}
   end
 
-  def create_user(username, password, email) do
-    {:ok, Users.create_user()}
+  def create_user(args, _info) do
+    username = args[:username]
+    password = args[:password]
+    email = args[:email]
+
+    Users.create_user(username, password, email)
   end
 
   def user_login(email, password) do
