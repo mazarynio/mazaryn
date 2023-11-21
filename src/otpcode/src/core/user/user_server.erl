@@ -1,5 +1,5 @@
 -module(user_server).
-
+-author("Zaryn Technologies").
 -include_lib("kernel/include/logger.hrl").
 
 -export([start_link/0,

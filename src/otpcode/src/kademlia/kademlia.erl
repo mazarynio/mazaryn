@@ -1,7 +1,8 @@
 -module(kademlia).
 -author("Zaryn Technologies").
 -include("kademlia.hrl").
--export([insert_node/1, get_node/1, list_nodes/0, get_addr/1, remove_node/1]).
+-export([insert_node/1, get_node/1, list_nodes/0,
+ get_addr/1, remove_node/1]).
 
 insert_node(UserID) ->
     Fun = fun() ->

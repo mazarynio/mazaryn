@@ -7,10 +7,8 @@
 %%% Created : 14. May 2022 9:45 PM
 %%%-------------------------------------------------------------------
 -module(post_server).
--author("mazaryn").
-
+-author("Zaryn Technologies").
 -define(NUM, 5).
-
 -include_lib("kernel/include/logger.hrl").
 
 -behaviour(gen_server).

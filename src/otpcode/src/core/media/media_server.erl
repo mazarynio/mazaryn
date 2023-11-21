@@ -1,4 +1,5 @@
 -module(media_server).
+-author("Zaryn Technologies").
 -include_lib("kernel/include/logger.hrl").
 
 -behaviour(gen_server).
