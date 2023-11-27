@@ -1,4 +1,5 @@
 -module(notifdb).
+-author("Zaryn Technologies").
 -export([insert/2, get_single_notif/1, get_all_notifs/1]). 
 
 -include("../records.hrl").
@@ -19,26 +20,38 @@ insert(UserID, Message) ->
     {atomic, Res} = mnesia:transaction(Fun),
     Res.
 
+%
 get_single_notif(NotifID) ->
     Fun = fun() ->
-            [Notif] = mnesia:read({notif, NotifID}),
-            Notif
-          end,
-    {atomic, Res} = mnesia:transaction(Fun),
-    Res.
-
+        case mnesia:read({notif, NotifID}) of
+            [Notif] ->
+                {ok, Notif};
+            [] ->
+                {error, not_found}
+        end
+    end,
+    case mnesia:transaction(Fun) of
+        {atomic, Res} ->
+            Res;
+        {aborted, Reason} ->
+            {error, {aborted, Reason}}
+    end.
+%
 get_all_notifs(UserID) ->
-  Fun = fun() ->
-          mnesia:match_object(#notif{user_id = UserID,
-                                              _ = '_'}),
-          [User] = mnesia:read({user, UserID}),
-          lists:foldl(fun(ID, Acc) ->
-                        [Notif] = mnesia:read({notif, ID}),
-                        [Notif|Acc]
-                      end,
-                      [], User#user.notif)
+    Fun = fun() ->
+        case mnesia:match_object(#notif{user_id = UserID, _ = '_'}) of
+            Objects when is_list(Objects) ->
+                Objects;
+            [] ->
+                {error, not_found}
+        end
+    end,
+    case mnesia:transaction(Fun) of
+        {atomic, Res} ->
+            Res;
+        {aborted, Reason} ->
+            {error, {aborted, Reason}}
+    end.
 
-        end,
-  {atomic, Res} = mnesia:transaction(Fun),
-  Res.
+
     

@@ -54,15 +54,18 @@ get_all_msg(RecipientID) ->
     {atomic, Res} = mnesia:transaction(Fun),
     Res.
 
+%
 edit_msg(ChatID, NewContent) ->
     Fun = fun() ->
-            Date = calendar:universal_time(),
-            [Chat] = mnesia:read({chat, ChatID}),
-            mnesia:write(Chat#chat{body = NewContent, date_updated = Date}),
-            ChatID
-          end,
+        Date = calendar:universal_time(),
+        [Chat] = mnesia:read({chat, ChatID}),
+        NewChat = Chat#chat{body = NewContent, date_updated = Date},
+        mnesia:dirty_write(NewChat),
+        ChatID
+    end,
     {atomic, Res} = mnesia:transaction(Fun),
     Res.
+
 
 % Delete MEssage using ChatID
 delete_msg(ChatID) ->
