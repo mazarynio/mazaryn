@@ -13,7 +13,7 @@
          get_save_posts/1, get_follower/1, get_following/1,
          block/2, unblock/2, get_blocked/1, search_user/1, search_user_pattern/1,
          insert_avatar/2, insert_banner/2, report_user/4, update_last_activity/2,
-         last_activity_status/1]).
+         last_activity_status/1, make_private/1, make_public/1]).
 
 -define(LIMIT_SEARCH, 50).
 
@@ -124,7 +124,6 @@ insert_banner(Id, BannerUrl) ->
     {atomic, [User]} -> User;
     Res -> Res
   end.
-
 
 get_media(Id, Type) ->
   Fun = fun() ->
@@ -497,5 +496,23 @@ last_activity_status(UserID) ->
   LastActivity = User#user.last_activity,
   LastActivity.
 
+make_private(UserID) ->
+  Fun = fun() ->
+    Message = "The Profile is Private now",
+    [User] = mnesia:read(user, UserID),
+    mnesia:write(User#user{private = true}),
+    Message
+  end,
+  {atomic, Res} = mnesia:transaction(Fun),
+  Res.
 
+make_public(UserID) ->
+  Fun = fun() ->
+    Message = "The profile is public now",
+    [User] = mnesia:read(user, UserID),
+    mnesia:write(User#user{private = false}),
+    Message
+  end,
+  {atomic, Res} = mnesia:transaction(Fun),
+  Res.
     

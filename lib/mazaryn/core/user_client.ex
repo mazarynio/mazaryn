@@ -165,4 +165,12 @@ defmodule Core.UserClient do
   def report_user(my_id, user_id, type, description) do
     :user_server.report_user(my_id, user_id, type, description)
   end
+
+  def make_private(user_id) do
+    :user_server.make_private(user_id)
+  end
+
+  def make_public(user_id) do
+    :user_server.make_public(user_id)
+  end
 end
