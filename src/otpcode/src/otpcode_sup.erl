@@ -32,7 +32,8 @@ init([]) ->
         ?TOKEN_SERVER,
         ?CHAT_SERVER,
         ?BLOG_SERVER,
-        ?MEDIA_SERVER],
+        ?MEDIA_SERVER,
+        ?NOTIF_EVENT],
     {ok, {SupFlags, ChildSpecs}}.
 
 initialize() ->

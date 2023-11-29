@@ -51,3 +51,12 @@
     type => worker,
     modules => [media_server]
 }).
+
+-define(NOTIF_EVENT, #{
+    id => notif_event,
+    start => {notif_event, start_link, []},
+    restart => permanent,
+    shutdown => 5000,
+    type => worker,
+    modules => [notif_event]
+}).

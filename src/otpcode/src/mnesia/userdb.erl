@@ -52,7 +52,7 @@ set_user_info(Username, Fields, Values) ->
           end
         end,
   {atomic, Res} = mnesia:transaction(Fun),
-  Res.
+  Res. 
 
 insert(Username, Password, Email) ->
     %% check username exist or not
