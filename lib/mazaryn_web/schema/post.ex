@@ -3,7 +3,41 @@ defmodule MazarynWeb.Schema.Post do
 
   object :post do
     field(:id, :id)
-    field(:comment, :string)
+    field(:comments, :string)
     field(:date_created, :string)
+    field(:content, :string)
+    field(:author, :string)
+  end
+
+  object :find_post_by_id do
+    field(:id, :id)
+    field(:comments, :string)
+    field(:date_created, :string)
+    field(:content, :string)
+    field(:author, :string)
+  end
+
+  object :find_post_by_author do
+    field(:id, :id)
+    field(:comments, :string)
+    field(:date_created, :string)
+    field(:content, :string)
+    field(:author, :string)
+  end
+
+  object :find_post_by_hashtag do
+    field(:id, :id)
+    field(:comments, :string)
+    field(:date_created, :string)
+    field(:content, :string)
+    field(:author, :string)
+  end
+
+  object :create_post do
+    field(:id, :id)
+    field(:comments, :string)
+    field(:date_created, :string)
+    field(:content, :string)
+    field(:author, :string)
   end
 end
