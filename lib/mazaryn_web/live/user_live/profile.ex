@@ -25,9 +25,9 @@ defmodule MazarynWeb.UserLive.Profile do
 
     post_changeset = Post.changeset(%Post{})
 
-    user_changeset = User.changeset(%User{})
-
     {:ok, user} = get_user_by_username(username)
+
+    user_changeset = User.changeset(user)
 
     socket =
       socket
@@ -175,6 +175,13 @@ defmodule MazarynWeb.UserLive.Profile do
   end
 
   def handle_event("privacy", %{"user" => %{"privacy" => privacy}}, socket) do
+      IO.inspect(socket.assigns.user, label: "===========")
+      IO.inspect(socket.assigns.user_changeset, label: "===========")
+      Core.UserClient.set_user_info(socket.assigns.current_user.id, [:private],[true])
+      |>IO.inspect(label: "======userclient======")
+
+     {:ok, user} = get_user_by_username(socket.assigns.user.username)
+      IO.inspect(user, label: "====jfkgfg=======")
       {:noreply, socket}
   end
 
