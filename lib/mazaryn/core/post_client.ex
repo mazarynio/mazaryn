@@ -1,8 +1,11 @@
 defmodule Core.PostClient do
-  def start do
-    :post_server.start_link()
-  end
-
+  @moduledoc """
+  This module facilitates communication with Erlang functions using GenServer.
+  """
+  @doc """
+    iex> Core.PostClient.create("username", "Hello World", "#world", "@friend", "https://mazaryn.io")
+    ~c"zKegB4mWRXP3PDVuntpnA"
+  """
   def create(author, content, media \\ [], hashtag, mention, link_url) do
     :post_server.start_link()
     :post_server.insert(author, content, media, hashtag, mention, link_url)

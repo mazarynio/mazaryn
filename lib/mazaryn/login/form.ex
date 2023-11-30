@@ -1,4 +1,7 @@
 defmodule Mazaryn.Login.Form do
+  @moduledoc """
+  This module defines the Ecto schema and functions for handling signup forms.
+  """
   use Ecto.Schema
 
   import Ecto.Changeset

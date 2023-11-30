@@ -1,5 +1,12 @@
 defmodule Core.MediaClient do
+  @moduledoc """
+  This module facilitates communication with Erlang functions using GenServer.
+  """
 
+  @doc """
+    iex> Core.MediaClient.insert_media(~c"zKegB4mWRXP3PDVuntpnA", "file.mp3")
+    ~c"Xvegu4mWR7PdJDLuntpoQ"
+  """
   def insert_media(user_id, file) do
     :media_server.insert_media(user_id, file)
   end

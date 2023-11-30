@@ -1,11 +1,17 @@
 defmodule Core.NotifEvent do
-  # Welcome Notification from Mazaryn
+  @moduledoc """
+  This module facilitates communication with Erlang functions using GenEvent.
+  """
+  @doc """
+    iex> Core.NotifEvent.welcome(~c"zKegB4mWRXP3PDVuntpnA")
+    "welcome to mazaryn username"
+  """
   def welcome(user_id) do
     username = :notifdb.get_username_by_id(user_id)
     message = "Welcome to Mazaryn Dear #{username}"
     :notif_event.welcome(user_id, message)
   end
-  # Follow Notification to inform users who followed them
+
   def follow(user_id) do
     username = :notifdb.get_username_by_id(user_id)
     message = "#{username} followed you"

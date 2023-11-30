@@ -54,6 +54,7 @@ set_user_info(Username, Fields, Values) ->
   {atomic, Res} = mnesia:transaction(Fun),
   Res. 
 
+%% Register User account
 insert(Username, Password, Email) ->
     %% check username exist or not
     Fun = fun() ->

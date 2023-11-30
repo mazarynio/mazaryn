@@ -1,4 +1,7 @@
 defmodule Core.ChatGPT do
+  @moduledoc """
+  This module facilitates communication with Erlang functions using GenServer.
+  """
   defp call_python(prompt) do
     command = "python3 /home/zaryn/mazaryn/src/otpcode/pycode/chat/chatgpt.py '#{prompt}'"
     response = System.cmd("bash", ["-c", command])

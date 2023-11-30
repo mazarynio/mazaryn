@@ -1,4 +1,13 @@
 defmodule Core.UserClient do
+  @moduledoc """
+  This module facilitates communication with Erlang functions using GenServer.
+  It provides functions for user registration, notification insertion and ...
+  """
+
+  @doc """
+      iex> Core.UserClient.register("my_username", "my_pass", "my_email")
+      ~c"zKegB4mWRXP3PDVuntpnA"
+  """
   def register(username, password, email) do
     :user_server.start_link()
     :user_server.create_account(username, password, email)

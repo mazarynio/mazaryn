@@ -1,5 +1,7 @@
 defmodule Mazaryn.Chats do
-  @moduledoc false
+  @moduledoc """
+  This module provides functions for managing chat interactions between users.
+  """
   alias Mazaryn.Chats.Chat
   alias Account.User
   alias Account.Users
@@ -46,8 +48,6 @@ defmodule Mazaryn.Chats do
     end)
     |> Enum.sort_by(& &1.date_created, {:asc, DateTime})
   end
-
-  ## _WTF__
 
   @spec get_users_with_chats(User.t()) :: list()
   def get_users_with_chats(actor) do
