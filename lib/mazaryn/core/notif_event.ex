@@ -12,21 +12,22 @@ defmodule Core.NotifEvent do
     :notif_event.welcome(user_id, message)
   end
 
-  def follow(user_id) do
-    username = :notifdb.get_username_by_id(user_id)
-    message = "#{username} followed you"
+  # user(the person ID who follow), user_id(my_id)
+  def follow(user, user_id) do
+    follower = :notifdb.get_username_by_id(user)
+    message = "#{follower} followed you"
     :notif_event.follow(user_id, message)
   end
-
-  def message(user_id) do
-    username = :notifdb.get_username_by_id(user_id)
-    message = "#{username} messaged you"
+  # user(the person who send message), user_id(my_id)
+  def message(user, user_id) do
+    sender = :notifdb.get_username_by_id(user)
+    message = "#{sender} messaged you"
     :notif_event.notif(user_id, message)
   end
-
-  def mention(user_id) do
-    username = :notifdb.get_username_by_id(user_id)
-    message = "#{username} mentioned you"
+  # user(the person who mention me), user_id(my_id)
+  def mention(user, user_id) do
+    mentioner = :notifdb.get_username_by_id(user)
+    message = "#{mentioner} mentioned you"
     :notif_event.notif(user_id, message)
   end
 
@@ -38,5 +39,9 @@ defmodule Core.NotifEvent do
   def change_email(user_id) do
     message = "Your Email changed Successfully"
     :notif_event.notif(user_id, message)
+  end
+
+  def get_notif(notif_id) do
+    :notif_event.get_notif(notif_id)
   end
 end

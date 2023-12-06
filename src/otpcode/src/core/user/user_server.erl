@@ -26,7 +26,7 @@
 -define(SERVER, ?MODULE).
 -record(state, {}).
 
-
+%% @doc start Server 
 start_link() ->
     gen_server:start_link({global, ?SERVER}, ?MODULE, [], []).
 
