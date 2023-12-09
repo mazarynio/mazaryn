@@ -16,7 +16,7 @@ insert(UserID, Message) ->
             [User] = mnesia:read({user, UserID}),
             Notifs = User#user.notif,
             mnesia:write(User#user{notif = [Id|Notifs]}),
-            Message
+            Id 
           end,
     {atomic, Res} = mnesia:transaction(Fun),
     Res.
@@ -31,7 +31,7 @@ welcome(UserID, Message) ->
             [User] = mnesia:read({user, UserID}),
             Notifs = User#user.notif,
             mnesia:write(User#user{notif = [Id|Notifs]}),
-            Message
+            Id
           end,
     {atomic, Res} = mnesia:transaction(Fun),
     Res.
@@ -46,7 +46,7 @@ follow(UserID, Message) ->
             [User] = mnesia:read({user, UserID}),
             Notifs = User#user.notif,
             mnesia:write(User#user{notif = [Id|Notifs]}),
-            Message
+            Id
           end,
     {atomic, Res} = mnesia:transaction(Fun),
     Res.
@@ -67,7 +67,7 @@ get_single_notif(NotifID) ->
             {error, {aborted, Reason}}
     end.
 
-get_notif_message(NotifID) ->
+get_notif_message(NotifID) -> 
     Notification = get_single_notif(NotifID),
     NotifMessage = Notification#notif.message,
     NotifMessage.

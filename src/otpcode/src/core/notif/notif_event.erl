@@ -3,7 +3,7 @@
 -include_lib("kernel/include/logger.hrl").
 -include("../../records.hrl").
 -behaviour(gen_event).
--export([start_link/0, subscribe/1, welcome/2, follow/2, notif/2, get_notif/1]).
+-export([start_link/0, subscribe/1, welcome/2, follow/2, notif/2, get_notif/1, get_notif_message/1]).
 -export([init/1, handle_event/2, handle_call/2, handle_info/2, terminate/2, code_change/3]).
 
 -record(state, {subscribers = []}).
@@ -16,8 +16,8 @@ subscribe(Pid) ->
 
 welcome(UserID, Message) ->
     case notifdb:welcome(UserID, Message) of 
-        Message ->
-            Message;
+        Id ->
+            Id;
         {error, Reason} ->
             error_logger:error_msg("***Error in notif*** ~p~n", [Reason]),
             {error, Reason}
@@ -25,8 +25,8 @@ welcome(UserID, Message) ->
 
 follow(UserID, Message) ->
     case notifdb:follow(UserID, Message) of 
-        Message ->
-            Message;
+        Id ->
+            Id;
         {error, Reason} ->
             error_logger:error_msg("***Error in notif*** ~p~n", [Reason]),
             {error, Reason}
@@ -50,6 +50,15 @@ get_notif(NotifId) ->
             {error, Reason}
     end.
 
+get_notif_message(NotifID) -> 
+    case notifdb:get_notif_message(NotifID) of 
+        Message ->
+            Message;
+        {error, Reason} ->
+            error_logger:error_msg("***Error in notif*** ~p~n", [Reason]),
+            {error, Reason}
+    end.
+
 init([]) ->
     ?LOG_NOTICE("Notification event has been started - ~p", [self()]),
     State = #state{},
@@ -66,8 +75,8 @@ handle_event({welcome, UserId, Message}, State) ->
 
 handle_event({follow, UserId, Message}, State) ->
     case notifdb:follow(UserId, Message) of
-        {ok, Message} -> 
-            {ok, Message, State};
+        {ok, Id} -> 
+            {ok, Id, State};
         {error, Reason} ->
             error_logger:error_msg("***Error in handle_event*** ~p~n", [Reason]),
             {error, State}
@@ -86,6 +95,15 @@ handle_event({get_notif, NotifId}, State) ->
     case notifdb:get_notif_message(NotifId) of
         Notif ->
             Notif;
+        {error, Reason} ->
+            error_logger:error_msg("***Error in handle_event*** ~p~n", [Reason]),
+            {error, State}
+    end;
+
+handle_event({get_notif_message, NotifID}, State) ->
+    case notifdb:get_notif_message(NotifID) of
+        Message ->
+            Message;
         {error, Reason} ->
             error_logger:error_msg("***Error in handle_event*** ~p~n", [Reason]),
             {error, State}
