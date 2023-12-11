@@ -29,7 +29,6 @@ send_msg(UserID, RecipientID, Body, Media) ->
     {atomic, Res} = mnesia:transaction(Fun),
     Res.
 
-
 % Get Message using ChatID
 get_msg(ChatID) ->
     Fun = fun() ->
@@ -39,6 +38,7 @@ get_msg(ChatID) ->
     {atomic, Res} = mnesia:transaction(Fun),
     Res.
 
+%% Get all the Msssages Sent to User using UserID 
 get_all_msg(RecipientID) -> 
     Fun = fun() ->
             mnesia:match_object(#chat{recipient_id = RecipientID,
@@ -54,7 +54,7 @@ get_all_msg(RecipientID) ->
     {atomic, Res} = mnesia:transaction(Fun),
     Res.
 
-%
+%% Edit Message adding new Content 
 edit_msg(ChatID, NewContent) ->
     Fun = fun() ->
         Date = calendar:universal_time(),
@@ -65,7 +65,6 @@ edit_msg(ChatID, NewContent) ->
     end,
     {atomic, Res} = mnesia:transaction(Fun),
     Res.
-
 
 % Delete MEssage using ChatID
 delete_msg(ChatID) ->

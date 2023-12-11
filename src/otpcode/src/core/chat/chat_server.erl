@@ -31,7 +31,7 @@
     handle_info/2,
     terminate/2
 ]).
-
+ %% Start Chat Server 
 start_link() ->
     gen_server:start_link({global, ?SERVER}, ?MODULE, [], []).
 

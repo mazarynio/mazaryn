@@ -34,29 +34,29 @@ defmodule Core.NotifEvent do
     notif_id = :notif_event.notif(user_id, message)
     get_notif_message(notif_id)
   end
-
+  ## Get notification when changing my username
   def change_username(user_id) do
     message = "Your Username changed Successfully"
     notif_id = :notif_event.notif(user_id, message)
     get_notif_message(notif_id)
   end
-
+  ## Get notification when changing my email
   def change_email(user_id) do
     message = "Your Email changed Successfully"
     notif_id = :notif_event.notif(user_id, message)
     get_notif_message(notif_id)
   end
-
+  ## Get notification when changing my password
   def change_password(user_id) do
     message = "Your Password changed Successfully"
     notif_id = :notif_event.notif(user_id, message)
     get_notif_message(notif_id)
   end
-
+  ## Get all notification info using NotifiactionID
   def get_notif(notif_id) do
     :notif_event.get_notif(notif_id)
   end
-
+  ## Get The notification message (content) using NotificationID without getting extra info
   def get_notif_message(notif_id) do
     :notif_event.get_notif_message(notif_id)
   end

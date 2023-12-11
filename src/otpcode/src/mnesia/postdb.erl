@@ -49,6 +49,7 @@ modify_post(Author, NewContent, NewMedia, NewHashtag, NewMention, NewLink_URL) -
   {atomic, Res} = mnesia:transaction(Fun),
   Res.
 
+%% Get post by PostID
 get_post_by_id(Id) ->
   Fun = fun() ->
             mnesia:match_object(#comment{post = Id,
@@ -105,6 +106,7 @@ delete_post(Id) ->
       end,
   mnesia:activity(transaction, F).
 
+%% Get all posts
 get_posts() ->
   Fun = fun() ->
             mnesia:all_keys(post)
@@ -199,6 +201,7 @@ get_single_comment(CommentId) ->
   {atomic, Res} = mnesia:transaction(Fun),
   Res.
 
+%% Get all Comments for Specific Post using PostID
 get_all_comments(PostId) ->
   Fun = fun() ->
             mnesia:match_object(#comment{post = PostId,
