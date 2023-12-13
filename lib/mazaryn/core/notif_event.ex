@@ -56,6 +56,10 @@ defmodule Core.NotifEvent do
   def get_notif(notif_id) do
     :notif_event.get_notif(notif_id)
   end
+  ## Get Notification Time by NotifID
+  def get_notif_time(notif_id) do
+    :notif_event.get_notif_time(notif_id)
+  end
   ## Get The notification message (content) using NotificationID without getting extra info
   def get_notif_message(notif_id) do
     :notif_event.get_notif_message(notif_id)
@@ -63,5 +67,13 @@ defmodule Core.NotifEvent do
   ## Get all Generated Notification per user
   def get_all_notifs(user_id) do
     :notif_event.get_all_notifs(user_id)
+  end
+
+  def get_five_latest_ids(user_id) do
+    :notif_event.get_five_latest_notif_ids(user_id)
+  end
+
+  def get_five_latest_messages(user_id) do
+    :notif_event.get_five_latest_notif_messages(user_id)
   end
 end

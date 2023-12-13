@@ -4,7 +4,7 @@
 -include("../../records.hrl").
 -behaviour(gen_event).
 -export([start_link/0, subscribe/1, welcome/2, follow/2, notif/2, get_notif/1, get_notif_message/1,
-get_all_notifs/1]).
+get_all_notifs/1, get_notif_time/1, get_five_latest_notif_ids/1, get_five_latest_notif_messages/1]).
 -export([init/1, handle_event/2, handle_call/2, handle_info/2, terminate/2, code_change/3]).
 
 -record(state, {subscribers = []}).
@@ -67,6 +67,33 @@ get_all_notifs(UserID) ->
         {error, _Reason} ->
             error_logger:error_msg("***Error in notif*** ~p~n", [_Reason]),
             {error, _Reason}
+    end.
+
+get_notif_time(NotifID) ->
+    case notifdb:get_notif_time(NotifID) of
+        Time -> 
+            Time;
+        {error, Reason} ->
+            error_logger:error_msg("***Error in handle_event*** ~p~n", [Reason]),
+            {error}
+    end.
+
+get_five_latest_notif_ids(UserID) ->
+    case notifdb:get_five_latest_notif_ids(UserID) of
+        NotifIDs ->
+            NotifIDs;
+        {error, Reason} ->
+            error_logger:error_msg("***Error in handle_event*** ~p~n", [Reason]),
+            {error}
+    end.
+
+get_five_latest_notif_messages(UserID) ->
+    case notifdb:get_five_latest_notif_messages(UserID) of
+        NotifMessages ->
+            NotifMessages;
+        {error, Reason} ->
+            error_logger:error_msg("***Error in handle_event*** ~p~n", [Reason]),
+            {error}
     end.
 
 init([]) ->
