@@ -60,4 +60,8 @@ defmodule Core.NotifEvent do
   def get_notif_message(notif_id) do
     :notif_event.get_notif_message(notif_id)
   end
+  ## Get all Generated Notification per user
+  def get_all_notifs(user_id) do
+    :notif_event.get_all_notifs(user_id)
+  end
 end

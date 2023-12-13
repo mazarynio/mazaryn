@@ -3,7 +3,8 @@
 -include_lib("kernel/include/logger.hrl").
 -include("../../records.hrl").
 -behaviour(gen_event).
--export([start_link/0, subscribe/1, welcome/2, follow/2, notif/2, get_notif/1, get_notif_message/1]).
+-export([start_link/0, subscribe/1, welcome/2, follow/2, notif/2, get_notif/1, get_notif_message/1,
+get_all_notifs/1]).
 -export([init/1, handle_event/2, handle_call/2, handle_info/2, terminate/2, code_change/3]).
 
 -record(state, {subscribers = []}).
@@ -57,6 +58,15 @@ get_notif_message(NotifID) ->
         {error, Reason} ->
             error_logger:error_msg("***Error in notif*** ~p~n", [Reason]),
             {error, Reason}
+    end.
+
+get_all_notifs(UserID) ->
+    case notifdb:get_all_notifs(UserID) of
+        Notifications ->
+            Notifications;
+        {error, _Reason} ->
+            error_logger:error_msg("***Error in notif*** ~p~n", [_Reason]),
+            {error, _Reason}
     end.
 
 init([]) ->
