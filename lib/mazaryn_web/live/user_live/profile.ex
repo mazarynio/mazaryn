@@ -40,7 +40,7 @@ defmodule MazarynWeb.UserLive.Profile do
       |> assign(edit_action: false)
       |> assign(follower_action: false)
       |> assign(follows_action: false)
-      |> assign(form: to_form(user_changeset))
+      |> assign(form: to_form(privacy_changeset()))
 
     {:ok, socket}
   end
@@ -174,15 +174,18 @@ defmodule MazarynWeb.UserLive.Profile do
     }
   end
 
-  def handle_event("privacy", %{"user" => %{"privacy" => privacy}}, socket) do
-      IO.inspect(socket.assigns.user, label: "===========")
-      IO.inspect(socket.assigns.user_changeset, label: "===========")
-      Core.UserClient.set_user_info(socket.assigns.current_user.id, [:private],[true])
-      |>IO.inspect(label: "======userclient======")
+  def handle_event("privacy", %{"user" => %{"privacy" => "private"}}, socket) do
+      UserClient.make_private(socket.assigns.current_user.id)
+      |> IO.inspect(label: "============")
 
-     {:ok, user} = get_user_by_username(socket.assigns.user.username)
-      IO.inspect(user, label: "====jfkgfg=======")
+      IO.inspect(socket.assigns, label: "=====socket====")
       {:noreply, socket}
+  end
+
+  def handle_event("privacy", %{"user" => %{"privacy" => "public"}}, socket) do
+    UserClient.make_public(socket.assigns.current_user.id)
+    IO.inspect(socket.assigns, label: "=====socket====")
+    {:noreply, socket}
   end
 
   defp handle_assigns(socket, user_id, id) do
@@ -223,6 +226,15 @@ defmodule MazarynWeb.UserLive.Profile do
     user_id
     |> UserClient.get_following()
     |> Enum.count()
+  end
+
+  defp privacy_changeset(attrs \\ %{}) do
+    #below temp fix, before was no struct i.e %{}
+    data = %User{}
+
+    {data, %{private: :string}}
+    |> IO.inspect(label: "======private changeset=======")
+    |> Ecto.Changeset.cast(attrs,  [:private])
   end
 
   #Add a button to enable user to select the private/public options
