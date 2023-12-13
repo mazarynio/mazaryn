@@ -1,4 +1,5 @@
 -module(postdb).
+-author("Zaryn Technologies").
 -export([insert/6, get_post_by_id/1,
          modify_post/6, get_posts_by_author/1, 
          get_posts_by_hashtag/1, update_post/2,
@@ -6,7 +7,7 @@
          get_all_posts_from_date/4, get_all_posts_from_month/3,
          like_post/2, unlike_post/2, add_comment/3, update_comment/2,
          get_all_comments/1, delete_comment/2, get_likes/1,
-         get_single_comment/1, get_media/1 ]).
+         get_single_comment/1, get_media/1, report_post/4, update_activity/2 ]).
 
 -include("../records.hrl").
 -include_lib("stdlib/include/qlc.hrl").
@@ -17,6 +18,7 @@
 insert(Author, Content, Media, Hashtag, Mention, Link_URL) -> 
   F = fun() ->
           Id = nanoid:gen(),
+          Date = calendar:universal_time(),
           mnesia:write(#post{id = Id,
                              content = erl_deen:main(Content),
                              author = Author,
@@ -24,10 +26,11 @@ insert(Author, Content, Media, Hashtag, Mention, Link_URL) ->
                              hashtag = Hashtag,
                              mention = Mention,
                              link_url = Link_URL,
-                             date_created = calendar:universal_time()}),
+                             date_created = Date}),
           [User] = mnesia:index_read(user, Author, username),
           Posts = User#user.post,
           mnesia:write(User#user{post = [Id | Posts]}),
+          update_activity(Author, Date),
           Id
       end,
   {atomic, Res} = mnesia:transaction(F),
@@ -46,6 +49,7 @@ modify_post(Author, NewContent, NewMedia, NewHashtag, NewMention, NewLink_URL) -
   {atomic, Res} = mnesia:transaction(Fun),
   Res.
 
+%% Get post by PostID
 get_post_by_id(Id) ->
   Fun = fun() ->
             mnesia:match_object(#comment{post = Id,
@@ -102,6 +106,7 @@ delete_post(Id) ->
       end,
   mnesia:activity(transaction, F).
 
+%% Get all posts
 get_posts() ->
   Fun = fun() ->
             mnesia:all_keys(post)
@@ -109,8 +114,6 @@ get_posts() ->
   {atomic, Res} = mnesia:transaction(Fun),
   Res.
 
-
-%%% Date in tuple format
 %%% {2022,05,01}
 %%% User = [], select all users
 %%% USer = dat for particular
@@ -164,8 +167,6 @@ unlike_post(LikeID, PostId) ->
         end,
   {atomic, Res} = mnesia:transaction(Fun),
   Res.
-
-
 %% Content = [{text, Text}, {media, Media}, {mention, Name}, {like, Like}]
 add_comment(Author, PostID, Content) ->
   Fun = fun() ->
@@ -200,6 +201,7 @@ get_single_comment(CommentId) ->
   {atomic, Res} = mnesia:transaction(Fun),
   Res.
 
+%% Get all Comments for Specific Post using PostID
 get_all_comments(PostId) ->
   Fun = fun() ->
             mnesia:match_object(#comment{post = PostId,
@@ -238,9 +240,31 @@ get_likes(PostID) ->
   {atomic, Res} = mnesia:transaction(Fun),
   Res.
 
-
 get_media(Media) ->
   case Media of
     nil -> nil;
     Media -> [Media]  %% media link here
   end.
+% Report Post
+report_post(MyID, PostID, Type, Description) ->
+  Fun = fun() ->
+    ID = nanoid:gen(),
+    mnesia:read(post, PostID),
+        Report = #report{
+          id = ID,
+          type = Type,
+          description = Description,
+          reporter = MyID,
+          post = PostID,
+          date_created = calendar:universal_time()},
+        mnesia:write(Report),
+        ID
+  end,
+  {atomic, Res} = mnesia:transaction(Fun),
+  Res.
+
+update_activity(Author, Date) ->
+  User = userdb:get_user(Author),
+  UserID = User#user.id,
+  LastActivity = userdb:update_last_activity(UserID, Date),
+  LastActivity.

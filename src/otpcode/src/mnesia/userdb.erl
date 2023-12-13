@@ -1,5 +1,6 @@
 -module(userdb).
--include("../records.hrl").
+-author("Zaryn Technologies").
+-include("../records.hrl"). 
 
 -export([set_user_info/3, get_user_info/2,
          insert/3, insert_media/3, get_media/2,
@@ -11,7 +12,8 @@
          save_post/2, save_posts/2, unsave_post/2, unsave_posts/2,
          get_save_posts/1, get_follower/1, get_following/1,
          block/2, unblock/2, get_blocked/1, search_user/1, search_user_pattern/1,
-         insert_avatar/2, insert_banner/2]).
+         insert_avatar/2, insert_banner/2, report_user/4, update_last_activity/2,
+         last_activity_status/1, make_private/1, make_public/1]).
 
 -define(LIMIT_SEARCH, 50).
 
@@ -50,8 +52,9 @@ set_user_info(Username, Fields, Values) ->
           end
         end,
   {atomic, Res} = mnesia:transaction(Fun),
-  Res.
+  Res. 
 
+%% Register User account
 insert(Username, Password, Email) ->
     %% check username exist or not
     Fun = fun() ->
@@ -60,12 +63,18 @@ insert(Username, Password, Email) ->
                 Now = calendar:universal_time(),
                 Id = nanoid:gen(),
                 TokenID = nanoid:gen(),
+                Address = key_guardian:gen_address(80),
+                KNode = kademlia:insert_node(Id),
                 User = #user{id = Id,
                              username = Username,
                              password = erlpass:hash(Password),
                              email = Email,
+                             address = Address,
+                             knode = KNode,
                              date_created = Now,
-                             token_id = TokenID},
+                             token_id = TokenID,
+                             level = 1,
+                             last_activity = Now},
                 mnesia:write(User),
                 Id;
               {username_existed, _} -> username_and_email_existed;
@@ -116,7 +125,6 @@ insert_banner(Id, BannerUrl) ->
     {atomic, [User]} -> User;
     Res -> Res
   end.
-
 
 get_media(Id, Type) ->
   Fun = fun() ->
@@ -418,6 +426,7 @@ unblock(Id, Unblocked) ->
   {atomic, Res} = mnesia:transaction(Fun),
   Res.
 
+% Get Blocked USers (MyID)
 get_blocked(Id) ->
   Fun = fun() ->
           [#user{blocked = BlockedList}] = mnesia:read(user, Id),
@@ -426,15 +435,17 @@ get_blocked(Id) ->
   {atomic, Res} = mnesia:transaction(Fun),
   Res.
 
+% Search user by USername
 search_user(Username) ->
-    Pattern = {user, '_', Username, '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_'},
-
-    Fun = fun() ->
-          mnesia:match_object(Pattern)
-        end,
-
-    mnesia:transaction(Fun).
-
+    Res = mnesia:transaction(
+            fun() ->
+                mnesia:match_object(#user{username = Username, _= '_'})
+            end),
+    case Res of
+        {atomic, []} -> username_not_exist;
+        {atomic, [User]} -> User;
+        _ -> error
+    end.
 
 search_user_pattern(Pattern) ->
     Fun = fun() ->
@@ -454,3 +465,55 @@ search_user_pattern(Pattern, [H|T]= _Names, ?LIMIT_SEARCH, Acc) ->
     {match, _} ->
       search_user_pattern(Pattern, T, ?LIMIT_SEARCH, [H|Acc])
   end.
+
+% Report User 
+report_user(MyID, UserID, Type, Description) ->
+  Fun = fun() ->
+    ID = nanoid:gen(),
+    mnesia:read(user, MyID),
+        Report = #report{
+          id = ID,
+          type = Type,
+          description = Description,
+          reporter = MyID,
+          user = UserID,
+          date_created = calendar:universal_time()},
+        mnesia:write(Report),
+        ID
+  end,
+  {atomic, Res} = mnesia:transaction(Fun),
+  Res.
+
+update_last_activity(UserID, Date) ->
+  Fun = fun() ->
+    [User] = mnesia:read(user, UserID),
+    mnesia:write(User#user{last_activity = Date})
+  end,
+  {atomic, Res} = mnesia:transaction(Fun),
+  Res.
+
+last_activity_status(UserID) ->
+  User = get_user_by_id(UserID),
+  LastActivity = User#user.last_activity,
+  LastActivity.
+
+make_private(UserID) ->
+  Fun = fun() ->
+    Message = "The Profile is Private now",
+    [User] = mnesia:read(user, UserID),
+    mnesia:write(User#user{private = true}),
+    Message
+  end,
+  {atomic, Res} = mnesia:transaction(Fun),
+  Res.
+
+make_public(UserID) ->
+  Fun = fun() ->
+    Message = "The profile is public now",
+    [User] = mnesia:read(user, UserID),
+    mnesia:write(User#user{private = false}),
+    Message
+  end,
+  {atomic, Res} = mnesia:transaction(Fun),
+  Res.
+    

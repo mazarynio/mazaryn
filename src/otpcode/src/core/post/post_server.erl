@@ -7,10 +7,8 @@
 %%% Created : 14. May 2022 9:45 PM
 %%%-------------------------------------------------------------------
 -module(post_server).
--author("mazaryn").
-
+-author("Zaryn Technologies").
 -define(NUM, 5).
-
 -include_lib("kernel/include/logger.hrl").
 
 -behaviour(gen_server).
@@ -25,7 +23,7 @@
 
 -export([save_post/2, unsave_post/2,
          save_posts/2, unsave_posts/2,
-         get_save_posts/1]).
+         get_save_posts/1, report_post/4]).
 
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2,
@@ -110,6 +108,9 @@ unsave_posts(Username, PostIds) ->
 
 get_save_posts(Username) ->
     gen_server:call({global, ?MODULE}, {get_save_posts, Username}).
+
+report_post(MyID, PostID, Type, Description) ->
+    gen_server:call({global, ?MODULE}, {report_post, MyID, PostID, Type, Description}).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% INTERNAL FUNCTIONS %%%%%%%%%%%%%%%%%
 init([]) ->
@@ -217,6 +218,10 @@ handle_call({unsave_posts, Username, PostIds}, _From, State) ->
 
 handle_call({get_save_posts, Username}, _From, State) ->
     Res = userdb:get_save_posts(Username),
+    {reply, Res, State};
+
+handle_call({report_post, MyID, PostID, Type, Description}, _From, State) ->
+    Res = postdb:report_post(MyID, PostID, Type, Description),
     {reply, Res, State};
 
 handle_call(_Request, _From, State) ->

@@ -1,5 +1,5 @@
 -module(user_server).
-
+-author("Zaryn Technologies").
 -include_lib("kernel/include/logger.hrl").
 
 -export([start_link/0,
@@ -16,7 +16,7 @@
          get_following/1, get_follower/1,
          block/2, unblock/2, get_blocked/1, add_media/3, get_media/2,
          search_user/1, search_user_pattern/1, insert_avatar/2,
-         insert_banner/2]).
+         insert_banner/2, report_user/4, make_private/1, make_public/1]).
 
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2,
@@ -26,7 +26,7 @@
 -define(SERVER, ?MODULE).
 -record(state, {}).
 
-
+%% @doc start Server 
 start_link() ->
     gen_server:start_link({global, ?SERVER}, ?MODULE, [], []).
 
@@ -144,6 +144,14 @@ search_user(Username) ->
 search_user_pattern(Pattern) ->
     gen_server:call({global, ?MODULE}, {search_user_pattern, Pattern}).
 %% INTERNAL HANDLERS
+report_user(MyID, UserID, Type, Description) ->
+    gen_server:call({global, ?MODULE}, {report_user, MyID, UserID, Type, Description}).
+
+make_private(UserID) ->
+    gen_server:call({global, ?MODULE}, {make_private, UserID}).
+
+make_public(UserID) ->
+    gen_server:call({global, ?MODULE}, {make_public, UserID}).
 
 init([]) ->
     ?LOG_NOTICE("User server has been started - ~p", [self()]),
@@ -300,6 +308,18 @@ handle_call({search_user, Username}, _From, State) ->
 
 handle_call({search_user_pattern, Pattern}, _From, State) ->
     Res = userdb:search_user_pattern(Pattern),
+    {reply, Res, State};
+
+handle_call({report_user, MyID, UserID, Type, Description}, _From, State) ->
+    Res = userdb:report_user(MyID, UserID, Type, Description),
+    {reply, Res, State};
+
+handle_call({make_private, UserID}, _From, State) ->
+    Res = userdb:make_private(UserID),
+    {reply, Res, State};
+
+handle_call({make_public, UserID}, _From, State) ->
+    Res = userdb:make_public(UserID),
     {reply, Res, State};
 
 handle_call(_Request, _From, State) ->

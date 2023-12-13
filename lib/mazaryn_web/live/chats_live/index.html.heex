@@ -37,7 +37,12 @@
   </div>
   <!-- end of middle column-->
   <div class=" w-full lg:w-2/6 bg-gray-100 py-10 pr-10">
-    <.chat_list contacts={@contacts} title="Chats" />
-    <.chat_list contacts={@other_users} title="People you may know" />
+    <.chat_list contacts={@contacts} title="Chats" show_search={false} , />
+    <.chat_list
+      contacts={@recent_chat_recepients}
+      title=""
+      show_search={true}
+      search_query={@search_query}
+    />
   </div>
 </div>

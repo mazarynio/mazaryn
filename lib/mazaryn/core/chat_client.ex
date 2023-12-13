@@ -1,8 +1,14 @@
 defmodule Core.ChatClient do
-  def start, do: :chat_server.start_link()
+  @moduledoc """
+  This module facilitates communication with Erlang functions using GenServer.
+  """
 
-  def send_msg(user_id, recipient_id, body) do
-    :chat_server.send_msg(user_id, recipient_id, body)
+  @doc """
+  iex> Core.ChatClient.send_msg(~c"zKegB4mWRXP3PDVuntpnA", ~c"Xvegu4mWR7PdJDLuntpoQ", "hello", "media")
+  ~c"svEln4mWR5PdJcPuntpo7"
+  """
+  def send_msg(user_id, recipient_id, body, media) do
+    :chat_server.send_msg(user_id, recipient_id, body, media)
   end
 
   def get_msg(chat_id) do

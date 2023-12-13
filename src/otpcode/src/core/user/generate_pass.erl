@@ -7,8 +7,8 @@ generate() ->
                   [A, B, C band 16#0fff, D band 16#3fff bor 16#8000, E])).
 
 new() ->
-  AllowedChars = "qwA$zbBcCdDe#%&@*EertyQWERTY1234567890",
-  Length = 15,
+  AllowedChars = "qwA$zbBcCdDe#%&@*EertyQWERTY1234567890abcdfghij",
+  Length = 6,
   lists:foldl(fun(_, Acc) ->
     [lists:nth(rand:uniform(length(AllowedChars)),
       AllowedChars)]

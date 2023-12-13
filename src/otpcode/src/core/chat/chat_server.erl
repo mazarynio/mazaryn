@@ -10,7 +10,7 @@
 %%API
 -export([
     start_link/0,
-    send_msg/3, send_msg_bot/2,
+    send_msg/4, send_msg_bot/2,
     get_msg/1,
     get_msg_bot/1,
     get_all_msg/1,
@@ -31,12 +31,12 @@
     handle_info/2,
     terminate/2
 ]).
-
+ %% Start Chat Server 
 start_link() ->
     gen_server:start_link({global, ?SERVER}, ?MODULE, [], []).
 
-send_msg(UserID, RecipientID, Body) ->
-    gen_server:call({global, ?MODULE}, {send_msg, UserID, RecipientID, Body}).
+send_msg(UserID, RecipientID, Body, Media) ->
+    gen_server:call({global, ?MODULE}, {send_msg, UserID, RecipientID, Body, Media}).
 
 send_msg_bot(UserID, Body) ->
     gen_server:call({global, ?MODULE}, {send_msg_bot, UserID, Body}).
@@ -75,8 +75,8 @@ init([]) ->
     ?LOG_NOTICE("Chat server has been started - ~p", [self()]),
     {ok, #state{}}.
 
-handle_call({send_msg, UserID, RecipientID, Body}, _From, State = #state{}) ->
-    Res = chatdb:send_msg(UserID, RecipientID, Body),
+handle_call({send_msg, UserID, RecipientID, Body, Media}, _From, State = #state{}) ->
+    Res = chatdb:send_msg(UserID, RecipientID, Body, Media),
     {reply, Res, State};
 handle_call({send_msg_bot, UserID, Body}, _From, State = #state{}) ->
     Res = chatbot:send_msg(UserID, Body),

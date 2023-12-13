@@ -1,5 +1,12 @@
 defmodule Core.BlogClient do
+  @moduledoc """
+  This module facilitates communication with Erlang functions using GenServer.
+  """
 
+  @doc """
+  iex> Core.BlogClient.insert("username", "this is my first blog post about Animals")
+  ~c"svEln4mWR5PdJcPuntpo7"
+  """
   def insert(author, content, _media) do
     :blog_server.insert(author, content, _media)
   end

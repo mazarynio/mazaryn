@@ -1,9 +1,11 @@
 %% TODO: change id order for testing, modify later
--record(user, { id,
+-record(user, { id, 
                 username,
                 password,
                 email,
-                media= [],
+                address,
+                knode = [],
+                media = [],
                 post = [],
                 blog_post = [],
                 notif = [],
@@ -20,6 +22,10 @@
                 token_id,
                 chat = [],
                 verified = false,
+                report = [],
+                level, % Includes 5 Levels based on User Activity
+                last_activity,
+                suspend = [],
                 data = #{} }). 
 
 -record(notif, { id,
@@ -40,6 +46,7 @@
                 other = [],
                 date_created,
                 date_updated,
+                report = [],
                 data = #{} }). 
 
 -record(blog_post, {id, 
@@ -71,10 +78,11 @@
                date_created,
                data = #{} }).
 
--record(chat, {id,
+-record(chat, {id, 
                user_id,
                recipient_id,
                body,
+               media = [],
                bot,
                date_created,
                date_updated,
@@ -86,6 +94,25 @@
 -record(following, {id, username, data = #{} }).
 -record(hed_wallet, { id, password, date_created, data =#{} }).
 
--record(media, {id, user_id, file, files, type, date_created, date_updated, data = #{}}).
+-record(media, {id, user_id, file, files, type,
+date_created, date_updated, report = [], data = #{}}). 
+-record(suspend, {
+    id,
+    user,
+    status = false,
+    date_created,
+    duration
+}).
+-record(report, {
+    id,
+    type,
+    description,
+    reporter,
+    user,
+    post,
+    media,
+    date_created,
+    data = #{}
+}).
 
 -define(MSG_INSUFFICIENT_FUNDS, <<"Insufficient funds.">>).

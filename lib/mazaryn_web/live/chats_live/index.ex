@@ -17,7 +17,9 @@ defmodule MazarynWeb.ChatsLive.Index do
       search: nil,
       found_users: [],
       chats: [],
-      users_without_chats: []
+      users_without_chats: [],
+      show_search: false,
+      search_query: nil
     ]
 
     if connected?(socket),
@@ -36,6 +38,13 @@ defmodule MazarynWeb.ChatsLive.Index do
   end
 
   @impl true
+  def handle_event("search_following", %{"search_query" => search_query}, socket) do
+    user = search_user_by_username(search_query)
+
+    {:noreply, assign(socket, recent_chat_recepients: user || [], search_query: search_query)}
+  end
+
+  @impl true
   def handle_info({:new_message, chat}, socket) do
     {:noreply, assign(socket, :messages, [chat | socket.assigns.messages])}
   end
@@ -48,7 +57,8 @@ defmodule MazarynWeb.ChatsLive.Index do
       {:new_message, chat}
     )
 
-    {:noreply, assign(socket, :messages, [chat | socket.assigns.messages])}
+    messages = List.insert_at(socket.assigns.messages, -1, chat)
+    {:noreply, assign(socket, :messages, messages)}
   end
 
   ## Private
@@ -56,20 +66,38 @@ defmodule MazarynWeb.ChatsLive.Index do
   # index page loads most recent chat, and filters messages by the chat's recipient
   # index page also looks up for the specific chat given the recipient_id
   defp apply_action(%{assigns: %{user: actor}} = socket, :index, params) do
-    previous_contacts = Chats.get_users_with_chats(actor) |> IO.inspect()
+    previous_contacts = Chats.get_users_with_chats(actor)
     current_recipient = Chats.get_latest_recipient(params["recipient_id"] || actor)
     messages = Chats.get_chat_messages(actor, current_recipient)
+
+    recent_chat_recepients = Chats.get_users_chatted_to(actor)
 
     assign(socket,
       current_recipient: current_recipient || struct(%User{}, chat: []),
       blank_chat?: is_nil(current_recipient),
       messages: messages,
       contacts: previous_contacts,
+      recent_chat_recepients: recent_chat_recepients,
       other_users:
         Users.list()
         |> Enum.map(&(&1 |> Users.one_by_id() |> elem(1)))
         |> Kernel.--(previous_contacts)
         |> Kernel.--([actor])
     )
+  end
+
+  defp search_user_by_username(username) do
+    case username |> Core.UserClient.search_user() do
+      :username_not_exist ->
+        nil
+
+      erl_user ->
+        [
+          erl_user
+          |> User.erl_changeset()
+          |> User.build()
+          |> elem(1)
+        ]
+    end
   end
 end

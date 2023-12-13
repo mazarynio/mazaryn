@@ -1,6 +1,6 @@
 -module(mediadb).
 -author("Zaryn Technologies").
--export([insert_media/2, delete_file/1, get_media/1, get_all_media/1]).
+-export([insert_media/2, delete_file/1, get_media/1, get_all_media/1, report_media/4]).
 
 -include("../records.hrl").
 -include_lib("stdlib/include/qlc.hrl").
@@ -26,7 +26,6 @@ delete_file(MediaID) ->
     end,
     mnesia:activity(transaction, Fun).
 
-
 get_media(MediaID) -> 
     Fun = fun() ->
             [Media] = mnesia:read({media, MediaID}),
@@ -48,3 +47,20 @@ get_all_media(UserID) ->
           end,
     {atomic, Res} = mnesia:transaction(Fun),
     Res.
+
+report_media(MyID, MediaID, Type, Description) ->
+  Fun = fun() ->
+    ID = nanoid:gen(),
+    mnesia:read(media, MediaID),
+        Report = #report{
+          id = ID,
+          type = Type,
+          description = Description,
+          reporter = MyID,
+          media = MediaID,
+          date_created = calendar:universal_time()},
+        mnesia:write(Report),
+        ID
+  end,
+  {atomic, Res} = mnesia:transaction(Fun),
+  Res.

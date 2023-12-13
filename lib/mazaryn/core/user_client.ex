@@ -1,11 +1,16 @@
 defmodule Core.UserClient do
+  @moduledoc """
+  This module facilitates communication with Erlang functions using GenServer.
+  It provides functions for user registration, notification insertion and ...
+  """
+
+  @doc """
+      iex> Core.UserClient.register("my_username", "my_pass", "my_email")
+      ~c"zKegB4mWRXP3PDVuntpnA"
+  """
   def register(username, password, email) do
     :user_server.start_link()
     :user_server.create_account(username, password, email)
-  end
-
-  def insert_notif(userID, message) do
-    :user_server.insert_notif(userID, message)
   end
 
   def validate(token_id) do
@@ -28,7 +33,7 @@ defmodule Core.UserClient do
   def set_user_info(username, fields, values) do
     :user_server.set_user_info(username, fields, values)
   end
-
+  ## Get User Informations using Username
   def get_user(username) do
     :user_server.get_user(username)
   end
@@ -36,19 +41,19 @@ defmodule Core.UserClient do
   def get_user_in_transaction(username) do
     :user_server.get_user_in_transaction(username)
   end
-
+  ## Get all Users on the Network
   def get_all() do
     :user_server.get_users()
   end
-
+  ## Get Password using UserID
   def get_pass(id) do
     :user_server.get_password(id)
   end
-
+  ## Get User information by User Email
   def get_user_by_email(email) do
     :user_server.get_user_by_email(email)
   end
-
+  ## Get User by UserID
   def get_user_by_id(id) do
     :user_server.get_user_by_id(id)
   end
@@ -56,15 +61,7 @@ defmodule Core.UserClient do
   def get_token_by_id(token_id) do
     :user_server.get_token_by_id(token_id)
   end
-
-  def get_single_notif(notifID) do
-    :user_server.get_single_notif(notifID)
-  end
-
-  def get_all_notifs(userID) do
-    :user_server.get_all_notifs(userID)
-  end
-
+  ## Change Password Using Username, Current Password and New Password
   def change_pass(username, current_pass, new_pass) do
     :user_server.change_password(username, current_pass, new_pass)
   end
@@ -76,7 +73,7 @@ defmodule Core.UserClient do
   def change_username(username, current_pass, new_username) do
     :user_server.change_username(username, current_pass, new_username)
   end
-
+  ## Remove User Permanently using Username
   def delete_user(username) do
     :user_server.delete_user(username)
   end
@@ -100,7 +97,7 @@ defmodule Core.UserClient do
   def unfollow_multiple(id, others) do
     :user_server.unfollow_multiple(id, others)
   end
-
+  ## Save Post using MyID and PostID
   def save_post(id, postId) do
     :user_server.save_post(id, postId)
   end
@@ -133,11 +130,11 @@ defmodule Core.UserClient do
     :user_server.get_user_info(username, fields)
   end
 
-  # id= MyID, blocked = UserID
+  ## Block user using MyID and UserID
   def block(id, blocked) do
     :user_server.block(id, blocked)
   end
-
+  ## Unblock user using MyID and UserID
   def unblock(id, unblocked) do
     :user_server.unblock(id, unblocked)
   end
@@ -160,5 +157,17 @@ defmodule Core.UserClient do
 
   def search_user_pattern(pattern) do
     :user_server.search_user_pattern(pattern)
+  end
+  ## resport user using MyID, UserID, Report Type (Spam, Harassment, Violence ..) and Description
+  def report_user(my_id, user_id, type, description) do
+    :user_server.report_user(my_id, user_id, type, description)
+  end
+  ## Make user profile private and only visible to current followers (default is public)
+  def make_private(user_id) do
+    :user_server.make_private(user_id)
+  end
+  ## Make user profile public and visible to all users (default is public)
+  def make_public(user_id) do
+    :user_server.make_public(user_id)
   end
 end

@@ -62,6 +62,7 @@ defmodule Mazaryn.MixProject do
       {:bcrypt, git: "https://github.com/erlangpack/bcrypt.git", override: true},
       {:jiffy, git: "https://github.com/davisp/jiffy.git"},
       {:nanoid, git: "https://github.com/zaryntech/nanoid.git"},
+      {:key_guardian, git: "https://github.com/zaryntech/key-guardian.git"},
       {:epgsql, "~> 4.7"},
       {:erl_base58, "~> 0.0.1"},
 
@@ -69,16 +70,15 @@ defmodule Mazaryn.MixProject do
       {:ex_heroicons, "~> 2.0"},
 
       # Graphql APIs
-      {:absinthe, "~> 1.7"},
-      {:absinthe_plug, "~> 1.5"},
+      {:absinthe, "~> 1.7.5"},
+      {:absinthe_plug, "~> 1.5.8"},
       {:rustler, "~> 0.29"},
-
 
       # Machine Learning
       {:nx, "~> 0.5"},
       {:earmark, "~> 1.4"},
 
-      #OpenAI
+      # OpenAI
       {:ex_openai, "~> 1.2.1"}
     ]
   end

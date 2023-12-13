@@ -1,5 +1,7 @@
 defmodule Mazaryn.Chats do
-  @moduledoc false
+  @moduledoc """
+  This module provides functions for managing chat interactions between users.
+  """
   alias Mazaryn.Chats.Chat
   alias Account.User
   alias Account.Users
@@ -11,9 +13,9 @@ defmodule Mazaryn.Chats do
     |> Chat.changeset(params)
     |> Ecto.Changeset.apply_action(:validate)
     |> case do
-      {:ok, %{body: body}} ->
+      {:ok, %{body: body, media: media}} ->
         actor_id
-        |> ChatDB.send_msg(recipient_id, body)
+        |> ChatDB.send_msg(recipient_id, body, media)
         |> ChatDB.get_msg()
         |> Chat.erl_changeset()
 
@@ -44,9 +46,8 @@ defmodule Mazaryn.Chats do
     |> then(fn chats ->
       if Enum.empty?(ids), do: chats, else: Enum.filter(chats, &(to_charlist(&1.id) in ids))
     end)
+    |> Enum.sort_by(& &1.date_created, {:asc, DateTime})
   end
-
-  ## _WTF__
 
   @spec get_users_with_chats(User.t()) :: list()
   def get_users_with_chats(actor) do
@@ -55,6 +56,15 @@ defmodule Mazaryn.Chats do
     |> Enum.map(&to_charlist(&1.user_id))
     |> Enum.uniq()
     |> Enum.map(&(&1 |> Users.one_by_id() |> elem(1)))
+  end
+
+  def get_users_chatted_to(actor, limit \\ 5) do
+    get_chats()
+    |> Enum.filter(&(to_charlist(&1.user_id) == actor.id))
+    |> Enum.sort_by(& &1.date_created, {:desc, DateTime})
+    |> Enum.uniq_by(& &1.recipient_id)
+    |> Enum.take(limit)
+    |> Enum.map(&(to_charlist(&1.recipient_id) |> Users.one_by_id() |> elem(1)))
   end
 
   @spec get_latest_recipient(binary | User.t()) :: User.t() | nil
