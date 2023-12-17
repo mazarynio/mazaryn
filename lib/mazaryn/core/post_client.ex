@@ -7,7 +7,6 @@ defmodule Core.PostClient do
     ~c"zKegB4mWRXP3PDVuntpnA"
   """
   def create(author, content, media \\ [], hashtag, mention, link_url) do
-    :post_server.start_link()
     :post_server.insert(author, content, media, hashtag, mention, link_url)
   end
 

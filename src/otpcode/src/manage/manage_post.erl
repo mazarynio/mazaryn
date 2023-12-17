@@ -3,7 +3,7 @@
 -include("../records.hrl").
 -export([get_post/1, delete_post/1, delete_hashtag/1, delete_post_content/1]).
 
-get_post(ID) ->
+get_post(ID) -> 
   Fun = fun() ->
             mnesia:match_object(#comment{post = ID,
                                          _ = '_'}),
@@ -42,7 +42,7 @@ delete_hashtag(PostID) ->
       Hashtag
   end.
 
-% Delete Post if the Content id Restricted
+% Delete Post if the Content is Restricted
 delete_post_content(PostID) ->
   Post = postdb:get_post_by_id(PostID),
   BannedList = post_content:banned_list(),
