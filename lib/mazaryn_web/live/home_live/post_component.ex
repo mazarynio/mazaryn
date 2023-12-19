@@ -223,6 +223,13 @@ defmodule MazarynWeb.HomeLive.PostComponent do
     end)
     |> Enum.join(" ")
     |> Earmark.as_html!(compact_output: true)
+    |> apply_styles()
+  end
+
+  defp apply_styles(html) do
+    html
+    |> String.replace("<a", "<a class=\"text-blue-500\"")
+    |> String.replace("</a>", "</a>")
   end
 
   defp activate_hashtag_only(hashtag, socket) do
