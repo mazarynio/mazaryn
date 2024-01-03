@@ -19,7 +19,9 @@ To start your Phoenix server:
   
   * First, Install Rust Language https://www.rust-lang.org/tools/install
   * Git clone the repo git clone https://github.com/mazarynio/mazaryn
-  * Setup the project on your local development environment by running `mix setup`
+  * Setup the project on your local development environment by running:
+    - `asdf install`, then,
+    - `mix setup`
   * Start Phoenix endpoint with `mix phx.server` or inside IEx with `iex -S mix phx.server`
 
 Now you can visit [`localhost:4000`](http://localhost:4000) from your browser.
