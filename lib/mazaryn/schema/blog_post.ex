@@ -30,10 +30,8 @@ defmodule Mazaryn.Schema.BlogPost do
   end
 
   def erl_changeset(
-        {:blog_post, id, content, comments, media, author, date_created,
-         date_updated, data}
+        {:blog_post, id, content, comments, media, author, date_created, date_updated, data}
       ) do
-
     preload_comments = preload_comments(comments)
 
     %__MODULE__{}

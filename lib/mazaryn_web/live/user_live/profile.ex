@@ -104,6 +104,7 @@ defmodule MazarynWeb.UserLive.Profile do
       |> assign(search: nil)
       |> assign(user: current_user)
       |> assign(current_user: current_user)
+
     {:noreply, socket}
   end
 
@@ -123,7 +124,7 @@ defmodule MazarynWeb.UserLive.Profile do
   end
 
   def handle_event("open_modal", %{"action" => "follower"}, socket) do
-    {:noreply, socket |> assign(follower_action: true, edit_action: false, follows_action: false )}
+    {:noreply, socket |> assign(follower_action: true, edit_action: false, follows_action: false)}
   end
 
   def handle_event("open_modal", %{"action" => "edit"}, socket) do
@@ -133,12 +134,12 @@ defmodule MazarynWeb.UserLive.Profile do
   def handle_event("open_modal", %{"action" => "follows"}, socket) do
     {:noreply, socket |> assign(follows_action: true, edit_action: false, follower_action: false)}
   end
-  
-  #def handle_event("block_user", %{"id" => id}, socket) do
-    #id = socket.assigns.current_user.id
-    #UserClient.block(id, blocked)
-    #{:noreply, socket}
-  #end
+
+  # def handle_event("block_user", %{"id" => id}, socket) do
+  # id = socket.assigns.current_user.id
+  # UserClient.block(id, blocked)
+  # {:noreply, socket}
+  # end
 
   # def handle_event("unblock_user", %{"id" => id}, socket) do
   # id = socket.assigns.current_user.id
@@ -158,16 +159,15 @@ defmodule MazarynWeb.UserLive.Profile do
     {:noreply, socket}
   end
 
-
   def handle_event("delete_user", %{"username" => username}, socket) do
     UserClient.delete_user(username)
     session_id = socket.assigns.session_uuid
     :ets.delete(:mazaryn_auth_table, :"#{session_id}")
+
     {:noreply,
-      socket
-      |> put_flash(:info, "successfully deleted")
-      |> push_redirect(to:  Routes.page_path(socket, :index))
-    }
+     socket
+     |> put_flash(:info, "successfully deleted")
+     |> push_redirect(to: Routes.page_path(socket, :index))}
   end
 
   defp handle_assigns(socket, user_id, id) do
@@ -209,5 +209,4 @@ defmodule MazarynWeb.UserLive.Profile do
     |> UserClient.get_following()
     |> Enum.count()
   end
-
 end

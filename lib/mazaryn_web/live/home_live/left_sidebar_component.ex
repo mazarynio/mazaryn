@@ -223,11 +223,12 @@ defmodule MazarynWeb.HomeLive.LeftSidebarComponent do
                       />
                     </svg>
                   </i>
-                      <%= live_redirect to: Routes.live_path(@socket, MazarynWeb.UserBlog.Index),
+                  <%= live_redirect to: Routes.live_path(@socket, MazarynWeb.UserBlog.Index),
                                      replace: false, class: "group flex align-center items-start text-base text-gray-500 font-semibold hover:text-blue-500" do %>
-
-                                        <div class="text-[#60616D] text-base leading-6 group-hover:text-[#4385F5]">Blog</div>
-                                    <% end %>
+                    <div class="text-[#60616D] text-base leading-6 group-hover:text-[#4385F5]">
+                      Blog
+                    </div>
+                  <% end %>
                 </a>
               </li>
               <li class="flex align-center items-center group mx-2 mb-7">

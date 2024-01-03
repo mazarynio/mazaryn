@@ -68,7 +68,7 @@
             <div class="ml-24 mb-2 text-left">
               <div class="block mb-0.5">
                 <span class="text-xl leading-5 text-black font-semibold tracking-wide align-baseline">
-                  <%= @user.username %> 
+                  <%= @user.username %>
                 </span>
                 <a class="ml-1.5 text-base text-black align-text-bottom">
                   @<%= @user.username %>
@@ -76,7 +76,6 @@
               </div>
             </div>
           </div>
-          
 
           <div class="w-full lg:w-6/12 pl-80 lg:order-2 lg:text-right lg:self-center px-40 ">
             <div class="inline-flex mt-4">
@@ -141,14 +140,18 @@
           <div class="relative w-full lg:w-6/12 lg:order-2 pr-0 mt-3.5"></div>
         </div>
 
-      <div class="ml-44 w-96">
-         <a class="ml-1.5 text-base text-black align-text-bottom"><%= @user.other_info["biography"] || "N/A" %></a>
+        <div class="ml-44 w-96">
+          <a class="ml-1.5 text-base text-black align-text-bottom">
+            <%= @user.other_info["biography"] || "N/A" %>
+          </a>
         </div>
 
         <div class="flex mt-3 ml-16 mr-8 mb-5">
           <div class="mr-10 p-3 text-center flex items-center">
             <i><%= Heroicons.icon("map-pin", class: "h-5 w-5 mr-2 fill-[#60616D]") %></i>
-            <a class="font-semibold text-black mr-1"><%= @user.other_info["location"] || "N/A" %></a>
+            <a class="font-semibold text-black mr-1">
+              <%= @user.other_info["location"] || "N/A" %>
+            </a>
           </div>
           <div class="mr-10 p-3 text-center flex items-center">
             <i><%= Heroicons.icon("newspaper", class: "h-5 w-5 mr-2 fill-[#60616D]") %></i>

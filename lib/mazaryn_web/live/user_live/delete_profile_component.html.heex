@@ -1,11 +1,17 @@
 <div class="delete-profile">
-    <h2 class="left-0 w-full font-semibold text-[20px] leading-[24px] text-black border-b border-b-[#AAA] pb-5 mr-10">
-        Account deletion
-    </h2>
-    <p class="my-5">This will permanently and irreversibly remove content from your account and disable your account. Your username will remain reserved to prevent future identity theft.</p>
-    <div class="wrap-delete-btn">
-         <button phx-click="delete_user" phx-value-username={@username} class="w-full py-2.5 px-5 text-base text-[#FAFAFA] focus:outline-none rounded-[10px] bg-red-400 hover:bg-red-500 hover:text-white focus:z-10 focus:ring-4 focus:ring-gray-200">
-            Delete Account
-        </button>
-    </div> 
+  <h2 class="left-0 w-full font-semibold text-[20px] leading-[24px] text-black border-b border-b-[#AAA] pb-5 mr-10">
+    Account deletion
+  </h2>
+  <p class="my-5">
+    This will permanently and irreversibly remove content from your account and disable your account. Your username will remain reserved to prevent future identity theft.
+  </p>
+  <div class="wrap-delete-btn">
+    <button
+      phx-click="delete_user"
+      phx-value-username={@username}
+      class="w-full py-2.5 px-5 text-base text-[#FAFAFA] focus:outline-none rounded-[10px] bg-red-400 hover:bg-red-500 hover:text-white focus:z-10 focus:ring-4 focus:ring-gray-200"
+    >
+      Delete Account
+    </button>
+  </div>
 </div>

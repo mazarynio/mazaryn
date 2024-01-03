@@ -36,7 +36,6 @@ if config_env() == :prod do
     pool_size: String.to_integer(System.get_env("POOL_SIZE") || "10"),
     socket_options: maybe_ipv6
 
-
   # The secret key base is used to sign/encrypt cookies and other secrets.
   # A default value is used in config/dev.exs and config/test.exs but you
   # want to use a different value for prod and you most likely don't want
@@ -63,7 +62,8 @@ if config_env() == :prod do
       port: port
     ],
     secret_key_base: secret_key_base
-    #check_origin: ["https://mazaryn.io", "https://mazaryn.fly.dev"]
+
+  # check_origin: ["https://mazaryn.io", "https://mazaryn.fly.dev"]
 
   config :mazaryn, :media,
     uploads_dir: "/app/bin/uploads",
@@ -90,7 +90,7 @@ if config_env() == :prod do
 
   # generate them at https://platform.openai.com/account/api-keys
   config :ex_openai,
-  api_key: System.get_env("OPENAI_API_KEY"),
-  organization_key: System.get_env("OPENAI_ORGANIZATION_KEY"),
-  http_options: [recv_timeout: 50_000]
+    api_key: System.get_env("OPENAI_API_KEY"),
+    organization_key: System.get_env("OPENAI_ORGANIZATION_KEY"),
+    http_options: [recv_timeout: 50_000]
 end

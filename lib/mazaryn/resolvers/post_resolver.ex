@@ -20,7 +20,7 @@ defmodule Resolvers.PostResolver do
   end
 
   def find_post_by_author(%{author: author}, _info) do
-     Posts.get_posts_by_author(author)
+    Posts.get_posts_by_author(author)
   end
 
   def find_post_by_hashtag(%{hashtag: hashtag}, _info) do
