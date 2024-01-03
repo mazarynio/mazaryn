@@ -7,7 +7,6 @@ defmodule MazarynWeb.ChatsLive.Index do
   alias Account.Users
   alias Account.User
   alias Mazaryn.Chats
-  alias Mazaryn.Chats.Chat
 
   on_mount {MazarynWeb.UserLiveAuth, :user_resource}
 

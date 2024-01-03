@@ -7,8 +7,8 @@ defmodule Core.BlogClient do
   iex> Core.BlogClient.insert("username", "this is my first blog post about Animals")
   ~c"svEln4mWR5PdJcPuntpo7"
   """
-  def insert(author, content, _media) do
-    :blog_server.insert(author, content, _media)
+  def insert(author, content, media) do
+    :blog_server.insert(author, content, media)
   end
 
   def delete_post(post_id) do

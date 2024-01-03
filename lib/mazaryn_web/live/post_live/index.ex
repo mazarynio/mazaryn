@@ -38,7 +38,7 @@ defmodule MazarynWeb.PostLive.Index do
         content: params["content"]
       })
 
-    post = Map.merge(%Post{}, socket.assigns.edit)
+    # post = Map.merge(%Post{}, socket.assigns.edit)
 
     # Update the post in the database.
     # PostClient.update_post(post, %{ title: params["title"], description:  params["description"]})
@@ -70,8 +70,6 @@ defmodule MazarynWeb.PostLive.Index do
   defp start_post_server, do: PostClient.start()
 
   defp get_post(user_id), do: Post.posts_from_user_following(user_id)
-
-  defp get_post_by_author(author), do: Post.posts_from_user(author)
 
   defp get_session_posts(socket) do
     socket.assigns.posts

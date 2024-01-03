@@ -11,7 +11,7 @@ defmodule Mazaryn.DataAbstractor do
     Enum.map(items, fn item ->
       if item.id == new_value.id do
         result =
-          Map.merge(item, new_value, fn _k, v1, v2 ->
+          Map.merge(item, new_value, fn _k, _v1, v2 ->
             v2
           end)
 

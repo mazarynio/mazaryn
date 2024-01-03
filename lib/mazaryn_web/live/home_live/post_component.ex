@@ -3,15 +3,13 @@ defmodule MazarynWeb.HomeLive.PostComponent do
 
   alias MazarynWeb.Live.Helper
   import MazarynWeb.Live.Helper
-  alias MazarynWeb.Component.SelectLive
-  alias Home.Post
   alias Account.Users
-  alias Account.User
   alias Core.UserClient
   alias Core.PostClient
   alias Mazaryn.Schema.Comment
   alias Mazaryn.Posts
 
+  @impl true
   def preload(list_of_assigns) do
     changeset = Comment.changeset(%Comment{})
     update_comment_changeset = Comment.changeset(%Comment{})
@@ -174,7 +172,7 @@ defmodule MazarynWeb.HomeLive.PostComponent do
       |> PostClient.get_likes()
       |> Enum.map(&(&1 |> Home.Like.erl_changeset() |> Home.Like.build() |> elem(1)))
       |> Enum.map(fn like -> like.user_id |> Core.UserClient.get_user_by_id() end)
-      |> Enum.map(&(&1 |> elem(2) |> Account.Users.one_by_username()))
+      |> Enum.map(&(&1 |> elem(2) |> Users.one_by_username()))
 
     {:noreply, assign(socket, users: users)}
   end
@@ -313,17 +311,18 @@ defmodule MazarynWeb.HomeLive.PostComponent do
       else: "follow_user"
   end
 
-  defp followers(username) do
-    username
-    |> UserClient.get_follower()
-    |> Enum.count()
-  end
+  # TODO: delete the following 2 functions if they are not used - Amos Kibet, 20th Dec, 2023
+  # defp followers(username) do
+  #   username
+  #   |> UserClient.get_follower()
+  #   |> Enum.count()
+  # end
 
-  defp followings(username) do
-    username
-    |> UserClient.get_following()
-    |> Enum.count()
-  end
+  # defp followings(username) do
+  #   username
+  #   |> UserClient.get_following()
+  #   |> Enum.count()
+  # end
 
   defp one_of_likes?(user_id, post_id) do
     post_id

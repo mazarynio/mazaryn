@@ -15,7 +15,7 @@ defmodule MazarynWeb.Schema do
       arg(:password, non_null(:string))
       arg(:email, non_null(:string))
 
-      resolve(&Resolvers.UserResolver.create_user/2)
+      resolve(&UserResolver.create_user/2)
     end
 
     @desc "Create a post"
@@ -27,38 +27,38 @@ defmodule MazarynWeb.Schema do
       arg(:mention, non_null(:string))
       arg(:link_url, non_null(:string))
 
-      resolve(&Resolvers.PostResolver.create_post/6)
+      resolve(&PostResolver.create/2)
     end
 
     @desc "Create a wallet"
     field :create_wallet, type: :hedera_wallet do
       arg(:password, non_null(:string))
 
-      resolve(&Resolvers.WalletResolver.create_wallet/1)
+      resolve(&WalletResolver.create_wallet/1)
     end
   end
 
   query do
     @desc "Get all users"
     field :users, list_of(:user) do
-      resolve(&Resolvers.UserResolver.all/2)
+      resolve(&UserResolver.all/2)
     end
 
     @desc "User Login"
     field :user_login, list_of(:user_login) do
-      resolve(&Resolvers.UserResolver.user_login/2)
+      resolve(&UserResolver.user_login/2)
     end
 
     @desc "find user by id"
     field :find_user_by_id, :find_user_by_id do
       arg(:id, non_null(:id))
-      resolve(&Resolvers.UserResolver.find_user_by_id/2)
+      resolve(&UserResolver.find_user_by_id/2)
     end
 
     @desc "find user by email"
     field :find_user_by_email, :find_user_by_email do
       arg(:email, non_null(:string))
-      resolve(&Resolvers.UserResolver.find_user_by_email/2)
+      resolve(&UserResolver.find_user_by_email/2)
     end
 
     @desc "find user by username"
@@ -69,30 +69,30 @@ defmodule MazarynWeb.Schema do
 
     @desc "Get all posts"
     field :posts, list_of(:post) do
-      resolve(&Resolvers.PostResolver.all/2)
+      resolve(&PostResolver.all/2)
     end
 
     @desc "find post by id"
     field :find_post_by_id, :find_post_by_id do
       arg(:id, non_null(:id))
-      resolve(&Resolvers.PostResolver.find_post_by_id/2)
+      resolve(&PostResolver.find_post_by_id/2)
     end
 
     @desc "find post by author"
     field :find_post_by_author, list_of(:post) do
       arg(:author, non_null(:string))
-      resolve(&Resolvers.PostResolver.find_post_by_author/2)
+      resolve(&PostResolver.find_post_by_author/2)
     end
 
     @desc "find post by hashtag"
     field :find_post_by_hashtag, list_of(:post) do
       arg(:hashtag, non_null(:string))
-      resolve(&Resolvers.PostResolver.find_post_by_hashtag/2)
+      resolve(&PostResolver.find_post_by_hashtag/2)
     end
 
     @desc "Get all wallets"
     field :wallets, list_of(:hedera_wallet) do
-      resolve(&Resolvers.WalletResolver.all/2)
+      resolve(&WalletResolver.all/2)
     end
   end
 end

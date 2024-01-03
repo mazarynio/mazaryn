@@ -31,12 +31,12 @@ defmodule Mazaryn.Posts do
     post_id = post_id |> to_charlist
 
     case PostClient.add_comment(author, post_id, content) do
+      {:error, some_error} ->
+        {:error, some_error}
+
       comment_id ->
         PostClient.get_single_comment(comment_id)
         |> Comment.erl_changeset()
-
-      {:error, some_error} ->
-        {:error, some_error}
     end
   end
 

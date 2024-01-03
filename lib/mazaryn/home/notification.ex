@@ -1,6 +1,5 @@
 defmodule Home.Notification do
   use Ecto.Schema
-  import Ecto.Changeset
 
   schema "notification" do
     field(:action, :string)

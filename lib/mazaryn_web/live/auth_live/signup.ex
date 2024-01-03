@@ -7,14 +7,6 @@ defmodule MazarynWeb.AuthLive.Signup do
   alias MazarynWeb.Router.Helpers, as: Routes
   require Logger
 
-  @signup_schema %{
-    username: [type: :string, required: true],
-    email: [type: :string, required: true],
-    password: [type: :string, required: true],
-    repassword: [type: :string, require: true],
-    check: [type: :boolean, require: true]
-  }
-
   @impl true
   def mount(_params, %{"session_uuid" => key}, socket) do
     changeset =

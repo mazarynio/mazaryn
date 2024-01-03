@@ -10,9 +10,7 @@ defmodule Mazaryn.MediaAPI do
   @spec(upload_file(%Ecto.Changeset{}) :: %Media{}, {:error, :string})
   def upload_file(%Ecto.Changeset{valid?: false} = changeset), do: changeset
 
-  def upload_file(%Ecto.Changeset{changes: %{user_id: user_id, file: file}} = changeset) do
-    media = Ecto.Changeset.get_field(changeset, :media, [])
-
+  def upload_file(%Ecto.Changeset{changes: %{user_id: user_id, file: file}} = _changeset) do
     case create(user_id, file) do
       {:ok, media_id} ->
         one_by_id(media_id)
