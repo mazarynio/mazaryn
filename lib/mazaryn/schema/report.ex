@@ -33,8 +33,9 @@ defmodule Mazaryn.Schema.Report do
     field(:data, :map)
   end
 
-  def erl_changeset({:report, id, type, description, reporter, user, post, media,
-   date_created, data}) do
+  def erl_changeset(
+        {:report, id, type, description, reporter, user, post, media, date_created, data}
+      ) do
     %__MODULE__{}
     |> change(%{
       id: id,

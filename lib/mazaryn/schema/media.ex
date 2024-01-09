@@ -2,7 +2,6 @@ defmodule Mazaryn.Schema.Media do
   use Ecto.Schema
   alias Timex
   import Ecto.Changeset
-  alias Account.Users
 
   @optional_fields ~w(
     id

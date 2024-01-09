@@ -1,8 +1,6 @@
 defmodule MazarynWeb.HomeLive.Home do
   use MazarynWeb, :live_view
 
-  alias Core.PostClient, as: PostClient
-
   import MazarynWeb.Live.Helper
   alias Mazaryn.Schema.Post
   alias Mazaryn.Posts
@@ -17,7 +15,6 @@ defmodule MazarynWeb.HomeLive.Home do
   end
 
   # case redirect form login, signup
-  @impl true
   def mount(_params, %{"session_uuid" => session_uuid} = _session, socket) do
     {:ok, do_mount(get_user_id(session_uuid), socket)}
   end
@@ -28,11 +25,18 @@ defmodule MazarynWeb.HomeLive.Home do
     {:noreply, push_redirect(socket, to: random_id)}
   end
 
+  def handle_event("do_search", %{"search" => search}, socket) do
+    socket = assign(socket, search: search)
+
+    {:noreply, socket |> push_redirect(to: Routes.live_path(socket, MazarynWeb.SearchLive.Index))}
+  end
+
   @impl true
   def handle_info(:reload_posts, socket) do
     {:noreply, assign(socket, posts: get_posts())}
   end
 
+  @impl true
   def handle_params(_params, _uri, socket) do
     {:noreply, socket}
   end
@@ -51,11 +55,5 @@ defmodule MazarynWeb.HomeLive.Home do
     |> assign(search: "")
     |> assign(user: user)
     |> assign(posts: posts)
-  end
-
-  def handle_event("do_search", %{"search" => search}, socket) do
-    socket = assign(socket, search: search)
-
-    {:noreply, socket |> push_redirect(to: Routes.live_path(socket, MazarynWeb.SearchLive.Index))}
   end
 end

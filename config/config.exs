@@ -11,6 +11,7 @@ config :ex_heroicons, type: "solid"
 
 config :mazaryn,
   ecto_repos: [Mazaryn.Repo]
+
 # Configures the endpoint
 config :mazaryn, MazarynWeb.Endpoint,
   url: [host: "localhost"],
@@ -69,4 +70,4 @@ config :phoenix, :json_library, Jason
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.
 import_config "#{config_env()}.exs"
-config :mnesia, dir: 'Mnesia/'
+config :mnesia, dir: ~c"Mnesia/"

@@ -4,7 +4,6 @@ defmodule MazarynWeb.SearchLive.Index do
   alias Account.Users
 
   alias Account.User
-  alias Mazaryn.Repo
   alias Mazaryn.Search
 
   @impl true

@@ -1,9 +1,20 @@
 defmodule MazarynWeb.Live.Helper do
   use MazarynWeb, :live_view
 
-  alias MazarynWeb.Router.Helpers, as: Routes
   alias Phoenix.LiveView.JS
   require Logger
+
+  @impl Phoenix.LiveView
+  def mount(_params, _session, socket) do
+    {:ok, socket}
+  end
+
+  @impl Phoenix.LiveView
+  def render(assigns) do
+    ~H"""
+    <div></div>
+    """
+  end
 
   def handle_avatar(user), do: user.avatar_url || ~p"/images/default-user.svg"
 
@@ -133,7 +144,6 @@ defmodule MazarynWeb.Live.Helper do
     end
   end
 
-
   @doc """
   <button phx-click={Phoenix.LiveView.JS.toggle(to: "#modal")}>Open Modal</button>
 
@@ -144,11 +154,9 @@ defmodule MazarynWeb.Live.Helper do
   """
 
   def modal(assigns) do
-
     ~H"""
     <div id="modal" class="hidden phx-modal fade-in">
-      <div class="phx-overlay" phx-click={hide_modal()}>
-      </div>
+      <div class="phx-overlay" phx-click={hide_modal()}></div>
       <div
         id="modal-content"
         class="phx-modal-content mx-auto border-[#888] border-0 md:border my-[60px] md:my-[30px] md:rounded-[20px]"

@@ -88,7 +88,7 @@ defmodule MazarynWeb.HomeLive.CreatePostComponent do
         send(self(), :reload_posts)
         socket
 
-      other ->
+      _other ->
         socket
     end
   end
