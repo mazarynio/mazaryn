@@ -1,5 +1,8 @@
 defmodule MazarynWeb.HashtagLive.Index do
   use MazarynWeb, :live_view
+  use Phoenix.Component
+  use Phoenix.LiveComponent
+  use Phoenix.LiveView
 
   alias Mazaryn.Posts
   alias Account.Users

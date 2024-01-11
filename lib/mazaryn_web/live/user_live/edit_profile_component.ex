@@ -1,5 +1,6 @@
 defmodule MazarynWeb.UserLive.EditProfileComponent do
   use MazarynWeb, :live_component
+  use Phoenix.Component
 
   import MazarynWeb.Live.Helper
   alias Phoenix.LiveView.JS

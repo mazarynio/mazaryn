@@ -1,5 +1,8 @@
 defmodule MazarynWeb.ChatsLive.Components.MessageInput do
   use MazarynWeb, :live_component
+  use Phoenix.Component
+  use Phoenix.LiveComponent
+  use Phoenix.LiveView
 
   alias MazarynWeb.Live.Helper
   alias Mazaryn.Chats

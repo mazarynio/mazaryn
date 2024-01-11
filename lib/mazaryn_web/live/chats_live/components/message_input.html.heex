@@ -38,7 +38,7 @@
       <div class="w-full grid grid-cols-6 gap-4 justify-center align-center items-center mt-[30px]">
         <%= for entry <- @uploads.media.entries do %>
           <div class="w-5/6">
-            <%= live_img_preview(entry, class: "pb-2") %>
+            <.live_img_preview entry={entry}, width="75" />
             <progress max="100" value={entry.progress} class="w-full" />
           </div>
           <div class="w-1/6">
@@ -97,7 +97,7 @@
             />
           </svg>
 
-          <%= live_file_input(@uploads.media, hidden: true) %>
+          <.live_file_input upload={@uploads.media} />
         </i>
       </div>
       <button

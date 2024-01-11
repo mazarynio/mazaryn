@@ -1,5 +1,6 @@
 defmodule MazarynWeb.ChatsLive.Index do
   use MazarynWeb, :live_view
+  use Phoenix.Component
   require Logger
 
   import MazarynWeb.ChatsLive.Components
