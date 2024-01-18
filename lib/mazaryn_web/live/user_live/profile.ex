@@ -29,6 +29,8 @@ defmodule MazarynWeb.UserLive.Profile do
 
     user_changeset = User.changeset(user)
 
+    privacy  = if user.private, do: "private", else: "public"
+
     socket =
       socket
       |> assign(session_uuid: session_uuid)
@@ -40,7 +42,8 @@ defmodule MazarynWeb.UserLive.Profile do
       |> assign(edit_action: false)
       |> assign(follower_action: false)
       |> assign(follows_action: false)
-      |> assign(form: to_form(privacy_changeset()))
+      |> assign(form: to_form(user_changeset))
+      |> assign(privacy: privacy)
 
     {:ok, socket}
   end
@@ -174,18 +177,18 @@ defmodule MazarynWeb.UserLive.Profile do
     }
   end
 
-  def handle_event("privacy", %{"user" => %{"privacy" => "private"}}, socket) do
-      UserClient.make_private(socket.assigns.current_user.id)
-      |> IO.inspect(label: "============")
+  def handle_event("privacy", %{"user" => %{"privacy" => privacy}}, socket) do
+      if privacy == "private" do
+        UserClient.make_private(socket.assigns.current_user.id)
+      else
+        UserClient.make_public(socket.assigns.current_user.id)
+      end
 
-      IO.inspect(socket.assigns, label: "=====socket====")
-      {:noreply, socket}
-  end
+      {:ok, user} = get_user_by_username(socket.assigns.current_user.username)
 
-  def handle_event("privacy", %{"user" => %{"privacy" => "public"}}, socket) do
-    UserClient.make_public(socket.assigns.current_user.id)
-    IO.inspect(socket.assigns, label: "=====socket====")
-    {:noreply, socket}
+      user_changeset = User.changeset(user)
+
+      {:noreply, socket |> assign(form: to_form(user_changeset)) |> assign(privacy: privacy)}
   end
 
   defp handle_assigns(socket, user_id, id) do
