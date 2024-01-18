@@ -246,7 +246,3 @@ defmodule MazarynWeb.UserLive.Profile do
   #if user is in private mode display everything to the followers
   #if user in public mode display everything to all mazaryn subscribers
 end
-
-# <.form for="#" phx-change="select">
-# <%= select form, :privacy, ["Public": "public", "Private": "private"] %>
-#   </.form>
