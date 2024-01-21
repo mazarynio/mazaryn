@@ -17,6 +17,7 @@ erl_crash.dump
 # Ignore digested assets cache.
 /priv/static/cache_manifest.json
 
+/priv/static/uploads/
 src/otpcode/log/
 npm-debug.log
 /assets/node_modules/
