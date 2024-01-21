@@ -20,4 +20,8 @@ defmodule MazarynWeb.PageController do
   def careers(conn, _params) do
     render(conn, "careers.html")
   end
+
+  def dummy(conn, _params) do
+    render(conn, "dummy.html")
+  end
 end
