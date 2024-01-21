@@ -1,8 +1,8 @@
 defmodule MazarynWeb.UserLive.EditProfileComponent do
   use MazarynWeb, :live_component
-  use Phoenix.Component
 
   import MazarynWeb.Live.Helper
+
   alias Phoenix.LiveView.JS
 
   @impl true
@@ -73,12 +73,21 @@ defmodule MazarynWeb.UserLive.EditProfileComponent do
     end
   end
 
-  @impl true
-  def preload(list_of_assigns) do
-    Enum.map(list_of_assigns, fn assigns ->
-      assigns
+  @impl Phoenix.LiveComponent
+  def update_many(assigns_socket_list) do
+    Enum.map(assigns_socket_list, fn {assigns, socket} ->
+      assign(socket, assigns)
     end)
   end
+
+  # TODO: delete below once edit profile bug is fixed
+  # def preload(list_of_assigns) do
+  #   IO.inspect(list_of_assigns, label: "[PRELOAD]")
+
+  #   Enum.map(list_of_assigns, fn assigns ->
+  #     assigns
+  #   end)
+  # end
 
   defp save_user_info(socket, params) do
     current_user = socket.assigns.current_user

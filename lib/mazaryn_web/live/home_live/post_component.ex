@@ -9,20 +9,24 @@ defmodule MazarynWeb.HomeLive.PostComponent do
   alias Mazaryn.Schema.Comment
   alias Mazaryn.Posts
 
-  @impl true
-  def preload(list_of_assigns) do
+  # TODO: revert to the deprecated `preload/1` if this doesn't work; I think it works
+  @impl Phoenix.LiveComponent
+  def update_many(list_of_assigns) do
     changeset = Comment.changeset(%Comment{})
     update_comment_changeset = Comment.changeset(%Comment{})
 
-    Enum.map(list_of_assigns, fn assigns ->
-      assigns
-      |> Map.put(:follow_event, follow_event(assigns.current_user.id, assigns.post.author))
-      |> Map.put(:follow_text, follow_text(assigns.current_user.id, assigns.post.author))
-      |> Map.put(:like_icon, like_icon(assigns.current_user.id, assigns.post.id))
-      |> Map.put(:like_event, like_event(assigns.current_user.id, assigns.post.id))
-      |> Map.put(:changeset, changeset)
-      |> Map.put(:update_comment_changeset, update_comment_changeset)
-      |> Map.put(:comments, assigns.post.comments)
+    Enum.map(list_of_assigns, fn {assigns, socket} ->
+      assigns =
+        assigns
+        |> Map.put(:follow_event, follow_event(assigns.current_user.id, assigns.post.author))
+        |> Map.put(:follow_text, follow_text(assigns.current_user.id, assigns.post.author))
+        |> Map.put(:like_icon, like_icon(assigns.current_user.id, assigns.post.id))
+        |> Map.put(:like_event, like_event(assigns.current_user.id, assigns.post.id))
+        |> Map.put(:changeset, changeset)
+        |> Map.put(:update_comment_changeset, update_comment_changeset)
+        |> Map.put(:comments, assigns.post.comments)
+
+      assign(socket, assigns)
     end)
   end
 

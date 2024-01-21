@@ -231,7 +231,7 @@
                   <%= for {_ref, msg} <- @uploads.avatar_url.errors do %>
                     <p class="alert alert-danger"><%= Phoenix.Naming.humanize(msg) %></p>
                   <% end %>
-                  <.live_file_input @uploads.avatar_url, hidden: true />
+                  <.live_file_input upload={@uploads.avatar_url} />
                 </div>
               </div>
               <div class="mt-[90px] md:mt-[60px] mb-[30px] ml-auto">
@@ -303,7 +303,7 @@
                       </figcaption>
                     </figure>
                   </label>
-                  <.live_file_input @uploads.banner_url, hidden: true />
+                  <.live_file_input upload={@uploads.banner_url} />
                   <!-- -->
                 </div>
               </div>

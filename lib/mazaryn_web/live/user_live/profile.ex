@@ -66,7 +66,9 @@ defmodule MazarynWeb.UserLive.Profile do
   @impl true
   def handle_info(:reload_posts, socket) do
     current_user = socket.assigns.current_user
-    {:noreply, assign(socket, posts: Posts.get_posts_by_author(current_user.username))}
+
+    posts = Posts.get_posts_by_author(current_user.username)
+    {:noreply, assign(socket, posts: posts)}
   end
 
   @impl true

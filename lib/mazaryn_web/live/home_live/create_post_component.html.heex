@@ -35,8 +35,8 @@
 
       <div class="w-full grid grid-cols-6 gap-4 justify-center align-center items-center mt-[30px]">
         <%= for entry <- @uploads.media.entries do %>
-          <div class="w-5/6">
-            <.live_img_preview entry={entry}, width="75" />
+          <div class="pb-2 w-[75px]">
+            <.live_img_preview entry={entry} />
             <progress max="100" value={entry.progress} class="w-full" />
           </div>
           <div class="w-1/6">
@@ -94,8 +94,7 @@
               fill="#AAAAAA"
             />
           </svg>
-
-          <.live_file_input upload={@uploads.media} />
+          <.live_file_input upload={@uploads.media} class="hidden" />
         </i>
         <%= live_component(SelectLive,
           id: "privacy-select",
@@ -106,7 +105,7 @@
       </div>
       <%= submit("Post",
         class:
-          "bg-[#4385F5] text-white rounded-[10px] py-1.5 px-6 self-auto min-h-[40px] min-w-[100px]",
+          "bg-[#4385F5] text-white rounded-[10px] py-1.5 px-6 ml-5 self-auto min-h-[40px] min-w-[100px]",
         phx_disabled_with: "Posting..."
       ) %>
     </div>
