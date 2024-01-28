@@ -145,7 +145,14 @@ defmodule MazarynWeb.UserLive.Profile do
   end
 
   def handle_event("open_modal", %{"action" => "report-user"}, socket) do
-    {:noreply, socket |> assign(report_user_action: true, follows_action: false, edit_action: false, follower_action: false)}
+    {:noreply,
+     socket
+     |> assign(
+       report_user_action: true,
+       follows_action: false,
+       edit_action: false,
+       follower_action: false
+     )}
   end
 
   # def handle_event("block_user", %{"id" => id}, socket) do

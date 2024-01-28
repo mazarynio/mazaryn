@@ -24,9 +24,9 @@ defmodule MazarynWeb.HomeLive.ReportUserComponent do
         class="flex flex-col justify-between align-center w-full m-0"
       >
         <div class="flex relative items-center p-0">
-        <div>
-          <label class="form-input-label">Type</label>
-        </div>
+          <div>
+            <label class="form-input-label">Type</label>
+          </div>
           <div>
             <%= live_component(SelectLive,
               id: "type",
@@ -37,8 +37,8 @@ defmodule MazarynWeb.HomeLive.ReportUserComponent do
           </div>
 
           <div>
-              <label class="form-input-label">Description</label>
-            </div>
+            <label class="form-input-label">Description</label>
+          </div>
           <div class="relative top-2.5 ml-1 text-sm leading-tight w-full">
             <%= textarea(
               f,
@@ -78,6 +78,13 @@ defmodule MazarynWeb.HomeLive.ReportUserComponent do
     {:noreply,
      socket
      |> put_flash(:info, "Thank You for reporting!")
-     |> push_redirect(to: Routes.live_path(socket, MazarynWeb.UserLive.Profile, socket.assigns.reported_user.username))}
+     |> push_redirect(
+       to:
+         Routes.live_path(
+           socket,
+           MazarynWeb.UserLive.Profile,
+           socket.assigns.reported_user.username
+         )
+     )}
   end
 end

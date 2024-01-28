@@ -67,9 +67,25 @@
 
             <div class="ml-24 mb-2 text-left">
               <div class="block mb-0.5">
-                <span class="text-xl leading-5 text-black font-semibold tracking-wide align-baseline">
-                  <%= @user.username %>
-                </span>
+                <div class="grid grid-flow-col auto-cols-max">
+                  <div class="relative">
+                    <span class="text-xl leading-5 text-black font-semibold tracking-wide align-baseline">
+                      <%= @user.username %>
+                    </span>
+                  </div>
+                  <%= if @current_user.verified do %>
+                    <div class="relative">
+                      <span>
+                        <img
+                          alt="verified user"
+                          src={Routes.static_path(@socket, "/images/verified.png")}
+                          class="rounded-full align-middle border-none max-h-6 max-w-6"
+                        />
+                      </span>
+                    </div>
+                  <% end %>
+                </div>
+
                 <a class="ml-1.5 text-base text-black align-text-bottom">
                   @<%= @user.username %>
                 </a>
@@ -134,40 +150,40 @@
                   <%= @follow_text %>
                 </button>
                 <div
-                x-data="{ open: false }"
-                x-on:click.outside="open = false"
-                class="flex justify-between align-center items-center"
-              >
-                <div class="w-90 flex justify-evenly items-center ml-1.5 text-sm self-start">
-                  <div class="relative">
-                    <i @click="open = !open">
-                      <%= Heroicons.icon("ellipsis-vertical",
-                        type: "solid",
-                        class: "h-7 w-7 fill-[#60616D] cursor-pointer"
-                      ) %>
-                    </i>
-                    <ul
-                      x-show="open"
-                      x-transition:enter="transition ease-out duration-200"
-                      x-transition:enter-start="opacity-0"
-                      x-transition:enter-end="opacity-100"
-                      x-transition:leave="transition ease-in duration-200"
-                      x-transition:leave-start="opacity-100"
-                      x-transition:leave-end="opacity-0"
-                      class="absolute top-4 right-4 bg-white rounded rounded-md text-blue-900 border p-3 border-blue space-y-2 w-32"
-                    >
-                    <li class="">
-                      <p
-                        class="text-gray-500 m-2 cursor-pointer"
-                        phx-click={JS.push("open_modal") |> open_modal()}
-                        phx-value-action="report-user"
+                  x-data="{ open: false }"
+                  x-on:click.outside="open = false"
+                  class="flex justify-between align-center items-center"
+                >
+                  <div class="w-90 flex justify-evenly items-center ml-1.5 text-sm self-start">
+                    <div class="relative">
+                      <i @click="open = !open">
+                        <%= Heroicons.icon("ellipsis-vertical",
+                          type: "solid",
+                          class: "h-7 w-7 fill-[#60616D] cursor-pointer"
+                        ) %>
+                      </i>
+                      <ul
+                        x-show="open"
+                        x-transition:enter="transition ease-out duration-200"
+                        x-transition:enter-start="opacity-0"
+                        x-transition:enter-end="opacity-100"
+                        x-transition:leave="transition ease-in duration-200"
+                        x-transition:leave-start="opacity-100"
+                        x-transition:leave-end="opacity-0"
+                        class="absolute top-4 right-4 bg-white rounded rounded-md text-blue-900 border p-3 border-blue space-y-2 w-32"
                       >
-                        Report
-                      </p>
-                    </li>
-                    </ul>
+                        <li class="">
+                          <p
+                            class="text-gray-500 m-2 cursor-pointer"
+                            phx-click={JS.push("open_modal") |> open_modal()}
+                            phx-value-action="report-user"
+                          >
+                            Report
+                          </p>
+                        </li>
+                      </ul>
+                    </div>
                   </div>
-                </div>
                 </div>
               <% end %>
             </div>
@@ -352,15 +368,15 @@
       </.modal>
     <% end %>
 
-    <%= if @report_user_action do %> 
-    <.modal>
-      <.live_component
-        module={MazarynWeb.HomeLive.ReportUserComponent}
-        id={@user.id}
-        reported_user={@user}
-        current_user={@current_user}
-      />
-    </.modal>
+    <%= if @report_user_action do %>
+      <.modal>
+        <.live_component
+          module={MazarynWeb.HomeLive.ReportUserComponent}
+          id={@user.id}
+          reported_user={@user}
+          current_user={@current_user}
+        />
+      </.modal>
     <% end %>
   </div>
 </div>

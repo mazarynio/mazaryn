@@ -24,5 +24,4 @@ defmodule MazarynWeb.PageController do
   def empty_page(conn, _params) do
     send_resp(conn, 200, "This is an empty page.")
   end
-
 end
