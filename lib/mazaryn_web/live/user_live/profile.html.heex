@@ -196,6 +196,8 @@
     </div>
   </div>
 
+    <%= if (@privacy == "public" or @current_user.id == @user.id) or @current_user.id in @user.follower do %>
+    
       <div class="flex flex-wrap">
         <div class="w-full lg:w-3/5">
           <ul class="profile_nav mb-8 py-4 px-2 flex flex-wrap text-base text-center bg-white custom-box-shadow rounded-[20px]">
@@ -275,6 +277,7 @@
           </div>
         <% end %>
       </div>
+      <% end %>
     </div>
 
     <%= if @edit_action do %>
