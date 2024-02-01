@@ -2,6 +2,7 @@ defmodule MazarynWeb.UserLive.EditProfileComponent do
   use MazarynWeb, :live_component
 
   import MazarynWeb.Live.Helper
+
   alias Phoenix.LiveView.JS
 
   @impl true
@@ -25,11 +26,12 @@ defmodule MazarynWeb.UserLive.EditProfileComponent do
      )}
   end
 
-  def handle_event("validate-profile-photo", params, socket) do
+  @impl true
+  def handle_event("validate-profile-photo", _params, socket) do
     {:noreply, socket}
   end
 
-  def handle_event("validate-info", params, socket) do
+  def handle_event("validate-info", _params, socket) do
     {:noreply, socket}
   end
 
@@ -41,7 +43,7 @@ defmodule MazarynWeb.UserLive.EditProfileComponent do
     {:noreply, save_user_info(socket, params)}
   end
 
-  def handle_event("save-profile-photo", params, socket) do
+  def handle_event("save-profile-photo", _params, socket) do
     current_user = socket.assigns.current_user
 
     case consume_upload(socket, :avatar_url) do
@@ -54,11 +56,11 @@ defmodule MazarynWeb.UserLive.EditProfileComponent do
     end
   end
 
-  def handle_event("validate-banner", params, socket) do
+  def handle_event("validate-banner", _params, socket) do
     {:noreply, socket}
   end
 
-  def handle_event("save-banner", params, socket) do
+  def handle_event("save-banner", _params, socket) do
     current_user = socket.assigns.current_user
 
     case consume_upload(socket, :banner_url) do
@@ -71,21 +73,31 @@ defmodule MazarynWeb.UserLive.EditProfileComponent do
     end
   end
 
-  def preload(list_of_assigns) do
-    Enum.map(list_of_assigns, fn assigns ->
-      assigns
+  @impl Phoenix.LiveComponent
+  def update_many(assigns_socket_list) do
+    Enum.map(assigns_socket_list, fn {assigns, socket} ->
+      assign(socket, assigns)
     end)
   end
+
+  # TODO: delete below once edit profile bug is fixed
+  # def preload(list_of_assigns) do
+  #   IO.inspect(list_of_assigns, label: "[PRELOAD]")
+
+  #   Enum.map(list_of_assigns, fn assigns ->
+  #     assigns
+  #   end)
+  # end
 
   defp save_user_info(socket, params) do
     current_user = socket.assigns.current_user
     fields = Map.keys(params)
     values = Map.values(params)
 
-   case Core.UserClient.set_user_info(current_user.id, fields, values) do
-    :ok -> socket |> assign(:success_msg, "Successfully Saved")
-    _ -> socket |> assign(:failure_msg, "Something went wrong not saved")
-   end
+    case Core.UserClient.set_user_info(current_user.id, fields, values) do
+      :ok -> socket |> assign(:success_msg, "Successfully Saved")
+      _ -> socket |> assign(:failure_msg, "Something went wrong not saved")
+    end
   end
 
   defp consume_upload(socket, field) do

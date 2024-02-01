@@ -13,7 +13,7 @@ defmodule Mazaryn.Comments do
         {:ok, comment_id}
 
       something_else ->
-        Logger.warn(something_else)
+        Logger.warning(something_else)
         {:error, something_else}
     end
   end

@@ -11,6 +11,7 @@ config :ex_heroicons, type: "solid"
 
 config :mazaryn,
   ecto_repos: [Mazaryn.Repo]
+
 # Configures the endpoint
 config :mazaryn, MazarynWeb.Endpoint,
   url: [host: "localhost"],

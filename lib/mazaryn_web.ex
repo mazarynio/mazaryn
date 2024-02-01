@@ -28,7 +28,6 @@ defmodule MazarynWeb do
       alias MazarynWeb.Router.Helpers, as: Routes
 
       unquote(verified_routes())
-
     end
   end
 

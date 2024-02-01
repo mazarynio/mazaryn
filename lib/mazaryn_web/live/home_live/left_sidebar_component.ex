@@ -71,7 +71,7 @@ defmodule MazarynWeb.HomeLive.LeftSidebarComponent do
 
               <li class="flex align-center items-center mx-2 mb-7">
                 <a
-                  href="index.html"
+                  href="home"
                   class="group flex items-start text-base text-gray-500 font-semibold hover:text-blue-500"
                 >
                   <i>
@@ -87,7 +87,7 @@ defmodule MazarynWeb.HomeLive.LeftSidebarComponent do
 
               <li class="flex align-center items-center mx-2">
                 <a
-                  href="index.html"
+                  href="/home"
                   class="group flex items-start text-base text-gray-500 font-semibold hover:text-blue-500"
                 >
                   <i>
@@ -124,7 +124,10 @@ defmodule MazarynWeb.HomeLive.LeftSidebarComponent do
           <div class="flex justify-center items-center">
             <ul>
               <li class="flex align-center items-center group mx-2 mb-7">
-                <%= live_patch to: Routes.live_path(@socket, MazarynWeb.HomeLive.Home), replace: false, class: "group flex items-start text-base text-gray-500 font-semibold group-hover:text-blue-500" do %>
+                <a
+                  href="home"
+                  class="group flex items-center text-base text-gray-500 font-semibold hover:text-blue-500"
+                >
                   <i>
                     <svg
                       class="h-6 w-5 mr-3.5 fill-[#60616D] group-hover:fill-[#4385F5]"
@@ -143,12 +146,12 @@ defmodule MazarynWeb.HomeLive.LeftSidebarComponent do
                   <div class="text-base leading-6 text-[#60616D] group-hover:text-[#4385F5]">
                     Wallet
                   </div>
-                <% end %>
+                </a>
               </li>
 
               <li class="flex align-center items-center mx-2 mb-7">
                 <a
-                  href="index.html"
+                  href="home"
                   class="group flex items-center text-base text-gray-500 font-semibold hover:text-blue-500"
                 >
                   <i>
@@ -204,10 +207,7 @@ defmodule MazarynWeb.HomeLive.LeftSidebarComponent do
           <div class="flex justify-center items-center">
             <ul>
               <li class="flex align-center items-center group mx-2 mb-7">
-                <a
-                  href="index.html"
-                  class="group flex items-start text-base text-gray-500 font-semibold"
-                >
+                <a href="home" class="group flex items-start text-base text-gray-500 font-semibold">
                   <i>
                     <svg
                       class="h-5 w-5 mr-3.5 fill-[#60616D] group-hover:text-[#4385F5]"
@@ -223,16 +223,17 @@ defmodule MazarynWeb.HomeLive.LeftSidebarComponent do
                       />
                     </svg>
                   </i>
-                      <%= live_redirect to: Routes.live_path(@socket, MazarynWeb.UserBlog.Index),
+                  <%= live_redirect to: Routes.live_path(@socket, MazarynWeb.UserBlog.Index),
                                      replace: false, class: "group flex align-center items-start text-base text-gray-500 font-semibold hover:text-blue-500" do %>
-
-                                        <div class="text-[#60616D] text-base leading-6 group-hover:text-[#4385F5]">Blog</div>
-                                    <% end %>
+                    <div class="text-[#60616D] text-base leading-6 group-hover:text-[#4385F5]">
+                      Blog
+                    </div>
+                  <% end %>
                 </a>
               </li>
               <li class="flex align-center items-center group mx-2 mb-7">
                 <a
-                  href="index.html"
+                  href="home"
                   class="flex items-start text-base text-gray-500 font-semibold group-hover:text-blue-500"
                 >
                   <i>
@@ -267,7 +268,7 @@ defmodule MazarynWeb.HomeLive.LeftSidebarComponent do
               </li>
               <li class="flex align-center items-center group mx-2 mb-7">
                 <a
-                  href="index.html"
+                  href="home"
                   class="group flex items-start text-base text-gray-500 font-semibold group-hover:text-blue-500"
                 >
                   <i>
@@ -290,7 +291,7 @@ defmodule MazarynWeb.HomeLive.LeftSidebarComponent do
               </li>
               <li class="flex align-center items-center  group mx-2 ">
                 <a
-                  href="index.html"
+                  href="home"
                   class="group flex items-start text-base text-gray-500 font-semibold group-hover:text-blue-500"
                 >
                   <i>

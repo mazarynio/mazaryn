@@ -1,4 +1,4 @@
--module(user_api).
+-module(post_api).
 -author("Zaryn Technologies").
 -export([start/0]).
 
@@ -16,7 +16,7 @@ start() ->
 
     % Specify the options for the HTTP server
     Options = [
-        {port, 50558},
+        {port, 50557},
         {server_name, "user_api"},
         {server_root, "../www"},
         {document_root, "../www"},
@@ -27,10 +27,9 @@ start() ->
     % Start the HTTP server
     case inets:start(httpd, Options) of
         {ok, _Pid} ->
-            io:format("Server started at http://localhost:50558 ~n");
+            io:format("Server started at http://localhost:50557 ~n");
         {error, already_started} ->
             io:format("Server is already running.~n");
         {error, _Reason} ->
             io:format("Failed to start server: ~p~n", [_Reason])
     end.
-

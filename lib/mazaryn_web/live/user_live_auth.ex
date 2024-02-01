@@ -1,5 +1,6 @@
 defmodule MazarynWeb.UserLiveAuth do
-  use MazarynWeb, :live_view
+  import Phoenix.LiveView
+  import Phoenix.Component
 
   require Logger
   # def on_mount(:default, _params, _session, socket) do
@@ -34,7 +35,7 @@ defmodule MazarynWeb.UserLiveAuth do
         |> elem(1)
       end)
 
-    if socket.assigns.user, do: {:cont, socket}, else: {:halt, redirect(socket, to: ~p"/home")}
+    if socket.assigns.user, do: {:cont, socket}, else: {:halt, redirect(socket, to: "/home")}
   end
 
   # def on_mount({:pubsub_subscribe, topics: topics}, _params, _session, socket) do

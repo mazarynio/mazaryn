@@ -6,7 +6,7 @@ defmodule Mazaryn.Signup.Form do
 
   import Ecto.Changeset
 
-  alias Account.User
+  alias Account.Users
   require Logger
 
   @password_message "Password must be between 8 and 20 characters"
@@ -64,7 +64,7 @@ defmodule Mazaryn.Signup.Form do
         :username_and_email_existed
 
       id ->
-        Account.Users.one_by_id(id)
+        Users.one_by_id(id)
     end
   end
 end

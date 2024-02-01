@@ -2,6 +2,7 @@ defmodule MazarynWeb.HomeLive.CreatePostComponent do
   use MazarynWeb, :live_component
 
   alias MazarynWeb.Live.Helper
+  alias MazarynWeb.Component.CustomComponents
   alias MazarynWeb.Component.SelectLive
   alias Mazaryn.Schema.Post
   alias Mazaryn.Posts
@@ -88,7 +89,7 @@ defmodule MazarynWeb.HomeLive.CreatePostComponent do
         send(self(), :reload_posts)
         socket
 
-      other ->
+      _other ->
         socket
     end
   end

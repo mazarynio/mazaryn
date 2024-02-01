@@ -2,14 +2,9 @@ defmodule MazarynWeb.NotificationLive.Index do
   use MazarynWeb, :live_view
 
   require Logger
-  import MazarynWeb.Live.Helper
+  # import MazarynWeb.Live.Helper
 
   alias Core.UserClient, as: UserClient
-  alias Account.User
-  alias Account.Users
-  alias Mazaryn.Schema.Post
-  alias Core.PostClient
-  alias Mazaryn.Posts
 
   def handle_event("insert_notif", %{"userID" => userID, "message" => message}, socket) do
     userID = UserClient.get_user_by_id(userID)

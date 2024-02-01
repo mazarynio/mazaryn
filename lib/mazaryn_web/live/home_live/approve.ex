@@ -1,6 +1,5 @@
 defmodule MazarynWeb.HomeLive.Approve do
   use MazarynWeb, :live_view
-  alias Core.PostClient, as: PostClient
 
   import MazarynWeb.Live.Helper
   alias Account.Users

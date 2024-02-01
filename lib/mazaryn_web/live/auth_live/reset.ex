@@ -20,12 +20,12 @@ defmodule MazarynWeb.AuthLive.Reset do
           # TODO: handle
           {:noreply, socket}
 
-        {:error, res} ->
+        {:error, _res} ->
           {:noreply, redirect(socket, to: "/reset")}
       end
     else
       # TODO: Display error msg on frontend
-      {:error, msg} ->
+      {:error, _msg} ->
         {:noreply, redirect(socket, to: "/reset")}
     end
   end

@@ -1,0 +1,4 @@
+name = "juliacode"
+uuid = "daa6ae63-bd1a-4cea-a70c-09d40830227c"
+authors = ["Zaryn Technologies <info@zaryn.io>"]
+version = "0.1.0"

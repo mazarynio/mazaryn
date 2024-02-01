@@ -81,6 +81,7 @@ defmodule MazarynWeb.Component.SelectLive do
     {:ok, assign(socket, assigns)}
   end
 
+  @impl true
   def handle_event("select-item", %{"selected-item" => selected_item} = _params, socket) do
     socket = assign(socket, selected_option: selected_item)
     {:noreply, socket}

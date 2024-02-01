@@ -1,12 +1,10 @@
 defmodule MazarynWeb.MediaLive.MusicComponent do
   use Phoenix.LiveView
-  use Phoenix.LiveComponent
 
-  import MazarynWeb.Live.Helper
-  alias Mazaryn.Schema.Media
-  alias Mazaryn.MediaAPI
-  alias Account.Users
   require Logger
+
+  alias Mazaryn.Schema.Media
+  alias Account.Users
 
   @impl true
   def mount(_params, %{"user_id" => user_id} = _session, socket) do
@@ -23,5 +21,12 @@ defmodule MazarynWeb.MediaLive.MusicComponent do
     |> assign(media_changeset: media_changeset)
     |> assign(search: "")
     |> assign(user: user)
+  end
+
+  @impl true
+  def render(assigns) do
+    ~H"""
+    <div></div>
+    """
   end
 end

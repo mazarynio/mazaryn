@@ -4,15 +4,8 @@ defmodule MazarynWeb.AuthLive.Login do
   import MazarynWeb.Live.Helper
 
   alias Account.User
-  alias Account.Users
-  alias Mazaryn.Token
   alias Mazaryn.Login
   require Logger
-
-  @login_schema %{
-    email: [type: :string, required: true],
-    password: [type: :string, required: true]
-  }
 
   @impl true
   def mount(_params, %{"session_uuid" => key}, socket) do
@@ -34,7 +27,7 @@ defmodule MazarynWeb.AuthLive.Login do
         |> Map.put(:action, :insert)
 
       case Login.Form.get_user_by_email(changeset) do
-        %Account.User{email: email} ->
+        %User{email: email} ->
           insert_session_token(key, email)
 
           {:noreply,
