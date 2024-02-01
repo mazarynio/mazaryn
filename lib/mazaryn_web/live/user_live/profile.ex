@@ -4,6 +4,8 @@ defmodule MazarynWeb.UserLive.Profile do
   require Logger
 
   import MazarynWeb.Live.Helper
+  import Phoenix.HTML.Form
+  import Phoenix.Component
   alias Core.UserClient
   alias Account.User
   alias Account.Users
@@ -23,9 +25,11 @@ defmodule MazarynWeb.UserLive.Profile do
 
     post_changeset = Post.changeset(%Post{})
 
-    user_changeset = User.changeset(%User{})
-
     {:ok, user} = get_user_by_username(username)
+
+    user_changeset = User.changeset(user)
+
+    privacy = if user.private, do: "private", else: "public"
 
     socket =
       socket
@@ -38,6 +42,8 @@ defmodule MazarynWeb.UserLive.Profile do
       |> assign(edit_action: false)
       |> assign(follower_action: false)
       |> assign(follows_action: false)
+      |> assign(form: to_form(user_changeset))
+      |> assign(privacy: privacy)
 
     {:ok, socket}
   end
@@ -170,6 +176,20 @@ defmodule MazarynWeb.UserLive.Profile do
      socket
      |> put_flash(:info, "successfully deleted")
      |> push_redirect(to: Routes.page_path(socket, :index))}
+  end
+
+  def handle_event("privacy", %{"user" => %{"privacy" => privacy}}, socket) do
+    if privacy == "private" do
+      UserClient.make_private(socket.assigns.current_user.id)
+    else
+      UserClient.make_public(socket.assigns.current_user.id)
+    end
+
+    {:ok, user} = get_user_by_username(socket.assigns.current_user.username)
+
+    user_changeset = User.changeset(user)
+
+    {:noreply, socket |> assign(form: to_form(user_changeset)) |> assign(privacy: privacy)}
   end
 
   defp handle_assigns(socket, user_id, id) do
