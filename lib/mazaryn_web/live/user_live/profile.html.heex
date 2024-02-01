@@ -190,7 +190,7 @@
 
         <div class="relative inline-block text-left mr-10">
        <.form for={@form} phx-change="privacy">
-          <%= select @form, :privacy, ["Public": "public", "Private": "private"], selected: @privacy %>
+          <%= select @form, :privacy, [Public: "public", Private: "private"], selected: @privacy, disabled: @current_user.id != @user.id %>
       </.form>
        </div>
     </div>

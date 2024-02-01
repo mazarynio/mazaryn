@@ -230,19 +230,4 @@ defmodule MazarynWeb.UserLive.Profile do
     |> UserClient.get_following()
     |> Enum.count()
   end
-
-  defp privacy_changeset(attrs \\ %{}) do
-    #below temp fix, before was no struct i.e %{}
-    data = %User{}
-
-    {data, %{private: :string}}
-    |> IO.inspect(label: "======private changeset=======")
-    |> Ecto.Changeset.cast(attrs,  [:private])
-  end
-
-  #Add a button to enable user to select the private/public options
-  #edit user private field in user struct to either false or true depending on the option selected above
-  #if user is in private mode only display cover photo and profile photo to the non-followers
-  #if user is in private mode display everything to the followers
-  #if user in public mode display everything to all mazaryn subscribers
 end
