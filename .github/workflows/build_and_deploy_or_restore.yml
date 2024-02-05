@@ -52,7 +52,7 @@ jobs:
       env:
         HOST: ${{ secrets.SSH_HOST_2 }}
         USER: ${{ secrets.SSH_USER }}
-        PASSWORD: ${{ secrets.SSH_PASSWORD }}
+        PASSWORD: ${{ secrets.SSH_PASSWORD_2 }}
         SOURCE: mazaryn_release.tar.gz
         TARGET: /home/zaryn/mazaryn_release.tar.gz
               
@@ -67,7 +67,7 @@ jobs:
       with:
         host: ${{ secrets.SSH_HOST_2 }}
         username: ${{ secrets.SSH_USER }}
-        password: ${{ secrets.SSH_PASSWORD }}
+        password: ${{ secrets.SSH_PASSWORD_2 }}
         script: |
            tar -xvf mazaryn_release.tar.gz 
 
@@ -77,7 +77,7 @@ jobs:
       with:
         host: ${{ secrets.SSH_HOST_2 }}
         username: ${{ secrets.SSH_USER }}
-        password: ${{ secrets.SSH_PASSWORD }}
+        password: ${{ secrets.SSH_PASSWORD_2 }}
         script: |
           sudo systemctl daemon-reload
           sudo systemctl stop mazaryn.service
@@ -95,7 +95,7 @@ jobs:
       with:
         host: ${{ secrets.SSH_HOST_2 }}
         username: ${{ secrets.SSH_USER }}
-        password: ${{ secrets.SSH_PASSWORD }}
+        password: ${{ secrets.SSH_PASSWORD_2 }}
         script: |
           journalctl -u mazaryn.service
           sudo systemctl stop mazaryn.service
