@@ -46,65 +46,13 @@ jobs:
         name: mazaryn_release
         path: mazaryn_release.tar.gz
 
-    - name: push artifact to remote server
-      id: deploy
-      uses: up9cloud/action-rsync@master
-      env:
-        HOST: ${{ secrets.SSH_HOST }}
-        USER: ${{ secrets.SSH_USER }}
-        PASSWORD: ${{ secrets.SSH_PASSWORD }}
-        SOURCE: mazaryn_release.tar.gz
-        TARGET: /home/zaryn/mazaryn_release.tar.gz
-
-# -------------------- new data center 
-  build_new:
-    name: Build 
-    runs-on: ubuntu-latest
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
-
-    - name: Set up Elixir
-      uses: erlef/setup-elixir@v1
-      with:
-        otp-version: '26.2'
-        elixir-version: '1.16.0'
-
-    - name: Install Node.js
-      uses: actions/setup-node@v3
-      with:
-        node-version: '19.6'
-
-    - name: Install dependencies
-      run: |
-        mix local.rebar --force
-        mix local.hex --force
-        MIX_ENV=prod mix deps.get
-        npm install --prefix assets
-        mix assets.setup
-        mix assets.build
-        mix assets.deploy
-        mix phx.digest
-
-    - name: Build release
-      run: |
-        MIX_ENV=prod mix release --overwrite --path ../mazaryn_release_new
-        ls -alh ../mazaryn_release_new
-        tar -czvf mazaryn_release.tar.gz ../mazaryn_release_new
-
-    - name: Upload artifact
-      uses: actions/upload-artifact@v2
-      with:
-        name: mazaryn_release
-        path: mazaryn_release.tar.gz
-
-    - name: push artifact to remote server
+    - name: push artifact to remote server 1
       id: deploy
       uses: up9cloud/action-rsync@master
       env:
         HOST: ${{ secrets.SSH_HOST_2 }}
         USER: ${{ secrets.SSH_USER }}
-        PASSWORD: ${{ secrets.SSH_PASSWORD_2 }}
+        PASSWORD: ${{ secrets.SSH_PASSWORD }}
         SOURCE: mazaryn_release.tar.gz
         TARGET: /home/zaryn/mazaryn_release.tar.gz
               
@@ -117,7 +65,7 @@ jobs:
       id: install
       uses: appleboy/ssh-action@master
       with:
-        host: ${{ secrets.SSH_HOST }}
+        host: ${{ secrets.SSH_HOST_2 }}
         username: ${{ secrets.SSH_USER }}
         password: ${{ secrets.SSH_PASSWORD }}
         script: |
@@ -127,7 +75,7 @@ jobs:
       id: deployment
       uses: appleboy/ssh-action@master
       with:
-        host: ${{ secrets.SSH_HOST }}
+        host: ${{ secrets.SSH_HOST_2 }}
         username: ${{ secrets.SSH_USER }}
         password: ${{ secrets.SSH_PASSWORD }}
         script: |
@@ -145,7 +93,7 @@ jobs:
       if: steps.deployment.outcome == 'failure'
       uses: appleboy/ssh-action@master
       with:
-        host: ${{ secrets.SSH_HOST }}
+        host: ${{ secrets.SSH_HOST_2 }}
         username: ${{ secrets.SSH_USER }}
         password: ${{ secrets.SSH_PASSWORD }}
         script: |
@@ -157,56 +105,4 @@ jobs:
           sudo systemctl start mazaryn.service
           echo "BUILD FAILED, PREVIOUS VERSION RESTORED"
           exit 1
-     
-## ---- deployment to new data center
-             
-  deploy_new:
-    needs: build_new
-    name: Deploy || Restore 
-    runs-on: ubuntu-latest
-    steps:
-    - name: executing remote ssh commands to trigger new build install
-      id: install
-      uses: appleboy/ssh-action@master
-      with:
-        host: ${{ secrets.SSH_HOST_2 }}
-        username: ${{ secrets.SSH_USER }}
-        password: ${{ secrets.SSH_PASSWORD_2 }}
-        script: |
-           tar -xvf mazaryn_release.tar.gz 
-
-    - name: executing remote ssh commands to deploy new build
-      id: deployment
-      uses: appleboy/ssh-action@master
-      with:
-        host: ${{ secrets.SSH_HOST_2 }}
-        username: ${{ secrets.SSH_USER }}
-        password: ${{ secrets.SSH_PASSWORD_2 }}
-        script: |
-          sudo systemctl daemon-reload
-          sudo systemctl stop mazaryn.service
-          rm -rf mazaryn_release_backup_1
-          mv -f mazaryn_release_backup mazaryn_release_backup_1
-          mv -f mazaryn_release mazaryn_release_backup
-          mv -f mazaryn_release_new mazaryn_release
-          sudo systemctl start mazaryn.service
-          sudo systemctl is-active mazaryn.service
-          
-    - name: checking successful deployment otherwise restore older version
-      id: health
-      if: steps.deployment.outcome == 'failure'
-      uses: appleboy/ssh-action@master
-      with:
-        host: ${{ secrets.SSH_HOST_2 }}
-        username: ${{ secrets.SSH_USER }}
-        password: ${{ secrets.SSH_PASSWORD_2 }}
-        script: |
-          journalctl -u mazaryn.service
-          sudo systemctl stop mazaryn.service
-          rm -rf mazaryn_release_failed
-          mv -f mazaryn_release mazaryn_release_failed && mv -f mazaryn_release_backup mazaryn_release
-          sudo systemctl daemon.reload
-          sudo systemctl start mazaryn.service
-          echo "BUILD FAILED, PREVIOUS VERSION RESTORED"
-          exit 1
-     
+ 
