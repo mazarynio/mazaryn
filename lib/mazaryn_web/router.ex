@@ -57,6 +57,7 @@ defmodule MazarynWeb.Router do
     get("/about", PageController, :about)
     get("/privacy-policy", PageController, :privacy)
     get("/careers", PageController, :careers)
+    get("/865853.txt", PageController, :empty_page)
   end
 
   scope "/", MazarynWeb do
