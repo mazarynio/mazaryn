@@ -92,7 +92,8 @@ defmodule MazarynWeb.HomeLive.PostComponent do
     {:noreply,
      socket
      |> assign(:post, post)
-     |> assign(:comments, post.comments)}
+     |> assign(:comments, post.comments)
+     |> assign(:update_comment_changeset, Comment.changeset(%Comment{}))}
   end
 
   def handle_event("validate-comment", %{"comment" => comment_params} = _params, socket) do
@@ -117,7 +118,8 @@ defmodule MazarynWeb.HomeLive.PostComponent do
     {:noreply,
      socket
      |> assign(:post, post)
-     |> assign(:comments, post.comments)}
+     |> assign(:comments, post.comments)
+     |> assign(:changeset, Comment.changeset(%Comment{}))}
   end
 
   def handle_event("follow_user", %{"username" => username}, socket) do
