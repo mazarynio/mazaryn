@@ -48,6 +48,7 @@ defmodule MazarynWeb.Component.SelectLive do
         <%= for {option, idx} <- Enum.with_index(@options) do %>
           <li
             phx-click="select-item"
+            phx-click-away={Phoenix.LiveView.JS.toggle(to: ".dropdown-menu-globe")}
             phx-value-selected-item={"#{option}"}
             phx-target={@myself}
             id={"#{idx}"}
