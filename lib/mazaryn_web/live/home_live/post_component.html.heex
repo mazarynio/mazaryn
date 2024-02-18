@@ -139,7 +139,7 @@
     <.form
       :let={f}
       for={@changeset}
-      phx-change="validate-comment"
+      phx-blur="validate-comment"
       phx-target={@myself}
       phx-submit="save-comment"
       class="relative flex justify-center items-center w-full"
@@ -182,7 +182,7 @@
             <.form
               :let={f}
               for={@update_comment_changeset}
-              phx-change="validate-update-comment"
+              phx-blur="validate-update-comment"
               phx-target={@myself}
               phx-submit="update-comment"
               x-show="openComment"

@@ -21,7 +21,7 @@
             for={@changeset}
             class="w-full"
             phx-target={@myself}
-            phx-change="validate-info"
+            phx-blur="validate-info"
             phx-submit="save-info"
           >
             <div class="form-input-container">
@@ -186,7 +186,7 @@
             for={@changeset}
             class="w-full"
             phx-target={@myself}
-            phx-change="validate-profile-photo"
+            phx-blur="validate-profile-photo"
             phx-submit="save-profile-photo"
             multipart
           >
@@ -261,7 +261,7 @@
             for={@changeset}
             class="w-full"
             phx-target={@myself}
-            phx-change="validate-banner"
+            phx-blur="validate-banner"
             phx-submit="save-banner"
             multipart
           >
