@@ -1,13 +1,15 @@
 defmodule MazarynWeb.Component.SelectLive do
   use MazarynWeb, :live_component
 
+  alias Phoenix.LiveView.JS
+
   @impl true
   def render(assigns) do
     ~H"""
     <div class="relative inline-block text-left">
       <button
         phx-click={
-          Phoenix.LiveView.JS.toggle(
+          JS.toggle(
             to: ".dropdown-menu-globe",
             in: "fade-in-scale",
             out: "fade-out-scale"
@@ -48,7 +50,7 @@ defmodule MazarynWeb.Component.SelectLive do
         <%= for {option, idx} <- Enum.with_index(@options) do %>
           <li
             phx-click="select-item"
-            phx-click-away={Phoenix.LiveView.JS.toggle(to: ".dropdown-menu-globe")}
+            phx-click-away={JS.toggle(to: ".dropdown-menu-globe")}
             phx-value-selected-item={"#{option}"}
             phx-target={@myself}
             id={"#{idx}"}
