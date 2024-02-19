@@ -87,10 +87,11 @@ defmodule MazarynWeb.HomeLive.CreatePostComponent do
       {:ok, %Post{}} ->
         # send event to parent live-view
         send(self(), :reload_posts)
-        {:ok, socket, %{clear_text_box: true}}
+        socket
+        |> assign(:changeset, Post.changeset(%Post{}))
 
       _other ->
-        {:ok, socket, %{clear_text_box: true}}
+        socket
     end
   end
 
