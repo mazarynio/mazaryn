@@ -40,6 +40,7 @@
       src={Routes.static_path(@conn, "/assets/app.js")}
     >
     </script>
+    
   </head>
   <body>
     <div class="loader">
@@ -63,7 +64,7 @@
                 class="block text-center text-blue-700 text-sm hover:text-blue-800 capitalize"
                 href="/"
               >
-                Mazaryn
+              <%= gettext "Mazaryn" %> 
               </a>
             </li>
             <li class="my-[10px] md:my-0">
@@ -71,7 +72,7 @@
                 class="block text-center text-blue-700 text-sm hover:text-blue-800 capitalize"
                 href="/blog"
               >
-                Blog
+               <%= gettext "Blog" %> 
               </a>
             </li>
             <li class="my-[10px] md:my-0">
@@ -79,7 +80,7 @@
                 class="block text-center text-blue-700 text-sm hover:text-blue-800 capitalize"
                 href="/contact"
               >
-                Contact
+              <%= gettext "Contact" %>  
               </a>
             </li>
             <li class="my-[10px] md:my-0">
@@ -87,7 +88,7 @@
                 class="block text-center text-blue-700 text-sm hover:text-blue-800 capitalize"
                 href="/about"
               >
-                About
+              <%= gettext "About" %>
               </a>
             </li>
             <li class="my-[10px] md:my-0">
@@ -95,7 +96,7 @@
                 class="block text-center text-blue-700 text-sm hover:text-blue-800 capitalize"
                 href="/careers"
               >
-                Careers
+              <%= gettext "Careers" %>  
               </a>
             </li>
             <li class="my-[10px] md:my-0">
@@ -103,17 +104,31 @@
                 class="block text-center text-blue-700 text-sm hover:text-blue-800  capitalize"
                 href="/privacy-policy"
               >
-                Privacy policy
+              <%= gettext "Privacy policy" %> 
               </a>
             </li>
           </ul>
           <div>
             <small class="py-[20px] md:py-0 block text-center text-black text-sm opacity-[0.8] capitalize md:whitespace-pre">
-              ©2022 Mazaryn Social
+             <%= gettext "©2022 Mazaryn Social" %>
             </small>
+          </div>
+          <div class="language-selector bg-white p-2 rounded-lg flex items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-globe mr-2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="2" y1="12" x2="22" y2="12"></line>
+              <path d="M12 2a15.3 15.3 0 0 1 4.39 10H7.61A15.3 15.3 0 0 1 12 2z"></path>
+              <path d="M12 22a15.3 15.3 0 0 1-4.39-10H16.4A15.3 15.3 0 0 1 12 22z"></path>
+            </svg>
+              <select id="language" onchange="changeLanguage(this)" class="bg-transparent text-black text-sm">
+              <option value="en">English</option>
+              <option value="fa">Persian</option>
+              <option value="ru">Russian</option>
+            </select>
           </div>
         </div>
       </div>
     </footer>
   </body>
 </html>
+
