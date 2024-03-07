@@ -23,7 +23,7 @@
                 chat = [],
                 verified = false,
                 report = [],
-                level, % Includes 5 Levels based on User Activity
+                level, % Includes 20 Levels based on User Activity
                 last_activity,
                 suspend = [],
                 data = #{} }). 

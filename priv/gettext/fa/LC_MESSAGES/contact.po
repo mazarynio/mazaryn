@@ -14,18 +14,3 @@ msgstr "با ما تماس بگیرید"
 
 msgid ""
 msgstr ""
-
-msgid ""
-msgstr ""
-
-msgid ""
-msgstr ""
-
-msgid ""
-msgstr ""
-
-msgid ""
-msgstr ""
-
-msgid ""
-msgstr ""
