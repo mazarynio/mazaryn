@@ -10,6 +10,7 @@ defmodule MazarynWeb.Router do
     plug(:protect_from_forgery)
     plug(:put_secure_browser_headers)
     plug(:validate_session)
+    plug(MazarynWeb.Plugs.SetLocale)
   end
 
   pipeline :restricted do

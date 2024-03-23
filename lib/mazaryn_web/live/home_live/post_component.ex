@@ -8,6 +8,7 @@ defmodule MazarynWeb.HomeLive.PostComponent do
   alias Core.PostClient
   alias Mazaryn.Schema.Comment
   alias Mazaryn.Posts
+  alias Phoenix.LiveView.JS
 
   # TODO: revert to the deprecated `preload/1` if this doesn't work; I think it works
   @impl Phoenix.LiveComponent
@@ -25,6 +26,8 @@ defmodule MazarynWeb.HomeLive.PostComponent do
         |> Map.put(:changeset, changeset)
         |> Map.put(:update_comment_changeset, update_comment_changeset)
         |> Map.put(:comments, assigns.post.comments)
+        |> Map.put(:report_action, false)
+        |> Map.put(:like_action, false)
 
       assign(socket, assigns)
     end)
@@ -181,6 +184,30 @@ defmodule MazarynWeb.HomeLive.PostComponent do
       |> Enum.map(&(&1 |> elem(2) |> Users.one_by_username()))
 
     {:noreply, assign(socket, users: users)}
+  end
+
+  def handle_event("open_modal", %{"action" => "report-post"}, socket) do
+    {:noreply,
+     socket
+     |> assign(
+       like_action: false,
+       report_action: true,
+       edit_action: false,
+       follower_action: false,
+       follows_action: false
+     )}
+  end
+
+  def handle_event("open_modal", %{"action" => "like-post"}, socket) do
+    {:noreply,
+     socket
+     |> assign(
+       like_action: true,
+       report_action: false,
+       edit_action: false,
+       follower_action: false,
+       follows_action: false
+     )}
   end
 
   def get_user_avatar(author) do

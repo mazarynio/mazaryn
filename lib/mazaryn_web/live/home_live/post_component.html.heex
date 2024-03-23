@@ -49,7 +49,14 @@
               <p class="text-gray-500 m-2 cursor-pointer">Block</p>
             </li>
             <li class="">
-              <p class="text-gray-500 m-2 cursor-pointer">Report</p>
+              <p
+                class="text-gray-500 m-2 cursor-pointer"
+                phx-click={JS.push("open_modal") |> open_modal()}
+                phx-value-action="report-post"
+                phx-target={@myself}
+              >
+                Report
+              </p>
             </li>
           <% else %>
             <li class="">
@@ -88,9 +95,15 @@
         class: "h-5 w-7 fill-[#cfd0dd] cursor-pointer",
         phx_click: @like_event,
         phx_value_post_id: @post.id,
-        phx_target: @myself
+        phx_target: @myself,
+        phx_value_action: "like-post"
       ) %>
-      <span class="ml-2.5 text-[#CFD0DD] text-base cursor-pointer" phx-click={Helper.open_modal()}>
+      <span
+        class="ml-2.5 text-[#CFD0DD] text-base cursor-pointer"
+        phx-target={@myself}
+        phx-value-action="like-post"
+        phx-click={JS.push("open_modal") |> open_modal()}
+      >
         <%= Enum.count(@post.likes) %>
       </span>
     </div>
@@ -246,8 +259,20 @@
         </div>
       </div>
     <% end %>
-    <.modal>
-      <.live_component module={MazarynWeb.HomeLive.ShowLikersComponent} id={@post.id} />
-    </.modal>
+    <%= if @report_action do %>
+      <.modal>
+        <.live_component
+          module={MazarynWeb.HomeLive.ReportPostsComponent}
+          id={@post.id}
+          current_user={@current_user}
+        />
+      </.modal>
+    <% end %>
+
+    <%= if @like_action do %>
+      <.modal>
+        <.live_component module={MazarynWeb.HomeLive.ShowLikersComponent} id={@post.id} />
+      </.modal>
+    <% end %>
   </div>
 </div>
