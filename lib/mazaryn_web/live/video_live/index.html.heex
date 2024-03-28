@@ -1,0 +1,84 @@
+<!-- navigation -->
+<.live_component
+  module={MazarynWeb.VideoLive.NavComponent}
+  id="navigation"
+  user={@user}
+  search={@search}
+/>
+<div class="bg-[#282932] text-[#CFD0DD]">
+  <div class="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-5 gap-4 w-[90%] max-w-[1440px] mx-auto">
+    <div class="md:col-span-1 py-6">
+      <.live_component
+        module={MazarynWeb.VideoLive.LeftSidebarComponent}
+        id="leftsidebar"
+        user={@user}
+      />
+    </div>
+    <div class="md:col-span-3 lg:col-span-4 py-6 px-11">
+      <div class="bg-white white:bg-gray-800 custom-box-shadow pr-8 pl-7 pb-7 pt-4 rounded-[1.25rem]">
+        <.live_component
+          module={MazarynWeb.VideoLive.FeaturedVideosComponent}
+          id="featured-videos"
+          featured_videos={@featured_videos}
+          user={@user}
+        />
+      </div>
+      <div class="flex items-center mt-8">
+        <svg
+          class="mr-2"
+          width="40"
+          height="40"
+          viewBox="0 0 40 40"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <rect width="40" height="40" rx="20" fill="none" />
+          <rect width="40" height="40" rx="20" fill="#323340" />
+          <g clip-path="url(#clip0_2879_2579)">
+            <path
+              d="M18.8972 10.6739C19.0095 10.4811 19.1705 10.3211 19.3641 10.2099C19.5576 10.0986 19.7769 10.0401 20.0001 10.0401C20.2233 10.0401 20.4426 10.0986 20.6362 10.2099C20.8297 10.3211 20.9907 10.4811 21.1031 10.6739L23.9574 15.5739L29.5008 16.7749C29.7188 16.8223 29.9207 16.926 30.0861 17.0757C30.2516 17.2254 30.375 17.4158 30.4439 17.6281C30.5128 17.8403 30.5249 18.0669 30.4789 18.2852C30.433 18.5036 30.3306 18.7061 30.182 18.8725L26.4033 23.1015L26.9752 28.7439C26.9978 28.9661 26.9617 29.1903 26.8705 29.3942C26.7793 29.598 26.6362 29.7744 26.4556 29.9057C26.2749 30.0369 26.0629 30.1185 25.8409 30.1422C25.6188 30.166 25.3944 30.131 25.1901 30.0409L20.0001 27.7533L14.8101 30.0409C14.6058 30.131 14.3814 30.166 14.1593 30.1422C13.9373 30.1185 13.7253 30.0369 13.5447 29.9057C13.364 29.7744 13.2209 29.598 13.1297 29.3942C13.0385 29.1903 13.0024 28.9661 13.025 28.7439L13.5969 23.1015L9.81824 18.8736C9.66937 18.7071 9.56677 18.5045 9.52067 18.2861C9.47456 18.0676 9.48658 17.8408 9.55552 17.6284C9.62446 17.416 9.7479 17.2254 9.91353 17.0756C10.0792 16.9259 10.2812 16.8222 10.4994 16.7749L16.0428 15.5739L18.8972 10.6739Z"
+              fill="white"
+            />
+          </g>
+          <defs>
+            <clipPath id="clip0_2879_2579">
+              <rect
+                width="24.51"
+                height="24.51"
+                fill="white"
+                transform="translate(7.74512 7.745)"
+              />
+            </clipPath>
+          </defs>
+        </svg>
+        <p class="font-semibold text-base">Featured</p>
+      </div>
+      <div class="flex flex-wrap mt-6">
+        <%!-- TODO: ideally, create one card, then render as many cards as there are videos --%>
+        <%= for _ <- 1..10 do %>
+          <div class="flex flex-col w-[250px] mx-1 mt-3">
+            <img
+              src={~p"/images/cardano.png"}
+              alt="Video thumbnail"
+              class="w-[250px] h-[167px] rounded-[0.375rem] mb-4"
+            />
+            <div class="flex">
+              <img
+                src={~p"/images/cardano.png"}
+                alt="Video uploader avatar"
+                class="w-[50px] h-[50px] rounded-full mr-2"
+              />
+              <div>
+                <p class="font-semibold">Over My Head - A synthwave</p>
+                <p class="font-light text-sm text-[#CFD0DD]">Sketch & jam</p>
+                <p class="font-light text-sm text-[#CFD0DD]">
+                  <span>4.7M views</span> <span>3 years ago</span>
+                </p>
+              </div>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>
