@@ -9,86 +9,92 @@
 ## effect: edit them in PO (`.po`) files instead.
 ## From Ecto.Changeset.cast/4
 msgid "can't be blank"
-msgstr ""
+msgstr "не может быть пустым"
 
 ## From Ecto.Changeset.unique_constraint/3
 msgid "has already been taken"
-msgstr ""
+msgstr "уже принято"
 
 ## From Ecto.Changeset.put_change/3
 msgid "is invalid"
-msgstr ""
+msgstr "является недействительным"
 
 ## From Ecto.Changeset.validate_acceptance/3
 msgid "must be accepted"
-msgstr ""
+msgstr "должен быть принят"
 
 ## From Ecto.Changeset.validate_format/3
 msgid "has invalid format"
-msgstr ""
+msgstr "имеет неверный формат"
 
 ## From Ecto.Changeset.validate_subset/3
 msgid "has an invalid entry"
-msgstr ""
+msgstr "имеет неверную запись"
 
 ## From Ecto.Changeset.validate_exclusion/3
 msgid "is reserved"
-msgstr ""
+msgstr "зарезервировано"
 
 ## From Ecto.Changeset.validate_confirmation/3
 msgid "does not match confirmation"
-msgstr ""
+msgstr "не соответствует подтверждению"
 
 ## From Ecto.Changeset.no_assoc_constraint/3
 msgid "is still associated with this entry"
-msgstr ""
+msgstr "все еще связан с этой записью"
 
 msgid "are still associated with this entry"
-msgstr ""
+msgstr "все еще связаны с этой записью"
 
 ## From Ecto.Changeset.validate_length/3
 msgid "should be %{count} character(s)"
 msgid_plural "should be %{count} character(s)"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "должно быть %{count} символов"
+msgstr[1] "должен быть символом %{count}"
+msgstr[2] "должно быть %{count} символов"
 
 msgid "should have %{count} item(s)"
 msgid_plural "should have %{count} item(s)"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "должно содержать %{count} элементов"
+msgstr[1] "должно быть %{count} элемент"
+msgstr[2] "должно содержать %{count} элементов"
 
 msgid "should be at least %{count} character(s)"
 msgid_plural "should be at least %{count} character(s)"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "должно быть не менее %{count} символов"
+msgstr[1] "должно быть не менее %{count} символа"
+msgstr[2] "должно быть не менее %{count} символов"
 
 msgid "should have at least %{count} item(s)"
 msgid_plural "should have at least %{count} item(s)"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "должно быть не менее %{count} элементов"
+msgstr[1] "должен быть хотя бы %{count} предмет"
+msgstr[2] "должно быть не менее %{count} элементов"
 
 msgid "should be at most %{count} character(s)"
 msgid_plural "should be at most %{count} character(s)"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "должно быть не более %{count} символов"
+msgstr[1] "должно быть не более %{count} символа"
+msgstr[2] "должно быть не более %{count} символов"
 
 msgid "should have at most %{count} item(s)"
 msgid_plural "should have at most %{count} item(s)"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "должно быть не более %{count} элементов"
+msgstr[1] "должно быть не более %{count} предмета"
+msgstr[2] "должно быть не более %{count} элементов"
 
 ## From Ecto.Changeset.validate_number/3
 msgid "must be less than %{number}"
-msgstr ""
+msgstr "должно быть меньше %{number}"
 
 msgid "must be greater than %{number}"
-msgstr ""
+msgstr "должно быть больше %{number}"
 
 msgid "must be less than or equal to %{number}"
-msgstr ""
+msgstr "должно быть меньше или равно %{number}"
 
 msgid "must be greater than or equal to %{number}"
-msgstr ""
+msgstr "должно быть больше или равно %{number}"
 
 msgid "must be equal to %{number}"
-msgstr ""
+msgstr "должно быть равно %{number}"

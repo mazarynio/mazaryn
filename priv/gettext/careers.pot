@@ -4,28 +4,28 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n>1);\n"
 
 msgid "Careers"
-msgstr ""
+msgstr "Карьера"
 
 msgid "Apply"
-msgstr ""
+msgstr "Применять"
 
 msgid "Hiring"
-msgstr ""
+msgstr "Найм"
 
 msgid "talented"
-msgstr ""
+msgstr "талантливый"
 
 msgid "looking" 
-msgstr ""
+msgstr "смотрящий"
 
 msgid "Mazaryn"
-msgstr ""
+msgstr "Мазарини"
 
 msgid "Mazaryn SN"
-msgstr ""
+msgstr "Мазарини С.Н."
 
 msgid "Sign up"
-msgstr ""
+msgstr "Зарегистрироваться"
 
 msgid "Login"
-msgstr ""
+msgstr "Авторизоваться"
