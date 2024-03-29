@@ -14,8 +14,8 @@
         user={@user}
       />
     </div>
-    <div class="md:col-span-3 lg:col-span-4 py-6 px-11">
-      <div class="bg-white white:bg-gray-800 custom-box-shadow pr-8 pl-7 pb-7 pt-4 rounded-[1.25rem]">
+    <div class="md:col-span-3 lg:col-span-4 mb-10 py-6 px-11">
+      <div class="bg-[#282932] white:bg-gray-800 custom-box-shadow pr-8 pl-7 pb-7 pt-4 border  border-[#282932] rounded-[1.25rem]">
         <.live_component
           module={MazarynWeb.VideoLive.FeaturedVideosComponent}
           id="featured-videos"
@@ -55,7 +55,72 @@
       </div>
       <div class="flex flex-wrap mt-6">
         <%!-- TODO: ideally, create one card, then render as many cards as there are videos --%>
-        <%= for _ <- 1..10 do %>
+        <%= for _ <- 1..12 do %>
+          <div class="flex flex-col w-[250px] mx-1 mt-3">
+            <img
+              src={~p"/images/cardano.png"}
+              alt="Video thumbnail"
+              class="w-[250px] h-[167px] rounded-[0.375rem] mb-4"
+            />
+            <div class="flex">
+              <img
+                src={~p"/images/cardano.png"}
+                alt="Video uploader avatar"
+                class="w-[50px] h-[50px] rounded-full mr-2"
+              />
+              <div>
+                <p class="font-semibold">Over My Head - A synthwave</p>
+                <p class="font-light text-sm text-[#CFD0DD]">Sketch & jam</p>
+                <p class="font-light text-sm text-[#CFD0DD]">
+                  <span>4.7M views</span> <span>3 years ago</span>
+                </p>
+              </div>
+            </div>
+          </div>
+        <% end %>
+      </div>
+      <div class="flex items-center justify-center border border-[#393a48] hover:border-[#1a1a1d] w-fit mx-auto mt-6 px-3 py-2 rounded-xl cursor-pointer bg-[#393a48] hover:bg-[#1a1a1d]">
+        <button class="mr-2 text-[#4385F5]">
+          View more
+        </button>
+        <svg
+          width="9"
+          height="14"
+          viewBox="0 0 9 14"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M1.75 12.25L7 7L1.75 1.75"
+            stroke="#4385F5"
+            stroke-width="3.125"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+      </div>
+      <div class="flex items-center mt-8">
+        <svg
+          class="mr-2"
+          width="40"
+          height="40"
+          viewBox="0 0 40 40"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <rect width="40" height="40" rx="20" fill="none" />
+          <rect width="40" height="40" rx="20" fill="#323340" />
+          <path
+            d="M25.5 20C25.1022 20 24.7206 19.842 24.4393 19.5607C24.158 19.2794 24 18.8978 24 18.5C24 18.1022 24.158 17.7206 24.4393 17.4393C24.7206 17.158 25.1022 17 25.5 17C25.8978 17 26.2794 17.158 26.5607 17.4393C26.842 17.7206 27 18.1022 27 18.5C27 18.8978 26.842 19.2794 26.5607 19.5607C26.2794 19.842 25.8978 20 25.5 20ZM22.5 16C22.1022 16 21.7206 15.842 21.4393 15.5607C21.158 15.2794 21 14.8978 21 14.5C21 14.1022 21.158 13.7206 21.4393 13.4393C21.7206 13.158 22.1022 13 22.5 13C22.8978 13 23.2794 13.158 23.5607 13.4393C23.842 13.7206 24 14.1022 24 14.5C24 14.8978 23.842 15.2794 23.5607 15.5607C23.2794 15.842 22.8978 16 22.5 16ZM17.5 16C17.1022 16 16.7206 15.842 16.4393 15.5607C16.158 15.2794 16 14.8978 16 14.5C16 14.1022 16.158 13.7206 16.4393 13.4393C16.7206 13.158 17.1022 13 17.5 13C17.8978 13 18.2794 13.158 18.5607 13.4393C18.842 13.7206 19 14.1022 19 14.5C19 14.8978 18.842 15.2794 18.5607 15.5607C18.2794 15.842 17.8978 16 17.5 16ZM14.5 20C14.1022 20 13.7206 19.842 13.4393 19.5607C13.158 19.2794 13 18.8978 13 18.5C13 18.1022 13.158 17.7206 13.4393 17.4393C13.7206 17.158 14.1022 17 14.5 17C14.8978 17 15.2794 17.158 15.5607 17.4393C15.842 17.7206 16 18.1022 16 18.5C16 18.8978 15.842 19.2794 15.5607 19.5607C15.2794 19.842 14.8978 20 14.5 20ZM20 11C17.6131 11 15.3239 11.9482 13.636 13.636C11.9482 15.3239 11 17.6131 11 20C11 22.3869 11.9482 24.6761 13.636 26.364C15.3239 28.0518 17.6131 29 20 29C20.3978 29 20.7794 28.842 21.0607 28.5607C21.342 28.2794 21.5 27.8978 21.5 27.5C21.5 27.11 21.35 26.76 21.11 26.5C20.88 26.23 20.73 25.88 20.73 25.5C20.73 25.1022 20.888 24.7206 21.1693 24.4393C21.4506 24.158 21.8322 24 22.23 24H24C25.3261 24 26.5979 23.4732 27.5355 22.5355C28.4732 21.5979 29 20.3261 29 19C29 14.58 24.97 11 20 11Z"
+            fill="white"
+          />
+        </svg>
+
+        <p class="font-semibold text-base">Artists</p>
+      </div>
+      <div class="flex flex-wrap mt-6">
+        <%!-- TODO: ideally, create one card, then render as many cards as there are videos --%>
+        <%= for _ <- 1..4 do %>
           <div class="flex flex-col w-[250px] mx-1 mt-3">
             <img
               src={~p"/images/cardano.png"}
