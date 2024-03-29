@@ -4,8 +4,8 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n>1);\n"
 
 msgid "Contact Mazaryn Support"
-msgstr "Свяжитесь со службой поддержки Mazaryn"
+msgstr ""
 
 msgid "Mazaryn Help channel will answer all your questions about our services, your account and more"
-msgstr "Справочный канал Mazaryn ответит на все ваши вопросы о наших услугах, вашей учетной записи и многом другом."
+msgstr ""
 

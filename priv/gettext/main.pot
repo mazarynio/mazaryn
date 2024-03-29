@@ -4,28 +4,28 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n>1);\n"
 
 msgid "blog"
-msgstr "блог"
+msgstr ""
 
 msgid "Privacy Policy"
-msgstr "политика конфиденциальности"
+msgstr ""
 
 msgid "Careers"
-msgstr "Карьера"
+msgstr ""
 
 msgid "About"
-msgstr "О"
+msgstr ""
 
 msgid "Contact" 
-msgstr "Контакт"
+msgstr ""
 
 msgid "Mazaryn"
-msgstr "Мазарини"
+msgstr ""
 
 msgid "Mazaryn SN"
-msgstr "Мазарини С.Н."
+msgstr ""
 
 msgid "Sign up"
-msgstr "Зарегистрироваться"
+msgstr ""
 
 msgid "Login"
-msgstr "Авторизоваться"
+msgstr ""
