@@ -73,7 +73,7 @@
                       <%= @user.username %>
                     </span>
                   </div>
-                  <%= if @current_user.verified do %>
+                  <%= if @user.verified  do %>
                     <div class="relative">
                       <span>
                         <img
@@ -181,6 +181,25 @@
                             Report
                           </p>
                         </li>
+                        <li class="">
+                          <%= if @user.verified and @current_user.username in ["arvand", "pollet"] do %>
+                            <p
+                              class="text-gray-500 m-2 cursor-pointer"
+                              phx-click={JS.push("open_modal") |> open_modal()}
+                              phx-value-action="unverify-user"
+                            >
+                              Unverify
+                            </p>
+                          <% else %>
+                            <p
+                              class="text-gray-500 m-2 cursor-pointer"
+                              phx-click={JS.push("open_modal") |> open_modal()}
+                              phx-value-action="verify-user"
+                            >
+                              Verify
+                            </p>
+                          <% end %>
+                        </li>
                       </ul>
                     </div>
                   </div>
@@ -243,95 +262,97 @@
             <% end %>
           </div>
 
-        <div class="relative inline-block text-left mr-10">
-       <.form for={@form} phx-change="privacy">
-          <%= select @form, :privacy, [Public: "public", Private: "private"], selected: @privacy, disabled: @current_user.id != @user.id %>
-      </.form>
-       </div>
-    </div>
-  </div>
+          <div class="relative inline-block text-left mr-10">
+            <.form for={@form} phx-change="privacy">
+              <%= select(@form, :privacy, [Public: "public", Private: "private"],
+                selected: @privacy,
+                disabled: @current_user.id != @user.id
+              ) %>
+            </.form>
+          </div>
+        </div>
+      </div>
 
-    <%= if (@privacy == "public" or @current_user.id == @user.id) or @current_user.id in @user.follower do %>
-    
-      <div class="flex flex-wrap">
-        <div class="w-full lg:w-3/5">
-          <ul class="profile_nav mb-8 py-4 px-2 flex flex-wrap text-base text-center bg-white custom-box-shadow rounded-[20px]">
-            <li class="w-full lg:w-1/5">
-              <a
-                href="#"
-                aria-current="page"
-                class="inline-block py-2 px-4 text-black bg-[#FAFAFA] rounded-[10px] active"
-              >
-                TIMELINE
-              </a>
-            </li>
-            <li class="w-full lg:w-1/5">
-              <a
-                href="#"
-                class="inline-block py-2 px-4 text-[#60616D] hover:text-black hover:bg-[#FAFAFA] hover:rounded-[10px]"
-              >
-                PHOTO
-              </a>
-            </li>
-            <li class="w-full lg:w-1/5">
-              <a
-                href="#"
-                class="inline-block py-2 px-4 text-[#60616D] hover:text-black hover:bg-[#FAFAFA] hover:rounded-[10px]"
-              >
-                VIDEO
-              </a>
-            </li>
-            <li class="w-full lg:w-1/5">
-              <a
-                href="#"
-                class="inline-block py-2 px-4 text-[#60616D] hover:text-black hover:bg-[#FAFAFA] hover:rounded-[10px]"
-              >
-                TAGGED
-              </a>
-            </li>
-            <li class="w-full lg:w-1/5">
-              <a
-                href="#"
-                class="inline-block py-2 px-4 text-[#60616D] hover:text-black hover:bg-[#FAFAFA] hover:rounded-[10px]"
-              >
-                INTEREST
-              </a>
-            </li>
-          </ul>
+      <%= if (@privacy == "public" or @current_user.id == @user.id) or @current_user.id in @user.follower do %>
+        <div class="flex flex-wrap">
+          <div class="w-full lg:w-3/5">
+            <ul class="profile_nav mb-8 py-4 px-2 flex flex-wrap text-base text-center bg-white custom-box-shadow rounded-[20px]">
+              <li class="w-full lg:w-1/5">
+                <a
+                  href="#"
+                  aria-current="page"
+                  class="inline-block py-2 px-4 text-black bg-[#FAFAFA] rounded-[10px] active"
+                >
+                  TIMELINE
+                </a>
+              </li>
+              <li class="w-full lg:w-1/5">
+                <a
+                  href="#"
+                  class="inline-block py-2 px-4 text-[#60616D] hover:text-black hover:bg-[#FAFAFA] hover:rounded-[10px]"
+                >
+                  PHOTO
+                </a>
+              </li>
+              <li class="w-full lg:w-1/5">
+                <a
+                  href="#"
+                  class="inline-block py-2 px-4 text-[#60616D] hover:text-black hover:bg-[#FAFAFA] hover:rounded-[10px]"
+                >
+                  VIDEO
+                </a>
+              </li>
+              <li class="w-full lg:w-1/5">
+                <a
+                  href="#"
+                  class="inline-block py-2 px-4 text-[#60616D] hover:text-black hover:bg-[#FAFAFA] hover:rounded-[10px]"
+                >
+                  TAGGED
+                </a>
+              </li>
+              <li class="w-full lg:w-1/5">
+                <a
+                  href="#"
+                  class="inline-block py-2 px-4 text-[#60616D] hover:text-black hover:bg-[#FAFAFA] hover:rounded-[10px]"
+                >
+                  INTEREST
+                </a>
+              </li>
+            </ul>
+
+            <%= if @user.username == @current_user.username do %>
+              <div class="w-full bg-white white:bg-gray-800 custom-box-shadow pr-8 pl-7 pb-7 pt-4 rounded-[20px]">
+                <.live_component
+                  module={MazarynWeb.HomeLive.CreatePostComponent}
+                  id="posting"
+                  changeset={@post_changeset}
+                  user={@user}
+                />
+              </div>
+            <% end %>
+
+            <div class="flex flex-wrap justify-center align-center my-5 gap-y-4">
+              <%= for post <- @posts do %>
+                <.live_component
+                  module={MazarynWeb.HomeLive.PostComponent}
+                  id={"post-#{post.id}"}
+                  post={post}
+                  current_user={@current_user}
+                />
+              <% end %>
+            </div>
+          </div>
 
           <%= if @user.username == @current_user.username do %>
-            <div class="w-full bg-white white:bg-gray-800 custom-box-shadow pr-8 pl-7 pb-7 pt-4 rounded-[20px]">
+            <div class="w-full lg:w-2/5 pl-10">
               <.live_component
-                module={MazarynWeb.HomeLive.CreatePostComponent}
-                id="posting"
-                changeset={@post_changeset}
-                user={@user}
+                module={MazarynWeb.Component.CompleteProfile}
+                id="completing"
+                user={@current_user}
               />
             </div>
           <% end %>
-
-          <div class="flex flex-wrap justify-center align-center my-5 gap-y-4">
-            <%= for post <- @posts do %>
-              <.live_component
-                module={MazarynWeb.HomeLive.PostComponent}
-                id={"post-#{post.id}"}
-                post={post}
-                current_user={@current_user}
-              />
-            <% end %>
-          </div>
         </div>
-
-        <%= if @user.username == @current_user.username do %>
-          <div class="w-full lg:w-2/5 pl-10">
-            <.live_component
-              module={MazarynWeb.Component.CompleteProfile}
-              id="completing"
-              user={@current_user}
-            />
-          </div>
-        <% end %>
-      </div>
       <% end %>
     </div>
 
@@ -374,6 +395,18 @@
           module={MazarynWeb.HomeLive.ReportUserComponent}
           id={@user.id}
           reported_user={@user}
+          current_user={@current_user}
+        />
+      </.modal>
+    <% end %>
+
+    <%= if @verified_action do %>
+      <.modal>
+        <.live_component
+          module={MazarynWeb.UserLive.VerifyUserComponent}
+          id={@user.id}
+          user={@user}
+          action_name={if @user.verified, do: "unverify_user", else: "verify_user"}
           current_user={@current_user}
         />
       </.modal>

@@ -45,6 +45,7 @@ defmodule MazarynWeb.UserLive.Profile do
       |> assign(form: to_form(user_changeset))
       |> assign(privacy: privacy)
       |> assign(report_user_action: false)
+      |> assign(verified_action: false)
 
     {:ok, socket}
   end
@@ -155,6 +156,30 @@ defmodule MazarynWeb.UserLive.Profile do
      )}
   end
 
+  def handle_event("open_modal", %{"action" => "verify-user"}, socket) do
+    {:noreply,
+     socket
+     |> assign(
+       report_user_action: false,
+       follows_action: false,
+       edit_action: false,
+       follower_action: false,
+       verified_action: true
+     )}
+  end
+
+  def handle_event("open_modal", %{"action" => "unverify-user"}, socket) do
+    {:noreply,
+     socket
+     |> assign(
+       report_user_action: false,
+       follows_action: false,
+       edit_action: false,
+       follower_action: false,
+       verified_action: true
+     )}
+  end
+
   # def handle_event("block_user", %{"id" => id}, socket) do
   # id = socket.assigns.current_user.id
   # UserClient.block(id, blocked)
@@ -202,6 +227,24 @@ defmodule MazarynWeb.UserLive.Profile do
     user_changeset = User.changeset(user)
 
     {:noreply, socket |> assign(form: to_form(user_changeset)) |> assign(privacy: privacy)}
+  end
+
+  def handle_event("verify_user", %{"username" => username}, socket) do
+    ManageUser.verify_user(username)
+
+    {:noreply,
+     socket
+     |> put_flash(:info, "Update successful")
+     |> push_redirect(to: Routes.live_path(socket, __MODULE__, username))}
+  end
+
+  def handle_event("unverify_user", %{"username" => username}, socket) do
+    ManageUser.unverify_user(username)
+
+    {:noreply,
+     socket
+     |> put_flash(:info, "Update successful")
+     |> push_redirect(to: Routes.live_path(socket, __MODULE__, username))}
   end
 
   defp handle_assigns(socket, user_id, id) do
