@@ -37,6 +37,10 @@ config :mazaryn, Mazaryn.Mailer,
 # Swoosh API client is needed for adapters other than SMTP.
 config :swoosh, :api_client, false
 
+config :mazaryn, MazarynWeb.Gettext,
+    locales: ~w(en ru),
+    default_locale: "en"
+
 # Configure esbuild (the version is required)
 config :esbuild,
   version: "0.17.11",
@@ -70,8 +74,10 @@ config :phoenix, :json_library, Jason
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.
 import_config "#{config_env()}.exs"
+
 config :mnesia, dir: 'Mnesia/'
 
 config :mazaryn, Mazaryn.Gettext,
   default_locale: "en",
   locales: ["en", "fa"]
+

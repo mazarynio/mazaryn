@@ -67,9 +67,25 @@
 
             <div class="ml-24 mb-2 text-left">
               <div class="block mb-0.5">
-                <span class="text-xl leading-5 text-black font-semibold tracking-wide align-baseline">
-                  <%= @user.username %>
-                </span>
+                <div class="grid grid-flow-col auto-cols-max">
+                  <div class="relative">
+                    <span class="text-xl leading-5 text-black font-semibold tracking-wide align-baseline">
+                      <%= @user.username %>
+                    </span>
+                  </div>
+                  <%= if @user.verified  do %>
+                    <div class="relative">
+                      <span>
+                        <img
+                          alt="verified user"
+                          src={Routes.static_path(@socket, "/images/verified.png")}
+                          class="rounded-full align-middle border-none max-h-6 max-w-6"
+                        />
+                      </span>
+                    </div>
+                  <% end %>
+                </div>
+
                 <a class="ml-1.5 text-base text-black align-text-bottom">
                   @<%= @user.username %>
                 </a>
@@ -133,6 +149,61 @@
                 >
                   <%= @follow_text %>
                 </button>
+                <div
+                  x-data="{ open: false }"
+                  x-on:click.outside="open = false"
+                  class="flex justify-between align-center items-center"
+                >
+                  <div class="w-90 flex justify-evenly items-center ml-1.5 text-sm self-start">
+                    <div class="relative">
+                      <i @click="open = !open">
+                        <%= Heroicons.icon("ellipsis-vertical",
+                          type: "solid",
+                          class: "h-7 w-7 fill-[#60616D] cursor-pointer"
+                        ) %>
+                      </i>
+                      <ul
+                        x-show="open"
+                        x-transition:enter="transition ease-out duration-200"
+                        x-transition:enter-start="opacity-0"
+                        x-transition:enter-end="opacity-100"
+                        x-transition:leave="transition ease-in duration-200"
+                        x-transition:leave-start="opacity-100"
+                        x-transition:leave-end="opacity-0"
+                        class="absolute top-4 right-4 bg-white rounded rounded-md text-blue-900 border p-3 border-blue space-y-2 w-32"
+                      >
+                        <li class="">
+                          <p
+                            class="text-gray-500 m-2 cursor-pointer"
+                            phx-click={JS.push("open_modal") |> open_modal()}
+                            phx-value-action="report-user"
+                          >
+                            Report
+                          </p>
+                        </li>
+                        <li class="">
+                          <%= if @user.verified and @current_user.username in ["arvand", "pollet"] do %>
+                            <p
+                              class="text-gray-500 m-2 cursor-pointer"
+                              phx-click={JS.push("open_modal") |> open_modal()}
+                              phx-value-action="unverify-user"
+                            >
+                              Unverify
+                            </p>
+                          <% else %>
+                            <p
+                              class="text-gray-500 m-2 cursor-pointer"
+                              phx-click={JS.push("open_modal") |> open_modal()}
+                              phx-value-action="verify-user"
+                            >
+                              Verify
+                            </p>
+                          <% end %>
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
               <% end %>
             </div>
           </div>
@@ -191,95 +262,97 @@
             <% end %>
           </div>
 
-        <div class="relative inline-block text-left mr-10">
-       <.form for={@form} phx-change="privacy">
-          <%= select @form, :privacy, [Public: "public", Private: "private"], selected: @privacy, disabled: @current_user.id != @user.id %>
-      </.form>
-       </div>
-    </div>
-  </div>
+          <div class="relative inline-block text-left mr-10">
+            <.form for={@form} phx-change="privacy">
+              <%= select(@form, :privacy, [Public: "public", Private: "private"],
+                selected: @privacy,
+                disabled: @current_user.id != @user.id
+              ) %>
+            </.form>
+          </div>
+        </div>
+      </div>
 
-    <%= if (@privacy == "public" or @current_user.id == @user.id) or @current_user.id in @user.follower do %>
-    
-      <div class="flex flex-wrap">
-        <div class="w-full lg:w-3/5">
-          <ul class="profile_nav mb-8 py-4 px-2 flex flex-wrap text-base text-center bg-white custom-box-shadow rounded-[20px]">
-            <li class="w-full lg:w-1/5">
-              <a
-                href="#"
-                aria-current="page"
-                class="inline-block py-2 px-4 text-black bg-[#FAFAFA] rounded-[10px] active"
-              >
-                TIMELINE
-              </a>
-            </li>
-            <li class="w-full lg:w-1/5">
-              <a
-                href="#"
-                class="inline-block py-2 px-4 text-[#60616D] hover:text-black hover:bg-[#FAFAFA] hover:rounded-[10px]"
-              >
-                PHOTO
-              </a>
-            </li>
-            <li class="w-full lg:w-1/5">
-              <a
-                href="#"
-                class="inline-block py-2 px-4 text-[#60616D] hover:text-black hover:bg-[#FAFAFA] hover:rounded-[10px]"
-              >
-                VIDEO
-              </a>
-            </li>
-            <li class="w-full lg:w-1/5">
-              <a
-                href="#"
-                class="inline-block py-2 px-4 text-[#60616D] hover:text-black hover:bg-[#FAFAFA] hover:rounded-[10px]"
-              >
-                TAGGED
-              </a>
-            </li>
-            <li class="w-full lg:w-1/5">
-              <a
-                href="#"
-                class="inline-block py-2 px-4 text-[#60616D] hover:text-black hover:bg-[#FAFAFA] hover:rounded-[10px]"
-              >
-                INTEREST
-              </a>
-            </li>
-          </ul>
+      <%= if (@privacy == "public" or @current_user.id == @user.id) or @current_user.id in @user.follower do %>
+        <div class="flex flex-wrap">
+          <div class="w-full lg:w-3/5">
+            <ul class="profile_nav mb-8 py-4 px-2 flex flex-wrap text-base text-center bg-white custom-box-shadow rounded-[20px]">
+              <li class="w-full lg:w-1/5">
+                <a
+                  href="#"
+                  aria-current="page"
+                  class="inline-block py-2 px-4 text-black bg-[#FAFAFA] rounded-[10px] active"
+                >
+                  TIMELINE
+                </a>
+              </li>
+              <li class="w-full lg:w-1/5">
+                <a
+                  href="#"
+                  class="inline-block py-2 px-4 text-[#60616D] hover:text-black hover:bg-[#FAFAFA] hover:rounded-[10px]"
+                >
+                  PHOTO
+                </a>
+              </li>
+              <li class="w-full lg:w-1/5">
+                <a
+                  href="#"
+                  class="inline-block py-2 px-4 text-[#60616D] hover:text-black hover:bg-[#FAFAFA] hover:rounded-[10px]"
+                >
+                  VIDEO
+                </a>
+              </li>
+              <li class="w-full lg:w-1/5">
+                <a
+                  href="#"
+                  class="inline-block py-2 px-4 text-[#60616D] hover:text-black hover:bg-[#FAFAFA] hover:rounded-[10px]"
+                >
+                  TAGGED
+                </a>
+              </li>
+              <li class="w-full lg:w-1/5">
+                <a
+                  href="#"
+                  class="inline-block py-2 px-4 text-[#60616D] hover:text-black hover:bg-[#FAFAFA] hover:rounded-[10px]"
+                >
+                  INTEREST
+                </a>
+              </li>
+            </ul>
+
+            <%= if @user.username == @current_user.username do %>
+              <div class="w-full bg-white white:bg-gray-800 custom-box-shadow pr-8 pl-7 pb-7 pt-4 rounded-[20px]">
+                <.live_component
+                  module={MazarynWeb.HomeLive.CreatePostComponent}
+                  id="posting"
+                  changeset={@post_changeset}
+                  user={@user}
+                />
+              </div>
+            <% end %>
+
+            <div class="flex flex-wrap justify-center align-center my-5 gap-y-4">
+              <%= for post <- @posts do %>
+                <.live_component
+                  module={MazarynWeb.HomeLive.PostComponent}
+                  id={"post-#{post.id}"}
+                  post={post}
+                  current_user={@current_user}
+                />
+              <% end %>
+            </div>
+          </div>
 
           <%= if @user.username == @current_user.username do %>
-            <div class="w-full bg-white white:bg-gray-800 custom-box-shadow pr-8 pl-7 pb-7 pt-4 rounded-[20px]">
+            <div class="w-full lg:w-2/5 pl-10">
               <.live_component
-                module={MazarynWeb.HomeLive.CreatePostComponent}
-                id="posting"
-                changeset={@post_changeset}
-                user={@user}
+                module={MazarynWeb.Component.CompleteProfile}
+                id="completing"
+                user={@current_user}
               />
             </div>
           <% end %>
-
-          <div class="flex flex-wrap justify-center align-center my-5 gap-y-4">
-            <%= for post <- @posts do %>
-              <.live_component
-                module={MazarynWeb.HomeLive.PostComponent}
-                id={"post-#{post.id}"}
-                post={post}
-                current_user={@current_user}
-              />
-            <% end %>
-          </div>
         </div>
-
-        <%= if @user.username == @current_user.username do %>
-          <div class="w-full lg:w-2/5 pl-10">
-            <.live_component
-              module={MazarynWeb.Component.CompleteProfile}
-              id="completing"
-              user={@current_user}
-            />
-          </div>
-        <% end %>
-      </div>
       <% end %>
     </div>
 
@@ -311,6 +384,29 @@
         <.live_component
           module={MazarynWeb.UserLive.FollowsComponent}
           id={@user.username}
+          current_user={@current_user}
+        />
+      </.modal>
+    <% end %>
+
+    <%= if @report_user_action do %>
+      <.modal>
+        <.live_component
+          module={MazarynWeb.HomeLive.ReportUserComponent}
+          id={@user.id}
+          reported_user={@user}
+          current_user={@current_user}
+        />
+      </.modal>
+    <% end %>
+
+    <%= if @verified_action do %>
+      <.modal>
+        <.live_component
+          module={MazarynWeb.UserLive.VerifyUserComponent}
+          id={@user.id}
+          user={@user}
+          action_name={if @user.verified, do: "unverify_user", else: "verify_user"}
           current_user={@current_user}
         />
       </.modal>
