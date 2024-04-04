@@ -7,6 +7,11 @@ defmodule MazarynWeb.HomeLive.Notification do
   def mount(_params, %{"user_id" => user_id} = _session, socket) do
     {:ok, user} = Users.one_by_email(user_id)
 
+    IO.inspect(user, label: "=============================")
+
+    Core.NotifEvent.get_all_notifs(user_id)
+    |> IO.inspect(label: "-------------------")
+
     {:ok,
      socket
      |> assign(user: user)
