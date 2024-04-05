@@ -3,8 +3,6 @@ defmodule MazarynWeb.VideoLive.Index do
 
   import MazarynWeb.Live.Helper
 
-  require Logger
-
   alias Account.Users
 
   @type socket :: Phoenix.LiveView.Socket.t()
@@ -12,7 +10,6 @@ defmodule MazarynWeb.VideoLive.Index do
   @impl Phoenix.LiveView
   @spec mount(map(), map(), socket()) :: {:ok, socket()}
   def mount(_params, %{"user_id" => user_id} = _session, socket) do
-    Logger.info(user_id: user_id)
     {:ok, do_mount(user_id, socket)}
   end
 
