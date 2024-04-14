@@ -7,10 +7,28 @@
     <div class="flex justify-center items-center">
       <img class="h-11 w-11 rounded-full" src={get_user_avatar(@post.author)} />
       <div class="ml-3.5 text-sm leading-tight">
-        <%= live_redirect(@post.author,
-          to: Routes.live_path(@socket, MazarynWeb.UserLive.Profile, @post.author),
+        <%= live_redirect(to: Routes.live_path(@socket, MazarynWeb.UserLive.Profile, @post.author),
           class: "block text-black text-base font-semibold"
-        ) %>
+        )  do %>
+          <div class="grid grid-flow-col auto-cols-max">
+            <div class="relative">
+              <span>
+                <%= @post.author %>
+              </span>
+            </div>
+            <%= if verified?(@post.author)  do %>
+              <div class="relative">
+                <span>
+                  <img
+                    alt="verified user"
+                    src={Routes.static_path(@socket, "/images/verified.png")}
+                    class="rounded-full align-middle border-none max-h-6 max-w-6"
+                  />
+                </span>
+              </div>
+            <% end %>
+          </div>
+        <% end %>
         <span class="block text-[#60616D] text-sm">
           <%= Timex.from_now(@post.date_created) %>
         </span>
@@ -185,7 +203,24 @@
         <div class="flex">
           <img src={get_user_avatar(comment.author.id)} class="h-8 w-8 rounded-full mr-3 mb-3 " />
           <div class="flex flex-col justify-center items-start">
-            <p class="text-sm font-normal"><%= comment.author.username %></p>
+            <div class="grid grid-flow-col auto-cols-max">
+              <div class="relative">
+                <p class="text-sm font-normal"><%= comment.author.username %></p>
+              </div>
+
+              <%= if comment.author.verified  do %>
+                <div class="relative">
+                  <span>
+                    <img
+                      alt="verified user"
+                      src={Routes.static_path(@socket, "/images/verified.png")}
+                      class="rounded-full align-middle border-none max-h-6 max-w-6"
+                    />
+                  </span>
+                </div>
+              <% end %>
+            </div>
+
             <p class="text-xs font-normal text-gray-400">
               <%= Timex.from_now(comment.date_created) %>
             </p>
