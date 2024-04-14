@@ -73,18 +73,18 @@ defmodule MazarynWeb.HomeLive.ReportUserComponent do
     user_id = params["user_id"] |> to_charlist
 
     UserClient.report_user(reporter_id, user_id, params["type"], params["description"])
-    |> IO.inspect(label: "sniiiitch")
 
     {:noreply,
      socket
-     |> put_flash(:info, "Thank You for reporting!")
-     |> push_redirect(
+     |> put_flash(:info, "Report submitted successfully!")
+     |> push_navigate(
        to:
          Routes.live_path(
            socket,
            MazarynWeb.UserLive.Profile,
            socket.assigns.reported_user.username
-         )
+         ),
+       replace: true
      )}
   end
 end
