@@ -40,7 +40,6 @@
       src={Routes.static_path(@conn, "/assets/app.js")}
     >
     </script>
-    
   </head>
   <body>
     <div class="loader">
@@ -53,6 +52,91 @@
 
     <a id="top"></a>
     <%= @inner_content %>
+
+    <footer>
+      <div class={
+        ["py-[1em] md:py-[0.6em]"] ++
+          if(@conn.request_path =~ "videos",
+            do: ["bg-[#282932] text-white"],
+            else: ["bg-white text-black"]
+          )
+      }>
+        <div class="flex flex-col md:flex-row justify-between w-[90%] md:max-w-[800px] -md:w-[50%] mx-auto">
+          <ul class={
+            ["w-[100%] grid grid-cols-3 md:flex justify-between items-center"] ++
+              if(@conn.request_path =~ "videos",
+                do: ["bg-[#282932] text-white"],
+                else: ["bg-white text-blue-700 hover:text-blue-800"]
+              )
+          }>
+            <li class="my-[10px] md:my-0">
+              <a class="block text-center capitalize" href="/">
+                <%= gettext("Mazaryn") %>
+              </a>
+            </li>
+            <li class="my-[10px] md:my-0">
+              <a class="block text-center capitalize" href="/blog">
+                <%= gettext("Blog") %>
+              </a>
+            </li>
+            <li class="my-[10px] md:my-0">
+              <a class="block text-center capitalize" href="/contact">
+                <%= gettext("Contact") %>
+              </a>
+            </li>
+            <li class="my-[10px] md:my-0">
+              <a class="block text-center capitalize" href="/about">
+                <%= gettext("About") %>
+              </a>
+            </li>
+            <li class="my-[10px] md:my-0">
+              <a class="block text-center capitalize" href="/careers">
+                <%= gettext("Careers") %>
+              </a>
+            </li>
+            <li class="my-[10px] md:my-0">
+              <a class="block text-center  capitalize" href="/privacy-policy">
+                <%= gettext("Privacy policy") %>
+              </a>
+            </li>
+          </ul>
+          <div>
+            <small class="py-[20px] md:py-0 block text-center text-sm opacity-[0.8] capitalize md:whitespace-pre">
+              <%= gettext("©2022 Mazaryn Social") %>
+            </small>
+          </div>
+          <div class={
+            ["language-selector p-2 rounded-lg flex items-center"] ++
+              if(@conn.request_path =~ "videos",
+                do: ["bg-[#282932]"],
+                else: ["bg-white"]
+              )
+          }>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              class="feather feather-globe mr-2"
+            >
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="2" y1="12" x2="22" y2="12"></line>
+              <path d="M12 2a15.3 15.3 0 0 1 4.39 10H7.61A15.3 15.3 0 0 1 12 2z"></path>
+              <path d="M12 22a15.3 15.3 0 0 1-4.39-10H16.4A15.3 15.3 0 0 1 12 22z"></path>
+            </svg>
+            <select id="language" onchange="changeLanguage(this)" class="bg-transparent text-sm">
+              <option value="en">English</option>
+              <option value="fa">Persian</option>
+              <option value="ru">Russian</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </footer>
   </body>
 </html>
-
