@@ -1,4 +1,4 @@
-defmodule MazarynWeb.VideoLive.FeaturedVideosComponent do
+defmodule MazarynWeb.VideoLive.SlidingVideosComponent do
   use MazarynWeb, :live_component
 
   @spec render(map()) :: Phoenix.LiveView.Rendered.t()

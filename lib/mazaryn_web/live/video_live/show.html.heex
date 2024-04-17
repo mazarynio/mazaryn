@@ -18,70 +18,163 @@
       <div class="flex">
         <div class="w-3/4">
           <div class="flex flex-col">
-            <%!-- TODO: create a video player  --%>
-            <%!-- <video></video> --%>
+            <%!-- TODO: implement the reusable video component below --%>
+            <%!-- <.live_component module={MazarynWeb.VideoLive.VideoPlayerComponent} video={@video} /> --%>
             <img src={~p"/images/video.png"} />
-            <h1>Over My Head - A Synthwave</h1>
-            <div class="flex">
+            <h1 class="mt-2 font-semibold text-xl text-white leading-6">
+              Over My Head - A Synthwave
+            </h1>
+            <div class="flex flex-wrap align-center items-center mt-3 justify-between text-white text-sm font-semibold leading-6">
               <p>986k views 10 months ago</p>
-              <p>18k | 18K</p>
-              <p>share</p>
-              <p>save</p>
-              <svg
-                width="18"
-                height="4"
-                viewBox="0 0 18 4"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M1 2C1 2.26522 1.10536 2.51957 1.29289 2.70711C1.48043 2.89464 1.73478 3 2 3C2.26522 3 2.51957 2.89464 2.70711 2.70711C2.89464 2.51957 3 2.26522 3 2C3 1.73478 2.89464 1.48043 2.70711 1.29289C2.51957 1.10536 2.26522 1 2 1C1.73478 1 1.48043 1.10536 1.29289 1.29289C1.10536 1.48043 1 1.73478 1 2Z"
-                  stroke="white"
-                  stroke-width="1.6"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                />
-                <path
-                  d="M8 2C8 2.26522 8.10536 2.51957 8.29289 2.70711C8.48043 2.89464 8.73478 3 9 3C9.26522 3 9.51957 2.89464 9.70711 2.70711C9.89464 2.51957 10 2.26522 10 2C10 1.73478 9.89464 1.48043 9.70711 1.29289C9.51957 1.10536 9.26522 1 9 1C8.73478 1 8.48043 1.10536 8.29289 1.29289C8.10536 1.48043 8 1.73478 8 2Z"
-                  stroke="white"
-                  stroke-width="1.6"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                />
-                <path
-                  d="M15 2C15 2.26522 15.1054 2.51957 15.2929 2.70711C15.4804 2.89464 15.7348 3 16 3C16.2652 3 16.5196 2.89464 16.7071 2.70711C16.8946 2.51957 17 2.26522 17 2C17 1.73478 16.8946 1.48043 16.7071 1.29289C16.5196 1.10536 16.2652 1 16 1C15.7348 1 15.4804 1.10536 15.2929 1.29289C15.1054 1.48043 15 1.73478 15 2Z"
-                  stroke="white"
-                  stroke-width="1.6"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                />
-              </svg>
+              <div class="flex items-center align-center px-4 py-2 rounded-full bg-[#323340]">
+                <div class="flex items-center align-center">
+                  <svg
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M7 11V19C7 19.2652 6.89464 19.5196 6.70711 19.7071C6.51957 19.8946 6.26522 20 6 20H4C3.73478 20 3.48043 19.8946 3.29289 19.7071C3.10536 19.5196 3 19.2652 3 19V12C3 11.7348 3.10536 11.4804 3.29289 11.2929C3.48043 11.1054 3.73478 11 4 11H7ZM7 11C8.06087 11 9.07828 10.5786 9.82843 9.82843C10.5786 9.07828 11 8.06087 11 7V6C11 5.46957 11.2107 4.96086 11.5858 4.58579C11.9609 4.21071 12.4696 4 13 4C13.5304 4 14.0391 4.21071 14.4142 4.58579C14.7893 4.96086 15 5.46957 15 6V11H18C18.5304 11 19.0391 11.2107 19.4142 11.5858C19.7893 11.9609 20 12.4696 20 13L19 18C18.8562 18.6135 18.5834 19.1402 18.2227 19.501C17.8619 19.8617 17.4328 20.0368 17 20H10C9.20435 20 8.44129 19.6839 7.87868 19.1213C7.31607 18.5587 7 17.7956 7 17"
+                      stroke="white"
+                      stroke-width="1.6"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
+                  </svg>
+
+                  <p class="ml-1">
+                    18k
+                  </p>
+                </div>
+                <svg
+                  class="mx-2"
+                  width="1"
+                  height="24"
+                  viewBox="0 0 1 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <line x1="0.5" y1="2.18557e-08" x2="0.499999" y2="24" stroke="#D9D9D9" />
+                </svg>
+                <div class="flex items-center align-center">
+                  <svg
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M7 13V5C7 4.73478 6.89464 4.48043 6.70711 4.29289C6.51957 4.10536 6.26522 4 6 4H4C3.73478 4 3.48043 4.10536 3.29289 4.29289C3.10536 4.48043 3 4.73478 3 5V12C3 12.2652 3.10536 12.5196 3.29289 12.7071C3.48043 12.8946 3.73478 13 4 13H7ZM7 13C8.06087 13 9.07828 13.4214 9.82843 14.1716C10.5786 14.9217 11 15.9391 11 17V18C11 18.5304 11.2107 19.0391 11.5858 19.4142C11.9609 19.7893 12.4696 20 13 20C13.5304 20 14.0391 19.7893 14.4142 19.4142C14.7893 19.0391 15 18.5304 15 18V13H18C18.5304 13 19.0391 12.7893 19.4142 12.4142C19.7893 12.0391 20 11.5304 20 11L19 6C18.8562 5.38653 18.5834 4.85976 18.2227 4.49904C17.8619 4.13832 17.4328 3.96318 17 4H10C9.20435 4 8.44129 4.31607 7.87868 4.87868C7.31607 5.44129 7 6.20435 7 7"
+                      stroke="white"
+                      stroke-width="1.6"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
+                  </svg>
+
+                  <p class="ml-1">
+                    18k
+                  </p>
+                </div>
+              </div>
+              <div class="flex align-center items-center px-4 py-2 rounded-full bg-[#323340]">
+                <svg
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M8.7 10.7L15.3 7.3M8.7 13.3L15.3 16.7M3 12C3 12.7956 3.31607 13.5587 3.87868 14.1213C4.44129 14.6839 5.20435 15 6 15C6.79565 15 7.55871 14.6839 8.12132 14.1213C8.68393 13.5587 9 12.7956 9 12C9 11.2044 8.68393 10.4413 8.12132 9.87868C7.55871 9.31607 6.79565 9 6 9C5.20435 9 4.44129 9.31607 3.87868 9.87868C3.31607 10.4413 3 11.2044 3 12ZM15 6C15 6.79565 15.3161 7.55871 15.8787 8.12132C16.4413 8.68393 17.2044 9 18 9C18.7956 9 19.5587 8.68393 20.1213 8.12132C20.6839 7.55871 21 6.79565 21 6C21 5.20435 20.6839 4.44129 20.1213 3.87868C19.5587 3.31607 18.7956 3 18 3C17.2044 3 16.4413 3.31607 15.8787 3.87868C15.3161 4.44129 15 5.20435 15 6ZM15 18C15 18.7956 15.3161 19.5587 15.8787 20.1213C16.4413 20.6839 17.2044 21 18 21C18.7956 21 19.5587 20.6839 20.1213 20.1213C20.6839 19.5587 21 18.7956 21 18C21 17.2044 20.6839 16.4413 20.1213 15.8787C19.5587 15.3161 18.7956 15 18 15C17.2044 15 16.4413 15.3161 15.8787 15.8787C15.3161 16.4413 15 17.2044 15 18Z"
+                    stroke="white"
+                    stroke-width="1.6"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                </svg>
+                <p class="ml-2">Share</p>
+              </div>
+              <div class="flex align-center items-center px-4 py-2 rounded-full bg-[#323340]">
+                <svg
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M19 8H5M5 12H14M11 16H5M15 16H21M18 13V19"
+                    stroke="white"
+                    stroke-width="1.6"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                </svg>
+
+                <p class="ml-2">Save</p>
+              </div>
+              <div class="mr-2 px-[0.8rem] py-[1.15rem] rounded-full bg-[#323340]">
+                <svg
+                  width="18"
+                  height="4"
+                  viewBox="0 0 18 4"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M1 2C1 2.26522 1.10536 2.51957 1.29289 2.70711C1.48043 2.89464 1.73478 3 2 3C2.26522 3 2.51957 2.89464 2.70711 2.70711C2.89464 2.51957 3 2.26522 3 2C3 1.73478 2.89464 1.48043 2.70711 1.29289C2.51957 1.10536 2.26522 1 2 1C1.73478 1 1.48043 1.10536 1.29289 1.29289C1.10536 1.48043 1 1.73478 1 2Z"
+                    stroke="white"
+                    stroke-width="1.6"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                  <path
+                    d="M8 2C8 2.26522 8.10536 2.51957 8.29289 2.70711C8.48043 2.89464 8.73478 3 9 3C9.26522 3 9.51957 2.89464 9.70711 2.70711C9.89464 2.51957 10 2.26522 10 2C10 1.73478 9.89464 1.48043 9.70711 1.29289C9.51957 1.10536 9.26522 1 9 1C8.73478 1 8.48043 1.10536 8.29289 1.29289C8.10536 1.48043 8 1.73478 8 2Z"
+                    stroke="white"
+                    stroke-width="1.6"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                  <path
+                    d="M15 2C15 2.26522 15.1054 2.51957 15.2929 2.70711C15.4804 2.89464 15.7348 3 16 3C16.2652 3 16.5196 2.89464 16.7071 2.70711C16.8946 2.51957 17 2.26522 17 2C17 1.73478 16.8946 1.48043 16.7071 1.29289C16.5196 1.10536 16.2652 1 16 1C15.7348 1 15.4804 1.10536 15.2929 1.29289C15.1054 1.48043 15 1.73478 15 2Z"
+                    stroke="white"
+                    stroke-width="1.6"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                </svg>
+              </div>
             </div>
-            <div class="flex">
+            <div class="flex justify-between mt-4 bg-[#323340] p-5 rounded-[1.25rem] font-normal text-white text-sm leading-6">
               <div class="flex flex-col">
                 <div class="flex">
                   <img
                     src={~p"/images/commentor.png"}
                     alt="Channel owner icon"
-                    class="w-[30px] h-[30px] rounded-full"
+                    class="w-[34px] h-[34px] rounded-full mr-2"
                   />
-                  <div>
-                    <p>The official guy</p>
+                  <div class="text-[#CFD0DD]">
+                    <p class="font-semibold">The official guy</p>
                     <p>65,6k subscribers</p>
                   </div>
                 </div>
                 <p>
-                  what is your favourite video? this channel is great to get useful infor...
-                  <span>more</span>
+                  what is your favourite video? this channel is great to get useful infor
                 </p>
+                <p class="font-semibold">...more</p>
               </div>
-              <div>
-                <button>Subscribe</button>
+              <div class="h-fit cursor-pointer rounded-lg bg-[#4385F5] px-5 py-2">
+                <button class="font-bold leading-4">Subscribe</button>
               </div>
             </div>
             <div class="flex">
-              <p>28 Comments</p>
+              <p class="mr-8">28 Comments</p>
               <svg
+                class="mr-2"
                 width="30"
                 height="30"
                 viewBox="0 0 30 30"
@@ -95,23 +188,32 @@
               </svg>
               <p>Sort by</p>
             </div>
-            <div class="flex">
+            <div class="flex mt-3">
               <img
                 src={~p"/images/commentor.png"}
                 alt="Comment owner icon"
-                class="w-[30px] h-[30px] rounded-full"
+                class="w-[40px] h-[40px] rounded-full mr-2"
               />
               <form>
-                <input type="text" placeholder="Add a public comment..." />
-                <button type="submit">Send</button>
+                <input
+                  type="text"
+                  class="bg-[#323340] border border-[#323340] rounded-lg pr-[21.5rem] mr-2"
+                  placeholder="Add a public comment..."
+                />
+                <button
+                  type="submit"
+                  class="rounded-lg bg-[#4385F5] px-5 py-2 font-semibold text-white leading-4"
+                >
+                  Send
+                </button>
               </form>
             </div>
             <%= for _ <- 1..5 do %>
-              <div class="flex">
+              <div class="flex mt-3">
                 <img
                   src={~p"/images/commentor.png"}
                   alt="Comment owner icon"
-                  class="w-[30px] h-[30px] rounded-full"
+                  class="w-[40px] h-[40px] rounded-full mr-2"
                 />
 
                 <div class="flex flex-col">
@@ -119,39 +221,43 @@
                   <p>
                     Thank you for the lucid presentation on the PID connection. God bless !From Addis Ababa,  Ethiopia
                   </p>
-                  <div class="flex">
-                    <svg
-                      width="20"
-                      height="20"
-                      viewBox="0 0 20 20"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        d="M5.83333 9.16665V15.8333C5.83333 16.0543 5.74554 16.2663 5.58926 16.4226C5.43298 16.5789 5.22101 16.6666 5 16.6666H3.33333C3.11232 16.6666 2.90036 16.5789 2.74408 16.4226C2.5878 16.2663 2.5 16.0543 2.5 15.8333V9.99998C2.5 9.77897 2.5878 9.567 2.74408 9.41072C2.90036 9.25444 3.11232 9.16665 3.33333 9.16665H5.83333ZM5.83333 9.16665C6.71739 9.16665 7.56524 8.81546 8.19036 8.19034C8.81548 7.56521 9.16667 6.71737 9.16667 5.83331V4.99998C9.16667 4.55795 9.34226 4.13403 9.65482 3.82147C9.96738 3.50891 10.3913 3.33331 10.8333 3.33331C11.2754 3.33331 11.6993 3.50891 12.0118 3.82147C12.3244 4.13403 12.5 4.55795 12.5 4.99998V9.16665H15C15.442 9.16665 15.866 9.34224 16.1785 9.6548C16.4911 9.96736 16.6667 10.3913 16.6667 10.8333L15.8333 15C15.7135 15.5112 15.4861 15.9502 15.1855 16.2508C14.8849 16.5514 14.5274 16.6973 14.1667 16.6666H8.33333C7.67029 16.6666 7.03441 16.4033 6.56557 15.9344C6.09673 15.4656 5.83333 14.8297 5.83333 14.1666"
-                        stroke="#AAAAAA"
-                        stroke-width="1.5"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                      />
-                    </svg>
-                    <p>10</p>|
-                    <svg
-                      width="20"
-                      height="20"
-                      viewBox="0 0 20 20"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        d="M5.83333 10.8334V4.16669C5.83333 3.94568 5.74554 3.73372 5.58926 3.57744C5.43298 3.42116 5.22101 3.33336 5 3.33336H3.33333C3.11232 3.33336 2.90036 3.42116 2.74408 3.57744C2.5878 3.73372 2.5 3.94568 2.5 4.16669V10C2.5 10.221 2.5878 10.433 2.74408 10.5893C2.90036 10.7456 3.11232 10.8334 3.33333 10.8334H5.83333ZM5.83333 10.8334C6.71739 10.8334 7.56524 11.1845 8.19036 11.8097C8.81548 12.4348 9.16667 13.2826 9.16667 14.1667V15C9.16667 15.4421 9.34226 15.866 9.65482 16.1785C9.96738 16.4911 10.3913 16.6667 10.8333 16.6667C11.2754 16.6667 11.6993 16.4911 12.0118 16.1785C12.3244 15.866 12.5 15.4421 12.5 15V10.8334H15C15.442 10.8334 15.866 10.6578 16.1785 10.3452C16.4911 10.0326 16.6667 9.60872 16.6667 9.16669L15.8333 5.00003C15.7135 4.4888 15.4861 4.04982 15.1855 3.74922C14.8849 3.44862 14.5274 3.30267 14.1667 3.33336H8.33333C7.67029 3.33336 7.03441 3.59675 6.56557 4.06559C6.09673 4.53443 5.83333 5.17032 5.83333 5.83336"
-                        stroke="#AAAAAA"
-                        stroke-width="1.5"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                      />
-                    </svg>
-                    <p>reply</p>
+                  <div class="flex align-center items-center">
+                    <div class="flex rounded-3xl bg-[#323340] w-fit mt-2 mr-2 px-3 py-2">
+                      <svg
+                        width="20"
+                        height="20"
+                        viewBox="0 0 20 20"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M5.83333 9.16665V15.8333C5.83333 16.0543 5.74554 16.2663 5.58926 16.4226C5.43298 16.5789 5.22101 16.6666 5 16.6666H3.33333C3.11232 16.6666 2.90036 16.5789 2.74408 16.4226C2.5878 16.2663 2.5 16.0543 2.5 15.8333V9.99998C2.5 9.77897 2.5878 9.567 2.74408 9.41072C2.90036 9.25444 3.11232 9.16665 3.33333 9.16665H5.83333ZM5.83333 9.16665C6.71739 9.16665 7.56524 8.81546 8.19036 8.19034C8.81548 7.56521 9.16667 6.71737 9.16667 5.83331V4.99998C9.16667 4.55795 9.34226 4.13403 9.65482 3.82147C9.96738 3.50891 10.3913 3.33331 10.8333 3.33331C11.2754 3.33331 11.6993 3.50891 12.0118 3.82147C12.3244 4.13403 12.5 4.55795 12.5 4.99998V9.16665H15C15.442 9.16665 15.866 9.34224 16.1785 9.6548C16.4911 9.96736 16.6667 10.3913 16.6667 10.8333L15.8333 15C15.7135 15.5112 15.4861 15.9502 15.1855 16.2508C14.8849 16.5514 14.5274 16.6973 14.1667 16.6666H8.33333C7.67029 16.6666 7.03441 16.4033 6.56557 15.9344C6.09673 15.4656 5.83333 14.8297 5.83333 14.1666"
+                          stroke="#AAAAAA"
+                          stroke-width="1.5"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        />
+                      </svg>
+                      <p class="ml-1">10</p>
+                      <span class="mx-1">|</span>
+                      <svg
+                        class="mr-1"
+                        width="20"
+                        height="20"
+                        viewBox="0 0 20 20"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M5.83333 10.8334V4.16669C5.83333 3.94568 5.74554 3.73372 5.58926 3.57744C5.43298 3.42116 5.22101 3.33336 5 3.33336H3.33333C3.11232 3.33336 2.90036 3.42116 2.74408 3.57744C2.5878 3.73372 2.5 3.94568 2.5 4.16669V10C2.5 10.221 2.5878 10.433 2.74408 10.5893C2.90036 10.7456 3.11232 10.8334 3.33333 10.8334H5.83333ZM5.83333 10.8334C6.71739 10.8334 7.56524 11.1845 8.19036 11.8097C8.81548 12.4348 9.16667 13.2826 9.16667 14.1667V15C9.16667 15.4421 9.34226 15.866 9.65482 16.1785C9.96738 16.4911 10.3913 16.6667 10.8333 16.6667C11.2754 16.6667 11.6993 16.4911 12.0118 16.1785C12.3244 15.866 12.5 15.4421 12.5 15V10.8334H15C15.442 10.8334 15.866 10.6578 16.1785 10.3452C16.4911 10.0326 16.6667 9.60872 16.6667 9.16669L15.8333 5.00003C15.7135 4.4888 15.4861 4.04982 15.1855 3.74922C14.8849 3.44862 14.5274 3.30267 14.1667 3.33336H8.33333C7.67029 3.33336 7.03441 3.59675 6.56557 4.06559C6.09673 4.53443 5.83333 5.17032 5.83333 5.83336"
+                          stroke="#AAAAAA"
+                          stroke-width="1.5"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        />
+                      </svg>
+                    </div>
+                    <p class="text-[#AAAAAA] mt-2">reply</p>
                   </div>
                 </div>
               </div>
