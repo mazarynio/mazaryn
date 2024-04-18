@@ -7,6 +7,8 @@ defmodule MazarynWeb.HomeLive.Notification do
   def mount(_params, %{"user_id" => user_email} = _session, socket) do
     {:ok, user} = Users.one_by_email(user_email)
 
+    IO.inspect(user, label: "======================")
+
     {:ok,
      socket
      |> assign(user: user)
@@ -40,7 +42,10 @@ defmodule MazarynWeb.HomeLive.Notification do
               <%= for notif <- @notifs do %>
                 <div class="flex justify-between align-center items-center mb-5">
                   <div class="flex justify-center items-center">
-                    <img class="h-11 w-11 rounded-full" src="#" />
+                    <img
+                      class="h-11 w-11 rounded-full"
+                      src={@user.avatar_url || "/images/default-user.svg"}
+                    />
                     <div class="ml-3.5 text-sm leading-tight">
                       <span class="block text-[#60616D] text-sm"><%= notif %></span>
                       <span class="block text-[#60616D] text-sm">llllll</span>
