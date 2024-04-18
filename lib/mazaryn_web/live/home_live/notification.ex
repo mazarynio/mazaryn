@@ -33,13 +33,23 @@ defmodule MazarynWeb.HomeLive.Notification do
             user={@user}
           />
         </div>
+
         <div class="w-full lg:w-[54%] py-6 pl-11 pr-8">
           <div class="flex flex-wrap justify-center align-center mb-6">
-            <ol>
+            <div class="w-full bg-white white:bg-gray-800 custom-box-shadow pr-[1.35rem] pl-[1.6rem] pb-2 pt-5 mt-8 rounded-[20px]">
               <%= for notif <- @notifs do %>
-                <li><%= notif %></li>
+                <div class="flex justify-between align-center items-center mb-5">
+                  <div class="flex justify-center items-center">
+                    <img class="h-11 w-11 rounded-full" src="#" />
+                    <div class="ml-3.5 text-sm leading-tight">
+                      <span class="block text-[#60616D] text-sm"><%= notif %></span>
+                      <span class="block text-[#60616D] text-sm">llllll</span>
+                      <span class="block text-[#60616D] text-sm">llllll</span>
+                    </div>
+                  </div>
+                </div>
               <% end %>
-            </ol>
+            </div>
           </div>
         </div>
       </div>
