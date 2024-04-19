@@ -46,9 +46,9 @@ defmodule MazarynWeb.HomeLive.Notification do
                       class="h-11 w-11 rounded-full"
                       src={@user.avatar_url || "/images/default-user.svg"}
                     />
-                    <div class="ml-3.5 text-sm leading-tight">
+                    <div class="ml-3.5 text-sm leading-tight mt-5">
+                      <span class="block text-[#60616D] text-sm"> wanj</span>
                       <span class="block text-[#60616D] text-sm"><%= notif %></span>
-                      <span class="block text-[#60616D] text-sm">llllll</span>
                       <span class="block text-[#60616D] text-sm">llllll</span>
                     </div>
                   </div>
@@ -65,6 +65,7 @@ defmodule MazarynWeb.HomeLive.Notification do
   defp get_all_user_notifs(user) do
     user.id
     |> Core.NotifEvent.get_all_notifs()
+    |> IO.inspect(label: "==============================")
     |> Enum.map(fn {:notif, _notif_id, _user_id, message, _time_stamp, _metadata} ->
       message
     end)
