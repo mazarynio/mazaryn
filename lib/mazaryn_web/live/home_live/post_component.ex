@@ -377,4 +377,11 @@ defmodule MazarynWeb.HomeLive.PostComponent do
       do: "unlike_post",
       else: "like_post"
   end
+
+  defp verified?(author) do
+    case Users.one_by_username(author) do
+      {:ok, user} -> user.verified
+      _ -> false
+    end
+  end
 end

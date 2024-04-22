@@ -182,22 +182,24 @@
                           </p>
                         </li>
                         <li class="">
-                          <%= if @user.verified and @current_user.username in ["arvand", "pollet"] do %>
-                            <p
-                              class="text-gray-500 m-2 cursor-pointer"
-                              phx-click={JS.push("open_modal") |> open_modal()}
-                              phx-value-action="unverify-user"
-                            >
-                              Unverify
-                            </p>
-                          <% else %>
-                            <p
-                              class="text-gray-500 m-2 cursor-pointer"
-                              phx-click={JS.push("open_modal") |> open_modal()}
-                              phx-value-action="verify-user"
-                            >
-                              Verify
-                            </p>
+                          <%= if @current_user.username in @admins do %>
+                            <%= if @user.verified do %>
+                              <p
+                                class="text-gray-500 m-2 cursor-pointer"
+                                phx-click={JS.push("open_modal") |> open_modal()}
+                                phx-value-action="unverify-user"
+                              >
+                                Unverify
+                              </p>
+                            <% else %>
+                              <p
+                                class="text-gray-500 m-2 cursor-pointer"
+                                phx-click={JS.push("open_modal") |> open_modal()}
+                                phx-value-action="verify-user"
+                              >
+                                Verify
+                              </p>
+                            <% end %>
                           <% end %>
                         </li>
                       </ul>

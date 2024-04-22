@@ -73,11 +73,10 @@ defmodule MazarynWeb.HomeLive.ReportPostsComponent do
     post_id = params["post_id"] |> to_charlist
 
     PostClient.report_post(user_id, post_id, params["type"], params["description"])
-    |> IO.inspect(label: "sniiiitch")
 
     {:noreply,
      socket
-     |> put_flash(:info, "Thank You for reporting!")
-     |> push_redirect(to: Routes.live_path(socket, MazarynWeb.HomeLive.Home))}
+     |> put_flash(:info, "Report submitted successfully!")
+     |> push_navigate(to: Routes.live_path(socket, MazarynWeb.HomeLive.Home), replace: true)}
   end
 end

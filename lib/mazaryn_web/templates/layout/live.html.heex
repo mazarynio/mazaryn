@@ -1,5 +1,21 @@
-<main>
-  <%= @inner_content %>
+<%= if flash = Phoenix.Flash.get(@flash, :info) do %>
+  <p
+    id="flash-message"
+    class="p-4 mb-4 text-sm text-green-800 rounded-lg bg-green-50 dark:bg-gray-800 dark:text-green-400"
+    role="alert"
+  >
+    <%= flash %>
+  </p>
+<% end %>
+<%= if flash = Phoenix.Flash.get(@flash, :error) do %>
+  <p
+    id="flash-message"
+    class="p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50 dark:bg-gray-800 dark:text-red-400"
+    role="alert"
+  >
+    <%= flash %>
+  </p>
+<% end %>
+<%= @inner_content %>
 
-  <%= render("_footer.html", assigns) %>
-</main>
+<%= render("_footer.html", assigns) %>
