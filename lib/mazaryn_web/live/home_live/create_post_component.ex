@@ -6,7 +6,7 @@ defmodule MazarynWeb.HomeLive.CreatePostComponent do
   alias MazarynWeb.Component.SelectLive
   alias Mazaryn.Schema.Post
   alias Mazaryn.Posts
-  alias Account.Users
+  alias Account.{Users, User}
 
   @impl true
   def mount(socket) do
@@ -85,12 +85,28 @@ defmodule MazarynWeb.HomeLive.CreatePostComponent do
     |> Posts.create_post()
     |> case do
       {:ok, %Post{}} ->
+        add_mention_to_notif(mentions, socket.assigns.user.id)
         # send event to parent live-view
         send(self(), :reload_posts)
+
         socket
 
       _other ->
         socket
+    end
+  end
+
+  defp add_mention_to_notif("", _user_id) do
+    :ok
+  end
+
+  defp add_mention_to_notif(mention, user_id) do
+    mention = String.replace(mention, "@", "")
+
+    with {:ok, %User{id: id}} <- Users.one_by_username(mention) do
+      Core.NotifEvent.mention(user_id, id)
+    else
+      nil -> :ok
     end
   end
 
