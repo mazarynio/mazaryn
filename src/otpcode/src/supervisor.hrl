@@ -7,6 +7,15 @@
     modules => [user_server]
 }).
 
+-define(USER_LEVEL_SERVER, #{
+    id => user_level_server,
+    start => {user_level_server, start_link, []},
+    restart => permanent,
+    shutdown => 5000,
+    type => worker,
+    modules => [user_level_server]
+}).
+
 -define(POST_SERVER, #{
     id => post_server,
     start => {post_server, start_link, []},

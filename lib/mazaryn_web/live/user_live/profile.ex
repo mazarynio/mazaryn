@@ -46,6 +46,7 @@ defmodule MazarynWeb.UserLive.Profile do
       |> assign(privacy: privacy)
       |> assign(report_user_action: false)
       |> assign(verified_action: false)
+      |> assign(admins: ["arvand"])
 
     {:ok, socket}
   end
