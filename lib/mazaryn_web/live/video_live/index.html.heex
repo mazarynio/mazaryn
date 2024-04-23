@@ -6,7 +6,7 @@
   search={@search}
 />
 <div class="bg-[#282932] text-[#CFD0DD]">
-  <div class="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-5 gap-4 w-[90%] max-w-[1440px] mx-auto">
+  <div class="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-5 gap-4 w-full max-w-[1440px] mx-auto px-16 2xl:px-0">
     <div class="md:col-span-1 py-6">
       <.live_component
         module={MazarynWeb.VideoLive.LeftSidebarComponent}
@@ -15,12 +15,13 @@
       />
     </div>
     <div class="md:col-span-3 lg:col-span-4 mb-10 py-6 px-11">
-      <div class="bg-[#282932] white:bg-gray-800 custom-box-shadow pr-8 pl-7 pb-7 pt-4 border  border-[#282932] rounded-[1.25rem]">
+      <div class="bg-[#282932] white:bg-gray-800 custom-box-shadow pr-8 pl-7 pb-7 pt-4 border border-[#282932] rounded-[1.25rem]">
         <.live_component
           module={MazarynWeb.VideoLive.SlidingVideosComponent}
           id="featured-videos"
           featured_videos={@featured_videos}
           user={@user}
+          class="w-[400px] md:w-[300px] xl:w-[800px]"
         />
       </div>
       <div class="flex items-center mt-8">

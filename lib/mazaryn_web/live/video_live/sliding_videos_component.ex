@@ -38,6 +38,7 @@ defmodule MazarynWeb.VideoLive.SlidingVideosComponent do
         <%!-- TODO: implement the reusable video component below --%>
         <%!-- <.live_component module={MazarynWeb.VideoLive.VideoPlayerComponent} video={@video} /> --%>
         <svg
+          class={@class}
           width="874"
           height="338"
           viewBox="0 0 874 338"

@@ -28,7 +28,7 @@ defmodule MazarynWeb.VideoLive.NavComponent do
           <% end %>
         </div>
         <form
-          class="flex items-center w-full min-w-[380px] mx-auto my-auto h-11 outline-0 rounded-[10px] px-3.5 bg-[#323340] border-2 border-[#393A3D]"
+          class="flex items-center w-[50%] lg:w-full mx-auto my-auto h-11 outline-0 rounded-[10px] px-3.5 bg-[#323340] border-2 border-[#393A3D]"
           phx-submit="do_search"
         >
           <button type="submit">
@@ -48,7 +48,7 @@ defmodule MazarynWeb.VideoLive.NavComponent do
         <ol
           x-data="{ isopen: false }"
           x-on:click.outside="isopen = false"
-          class="hidden w-[55%] md:flex justify-evenly items-center list-none"
+          class="hidden w-[55%] lg:flex justify-evenly items-center list-none"
         >
           <li class="ml-5">
             <div class="flex bg-[#323340] center rounded-full p-2">
@@ -226,7 +226,7 @@ defmodule MazarynWeb.VideoLive.NavComponent do
           </li>
         </ol>
         <!-- Mobile menu button -->
-        <div class="md:hidden flex items-center">
+        <div class="lg:hidden flex items-center">
           <button
             phx-click={
               Phoenix.LiveView.JS.toggle(
@@ -252,8 +252,8 @@ defmodule MazarynWeb.VideoLive.NavComponent do
         </div>
       </nav>
       <!-- Mobile menu -->
-      <div class="hidden md:hidden mobile-menu">
-        <ul class="">
+      <div class="hidden mobile-menu text-white">
+        <ul>
           <li>
             <%= link("Coin",
               to: Routes.live_path(@socket, MazarynWeb.CoinLive.Index),
