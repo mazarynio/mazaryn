@@ -48,7 +48,7 @@ defmodule MazarynWeb.VideoLive.NavComponent do
         <ol
           x-data="{ isopen: false }"
           x-on:click.outside="isopen = false"
-          class="hidden w-[55%] lg:flex justify-evenly items-center list-none"
+          class="relative hidden w-[55%] lg:flex justify-evenly items-center list-none"
         >
           <li class="ml-5">
             <div class="flex bg-[#323340] center rounded-full p-2">
@@ -148,7 +148,7 @@ defmodule MazarynWeb.VideoLive.NavComponent do
               </svg>
             </div>
           </li>
-          <li class="absolute right-[10.5rem] ml-5 -mr-8 z-50">
+          <li class="absolute right-[6rem] xl:right-[9.5rem] ml-5 -mr-8 z-50">
             <%= if @user.avatar_url do %>
               <img src={"#{@user.avatar_url}"} class="w-6 rounded-full" />
             <% else %>
@@ -169,7 +169,7 @@ defmodule MazarynWeb.VideoLive.NavComponent do
           <li class="ml-5">
             <div @click="isopen = !isopen" class="relative z-10 inline-block text-left cursor-pointer">
               <div
-                class="dropdown inline-flex justify-center w-full rounded-md border border-[#323340] shadow-sm px-8 py-2 bg-[#323340] text-sm font-medium text-white flex-shrink-0 hover:bg-[#4a4c5e] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[#323340] focus:ring-indigo-500 items-center"
+                class="dropdown inline-flex justify-center w-full rounded-md border border-[#323340] shadow-sm pl-8 pr-4 py-2 bg-[#323340] text-sm font-medium text-white flex-shrink-0 hover:bg-[#4a4c5e] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[#323340] focus:ring-indigo-500 items-center"
                 id="menu-button"
                 aria-expanded="true"
                 aria-haspopup="true"
