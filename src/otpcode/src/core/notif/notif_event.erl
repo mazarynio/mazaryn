@@ -43,7 +43,7 @@ notif(UserID, Message) ->
     end.
 
 get_notif(NotifId) ->
-    case notifdb:get_notif_message(NotifId) of
+    case notifdb:get_single_notif(NotifId) of
         Notif ->
             Notif;
         {error, Reason} ->
@@ -129,7 +129,7 @@ handle_event({notif, UserId, Message}, State) ->
     end;
 
 handle_event({get_notif, NotifId}, State) ->
-    case notifdb:get_notif_message(NotifId) of
+    case notifdb:get_single_notif(NotifId) of
         Notif ->
             Notif;
         {error, Reason} ->
