@@ -13,7 +13,7 @@
 
 -behaviour(gen_server).
 %% API
--export([start_link/0, insert/6, get_post_by_id/1, modify_post/6,
+-export([start_link/0, insert/7, get_post_by_id/1, modify_post/7,
          get_posts_by_author/1, get_posts_by_hashtag/1, get_latest_posts/1, update_post/2, delete_post/1, 
          like_post/2, unlike_post/2, add_comment/3,
          update_comment/2, get_single_comment/1, get_all_comments/1, delete_comment/2,
@@ -33,12 +33,12 @@ start_link() ->
   ?LOG_NOTICE("Post server has been started - ~p", [self()]),
   gen_server:start_link({global, ?MODULE}, ?MODULE, [], []).
 
-insert(Author, Content, Media, Hashtag, Mention, Link_URL) ->
-  gen_server:call({global, ?MODULE}, {insert, Author, Content, Media, Hashtag, Mention, Link_URL}).
+insert(Author, Content, Emoji, Media, Hashtag, Mention, Link_URL) ->
+  gen_server:call({global, ?MODULE}, {insert, Author, Content, Emoji, Media, Hashtag, Mention, Link_URL}).
 
-modify_post(Author, NewContent, NewMedia, NewHashtag, NewMention, NewLink_URL) ->
+modify_post(Author, NewContent, NewEmoji, NewMedia, NewHashtag, NewMention, NewLink_URL) ->
   gen_server:call({global, ?MODULE},
-     {modify_post, Author, NewContent, NewMedia, NewHashtag, NewMention, NewLink_URL}).
+     {modify_post, Author, NewContent, NewEmoji, NewMedia, NewHashtag, NewMention, NewLink_URL}).
 
 get_post_by_id(Id) ->
   gen_server:call({global, ?MODULE}, {get_post_by_id, Id}).
@@ -117,13 +117,13 @@ init([]) ->
     {ok, []}.
 
 
-handle_call({insert, Author, Content, Media, Hashtag, Mention, Link_URL}, _From, State) ->
-    Id = postdb:insert(Author, Content, Media, Hashtag, Mention, Link_URL),
+handle_call({insert, Author, Content, Emoji, Media, Hashtag, Mention, Link_URL}, _From, State) ->
+    Id = postdb:insert(Author, Content, Emoji, Media, Hashtag, Mention, Link_URL),
     {reply, Id, State};
 
-handle_call({modify_post, Author, NewContent, NewMedia, NewHashtag, NewMention, NewLink_URL},
+handle_call({modify_post, Author, NewContent, NewEmoji, NewMedia, NewHashtag, NewMention, NewLink_URL},
              _From, State) ->
-  Res = postdb:modify_post(Author, NewContent, NewMedia, NewHashtag, NewMention, NewLink_URL),
+  Res = postdb:modify_post(Author, NewContent, NewEmoji, NewMedia, NewHashtag, NewMention, NewLink_URL),
   {reply, Res, State};
 
 handle_call({get_post_by_id, Id}, _From, State) ->

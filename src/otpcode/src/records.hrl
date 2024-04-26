@@ -36,6 +36,7 @@
 
 -record(post, { id,
                 content,
+                emoji = [],
                 comments = [],
                 likes = [],
                 media = [],
@@ -48,6 +49,7 @@
                 date_updated,
                 report = [],
                 data = #{} }). 
+
 
 -record(blog_post, {id, 
                     content,
