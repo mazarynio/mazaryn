@@ -7,10 +7,28 @@
     <div class="flex justify-center items-center">
       <img class="h-11 w-11 rounded-full" src={get_user_avatar(@post.author)} />
       <div class="ml-3.5 text-sm leading-tight">
-        <%= live_redirect(@post.author,
-          to: Routes.live_path(@socket, MazarynWeb.UserLive.Profile, @post.author),
+        <%= live_redirect(to: Routes.live_path(@socket, MazarynWeb.UserLive.Profile, @post.author),
           class: "block text-black text-base font-semibold"
-        ) %>
+        )  do %>
+          <div class="grid grid-flow-col auto-cols-max">
+            <div class="relative">
+              <span>
+                <%= @post.author %>
+              </span>
+            </div>
+            <%= if verified?(@post.author)  do %>
+              <div class="relative">
+                <span>
+                  <img
+                    alt="verified user"
+                    src={Routes.static_path(@socket, "/images/verified.png")}
+                    class="rounded-full align-middle border-none max-h-6 max-w-6"
+                  />
+                </span>
+              </div>
+            <% end %>
+          </div>
+        <% end %>
         <span class="block text-[#60616D] text-sm">
           <%= Timex.from_now(@post.date_created) %>
         </span>
@@ -49,7 +67,14 @@
               <p class="text-gray-500 m-2 cursor-pointer">Block</p>
             </li>
             <li class="">
-              <p class="text-gray-500 m-2 cursor-pointer">Report</p>
+              <p
+                class="text-gray-500 m-2 cursor-pointer"
+                phx-click={JS.push("open_modal") |> open_modal()}
+                phx-value-action="report-post"
+                phx-target={@myself}
+              >
+                Report
+              </p>
             </li>
           <% else %>
             <li class="">
@@ -88,9 +113,15 @@
         class: "h-5 w-7 fill-[#cfd0dd] cursor-pointer",
         phx_click: @like_event,
         phx_value_post_id: @post.id,
-        phx_target: @myself
+        phx_target: @myself,
+        phx_value_action: "like-post"
       ) %>
-      <span class="ml-2.5 text-[#CFD0DD] text-base cursor-pointer" phx-click={Helper.open_modal()}>
+      <span
+        class="ml-2.5 text-[#CFD0DD] text-base cursor-pointer"
+        phx-target={@myself}
+        phx-value-action="like-post"
+        phx-click={JS.push("open_modal") |> open_modal()}
+      >
         <%= Enum.count(@post.likes) %>
       </span>
     </div>
@@ -139,7 +170,7 @@
     <.form
       :let={f}
       for={@changeset}
-      phx-change="validate-comment"
+      phx-blur="validate-comment"
       phx-target={@myself}
       phx-submit="save-comment"
       class="relative flex justify-center items-center w-full"
@@ -172,7 +203,24 @@
         <div class="flex">
           <img src={get_user_avatar(comment.author.id)} class="h-8 w-8 rounded-full mr-3 mb-3 " />
           <div class="flex flex-col justify-center items-start">
-            <p class="text-sm font-normal"><%= comment.author.username %></p>
+            <div class="grid grid-flow-col auto-cols-max">
+              <div class="relative">
+                <p class="text-sm font-normal"><%= comment.author.username %></p>
+              </div>
+
+              <%= if comment.author.verified  do %>
+                <div class="relative">
+                  <span>
+                    <img
+                      alt="verified user"
+                      src={Routes.static_path(@socket, "/images/verified.png")}
+                      class="rounded-full align-middle border-none max-h-6 max-w-6"
+                    />
+                  </span>
+                </div>
+              <% end %>
+            </div>
+
             <p class="text-xs font-normal text-gray-400">
               <%= Timex.from_now(comment.date_created) %>
             </p>
@@ -182,7 +230,7 @@
             <.form
               :let={f}
               for={@update_comment_changeset}
-              phx-change="validate-update-comment"
+              phx-blur="validate-update-comment"
               phx-target={@myself}
               phx-submit="update-comment"
               x-show="openComment"
@@ -246,8 +294,20 @@
         </div>
       </div>
     <% end %>
-    <.modal>
-      <.live_component module={MazarynWeb.HomeLive.ShowLikersComponent} id={@post.id} />
-    </.modal>
+    <%= if @report_action do %>
+      <.modal>
+        <.live_component
+          module={MazarynWeb.HomeLive.ReportPostsComponent}
+          id={@post.id}
+          current_user={@current_user}
+        />
+      </.modal>
+    <% end %>
+
+    <%= if @like_action do %>
+      <.modal>
+        <.live_component module={MazarynWeb.HomeLive.ShowLikersComponent} id={@post.id} />
+      </.modal>
+    <% end %>
   </div>
 </div>

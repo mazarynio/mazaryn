@@ -1,0 +1,11 @@
+msgid ""
+msgstr ""
+"Language: fa\n"
+"Plural-Forms: nplurals=2; plural=(n>1);\n"
+
+msgid "Contact Mazaryn Support"
+msgstr ""
+
+msgid "Mazaryn Help channel will answer all your questions about our services, your account and more"
+msgstr ""
+

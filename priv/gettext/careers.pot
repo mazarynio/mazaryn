@@ -1,0 +1,31 @@
+msgid ""
+msgstr ""
+"Language: fa\n"
+"Plural-Forms: nplurals=2; plural=(n>1);\n"
+
+msgid "Careers"
+msgstr ""
+
+msgid "Apply"
+msgstr ""
+
+msgid "Hiring"
+msgstr ""
+
+msgid "talented"
+msgstr ""
+
+msgid "looking" 
+msgstr ""
+
+msgid "Mazaryn"
+msgstr ""
+
+msgid "Mazaryn SN"
+msgstr ""
+
+msgid "Sign up"
+msgstr ""
+
+msgid "Login"
+msgstr ""

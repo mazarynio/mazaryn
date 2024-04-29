@@ -1,8 +1,9 @@
 -module(manage_user).
--export([get_users/0, get_users_info/0, get_user_info/1, get_user/1, delete_account/1,
- ban_user/1, unban_user/1, verify_user/1, unverify_user/1, remove_inactive_users/0, suspend_user/2,
+-export([get_users/0, get_users_info/0, get_user_info/1, get_user/1, delete_account/2,
+ ban_user/1, unban_user/1, verify_user/2, unverify_user/2, remove_inactive_users/0, suspend_user/2,
  unsuspend_user/1]).
 -include("../records.hrl").
+-include("admins.hrl").
 
 get_users() ->
     Fun = fun() ->
@@ -32,12 +33,30 @@ get_user(Username) ->
       _ -> error
     end.
 
-delete_account(Username) ->
-    F = fun() ->
-        [User] = mnesia:match_object(#user{username = Username, _= '_'}),
-        mnesia:delete_object(User)
-    end,
-    mnesia:activity(transaction, F).
+delete_account(UsernameOrID, AdminUsername) ->
+    case userdb:get_user_id(AdminUsername) of
+        {error, _} = Error ->
+            Error;
+        {ok, _} ->
+            case userdb:get_user_id(UsernameOrID) of
+                {error, _} = Error ->
+                    Error;
+                {ok, _} ->
+                    case lists:member(AdminUsername, ?ADMIN_USERNAMES) of
+                        true ->
+                            Fun = fun() ->
+                                [User] = mnesia:match_object(#user{username = UsernameOrID, _ = '_'}),
+                                mnesia:delete_object(User),
+                                io:fwrite("User ~s has been deleted~n", [UsernameOrID]),
+                                ok
+                            end,
+                            {atomic, Res} = mnesia:transaction(Fun),
+                            Res;
+                        false ->
+                            {error, not_admin}
+                    end
+            end
+    end.
 
 ban_user(UsernameOrID) ->
     {ok, User} = get_user(UsernameOrID),
@@ -53,25 +72,55 @@ unban_user(UsernameOrID) ->
         mnesia:write(UpdatedUser)
     end).
 
-verify_user(UsernameOrID) ->
-    Fun = fun() ->
-        User = get_user(UsernameOrID),
-        UpdatedUser = User#user{verified = true},
-        mnesia:write(UpdatedUser),
-        io:fwrite("~p~n", [UpdatedUser])
-    end,
-    {atomic, Res} = mnesia:transaction(Fun),
-    Res.
+verify_user(UsernameOrID, AdminUsername) ->
+    case userdb:get_user_id(AdminUsername) of
+        {error, _} = Error ->
+            Error;
+        {ok, _} ->
+            case lists:member(AdminUsername, ?ADMIN_USERNAMES) of
+                true ->
+                    Fun = fun() ->
+                        case get_user(UsernameOrID) of
+                            {error, Reason} ->
+                                {error, Reason};
+                            User ->
+                                UpdatedUser = User#user{verified = true},
+                                mnesia:write(UpdatedUser),
+                                io:fwrite("~p~n", [UpdatedUser]),
+                                ok
+                        end
+                    end,
+                    {atomic, Res} = mnesia:transaction(Fun),
+                    Res;
+                false ->
+                    {error, not_admin}
+            end
+    end.
 
-unverify_user(UsernameOrID) ->
-    Fun = fun() ->
-        User = get_user(UsernameOrID),
-        UpdatedUser = User#user{verified = false},
-        mnesia:write(UpdatedUser),
-        io:fwrite("~p~n", [UpdatedUser])
-    end,
-    {atomic, Res} = mnesia:transaction(Fun),
-    Res.
+unverify_user(UsernameOrID, AdminUsername) ->
+    case userdb:get_user_id(AdminUsername) of
+        {error, _} = Error ->
+            Error;
+        {ok, _} ->
+            case lists:member(AdminUsername, ?ADMIN_USERNAMES) of
+                true ->
+                    Fun = fun() ->
+                        case get_user(UsernameOrID) of
+                            {error, Reason} ->
+                                {error, Reason};
+                            User ->
+                                UpdatedUser = User#user{verified = false},
+                                mnesia:write(UpdatedUser),
+                                io:fwrite("~p~n", [UpdatedUser]),
+                                ok
+                        end
+                    end,
+                    {atomic, Res} = mnesia:transaction(Fun),
+                    Res;
+                false ->
+                    {error, not_admin}
+            end
+    end.
 
 remove_inactive_users() ->
     'not implemented'.

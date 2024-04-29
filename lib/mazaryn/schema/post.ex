@@ -15,6 +15,7 @@ defmodule Mazaryn.Schema.Post do
     media
     hashtag
     mention
+    emoji
     link_url
     photo_url
     author
@@ -38,6 +39,7 @@ defmodule Mazaryn.Schema.Post do
     field(:media, {:array, :string}, default: [])
     field(:hashtag, :string)
     field(:mention, :string)
+    field(:emoji, :string)
     field(:link_url, :string)
     field(:author, :string)
     field(:other, {:array, :string}, default: [])
@@ -54,7 +56,7 @@ defmodule Mazaryn.Schema.Post do
   end
 
   def erl_changeset(
-        {:post, id, content, comments, likes, media, hashtag, mention, link_url, author, other,
+        {:post, id, content, comments, likes, media, hashtag, mention, emoji, link_url, author, other,
          date_created, date_updated, report, data}
       ) do
     new_likes =
@@ -74,6 +76,7 @@ defmodule Mazaryn.Schema.Post do
       media: media,
       hashtag: hashtag,
       mention: mention,
+      emoji: emoji,
       link_url: link_url,
       author: author,
       other: other,

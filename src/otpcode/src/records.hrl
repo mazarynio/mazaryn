@@ -23,7 +23,7 @@
                 chat = [],
                 verified = false,
                 report = [],
-                level, % Includes 5 Levels based on User Activity
+                level, % Includes 20 Levels based on User Activity
                 last_activity,
                 suspend = [],
                 data = #{} }). 
@@ -36,6 +36,7 @@
 
 -record(post, { id,
                 content,
+                emoji = [],
                 comments = [],
                 likes = [],
                 media = [],
@@ -48,6 +49,7 @@
                 date_updated,
                 report = [],
                 data = #{} }). 
+
 
 -record(blog_post, {id, 
                     content,

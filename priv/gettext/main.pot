@@ -1,0 +1,31 @@
+msgid ""
+msgstr ""
+"Language: fa\n"
+"Plural-Forms: nplurals=2; plural=(n>1);\n"
+
+msgid "blog"
+msgstr ""
+
+msgid "Privacy Policy"
+msgstr ""
+
+msgid "Careers"
+msgstr ""
+
+msgid "About"
+msgstr ""
+
+msgid "Contact" 
+msgstr ""
+
+msgid "Mazaryn"
+msgstr ""
+
+msgid "Mazaryn SN"
+msgstr ""
+
+msgid "Sign up"
+msgstr ""
+
+msgid "Login"
+msgstr ""

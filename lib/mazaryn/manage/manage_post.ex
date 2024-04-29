@@ -5,7 +5,7 @@ defmodule ManagePost do
   end
 
   ## Remove post by post_id
-  def delete_post(post_id) do
-    :manage_post.delete_post(post_id)
+  def delete_post(post_id, adminUsername) do
+    :manage_post.delete_post(post_id, adminUsername)
   end
 end

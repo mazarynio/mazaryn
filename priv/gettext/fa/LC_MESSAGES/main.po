@@ -1,0 +1,31 @@
+msgid ""
+msgstr ""
+"Language: fa\n"
+"Plural-Forms: nplurals=2; plural=(n>1);\n"
+
+msgid "blog"
+msgstr "وبلاگ"
+
+msgid "Privacy Policy"
+msgstr "سیاست‌نامه حریم خصوصی"
+
+msgid "Careers"
+msgstr "حرفه"
+
+msgid "About"
+msgstr "درباره"
+
+msgid "Contact"
+msgstr "تماس"
+
+msgid "Mazaryn"
+msgstr "مازارین"
+
+msgid "Mazaryn SN"
+msgstr ""
+
+msgid "Sign up"
+msgstr "ثبت نام"
+
+msgid "Login"
+msgstr "ورود"

@@ -1,0 +1,16 @@
+msgid ""
+msgstr ""
+"Language: fa\n"
+"Plural-Forms: nplurals=2; plural=(n>1);\n"
+
+msgid "Contact Mazaryn Support"
+msgstr "با پشتیبانی مازارین تماس بگیرید"
+
+msgid "Mazaryn Help channel will answer all your questions about our services, your account and more"
+msgstr "کانال راهنمای مازارین به تمام سوالات شما در مورد خدمات حساب کاربری و موارد دیگر پاسخ خواهد داد"
+
+msgid "contact us"
+msgstr "با ما تماس بگیرید"
+
+msgid ""
+msgstr ""

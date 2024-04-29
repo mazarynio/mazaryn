@@ -23,35 +23,47 @@ insert(UserID, Message) ->
     {atomic, Res} = mnesia:transaction(Fun),
     Res.
 
-welcome(UserID, Message) ->  
-    Fun = fun() ->
-            Id = nanoid:gen(),
-            mnesia:write(#notif{id = Id,
-                                user_id = UserID,
-                                message = Message,
-                                date_created = calendar:universal_time()}),
-            [User] = mnesia:read({user, UserID}),
-            Notifs = User#user.notif,
-            mnesia:write(User#user{notif = [Id|Notifs]}),
-            Id
-          end,
-    {atomic, Res} = mnesia:transaction(Fun),
-    Res.
+welcome(UserID, Message) ->
+    {atomic, {Id, _}} = mnesia:transaction(fun() ->
+        Id = nanoid:gen(),
+        mnesia:write(#notif{id = Id,
+                            user_id = UserID,
+                            message = Message,
+                            date_created = calendar:universal_time()}),
+        [User] = mnesia:read({user, UserID}),
+        Notifs = User#user.notif,
+        mnesia:write(User#user{notif = [Id|Notifs]}),
+        {Id, ok}
+    end),
+    spawn_monitor(fun () ->
+        Time = 2 * 24 * 60 * 60 * 1000, % 2 days in milliseconds
+        receive
+        after Time ->
+            delete_notif(Id)
+        end
+    end),
+    Id.
 
-follow(UserID, Message) ->  
-    Fun = fun() ->
-            Id = nanoid:gen(),
-            mnesia:write(#notif{id = Id,
-                                user_id = UserID,
-                                message = Message,
-                                date_created = calendar:universal_time()}),
-            [User] = mnesia:read({user, UserID}),
-            Notifs = User#user.notif,
-            mnesia:write(User#user{notif = [Id|Notifs]}),
-            Id
-          end,
-    {atomic, Res} = mnesia:transaction(Fun),
-    Res.
+follow(UserID, Message) ->
+    {atomic, {Id, _}} = mnesia:transaction(fun() ->
+        Id = nanoid:gen(),
+        mnesia:write(#notif{id = Id,
+                            user_id = UserID,
+                            message = Message,
+                            date_created = calendar:universal_time()}),
+        [User] = mnesia:read({user, UserID}),
+        Notifs = User#user.notif,
+        mnesia:write(User#user{notif = [Id|Notifs]}),
+        {Id, ok}
+    end),
+    spawn_monitor(fun () ->
+        receive
+        after 120000 ->
+            delete_notif(Id)
+        end
+    end),
+    Id.
+    
 %
 get_single_notif(NotifID) ->
     Fun = fun() ->
@@ -114,7 +126,7 @@ get_username_by_id(UserID) ->
 %% Delete notification bt Notif ID
 delete_notif(NotifID) ->
   F = fun() ->
-          mnesia:delete({notification, NotifID})
+          mnesia:delete({notif, NotifID})
       end,
   mnesia:activity(transaction, F).
 
@@ -144,6 +156,8 @@ get_five_latest_notif_messages(UserID) ->
     LatestNotifIDs = get_five_latest_notif_ids(UserID),
     Messages = [get_notif_message(NotifID) || NotifID <- LatestNotifIDs],
     Messages.
+
+
 
 
 

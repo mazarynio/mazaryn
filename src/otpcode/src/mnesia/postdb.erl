@@ -1,13 +1,13 @@
 -module(postdb).
 -author("Zaryn Technologies").
--export([insert/6, get_post_by_id/1,
-         modify_post/6, get_posts_by_author/1, 
+-export([insert/7, get_post_by_id/1,
+         modify_post/7, get_posts_by_author/1, 
          get_posts_by_hashtag/1, update_post/2,
          delete_post/1, get_posts/0,
          get_all_posts_from_date/4, get_all_posts_from_month/3,
          like_post/2, unlike_post/2, add_comment/3, update_comment/2,
          get_all_comments/1, delete_comment/2, get_likes/1,
-         get_single_comment/1, get_media/1, report_post/4, update_activity/2 ]).
+         get_single_comment/1, get_media/1, report_post/4, update_activity/2]).
 
 -include("../records.hrl").
 -include_lib("stdlib/include/qlc.hrl").
@@ -15,12 +15,13 @@
 %% if post or comment do not have media,
 %% their value in record are nil
 
-insert(Author, Content, Media, Hashtag, Mention, Link_URL) -> 
+insert(Author, Content, Emoji, Media, Hashtag, Mention, Link_URL) -> 
   F = fun() ->
           Id = nanoid:gen(),
           Date = calendar:universal_time(),
           mnesia:write(#post{id = Id,
                              content = erl_deen:main(Content),
+                             emoji = Emoji,
                              author = Author,
                              media = Media,
                              hashtag = Hashtag,
@@ -36,10 +37,11 @@ insert(Author, Content, Media, Hashtag, Mention, Link_URL) ->
   {atomic, Res} = mnesia:transaction(F),
   Res.
 
-modify_post(Author, NewContent, NewMedia, NewHashtag, NewMention, NewLink_URL) ->
+modify_post(Author, NewContent, NewEmoji, NewMedia, NewHashtag, NewMention, NewLink_URL) ->
   Fun = fun() ->
             [Post] = mnesia:read({post, Author}),
             mnesia:write(Post#post{content = erl_deen:main(NewContent),
+                                   emoji = NewEmoji,
                                    media = NewMedia,
                                    hashtag = NewHashtag,
                                    mention = NewMention,
@@ -268,3 +270,5 @@ update_activity(Author, Date) ->
   UserID = User#user.id,
   LastActivity = userdb:update_last_activity(UserID, Date),
   LastActivity.
+
+

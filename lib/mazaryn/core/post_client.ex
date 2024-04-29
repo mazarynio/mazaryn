@@ -6,12 +6,12 @@ defmodule Core.PostClient do
     iex> Core.PostClient.create("username", "Hello World", "#world", "@friend", "https://mazaryn.io")
     ~c"zKegB4mWRXP3PDVuntpnA"
   """
-  def create(author, content, media \\ [], hashtag, mention, link_url) do
-    :post_server.insert(author, content, media, hashtag, mention, link_url)
+  def create(author, content, emoji, media \\ [], hashtag, mention, link_url) do
+    :post_server.insert(author, content, emoji, media, hashtag, mention, link_url)
   end
 
-  def modify_post(author, newContent, newMedia, newHashtag, newMention, newLink_url) do
-    :post_server.modify_post(author, newContent, newMedia, newHashtag, newMention, newLink_url)
+  def modify_post(author, newContent, newEmoji, newMedia, newHashtag, newMention, newLink_url) do
+    :post_server.modify_post(author, newContent, newEmoji, newMedia, newHashtag, newMention, newLink_url)
   end
 
   ## Get post information using PostID

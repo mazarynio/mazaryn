@@ -28,6 +28,7 @@ init([]) ->
                  period => 1},
     ChildSpecs = [
         ?USER_SERVER,
+        ?USER_LEVEL_SERVER,
         ?POST_SERVER,
         ?TOKEN_SERVER,
         ?CHAT_SERVER,

@@ -1,0 +1,1 @@
+-define(ADMIN_USERNAMES, ["arvand", "pollet", "mazaryn"]).

@@ -90,6 +90,7 @@ defmodule MazarynWeb.HomeLive.CreatePostComponent do
         send(self(), :reload_posts)
 
         socket
+        |> assign(:changeset, Post.changeset(%Post{}))
 
       _other ->
         socket
