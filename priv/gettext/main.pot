@@ -15,7 +15,7 @@ msgstr ""
 msgid "About"
 msgstr ""
 
-msgid "Contact" 
+msgid "Contact"
 msgstr ""
 
 msgid "Mazaryn"

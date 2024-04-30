@@ -15,7 +15,7 @@ msgstr ""
 msgid "talented"
 msgstr ""
 
-msgid "looking" 
+msgid "looking"
 msgstr ""
 
 msgid "Mazaryn"

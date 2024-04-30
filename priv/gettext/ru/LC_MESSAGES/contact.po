@@ -8,4 +8,3 @@ msgstr "Свяжитесь со службой поддержки Mazaryn"
 
 msgid "Mazaryn Help channel will answer all your questions about our services, your account and more"
 msgstr "Справочный канал Mazaryn ответит на все ваши вопросы о наших услугах, вашей учетной записи и многом другом."
-
