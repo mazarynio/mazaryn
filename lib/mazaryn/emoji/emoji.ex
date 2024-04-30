@@ -56,7 +56,6 @@ defmodule Mazaryn.Emoji do
       :hugging_face -> "\u{1F917}"
       :face_with_hand_over_mouth -> "\u{1F92D}"
       :face_with_monocle -> "\u{1F9D0}"
-
       # People & Body
       :person_raising_hand -> "\u{1F64B}"
       :raising_hands -> "\u{1F64C}"
@@ -122,7 +121,6 @@ defmodule Mazaryn.Emoji do
       :wolf -> "\u{1F43A}"
       :fox -> "\u{1F98A}"
       :lion -> "\u{1F981}"
-
       # Travel & Places
       :earth_americas -> "\u{1F5E6}"
       :earth_asia -> "\u{1F5FE}"
@@ -174,7 +172,6 @@ defmodule Mazaryn.Emoji do
       :fire -> "\u{1F525}"
       :droplet -> "\u{1F4A7}"
       :ocean -> "\u{1F30A}"
-
       # Food & Drink
       :green_apple -> "\u{1F34F}"
       :red_apple -> "\u{1F34E}"
@@ -241,7 +238,6 @@ defmodule Mazaryn.Emoji do
       :cocktail_glass -> "\u{1F378}"
       :tropical_drink -> "\u{1F379}"
       :champagne -> "\u{1F37E}"
-
       # Activities & Sports
       :jack_o_lantern -> "\u{1F383}"
       :christmas_tree -> "\u{1F384}"
