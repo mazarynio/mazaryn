@@ -17,8 +17,19 @@ defmodule Core.NotifEvent do
   def follow(user, user_id) do
     follower = :notifdb.get_username_by_id(user)
     message = "#{follower} followed you"
-    notif_id = :notif_event.follow(user_id, message)
+    notif_id = :notif_event.follow(user, user_id, message)
     get_notif_message(notif_id)
+  end
+
+  def follow_by_info(user, user_id) do
+    follower = :notifdb.get_username_by_id(user)
+    message = "#{follower} followed you"
+    notif_id = :notif_event.follow(user, user_id, message)
+    get_notif(notif_id)
+  end
+
+  def user_info(user_id) do
+    Core.UserClient.get_user_by_id(user_id)
   end
 
   # user(the person who send message), user_id(my_id)

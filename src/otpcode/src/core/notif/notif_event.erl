@@ -3,7 +3,7 @@
 -include_lib("kernel/include/logger.hrl").
 -include("../../records.hrl").
 -behaviour(gen_event).
--export([start_link/0, subscribe/1, welcome/2, follow/2, notif/2, get_notif/1, get_notif_message/1,
+-export([start_link/0, subscribe/1, welcome/2, follow/3, notif/2, get_notif/1, get_notif_message/1,
 get_all_notifs/1, get_notif_time/1, get_five_latest_notif_ids/1, get_five_latest_notif_messages/1]).
 -export([init/1, handle_event/2, handle_call/2, handle_info/2, terminate/2, code_change/3]).
 
@@ -24,8 +24,8 @@ welcome(UserID, Message) ->
             {error, Reason}
     end.
 
-follow(UserID, Message) ->
-    case notifdb:follow(UserID, Message) of 
+follow(FollowerID, UserID, Message) ->
+    case notifdb:follow(FollowerID, UserID, Message) of 
         Id ->
             Id;
         {error, Reason} ->
@@ -110,8 +110,8 @@ handle_event({welcome, UserId, Message}, State) ->
             {error, State}
     end;
 
-handle_event({follow, UserId, Message}, State) ->
-    case notifdb:follow(UserId, Message) of
+handle_event({follow, FollowerID, UserId, Message}, State) ->
+    case notifdb:follow(FollowerID, UserId, Message) of
         {ok, Id} -> 
             {ok, Id, State};
         {error, Reason} ->
