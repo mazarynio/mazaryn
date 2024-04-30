@@ -78,32 +78,32 @@
               )
           }>
             <li class="my-[10px] md:my-0">
-              <a class="block text-center capitalize" href="/">
+              <a class="block text-center capitalize" href={~p"/#{@locale}"}>
                 <%= gettext("Mazaryn") %>
               </a>
             </li>
             <li class="my-[10px] md:my-0">
-              <a class="block text-center capitalize" href="/blog">
+              <a class="block text-center capitalize" href={~p"/#{@locale}/blog"}>
                 <%= gettext("Blog") %>
               </a>
             </li>
             <li class="my-[10px] md:my-0">
-              <a class="block text-center capitalize" href="/contact">
+              <a class="block text-center capitalize" href={~p"/#{@locale}/contact"}>
                 <%= gettext("Contact") %>
               </a>
             </li>
             <li class="my-[10px] md:my-0">
-              <a class="block text-center capitalize" href="/about">
+              <a class="block text-center capitalize" href={~p"/#{@locale}/about"}>
                 <%= gettext("About") %>
               </a>
             </li>
             <li class="my-[10px] md:my-0">
-              <a class="block text-center capitalize" href="/careers">
+              <a class="block text-center capitalize" href={~p"/#{@locale}/careers"}>
                 <%= gettext("Careers") %>
               </a>
             </li>
             <li class="my-[10px] md:my-0">
-              <a class="block text-center  capitalize" href="/privacy-policy">
+              <a class="block text-center  capitalize" href={~p"/#{@locale}/privacy-policy"}>
                 <%= gettext("Privacy policy") %>
               </a>
             </li>

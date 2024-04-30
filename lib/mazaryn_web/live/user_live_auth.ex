@@ -16,8 +16,12 @@ defmodule MazarynWeb.UserLiveAuth do
 
   # end
 
-  def on_mount(:default, _params, session, socket) do
-    socket = assign_new(socket, :current_user, fn -> get_user_id(session) end)
+  def on_mount(:default, params, session, socket) do
+    socket =
+      socket
+      |> assign_new(:locale, fn -> session["locale"] end)
+      |> assign_new(:current_user, fn -> get_user_id(session) end)
+      |> assign(locale: params["locale"])
 
     if socket.assigns.current_user do
       {:halt, redirect(socket, to: "/home")}

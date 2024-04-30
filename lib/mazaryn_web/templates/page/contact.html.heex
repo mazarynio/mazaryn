@@ -5,19 +5,23 @@
         class="relative h-[42px] md:h-auto brightness-150"
         src="images/logo.png"
         alt="Elixir Social Network"
-      /> <span class="ml-[10px]">Help</span>
+      /> <span class="ml-[10px]"><%= gettext("Help") %></span>
     </div>
-    <a class="text-[16px] text-[#D3D3D3] hover:text-[#fff]" href="/blog">Blog</a>
+    <a class="text-[16px] text-[#D3D3D3] hover:text-[#fff]" href="/blog">
+      <%= gettext("Blog") %>
+    </a>
   </div>
 </header>
 
 <section class="relative h-[36vh] bg-gradient-to-r from-blue-500 to-blue-700">
   <div class="w-[95%] md:w-[90%] m-auto md:m-unset md:w-100 items-center py-[4em]">
     <h1 class="text-2xl md:text-5xl leading-[1.8rem] md:leading-10 md:leading-9 text-center text-white min-w-[260px] font-[600] mt-auto mb-[0.875em]">
-      Contact Mazaryn Support
+      <%= gettext("Contact Mazaryn Support") %>
     </h1>
     <p class="text-center max-w-[700px] mx-auto text-white">
-      Mazaryn Help channel will answer all your questions about our services, your account and more.
+      <%= gettext(
+        "Mazaryn Help channel will answer all your questions about our services, your account and more."
+      ) %>
     </p>
     <div id="pos-article-display-87331"></div>
     <div class="flex justify-center mt-[40px]">
@@ -37,7 +41,7 @@
       class="bg-blue-500 hover:bg-blue-700 text-white py-3 px-14 rounded-md"
       href="mailto:support@mazaryn.io"
     >
-      Contact us
+      <%= gettext("Contact us") %>
     </a>
   </div>
 </section>

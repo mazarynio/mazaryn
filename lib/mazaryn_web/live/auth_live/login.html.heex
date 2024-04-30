@@ -82,7 +82,7 @@
             </a>
             <a>
               <%= live_patch("Sign Up",
-                to: Routes.live_path(@socket, MazarynWeb.AuthLive.Signup),
+                to: ~p"/#{@locale}/signup",
                 class: "text-blue-600 pl-6"
               ) %>
             </a>

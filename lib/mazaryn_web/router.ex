@@ -27,7 +27,7 @@ defmodule MazarynWeb.Router do
   #   plug :ensure_user_confirmed
   # end
 
-  scope "/", MazarynWeb do
+  scope "/:locale", MazarynWeb do
     pipe_through(:browser)
 
     get("/logout", LogoutController, :index)
@@ -61,7 +61,7 @@ defmodule MazarynWeb.Router do
     get("/865853.txt", PageController, :empty_page)
   end
 
-  scope "/", MazarynWeb do
+  scope "/:locale", MazarynWeb do
     pipe_through(:restricted)
 
     live("/home", HomeLive.Home)
