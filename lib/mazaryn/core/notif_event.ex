@@ -13,6 +13,13 @@ defmodule Core.NotifEvent do
     get_notif_message(notif_id)
   end
 
+  def welcome_by_info(user_id) do
+    username = :notifdb.get_username_by_id(user_id)
+    message = "Welcome to Mazaryn Dear #{username}"
+    notif_id = :notif_event.welcome(user_id, message)
+    get_notif(notif_id)
+  end
+
   # user(the person ID who follow), user_id(my_id)
   def follow(user, user_id) do
     follower = :notifdb.get_username_by_id(user)
@@ -44,8 +51,15 @@ defmodule Core.NotifEvent do
   def mention(user, user_id) do
     mentioner = :notifdb.get_username_by_id(user)
     message = "#{mentioner} mentioned you"
-    notif_id = :notif_event.notif(user_id, message)
+    notif_id = :notif_event.mention(user, user_id, message)
     get_notif_message(notif_id)
+  end
+
+  def mention_by_info(user, user_id) do
+    mentioner = :notifdb.get_username_by_id(user)
+    message = "#{mentioner} mentioned you"
+    notif_id = :notif_event.mention(user, user_id, message)
+    get_notif(notif_id)
   end
 
   ## Get notification when changing my username

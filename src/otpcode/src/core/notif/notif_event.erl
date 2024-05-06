@@ -3,7 +3,7 @@
 -include_lib("kernel/include/logger.hrl").
 -include("../../records.hrl").
 -behaviour(gen_event).
--export([start_link/0, subscribe/1, welcome/2, follow/3, notif/2, get_notif/1, get_notif_message/1,
+-export([start_link/0, subscribe/1, welcome/2, follow/3, mention/3, notif/2, get_notif/1, get_notif_message/1,
 get_all_notifs/1, get_notif_time/1, get_five_latest_notif_ids/1, get_five_latest_notif_messages/1]).
 -export([init/1, handle_event/2, handle_call/2, handle_info/2, terminate/2, code_change/3]).
 
@@ -26,6 +26,15 @@ welcome(UserID, Message) ->
 
 follow(FollowerID, UserID, Message) ->
     case notifdb:follow(FollowerID, UserID, Message) of 
+        Id ->
+            Id;
+        {error, Reason} ->
+            error_logger:error_msg("***Error in notif*** ~p~n", [Reason]),
+            {error, Reason}
+    end.
+
+mention(MentionnerID, UserID, Message) ->
+    case notifdb:follow(MentionnerID, UserID, Message) of 
         Id ->
             Id;
         {error, Reason} ->
@@ -112,6 +121,15 @@ handle_event({welcome, UserId, Message}, State) ->
 
 handle_event({follow, FollowerID, UserId, Message}, State) ->
     case notifdb:follow(FollowerID, UserId, Message) of
+        {ok, Id} -> 
+            {ok, Id, State};
+        {error, Reason} ->
+            error_logger:error_msg("***Error in handle_event*** ~p~n", [Reason]),
+            {error, State}
+    end;
+
+handle_event({mention, MentionnerID, UserId, Message}, State) ->
+    case notifdb:follow(MentionnerID, UserId, Message) of
         {ok, Id} -> 
             {ok, Id, State};
         {error, Reason} ->
