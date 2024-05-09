@@ -4,6 +4,7 @@ defmodule MazarynWeb.VideoLive.Show do
   import MazarynWeb.Live.Helper
 
   alias Account.Users
+  alias MazarynWeb.Components.Icons
 
   @type socket :: Phoenix.LiveView.Socket.t()
 

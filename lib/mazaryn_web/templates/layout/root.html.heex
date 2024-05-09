@@ -2,7 +2,7 @@
 <html
   lang="en"
   class={
-    if(@conn.request_path =~ "/videos",
+    if(@conn.request_path =~ "/media",
       do: "bg-[#282932] text-white",
       else: "bg-white text-black"
     )
@@ -64,7 +64,7 @@
     <footer>
       <div class={
         ["py-[1em] md:py-[0.6em]"] ++
-          if(@conn.request_path =~ "/videos",
+          if(@conn.request_path =~ "/media",
             do: ["bg-[#282932] text-white"],
             else: ["bg-white text-black"]
           )
@@ -72,7 +72,7 @@
         <div class="flex flex-col md:flex-row justify-between w-[90%] md:max-w-[800px] -md:w-[50%] mx-auto">
           <ul class={
             ["w-[100%] grid grid-cols-3 md:flex justify-between items-center"] ++
-              if(@conn.request_path =~ "/videos",
+              if(@conn.request_path =~ "/media",
                 do: ["bg-[#282932] text-white"],
                 else: ["bg-white text-blue-700 hover:text-blue-800"]
               )
@@ -115,7 +115,7 @@
           </div>
           <div class={
             ["language-selector p-2 rounded-lg flex items-center"] ++
-              if(@conn.request_path =~ "/videos",
+              if(@conn.request_path =~ "/media",
                 do: ["bg-[#282932]"],
                 else: ["bg-white"]
               )
