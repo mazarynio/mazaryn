@@ -67,8 +67,13 @@ defmodule MazarynWeb.Router do
     live("/home", HomeLive.Home)
     live("/approve", HomeLive.Approve)
     live("/coins", CoinLive.Index)
-    live("/videos", VideoLive.Index)
-    live("/videos/:id", VideoLive.Show)
+
+    scope "/media" do
+      live("/audios", AudioLive.Index)
+      live("/audios/:id", AudioLive.Show)
+      live("/videos", VideoLive.Index)
+      live("/videos/:id", VideoLive.Show)
+    end
 
     # CHATS
     scope "/chats" do
