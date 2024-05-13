@@ -11,7 +11,7 @@ defmodule MazarynWeb.HomeLive.Notification do
 
     {:ok,
      socket
-     |> assign(user: user)
+     |> assign(target_user: user)
      |> assign(search: "")
      |> assign(notifs: get_all_user_notifs(user))}
   end
@@ -22,7 +22,7 @@ defmodule MazarynWeb.HomeLive.Notification do
     <.live_component
       module={MazarynWeb.HomeLive.NavComponent}
       id="navigation"
-      user={@user}
+      user={@target_user}
       search={@search}
     />
     <!-- Three columns -->
@@ -32,23 +32,23 @@ defmodule MazarynWeb.HomeLive.Notification do
           <.live_component
             module={MazarynWeb.HomeLive.LeftSidebarComponent}
             id="leftsidebar"
-            user={@user}
+            user={@target_user}
           />
         </div>
 
         <div class="w-full lg:w-[54%] py-6 pl-11 pr-8">
           <div class="flex flex-wrap justify-center align-center mb-6">
             <div class="w-full bg-white white:bg-gray-800 custom-box-shadow pr-[1.35rem] pl-[1.6rem] pb-2 pt-5 mt-8 rounded-[20px]">
-              <%= for notif <- @notifs do %>
+              <%= for {user, message} <- @notifs do %>
                 <div class="flex justify-between align-center items-center mb-5">
                   <div class="flex justify-center items-center">
                     <img
                       class="h-11 w-11 rounded-full"
-                      src={@user.avatar_url || "/images/default-user.svg"}
+                      src={user.avatar_url || "/images/default-user.svg"}
                     />
                     <div class="ml-3.5 text-sm leading-tight mt-5">
-                      <span class="block text-[#60616D] text-sm"> wanj</span>
-                      <span class="block text-[#60616D] text-sm"><%= notif %></span>
+                      <span class="block text-[#60616D] text-sm"><%= user.username %></span>
+                      <span class="block text-[#60616D] text-sm"><%= message %></span>
                       <span class="block text-[#60616D] text-sm">llllll</span>
                     </div>
                   </div>
@@ -66,8 +66,19 @@ defmodule MazarynWeb.HomeLive.Notification do
     user.id
     |> Core.NotifEvent.get_all_notifs()
     |> IO.inspect(label: "==============================")
-    |> Enum.map(fn {:notif, _notif_id, _user_id, message, _time_stamp, _metadata} ->
-      message
+    |> Enum.map(fn {:notif, _notif_id, actor_id, target_id, message, _time_stamp, _metadata} ->
+      {:ok, user} = get_user(actor_id, target_id) |> IO.inspect(label: "===============")
+      {user, message}
     end)
+  end
+
+  defp get_user(actor_id, target_id) do
+    id =
+      case actor_id do
+        :undefined -> target_id
+        actor_id -> actor_id
+      end
+
+    Users.one_by_id(id)
   end
 end
