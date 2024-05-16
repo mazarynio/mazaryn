@@ -4,7 +4,7 @@
       <h1 class="flex justify-left items-center text-2xl md:text-3xl leading-0 font-thin text-[#E5E5E5]">
         <img
           class="logo brightness-150 h-[42px] md:h-auto"
-          src="../images/logo.png"
+          src={Routes.static_path(@socket, "/images/logo.png")}
           alt="Elixir Social Network"
         /><span class="ml-[10px]">Blog</span>
       </h1>
@@ -88,7 +88,7 @@
           What is NFT ?
         </h2>
       </div>
-      <img class="image-cover" src="../images/nftnft.jpg" alt="NFT" title="NFT" />
+      <img class="image-cover" src={Routes.static_path(@socket, "/images/nftnft.jpg")} alt="NFT" title="NFT" />
       <div class="lead">
         <p>
           Non-fungible tokens, commonly known as NFTs, are unique cryptographic tokens that exist on a blockchain and cannot be replicated—having a unique identification code and metadata.
@@ -221,7 +221,7 @@
             <div>
               <img
                 class="aspect-[16/9] object-cover rounded-2xl block border-[1px] opacity-100 md:opacity-70 transition-opacity group-hover:opacity-100"
-                src="../images/cardano.png"
+                src={Routes.static_path(@socket, "/images/cardano.png")}
                 alt="cardano"
                 title="cardano"
               />
@@ -272,7 +272,7 @@
             <div>
               <img
                 class="aspect-[16/9] object-cover rounded-2xl block border-[1px] opacity-100 md:opacity-70 transition-opacity group-hover:opacity-100"
-                src="../images/aeternity.png"
+                src={Routes.static_path(@socket, "/images/aeternity.png")}
                 alt="aeternity"
                 title="aeternity"
               />

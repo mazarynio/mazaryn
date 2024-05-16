@@ -4,12 +4,15 @@
       <h1 class="flex justify-left items-center text-2xl md:text-3xl leading-0 font-thin text-[#E5E5E5]">
         <img
           class="logo brightness-150 h-[42px] md:h-auto"
-          src="images/logo.png"
+          src={Routes.static_path(@socket, "/images/logo.png")}
           alt="Elixir Social Network"
         /><span class="ml-[10px]">Blog</span>
       </h1>
       <div>
-        <a class="hidden md:block justify-center text-[#D3D3D3] hover:text-[#fff]" href={~p"/#{@locale}/login"}>
+        <a
+          class="hidden md:block justify-center text-[#D3D3D3] hover:text-[#fff]"
+          href={~p"/#{@locale}/login"}
+        >
           Connect with Mazaryn
         </a>
         <div class="menuToggle md:hidden">
@@ -36,7 +39,7 @@
         <div class="rounded-2xl">
           <img
             class="aspect-[16/12] md:aspect-[16/8] object-top object-cover rounded-2xl block border-[1px] opacity-100 md:opacity-70 transition-opacity group-hover:opacity-100"
-            src="images/home-mazaryn-blog.jpg"
+            src={Routes.static_path(@socket, "/images/home-mazaryn-blog.jpg")}
             alt="Mazaryn Blog"
             title="Mazaryn Blog"
           />
@@ -63,7 +66,7 @@
           <div>
             <img
               class="aspect-[16/9] object-cover rounded-2xl block border-[1px] opacity-100 md:opacity-70 transition-opacity group-hover:opacity-100"
-              src="images/polkadot.png"
+              src={Routes.static_path(@socket, "/images/polkadot.png")}
               alt="polkadot"
               title="polkadot"
             />
@@ -87,7 +90,7 @@
           <div>
             <img
               class="aspect-[16/9] object-cover rounded-2xl block border-[1px] opacity-100 md:opacity-70 transition-opacity group-hover:opacity-100"
-              src="images/kusama.png"
+              src={Routes.static_path(@socket, "/images/kusama.png")}
               alt="kusama"
               title="kusama"
             />
@@ -115,7 +118,7 @@
           <div>
             <img
               class="aspect-[16/9] object-cover rounded-2xl block border-[1px] opacity-100 md:opacity-70 transition-opacity group-hover:opacity-100"
-              src="images/cardano.png"
+              src={Routes.static_path(@socket, "/images/cardano.png")}
               alt="cardano"
               title="cardano"
             />
@@ -139,7 +142,7 @@
           <div>
             <img
               class="aspect-[16/9] object-cover rounded-2xl block border-[1px] opacity-100 md:opacity-70 transition-opacity group-hover:opacity-100"
-              src="images/joy-of-elixir-and-phoenix.png"
+              src={Routes.static_path(@socket, "/images/joy-of-elixir-and-phoenix.png")}
               alt="Joy of elixir and phoenix"
               title="Joy of elixir and phoenix"
             />
@@ -163,7 +166,7 @@
           <div>
             <img
               class="aspect-[16/9] object-cover rounded-2xl block border-[1px] opacity-100 md:opacity-70 transition-opacity group-hover:opacity-100"
-              src="images/aeternity.png"
+              src={Routes.static_path(@socket, "/images/aeternity.png")}
               alt="aeternity"
               title="aeternity"
             />
@@ -196,7 +199,7 @@
           <div>
             <img
               class="aspect-[16/9] object-cover rounded-2xl block border-[1px] opacity-100 md:opacity-70 transition-opacity group-hover:opacity-100"
-              src="/images/nftnft.jpg"
+              src={Routes.static_path(@socket, "/images/nftnft.jpg")}
               alt="polkadot"
               title="polkadot"
             />
@@ -276,7 +279,7 @@
           <div>
             <img
               class="aspect-[16/9] object-cover rounded-2xl block border-[1px] opacity-100 md:opacity-70 transition-opacity group-hover:opacity-100"
-              src="/images/nftai.jpg"
+              src={Routes.static_path(@socket, "/images/nftai.jpg")}
               alt="AI NFT - The future trnds"
               title="AI NFT - The future trnds"
             />
@@ -316,7 +319,7 @@
           <div>
             <img
               class="aspect-[16/9]  md:h-[400px] object-cover rounded-2xl block border-[1px] opacity-100 md:opacity-70 transition-opacity group-hover:opacity-100"
-              src="/images/blockchain.jpg"
+              src={Routes.static_path(@socket, "/images/blockchain.jpg")}
               alt="Blockchain"
               title="Blockchain"
             />

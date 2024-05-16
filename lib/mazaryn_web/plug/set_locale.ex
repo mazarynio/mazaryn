@@ -15,5 +15,12 @@ defmodule MazarynWeb.Plugs.SetLocale do
     |> Plug.Conn.put_session(:locale, locale)
   end
 
-  def call(conn, _options), do: conn |> tap(& &1.current_path |> dbg())
+  def call(conn, _options) do
+    conn
+    |> Phoenix.Controller.redirect(
+      to:
+        "/#{Gettext.get_locale(MazarynWeb.Gettext)}#{conn.request_path}#{conn.query_string != "" && "?#{conn.query_string}" || ""}"
+    )
+    |> Plug.Conn.halt()
+  end
 end
