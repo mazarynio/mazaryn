@@ -29,6 +29,7 @@
                 data = #{} }). 
 
 -record(notif, { id,
+                 follower,
                  user_id,
                  message,
                  date_created,

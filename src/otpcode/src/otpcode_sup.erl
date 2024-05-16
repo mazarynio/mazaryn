@@ -15,6 +15,7 @@
 -export([init/1]).
 
 -define(SERVER, ?MODULE).
+-define(BACKUP_FILE, "/home/zaryn/mazaryn/file.BCK").
 
 start_link() ->
     % Initialize Mnesia and required applications
@@ -48,7 +49,8 @@ initialize() ->
     start_ssl(),
     start_inets(),
     create_tables(),
-    create_table_indexes().
+    create_table_indexes(),
+    create_backup().
 
 start_ssl() ->
   case application:start(ssl) of
@@ -91,3 +93,11 @@ table_attributes(chat) -> record_info(fields, chat);
 table_attributes(media) -> record_info(fields, media);
 table_attributes(report) -> record_info(fields, report);
 table_attributes(knode) -> record_info(fields, knode).
+
+create_backup() ->
+  case mnesia:backup(?BACKUP_FILE) of
+      ok ->
+          io:format("Backup created at ~p~n", [?BACKUP_FILE]);
+      {error, Reason} ->
+          io:format("Error creating backup: ~p~n", [Reason])
+  end.
