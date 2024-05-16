@@ -5,9 +5,8 @@ defmodule MazarynWeb.HomeLive.Notification do
   # case reload home page
   @impl true
   def mount(_params, %{"user_id" => user_email} = _session, socket) do
+    Process.send_after(self(), :time_diff, 1000)
     {:ok, user} = Users.one_by_email(user_email)
-
-    IO.inspect(user, label: "======================")
 
     {:ok,
      socket
@@ -39,7 +38,7 @@ defmodule MazarynWeb.HomeLive.Notification do
         <div class="w-full lg:w-[54%] py-6 pl-11 pr-8">
           <div class="flex flex-wrap justify-center align-center mb-6">
             <div class="w-full bg-white white:bg-gray-800 custom-box-shadow pr-[1.35rem] pl-[1.6rem] pb-2 pt-5 mt-8 rounded-[20px]">
-              <%= for {user, message} <- @notifs do %>
+              <%= for {user, message, time_passed, _time_stamp} <- @notifs do %>
                 <div class="flex justify-between align-center items-center mb-5">
                   <div class="flex justify-center items-center">
                     <img
@@ -49,7 +48,7 @@ defmodule MazarynWeb.HomeLive.Notification do
                     <div class="ml-3.5 text-sm leading-tight mt-5">
                       <span class="block text-[#60616D] text-sm"><%= user.username %></span>
                       <span class="block text-[#60616D] text-sm"><%= message %></span>
-                      <span class="block text-[#60616D] text-sm">llllll</span>
+                      <span class="block text-[#60616D] text-sm"><%= time_passed %></span>
                     </div>
                   </div>
                 </div>
@@ -62,14 +61,47 @@ defmodule MazarynWeb.HomeLive.Notification do
     """
   end
 
+  def handle_info(:time_diff, socket) do
+    notifs =
+      socket.assigns.notifs
+      |> Enum.map(fn {user, message, time_passed, time_stamp} ->
+        time_passed = time_passed(time_stamp)
+        {user, message, time_passed, time_stamp}
+      end)
+
+    Process.send_after(self(), :time_diff, 1000)
+
+    {:noreply, assign(socket, :notifs, notifs)}
+  end
+
   defp get_all_user_notifs(user) do
     user.id
     |> Core.NotifEvent.get_all_notifs()
-    |> IO.inspect(label: "==============================")
-    |> Enum.map(fn {:notif, _notif_id, actor_id, target_id, message, _time_stamp, _metadata} ->
-      {:ok, user} = get_user(actor_id, target_id) |> IO.inspect(label: "===============")
-      {user, message}
+    |> Enum.map(fn {:notif, _notif_id, actor_id, target_id, message, time_stamp, _metadata} ->
+      {:ok, user} = get_user(actor_id, target_id)
+      time_passed = time_passed(time_stamp)
+      {user, message, time_passed, time_stamp}
     end)
+  end
+
+  defp time_passed(time_stamp) do
+    date_time = Timex.to_datetime(time_stamp)
+
+    time_difference([:years, :months, :weeks, :days, :hours, :minutes, :seconds], date_time)
+  end
+
+  defp time_difference([:seconds], date_time) do
+    case Timex.diff(Timex.now(), date_time, :seconds) do
+      0 -> "Now"
+      diff -> "#{diff} seconds ago"
+    end
+  end
+
+  defp time_difference([h | t] = granulaties, date_time) do
+    case Timex.diff(Timex.now(), date_time, h) do
+      0 -> time_difference(t, date_time)
+      diff -> "#{diff} #{h} ago"
+    end
   end
 
   defp get_user(actor_id, target_id) do
