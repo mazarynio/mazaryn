@@ -124,6 +124,9 @@ defmodule MazarynWeb.UserLive.Profile do
     id = to_charlist(id)
     user_id = socket.assigns.current_user.id
     UserClient.follow(user_id, id)
+
+    Core.NotifEvent.follow(user_id, id)
+
     {:noreply, handle_assigns(socket, user_id, id)}
   end
 

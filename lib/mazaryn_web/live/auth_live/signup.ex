@@ -100,6 +100,8 @@ defmodule MazarynWeb.AuthLive.Signup do
         Account.UserNotifier.deliver_confirmation_instructions(user, verification_url)
         insert_session_token(key, email)
 
+        Core.NotifEvent.welcome(user.id)
+
         socket =
           socket
           |> push_redirect(to: "/approve")

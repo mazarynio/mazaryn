@@ -1,0 +1,19 @@
+<!-- navigation -->
+<.live_component
+  module={MazarynWeb.HomeLive.NavComponent}
+  id="navigation"
+  user={@user}
+  search={@search}
+/>
+<!-- Three columns -->
+<div class="bg-[#FAFAFA]">
+  <div class="flex flex-wrap w-[90%] max-w-[1440px] mx-auto">
+    <div class="w-full lg:w-[18%] py-6">
+      <.live_component
+        module={MazarynWeb.HomeLive.LeftSidebarComponent}
+        id="leftsidebar"
+        user={@user}
+      />
+    </div>
+  </div>
+</div>

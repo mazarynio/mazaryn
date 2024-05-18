@@ -67,6 +67,7 @@ defmodule MazarynWeb.Router do
     live("/home", HomeLive.Home)
     live("/approve", HomeLive.Approve)
     live("/coins", CoinLive.Index)
+    live "notifications", HomeLive.Notification
     live("/videos", VideoLive.Index)
     live("/videos/:id", VideoLive.Show)
 
