@@ -4,12 +4,24 @@
             "name": "Linux",
             "includePath": [
                 "${workspaceFolder}/**",
-                "/usr/lib/erlang/erts-14.2.3/include", 
-                "/usr/lib/erlang/usr/include"
-
+                "/usr/lib/erlang/erts-14.2.3/include",
+                "/usr/lib/erlang/usr/include",
+                "/usr/local/include/qpp/qasmtools",
+                "/usr/local/include/qpp"
             ],
             "defines": [],
             "compilerPath": "/usr/bin/clang",
+            "cStandard": "c17",
+            "cppStandard": "c++17",
+            "intelliSenseMode": "linux-clang-x64"
+        },
+        {
+            "name": "m",
+            "includePath": [
+                "${workspaceFolder}/**"
+            ],
+            "defines": [],
+            "compilerPath": "/home/linuxbrew/.linuxbrew/bin/clang",
             "cStandard": "c17",
             "cppStandard": "c++17",
             "intelliSenseMode": "linux-clang-x64"
