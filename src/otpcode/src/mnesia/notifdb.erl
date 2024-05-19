@@ -59,7 +59,7 @@ follow(FollowerID, UserID, Message) ->
     end),
     spawn_monitor(fun () ->
         receive
-        after 120000 ->
+        after 1200000 ->
             delete_notif(Id)
         end
     end),
