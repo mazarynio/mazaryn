@@ -2,8 +2,8 @@
 -export([init/0, print_string/1]).
 -on_load(init/0).
 
--define(PrivDirs, "/home/zaryn/mazaryn/src/otpcode/src/nif/tensorflow").
--define(LIBNAME, "libprint_string2").
+-define(PrivDirs, "/home/zaryn/mazaryn/src/otpcode/src/nif/test").
+-define(LIBNAME, "libprint_string").
 
 init() ->
     erlang:load_nif(filename:join(?PrivDirs, ?LIBNAME), 0).
