@@ -15,7 +15,7 @@ msgstr "Карьера"
 msgid "About"
 msgstr "О"
 
-msgid "Contact" 
+msgid "Contact"
 msgstr "Контакт"
 
 msgid "Mazaryn"

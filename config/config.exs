@@ -38,8 +38,8 @@ config :mazaryn, Mazaryn.Mailer,
 config :swoosh, :api_client, false
 
 config :mazaryn, MazarynWeb.Gettext,
-    locales: ~w(en ru),
-    default_locale: "en"
+  locales: ~w(en ru fa),
+  default_locale: "en"
 
 # Configure esbuild (the version is required)
 config :esbuild,
@@ -75,9 +75,8 @@ config :phoenix, :json_library, Jason
 # of this file so it overrides the configuration defined above.
 import_config "#{config_env()}.exs"
 
-config :mnesia, dir: 'Mnesia/'
+config :mnesia, dir: ~c"Mnesia/"
 
 config :mazaryn, Mazaryn.Gettext,
   default_locale: "en",
   locales: ["en", "fa"]
-

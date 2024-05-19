@@ -78,32 +78,32 @@
               )
           }>
             <li class="my-[10px] md:my-0">
-              <a class="block text-center capitalize" href="/">
+              <a class="block text-center capitalize" href={~p"/#{@locale}"}>
                 <%= gettext("Mazaryn") %>
               </a>
             </li>
             <li class="my-[10px] md:my-0">
-              <a class="block text-center capitalize" href="/blog">
+              <a class="block text-center capitalize" href={~p"/#{@locale}/blog"}>
                 <%= gettext("Blog") %>
               </a>
             </li>
             <li class="my-[10px] md:my-0">
-              <a class="block text-center capitalize" href="/contact">
+              <a class="block text-center capitalize" href={~p"/#{@locale}/contact"}>
                 <%= gettext("Contact") %>
               </a>
             </li>
             <li class="my-[10px] md:my-0">
-              <a class="block text-center capitalize" href="/about">
+              <a class="block text-center capitalize" href={~p"/#{@locale}/about"}>
                 <%= gettext("About") %>
               </a>
             </li>
             <li class="my-[10px] md:my-0">
-              <a class="block text-center capitalize" href="/careers">
+              <a class="block text-center capitalize" href={~p"/#{@locale}/careers"}>
                 <%= gettext("Careers") %>
               </a>
             </li>
             <li class="my-[10px] md:my-0">
-              <a class="block text-center  capitalize" href="/privacy-policy">
+              <a class="block text-center  capitalize" href={~p"/#{@locale}/privacy-policy"}>
                 <%= gettext("Privacy policy") %>
               </a>
             </li>
@@ -113,7 +113,7 @@
               <%= gettext("©2022 Mazaryn Social") %>
             </small>
           </div>
-          <div class={
+          <div  x-data="{ open: false }" class={
             ["language-selector p-2 rounded-lg flex items-center"] ++
               if(@conn.request_path =~ "/videos",
                 do: ["bg-[#282932]"],
@@ -137,11 +137,34 @@
               <path d="M12 2a15.3 15.3 0 0 1 4.39 10H7.61A15.3 15.3 0 0 1 12 2z"></path>
               <path d="M12 22a15.3 15.3 0 0 1-4.39-10H16.4A15.3 15.3 0 0 1 12 22z"></path>
             </svg>
-            <select id="language" onchange="changeLanguage(this)" class="bg-transparent text-sm">
-              <option value="en">English</option>
-              <option value="fa">Persian</option>
-              <option value="ru">Russian</option>
-            </select>
+            <div x-show="!open" x-on:click="open = true" class="p-2" >
+              <%= case Gettext.get_locale(MazarynWeb.Gettext) do
+                "en" -> "English"
+                "fa" -> "Persian"
+                "ru" -> "Russian"
+              end %>
+            </div>
+            <div
+              id="dropdown"
+              class="z-10 absolute col-span-full sm:col-span-3 mt-1 max-h-60 overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm"
+            >
+              <ul x-show="open" role="listbox" tabindex="-1">
+                <li :for={locale <- ~w(en fa ru) -- [@conn.assigns.locale]}>
+                  <a
+                    href={set_locale(locale, @conn)}
+                    x-on:click="open = !open"
+                    type="button"
+                    class="inline-flex w-full px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
+                  >
+                    <%= case locale do
+                      "en" -> "English"
+                      "fa" -> "Persian"
+                      "ru" -> "Russian"
+                    end %>
+                  </a>
+                </li>
+              </ul>
+            </div>
           </div>
         </div>
       </div>

@@ -10,19 +10,19 @@
       <ul>
         <li class="active mb-7">
           <%= live_patch("Verify your email",
-            to: Routes.live_path(@socket, MazarynWeb.UserLive.Profile, @user.username),
+            to: ~p"/#{@locale}/profile/#{@user.username}",
             class: "block text-base #{verified_email(@user)} font-semibold"
           ) %>
         </li>
         <li class="active mb-7">
           <%= live_patch("Set your username",
-            to: Routes.live_path(@socket, MazarynWeb.UserLive.Profile, @user.username),
+            to: ~p"/#{@locale}/profile/#{@user.username}",
             class: "block text-base #{username_set(@user)} font-semibold"
           ) %>
         </li>
         <li class="active">
           <%= live_patch("Set your profile picture",
-            to: Routes.live_path(@socket, MazarynWeb.UserLive.Profile, @user.username),
+            to: ~p"/#{@locale}/profile/#{@user.username}",
             class: "block text-base #{avatar_set(@user)} font-semibold"
           ) %>
         </li>

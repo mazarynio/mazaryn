@@ -88,7 +88,6 @@ defmodule Core.NotifEvent do
     :notif_event.get_notif(notif_id)
   end
 
-
   ## Get Notification Time by NotifID
   def get_notif_time(notif_id) do
     :notif_event.get_notif_time(notif_id)

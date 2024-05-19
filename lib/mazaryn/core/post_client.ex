@@ -11,7 +11,15 @@ defmodule Core.PostClient do
   end
 
   def modify_post(author, newContent, newEmoji, newMedia, newHashtag, newMention, newLink_url) do
-    :post_server.modify_post(author, newContent, newEmoji, newMedia, newHashtag, newMention, newLink_url)
+    :post_server.modify_post(
+      author,
+      newContent,
+      newEmoji,
+      newMedia,
+      newHashtag,
+      newMention,
+      newLink_url
+    )
   end
 
   ## Get post information using PostID
