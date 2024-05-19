@@ -1,1 +1,1 @@
--define(PrivDir, "/home/zaryn/mazaryn/src/otpcode/src/nif/tensorflow").
+-define(PrivDir, "/home/zaryn/mazaryn/src/otpcode/src/nif/test").
