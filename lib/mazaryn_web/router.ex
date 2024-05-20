@@ -27,6 +27,8 @@ defmodule MazarynWeb.Router do
   #   plug :ensure_user_confirmed
   # end
 
+  get "/", MazarynWeb.PageController, :add_locale
+
   scope "/:locale", MazarynWeb do
     pipe_through(:browser)
 

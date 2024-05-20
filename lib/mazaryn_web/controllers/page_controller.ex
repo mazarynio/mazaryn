@@ -1,6 +1,12 @@
 defmodule MazarynWeb.PageController do
   use MazarynWeb, :controller
 
+  def add_locale(conn, _) do
+    conn
+    |> redirect(to: "/#{Gettext.get_locale(MazarynWeb.Gettext)}")
+    |> halt()
+  end
+
   def index(conn, %{"locale" => locale}) do
     Gettext.put_locale(MazarynWeb.Gettext, locale)
     conn |> put_resp_cookie("locale", locale) |> render("index.html")
