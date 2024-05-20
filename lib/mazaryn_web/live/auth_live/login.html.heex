@@ -19,12 +19,12 @@
   <div class="split right h-[50vh] md:h-full">
     <div class="centered">
       <div class="form-container min-w-[540px]">
-        <div class="form-header">Login</div>
+        <div class="form-header"><%= gettext("Login") %></div>
 
         <%= form_for @changeset, "#", [id: "form-login", phx_change: :validate, phx_submit: "save", class: "form-body w-[100%]", autocomplete: "off", autocorrect: "off", autocapitalize: "off", spellcheck: "false"], fn f -> %>
           <div class="form-input-container">
             <div>
-              <label class="form-input-label">Email*</label>
+              <label class="form-input-label"><%= gettext("Email*") %></label>
             </div>
             <div class="w-[100%]">
               <%= email_input(f, :email,
@@ -48,7 +48,7 @@
 
           <div class="form-input-container">
             <div>
-              <label class="form-input-label">Password*</label>
+              <label class="form-input-label"><%= gettext("Password*") %></label>
             </div>
 
             <div class="w-[100%]">

@@ -28,11 +28,11 @@ msgid "An Online Community which empower users to explore their talents."
 msgstr "یک انجمن آنلاین که به کاربران امکان می دهد استعدادهای خود را کشف کنند"
 
 #: lib/mazaryn_web/templates/layout/root.html.heex:87
-#: lib/mazaryn_web/templates/page/careers.html.heex:10
-#: lib/mazaryn_web/templates/page/contact.html.heex:10
+#: lib/mazaryn_web/templates/page/about.html.heex:10
+#: lib/mazaryn_web/templates/page/careers.html.heex:11
+#: lib/mazaryn_web/templates/page/contact.html.heex:11
 #: lib/mazaryn_web/templates/page/index.html.heex:12
 #: lib/mazaryn_web/templates/page/privacy.html.heex:11
-#: lib/mazaryn_web/templates/page/about.html.heex:10
 #, elixir-autogen, elixir-format
 msgid "Blog"
 msgstr "وبلاگ"
@@ -72,7 +72,7 @@ msgstr "شبکه اجتماعی مازارین"
 #: lib/mazaryn_web/templates/page/privacy.html.heex:8
 #, elixir-autogen, elixir-format
 msgid "Privacy"
-msgstr ""
+msgstr "حریم خصوصی"
 
 #: lib/mazaryn_web/templates/layout/root.html.heex:107
 #: lib/mazaryn_web/templates/page/privacy.html.heex:19
@@ -80,6 +80,7 @@ msgstr ""
 msgid "Privacy policy"
 msgstr "سیاست‌نامه حریم خصوصی"
 
+#: lib/mazaryn_web/live/auth_live/signup.html.heex:27
 #: lib/mazaryn_web/templates/page/index.html.heex:46
 #, elixir-autogen, elixir-format
 msgid "Sign Up"
@@ -90,18 +91,18 @@ msgstr "ثبت نام"
 msgid "©2022 Mazaryn Social"
 msgstr "2022 مازارین"
 
-#: lib/mazaryn_web/templates/page/contact.html.heex:17
+#: lib/mazaryn_web/templates/page/contact.html.heex:19
 #, elixir-autogen, elixir-format
 msgid "Contact Mazaryn Support"
 msgstr "با پشتیبانی مازارین تماس بگیرید"
 
-#: lib/mazaryn_web/templates/page/contact.html.heex:20
+#: lib/mazaryn_web/templates/page/contact.html.heex:22
 #, elixir-autogen, elixir-format
 msgid "Mazaryn Help channel will answer all your questions about our services, your account and more."
 msgstr "کانال راهنمای مازارین به تمام سوالات شما در مورد خدمات حساب کاربری و موارد دیگر پاسخ خواهد داد"
 
-#: lib/mazaryn_web/templates/page/contact.html.heex:40
-#, elixir-autogen, elixir-format, fuzzy
+#: lib/mazaryn_web/templates/page/contact.html.heex:44
+#, elixir-autogen, elixir-format, 
 msgid "Contact us"
 msgstr "تماس"
 
@@ -110,17 +111,37 @@ msgstr "تماس"
 msgid "Help"
 msgstr "کمک"
 
-#: lib/mazaryn_web/templates/page/careers.html.heex:27
+#: lib/mazaryn_web/templates/page/careers.html.heex:29
 #, elixir-autogen, elixir-format
 msgid "Apply"
-msgstr ""
+msgstr "درخواست دادن"
 
-#: lib/mazaryn_web/templates/page/careers.html.heex:17
+#: lib/mazaryn_web/templates/page/careers.html.heex:19
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Mazaryn Careers"
 msgstr "مازارین"
 
-#: lib/mazaryn_web/templates/page/careers.html.heex:20
+#: lib/mazaryn_web/templates/page/careers.html.heex:22
 #, elixir-autogen, elixir-format
 msgid "We're Hiring! We're looking for talented people to join our team."
 msgstr "ما در حال استخدام هستیم! ما به دنبال افراد با استعداد هستیم تا به تیم ما بپیوندند."
+
+#: lib/mazaryn_web/live/auth_live/signup.html.heex:57
+#, elixir-autogen, elixir-format
+msgid "Email*"
+msgstr "پست الکترونیک*"
+
+#: lib/mazaryn_web/live/auth_live/signup.html.heex:80
+#, elixir-autogen, elixir-format
+msgid "Password*"
+msgstr "کلمه عبور*"
+
+#: lib/mazaryn_web/live/auth_live/signup.html.heex:104
+#, elixir-autogen, elixir-format
+msgid "Repeat Password*"
+msgstr "تکرار رمز عبور*"
+
+#: lib/mazaryn_web/live/auth_live/signup.html.heex:33
+#, elixir-autogen, elixir-format
+msgid "Username*"
+msgstr "نام کاربری*"
