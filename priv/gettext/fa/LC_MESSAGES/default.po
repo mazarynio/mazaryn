@@ -20,18 +20,19 @@ msgstr "درباره"
 #: lib/mazaryn_web/templates/page/about.html.heex:17
 #, elixir-autogen, elixir-format
 msgid "About this site"
-msgstr ""
+msgstr "درباره این سایت"
 
 #: lib/mazaryn_web/templates/page/index.html.heex:36
 #, elixir-autogen, elixir-format
 msgid "An Online Community which empower users to explore their talents."
-msgstr ""
+msgstr "یک انجمن آنلاین که به کاربران امکان می دهد استعدادهای خود را کشف کنند"
 
 #: lib/mazaryn_web/templates/layout/root.html.heex:87
 #: lib/mazaryn_web/templates/page/careers.html.heex:10
 #: lib/mazaryn_web/templates/page/contact.html.heex:10
 #: lib/mazaryn_web/templates/page/index.html.heex:12
 #: lib/mazaryn_web/templates/page/privacy.html.heex:11
+#: lib/mazaryn_web/templates/page/about.html.heex:10
 #, elixir-autogen, elixir-format
 msgid "Blog"
 msgstr "وبلاگ"
@@ -55,7 +56,7 @@ msgstr "ورود"
 #: lib/mazaryn_web/templates/page/about.html.heex:20
 #, elixir-autogen, elixir-format
 msgid "MAZARYN is an Smart and OpenSource Platform of Inspiration & innovation. We take Care of User's Privacy and Content's Quality to Make the Happier Moments."
-msgstr ""
+msgstr "MAZARYN یک پلتفرم هوشمند و منبع باز الهام بخش و نوآوری است. ما از حریم خصوصی کاربر و کیفیت محتوا مراقبت می کنیم تا لحظات شادتری داشته باشیم."
 
 #: lib/mazaryn_web/templates/layout/email_base.html.heex:5
 #: lib/mazaryn_web/templates/layout/root.html.heex:82
@@ -66,7 +67,7 @@ msgstr "مازارین"
 #: lib/mazaryn_web/templates/page/index.html.heex:34
 #, elixir-autogen, elixir-format
 msgid "Mazaryn SN"
-msgstr ""
+msgstr "شبکه اجتماعی مازارین"
 
 #: lib/mazaryn_web/templates/page/privacy.html.heex:8
 #, elixir-autogen, elixir-format
@@ -87,7 +88,7 @@ msgstr "ثبت نام"
 #: lib/mazaryn_web/templates/layout/root.html.heex:113
 #, elixir-autogen, elixir-format
 msgid "©2022 Mazaryn Social"
-msgstr ""
+msgstr "2022 مازارین"
 
 #: lib/mazaryn_web/templates/page/contact.html.heex:17
 #, elixir-autogen, elixir-format
@@ -107,7 +108,7 @@ msgstr "تماس"
 #: lib/mazaryn_web/templates/page/contact.html.heex:8
 #, elixir-autogen, elixir-format
 msgid "Help"
-msgstr ""
+msgstr "کمک"
 
 #: lib/mazaryn_web/templates/page/careers.html.heex:27
 #, elixir-autogen, elixir-format
@@ -122,4 +123,4 @@ msgstr "مازارین"
 #: lib/mazaryn_web/templates/page/careers.html.heex:20
 #, elixir-autogen, elixir-format
 msgid "We're Hiring! We're looking for talented people to join our team."
-msgstr ""
+msgstr "ما در حال استخدام هستیم! ما به دنبال افراد با استعداد هستیم تا به تیم ما بپیوندند."
