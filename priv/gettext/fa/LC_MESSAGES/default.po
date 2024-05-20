@@ -48,6 +48,7 @@ msgstr "حرفه"
 msgid "Contact"
 msgstr "تماس"
 
+#: lib/mazaryn_web/live/auth_live/login.html.heex:22
 #: lib/mazaryn_web/templates/page/index.html.heex:52
 #, elixir-autogen, elixir-format
 msgid "Login"
@@ -102,7 +103,7 @@ msgid "Mazaryn Help channel will answer all your questions about our services, y
 msgstr "کانال راهنمای مازارین به تمام سوالات شما در مورد خدمات حساب کاربری و موارد دیگر پاسخ خواهد داد"
 
 #: lib/mazaryn_web/templates/page/contact.html.heex:44
-#, elixir-autogen, elixir-format, 
+#, elixir-autogen, elixir-format
 msgid "Contact us"
 msgstr "تماس"
 
@@ -126,11 +127,13 @@ msgstr "مازارین"
 msgid "We're Hiring! We're looking for talented people to join our team."
 msgstr "ما در حال استخدام هستیم! ما به دنبال افراد با استعداد هستیم تا به تیم ما بپیوندند."
 
+#: lib/mazaryn_web/live/auth_live/login.html.heex:27
 #: lib/mazaryn_web/live/auth_live/signup.html.heex:57
 #, elixir-autogen, elixir-format
 msgid "Email*"
 msgstr "پست الکترونیک*"
 
+#: lib/mazaryn_web/live/auth_live/login.html.heex:51
 #: lib/mazaryn_web/live/auth_live/signup.html.heex:80
 #, elixir-autogen, elixir-format
 msgid "Password*"
@@ -145,3 +148,23 @@ msgstr "تکرار رمز عبور*"
 #, elixir-autogen, elixir-format
 msgid "Username*"
 msgstr "نام کاربری*"
+
+#: lib/mazaryn_web/live/auth_live/reset.html.heex:22
+#, elixir-autogen, elixir-format
+msgid "Reset Your Password"
+msgstr "رمز عبور خود را بازنشانی کنید"
+
+#: lib/mazaryn_web/live/auth_live/reset.html.heex:26
+#, elixir-autogen, elixir-format
+msgid "To request a new password, enter your email"
+msgstr "برای درخواست رمز عبور جدید، ایمیل خود را وارد کنید"
+
+#: lib/mazaryn_web/live/auth_live/reset.html.heex:50
+#, elixir-autogen, elixir-format
+msgid "Continue"
+msgstr "ادامه هید"
+
+#: lib/mazaryn_web/live/auth_live/reset.html.heex:33
+#, elixir-autogen, elixir-format
+msgid "Enter your email"
+msgstr "ایمیل خود را وارد کنید"

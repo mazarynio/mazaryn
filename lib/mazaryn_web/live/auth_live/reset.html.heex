@@ -19,18 +19,18 @@
     <div class="centered">
       <div class="form-container md:w-[540px]">
         <div class="form-header">
-          Reset Your Password
+          <%= gettext("Reset Your Password") %>
         </div>
 
         <div class="form-header-explanation font-light">
-          To request a new password, enter your email
+          <%= gettext("To request a new password, enter your email") %>
         </div>
 
         <div class="form-body w-[100%]">
           <form phx-submit="reset">
             <div class="form-input-container">
               <div>
-                <label class="form-input-label">Enter your email</label>
+                <label class="form-input-label"><%= gettext("Enter your email") %></label>
               </div>
 
               <div class="w-[100%]">
@@ -47,7 +47,7 @@
 
             <div class="form-button">
               <button type="submit">
-                Continue
+                <%= gettext("Continue") %>
               </button>
             </div>
           </form>
