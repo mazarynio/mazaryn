@@ -29,13 +29,13 @@
     <div class="centered">
       <div class="form-container md:w-[540px]">
         <div class="form-header">
-          Sign Up
+          <%= gettext("Sign Up") %>
         </div>
         <div class="form-body w-[100%]">
           <%= form_for @changeset, "#", [phx_change: :validate, phx_submit: :save, class: "form-body w-[100%]", autocomplete: "off", autocorrect: "off", autocapitalize: "off", spellcheck: "false"], fn f -> %>
             <div class="form-input-container">
               <div>
-                <label class="form-input-label">Username*</label>
+                <label class="form-input-label"><%= gettext("Username*") %></label>
               </div>
               <div class="w-[100%]">
                 <%= text_input(f, :username,
@@ -59,7 +59,7 @@
 
             <div class="form-input-container">
               <div>
-                <label class="form-input-label">Email*</label>
+                <label class="form-input-label"><%= gettext("Email*") %></label>
               </div>
               <div class="w-[100%]">
                 <%= email_input(f, :email,
@@ -82,7 +82,7 @@
 
             <div class="form-input-container">
               <div>
-                <label class="form-input-label">Password*</label>
+                <label class="form-input-label"><%= gettext("Password*") %></label>
               </div>
 
               <div class="w-[100%]">
@@ -106,7 +106,7 @@
 
             <div class="form-input-container">
               <div>
-                <label class="form-input-label">Repeat Password*</label>
+                <label class="form-input-label"><%= gettext("Repeat Password*") %></label>
               </div>
 
               <div class="w-[100%]">

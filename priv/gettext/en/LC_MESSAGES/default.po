@@ -28,8 +28,9 @@ msgid "An Online Community which empower users to explore their talents."
 msgstr ""
 
 #: lib/mazaryn_web/templates/layout/root.html.heex:87
-#: lib/mazaryn_web/templates/page/careers.html.heex:10
-#: lib/mazaryn_web/templates/page/contact.html.heex:10
+#: lib/mazaryn_web/templates/page/about.html.heex:10
+#: lib/mazaryn_web/templates/page/careers.html.heex:11
+#: lib/mazaryn_web/templates/page/contact.html.heex:11
 #: lib/mazaryn_web/templates/page/index.html.heex:12
 #: lib/mazaryn_web/templates/page/privacy.html.heex:11
 #, elixir-autogen, elixir-format
@@ -47,6 +48,7 @@ msgstr ""
 msgid "Contact"
 msgstr ""
 
+#: lib/mazaryn_web/live/auth_live/login.html.heex:22
 #: lib/mazaryn_web/templates/page/index.html.heex:52
 #, elixir-autogen, elixir-format
 msgid "Login"
@@ -79,6 +81,7 @@ msgstr ""
 msgid "Privacy policy"
 msgstr ""
 
+#: lib/mazaryn_web/live/auth_live/signup.html.heex:27
 #: lib/mazaryn_web/templates/page/index.html.heex:46
 #, elixir-autogen, elixir-format
 msgid "Sign Up"
@@ -89,17 +92,17 @@ msgstr ""
 msgid "©2022 Mazaryn Social"
 msgstr ""
 
-#: lib/mazaryn_web/templates/page/contact.html.heex:17
+#: lib/mazaryn_web/templates/page/contact.html.heex:19
 #, elixir-autogen, elixir-format
 msgid "Contact Mazaryn Support"
 msgstr ""
 
-#: lib/mazaryn_web/templates/page/contact.html.heex:20
+#: lib/mazaryn_web/templates/page/contact.html.heex:22
 #, elixir-autogen, elixir-format
 msgid "Mazaryn Help channel will answer all your questions about our services, your account and more."
 msgstr ""
 
-#: lib/mazaryn_web/templates/page/contact.html.heex:40
+#: lib/mazaryn_web/templates/page/contact.html.heex:44
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Contact us"
 msgstr ""
@@ -109,17 +112,59 @@ msgstr ""
 msgid "Help"
 msgstr ""
 
-#: lib/mazaryn_web/templates/page/careers.html.heex:27
+#: lib/mazaryn_web/templates/page/careers.html.heex:29
 #, elixir-autogen, elixir-format
 msgid "Apply"
 msgstr ""
 
-#: lib/mazaryn_web/templates/page/careers.html.heex:17
+#: lib/mazaryn_web/templates/page/careers.html.heex:19
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Mazaryn Careers"
 msgstr ""
 
-#: lib/mazaryn_web/templates/page/careers.html.heex:20
+#: lib/mazaryn_web/templates/page/careers.html.heex:22
 #, elixir-autogen, elixir-format
 msgid "We're Hiring! We're looking for talented people to join our team."
+msgstr ""
+
+#: lib/mazaryn_web/live/auth_live/login.html.heex:27
+#: lib/mazaryn_web/live/auth_live/signup.html.heex:57
+#, elixir-autogen, elixir-format
+msgid "Email*"
+msgstr ""
+
+#: lib/mazaryn_web/live/auth_live/login.html.heex:51
+#: lib/mazaryn_web/live/auth_live/signup.html.heex:80
+#, elixir-autogen, elixir-format
+msgid "Password*"
+msgstr ""
+
+#: lib/mazaryn_web/live/auth_live/signup.html.heex:104
+#, elixir-autogen, elixir-format
+msgid "Repeat Password*"
+msgstr ""
+
+#: lib/mazaryn_web/live/auth_live/signup.html.heex:33
+#, elixir-autogen, elixir-format
+msgid "Username*"
+msgstr ""
+
+#: lib/mazaryn_web/live/auth_live/reset.html.heex:22
+#, elixir-autogen, elixir-format
+msgid "Reset Your Password"
+msgstr ""
+
+#: lib/mazaryn_web/live/auth_live/reset.html.heex:26
+#, elixir-autogen, elixir-format
+msgid "To request a new password, enter your email"
+msgstr ""
+
+#: lib/mazaryn_web/live/auth_live/reset.html.heex:50
+#, elixir-autogen, elixir-format
+msgid "Continue"
+msgstr ""
+
+#: lib/mazaryn_web/live/auth_live/reset.html.heex:33
+#, elixir-autogen, elixir-format
+msgid "Enter your email"
 msgstr ""
