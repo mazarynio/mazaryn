@@ -31,7 +31,12 @@
         </div>
         <div class="flex flex-wrap justify-center align-center my-5">
           <%= for post <- @posts do %>
-            <.live_component module={MazarynWeb.HomeLive.PostComponent} id="posting" post={post} />
+            <.live_component
+              module={MazarynWeb.HomeLive.PostComponent}
+              locale={@locale}
+              id="posting"
+              post={post}
+            />
           <% end %>
         </div>
       </div>
