@@ -66,30 +66,33 @@ defmodule MazarynWeb.Router do
   scope "/:locale", MazarynWeb do
     pipe_through(:restricted)
 
-    live("/home", HomeLive.Home)
-    live("/approve", HomeLive.Approve)
-    live("/coins", CoinLive.Index)
-    live "notifications", HomeLive.Notification
-    live("/videos", VideoLive.Index)
-    live("/videos/:id", VideoLive.Show)
+    live_session :restricted,
+      on_mount: [{MazarynWeb.UserLiveAuth, :restricted}, {MazarynWeb.UserLiveAuth, :default}] do
+      live("/home", HomeLive.Home)
+      live("/approve", HomeLive.Approve)
+      live("/coins", CoinLive.Index)
+      live "notifications", HomeLive.Notification
+      live("/videos", VideoLive.Index)
+      live("/videos/:id", VideoLive.Show)
 
-    # CHATS
-    scope "/chats" do
-      live("/", ChatsLive.Index, :index)
-      live("/:recipient_id", ChatsLive.Index, :index)
+      # CHATS
+      scope "/chats" do
+        live("/", ChatsLive.Index, :index)
+        live("/:recipient_id", ChatsLive.Index, :index)
+      end
+
+      # profile
+      live("/search", SearchLive.Index)
+      live("/:username", UserLive.Profile)
+      live("/posts", PostLive.Index)
+      live("/dashboard", DashboardLive.Index)
+      live("/dashboard/hedera-wallet", DashboardLive.Wallet.HederaWallet)
+      live("/notifications", NotificationLive.Index)
+      live("/user_blog", UserBlog.Index)
+
+      # hashtags
+      live "/hashtag/:hashtag_name", HashtagLive.Index
     end
-
-    # profile
-    live("/search", SearchLive.Index)
-    live("/:username", UserLive.Profile)
-    live("/posts", PostLive.Index)
-    live("/dashboard", DashboardLive.Index)
-    live("/dashboard/hedera-wallet", DashboardLive.Wallet.HederaWallet)
-    live("/notifications", NotificationLive.Index)
-    live("/user_blog", UserBlog.Index)
-
-    # hashtags
-    live "/hashtag/:hashtag_name", HashtagLive.Index
   end
 
   scope "/api" do

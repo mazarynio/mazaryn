@@ -113,13 +113,16 @@
               <%= gettext("©2022 Mazaryn Social") %>
             </small>
           </div>
-          <div  x-data="{ open: false }" class={
-            ["language-selector p-2 rounded-lg flex items-center"] ++
-              if(@conn.request_path =~ "/videos",
-                do: ["bg-[#282932]"],
-                else: ["bg-white"]
-              )
-          }>
+          <div
+            x-data="{ open: false }"
+            class={
+              ["language-selector p-2 rounded-lg flex items-center"] ++
+                if(@conn.request_path =~ "/videos",
+                  do: ["bg-[#282932]"],
+                  else: ["bg-white"]
+                )
+            }
+          >
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="24"
@@ -137,7 +140,7 @@
               <path d="M12 2a15.3 15.3 0 0 1 4.39 10H7.61A15.3 15.3 0 0 1 12 2z"></path>
               <path d="M12 22a15.3 15.3 0 0 1-4.39-10H16.4A15.3 15.3 0 0 1 12 22z"></path>
             </svg>
-            <div x-show="!open" x-on:click="open = true" class="p-2" >
+            <div x-show="!open" x-on:click="open = true" class="p-2">
               <%= case Gettext.get_locale(MazarynWeb.Gettext) do
                 "en" -> "English"
                 "fa" -> "Persian"

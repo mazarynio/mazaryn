@@ -10,7 +10,7 @@ defmodule MazarynWeb.HomeLive.LeftSidebarComponent do
           <div class="flex justify-center items-center">
             <ul>
               <li class="flex align-center items-center mx-2 mb-7">
-                <%= live_redirect to: Routes.live_path(@socket, MazarynWeb.HomeLive.Home),
+                <%= live_redirect to: Routes.live_path(@socket, MazarynWeb.HomeLive.Home, @locale),
                              replace: false, class: "group flex align-center items-start text-base text-gray-500 font-semibold hover:text-blue-500" do %>
                   <i>
                     <svg
@@ -176,7 +176,7 @@ defmodule MazarynWeb.HomeLive.LeftSidebarComponent do
               </li>
 
               <li class="flex align-center items-center mx-2 group">
-                <%= live_redirect to: Routes.live_path(@socket, MazarynWeb.UserLive.Profile,  @user.username), replace: false, class: "group flex items-center text-base text-[#60616D] font-semibold" do %>
+                <%= live_redirect to: Routes.live_path(@socket, MazarynWeb.UserLive.Profile,@locale,  @user.username), replace: false, class: "group flex items-center text-base text-[#60616D] font-semibold" do %>
                   <%= if @user.avatar_url do %>
                     <img
                       src={"#{@user.avatar_url}"}
@@ -223,7 +223,7 @@ defmodule MazarynWeb.HomeLive.LeftSidebarComponent do
                       />
                     </svg>
                   </i>
-                  <%= live_redirect to: Routes.live_path(@socket, MazarynWeb.UserBlog.Index),
+                  <%= live_redirect to: Routes.live_path(@socket, MazarynWeb.UserBlog.Index, @locale),
                                      replace: false, class: "group flex align-center items-start text-base text-gray-500 font-semibold hover:text-blue-500" do %>
                     <div class="text-[#60616D] text-base leading-6 group-hover:text-[#4385F5]">
                       Blog

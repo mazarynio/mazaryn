@@ -264,7 +264,7 @@ defmodule MazarynWeb.HomeLive.PostComponent do
   end
 
   defp activate_hashtag_only(hashtag, socket) do
-    path = Routes.live_path(socket, MazarynWeb.HashtagLive.Index, hashtag)
+    path = Routes.live_path(socket, MazarynWeb.HashtagLive.Index, socket.assigns.locale, hashtag)
     markdown = "[\ #{hashtag}](#{path})"
 
     String.replace(hashtag, hashtag, markdown)
@@ -316,7 +316,7 @@ defmodule MazarynWeb.HomeLive.PostComponent do
         "#"
 
       {:ok, _user} ->
-        Routes.live_path(socket, MazarynWeb.UserLive.Profile, username)
+        Routes.live_path(socket, MazarynWeb.UserLive.Profile, socket.assigns.locale, username)
     end
   end
 

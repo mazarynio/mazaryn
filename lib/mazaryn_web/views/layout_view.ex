@@ -8,6 +8,6 @@ defmodule MazarynWeb.LayoutView do
   def set_locale(locale, conn) do
     current_locale = Gettext.get_locale(MazarynWeb.Gettext)
 
-    "#{String.replace(conn.request_path, "/#{current_locale}", "/#{locale}")}#{conn.query_string != "" && "?#{conn.query_string}" || ""}"
+    "#{String.replace(conn.request_path, "/#{current_locale}", "/#{locale}")}#{(conn.query_string != "" && "?#{conn.query_string}") || ""}"
   end
 end

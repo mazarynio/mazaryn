@@ -19,7 +19,7 @@ defmodule MazarynWeb.Plugs.SetLocale do
     conn
     |> Phoenix.Controller.redirect(
       to:
-        "/#{Gettext.get_locale(MazarynWeb.Gettext)}#{conn.request_path}#{conn.query_string != "" && "?#{conn.query_string}" || ""}"
+        "/#{Gettext.get_locale(MazarynWeb.Gettext)}#{conn.request_path}#{(conn.query_string != "" && "?#{conn.query_string}") || ""}"
     )
     |> Plug.Conn.halt()
   end

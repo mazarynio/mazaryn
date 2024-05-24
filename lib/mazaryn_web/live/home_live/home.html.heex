@@ -4,6 +4,7 @@
   id="navigation"
   user={@user}
   search={@search}
+  locale={@locale}
 />
 <!-- Three columns -->
 <div class="bg-[#FAFAFA]">
@@ -13,6 +14,7 @@
         module={MazarynWeb.HomeLive.LeftSidebarComponent}
         id="leftsidebar"
         user={@user}
+        locale={@locale}
       />
     </div>
     <!-- middle column -->
@@ -38,7 +40,7 @@
     </div>
     <!-- end of middle column-->
     <div class="w-full lg:w-[28%] py-6">
-      <.live_component module={MazarynWeb.Component.CompleteProfile} user={@user} id="completing" />
+      <.live_component module={MazarynWeb.Component.CompleteProfile} user={@user} locale={@locale} id="completing" />
       <!-- Trending -->
       <div class="w-full bg-white white:bg-gray-800 custom-box-shadow py-7 pl-8 pr-7 rounded-[20px] my-7">
         <div class="flex flex-row justify-between">

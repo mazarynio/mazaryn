@@ -31,7 +31,9 @@ defmodule MazarynWeb.AuthLive.Login do
           insert_session_token(key, email)
 
           {:noreply,
-           push_redirect(socket, to: Routes.live_path(socket, MazarynWeb.HomeLive.Home))}
+           push_redirect(socket,
+             to: Routes.live_path(socket, MazarynWeb.HomeLive.Home, socket.assigns.locale)
+           )}
 
         changeset ->
           changeset =

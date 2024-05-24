@@ -239,7 +239,7 @@ defmodule MazarynWeb.UserLive.Profile do
     {:noreply,
      socket
      |> put_flash(:info, "Update successful")
-     |> push_redirect(to: Routes.live_path(socket, __MODULE__, username))}
+     |> push_redirect(to: Routes.live_path(socket, __MODULE__, socket.assings.locale, username))}
   end
 
   def handle_event("unverify_user", %{"username" => username}, socket) do
@@ -248,7 +248,7 @@ defmodule MazarynWeb.UserLive.Profile do
     {:noreply,
      socket
      |> put_flash(:info, "Update successful")
-     |> push_redirect(to: Routes.live_path(socket, __MODULE__, username))}
+     |> push_redirect(to: Routes.live_path(socket, __MODULE__, socket.assings.locale, username))}
   end
 
   defp handle_assigns(socket, user_id, id) do

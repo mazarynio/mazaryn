@@ -10,7 +10,7 @@ defmodule MazarynWeb.VideoLive.NavComponent do
     <div class="relative bg-[#151620]">
       <nav class="relative w-[90%] max-w-[1440px] mx-auto h-16 py-2.5 flex justify-evenly items-center text-center">
         <div class="w-[17%] mr-14 text-xl font-extrabold text-black cursor-pointer flex-shrink-0">
-          <%= link to: Routes.live_path(@socket, MazarynWeb.HomeLive.Home), class: "block" do %>
+          <%= link to: Routes.live_path(@socket, MazarynWeb.HomeLive.Home, @locale), class: "block" do %>
             <svg
               width="158"
               height="52"
@@ -192,7 +192,7 @@ defmodule MazarynWeb.VideoLive.NavComponent do
                 tabindex="-1"
               >
                 <div class="py-1" role="none">
-                  <%= live_patch to: Routes.live_path(@socket, MazarynWeb.UserLive.Profile, @user.username),  class: "text-gray-700 block px-4 py-2 text-sm", role: "menuitem", tabindex: "-1", id: "menu-item-0" do %>
+                  <%= live_patch to: Routes.live_path(@socket, MazarynWeb.UserLive.Profile, @locale, @user.username),  class: "text-gray-700 block px-4 py-2 text-sm", role: "menuitem", tabindex: "-1", id: "menu-item-0" do %>
                     <div class="flex">
                       <div class="flex rounded-full pr-6">
                         <%= if @user.avatar_url do %>
@@ -256,13 +256,13 @@ defmodule MazarynWeb.VideoLive.NavComponent do
         <ul>
           <li>
             <%= link("Coin",
-              to: Routes.live_path(@socket, MazarynWeb.CoinLive.Index),
+              to: Routes.live_path(@socket, MazarynWeb.CoinLive.Index, @locale),
               class: "block text-sm px-2 py-2 hover:bg-slate-500 transition duration-300"
             ) %>
           </li>
           <li>
             <%= link("Profile",
-              to: Routes.live_path(@socket, MazarynWeb.UserLive.Profile, @user.username),
+              to: Routes.live_path(@socket, MazarynWeb.UserLive.Profile, @locale, @user.username),
               class: "block text-sm px-2 py-2 hover:bg-slate-500 transition duration-300"
             ) %>
           </li>

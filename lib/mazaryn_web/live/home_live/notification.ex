@@ -23,6 +23,7 @@ defmodule MazarynWeb.HomeLive.Notification do
       id="navigation"
       user={@target_user}
       search={@search}
+      locale={@locale}
     />
     <!-- Three columns -->
     <div class="bg-[#FAFAFA]">
@@ -32,6 +33,7 @@ defmodule MazarynWeb.HomeLive.Notification do
             module={MazarynWeb.HomeLive.LeftSidebarComponent}
             id="leftsidebar"
             user={@target_user}
+            locale={@locale}
           />
         </div>
 

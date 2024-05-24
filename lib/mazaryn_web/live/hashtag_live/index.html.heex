@@ -4,6 +4,7 @@
   id="navigation"
   user={@current_user}
   search={@search}
+  locale={@locale}
 />
 <!-- Three columns -->
 <div class="bg-[#FAFAFA]">
@@ -13,6 +14,7 @@
         module={MazarynWeb.HomeLive.LeftSidebarComponent}
         id="leftsidebar"
         user={@current_user}
+        locale={@locale}
       />
     </div>
     <!-- middle column -->
@@ -35,6 +37,7 @@
         module={MazarynWeb.Component.CompleteProfile}
         user={@current_user}
         id="completing"
+        locale={@locale}
       />
       <!-- Trending -->
       <div class="w-full bg-white white:bg-gray-800 custom-box-shadow py-7 pl-8 pr-7 rounded-[20px] my-7">

@@ -82,6 +82,7 @@ defmodule MazarynWeb.HomeLive.ReportUserComponent do
          Routes.live_path(
            socket,
            MazarynWeb.UserLive.Profile,
+           socket.assigns.locale,
            socket.assigns.reported_user.username
          ),
        replace: true

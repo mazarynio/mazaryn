@@ -42,7 +42,7 @@ defmodule MazarynWeb.HomeLive.ShowLikersComponent do
             </svg>
             <div class="text-sm">
               <%= live_redirect("View Profile",
-                to: Routes.live_path(@socket, MazarynWeb.UserLive.Profile, user.username)
+                to: Routes.live_path(@socket, MazarynWeb.UserLive.Profile, @locale, user.username)
               ) %>
             </div>
           </div>

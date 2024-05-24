@@ -21,6 +21,10 @@ defmodule MazarynWeb.HashtagLive.Index do
   def handle_event("do_search", %{"search" => search}, socket) do
     socket = assign(socket, search: search)
 
-    {:noreply, socket |> push_redirect(to: Routes.live_path(socket, MazarynWeb.SearchLive.Index))}
+    {:noreply,
+     socket
+     |> push_redirect(
+       to: Routes.live_path(socket, MazarynWeb.SearchLive.Index, socket.assigns.locale)
+     )}
   end
 end

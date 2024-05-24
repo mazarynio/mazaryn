@@ -43,7 +43,9 @@
       <li class="mx-8 my-0">
         <div class="flex bg-[#FAFAFA] center rounded-full py-2 px-2">
           <span class="relative inline-block">
-            <.link navigate={Routes.live_path(@socket, MazarynWeb.NotificationLive.Index)}>
+            <.link navigate={
+              Routes.live_path(@socket, MazarynWeb.NotificationLive.Index, @locale)
+            }>
               <%= Heroicons.icon("bell", class: "w-7 h-7 rounded-full fill-[#AAAAAA]") %>
             </.link>
           </span>
