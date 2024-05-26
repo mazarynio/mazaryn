@@ -7,7 +7,8 @@
                 "/usr/lib/erlang/erts-14.2.3/include",
                 "/usr/lib/erlang/usr/include",
                 "/usr/local/include/qpp/qasmtools",
-                "/usr/local/include/qpp"
+                "/usr/local/include/qpp",
+                "/home/zaryn/eigen"
             ],
             "defines": [],
             "compilerPath": "/usr/bin/clang",
