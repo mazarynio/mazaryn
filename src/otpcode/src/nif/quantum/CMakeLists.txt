@@ -15,6 +15,7 @@ set(QPE ${PROJECT_SOURCE_DIR}/qpe.cpp)
 set(ENTANGLEMENT ${PROJECT_SOURCE_DIR}/entanglement.cpp)
 set(RANDOMNESS ${PROJECT_SOURCE_DIR}/randomness.cpp)
 set(GROVER ${PROJECT_SOURCE_DIR}/grover.cpp)
+set(TELEPORT_QUDIT ${PROJECT_SOURCE_DIR}/teleport_qudit.cpp)
 
 # Create the shared library
 add_library(chat_dense_coding SHARED ${CHAT_DENSE_CODING})
@@ -22,6 +23,7 @@ add_library(qpe SHARED ${QPE})
 add_library(entanglement SHARED ${ENTANGLEMENT})
 add_library(randomness SHARED ${RANDOMNESS})
 add_library(grover SHARED ${GROVER})
+add_library(teleport_qudit SHARED ${TELEPORT_QUDIT})
 
 # Set the output directory for the shared library
 set_target_properties(chat_dense_coding qpe entanglement randomness 
@@ -32,3 +34,4 @@ target_link_libraries(qpe PUBLIC ${QPP_LINK_DEPS} libqpp)
 target_link_libraries(entanglement PUBLIC ${QPP_LINK_DEPS} libqpp)
 target_link_libraries(randomness PUBLIC ${QPP_LINK_DEPS} libqpp)
 target_link_libraries(grover PUBLIC ${QPP_LINK_DEPS} libqpp)
+target_link_libraries(teleport_qudit PUBLIC ${QPP_LINK_DEPS} libqpp)
