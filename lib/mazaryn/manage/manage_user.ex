@@ -24,18 +24,18 @@ defmodule ManageUser do
   end
 
   ## Remove user account by username
-  def delete_account(username) do
-    :manage_user.delete_account(username)
+  def delete_account(username, admin_username) do
+    :manage_user.delete_account(username, admin_username)
   end
 
   ## Verify user by username or user_id
-  def verify_user(username_or_id) do
-    :manage_user.verify_user(username_or_id)
+  def verify_user(username_or_id, admin_username) do
+    :manage_user.verify_user(username_or_id, admin_username)
   end
 
   ## Unverify user by username or user_id
-  def unverify_user(username_or_id) do
-    :manage_user.unverify_user(username_or_id)
+  def unverify_user(username_or_id, admin_username) do
+    :manage_user.unverify_user(username_or_id, admin_username)
   end
 
   ## Suspend user based on user_id and duration (target time)
