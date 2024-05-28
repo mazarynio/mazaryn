@@ -1,5 +1,5 @@
-%% print_string.erl
 -module(chat_dense_coding).
+-author("Zaryn Technologies").
 -export([init/0, send_msg/1, get_msg/0]).
 -on_load(init/0).
 -define(LIBNAME, "libchat_dense_coding").

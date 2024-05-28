@@ -7,7 +7,7 @@
 init() ->
     erlang:load_nif(filename:join(?PrivDir, ?LIBNAME), 0).
 
-%% Example => qpe:estimation(0.25).
+%% Example => teleport_qudit:qudit_teleport(4).
 qudit_teleport(_Data) ->
     erlang:nif_error({not_loaded, ?LIBNAME}).
 
