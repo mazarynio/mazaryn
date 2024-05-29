@@ -144,7 +144,7 @@ defmodule MazarynWeb.HomeLive.LeftSidebarComponent do
                     </svg>
                   </i>
                   <div class="text-base leading-6 text-[#60616D] group-hover:text-[#4385F5]">
-                    Wallet
+                    Dashboard
                   </div>
                 </a>
               </li>
