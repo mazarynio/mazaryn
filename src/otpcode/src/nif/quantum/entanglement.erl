@@ -1,4 +1,5 @@
 -module(entanglement).
+-author("Zaryn Technologies").
 -export([init/0, density_matrix_entanglement/1, state_entanglement/1]).
 -on_load(init/0).
 -define(LIBNAME, "libentanglement").
