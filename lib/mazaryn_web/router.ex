@@ -83,12 +83,12 @@ defmodule MazarynWeb.Router do
 
       # profile
       live("/search", SearchLive.Index)
-      live("/:username", UserLive.Profile)
       live("/posts", PostLive.Index)
       live("/dashboard", DashboardLive.Index)
       live("/dashboard/hedera-wallet", DashboardLive.Wallet.HederaWallet)
       live("/notifications", NotificationLive.Index)
       live("/user_blog", UserBlog.Index)
+      live("/:username", UserLive.Profile)
 
       # hashtags
       live "/hashtag/:hashtag_name", HashtagLive.Index

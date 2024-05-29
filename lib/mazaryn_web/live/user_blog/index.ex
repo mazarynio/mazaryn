@@ -10,7 +10,12 @@ defmodule MazarynWeb.UserBlog.Index do
   def mount(_params, %{"user_id" => email} = _session, socket) do
     {:ok, user} = user_info(email)
 
-    {:atomic, found_users} = Search.user_search(user.username)
+    {:atomic, found_users} =
+      Search.user_search(user.username)
+      |> case do
+        {:atomic, found_users} -> {:atomic, found_users}
+        any -> {:atomic, [any]}
+      end
 
     found_users =
       found_users

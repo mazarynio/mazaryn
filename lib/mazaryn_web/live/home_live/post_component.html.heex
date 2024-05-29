@@ -101,7 +101,7 @@
     <%= for media_url <- @post.media do %>
       <img
         class="w-full mt-2 rounded-2xl border border-gray-100"
-        src={Routes.static_path(@socket, media_url)}
+        src={Routes.static_path(@socket, "/#{to_string(media_url)}")}
       />
     <% end %>
   </div>
