@@ -12,6 +12,7 @@ include_directories(${PROJECT_SOURCE_DIR}/include /usr/lib64/erlang/erts-14.2.4/
 # Specify the source file
 set(CHAT_DENSE_CODING ${PROJECT_SOURCE_DIR}/chat_dense_coding.cpp)
 set(QPE ${PROJECT_SOURCE_DIR}/qpe.cpp)
+set(QFT ${PROJECT_SOURCE_DIR}/qft.cpp)
 set(ENTANGLEMENT ${PROJECT_SOURCE_DIR}/entanglement.cpp)
 set(RANDOMNESS ${PROJECT_SOURCE_DIR}/randomness.cpp)
 set(GROVER ${PROJECT_SOURCE_DIR}/grover.cpp)
@@ -21,6 +22,7 @@ set(TELEPORT_QUBIT ${PROJECT_SOURCE_DIR}/teleport_qubit.cpp)
 # Create the shared library
 add_library(chat_dense_coding SHARED ${CHAT_DENSE_CODING})
 add_library(qpe SHARED ${QPE})
+add_library(qft SHARED ${QFT})
 add_library(entanglement SHARED ${ENTANGLEMENT})
 add_library(randomness SHARED ${RANDOMNESS})
 add_library(grover SHARED ${GROVER})
@@ -33,6 +35,7 @@ set_target_properties(chat_dense_coding qpe entanglement randomness
 
 target_link_libraries(chat_dense_coding PUBLIC ${QPP_LINK_DEPS} libqpp)
 target_link_libraries(qpe PUBLIC ${QPP_LINK_DEPS} libqpp)
+target_link_libraries(qft PUBLIC ${QPP_LINK_DEPS} libqpp)
 target_link_libraries(entanglement PUBLIC ${QPP_LINK_DEPS} libqpp)
 target_link_libraries(randomness PUBLIC ${QPP_LINK_DEPS} libqpp)
 target_link_libraries(grover PUBLIC ${QPP_LINK_DEPS} libqpp)
