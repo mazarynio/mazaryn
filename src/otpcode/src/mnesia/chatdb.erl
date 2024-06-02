@@ -16,7 +16,7 @@ send_msg(UserID, RecipientID, Body, Media) ->
             id = Id,
             user_id = UserID,
             recipient_id = RecipientID,
-            body = chat_dense_coding:send_msg(Body),
+            body = Body,
             media = Media,
             date_created = Date
         }),
