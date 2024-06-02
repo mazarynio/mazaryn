@@ -71,7 +71,7 @@ defmodule MazarynWeb.Router do
       live("/home", HomeLive.Home)
       live("/approve", HomeLive.Approve)
       live("/coins", CoinLive.Index)
-      live "notifications", HomeLive.Notification
+      live("/notifications", HomeLive.Notification)
       live("/videos", VideoLive.Index)
       live("/videos/:id", VideoLive.Show)
 
@@ -88,10 +88,10 @@ defmodule MazarynWeb.Router do
       live("/dashboard/hedera-wallet", DashboardLive.Wallet.HederaWallet)
       live("/notifications", NotificationLive.Index)
       live("/user_blog", UserBlog.Index)
-      live("/:username", UserLive.Profile)
-
       # hashtags
       live "/hashtag/:hashtag_name", HashtagLive.Index
+      live("/:username", UserLive.Profile)
+
     end
   end
 
