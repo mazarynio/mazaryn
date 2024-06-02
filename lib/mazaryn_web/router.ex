@@ -34,7 +34,7 @@ defmodule MazarynWeb.Router do
 
     get("/logout", LogoutController, :index)
     get("/confirm/:token", ConfirmAccountController, :index)
-    get "/735600.txt", FileController, :serve_empty_file
+    get "/2908017.txt", FileController, :serve_empty_file
 
     live_session :default,
       on_mount: [MazarynWeb.UserLiveAuth] do
