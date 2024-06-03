@@ -39,10 +39,11 @@
   </div>
   <!-- end of middle column-->
   <div class=" w-full lg:w-2/6 bg-gray-100 py-10 pr-10">
-    <.chat_list contacts={@contacts} title="Chats" show_search={false} , />
+    <.chat_list locale={@locale} contacts={@contacts} title="Chats" show_search={false} , />
     <.chat_list
       contacts={@recent_chat_recepients}
       title=""
+      locale={@locale}
       show_search={true}
       search_query={@search_query}
     />

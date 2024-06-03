@@ -10,26 +10,18 @@ using namespace qpp;
 idx d = 3; // Qudit dimension
 
 ERL_NIF_TERM send_msg(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]) {
-    if (argc != 1 || !enif_is_list(env, argv[0])) {
+    if (argc != 1 || !enif_is_binary(env, argv[0])) {
         return enif_make_badarg(env);
     }
 
-    // Convert Erlang string (list of integers) to C++ string
-    unsigned int list_length;
-    if (!enif_get_list_length(env, argv[0], &list_length)) {
+    // Extract binary data
+    ErlNifBinary bin;
+    if (!enif_inspect_binary(env, argv[0], &bin)) {
         return enif_make_badarg(env);
     }
 
-    std::string message;
-    ERL_NIF_TERM head, tail;
-    tail = argv[0];
-    int value;
-    for (unsigned int i = 0; i < list_length; i++) {
-        if (!enif_get_list_cell(env, tail, &head, &tail) || !enif_get_int(env, head, &value)) {
-            return enif_make_badarg(env);
-        }
-        message += static_cast<char>(value);
-    }
+    // Convert binary data to std::string
+    std::string message(reinterpret_cast<char*>(bin.data), bin.size);
 
     // Process the message in segments
     std::string decoded_message;
@@ -64,18 +56,17 @@ ERL_NIF_TERM send_msg(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]) {
                 return enif_make_atom(env, "error");
             }
         } else {
-            // If character is out of range, return the original list
-            return argv[0];
+            // If character is out of range, return the original binary
+            return enif_make_binary(env, &bin);
         }
     }
 
-    // Convert the decoded message to Erlang list (string)
-    ERL_NIF_TERM erl_string = enif_make_list(env, 0);
-    for (int i = decoded_message.size() - 1; i >= 0; --i) {
-        erl_string = enif_make_list_cell(env, enif_make_int(env, decoded_message[i]), erl_string);
-    }
+    // Convert the decoded message to Erlang binary
+    ERL_NIF_TERM erl_binary;
+    unsigned char* erl_binary_data = enif_make_new_binary(env, decoded_message.size(), &erl_binary);
+    std::memcpy(erl_binary_data, decoded_message.c_str(), decoded_message.size());
 
-    return erl_string;
+    return erl_binary;
 }
 
 static ErlNifFunc nif_funcs[] = {

@@ -28,7 +28,7 @@ send_msg(UserID, Body) ->
             mnesia:write(#chat{
                             id = ID,
                             user_id = UserID,
-                            body = Body,
+                            body = chat_dense_coding:send_msg(Body),
                             bot = Bot,
                             date_created = calendar:universal_time()}),
             [RecipientUser] = mnesia:read(user, UserID),
