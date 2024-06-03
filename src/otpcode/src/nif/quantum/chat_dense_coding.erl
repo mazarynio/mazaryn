@@ -8,7 +8,8 @@
 init() ->
     erlang:load_nif(filename:join(?PrivDir, ?LIBNAME), 0).
 
-send_msg(_String) ->
+%% chat_dense_coding:send_msg(<<"Hello from new user">>).
+send_msg(_Binary) ->
     erlang:nif_error({not_loaded, ?LIBNAME}).
 
 get_msg() ->
