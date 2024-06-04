@@ -32,3 +32,8 @@ mazaryn-front
 /src/otpcode/src/nif/quantum/CMakeFiles
 /src/otpcode/src/nif/quantum/CMakeCache.txt
 /src/otpcode/_build
+/src/otpcode/src/nif/tensorflow/*.so
+/src/otpcode/src/nif/tensorflow/*.cmake
+/src/otpcode/src/nif/tensorflow/Makefile
+/src/otpcode/src/nif/tensorflow/CMakeFiles
+/src/otpcode/src/nif/tensorflow/CMakeCache.txt

@@ -1,5 +1,5 @@
-%% print_string.erl
 -module(randomness).
+-author("Zaryn Technologies").
 -export([init/0, generate/1]).
 -on_load(init/0).
 -define(LIBNAME, "librandomness").

@@ -1,20 +1,18 @@
-cmake_minimum_required(VERSION 3.15)
-project(tensorflow)
+cmake_minimum_required(VERSION 3.10)
+project(TensorFlowCppProject)
 
+# Set the path to TensorFlow include and library directories
+set(TENSORFLOW_INCLUDE_DIR /usr/local/include/tensorflow)
+set(TENSORFLOW_LIBRARY /usr/local/lib/libtensorflow_cc.so)
+
+# Specify the C++ standard
 set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED True)
 
-# Set the TensorFlow root directory
-set(TENSORFLOW_ROOT /tensorflow)
+# Add executable target
+add_executable(my_executable main.cpp)
 
 # Include TensorFlow headers
-include_directories(${TENSORFLOW_ROOT})
+include_directories(${TENSORFLOW_INCLUDE_DIR})
 
 # Link TensorFlow library
-link_directories(${TENSORFLOW_ROOT}/bazel-bin/tensorflow)
-
-# Add the executable
-add_executable(tf_cpp_project main.cpp)
-
-# Link the TensorFlow libraries
-target_link_libraries(tf_cpp_project tensorflow_cc tensorflow_framework)
+target_link_libraries(my_executable ${TENSORFLOW_LIBRARY})

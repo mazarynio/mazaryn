@@ -1,4 +1,3 @@
-%% print_string.erl
 -module(qpe).
 -export([init/0, estimation/1]).
 -on_load(init/0).
