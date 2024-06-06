@@ -8,7 +8,9 @@
                 "/usr/lib/erlang/usr/include",
                 "/usr/local/include/qpp/qasmtools",
                 "/usr/local/include/qpp",
-                "/home/zaryn/eigen"
+                "/home/zaryn/eigen",
+                "/home/linuxbrew/.linuxbrew/Cellar/opencv/4.9.0_9/include/opencv4/opencv2",
+                "/home/linuxbrew/.linuxbrew/Cellar/opencv/4.9.0_9/include/opencv4"
             ],
             "defines": [],
             "compilerPath": "/usr/bin/clang",
