@@ -1,0 +1,1 @@
+-define(PrivDirSegment, "/home/zaryn/mazaryn/src/otpcode/src/nif/opencv/segmentation").
