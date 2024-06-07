@@ -1,0 +1,37 @@
+<component name="libraryTable">
+  <library name="mix_test_watch" type="mix">
+    <CLASSES>
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/mix_test_watch/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/mix_test_watch/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/mix_test_watch/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/mix_test_watch/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/mix_test_watch/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/mix_test_watch/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/mix_test_watch/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/mix_test_watch/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/mix_test_watch/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/mix_test_watch/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/mix_test_watch/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/mix_test_watch/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/mix_test_watch/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/mix_test_watch/ebin" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="file://$PROJECT_DIR$/deps/mix_test_watch/lib" />
+      <root url="file://$PROJECT_DIR$/deps/mix_test_watch/priv" />
+      <root url="file://$PROJECT_DIR$/deps/mix_test_watch/lib" />
+      <root url="file://$PROJECT_DIR$/deps/mix_test_watch/priv" />
+      <root url="file://$PROJECT_DIR$/deps/mix_test_watch/lib" />
+      <root url="file://$PROJECT_DIR$/deps/mix_test_watch/priv" />
+      <root url="file://$PROJECT_DIR$/deps/mix_test_watch/lib" />
+      <root url="file://$PROJECT_DIR$/deps/mix_test_watch/priv" />
+      <root url="file://$PROJECT_DIR$/deps/mix_test_watch/lib" />
+      <root url="file://$PROJECT_DIR$/deps/mix_test_watch/priv" />
+      <root url="file://$PROJECT_DIR$/deps/mix_test_watch/lib" />
+      <root url="file://$PROJECT_DIR$/deps/mix_test_watch/priv" />
+      <root url="file://$PROJECT_DIR$/deps/mix_test_watch/lib" />
+      <root url="file://$PROJECT_DIR$/deps/mix_test_watch/priv" />
+    </SOURCES>
+  </library>
+</component>

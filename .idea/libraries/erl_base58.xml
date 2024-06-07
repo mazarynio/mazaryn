@@ -1,0 +1,30 @@
+<component name="libraryTable">
+  <library name="erl_base58" type="mix">
+    <CLASSES>
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/erl_base58/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/erl_base58/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/erl_base58/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/erl_base58/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/erl_base58/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/erl_base58/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/erl_base58/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/erl_base58/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/erl_base58/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/erl_base58/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/erl_base58/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/erl_base58/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/erl_base58/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/erl_base58/ebin" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="file://$PROJECT_DIR$/deps/erl_base58/src" />
+      <root url="file://$PROJECT_DIR$/deps/erl_base58/src" />
+      <root url="file://$PROJECT_DIR$/deps/erl_base58/src" />
+      <root url="file://$PROJECT_DIR$/deps/erl_base58/src" />
+      <root url="file://$PROJECT_DIR$/deps/erl_base58/src" />
+      <root url="file://$PROJECT_DIR$/deps/erl_base58/src" />
+      <root url="file://$PROJECT_DIR$/deps/erl_base58/src" />
+    </SOURCES>
+  </library>
+</component>

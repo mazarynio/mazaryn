@@ -1,0 +1,30 @@
+<component name="libraryTable">
+  <library name="erlpass" type="mix">
+    <CLASSES>
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/erlpass/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/erlpass/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/erlpass/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/erlpass/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/erlpass/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/erlpass/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/erlpass/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/erlpass/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/erlpass/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/erlpass/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/erlpass/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/erlpass/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/erlpass/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/erlpass/ebin" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="file://$PROJECT_DIR$/deps/erlpass/src" />
+      <root url="file://$PROJECT_DIR$/deps/erlpass/src" />
+      <root url="file://$PROJECT_DIR$/deps/erlpass/src" />
+      <root url="file://$PROJECT_DIR$/deps/erlpass/src" />
+      <root url="file://$PROJECT_DIR$/deps/erlpass/src" />
+      <root url="file://$PROJECT_DIR$/deps/erlpass/src" />
+      <root url="file://$PROJECT_DIR$/deps/erlpass/src" />
+    </SOURCES>
+  </library>
+</component>

@@ -1,0 +1,30 @@
+<component name="libraryTable">
+  <library name="key_guardian" type="mix">
+    <CLASSES>
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/key_guardian/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/key_guardian/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/key_guardian/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/key_guardian/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/key_guardian/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/key_guardian/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/key_guardian/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/key_guardian/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/key_guardian/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/key_guardian/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/key_guardian/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/key_guardian/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/key_guardian/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/key_guardian/ebin" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="file://$PROJECT_DIR$/deps/key_guardian/src" />
+      <root url="file://$PROJECT_DIR$/deps/key_guardian/src" />
+      <root url="file://$PROJECT_DIR$/deps/key_guardian/src" />
+      <root url="file://$PROJECT_DIR$/deps/key_guardian/src" />
+      <root url="file://$PROJECT_DIR$/deps/key_guardian/src" />
+      <root url="file://$PROJECT_DIR$/deps/key_guardian/src" />
+      <root url="file://$PROJECT_DIR$/deps/key_guardian/src" />
+    </SOURCES>
+  </library>
+</component>

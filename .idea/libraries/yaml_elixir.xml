@@ -1,0 +1,30 @@
+<component name="libraryTable">
+  <library name="yaml_elixir" type="mix">
+    <CLASSES>
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/yaml_elixir/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/yaml_elixir/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/yaml_elixir/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/yaml_elixir/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/yaml_elixir/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/yaml_elixir/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/yaml_elixir/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/yaml_elixir/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/yaml_elixir/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/yaml_elixir/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/yaml_elixir/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/yaml_elixir/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/yaml_elixir/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/yaml_elixir/ebin" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="file://$PROJECT_DIR$/deps/yaml_elixir/lib" />
+      <root url="file://$PROJECT_DIR$/deps/yaml_elixir/lib" />
+      <root url="file://$PROJECT_DIR$/deps/yaml_elixir/lib" />
+      <root url="file://$PROJECT_DIR$/deps/yaml_elixir/lib" />
+      <root url="file://$PROJECT_DIR$/deps/yaml_elixir/lib" />
+      <root url="file://$PROJECT_DIR$/deps/yaml_elixir/lib" />
+      <root url="file://$PROJECT_DIR$/deps/yaml_elixir/lib" />
+    </SOURCES>
+  </library>
+</component>

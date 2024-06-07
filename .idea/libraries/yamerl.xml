@@ -1,0 +1,30 @@
+<component name="libraryTable">
+  <library name="yamerl" type="mix">
+    <CLASSES>
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/yamerl/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/yamerl/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/yamerl/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/yamerl/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/yamerl/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/yamerl/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/yamerl/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/yamerl/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/yamerl/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/yamerl/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/yamerl/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/yamerl/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/yamerl/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/yamerl/ebin" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="file://$PROJECT_DIR$/deps/yamerl/src" />
+      <root url="file://$PROJECT_DIR$/deps/yamerl/src" />
+      <root url="file://$PROJECT_DIR$/deps/yamerl/src" />
+      <root url="file://$PROJECT_DIR$/deps/yamerl/src" />
+      <root url="file://$PROJECT_DIR$/deps/yamerl/src" />
+      <root url="file://$PROJECT_DIR$/deps/yamerl/src" />
+      <root url="file://$PROJECT_DIR$/deps/yamerl/src" />
+    </SOURCES>
+  </library>
+</component>

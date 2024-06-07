@@ -56,6 +56,7 @@ defmodule Mazaryn.MixProject do
       {:swoosh, "~> 1.11"},
       {:phoenix_swoosh, "~> 1.2"},
       {:timex, "~> 3.7"},
+      {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
 
       # Erlang dependencies
       {:erlpass, git: "https://github.com/ferd/erlpass.git"},

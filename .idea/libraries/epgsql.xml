@@ -1,0 +1,30 @@
+<component name="libraryTable">
+  <library name="epgsql" type="mix">
+    <CLASSES>
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/epgsql/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/epgsql/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/epgsql/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/epgsql/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/epgsql/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/epgsql/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/epgsql/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/epgsql/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/epgsql/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/epgsql/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/epgsql/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/epgsql/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/epgsql/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/epgsql/ebin" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="file://$PROJECT_DIR$/deps/epgsql/src" />
+      <root url="file://$PROJECT_DIR$/deps/epgsql/src" />
+      <root url="file://$PROJECT_DIR$/deps/epgsql/src" />
+      <root url="file://$PROJECT_DIR$/deps/epgsql/src" />
+      <root url="file://$PROJECT_DIR$/deps/epgsql/src" />
+      <root url="file://$PROJECT_DIR$/deps/epgsql/src" />
+      <root url="file://$PROJECT_DIR$/deps/epgsql/src" />
+    </SOURCES>
+  </library>
+</component>

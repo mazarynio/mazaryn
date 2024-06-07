@@ -1,0 +1,30 @@
+<component name="libraryTable">
+  <library name="tarams" type="mix">
+    <CLASSES>
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/tarams/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/tarams/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/tarams/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/tarams/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/tarams/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/tarams/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/tarams/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/tarams/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/tarams/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/tarams/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/tarams/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/tarams/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/tarams/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/tarams/ebin" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="file://$PROJECT_DIR$/deps/tarams/lib" />
+      <root url="file://$PROJECT_DIR$/deps/tarams/lib" />
+      <root url="file://$PROJECT_DIR$/deps/tarams/lib" />
+      <root url="file://$PROJECT_DIR$/deps/tarams/lib" />
+      <root url="file://$PROJECT_DIR$/deps/tarams/lib" />
+      <root url="file://$PROJECT_DIR$/deps/tarams/lib" />
+      <root url="file://$PROJECT_DIR$/deps/tarams/lib" />
+    </SOURCES>
+  </library>
+</component>

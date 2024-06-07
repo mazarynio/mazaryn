@@ -62,6 +62,20 @@ defmodule Core.NotifEvent do
     get_notif(notif_id)
   end
 
+  def chat(sender, receiver) do
+    senderID = :notifdb.get_username_by_id(sender)
+    message = "You have a new message from #{senderID}"
+    notif_id = :notif_event.chat(sender, receiver, message)
+    get_notif_message(notif_id)
+  end
+
+  def chat_by_info(sender, receiver) do
+    senderID = :notifdb.get_username_by_id(sender)
+    message = "You have a new message from #{senderID}"
+    notif_id = :notif_event.chat(sender, receiver, message)
+    get_notif(notif_id)
+  end
+
   ## Get notification when changing my username
   def change_username(user_id) do
     message = "Your Username changed Successfully"

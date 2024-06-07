@@ -1,0 +1,30 @@
+<component name="libraryTable">
+  <library name="valdi" type="mix">
+    <CLASSES>
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/valdi/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/valdi/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/valdi/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/valdi/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/valdi/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/valdi/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/valdi/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/valdi/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/valdi/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/valdi/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/valdi/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/valdi/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/valdi/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/valdi/ebin" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="file://$PROJECT_DIR$/deps/valdi/lib" />
+      <root url="file://$PROJECT_DIR$/deps/valdi/lib" />
+      <root url="file://$PROJECT_DIR$/deps/valdi/lib" />
+      <root url="file://$PROJECT_DIR$/deps/valdi/lib" />
+      <root url="file://$PROJECT_DIR$/deps/valdi/lib" />
+      <root url="file://$PROJECT_DIR$/deps/valdi/lib" />
+      <root url="file://$PROJECT_DIR$/deps/valdi/lib" />
+    </SOURCES>
+  </library>
+</component>
