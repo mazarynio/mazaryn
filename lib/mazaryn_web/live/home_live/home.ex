@@ -29,18 +29,7 @@ defmodule MazarynWeb.HomeLive.Home do
   end
 
   def handle_event("do_search", %{"search" => search}, socket) do
-    IO.inspect("poko  #{search}")
     user = search_user_by_username(search)
-    IO.inspect(user)
-    #    socket = assign(socket, search: search)
-
-    #    socket
-    #    |> assign( results: user || [])
-    #    {:noreply,
-    #     socket
-    #     |> push_redirect(
-    #       to: Routes.live_path(socket, MazarynWeb.SearchLive.Index, socket.assigns.locale)
-    #     )}
     {:noreply, assign(socket, search: search, results:  user || [])}
   end
 
