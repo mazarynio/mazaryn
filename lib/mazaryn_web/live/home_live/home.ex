@@ -30,7 +30,7 @@ defmodule MazarynWeb.HomeLive.Home do
 
   def handle_event("do_search", %{"search" => search}, socket) do
     user = search_user_by_username(search)
-    {:noreply, assign(socket, search: search, results:  user || [])}
+    {:noreply, assign(socket, search: search, results: user || [])}
   end
 
   defp search_user_by_username(username) do

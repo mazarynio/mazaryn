@@ -20,44 +20,47 @@
     <!-- middle column -->
     <div class="w-full lg:w-[54%] py-6 pl-11 pr-8">
       <div class="w-fulltext-sm leading-tight">
-
-
-          <div class="flex justify-between align-center items-center py-5">
-            <div class="w-full flex justify-between items-center">
-              <ul class="w-full">
-                <%= for user <- @results  do %>
-                  <.link patch={~p"/#{@locale}/chats/#{to_string(user.id)}"}>
-                    <li class="active pb-3">
-                      <div class="flex justify-between align-center items-center">
-                        <div class="flex flex-row items-center">
-                          <div class="rounded-full flex-shrink-0">
-                            <img src={handle_avatar(user)} alt="Mazaryn symbol" class="w-10 rounded-full" />
-                          </div>
-                          <span class="text-l px-2 text-gray-500 font-semibold">
-                            <%= user.username %>
-                          </span>
+        <div class="flex justify-between align-center items-center py-5">
+          <div class="w-full flex justify-between items-center">
+            <ul class="w-full">
+              <%= for user <- @results  do %>
+                <.link patch={~p"/#{@locale}/chats/#{to_string(user.id)}"}>
+                  <li class="active pb-3">
+                    <div class="flex justify-between align-center items-center">
+                      <div class="flex flex-row items-center">
+                        <div class="rounded-full flex-shrink-0">
+                          <img
+                            src={handle_avatar(user)}
+                            alt="Mazaryn symbol"
+                            class="w-10 rounded-full"
+                          />
                         </div>
-
-                        <div class="flex space-x-2 justify-center">
-                          <button
-                            type="button"
-                            class="flex items-center px-4 py-2.5 border border-gray-400  text-gray-400 font-medium text-xs leading-tight uppercase rounded-lg transition duration-150 ease-in-out hover:bg-gray-100"
-                          >
-                            <i>
-                              <%= Heroicons.icon("plus-circle", type: "outline", class: "h-5 w-5 mr-2") %>
-                            </i>
-                            Start a chat
-                          </button>
-                        </div>
+                        <span class="text-l px-2 text-gray-500 font-semibold">
+                          <%= user.username %>
+                        </span>
                       </div>
-                    </li>
-                  </.link>
-                <% end %>
-              </ul>
-            </div>
+
+                      <div class="flex space-x-2 justify-center">
+                        <button
+                          type="button"
+                          class="flex items-center px-4 py-2.5 border border-gray-400  text-gray-400 font-medium text-xs leading-tight uppercase rounded-lg transition duration-150 ease-in-out hover:bg-gray-100"
+                        >
+                          <i>
+                            <%= Heroicons.icon("plus-circle",
+                              type: "outline",
+                              class: "h-5 w-5 mr-2"
+                            ) %>
+                          </i>
+                          Start a chat
+                        </button>
+                      </div>
+                    </div>
+                  </li>
+                </.link>
+              <% end %>
+            </ul>
           </div>
-
-
+        </div>
       </div>
       <div class="w-full bg-white white:bg-gray-800 custom-box-shadow pr-8 pl-7 pb-7 pt-4 rounded-[20px]">
         <.live_component
