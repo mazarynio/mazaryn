@@ -19,6 +19,11 @@
     </div>
     <!-- middle column -->
     <div class="w-full lg:w-[54%] py-6 pl-11 pr-8">
+      <div class="w-fulltext-sm leading-tight">
+        <%= for res <- @results do %>
+          <%= res.username %>
+        <% end %>
+      </div>
       <div class="w-full bg-white white:bg-gray-800 custom-box-shadow pr-8 pl-7 pb-7 pt-4 rounded-[20px]">
         <.live_component
           module={MazarynWeb.HomeLive.CreatePostComponent}

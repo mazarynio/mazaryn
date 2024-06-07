@@ -1,0 +1,30 @@
+<component name="libraryTable">
+  <library name="toml" type="mix">
+    <CLASSES>
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/toml/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/toml/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/toml/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/toml/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/toml/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/toml/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/toml/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/toml/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/toml/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/toml/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/toml/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/toml/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/toml/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/toml/ebin" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="file://$PROJECT_DIR$/deps/toml/lib" />
+      <root url="file://$PROJECT_DIR$/deps/toml/lib" />
+      <root url="file://$PROJECT_DIR$/deps/toml/lib" />
+      <root url="file://$PROJECT_DIR$/deps/toml/lib" />
+      <root url="file://$PROJECT_DIR$/deps/toml/lib" />
+      <root url="file://$PROJECT_DIR$/deps/toml/lib" />
+      <root url="file://$PROJECT_DIR$/deps/toml/lib" />
+    </SOURCES>
+  </library>
+</component>

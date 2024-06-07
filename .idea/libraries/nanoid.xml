@@ -1,0 +1,35 @@
+<component name="libraryTable">
+  <library name="nanoid" type="mix">
+    <CLASSES>
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/nanoid/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/nanoid/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/nanoid/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/nanoid/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/nanoid/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/nanoid/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/nanoid/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/nanoid/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/nanoid/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/nanoid/ebin" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="file://$PROJECT_DIR$/deps/nanoid/src" />
+      <root url="file://$PROJECT_DIR$/deps/nanoid/c_src" />
+      <root url="file://$PROJECT_DIR$/deps/nanoid/src" />
+      <root url="file://$PROJECT_DIR$/deps/nanoid/c_src" />
+      <root url="file://$PROJECT_DIR$/deps/nanoid/src" />
+      <root url="file://$PROJECT_DIR$/deps/nanoid/c_src" />
+      <root url="file://$PROJECT_DIR$/deps/nanoid/src" />
+      <root url="file://$PROJECT_DIR$/deps/nanoid/c_src" />
+      <root url="file://$PROJECT_DIR$/deps/nanoid/src" />
+      <root url="file://$PROJECT_DIR$/deps/nanoid/c_src" />
+      <root url="file://$PROJECT_DIR$/deps/nanoid/src" />
+      <root url="file://$PROJECT_DIR$/deps/nanoid/c_src" />
+      <root url="file://$PROJECT_DIR$/deps/nanoid/src" />
+      <root url="file://$PROJECT_DIR$/deps/nanoid/c_src" />
+      <root url="file://$PROJECT_DIR$/deps/nanoid/src" />
+      <root url="file://$PROJECT_DIR$/deps/nanoid/c_src" />
+    </SOURCES>
+  </library>
+</component>

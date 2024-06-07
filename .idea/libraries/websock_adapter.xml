@@ -1,0 +1,27 @@
+<component name="libraryTable">
+  <library name="websock_adapter" type="mix">
+    <CLASSES>
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/websock_adapter/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/websock_adapter/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/websock_adapter/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/websock_adapter/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/websock_adapter/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/websock_adapter/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/websock_adapter/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/websock_adapter/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/websock_adapter/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/websock_adapter/ebin" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="file://$PROJECT_DIR$/deps/websock_adapter/lib" />
+      <root url="file://$PROJECT_DIR$/deps/websock_adapter/lib" />
+      <root url="file://$PROJECT_DIR$/deps/websock_adapter/lib" />
+      <root url="file://$PROJECT_DIR$/deps/websock_adapter/lib" />
+      <root url="file://$PROJECT_DIR$/deps/websock_adapter/lib" />
+      <root url="file://$PROJECT_DIR$/deps/websock_adapter/lib" />
+      <root url="file://$PROJECT_DIR$/deps/websock_adapter/lib" />
+      <root url="file://$PROJECT_DIR$/deps/websock_adapter/lib" />
+    </SOURCES>
+  </library>
+</component>

@@ -5,17 +5,20 @@ defmodule MazarynWeb.HomeLive.Home do
   alias Mazaryn.Schema.Post
   alias Mazaryn.Posts
   alias Account.Users
+  alias Account.User
   require Logger
 
   # case reload home page
   @impl true
   def mount(_params, %{"user_id" => user_id} = _session, socket) do
     Logger.info(user_id: user_id)
+    socket |> assign(results: [])
     {:ok, do_mount(user_id, socket)}
   end
 
   # case redirect form login, signup
   def mount(_params, %{"session_uuid" => session_uuid} = _session, socket) do
+    socket |> assign(results: [])
     {:ok, do_mount(get_user_id(session_uuid), socket)}
   end
 
@@ -26,13 +29,34 @@ defmodule MazarynWeb.HomeLive.Home do
   end
 
   def handle_event("do_search", %{"search" => search}, socket) do
-    socket = assign(socket, search: search)
+    IO.inspect("poko  #{search}")
+    user = search_user_by_username(search)
+    IO.inspect(user)
+    #    socket = assign(socket, search: search)
 
-    {:noreply,
-     socket
-     |> push_redirect(
-       to: Routes.live_path(socket, MazarynWeb.SearchLive.Index, socket.assigns.locale)
-     )}
+    #    socket
+    #    |> assign( results: user || [])
+    #    {:noreply,
+    #     socket
+    #     |> push_redirect(
+    #       to: Routes.live_path(socket, MazarynWeb.SearchLive.Index, socket.assigns.locale)
+    #     )}
+    {:noreply, assign(socket, search: search, results:  user || [])}
+  end
+
+  defp search_user_by_username(username) do
+    case username |> Core.UserClient.search_user() do
+      :username_not_exist ->
+        nil
+
+      erl_user ->
+        [
+          erl_user
+          |> User.erl_changeset()
+          |> User.build()
+          |> elem(1)
+        ]
+    end
   end
 
   @impl true
@@ -57,6 +81,7 @@ defmodule MazarynWeb.HomeLive.Home do
     socket
     |> assign(post_changeset: post_changeset)
     |> assign(search: "")
+    |> assign(results: [])
     |> assign(user: user)
     |> assign(posts: posts)
   end

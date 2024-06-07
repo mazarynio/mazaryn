@@ -1,0 +1,27 @@
+<component name="libraryTable">
+  <library name="ex_heroicons" type="mix">
+    <CLASSES>
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/ex_heroicons/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/ex_heroicons/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/ex_heroicons/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/ex_heroicons/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/ex_heroicons/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/ex_heroicons/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/ex_heroicons/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/ex_heroicons/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/ex_heroicons/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/ex_heroicons/ebin" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="file://$PROJECT_DIR$/deps/ex_heroicons/lib" />
+      <root url="file://$PROJECT_DIR$/deps/ex_heroicons/lib" />
+      <root url="file://$PROJECT_DIR$/deps/ex_heroicons/lib" />
+      <root url="file://$PROJECT_DIR$/deps/ex_heroicons/lib" />
+      <root url="file://$PROJECT_DIR$/deps/ex_heroicons/lib" />
+      <root url="file://$PROJECT_DIR$/deps/ex_heroicons/lib" />
+      <root url="file://$PROJECT_DIR$/deps/ex_heroicons/lib" />
+      <root url="file://$PROJECT_DIR$/deps/ex_heroicons/lib" />
+    </SOURCES>
+  </library>
+</component>
