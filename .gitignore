@@ -37,3 +37,5 @@ mazaryn-front
 /src/otpcode/src/nif/tensorflow/Makefile
 /src/otpcode/src/nif/tensorflow/CMakeFiles
 /src/otpcode/src/nif/tensorflow/CMakeCache.txt
+
+.idea
