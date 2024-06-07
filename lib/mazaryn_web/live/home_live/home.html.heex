@@ -24,7 +24,7 @@
           <div class="w-full flex justify-between items-center">
             <ul class="w-full">
               <%= for user <- @results  do %>
-                <.link patch={~p"/#{@locale}/chats/#{to_string(user.id)}"}>
+                <.link patch={~p"/#{@locale}/#{to_string(user.username)}"}>
                   <li class="active pb-3">
                     <div class="flex justify-between align-center items-center">
                       <div class="flex flex-row items-center">
