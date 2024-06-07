@@ -91,7 +91,6 @@ defmodule MazarynWeb.Router do
       # hashtags
       live "/hashtag/:hashtag_name", HashtagLive.Index
       live("/:username", UserLive.Profile)
-
     end
   end
 

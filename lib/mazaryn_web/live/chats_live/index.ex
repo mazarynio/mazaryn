@@ -39,6 +39,7 @@ defmodule MazarynWeb.ChatsLive.Index do
 
   @impl true
   def handle_event("search_following", %{"search_query" => search_query}, socket) do
+    IO.inspect("kka #{search_query}")
     user = search_user_by_username(search_query)
 
     {:noreply, assign(socket, recent_chat_recepients: user || [], search_query: search_query)}

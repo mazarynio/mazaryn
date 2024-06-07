@@ -1,0 +1,44 @@
+<component name="libraryTable">
+  <library name="bcrypt" type="mix">
+    <CLASSES>
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/bcrypt/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/bcrypt/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/bcrypt/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/bcrypt/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/bcrypt/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/bcrypt/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/bcrypt/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/bcrypt/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/bcrypt/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/bcrypt/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/bcrypt/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/bcrypt/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/bcrypt/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/bcrypt/ebin" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="file://$PROJECT_DIR$/deps/bcrypt/src" />
+      <root url="file://$PROJECT_DIR$/deps/bcrypt/priv" />
+      <root url="file://$PROJECT_DIR$/deps/bcrypt/c_src" />
+      <root url="file://$PROJECT_DIR$/deps/bcrypt/src" />
+      <root url="file://$PROJECT_DIR$/deps/bcrypt/priv" />
+      <root url="file://$PROJECT_DIR$/deps/bcrypt/c_src" />
+      <root url="file://$PROJECT_DIR$/deps/bcrypt/src" />
+      <root url="file://$PROJECT_DIR$/deps/bcrypt/priv" />
+      <root url="file://$PROJECT_DIR$/deps/bcrypt/c_src" />
+      <root url="file://$PROJECT_DIR$/deps/bcrypt/src" />
+      <root url="file://$PROJECT_DIR$/deps/bcrypt/priv" />
+      <root url="file://$PROJECT_DIR$/deps/bcrypt/c_src" />
+      <root url="file://$PROJECT_DIR$/deps/bcrypt/src" />
+      <root url="file://$PROJECT_DIR$/deps/bcrypt/priv" />
+      <root url="file://$PROJECT_DIR$/deps/bcrypt/c_src" />
+      <root url="file://$PROJECT_DIR$/deps/bcrypt/src" />
+      <root url="file://$PROJECT_DIR$/deps/bcrypt/priv" />
+      <root url="file://$PROJECT_DIR$/deps/bcrypt/c_src" />
+      <root url="file://$PROJECT_DIR$/deps/bcrypt/src" />
+      <root url="file://$PROJECT_DIR$/deps/bcrypt/priv" />
+      <root url="file://$PROJECT_DIR$/deps/bcrypt/c_src" />
+    </SOURCES>
+  </library>
+</component>

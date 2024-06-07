@@ -1,0 +1,27 @@
+<component name="libraryTable">
+  <library name="tailwind" type="mix">
+    <CLASSES>
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/tailwind/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/tailwind/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/tailwind/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/tailwind/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/tailwind/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/tailwind/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/tailwind/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/tailwind/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/tailwind/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/tailwind/ebin" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="file://$PROJECT_DIR$/deps/tailwind/lib" />
+      <root url="file://$PROJECT_DIR$/deps/tailwind/lib" />
+      <root url="file://$PROJECT_DIR$/deps/tailwind/lib" />
+      <root url="file://$PROJECT_DIR$/deps/tailwind/lib" />
+      <root url="file://$PROJECT_DIR$/deps/tailwind/lib" />
+      <root url="file://$PROJECT_DIR$/deps/tailwind/lib" />
+      <root url="file://$PROJECT_DIR$/deps/tailwind/lib" />
+      <root url="file://$PROJECT_DIR$/deps/tailwind/lib" />
+    </SOURCES>
+  </library>
+</component>

@@ -1,0 +1,35 @@
+<component name="libraryTable">
+  <library name="earmark" type="mix">
+    <CLASSES>
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/earmark/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/earmark/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/earmark/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/earmark/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/earmark/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/earmark/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/earmark/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/earmark/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/earmark/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/earmark/ebin" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="file://$PROJECT_DIR$/deps/earmark/lib" />
+      <root url="file://$PROJECT_DIR$/deps/earmark/src" />
+      <root url="file://$PROJECT_DIR$/deps/earmark/lib" />
+      <root url="file://$PROJECT_DIR$/deps/earmark/src" />
+      <root url="file://$PROJECT_DIR$/deps/earmark/lib" />
+      <root url="file://$PROJECT_DIR$/deps/earmark/src" />
+      <root url="file://$PROJECT_DIR$/deps/earmark/lib" />
+      <root url="file://$PROJECT_DIR$/deps/earmark/src" />
+      <root url="file://$PROJECT_DIR$/deps/earmark/lib" />
+      <root url="file://$PROJECT_DIR$/deps/earmark/src" />
+      <root url="file://$PROJECT_DIR$/deps/earmark/lib" />
+      <root url="file://$PROJECT_DIR$/deps/earmark/src" />
+      <root url="file://$PROJECT_DIR$/deps/earmark/lib" />
+      <root url="file://$PROJECT_DIR$/deps/earmark/src" />
+      <root url="file://$PROJECT_DIR$/deps/earmark/lib" />
+      <root url="file://$PROJECT_DIR$/deps/earmark/src" />
+    </SOURCES>
+  </library>
+</component>
