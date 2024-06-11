@@ -200,6 +200,34 @@ defmodule MazarynWeb.HomeLive.LeftSidebarComponent do
         </div>
       </div>
 
+      <div class="social-box w-full bg-white white:bg-gray-800 py-6 px-5 my-8 rounded-[20px]">
+        <div class="flex justify-between align-center items-center">
+          <div class="flex justify-center items-center">
+            <ul>
+
+
+              <li class="flex align-center items-center mx-2 mb-7">
+                <a
+                  href="home"
+                  class="group flex items-center text-base text-gray-500 font-semibold hover:text-blue-500"
+                >
+                <i>
+                    <%= Heroicons.icon("users",
+                      class: "h-6 w-5 mr-3.5 fill-[#60616D] group-hover:fill-[#4385F5]"
+                    ) %>
+                  </i>
+                  <div class="text-base leading-6 text-[#60616D] group-hover:text-[#4385F5]">
+                    Manage Users
+                  </div>
+                </a>
+              </li>
+
+
+            </ul>
+          </div>
+        </div>
+      </div>
+
       <div class="font-medium text-base leading-6 text-[#60616D]">Explore</div>
 
       <div class="social-box w-full bg-white white:bg-gray-800 py-6 px-5 my-6 rounded-[20px]">
