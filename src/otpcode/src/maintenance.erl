@@ -34,7 +34,7 @@ restore_backup() ->
     start_application_services().
 
 do_restore() ->
-    case mnesia:restore(?BACKUP_FILE, [nonode@localhost]) of
+    case mnesia:restore(?BACKUP_FILE, [node()]) of
         ok ->
             io:format("Mnesia restored from backup successfully.~n"),
             start_mnesia();
