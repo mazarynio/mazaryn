@@ -46,25 +46,31 @@
                       </th>
                       <th
                         scope="col"
-                        class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
+                        class="px-4 py-3.5 text-left text-sm font-semibold text-gray-900"
                       >
                         Email
                       </th>
                       <th
                         scope="col"
-                        class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
+                        class="px-4 py-3.5 text-left text-sm font-semibold text-gray-900"
                       >
                         Status
                       </th>
                       <th
                         scope="col"
-                        class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
+                        class="px-4 py-3.5 text-left text-sm font-semibold text-gray-900"
                       >
                         Last Activity
                       </th>
-                      <th scope="col" class="relative py-3.5 pl-3 pr-4 sm:pr-0">
-                        <span class="sr-only">Edit</span>
+                      <th
+                        scope="col"
+                        class="px-4 py-3.5 text-left text-sm font-semibold text-gray-900"
+                      >
+                        Actions
                       </th>
+                      <%!-- <th scope="col" class="relative py-3.5 pl-3 pr-4 sm:pr-0">
+                        <span class="sr-only">Edit</span>
+                      </th> --%>
                     </tr>
                   </thead>
                   <tbody class="divide-y divide-gray-200 bg-white">
@@ -87,7 +93,6 @@
                         </td>
                         <td class="whitespace-nowrap px-3 py-5 text-sm text-gray-500">
                           <div class="text-gray-900"><%= x.email %></div>
-                          <%!-- <div class="mt-1 text-gray-500">Optimization</div> --%>
                         </td>
                         <td class="whitespace-nowrap px-3 py-5 text-sm text-gray-500">
                           <%= if x.verified === true do %>
@@ -104,8 +109,11 @@
                           <%= x.last_activity %>
                         </td>
                         <td class="relative whitespace-nowrap py-5 pl-3 pr-4 text-right text-sm font-medium sm:pr-0">
-                          <a href="#" class="text-indigo-600 hover:text-indigo-900">
-                            Action<span class="sr-only">, Lindsay Walton</span>
+                          <a  class="text-indigo-600 hover:text-indigo-900">
+                            Activate
+                          </a>
+                          <a  class="text-red-600 hover:text-red-900">
+                            Deactivate
                           </a>
                         </td>
                       </tr>
@@ -132,3 +140,22 @@
     </div>
   </div>
 </div>
+<%= if @current_user do %>
+<%!-- <.modal
+  :if={@live_action in [:manage]}
+  id="role-modal"
+  show
+  on_cancel={JS.navigate(~p"/roles")}
+>
+  <.live_component
+    module={MelboxWeb.RolesLive.FormComponent}
+    id={@role.id || :new}
+    title={@page_title}
+    action={@live_action}
+    role={@role}
+    current_user={@current_user}
+    return_to={~p"/roles"}
+  />
+</.modal> --%>
+<% end %>
+
