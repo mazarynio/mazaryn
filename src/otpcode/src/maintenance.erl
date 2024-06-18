@@ -7,7 +7,7 @@
 
 -export([start_maintenance/0, restore_backup/0]).
 
--define(BACKUP_FILE, "/home/emilano/mazaryn/file.BCK").
+-define(BACKUP_FILE, "/home/zaryn/mazaryn/file.BCK").
 
 start_maintenance() ->
     %% Notify users about the maintenance window
@@ -34,7 +34,7 @@ restore_backup() ->
     start_application_services().
 
 do_restore() ->
-    case mnesia:restore(?BACKUP_FILE, [node()]) of
+    case mnesia:restore(?BACKUP_FILE, ['mazaryn@mazaryn']) of
         ok ->
             io:format("Mnesia restored from backup successfully.~n"),
             start_mnesia();
