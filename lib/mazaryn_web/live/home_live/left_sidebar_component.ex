@@ -3,6 +3,7 @@ defmodule MazarynWeb.HomeLive.LeftSidebarComponent do
   use Phoenix.VerifiedRoutes, endpoint: MazarynWeb.Endpoint, router: MazarynWeb.Router
 
   def render(assigns) do
+    current_user = assigns.user.username |> String.to_charlist()
     ~H"""
     <div>
       <div class="social-box w-full bg-white white:bg-gray-800 py-6 px-5 rounded-[20px]">
@@ -200,6 +201,8 @@ defmodule MazarynWeb.HomeLive.LeftSidebarComponent do
         </div>
       </div>
 
+
+    <%= if Enum.member?(ManageUser.get_admin_list(), current_user) do %>
       <div class="social-box w-full bg-white white:bg-gray-800 py-6 px-5 my-8 rounded-[20px]">
         <div class="flex justify-between align-center items-center">
           <div class="flex justify-center items-center">
@@ -223,6 +226,7 @@ defmodule MazarynWeb.HomeLive.LeftSidebarComponent do
           </div>
         </div>
       </div>
+    <% end %>
 
       <div class="font-medium text-base leading-6 text-[#60616D]">Explore</div>
 

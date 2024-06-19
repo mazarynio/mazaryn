@@ -58,4 +58,8 @@ defmodule ManageUser do
     def ban_user(user_id) do
       :manage_user.ban_user(user_id)
     end
+
+    def get_admin_list() do
+      :manage_user.admin_list()
+    end
 end
