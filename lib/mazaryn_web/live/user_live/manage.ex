@@ -30,9 +30,15 @@ defmodule MazarynWeb.UserLive.Manage do
 
     ManageUser.verify_user(id, "mazaryn")
     |> IO.inspect(label: "[ACTIVATE USER]")
+
+    users_info_list = ManageUser.get_users_info()
+
+    users = fetch_data(users_info_list)
+
     socket =
       socket
       |> put_flash(:info, "successfully activated #{id}")
+      |> assign(users: users |> sort_by_date())
 
       {:noreply, socket}
   end

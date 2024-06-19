@@ -20,8 +20,7 @@ get_users_info() ->
     UsersInfo.
     
 get_user_info(UserID) ->
-    User = userdb:get_user_by_id(UserID),
-    io:fwrite("kaka user ~p~n", [User]).
+    User = userdb:get_user_by_id(UserID).
 
 get_user(Username) ->
     F = fun() ->
@@ -74,20 +73,13 @@ unban_user(UsernameOrID) ->
     end).
 
 verify_user(UsernameOrID, AdminUsername) ->
-    io:format("The value is UsernameOrID: ~p~n", [binary_to_list(UsernameOrID)]),
-    io:format("The value is AdminUsername: ~p~n", [binary_to_list(AdminUsername)]),
-    % FormatUsernameOrID = binary_to_list(UsernameOrID),
     FormatAdminUsername = binary_to_list(AdminUsername),
     case userdb:get_user_id(UsernameOrID) of
-        {error, _} = Error ->
-            io:fwrite("kaka Error ya kwanza ~p~n", [Error]),
-            
+        {error, _} = Error ->            
             Error;
         {ok, ID} ->
-            io:fwrite("kaka UUU ~p~n", [ID]),
             
-            % case lists:member(AdminUsername, ?ADMIN_USERNAMES) of
-            case lists:member(FormatAdminUsername, ["arvand", "mazaryn", "zaryn"]) of
+            case lists:member(FormatAdminUsername, ?ADMIN_USERNAMES) of
                 
                 true ->
                     Fun = fun() ->
@@ -95,9 +87,7 @@ verify_user(UsernameOrID, AdminUsername) ->
                             {error, Reason} ->
                                 {error, Reason};
                             User ->
-                                io:fwrite("kaka ~p~n", [User]),
                                 UpdatedUser = User#user{verified = true},
-                                io:fwrite("kaka2 ~p~n", [UpdatedUser]),
                                 mnesia:write(UpdatedUser),
                                 io:fwrite("~p~n", [UpdatedUser]),
                                 ok
