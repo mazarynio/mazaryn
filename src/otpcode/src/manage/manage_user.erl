@@ -1,7 +1,7 @@
 -module(manage_user).
 -export([get_users/0, get_users_info/0, get_user_info/1, get_user/1, delete_account/2,
  ban_user/1, unban_user/1, verify_user/2, unverify_user/2, remove_inactive_users/0, suspend_user/2,
- unsuspend_user/1]).
+ unsuspend_user/1, admin_list/0]).
 -include("../records.hrl").
 -include("admins.hrl").
 
@@ -59,25 +59,44 @@ delete_account(UsernameOrID, AdminUsername) ->
     end.
 
 ban_user(UsernameOrID) ->
-    {ok, User} = get_user(UsernameOrID),
-    UpdatedUser = User#user{blocked = true},
-    {atomic, _} = mnesia:transaction(fun() ->
-        mnesia:write(UpdatedUser)
-    end).
+    Fun = fun() ->
+            case get_user(UsernameOrID) of
+                {error, Reason} ->
+                    {error, Reason};
+                User ->
+                    UpdatedUser = User#user{blocked = true},
+                    mnesia:write(UpdatedUser),
+                    io:fwrite("~p~n", [UpdatedUser]),
+                    ok
+            end
+        end,
+        {atomic, Res} = mnesia:transaction(Fun),
+        Res.
         
 unban_user(UsernameOrID) ->
-    {ok, User} = get_user(UsernameOrID),
-    UpdatedUser = User#user{blocked = false},
-    {atomic, _} = mnesia:transaction(fun() ->
-        mnesia:write(UpdatedUser)
-    end).
+    Fun = fun() ->
+            case get_user(UsernameOrID) of
+                {error, Reason} ->
+                    {error, Reason};
+                User ->
+                    UpdatedUser = User#user{blocked = false},
+                    mnesia:write(UpdatedUser),
+                    io:fwrite("~p~n", [UpdatedUser]),
+                    ok
+            end
+        end,
+        {atomic, Res} = mnesia:transaction(Fun),
+        Res.
 
 verify_user(UsernameOrID, AdminUsername) ->
-    case userdb:get_user_id(AdminUsername) of
-        {error, _} = Error ->
+    FormatAdminUsername = binary_to_list(AdminUsername),
+    case userdb:get_user_id(UsernameOrID) of
+        {error, _} = Error ->            
             Error;
-        {ok, _} ->
-            case lists:member(AdminUsername, ?ADMIN_USERNAMES) of
+        {ok, _ID} ->
+            
+            case lists:member(FormatAdminUsername, ?ADMIN_USERNAMES) of
+                
                 true ->
                     Fun = fun() ->
                         case get_user(UsernameOrID) of
@@ -98,11 +117,12 @@ verify_user(UsernameOrID, AdminUsername) ->
     end.
 
 unverify_user(UsernameOrID, AdminUsername) ->
+    FormatAdminUsername = binary_to_list(AdminUsername),
     case userdb:get_user_id(AdminUsername) of
         {error, _} = Error ->
             Error;
         {ok, _} ->
-            case lists:member(AdminUsername, ?ADMIN_USERNAMES) of
+            case lists:member(FormatAdminUsername, ?ADMIN_USERNAMES) of
                 true ->
                     Fun = fun() ->
                         case get_user(UsernameOrID) of
@@ -145,14 +165,20 @@ suspend_user(UserID, Duration) ->
     
 unsuspend_user(UserID) ->
     Fun = fun() ->
-        Suspend = #suspend{
-            status = false 
-        },
-        [User] = mnesia:read({user, UserID}),
-        mnesia:write(User#user{suspend = Suspend})
-    end,
-    {atomic, Res} = mnesia:transaction(Fun),
-    Res.
+            case get_user(UserID) of
+                {error, Reason} ->
+                    {error, Reason};
+                User ->
+                    UpdatedUser = User#user{suspend = false},
+                    mnesia:write(UpdatedUser),
+                    io:fwrite("~p~n", [UpdatedUser]),
+                    ok
+            end
+        end,
+        {atomic, Res} = mnesia:transaction(Fun),
+        Res.
+
+admin_list() -> ?ADMIN_USERNAMES.
 
 
 
