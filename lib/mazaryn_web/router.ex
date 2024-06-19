@@ -81,12 +81,6 @@ defmodule MazarynWeb.Router do
         live("/:recipient_id", ChatsLive.Index, :index)
       end
 
-      # Manage
-      scope "/manage" do
-        live("/", UserLive.Manage)
-        # live("/:recipient_id", ChatsLive.Index, :index)
-      end
-
       # profile
       live("/search", SearchLive.Index)
       live("/posts", PostLive.Index)

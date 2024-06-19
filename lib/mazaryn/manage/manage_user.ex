@@ -29,7 +29,6 @@ defmodule ManageUser do
   end
 
   ## Verify user by username or user_id
-  @spec verify_user(binary(), binary()) :: any()
   def verify_user(username_or_id, admin_username) do
     :manage_user.verify_user(username_or_id, admin_username)
   end
@@ -48,18 +47,4 @@ defmodule ManageUser do
   def unsuspend_user(user_id) do
     :manage_user.unsuspend_user(user_id)
   end
-
-   ## Unban user based on user_id
-   def unban_user(user_id) do
-    :manage_user.unban_user(user_id)
-  end
-
-    ## Ban user based on user_id
-    def ban_user(user_id) do
-      :manage_user.ban_user(user_id)
-    end
-
-    def get_admin_list() do
-      :manage_user.admin_list()
-    end
 end
