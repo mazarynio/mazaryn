@@ -3,7 +3,7 @@ defmodule MazarynWeb.UserLive.Manage do
 
   require Logger
 
-  alias Account.User
+  # alias Account.User
   alias Account.Users
   alias ManageUser
 
@@ -27,7 +27,6 @@ defmodule MazarynWeb.UserLive.Manage do
 
   @impl true
   def handle_event("activate-user", %{"user-id" => id}, socket) do
-
     ManageUser.verify_user(id, "mazaryn")
     |> IO.inspect(label: "[ACTIVATE USER]")
 
@@ -40,7 +39,7 @@ defmodule MazarynWeb.UserLive.Manage do
       |> put_flash(:info, "successfully activated #{id}")
       |> assign(users: users |> sort_by_date())
 
-      {:noreply, socket}
+    {:noreply, socket}
   end
 
   @impl true
@@ -57,12 +56,11 @@ defmodule MazarynWeb.UserLive.Manage do
       |> put_flash(:info, "successfully activated #{id}")
       |> assign(users: users |> sort_by_date())
 
-      {:noreply, socket}
+    {:noreply, socket}
   end
 
   @impl true
   def handle_event("unban-user", %{"user-id" => id}, socket) do
-
     ManageUser.unban_user(id)
     |> IO.inspect(label: "[unbann USER]")
 
@@ -75,12 +73,11 @@ defmodule MazarynWeb.UserLive.Manage do
       |> put_flash(:info, "successfully activated #{id}")
       |> assign(users: users |> sort_by_date())
 
-      {:noreply, socket}
+    {:noreply, socket}
   end
 
   @impl true
   def handle_event("ban-user", %{"user-id" => id}, socket) do
-
     ManageUser.ban_user(id)
     |> IO.inspect(label: "[unbann USER]")
 
@@ -93,12 +90,11 @@ defmodule MazarynWeb.UserLive.Manage do
       |> put_flash(:info, "successfully activated #{id}")
       |> assign(users: users |> sort_by_date())
 
-      {:noreply, socket}
+    {:noreply, socket}
   end
 
   @impl true
   def handle_event("unsuspend-user", %{"user-id" => id}, socket) do
-
     ManageUser.unsuspend_user(id)
     |> IO.inspect(label: "[unbann USER]")
 
@@ -111,12 +107,11 @@ defmodule MazarynWeb.UserLive.Manage do
       |> put_flash(:info, "successfully activated #{id}")
       |> assign(users: users |> sort_by_date())
 
-      {:noreply, socket}
+    {:noreply, socket}
   end
 
   @impl true
   def handle_event("suspend-user", %{"user-id" => id}, socket) do
-
     ManageUser.suspend_user(id)
     |> IO.inspect(label: "[unbann USER]")
 
@@ -129,7 +124,7 @@ defmodule MazarynWeb.UserLive.Manage do
       |> put_flash(:info, "successfully activated #{id}")
       |> assign(users: users |> sort_by_date())
 
-      {:noreply, socket}
+    {:noreply, socket}
   end
 
   def sort_by_date(list) when is_list(list) do

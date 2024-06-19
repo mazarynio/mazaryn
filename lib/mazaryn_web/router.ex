@@ -1,6 +1,10 @@
 defmodule MazarynWeb.Router do
   use MazarynWeb, :router
-  import MazarynWeb.Plug.Session, only: [redirect_unauthorized: 2, validate_session: 2]
+
+  import MazarynWeb.Plug.Session,
+    only: [redirect_unauthorized: 2, validate_session: 2, check_if_admin: 2]
+
+  import MazarynWeb.Plug.CheckAllowedUser
 
   pipeline :browser do
     plug(:accepts, ["html"])
@@ -16,6 +20,12 @@ defmodule MazarynWeb.Router do
   pipeline :restricted do
     plug(:browser)
     plug(:redirect_unauthorized)
+  end
+
+  pipeline :admins do
+    plug(:browser)
+    plug(:check_if_admin)
+    # plug(:get_current_user_username)
   end
 
   pipeline :api do
@@ -83,8 +93,8 @@ defmodule MazarynWeb.Router do
 
       # Manage
       scope "/manage" do
+        pipe_through(:admins)
         live("/", UserLive.Manage)
-        # live("/:recipient_id", ChatsLive.Index, :index)
       end
 
       # profile
