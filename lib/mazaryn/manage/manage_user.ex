@@ -29,7 +29,6 @@ defmodule ManageUser do
   end
 
   ## Verify user by username or user_id
-  @spec verify_user(binary(), binary()) :: any()
   def verify_user(username_or_id, admin_username) do
     :manage_user.verify_user(username_or_id, admin_username)
   end
