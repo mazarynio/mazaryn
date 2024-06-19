@@ -60,6 +60,42 @@ defmodule MazarynWeb.UserLive.Manage do
       {:noreply, socket}
   end
 
+  @impl true
+  def handle_event("unban-user", %{"user-id" => id}, socket) do
+
+    ManageUser.unban_user(id)
+    |> IO.inspect(label: "[unbann USER]")
+
+    users_info_list = ManageUser.get_users_info()
+
+    users = fetch_data(users_info_list)
+
+    socket =
+      socket
+      |> put_flash(:info, "successfully activated #{id}")
+      |> assign(users: users |> sort_by_date())
+
+      {:noreply, socket}
+  end
+
+  @impl true
+  def handle_event("ban-user", %{"user-id" => id}, socket) do
+
+    ManageUser.ban_user(id)
+    |> IO.inspect(label: "[unbann USER]")
+
+    users_info_list = ManageUser.get_users_info()
+
+    users = fetch_data(users_info_list)
+
+    socket =
+      socket
+      |> put_flash(:info, "successfully activated #{id}")
+      |> assign(users: users |> sort_by_date())
+
+      {:noreply, socket}
+  end
+
   def sort_by_date(list) when is_list(list) do
     Enum.sort(list, fn %{last_activity: date1}, %{last_activity: date2} ->
       NaiveDateTime.from_iso8601!(date2) >= NaiveDateTime.from_iso8601!(date1)

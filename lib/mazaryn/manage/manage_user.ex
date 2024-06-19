@@ -48,4 +48,14 @@ defmodule ManageUser do
   def unsuspend_user(user_id) do
     :manage_user.unsuspend_user(user_id)
   end
+
+   ## Unban user based on user_id
+   def unban_user(user_id) do
+    :manage_user.unban_user(user_id)
+  end
+
+    ## Ban user based on user_id
+    def ban_user(user_id) do
+      :manage_user.ban_user(user_id)
+    end
 end
