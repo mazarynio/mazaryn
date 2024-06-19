@@ -86,8 +86,8 @@
                               />
                             </div>
                             <div class="ml-4">
-                              <div class="font-medium text-gray-900"><%= x.username %></div>
-                              <%= if x.blocked === true do %>
+                              <div class="font-medium text-gray-900"><%= String.capitalize(x.username) %></div>
+                              <%= if x.blocked === false do %>
                                 <span class="inline-flex items-center rounded-md bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
                                   user not banned
                                 </span>
@@ -97,7 +97,7 @@
                                 </span>
                               <% end %>
 
-                              <%= if x.suspend === true do %>
+                              <%= if x.suspend === false do %>
                                 <span class="inline-flex items-center rounded-md bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
                                   user not suspended
                                 </span>
@@ -153,7 +153,22 @@
                             phx-click="ban-user"
                             phx-value-user-id={x.username}
                           >
-                            ban
+                            Ban
+                          </a>
+
+                           <a
+                            class="cursor-pointer text-indigo-600 hover:text-indigo-900"
+                            phx-click="unsuspend-user"
+                            phx-value-user-id={x.username}
+                          >
+                            Unsuspend
+                          </a>
+                          <a
+                            class="cursor-pointer text-red-600 hover:text-red-900"
+                            phx-click="suspend-user"
+                            phx-value-user-id={x.username}
+                          >
+                            Suspend
                           </a>
                         </td>
                       </tr>

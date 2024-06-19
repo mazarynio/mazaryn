@@ -64,7 +64,7 @@ ban_user(UsernameOrID) ->
                 {error, Reason} ->
                     {error, Reason};
                 User ->
-                    UpdatedUser = User#user{blocked = false},
+                    UpdatedUser = User#user{blocked = true},
                     mnesia:write(UpdatedUser),
                     io:fwrite("~p~n", [UpdatedUser]),
                     ok
@@ -79,7 +79,7 @@ unban_user(UsernameOrID) ->
                 {error, Reason} ->
                     {error, Reason};
                 User ->
-                    UpdatedUser = User#user{blocked = true},
+                    UpdatedUser = User#user{blocked = false},
                     mnesia:write(UpdatedUser),
                     io:fwrite("~p~n", [UpdatedUser]),
                     ok
@@ -87,12 +87,6 @@ unban_user(UsernameOrID) ->
         end,
         {atomic, Res} = mnesia:transaction(Fun),
         Res.
-    % {ok, User} = get_user(UsernameOrID),
-    % {user, User} = get_user(UsernameOrID),
-    % UpdatedUser = User#user{blocked = false},
-    % {atomic, _} = mnesia:transaction(fun() ->
-    %     mnesia:write(UpdatedUser)
-    % end).
 
 verify_user(UsernameOrID, AdminUsername) ->
     FormatAdminUsername = binary_to_list(AdminUsername),
@@ -171,14 +165,18 @@ suspend_user(UserID, Duration) ->
     
 unsuspend_user(UserID) ->
     Fun = fun() ->
-        Suspend = #suspend{
-            status = false 
-        },
-        [User] = mnesia:read({user, UserID}),
-        mnesia:write(User#user{suspend = Suspend})
-    end,
-    {atomic, Res} = mnesia:transaction(Fun),
-    Res.
+            case get_user(UserID) of
+                {error, Reason} ->
+                    {error, Reason};
+                User ->
+                    UpdatedUser = User#user{suspend = false},
+                    mnesia:write(UpdatedUser),
+                    io:fwrite("~p~n", [UpdatedUser]),
+                    ok
+            end
+        end,
+        {atomic, Res} = mnesia:transaction(Fun),
+        Res.
 
 
 
