@@ -20,7 +20,7 @@ get_users_info() ->
     UsersInfo.
     
 get_user_info(UserID) ->
-    User = userdb:get_user_by_id(UserID).
+    userdb:get_user_by_id(UserID).
 
 get_user(Username) ->
     F = fun() ->
@@ -101,11 +101,12 @@ verify_user(UsernameOrID, AdminUsername) ->
     end.
 
 unverify_user(UsernameOrID, AdminUsername) ->
+    FormatAdminUsername = binary_to_list(AdminUsername),
     case userdb:get_user_id(AdminUsername) of
         {error, _} = Error ->
             Error;
         {ok, _} ->
-            case lists:member(AdminUsername, ?ADMIN_USERNAMES) of
+            case lists:member(FormatAdminUsername, ?ADMIN_USERNAMES) of
                 true ->
                     Fun = fun() ->
                         case get_user(UsernameOrID) of

@@ -45,11 +45,19 @@ defmodule MazarynWeb.UserLive.Manage do
 
   @impl true
   def handle_event("deactivate-user", %{"user-id" => id}, socket) do
+    ManageUser.unverify_user(id, "mazaryn")
+    |> IO.inspect(label: "[ACTIVATE USER]")
+
+    users_info_list = ManageUser.get_users_info()
+
+    users = fetch_data(users_info_list)
+
     socket =
       socket
-      |> put_flash(:info, "successfully deactivated #{id}")
+      |> put_flash(:info, "successfully activated #{id}")
+      |> assign(users: users |> sort_by_date())
 
-    {:noreply, socket}
+      {:noreply, socket}
   end
 
   def sort_by_date(list) when is_list(list) do
