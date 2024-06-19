@@ -87,7 +87,25 @@
                             </div>
                             <div class="ml-4">
                               <div class="font-medium text-gray-900"><%= x.username %></div>
-                              <div class="mt-1 text-gray-500"><%= x.email %></div>
+                              <%= if x.blocked === true do %>
+                                <span class="inline-flex items-center rounded-md bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
+                                  user not banned
+                                </span>
+                              <% else %>
+                                <span class="inline-flex items-center rounded-md bg-red-50 px-2 py-1 text-xs font-medium text-red-700 ring-1 ring-inset ring-red-600/20">
+                                  user has been banned
+                                </span>
+                              <% end %>
+
+                              <%= if x.suspend === true do %>
+                                <span class="inline-flex items-center rounded-md bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
+                                  user not suspended
+                                </span>
+                              <% else %>
+                                <span class="inline-flex items-center rounded-md bg-red-50 px-2 py-1 text-xs font-medium text-red-700 ring-1 ring-inset ring-red-600/20">
+                                  user has been suspended
+                                </span>
+                              <% end %>
                             </div>
                           </div>
                         </td>
@@ -123,7 +141,7 @@
                           >
                             Unverify
                           </a>
-                           <a
+                          <a
                             class="cursor-pointer text-indigo-600 hover:text-indigo-900"
                             phx-click="unban-user"
                             phx-value-user-id={x.username}
