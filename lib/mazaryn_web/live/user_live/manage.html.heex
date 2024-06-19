@@ -1,0 +1,217 @@
+<.live_component
+  module={MazarynWeb.HomeLive.NavComponent}
+  id="navigation"
+  user={@current_user}
+  search={@search}
+  locale={@locale}
+/>
+
+<div class="bg-[#FAFAFA]">
+  <div class="flex w-[90%] max-w-[1440px] mx-auto">
+    <div class="w-full lg:w-[18%] py-6">
+      <.live_component
+        module={MazarynWeb.HomeLive.LeftSidebarComponent}
+        id="leftside"
+        user={@current_user}
+        locale={@locale}
+      />
+    </div>
+
+    <div class="w-full lg:w-[78.6%] mt-6 ml-11">
+      <%!-- <div class="flex justify-between align-center items-center py-5"> --%>
+
+      <div class="rounded-[20px]  border-b border-gray-200 bg-white white:bg-gray-800 px-4 py-5 sm:px-6">
+        <%!-- start table --%>
+        <div class="px-4 sm:px-6 lg:px-8">
+          <div class="sm:flex sm:items-center">
+            <div class="sm:flex-auto">
+              <h1 class="text-base font-semibold leading-6 text-gray-900">Users</h1>
+              <p class="mt-2 text-sm text-gray-700">
+                A list of all the users in the platform including their name, email and role.
+              </p>
+            </div>
+            <div class="mt-4 sm:ml-16 sm:mt-0 sm:flex-none"></div>
+          </div>
+          <div class="mt-8 flow-root">
+            <div class="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
+              <div class="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
+                <table class="min-w-full divide-y divide-gray-300">
+                  <thead>
+                    <tr>
+                      <th
+                        scope="col"
+                        class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-0"
+                      >
+                        Username
+                      </th>
+                      <th
+                        scope="col"
+                        class="px-4 py-3.5 text-left text-sm font-semibold text-gray-900"
+                      >
+                        Email
+                      </th>
+                      <th
+                        scope="col"
+                        class="px-4 py-3.5 text-left text-sm font-semibold text-gray-900"
+                      >
+                        Status
+                      </th>
+                      <th
+                        scope="col"
+                        class="px-4 py-3.5 text-left text-sm font-semibold text-gray-900"
+                      >
+                        Last Activity
+                      </th>
+                      <th
+                        scope="col"
+                        class="px-4 py-3.5 text-left text-sm font-semibold text-gray-900"
+                      >
+                        Actions
+                      </th>
+                      <%!-- <th scope="col" class="relative py-3.5 pl-3 pr-4 sm:pr-0">
+                        <span class="sr-only">Edit</span>
+                      </th> --%>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-gray-200 bg-white">
+                    <%= for x <- @users  do %>
+                      <tr>
+                        <td class="whitespace-nowrap py-5 pl-4 pr-3 text-sm sm:pl-0">
+                          <div class="flex items-center">
+                            <div class="h-11 w-11 flex-shrink-0">
+                              <img
+                                class="h-11 w-11 rounded-full"
+                                src="/images/default-user.svg"
+                                alt=""
+                              />
+                            </div>
+                            <div class="ml-4">
+                              <div class="font-medium text-gray-900">
+                                <%= String.capitalize(x.username) %>
+                              </div>
+                              <%= if x.blocked === false do %>
+                                <span class="inline-flex items-center rounded-md bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
+                                  user not banned
+                                </span>
+                              <% else %>
+                                <span class="inline-flex items-center rounded-md bg-red-50 px-2 py-1 text-xs font-medium text-red-700 ring-1 ring-inset ring-red-600/20">
+                                  user has been banned
+                                </span>
+                              <% end %>
+
+                              <%= if x.suspend === false do %>
+                                <span class="inline-flex items-center rounded-md bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
+                                  user not suspended
+                                </span>
+                              <% else %>
+                                <span class="inline-flex items-center rounded-md bg-red-50 px-2 py-1 text-xs font-medium text-red-700 ring-1 ring-inset ring-red-600/20">
+                                  user has been suspended
+                                </span>
+                              <% end %>
+                            </div>
+                          </div>
+                        </td>
+                        <td class="whitespace-nowrap px-3 py-5 text-sm text-gray-500">
+                          <div class="text-gray-900"><%= x.email %></div>
+                        </td>
+                        <td class="whitespace-nowrap px-3 py-5 text-sm text-gray-500">
+                          <%= if x.verified === true do %>
+                            <span class="inline-flex items-center rounded-md bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
+                              Account verified
+                            </span>
+                          <% else %>
+                            <span class="inline-flex items-center rounded-md bg-red-50 px-2 py-1 text-xs font-medium text-red-700 ring-1 ring-inset ring-red-600/20">
+                              Account not verified
+                            </span>
+                          <% end %>
+                        </td>
+                        <td class="whitespace-nowrap px-3 py-5 text-sm text-gray-500">
+                          <%= x.last_activity %>
+                        </td>
+                        <td class="relative whitespace-nowrap py-5 pl-3 pr-4 text-right text-sm font-medium sm:pr-0">
+                          <a
+                            class="cursor-pointer text-indigo-600 hover:text-indigo-900"
+                            phx-click="activate-user"
+                            phx-value-user-id={x.username}
+                          >
+                            Verify
+                          </a>
+                          <a
+                            class="cursor-pointer text-red-600 hover:text-red-900"
+                            phx-click="deactivate-user"
+                            phx-value-user-id={x.username}
+                          >
+                            Unverify
+                          </a>
+                          <a
+                            class="cursor-pointer text-indigo-600 hover:text-indigo-900"
+                            phx-click="unban-user"
+                            phx-value-user-id={x.username}
+                          >
+                            Unban
+                          </a>
+                          <a
+                            class="cursor-pointer text-red-600 hover:text-red-900"
+                            phx-click="ban-user"
+                            phx-value-user-id={x.username}
+                          >
+                            Ban
+                          </a>
+
+                          <a
+                            class="cursor-pointer text-indigo-600 hover:text-indigo-900"
+                            phx-click="unsuspend-user"
+                            phx-value-user-id={x.username}
+                          >
+                            Unsuspend
+                          </a>
+                          <%!-- <a
+                            class="cursor-pointer text-red-600 hover:text-red-900"
+                            phx-click="suspend-user"
+                            phx-value-user-id={x.username}
+                          >
+                            Suspend
+                          </a> --%>
+                        </td>
+                      </tr>
+                    <% end %>
+                    <!-- More people... -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+        <%!-- end table --%>
+      </div>
+
+      <%!-- <div class="w-full flex justify-between items-center">
+          <div class="rounded-[20px]  border-b border-gray-200 bg-white white:bg-gray-800 px-4 py-5 sm:px-6">
+            <h3 class="text-base font-semibold leading-6 text-gray-900">Job Postings</h3>
+            <p class="mt-1 text-sm text-gray-500">
+              Lorem ipsum dolor sit amet consectetur adipisicing elit quam corrupti consectetur.
+            </p>
+          </div>
+        </div> --%>
+      <%!-- </div> --%>
+    </div>
+  </div>
+</div>
+<%= if @current_user do %>
+  <%!-- <.modal
+  :if={@live_action in [:manage]}
+  id="role-modal"
+  show
+  on_cancel={JS.navigate(~p"/roles")}
+>
+  <.live_component
+    module={MelboxWeb.RolesLive.FormComponent}
+    id={@role.id || :new}
+    title={@page_title}
+    action={@live_action}
+    role={@role}
+    current_user={@current_user}
+    return_to={~p"/roles"}
+  />
+</.modal> --%>
+<% end %>
