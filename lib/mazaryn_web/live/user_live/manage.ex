@@ -25,6 +25,27 @@ defmodule MazarynWeb.UserLive.Manage do
     {:ok, assign(socket, %{})}
   end
 
+  @impl true
+  def handle_event("activate-user", %{"user-id" => id}, socket) do
+
+    ManageUser.verify_user(id, "mazaryn")
+    |> IO.inspect(label: "[ACTIVATE USER]")
+    socket =
+      socket
+      |> put_flash(:info, "successfully activated #{id}")
+
+      {:noreply, socket}
+  end
+
+  @impl true
+  def handle_event("deactivate-user", %{"user-id" => id}, socket) do
+    socket =
+      socket
+      |> put_flash(:info, "successfully deactivated #{id}")
+
+    {:noreply, socket}
+  end
+
   def sort_by_date(list) when is_list(list) do
     Enum.sort(list, fn %{last_activity: date1}, %{last_activity: date2} ->
       NaiveDateTime.from_iso8601!(date2) >= NaiveDateTime.from_iso8601!(date1)

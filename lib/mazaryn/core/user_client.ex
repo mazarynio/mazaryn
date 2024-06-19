@@ -182,4 +182,8 @@ defmodule Core.UserClient do
   def make_public(user_id) do
     :user_server.make_public(user_id)
   end
+
+  def verify_user(user_name) do
+    :user_server.verify_user(user_name)
+  end
 end

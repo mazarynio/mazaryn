@@ -109,11 +109,33 @@
                           <%= x.last_activity %>
                         </td>
                         <td class="relative whitespace-nowrap py-5 pl-3 pr-4 text-right text-sm font-medium sm:pr-0">
-                          <a  class="text-indigo-600 hover:text-indigo-900">
-                            Activate
+                          <a
+                            class="cursor-pointer text-indigo-600 hover:text-indigo-900"
+                            phx-click="activate-user"
+                            phx-value-user-id={x.id}
+                          >
+                            Verify
                           </a>
-                          <a  class="text-red-600 hover:text-red-900">
-                            Deactivate
+                          <a
+                            class="cursor-pointer text-red-600 hover:text-red-900"
+                            phx-click="deactivate-user"
+                            phx-value-user-id={x.id}
+                          >
+                            Unverify
+                          </a>
+                           <a
+                            class="cursor-pointer text-indigo-600 hover:text-indigo-900"
+                            phx-click="unban-user"
+                            phx-value-user-id={x.id}
+                          >
+                            Unban
+                          </a>
+                          <a
+                            class="cursor-pointer text-red-600 hover:text-red-900"
+                            phx-click="ban-user"
+                            phx-value-user-id={x.id}
+                          >
+                            ban
                           </a>
                         </td>
                       </tr>
@@ -141,7 +163,7 @@
   </div>
 </div>
 <%= if @current_user do %>
-<%!-- <.modal
+  <%!-- <.modal
   :if={@live_action in [:manage]}
   id="role-modal"
   show
@@ -158,4 +180,3 @@
   />
 </.modal> --%>
 <% end %>
-
