@@ -4,6 +4,7 @@ defmodule MazarynWeb.AudioLive.Index do
   import MazarynWeb.Live.Helper
 
   alias Account.Users
+  alias MazarynWeb.AudioLive.Components
 
   @type socket :: Phoenix.LiveView.Socket.t()
 

@@ -283,6 +283,15 @@ defmodule MazarynWeb.Components.Icons do
     """
   end
 
+  @spec play_icon(assigns()) :: rendered()
+  def play_icon(assigns) do
+    ~H"""
+    <svg width="13" height="16" viewBox="0 0 13 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M0 16V0L13 8L0 16Z" fill="#FAFAFA" />
+    </svg>
+    """
+  end
+
   @spec playlist_icon(assigns()) :: rendered()
   def playlist_icon(assigns) do
     ~H"""
