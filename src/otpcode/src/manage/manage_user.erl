@@ -1,7 +1,7 @@
 -module(manage_user).
 -export([get_users/0, get_users_info/0, get_user_info/1, get_user/1, delete_account/2,
  ban_user/1, unban_user/1, verify_user/2, unverify_user/2, remove_inactive_users/0, suspend_user/2,
- unsuspend_user/1]).
+ unsuspend_user/1, admin_list/0]).
 -include("../records.hrl").
 -include("admins.hrl").
 
@@ -153,6 +153,9 @@ unsuspend_user(UserID) ->
     end,
     {atomic, Res} = mnesia:transaction(Fun),
     Res.
+
+admin_list() ->
+    ["mazaryn", "arvand"].
 
 
 
