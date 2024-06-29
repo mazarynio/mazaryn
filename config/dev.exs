@@ -80,6 +80,12 @@ config :phoenix, :stacktrace_depth, 20
 config :phoenix, :plug_init_mode, :runtime
 
 # Disable swoosh api client as it is only required for production adapters.
-config :swoosh, :api_client, false
+# config :swoosh, :api_client, false
+config :swoosh, :api_client, Swoosh.ApiClient.Hackney
+
+config :mazaryn, Mazaryn.Mailer,
+  adapter: Swoosh.Adapters.Mailjet,
+  api_key: "your_mailjet_api_key",
+  secret: "your_mailjet_api_secret"
 
 config :joken, default_signer: "secret"

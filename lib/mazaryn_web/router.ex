@@ -145,6 +145,14 @@ defmodule MazarynWeb.Router do
     end
   end
 
+  # if Mix.env == :dev do
+  #   # If using Phoenix
+  #   forward "/sent_emails", Bamboo.SentEmailViewerPlug
+
+  #   # If using Plug.Router, make sure to add the `to`
+  #   forward "/sent_emails", to: Bamboo.SentEmailViewerPlug
+  # end
+
   # Enables the Swoosh mailbox preview in development.
   #
   # Note that preview only shows emails that were sent by the same
