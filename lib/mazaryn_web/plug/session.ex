@@ -8,7 +8,6 @@ defmodule MazarynWeb.Plug.Session do
   @allowed_users ["arvand", "mazaryn", "zaryn"]
 
   def redirect_unauthorized(conn, _opts) do
-    conn.assigns |> IO.inspect(label: "paka mwitu")
     user_id = Map.get(conn.assigns, :user_id)
 
     if user_id == nil do
