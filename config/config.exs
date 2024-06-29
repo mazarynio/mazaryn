@@ -80,3 +80,8 @@ config :mnesia, dir: ~c"Mnesia/"
 config :mazaryn, Mazaryn.Gettext,
   default_locale: "en",
   locales: ["en", "fa"]
+
+config :mazaryn, Mazaryn.Mailer,
+  adapter: Swoosh.Adapters.Mailjet,
+  api_key: "your_api_key",
+  secret: "your_secret_key"
