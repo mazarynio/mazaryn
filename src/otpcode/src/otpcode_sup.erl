@@ -15,7 +15,7 @@
 -export([init/1]).
 
 -define(SERVER, ?MODULE).
--define(BACKUP_FILE, "/home/zaryn/mazaryn/file.BCK").
+-define(BACKUP_FILE, "/home/emilano/mazaryn/file.bup").
 
 start_link() ->
     % Initialize Mnesia and required applications
