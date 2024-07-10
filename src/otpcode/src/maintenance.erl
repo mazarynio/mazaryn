@@ -2,7 +2,7 @@
 
 -export([backup/0, restore/0, check_data/0]).
 
--define(BACKUP_FILE, "/home/emilano/mazaryn/file.bup").
+-define(BACKUP_FILE, "/home/zaryn/mazaryn/file.bup").
 
 backup() ->
     io:format("Starting backup process...~n"),

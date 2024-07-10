@@ -15,7 +15,6 @@
 -export([init/1]).
 
 -define(SERVER, ?MODULE).
--define(BACKUP_FILE, "/home/emilano/mazaryn/file.bup").
 
 start_link() ->
     % Initialize Mnesia and required applications
@@ -49,8 +48,7 @@ initialize() ->
     start_ssl(),
     start_inets(),
     create_tables(),
-    create_table_indexes(),
-    create_backup().
+    create_table_indexes().
 
 start_ssl() ->
   case application:start(ssl) of
@@ -94,10 +92,4 @@ table_attributes(media) -> record_info(fields, media);
 table_attributes(report) -> record_info(fields, report);
 table_attributes(knode) -> record_info(fields, knode).
 
-create_backup() ->
-  case mnesia:backup(?BACKUP_FILE) of
-      ok ->
-          io:format("Backup created at ~p~n", [?BACKUP_FILE]);
-      {error, Reason} ->
-          io:format("Error creating backup: ~p~n", [Reason])
-  end.
+
