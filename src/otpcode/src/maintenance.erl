@@ -1,61 +1,62 @@
-%%%-------------------------------------------------------------------
-%% @doc Maintenance operations for Mnesia backup and restore.
-%% @end
-%%%-------------------------------------------------------------------
-
 -module(maintenance).
 
--export([start_maintenance/0, restore_backup/0]).
+-export([backup/0, restore/0, check_data/0]).
 
--define(BACKUP_FILE, "/home/zaryn/mazaryn/file.BCK").
+-define(BACKUP_FILE, "/home/zaryn/mazaryn/file.bup").
 
-start_maintenance() ->
-    %% Notify users about the maintenance window
-    notify_users(),
-    %% Proceed with backup restore
-    restore_backup().
+backup() ->
+    io:format("Starting backup process...~n"),
+    ensure_mnesia_started(),
+    do_backup().
 
-notify_users() ->
-    io:format("Starting maintenance. Users will experience downtime.~n"),
-    ok.
+restore() ->
+    io:format("Starting restore process...~n"),
+    ensure_mnesia_started(),
+    do_restore(),
+    restart_mnesia().
 
-restore_backup() ->
-    stop_application_services(),
-    case mnesia:stop() of
-        stopped ->
-            io:format("Mnesia stopped successfully.~n"),
-            do_restore();
-        {error, not_started} ->
-            io:format("Mnesia was not started.~n"),
-            do_restore();
+ensure_mnesia_started() ->
+    case mnesia:system_info(is_running) of
+        yes ->
+            io:format("Mnesia is already running.~n");
+        no ->
+            io:format("Starting Mnesia...~n"),
+            mnesia:start(),
+            io:format("Mnesia started successfully.~n")
+    end.
+
+do_backup() ->
+    case mnesia:backup(?BACKUP_FILE) of
+        ok ->
+            io:format("Backup created successfully at ~p~n", [?BACKUP_FILE]);
         {error, Reason} ->
-            io:format("Error stopping Mnesia: ~p~n", [Reason])
-    end,
-    start_application_services().
+            io:format("Error creating backup: ~p~n", [Reason])
+    end.
 
 do_restore() ->
-    case mnesia:restore(?BACKUP_FILE, ['mazaryn@mazaryn']) of
-        ok ->
-            io:format("Mnesia restored from backup successfully.~n"),
-            start_mnesia();
-        {error, Reason} ->
-            io:format("Error restoring Mnesia from backup: ~p~n", [Reason])
+    io:format("Preparing for restore...~n"),
+    mnesia:stop(),
+    mnesia:delete_schema([node()]),
+    mnesia:create_schema([node()]),
+    mnesia:start(),
+    io:format("Starting restore...~n"),
+    case mnesia:restore(?BACKUP_FILE, [{default_op, recreate_tables}]) of
+        {atomic, _} ->
+            io:format("Restore completed successfully from: ~s~n", [?BACKUP_FILE]);
+        {aborted, Reason} ->
+            io:format("Restore failed: ~p~n", [Reason])
     end.
 
-stop_application_services() ->
-    io:format("Stopping application services.~n"),
-    application:stop(mazaryn),
-    ok.
+restart_mnesia() ->
+    io:format("Restarting Mnesia...~n"),
+    mnesia:stop(),
+    mnesia:start(),
+    io:format("Mnesia restarted successfully.~n").
 
-start_mnesia() ->
-    case mnesia:start() of
-        ok ->
-            io:format("Mnesia started successfully.~n");
-        {error, Reason} ->
-            io:format("Error starting Mnesia: ~p~n", [Reason])
-    end.
-
-start_application_services() ->
-    io:format("Starting application services.~n"),
-    application:start(mazaryn),
-    ok.
+check_data() ->
+    {atomic, Results} = mnesia:transaction(fun() ->
+        Tables = mnesia:system_info(tables),
+        [{Table, mnesia:table_info(Table, size)} || Table <- Tables, Table /= schema]
+    end),
+    io:format("Table sizes after restore:~n"),
+    [io:format("~p: ~p records~n", [Table, Size]) || {Table, Size} <- Results].
