@@ -96,7 +96,6 @@ defmodule MazarynWeb.AuthLive.Signup do
         verification_url =
           MazarynWeb.Router.Helpers.url(socket) <>
             Routes.confirm_account_path(socket, :index, locale, token_id)
-
         Account.UserNotifier.deliver_confirmation_instructions(user, verification_url)
         insert_session_token(key, email)
 

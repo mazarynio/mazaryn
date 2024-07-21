@@ -16,7 +16,7 @@
          get_following/1, get_follower/1,
          block/2, unblock/2, get_blocked/1, add_media/3, get_media/2,
          search_user/1, search_user_pattern/1, insert_avatar/2,
-         insert_banner/2, report_user/4, make_private/1, make_public/1]).
+         insert_banner/2, report_user/4, make_private/1, make_public/1, validate_user/1]).
 
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2,
@@ -74,6 +74,9 @@ get_user_by_id(Id) ->
 
 get_token_by_id(TokenID) ->
     gen_server:call({global, ?MODULE}, {get_token_by_id, TokenID}).
+
+validate_user(TokenID) ->
+    gen_server:call({global, ?MODULE}, {validate_user, TokenID}).
 
 get_single_notif(NotifID) ->
     gen_server:call({global, ?MODULE}, {get_single_notif, NotifID}).
@@ -216,6 +219,10 @@ handle_call({get_user_by_id, Id}, _From, State) ->
 
 handle_call({get_token_by_id, TokenID}, _From, State) ->
     Res = userdb:get_token_by_id(TokenID),
+    {reply, Res, State};
+
+handle_call({validate_user, TokenID}, _From, State) ->
+    Res = userdb:validate_user(TokenID),
     {reply, Res, State};
 
 handle_call({get_single_notif, NotifID}, _From, State) ->

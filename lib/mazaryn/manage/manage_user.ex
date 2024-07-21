@@ -34,6 +34,7 @@ defmodule ManageUser do
   end
 
   ## Unverify user by username or user_id
+  @spec unverify_user(any(), any()) :: any()
   def unverify_user(username_or_id, admin_username) do
     :manage_user.unverify_user(username_or_id, admin_username)
   end
