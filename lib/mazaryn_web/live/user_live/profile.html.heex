@@ -3,6 +3,7 @@
   id="navigation"
   user={@current_user}
   search={@search}
+  locale={@locale}
 />
 
 <div class="bg-[#FAFAFA]">
@@ -12,10 +13,52 @@
         module={MazarynWeb.HomeLive.LeftSidebarComponent}
         id="leftside"
         user={@current_user}
+        locale={@locale}
       />
     </div>
 
     <div class="w-full lg:w-[78.6%] ml-11">
+      <div class="flex justify-between align-center items-center py-5">
+        <div class="w-full flex justify-between items-center">
+          <ul class="w-full">
+            <%= for user <- @results  do %>
+              <.link patch={~p"/#{@locale}/chats/#{to_string(user.username)}"}>
+                <li class="active pb-3">
+                  <div class="flex justify-between align-center items-center">
+                    <div class="flex flex-row items-center">
+                      <div class="rounded-full flex-shrink-0">
+                        <img
+                          src={handle_avatar(user)}
+                          alt="Mazaryn symbol"
+                          class="w-10 rounded-full"
+                        />
+                      </div>
+                      <span class="text-l px-2 text-gray-500 font-semibold">
+                        <%= user.username %>
+                      </span>
+                    </div>
+
+                    <div class="flex space-x-2 justify-center">
+                      <button
+                        type="button"
+                        class="flex items-center px-4 py-2.5 border border-gray-400  text-gray-400 font-medium text-xs leading-tight uppercase rounded-lg transition duration-150 ease-in-out hover:bg-gray-100"
+                      >
+                        <i>
+                          <%= Heroicons.icon("plus-circle",
+                            type: "outline",
+                            class: "h-5 w-5 mr-2"
+                          ) %>
+                        </i>
+                        Start a chat
+                      </button>
+                    </div>
+                  </div>
+                </li>
+              </.link>
+            <% end %>
+          </ul>
+        </div>
+      </div>
       <div class="relative block h-72">
         <%= if @user.banner_url do %>
           <div
@@ -121,6 +164,7 @@
                 <button
                   phx-click="delete_user"
                   phx-value-username={@user.username}
+                  data-confirm="Are you sure you want to delete your account?"
                   class="py-2.5 px-5 text-base text-black focus:outline-none bg-[#FAFAFA] rounded-[10px] hover:bg-gray-100 hover:text-red-700 focus:z-10 focus:ring-4 focus:ring-gray-200"
                 >
                   <svg
@@ -339,6 +383,7 @@
                   module={MazarynWeb.HomeLive.PostComponent}
                   id={"post-#{post.id}"}
                   post={post}
+                  locale={@locale}
                   current_user={@current_user}
                 />
               <% end %>
@@ -351,6 +396,7 @@
                 module={MazarynWeb.Component.CompleteProfile}
                 id="completing"
                 user={@current_user}
+                locale={@locale}
               />
             </div>
           <% end %>
@@ -387,6 +433,7 @@
           module={MazarynWeb.UserLive.FollowsComponent}
           id={@user.username}
           current_user={@current_user}
+          locale={@locale}
         />
       </.modal>
     <% end %>

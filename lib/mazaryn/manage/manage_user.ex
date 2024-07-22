@@ -24,18 +24,23 @@ defmodule ManageUser do
   end
 
   ## Remove user account by username
-  def delete_account(username) do
-    :manage_user.delete_account(username)
+  def delete_account(username, admin_username) do
+    :manage_user.delete_account(username, admin_username)
   end
 
   ## Verify user by username or user_id
-  def verify_user(username_or_id) do
-    :manage_user.verify_user(username_or_id)
+  def verify_user(username_or_id, admin_username) do
+    :manage_user.verify_user(username_or_id, admin_username)
   end
 
   ## Unverify user by username or user_id
-  def unverify_user(username_or_id) do
-    :manage_user.unverify_user(username_or_id)
+  @spec unverify_user(any(), any()) :: any()
+  def unverify_user(username_or_id, admin_username) do
+    :manage_user.unverify_user(username_or_id, admin_username)
+  end
+
+  def unverify_user_no_admin(username_or_id, admin_username) do
+    :manage_user.unverify_user_no_admin(username_or_id, admin_username)
   end
 
   ## Suspend user based on user_id and duration (target time)
@@ -46,5 +51,19 @@ defmodule ManageUser do
   ## Unsuspend user based on user_id
   def unsuspend_user(user_id) do
     :manage_user.unsuspend_user(user_id)
+  end
+
+  ## Unban user based on user_id
+  def unban_user(user_id) do
+    :manage_user.unban_user(user_id)
+  end
+
+  ## Ban user based on user_id
+  def ban_user(user_id) do
+    :manage_user.ban_user(user_id)
+  end
+
+  def get_admin_list() do
+    :manage_user.admin_list()
   end
 end

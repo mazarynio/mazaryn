@@ -4,12 +4,46 @@
             "name": "Linux",
             "includePath": [
                 "${workspaceFolder}/**",
-                "/usr/lib/erlang/erts-14.2.3/include", 
-                "/usr/lib/erlang/usr/include"
-
+                "/usr/lib/erlang/erts-14.2.5/include",
+                "/usr/lib/erlang/usr/include",
+                "/usr/local/include/qpp/qasmtools",
+                "/usr/local/include/qpp",
+                "/home/emilano/eigen",
+                "/home/linuxbrew/.linuxbrew/Cellar/opencv/4.9.0_10/include/opencv4/opencv2",
+                "/home/linuxbrew/.linuxbrew/Cellar/opencv/4.9.0_10/include/opencv4",
+                "/home/zaryn/boost/libs",
+                "/home/zaryn/boost/libs/uuid/include",
+                "/home/zaryn/boost/libs/config/include",
+                "/home/zaryn/boost/libs/type_traits/include",
+                "/home/zaryn/boost/libs/throw_exception/include",
+                "/home/zaryn/boost/libs/assert/include",
+                "/home/zaryn/boost/libs/asio/include",
+                "/home/zaryn/boost/libs/system/include",
+                "/home/zaryn/boost/libs/date_time/include",
+                "/home/zaryn/boost/libs/smart_ptr/include",
+                "/home/zaryn/boost/libs/core/include",
+                "/home/zaryn/boost/libs/utility/include",
+                "/home/zaryn/boost/libs/static_assert/include",
+                "/home/zaryn/boost/libs/numeric/conversion/include",
+                "/home/zaryn/boost/libs/mpl/include",
+                "/home/zaryn/boost/libs/preprocessor/include",
+                "/home/zaryn/openssl",
+                "/home/zaryn/json/include",
+                "/home/zaryn/curl/include"
             ],
             "defines": [],
             "compilerPath": "/usr/bin/clang",
+            "cStandard": "c17",
+            "cppStandard": "c++17",
+            "intelliSenseMode": "linux-clang-x64"
+        },
+        {
+            "name": "m",
+            "includePath": [
+                "${workspaceFolder}/**"
+            ],
+            "defines": [],
+            "compilerPath": "/home/linuxbrew/.linuxbrew/bin/clang",
             "cStandard": "c17",
             "cppStandard": "c++17",
             "intelliSenseMode": "linux-clang-x64"

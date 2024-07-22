@@ -1,0 +1,37 @@
+<component name="libraryTable">
+  <library name="rustler" type="mix">
+    <CLASSES>
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/rustler/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/rustler/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/rustler/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/rustler/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/rustler/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/rustler/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/rustler/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/rustler/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/rustler/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/rustler/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/rustler/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/rustler/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/rustler/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/rustler/ebin" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="file://$PROJECT_DIR$/deps/rustler/lib" />
+      <root url="file://$PROJECT_DIR$/deps/rustler/priv" />
+      <root url="file://$PROJECT_DIR$/deps/rustler/lib" />
+      <root url="file://$PROJECT_DIR$/deps/rustler/priv" />
+      <root url="file://$PROJECT_DIR$/deps/rustler/lib" />
+      <root url="file://$PROJECT_DIR$/deps/rustler/priv" />
+      <root url="file://$PROJECT_DIR$/deps/rustler/lib" />
+      <root url="file://$PROJECT_DIR$/deps/rustler/priv" />
+      <root url="file://$PROJECT_DIR$/deps/rustler/lib" />
+      <root url="file://$PROJECT_DIR$/deps/rustler/priv" />
+      <root url="file://$PROJECT_DIR$/deps/rustler/lib" />
+      <root url="file://$PROJECT_DIR$/deps/rustler/priv" />
+      <root url="file://$PROJECT_DIR$/deps/rustler/lib" />
+      <root url="file://$PROJECT_DIR$/deps/rustler/priv" />
+    </SOURCES>
+  </library>
+</component>

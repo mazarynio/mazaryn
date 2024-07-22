@@ -5,7 +5,7 @@ defmodule Mazaryn.MixProject do
     [
       app: :mazaryn,
       version: "0.1.0",
-      elixir: "~> 1.16.0",
+      elixir: "~> 1.17.0",
       elixirc_paths: elixirc_paths(Mix.env()),
       compilers: [] ++ Mix.compilers(),
       start_permanent: Mix.env() == :prod,
@@ -54,8 +54,11 @@ defmodule Mazaryn.MixProject do
       {:tarams, "~> 1.7"},
       {:tailwind, "~> 0.2", runtime: Mix.env() == :dev},
       {:swoosh, "~> 1.11"},
-      {:phoenix_swoosh, "~> 1.2"},
+      {:phoenix_swoosh, "~> 1.0"},
       {:timex, "~> 3.7"},
+      {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
+      {:httpoison, "~> 2.0"},
+      {:hackney, "~> 1.20"},
 
       # Erlang dependencies
       {:erlpass, git: "https://github.com/ferd/erlpass.git"},

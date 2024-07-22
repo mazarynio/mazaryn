@@ -4,7 +4,7 @@
       <h1 class="flex justify-left items-center text-2xl md:text-3xl leading-0 font-thin text-[#E5E5E5]">
         <img
           class="logo brightness-150 h-[42px] md:h-auto"
-          src="../images/logo.png"
+          src={Routes.static_path(@socket, "/images/logo.png")}
           alt="Elixir Social Network"
         /><span class="ml-[10px]">Blog</span>
       </h1>
@@ -55,7 +55,7 @@
     <dl class="md:mt-[80px]">
       <dd class="flex items-center space-x-3 mb-7">
         <img
-          src="../images/blockchain.jpg"
+          src={Routes.static_path(@socket, "/images/blockchain.jpg")}
           alt="Peter"
           class="w-10 h-10 object-cover rounded-xl"
           srcset=""
@@ -92,7 +92,12 @@
           Blockchain
         </h2>
       </div>
-      <img class="image-cover" src="../images/blockchain.jpg" alt="Blockchain" title="Blockchain" />
+      <img
+        class="image-cover"
+        src={Routes.static_path(@socket, "/images/blockchain.jpg")}
+        alt="Blockchain"
+        title="Blockchain"
+      />
       <div class="lead">
         <p>
           Blockchain; is it really worth your time and? Are your data secured? Why don't we stick to web2 instead of web3.
@@ -175,7 +180,7 @@
             <div>
               <img
                 class="aspect-[16/9] object-cover rounded-2xl block border-[1px] opacity-100 md:opacity-70 transition-opacity group-hover:opacity-100"
-                src="../images/polkadot.png"
+                src={Routes.static_path(@socket, "/images/polkadot.png")}
                 alt="polkadot"
                 title="polkadot"
               />
@@ -226,7 +231,7 @@
             <div>
               <img
                 class="aspect-[16/9] object-cover rounded-2xl block border-[1px] opacity-100 md:opacity-70 transition-opacity group-hover:opacity-100"
-                src="../images/kusama.png"
+                src={Routes.static_path(@socket, "/images/kusama.png")}
                 alt="kusama"
                 title="kusama"
               />

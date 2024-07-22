@@ -1,13 +1,14 @@
 <div class="relative bg-white">
   <nav class="relative w-[90%] max-w-[1440px] mx-auto h-16 py-2.5 flex justify-evenly items-center text-center">
     <div class="w-[17%] mr-14 text-xl font-extrabold text-black cursor-pointer flex-shrink-0">
-      <%= link to: Routes.live_path(@socket, MazarynWeb.HomeLive.Home), class: "block" do %>
+      <%= link to: Routes.live_path(@socket, MazarynWeb.HomeLive.Home, @locale), class: "block" do %>
         <img src={Routes.static_path(@socket, "/images/logo-dark.svg")} alt="Mazaryn Logo" />
       <% end %>
     </div>
     <form
       class="flex items-center w-full min-w-[380px] mx-auto my-auto h-11 outline-0 rounded-[10px] px-3.5 bg-[#FAFAFA] border-2 border-[#D2D2D1]"
       phx-submit="do_search"
+      phx-change="do_search"
     >
       <input
         type="search"
@@ -43,7 +44,9 @@
       <li class="mx-8 my-0">
         <div class="flex bg-[#FAFAFA] center rounded-full py-2 px-2">
           <span class="relative inline-block">
-            <.link navigate={Routes.live_path(@socket, MazarynWeb.NotificationLive.Index)}>
+            <.link navigate={
+              Routes.live_path(@socket, MazarynWeb.NotificationLive.Index, @locale)
+            }>
               <%= Heroicons.icon("bell", class: "w-7 h-7 rounded-full fill-[#AAAAAA]") %>
             </.link>
             <span class="absolute bg-teal-300 text-teal-900 px-2 py-1 text-xs font-bold rounded-full -top-3 -right-3">
@@ -89,7 +92,7 @@
             tabindex="-1"
           >
             <div class="py-1" role="none">
-              <%= live_patch to: Routes.live_path(@socket, MazarynWeb.UserLive.Profile, @user.username),  class: "text-gray-700 block px-4 py-2 text-sm", role: "menuitem", tabindex: "-1", id: "menu-item-0" do %>
+              <%= live_patch to: Routes.live_path(@socket, MazarynWeb.UserLive.Profile, @locale, @user.username),  class: "text-gray-700 block px-4 py-2 text-sm", role: "menuitem", tabindex: "-1", id: "menu-item-0" do %>
                 <div class="flex">
                   <div class="flex rounded-full pr-6">
                     <%= if @user.avatar_url do %>
@@ -111,7 +114,7 @@
             </div>
             <div class="py-1" role="none">
               <%= link("Log Out",
-                to: Routes.logout_path(@socket, :index),
+                to: Routes.logout_path(@socket, :index, @locale),
                 class: "text-gray-700 block px-4 py-2 text-sm",
                 role: "menuitem",
                 tabindex: "-1",
@@ -153,19 +156,19 @@
     <ul class="">
       <li>
         <%= link("Coin",
-          to: Routes.live_path(@socket, MazarynWeb.CoinLive.Index),
+          to: Routes.live_path(@socket, MazarynWeb.CoinLive.Index, @locale),
           class: "block text-sm px-2 py-2 hover:bg-slate-500 transition duration-300"
         ) %>
       </li>
       <li>
         <%= link("Profile",
-          to: Routes.live_path(@socket, MazarynWeb.UserLive.Profile, @user.username),
+          to: Routes.live_path(@socket, MazarynWeb.UserLive.Profile, @locale, @user.username),
           class: "block text-sm px-2 py-2 hover:bg-slate-500 transition duration-300"
         ) %>
       </li>
       <li>
         <%= link("Log out",
-          to: Routes.logout_path(@socket, :index),
+          to: Routes.logout_path(@socket, :index, @locale),
           class: "block text-sm px-2 py-4 hover:bg-slate-500 transition duration-300"
         ) %>
       </li>

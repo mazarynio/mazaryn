@@ -1,6 +1,6 @@
 -module(notifdb).
 -author("Zaryn Technologies").
--export([insert/2, welcome/2, follow/3, mention/3, get_single_notif/1, get_notif_message/1, get_all_notifs/1,
+-export([insert/2, welcome/2, follow/3, mention/3, chat/3, get_single_notif/1, get_notif_message/1, get_all_notifs/1,
 get_all_notif_ids/1,
  get_username_by_id/1, delete_notif/1, get_notif_time/1, get_five_latest_notif_ids/1,
  get_five_latest_notif_messages/1]). 
@@ -59,7 +59,7 @@ follow(FollowerID, UserID, Message) ->
     end),
     spawn_monitor(fun () ->
         receive
-        after 120000 ->
+        after 1200000 ->
             delete_notif(Id)
         end
     end),
@@ -74,6 +74,27 @@ mention(Mentionner, UserID, Message) ->
                             message = Message,
                             date_created = calendar:universal_time()}),
         [User] = mnesia:read({user, UserID}),
+        Notifs = User#user.notif,
+        mnesia:write(User#user{notif = [Id|Notifs]}),
+        {Id, ok}
+    end),
+    spawn_monitor(fun () ->
+        receive
+        after 1200000 ->
+            delete_notif(Id)
+        end
+    end),
+    Id.
+
+chat(Sender, Receiver, Message) ->
+    {atomic, {Id, _}} = mnesia:transaction(fun() ->
+        Id = nanoid:gen(),
+        mnesia:write(#notif{id = Id,
+                            follower = Sender,
+                            user_id = Receiver,
+                            message = Message,
+                            date_created = calendar:universal_time()}),
+        [User] = mnesia:read({user, Receiver}),
         Notifs = User#user.notif,
         mnesia:write(User#user{notif = [Id|Notifs]}),
         {Id, ok}

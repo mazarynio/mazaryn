@@ -1,6 +1,10 @@
 defmodule MazarynWeb.Router do
   use MazarynWeb, :router
-  import MazarynWeb.Plug.Session, only: [redirect_unauthorized: 2, validate_session: 2]
+
+  import MazarynWeb.Plug.Session,
+    only: [redirect_unauthorized: 2, validate_session: 2, check_if_admin: 2]
+
+  import MazarynWeb.Plug.CheckAllowedUser
 
   pipeline :browser do
     plug(:accepts, ["html"])
@@ -18,6 +22,12 @@ defmodule MazarynWeb.Router do
     plug(:redirect_unauthorized)
   end
 
+  pipeline :admins do
+    plug(:browser)
+    plug(:check_if_admin)
+    # plug(:get_current_user_username)
+  end
+
   pipeline :api do
     plug(:accepts, ["json"])
   end
@@ -27,12 +37,14 @@ defmodule MazarynWeb.Router do
   #   plug :ensure_user_confirmed
   # end
 
-  scope "/", MazarynWeb do
+  get "/", MazarynWeb.PageController, :add_locale
+
+  scope "/:locale", MazarynWeb do
     pipe_through(:browser)
 
     get("/logout", LogoutController, :index)
     get("/confirm/:token", ConfirmAccountController, :index)
-    get "/735600.txt", FileController, :serve_empty_file
+    get "/2908017.txt", FileController, :serve_empty_file
 
     live_session :default,
       on_mount: [MazarynWeb.UserLiveAuth] do
@@ -61,33 +73,41 @@ defmodule MazarynWeb.Router do
     get("/865853.txt", PageController, :empty_page)
   end
 
-  scope "/", MazarynWeb do
+  scope "/:locale", MazarynWeb do
     pipe_through(:restricted)
 
-    live("/home", HomeLive.Home)
-    live("/approve", HomeLive.Approve)
-    live("/coins", CoinLive.Index)
-    live "notifications", HomeLive.Notification
-    live("/videos", VideoLive.Index)
-    live("/videos/:id", VideoLive.Show)
+    live_session :restricted,
+      on_mount: [{MazarynWeb.UserLiveAuth, :restricted}, {MazarynWeb.UserLiveAuth, :default}] do
+      live("/home", HomeLive.Home)
+      live("/approve", HomeLive.Approve)
+      live("/coins", CoinLive.Index)
+      live("/notifications", HomeLive.Notification)
+      live("/videos", VideoLive.Index)
+      live("/videos/:id", VideoLive.Show)
 
-    # CHATS
-    scope "/chats" do
-      live("/", ChatsLive.Index, :index)
-      live("/:recipient_id", ChatsLive.Index, :index)
+      # CHATS
+      scope "/chats" do
+        live("/", ChatsLive.Index, :index)
+        live("/:recipient_id", ChatsLive.Index, :index)
+      end
+
+      # Manage
+      scope "/manage" do
+        pipe_through(:admins)
+        live("/", UserLive.Manage)
+      end
+
+      # profile
+      live("/search", SearchLive.Index)
+      live("/posts", PostLive.Index)
+      live("/dashboard", DashboardLive.Index)
+      live("/dashboard/hedera-wallet", DashboardLive.Wallet.HederaWallet)
+      live("/notifications", NotificationLive.Index)
+      live("/user_blog", UserBlog.Index)
+      # hashtags
+      live "/hashtag/:hashtag_name", HashtagLive.Index
+      live("/:username", UserLive.Profile)
     end
-
-    # profile
-    live("/search", SearchLive.Index)
-    live("/:username", UserLive.Profile)
-    live("/posts", PostLive.Index)
-    live("/dashboard", DashboardLive.Index)
-    live("/dashboard/hedera-wallet", DashboardLive.Wallet.HederaWallet)
-    live("/notifications", NotificationLive.Index)
-    live("/user_blog", UserBlog.Index)
-
-    # hashtags
-    live "/hashtag/:hashtag_name", HashtagLive.Index
   end
 
   scope "/api" do
@@ -124,6 +144,14 @@ defmodule MazarynWeb.Router do
       live_dashboard("/dashboard", metrics: MazarynWeb.Telemetry)
     end
   end
+
+  # if Mix.env == :dev do
+  #   # If using Phoenix
+  #   forward "/sent_emails", Bamboo.SentEmailViewerPlug
+
+  #   # If using Plug.Router, make sure to add the `to`
+  #   forward "/sent_emails", to: Bamboo.SentEmailViewerPlug
+  # end
 
   # Enables the Swoosh mailbox preview in development.
   #

@@ -1,7 +1,19 @@
+<%!-- <%= if @socket do %>
+  <div class="alert alert-danger">
+    Account not verified <%= @socket  %>
+  </div>
+<% end %> --%>
+<%!-- <%= IO.inspect(@mess) %> --%>
 <div class="login min-h-[110vh] md:min-h-screen h-full md:h-screen flex-col md:flex-row">
+
   <div class="split left">
     <div class="welcome-left-title md:block">
-      <img class="logo mb-5 mr-auto md:mr-0 brightness-150" src="images/logo.png" alt="" title="" />
+      <img
+        class="logo mb-5 mr-auto md:mr-0 brightness-150"
+        src={Routes.static_path(@socket, "/images/logo.png")}
+        alt=""
+        title=""
+      />
     </div>
 
     <div class="welcome-left-text hidden md:block h-[25vh] md:h-full top-[100%] md:top-[82%]">
@@ -19,12 +31,12 @@
   <div class="split right h-[50vh] md:h-full">
     <div class="centered">
       <div class="form-container min-w-[540px]">
-        <div class="form-header">Login</div>
+        <div class="form-header"><%= gettext("Login") %></div>
 
         <%= form_for @changeset, "#", [id: "form-login", phx_change: :validate, phx_submit: "save", class: "form-body w-[100%]", autocomplete: "off", autocorrect: "off", autocapitalize: "off", spellcheck: "false"], fn f -> %>
           <div class="form-input-container">
             <div>
-              <label class="form-input-label">Email*</label>
+              <label class="form-input-label"><%= gettext("Email*") %></label>
             </div>
             <div class="w-[100%]">
               <%= email_input(f, :email,
@@ -48,7 +60,7 @@
 
           <div class="form-input-container">
             <div>
-              <label class="form-input-label">Password*</label>
+              <label class="form-input-label"><%= gettext("Password*") %></label>
             </div>
 
             <div class="w-[100%]">
@@ -82,7 +94,7 @@
             </a>
             <a>
               <%= live_patch("Sign Up",
-                to: Routes.live_path(@socket, MazarynWeb.AuthLive.Signup),
+                to: ~p"/#{@locale}/signup",
                 class: "text-blue-600 pl-6"
               ) %>
             </a>

@@ -16,14 +16,27 @@ defmodule MazarynWeb.UserLiveAuth do
 
   # end
 
-  def on_mount(:default, _params, session, socket) do
-    socket = assign_new(socket, :current_user, fn -> get_user_id(session) end)
+  def on_mount(:restricted, params, session, socket) do
+    socket =
+      socket
+      |> assign_new(:locale, fn -> session["locale"] end)
+      |> assign_new(:current_user, fn -> get_user_id(session) end)
+      |> assign(locale: params["locale"])
 
     if socket.assigns.current_user do
-      {:halt, redirect(socket, to: "/home")}
-    else
       {:cont, socket}
+    else
+      {:halt, redirect(socket, to: "/#{Gettext.get_locale(MazarynWeb.Gettext)}")}
     end
+  end
+
+  def on_mount(:default, params, session, socket) do
+    socket =
+      socket
+      |> assign_new(:locale, fn -> session["locale"] end)
+      |> assign(locale: params["locale"])
+
+    {:cont, socket}
   end
 
   def on_mount(:user_resource, _params, session, socket) do
@@ -35,7 +48,7 @@ defmodule MazarynWeb.UserLiveAuth do
         |> elem(1)
       end)
 
-    if socket.assigns.user, do: {:cont, socket}, else: {:halt, redirect(socket, to: "/home")}
+    if socket.assigns.user, do: {:cont, socket}, else: {:halt, redirect(socket, to: "/")}
   end
 
   # def on_mount({:pubsub_subscribe, topics: topics}, _params, _session, socket) do

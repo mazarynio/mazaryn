@@ -1,6 +1,11 @@
 defmodule MazarynWeb.Plug.Session do
   import Plug.Conn, only: [get_session: 2, put_session: 3, halt: 1, assign: 3]
   import Phoenix.Controller, only: [redirect: 2]
+  import Phoenix.Controller
+
+  alias MazarynWeb.Router.Helpers, as: Routes
+
+  @allowed_users ["arvand", "mazaryn", "zaryn"]
 
   def redirect_unauthorized(conn, _opts) do
     user_id = Map.get(conn.assigns, :user_id)
@@ -13,6 +18,35 @@ defmodule MazarynWeb.Plug.Session do
     else
       conn
     end
+  end
+
+  def check_if_admin(conn, _opts) do
+    user_id = Map.get(conn.assigns, :user_id)
+
+    {:user, _, username, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
+     _, _} = Core.UserClient.get_user_by_email(user_id)
+
+    if username == nil do
+      conn
+      |> put_flash(:error, "You are not authorized to access this page.")
+      |> put_session(:return_to, conn.request_path)
+      |> redirect(to: "/home")
+      |> halt()
+    else
+      if Enum.member?(ManageUser.get_admin_list(), String.to_charlist(username)) do
+        conn
+      else
+        conn
+        |> put_flash(:error, "You are not authorized to access this page.")
+        |> put_session(:return_to, conn.request_path)
+        |> redirect(to: "/home")
+        |> halt()
+      end
+    end
+  end
+
+  def allowed_users do
+    @allowed_users
   end
 
   def validate_session(conn, _opts) do

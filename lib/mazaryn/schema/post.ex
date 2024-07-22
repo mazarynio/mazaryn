@@ -56,8 +56,8 @@ defmodule Mazaryn.Schema.Post do
   end
 
   def erl_changeset(
-        {:post, id, content, comments, likes, media, hashtag, mention, emoji, link_url, author, other,
-         date_created, date_updated, report, data}
+        {:post, id, content, comments, likes, media, hashtag, mention, emoji, link_url, author,
+         other, date_created, date_updated, report, data}
       ) do
     new_likes =
       case likes do

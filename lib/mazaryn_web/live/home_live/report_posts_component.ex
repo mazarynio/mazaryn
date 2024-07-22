@@ -77,6 +77,9 @@ defmodule MazarynWeb.HomeLive.ReportPostsComponent do
     {:noreply,
      socket
      |> put_flash(:info, "Report submitted successfully!")
-     |> push_navigate(to: Routes.live_path(socket, MazarynWeb.HomeLive.Home), replace: true)}
+     |> push_navigate(
+       to: Routes.live_path(socket, MazarynWeb.HomeLive.Home, socket.assigns.locale),
+       replace: true
+     )}
   end
 end

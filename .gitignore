@@ -26,3 +26,16 @@ Mnesia
 mazaryn-front
 /mazaryn-front
 /uploads
+/src/otpcode/src/nif/quantum/*.so
+/src/otpcode/src/nif/quantum/*.cmake
+/src/otpcode/src/nif/quantum/Makefile
+/src/otpcode/src/nif/quantum/CMakeFiles
+/src/otpcode/src/nif/quantum/CMakeCache.txt
+/src/otpcode/_build
+/src/otpcode/src/nif/tensorflow/*.so
+/src/otpcode/src/nif/tensorflow/*.cmake
+/src/otpcode/src/nif/tensorflow/Makefile
+/src/otpcode/src/nif/tensorflow/CMakeFiles
+/src/otpcode/src/nif/tensorflow/CMakeCache.txt
+
+.idea

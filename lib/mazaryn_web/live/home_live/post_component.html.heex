@@ -7,7 +7,7 @@
     <div class="flex justify-center items-center">
       <img class="h-11 w-11 rounded-full" src={get_user_avatar(@post.author)} />
       <div class="ml-3.5 text-sm leading-tight">
-        <%= live_redirect(to: Routes.live_path(@socket, MazarynWeb.UserLive.Profile, @post.author),
+        <%= live_redirect(to: Routes.live_path(@socket, MazarynWeb.UserLive.Profile, @locale, @post.author),
           class: "block text-black text-base font-semibold"
         )  do %>
           <div class="grid grid-flow-col auto-cols-max">
@@ -101,7 +101,7 @@
     <%= for media_url <- @post.media do %>
       <img
         class="w-full mt-2 rounded-2xl border border-gray-100"
-        src={Routes.static_path(@socket, media_url)}
+        src={Routes.static_path(@socket, "/#{to_string(media_url)}")}
       />
     <% end %>
   </div>

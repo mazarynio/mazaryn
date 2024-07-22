@@ -1,0 +1,30 @@
+<component name="libraryTable">
+  <library name="complex" type="mix">
+    <CLASSES>
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/complex/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/complex/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/complex/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/complex/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/complex/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/complex/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/complex/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/complex/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/complex/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/complex/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/complex/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/complex/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/complex/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/complex/ebin" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="file://$PROJECT_DIR$/deps/complex/lib" />
+      <root url="file://$PROJECT_DIR$/deps/complex/lib" />
+      <root url="file://$PROJECT_DIR$/deps/complex/lib" />
+      <root url="file://$PROJECT_DIR$/deps/complex/lib" />
+      <root url="file://$PROJECT_DIR$/deps/complex/lib" />
+      <root url="file://$PROJECT_DIR$/deps/complex/lib" />
+      <root url="file://$PROJECT_DIR$/deps/complex/lib" />
+    </SOURCES>
+  </library>
+</component>

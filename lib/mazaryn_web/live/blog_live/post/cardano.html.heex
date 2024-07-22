@@ -4,7 +4,7 @@
       <h1 class="flex justify-left items-center text-2xl md:text-3xl leading-0 font-thin text-[#E5E5E5]">
         <img
           class="logo brightness-150 h-[42px] md:h-auto"
-          src="../images/logo.png"
+          src={Routes.static_path(@socket, "/images/logo.png")}
           alt="Elixir Social Network"
         /><span class="ml-[10px]">Blog</span>
       </h1>
@@ -88,7 +88,12 @@
           Why Choose Cardano ?
         </h2>
       </div>
-      <img class="image-cover" src="../images/cardano.png" alt="cardano" title="cardano" />
+      <img
+        class="image-cover"
+        src={Routes.static_path(@socket, "/images/cardano.png")}
+        alt="cardano"
+        title="cardano"
+      />
       <div class="lead">
         <p>
           Mazaryn Using Cardano to Empower Users access to Most Advanced Blockchain Tools, Earn ADA Token and Pay each other From their Multi Asset Secure Wallets.
@@ -202,7 +207,7 @@
             <div>
               <img
                 class="aspect-[16/9] object-cover rounded-2xl block border-[1px] opacity-100 md:opacity-70 transition-opacity group-hover:opacity-100"
-                src="../images/polkadot.png"
+                src={Routes.static_path(@socket, "/images/polkadot.png")}
                 alt="polkadot"
                 title="polkadot"
               />
@@ -253,7 +258,7 @@
             <div>
               <img
                 class="aspect-[16/9] object-cover rounded-2xl block border-[1px] opacity-100 md:opacity-70 transition-opacity group-hover:opacity-100"
-                src="../images/aeternity.png"
+                src={Routes.static_path(@socket, "/images/aeternity.png")}
                 alt="aeternity"
                 title="aeternity"
               />

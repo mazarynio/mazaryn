@@ -1,0 +1,13 @@
+-define(ARCHIVE_USERNAME,
+<<"alphabet">>, <<"ai">>, <<"aramco">>,
+<<"beer">>, <<"brave">>, <<"brasil">>, << "business">>, << "blockchain">>,
+<<"california">>, <<"candy">>, <<"casino">>, <<"car">>, <<"creative">>, <<"comedy">>, << "christmas">>,
+<<"deposit">>, <<"dating">>, <<"diamond">>,
+<<"express">>,
+<<"find">>, <<"fund">>,
+<<"google">>,
+<<"health">>, <<"help">>, << "hotel">>,
+<<"iran">>, <<"it">>, <<"investing">>,
+<<"russia">>,
+<<"wine">>, << "wines">>,
+<<"zaryn">>, <<"zoom">>).

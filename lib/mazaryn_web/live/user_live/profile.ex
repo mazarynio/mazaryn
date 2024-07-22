@@ -47,6 +47,7 @@ defmodule MazarynWeb.UserLive.Profile do
       |> assign(report_user_action: false)
       |> assign(verified_action: false)
       |> assign(admins: ["arvand"])
+      |> assign(results: [])
 
     {:ok, socket}
   end
@@ -68,6 +69,7 @@ defmodule MazarynWeb.UserLive.Profile do
       |> assign(post_changeset: post_changeset)
       |> assign(user_changeset: user_changeset)
       |> assign(current_user: current_user)
+      |> assign(results: [])
 
     {:ok, socket}
   end
@@ -117,6 +119,12 @@ defmodule MazarynWeb.UserLive.Profile do
       |> assign(current_user: current_user)
 
     {:noreply, socket}
+  end
+
+  @impl true
+  def handle_event("do_search", %{"search" => search}, socket) do
+    user = search_user_by_username(search)
+    {:noreply, assign(socket, search: search, results: user || [])}
   end
 
   @impl true
@@ -239,7 +247,7 @@ defmodule MazarynWeb.UserLive.Profile do
     {:noreply,
      socket
      |> put_flash(:info, "Update successful")
-     |> push_redirect(to: Routes.live_path(socket, __MODULE__, username))}
+     |> push_redirect(to: Routes.live_path(socket, __MODULE__, socket.assings.locale, username))}
   end
 
   def handle_event("unverify_user", %{"username" => username}, socket) do
@@ -248,7 +256,7 @@ defmodule MazarynWeb.UserLive.Profile do
     {:noreply,
      socket
      |> put_flash(:info, "Update successful")
-     |> push_redirect(to: Routes.live_path(socket, __MODULE__, username))}
+     |> push_redirect(to: Routes.live_path(socket, __MODULE__, socket.assings.locale, username))}
   end
 
   defp handle_assigns(socket, user_id, id) do
@@ -289,5 +297,20 @@ defmodule MazarynWeb.UserLive.Profile do
     user_id
     |> UserClient.get_following()
     |> Enum.count()
+  end
+
+  defp search_user_by_username(username) do
+    case username |> Core.UserClient.search_user() do
+      :username_not_exist ->
+        nil
+
+      erl_user ->
+        [
+          erl_user
+          |> User.erl_changeset()
+          |> User.build()
+          |> elem(1)
+        ]
+    end
   end
 end

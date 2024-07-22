@@ -2,6 +2,7 @@ defmodule MazarynWeb.HomeLive.NavComponent do
   use MazarynWeb, :live_component
   import Phoenix.Component
 
+
   def mount(socket) do
     {:ok, socket}
   end
@@ -14,4 +15,5 @@ defmodule MazarynWeb.HomeLive.NavComponent do
 
     {:ok, socket |> assign(assigns) |> assign(notifs_count: notifs_count)}
   end
+
 end
