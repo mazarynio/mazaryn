@@ -25,7 +25,8 @@ defmodule MazarynWeb.UserLive.Profile do
 
     post_changeset = Post.changeset(%Post{})
 
-    {:ok, user} = get_user_by_username(username)
+    # {:ok, user} = get_user_by_username(username)
+    {:ok, user} = get_user_by_username(current_user.username)
 
     user_changeset = User.changeset(user)
 
@@ -90,7 +91,8 @@ defmodule MazarynWeb.UserLive.Profile do
 
     posts = Mazaryn.Posts.get_posts_by_author(username)
 
-    {:ok, user} = get_user_by_username(username)
+    {:ok, user} = get_user_by_username(current_user.username)
+    # {:ok, user} = get_user_by_username(username)
 
     socket =
       socket

@@ -52,10 +52,68 @@
     </div>
 
     <div class="flex flex-row justify-between items-center pt-[10px] px-0">
-      <div class="flex flex-row items-center">
-        <i class="mr-5">
+      <div
+        class="flex flex-row items-center"
+        x-data="{
+            open: false,
+            toggle() {
+                if (this.open) {
+                    return this.close()
+                }
+ 
+                this.$refs.button.focus()
+ 
+                this.open = true
+            },
+            close(focusAfter) {
+                if (! this.open) return
+ 
+                this.open = false
+ 
+                focusAfter && focusAfter.focus()
+            }
+        }"
+        x-on:keydown.escape.prevent.stop="close($refs.button)"
+        x-on:focusin.window="! $refs.panel.contains($event.target) && close()"
+        x-id="['dropdown-button']"
+        class="relative"
+      >
+        <i
+          class="mr-5"
+          x-ref="button"
+          x-on:click="toggle()"
+          x-bind:aria-expanded="open"
+          x-bind:aria-controls="$id('dropdown-button')"
+        >
           <%= Heroicons.icon("face-smile", type: "solid", class: "h-5 w-5 fill-[#60616D]") %>
         </i>
+        <!-- Panel -->
+        <div
+          x-ref="panel"
+          x-show="open"
+          x-transition.origin.top.left
+          x-on:click.outside="close($refs.button)"
+          x-bind:id="$id('dropdown-button')"
+          style="display: none;"
+          class="center mt-2 w-40 rounded-md bg-white shadow-md"
+        >
+          <div class=" items-start mr-4 w-70">
+            <%= for emoji <- @emojis do %>
+              <% {key, character} = Enum.at(emoji, 0) %>
+
+              <span
+                class="m-4 cursor-pointer"
+                title={to_string(key)}
+                phx-click="select_emoji"
+                phx_target={@myself}
+                phx-value-name={to_string(key)}
+              >
+                <%= character %>
+              </span>
+              <%!-- <span><%= to_string(name) |> String.replace("_", " ") |> String.capitalize() %></span> --%>
+            <% end %>
+          </div>
+        </div>
         <i class="mr-5">
           <svg
             class="h-5 w-5 fill-[#60616D]"
