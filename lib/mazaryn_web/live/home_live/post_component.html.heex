@@ -156,6 +156,17 @@
       </svg>
       <span class="ml-2.5 text-[#CFD0DD] text-base"><%= Enum.count(@post.comments) %></span>
     </div>
+
+    <div class="flex items-start mr-7">
+   <%= for emoji <- @emojis do %>
+    <% {_key, character} = Enum.at(emoji, 0) %>
+    
+      <span class="mr-4"><%= character %></span>
+      <%!-- <span><%= to_string(name) |> String.replace("_", " ") |> String.capitalize() %></span> --%>
+    
+  <% end %>
+      
+    </div>
   </div>
   <div class="flex items-center mr-6">
     <span
