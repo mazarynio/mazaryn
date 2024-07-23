@@ -1,7 +1,7 @@
 -module(manage_user).
 -export([get_users/0, get_users_info/0, get_user_info/1, get_user/1, delete_account/2,
  ban_user/1, unban_user/1, verify_user/2, unverify_user/2, remove_inactive_users/0, suspend_user/2,
- unsuspend_user/1, admin_list/0, unverify_user_no_admin/2]).
+ unsuspend_user/1, admin_list/0, unverify_user_no_admin/2, verify_user_no_admin/1]).
 -include("../records.hrl").
 -include("admins.hrl").
 
@@ -96,6 +96,21 @@ verify_user(UsernameOrID, AdminUsername) ->
                     {error, not_admin}
             end
     end.
+
+verify_user_no_admin(UsernameOrID) ->
+    Fun = fun() ->
+        case get_user(UsernameOrID) of
+            {error, Reason} ->
+                {error, Reason};
+            User ->
+                UpdatedUser = User#user{verified = true},
+                mnesia:write(UpdatedUser),
+                io:fwrite("~p~n", [UpdatedUser]),
+                ok
+        end
+    end,
+    {atomic, Res} = mnesia:transaction(Fun),
+    Res.
 
 unverify_user(UsernameOrID, AdminUsername) ->
     case userdb:get_user_id(AdminUsername) of

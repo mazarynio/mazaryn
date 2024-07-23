@@ -98,10 +98,11 @@
   </p>
 
   <div class="w-full grid grid-cols-4 gap-4">
-    <%= for media_url <- @post.media do %>
+    <%= for _media_url <- @post.media do %>
       <img
-        class="w-full mt-2 rounded-2xl border border-gray-100"
-        src={Routes.static_path(@socket, "/#{to_string(media_url)}")}
+        
+        class="rounded-full align-middle border border-gray-100 max-h-6 max-w-6 mt-2 rounded-2xl"
+        src={Routes.static_path(@socket, "/images/hand-thumb-up.svg")}
       />
     <% end %>
   </div>
