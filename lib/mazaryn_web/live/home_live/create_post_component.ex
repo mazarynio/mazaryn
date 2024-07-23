@@ -10,6 +10,19 @@ defmodule MazarynWeb.HomeLive.CreatePostComponent do
 
   @impl true
   def mount(socket) do
+    emojis = [
+      %{:grinning_face => "\u{1F600}"},
+      %{:beaming_face => "\u{1F601}"},
+      %{:joy => "\u{1F602}"},
+      %{:cowboy_hat_face => "\u{1F920}"},
+      %{:winking_face => "\u{1F609}"},
+      %{:relieved_face => "\u{1F60C}"}
+    ]
+
+    socket =
+      socket
+      |> assign(:emojis, emojis)
+
     {:ok, handle_assign(socket)}
   end
 
@@ -24,6 +37,18 @@ defmodule MazarynWeb.HomeLive.CreatePostComponent do
 
   def handle_event("save-post", params, socket) do
     {:noreply, handle_save_post(socket, params)}
+  end
+
+  def handle_event("select_emoji", params, socket) do
+    params |> IO.inspect(label: "ni emoji gani imechaguliwa xxxx")
+    # post_id |> IO.inspect(label: "ni post_id gani imechaguliwa")
+    # {:noreply, push_redirect(socket, to: Routes.emoji_path(socket, :show, name))}
+    # post_id = post_id |> to_charlist
+    # PostClient.delete_post(post_id)
+    # send(self(), :reload_posts)
+    {:noreply, handle_validate_post(socket, params)}
+
+    # {:noreply, socket}
   end
 
   defp handle_assign(socket) do

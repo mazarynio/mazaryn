@@ -35,20 +35,9 @@ defmodule MazarynWeb.HomeLive.PostComponent do
 
   @impl true
   def mount(socket) do
-    emojis =  [
-      %{:grinning_face => "\u{1F600}"},
-      %{:beaming_face => "\u{1F601}"},
-      %{:joy => "\u{1F602}"},
-      %{:neutral_face => "\u{1F610}"},
-      %{:cowboy_hat_face => "\u{1F920}"},
-      %{:winking_face => "\u{1F609}"},
-      %{:relieved_face => "\u{1F60C}"}
-    ]
-
     {:ok,
      socket
      |> assign(:uploaded_files, [])
-     |> assign(:emojis, emojis)
      |> allow_upload(:media, accept: ~w(.png .jpg .jpeg), max_entries: 2)}
   end
 
