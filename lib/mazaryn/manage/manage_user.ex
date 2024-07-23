@@ -46,6 +46,7 @@ defmodule ManageUser do
   def verify_user_no_admin(username_or_id) do
     :manage_user.verify_user_no_admin(username_or_id)
   end
+
   ## Suspend user based on user_id and duration (target time)
   def suspend_user(user_id, duration) do
     :manage_user.suspend_user(user_id, duration)

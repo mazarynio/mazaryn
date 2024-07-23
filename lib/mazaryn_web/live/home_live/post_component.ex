@@ -144,6 +144,7 @@ defmodule MazarynWeb.HomeLive.PostComponent do
 
     post = rebuild_post(post_id)
     post |> IO.inspect(label: "checki post")
+
     {:noreply,
      socket
      |> assign(:post, post)
