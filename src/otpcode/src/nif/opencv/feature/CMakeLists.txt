@@ -4,25 +4,25 @@ project(opencv)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
-# Set OpenCV directory before finding package
-set(OpenCV_DIR /home/linuxbrew/.linuxbrew/Cellar/opencv/4.9.0_9/share/OpenCV)
-
+# Find the OpenCV package
 find_package(OpenCV REQUIRED)
 
 # Specify the include directories
-include_directories(${PROJECT_SOURCE_DIR}/include /usr/lib64/erlang/erts-14.2.4/include /usr/lib64/erlang/usr/include)
+include_directories(${PROJECT_SOURCE_DIR}/include
+                    /usr/lib64/erlang/erts-14.2.4/include
+                    /usr/lib64/erlang/usr/include
+                    ${OpenCV_INCLUDE_DIRS})
 
-include_directories(${OpenCV_INCLUDE_DIRS})
+# Specify the source files
+set(SOURCES
+    ${PROJECT_SOURCE_DIR}/corner_eigen.cpp
+    ${PROJECT_SOURCE_DIR}/corner_harris.cpp
+)
 
-# Specify the source file
-set(CORNER_EIGEN ${PROJECT_SOURCE_DIR}/corner_eigen.cpp)
-set(CORNER_HARRIS ${PROJECT_SOURCE_DIR}/corner_harris.cpp)
-
-# Create the shared library
-add_library(corner_eigen SHARED ${CORNER_EIGEN})
-add_library(corner_harris SHARED ${CORNER_HARRIS})
+# Create the shared libraries
+add_library(corner_eigen SHARED ${PROJECT_SOURCE_DIR}/corner_eigen.cpp)
+add_library(corner_harris SHARED ${PROJECT_SOURCE_DIR}/corner_harris.cpp)
 
 # Link OpenCV libraries
 target_link_libraries(corner_eigen ${OpenCV_LIBS})
 target_link_libraries(corner_harris ${OpenCV_LIBS})
-
