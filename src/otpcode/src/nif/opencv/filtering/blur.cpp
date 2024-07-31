@@ -59,4 +59,4 @@ static ErlNifFunc nif_funcs[] = {
     {"apply", 5, blur_filter_nif}
 };
 
-ERL_NIF_INIT(blur, nif_funcs, NULL, NULL, NULL, NULL)
+ERL_NIF_INIT(blur, nif_funcs, nullptr, nullptr, nullptr, nullptr)
