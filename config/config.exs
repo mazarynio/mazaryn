@@ -83,5 +83,5 @@ config :mazaryn, Mazaryn.Gettext,
 
 config :mazaryn, Mazaryn.Mailer,
   adapter: Swoosh.Adapters.Mailjet,
-  api_key: "d09f3a943a55ad97aeba8f836fa57a50",
-  secret: "3827ecf075f8ee3a544bb2bee61d295f"
+  api_key: "",
+  secret: ""
