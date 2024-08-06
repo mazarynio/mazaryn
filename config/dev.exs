@@ -84,3 +84,9 @@ config :phoenix, :plug_init_mode, :runtime
 config :swoosh, :api_client, Swoosh.ApiClient.Hackney
 
 config :joken, default_signer: "secret"
+
+config :mazaryn, Mazaryn.Mailer,
+  adapter: Swoosh.Adapters.Local,
+  api_key: "",
+  secret: "",
+  api_client: false

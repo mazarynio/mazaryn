@@ -71,10 +71,6 @@ config :logger, :console,
 # Use Jason for JSON parsing in Phoenix
 config :phoenix, :json_library, Jason
 
-# Import environment specific config. This must remain at the bottom
-# of this file so it overrides the configuration defined above.
-import_config "#{config_env()}.exs"
-
 config :mnesia, dir: ~c"Mnesia/"
 
 config :mazaryn, Mazaryn.Gettext,
@@ -85,3 +81,7 @@ config :mazaryn, Mazaryn.Mailer,
   adapter: Swoosh.Adapters.Mailjet,
   api_key: "",
   secret: ""
+
+# Import environment specific config. This must remain at the bottom
+# of this file so it overrides the configuration defined above.
+import_config "#{config_env()}.exs"

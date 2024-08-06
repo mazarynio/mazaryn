@@ -89,25 +89,17 @@ defmodule MazarynWeb.AuthLive.Signup do
 
   @impl true
   def handle_info({:disable_form, changeset}, %{assigns: %{key: key, locale: locale}} = socket) do
-    case Signup.Form.create_user(changeset) do
-      {:ok, %Account.User{email: email} = user} ->
-        token_id = List.to_string(user.token_id)
-
-        verification_url =
-          MazarynWeb.Router.Helpers.url(socket) <>
-            Routes.confirm_account_path(socket, :index, locale, token_id)
-
-        Account.UserNotifier.deliver_confirmation_instructions(user, verification_url)
-        insert_session_token(key, email)
-
-        Core.NotifEvent.welcome(user.id)
-
-        socket =
-          socket
-          |> push_redirect(to: "/approve")
-
-        if connected?(socket), do: {:noreply, socket}
-
+    with {:ok, %Account.User{email: email} = user} <- Signup.Form.create_user(changeset),
+         token_id = List.to_string(user.token_id),
+         verification_url =
+           MazarynWeb.Router.Helpers.url(socket) <>
+             Routes.confirm_account_path(socket, :index, locale, token_id),
+         {:ok, _} <-
+           Account.UserNotifier.deliver_confirmation_instructions(user, verification_url) |> dbg() do
+      insert_session_token(key, email)
+      Core.NotifEvent.welcome(user.id)
+      {:noreply, push_redirect(socket, to: "/approve")}
+    else
       :username_and_email_existed ->
         changeset =
           changeset
@@ -117,12 +109,42 @@ defmodule MazarynWeb.AuthLive.Signup do
         {:noreply, assign(socket, changeset: changeset)}
 
       changeset ->
-        changeset =
-          changeset
-          |> Ecto.Changeset.put_change(:form_disabled, false)
-
+        changeset = Ecto.Changeset.put_change(changeset, :form_disabled, false)
         Logger.info(changeset: changeset)
         {:noreply, assign(socket, changeset: changeset)}
     end
+
+    # case Signup.Form.create_user(changeset) do
+    #   {:ok, %Account.User{email: email} = user} ->
+    #     token_id = List.to_string(user.token_id)
+
+    #     verification_url =
+    #       MazarynWeb.Router.Helpers.url(socket) <>
+    #         Routes.confirm_account_path(socket, :index, locale, token_id)
+
+    #     Account.UserNotifier.deliver_confirmation_instructions(user, verification_url)
+    #     insert_session_token(key, email)
+
+    #     Core.NotifEvent.welcome(user.id)
+
+    #     socket =
+    #       socket
+    #       |> push_redirect(to: "/approve")
+
+    #     if connected?(socket), do: {:noreply, socket}
+
+    #   :username_and_email_existed ->
+    #     changeset =
+    #       changeset
+    #       |> Ecto.Changeset.add_error(:password, "This account has been created before.")
+    #       |> Ecto.Changeset.put_change(:form_disabled, false)
+
+    #     {:noreply, assign(socket, changeset: changeset)}
+
+    #   changeset ->
+    #     changeset = Ecto.Changeset.put_change(changeset, :form_disabled, false)
+    #     Logger.info(changeset: changeset)
+    #     {:noreply, assign(socket, changeset: changeset)}
+    # end
   end
 end
