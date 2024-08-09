@@ -14,7 +14,7 @@ defmodule MazarynWeb.AuthLive.Reset do
 
   def handle_event("reset", %{"email" => email} = _session, socket) do
     with {:ok, _better_params} <- Tarams.cast(%{"email" => email}, @reset_schema),
-         %User{} = user <- Users.one_by_email(email) do
+         {:ok, %User{} = user} <- Users.one_by_email(email) do
       case Users.reset_password(user) do
         {:ok, :reseted} ->
           # TODO: handle
