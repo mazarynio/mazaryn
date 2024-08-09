@@ -11,7 +11,7 @@ defmodule Account.UserNotifier do
     email =
       new()
       |> to(recipient)
-      |> from({"Mazaryn", @noreply_email})
+      |> from({"Mazaryn", @support_email})
       |> reply_to(@support_email)
       |> subject(subject)
       |> text_body(body)
