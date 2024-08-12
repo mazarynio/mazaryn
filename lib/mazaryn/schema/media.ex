@@ -5,6 +5,7 @@ defmodule Mazaryn.Schema.Media do
 
   @optional_fields ~w(
     id
+    ai_media_id
     user_id
     files
     type
@@ -18,6 +19,7 @@ defmodule Mazaryn.Schema.Media do
   )a
 
   embedded_schema do
+    field(:ai_media_id, :string)
     field(:file, {:array, :string}, default: [])
     field(:files, {:array, :string}, default: [])
     field(:user_id, :string)
@@ -29,11 +31,12 @@ defmodule Mazaryn.Schema.Media do
   end
 
   def erl_changeset(
-        {:media, id, file, files, user_id, type, date_created, date_updated, report, data}
+        {:media, id, ai_media_id, file, files, user_id, type, date_created, date_updated, report, data}
       ) do
     %__MODULE__{}
     |> change(%{
       id: id,
+      ai_media_id: ai_media_id,
       file: file,
       files: files,
       user_id: user_id,

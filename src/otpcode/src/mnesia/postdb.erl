@@ -19,7 +19,9 @@ insert(Author, Content, Emoji, Media, Hashtag, Mention, Link_URL) ->
   F = fun() ->
           Id = nanoid:gen(),
           Date = calendar:universal_time(),
+          AI_Post_ID = ai_postdb:insert(Id),
           mnesia:write(#post{id = Id,
+                             ai_post_id = AI_Post_ID,
                              content = erl_deen:main(Content),
                              emoji = Emoji,
                              author = Author,

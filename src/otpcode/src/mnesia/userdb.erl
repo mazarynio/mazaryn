@@ -55,17 +55,19 @@ set_user_info(Username, Fields, Values) ->
   Res. 
 
 %% Register User account
-insert(Username, Password, Email) ->
+insert(Username, Password, Email) -> 
     %% check username exist or not
     Fun = fun() ->
             case {check_username(Username), check_email(Email)} of
               {undefined, undefined} ->
                 Now = calendar:universal_time(),
                 Id = nanoid:gen(),
+                AI_User_ID = ai_userdb:insert(Id),
                 TokenID = nanoid:gen(),
                 Address = key_guardian:gen_address(80),
                 KNode = kademlia:insert_node(Id),
                 User = #user{id = Id,
+                             ai_user_id = AI_User_ID,
                              username = Username,
                              password = erlpass:hash(Password),
                              email = Email,

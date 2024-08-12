@@ -69,3 +69,75 @@
     type => worker,
     modules => [notif_event]
 }).
+
+-define(BUSINESS_SERVER, #{
+    id => business_server,
+    start => {business_server, start_link, []},
+    restart => permanent,
+    shutdown => 5000,
+    type => worker,
+    modules => [business_server]
+}).
+
+-define(ADS_SERVER, #{
+    id => ads_server,
+    start => {ads_server, start_link, []},
+    restart => permanent,
+    shutdown => 5000,
+    type => worker,
+    modules => [ads_server]
+}).
+
+-define(AI_USER_SERVER, #{
+    id => ai_user_server,
+    start => {ai_user_server, start_link, []},
+    restart => permanent,
+    shutdown => 5000,
+    type => worker,
+    modules => [ai_user_server]
+}).
+
+-define(AI_POST_SERVER, #{
+    id => ai_post_server,
+    start => {ai_post_server, start_link, []},
+    restart => permanent,
+    shutdown => 5000,
+    type => worker,
+    modules => [ai_post_server]
+}).
+
+-define(AI_CHAT_SERVER, #{
+    id => ai_chat_server,
+    start => {ai_chat_server, start_link, []},
+    restart => permanent,
+    shutdown => 5000,
+    type => worker,
+    modules => [ai_chat_server]
+}).
+
+-define(AI_MEDIA_SERVER, #{
+    id => ai_media_server,
+    start => {ai_media_server, start_link, []},
+    restart => permanent,
+    shutdown => 5000,
+    type => worker,
+    modules => [ai_media_server]
+}).
+
+-define(AI_BUSINESS_SERVER, #{
+    id => ai_business_server,
+    start => {ai_business_server, start_link, []},
+    restart => permanent,
+    shutdown => 5000,
+    type => worker,
+    modules => [ai_business_server]
+}).
+
+-define(AI_ADS_SERVER, #{
+    id => ai_ads_server,
+    start => {ai_ads_server, start_link, []},
+    restart => permanent,
+    shutdown => 5000,
+    type => worker,
+    modules => [ai_ads_server]
+}).
