@@ -1,4 +1,4 @@
--module(businessdb).
+-module(businessdb). 
 -author("Zaryn Technologies").
 -include("../records.hrl").
 -export([insert/1, get_business_account_by_business_id/1, get_business_account_by_user_id/1, get_business_account_by_username/1]).
