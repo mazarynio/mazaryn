@@ -1,16 +1,19 @@
 -module(adsdb).
 -author("Zaryn Technologies").
 -include("../records.hrl").
--export([insert/1, get_ads_by_ads_id/1, get_ads_by_user_id/1, get_ads_by_username/1]).
+-export([insert/2, get_ads_by_ads_id/1, get_ads_by_user_id/1, get_ads_by_username/1]).
 
-insert(UserID) ->
+insert(UserID, Ad_type) ->
     Fun = fun() ->
         ID = nanoid:gen(),
         AI_Ads_ID = ai_adsdb:insert(ID),
+        Now = calendar:universal_time(),
         Ads = #ads{
             id = ID,
             user_id = UserID,
-            ai_ads_id = AI_Ads_ID
+            ai_ads_id = AI_Ads_ID,
+            ad_type = Ad_type,
+            date_created = Now
         },
         mnesia:write(Ads),
         ID

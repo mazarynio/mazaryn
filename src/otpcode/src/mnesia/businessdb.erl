@@ -1,16 +1,20 @@
 -module(businessdb). 
 -author("Zaryn Technologies").
 -include("../records.hrl").
--export([insert/1, get_business_account_by_business_id/1, get_business_account_by_user_id/1, get_business_account_by_username/1]).
+-export([insert/3, get_business_account_by_business_id/1, get_business_account_by_user_id/1, get_business_account_by_username/1]).
 
-insert(UserID) ->
+insert(UserID, Industry, BusinessEmail) ->
     Fun = fun() ->
         ID = nanoid:gen(),
         AI_Business_ID = ai_businessdb:insert(ID),
+        Now = calendar:universal_time(),
         Business = #business{
             id = ID,
             user_id = UserID,
-            ai_business_id = AI_Business_ID
+            ai_business_id = AI_Business_ID,
+            industry = Industry,
+            business_email = BusinessEmail,
+            date_created = Now
         },
         mnesia:write(Business),
         ID

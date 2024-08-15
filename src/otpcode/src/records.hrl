@@ -124,7 +124,7 @@ date_created, date_updated, report = [], data = #{}}).
     data = #{}
 }).
 
--record(ai_user, {
+-record(ai_user, { 
     id,
     user_id,
     interests = [],             % List of user interests (e.g., [sports, music, art])
@@ -1413,6 +1413,8 @@ date_created, date_updated, report = [], data = #{}}).
     business_account_id,        % ID of the business running the ad
     campaign_id,                % ID of the campaign this ad belongs to
     ad_type,                    % e.g., "image", "video", "carousel", "interactive", "augmented_reality"
+    date_created,
+    date_updtaed,
     content = #{
         title => "",
         description => "",
@@ -1706,4 +1708,116 @@ date_created, date_updated, report = [], data = #{}}).
         parameter_interdependence_map => #{}
     },
     data = #{}  % Existing field for any additional custom data
+}).
+
+-record(hologram, {
+    id,
+    creator_id,
+    title,
+    description,
+    hologram_data_url,
+    required_device_specs,
+    interaction_modes = [],  % e.g., ["gesture", "voice", "brain-computer interface"]
+    view_count,
+    average_interaction_time,
+    user_ratings = [],
+    creation_date
+}).
+
+-record(vr_space, { % Vitual Reality Space
+    id,
+    owner_id,
+    name,
+    description,
+    type,  % personal, public, event, etc.
+    environment_template,
+    custom_assets = [],
+    max_occupancy,
+    current_occupants = [],
+    access_level,  % public, friends-only, invite-only, etc.
+    features = [],  % list of enabled features
+    events = [],
+    chat_history = [],
+    virtual_objects = [],
+    spatial_audio = true,
+    last_updated,
+    visitor_count = 0,
+    average_time_spent = 0,
+    tags = [],
+    linked_posts = [],
+    virtual_currency = 0,
+    moderation_status = active,
+    data = #{}
+}).
+
+-record(ar_content, { % Augmented Reality Content
+    id,
+    creator_id,
+    type,  % image, 3D model, text, interactive
+    content_url,
+    position = {0, 0, 0},  % {x, y, z} coordinates
+    rotation = {0, 0, 0},  % {x, y, z} rotation
+    scale = {1, 1, 1},     % {x, y, z} scale
+    visibility_range,      % in meters
+    trigger_type,          % location, image recognition, proximity
+    trigger_data,          % depends on trigger_type
+    interaction_type,      % view, tap, gesture
+    associated_data = #{}, % additional data based on content type
+    views = 0,
+    likes = 0,
+    comments = [],
+    tags = [],
+    creation_date,
+    last_updated,
+    expiration_date,
+    permissions,           % public, friends, private
+    moderation_status = pending,
+    data = #{}
+}).
+
+-record(quantum, {
+    id,
+    user_id,
+    type,  % encryption, communication, computation, simulation, sensing, imaging
+    q_state,  % superposition, entangled, collapsed
+    q_bits,   % number of qubits involved
+    entanglement_partners = [],  % IDs of entangled features
+    encryption_level,  % quantum key distribution strength
+    computation_complexity,  % estimated classical computation equivalent
+    simulation_type,  % physics, chemistry, financial, social
+    uncertainty_factor,  % Heisenberg uncertainty principle applied to social interactions
+    observation_impact,  % how observation affects the feature state
+    decoherence_time,  % estimated time before quantum state collapses
+    quantum_algorithm,  % QRNG, Shor's, Grover's, VQE, QAOA, etc.
+    classical_fallback,  % alternative if quantum hardware is unavailable
+    creation_timestamp,
+    last_interaction,
+    access_permissions,
+    quantum_resource_usage,  % amount of quantum computing resources used
+    error_correction_level,
+    fidelity_score,
+    quantum_advantage_metric,  % measure of improvement over classical methods
+    interconnected_features = [],  % quantum features that interact with this one
+    quantum_social_credit = 0,  % gamification of quantum feature usage
+    quantum_teleportation_channel,  % for instant data "teleportation"
+    quantum_neural_network_layers = [],  % for quantum machine learning
+    quantum_error_mitigation_strategy,
+    quantum_sensing_precision,  % for enhanced AR/VR experiences
+    quantum_imaging_resolution,  % for super-resolution image processing
+    quantum_memory_capacity,  % for storing quantum states
+    quantum_annealing_parameters = #{},  % for optimization problems
+    quantum_fourier_transform_applications = [],  % for advanced signal processing
+    quantum_walk_graph,  % for quantum-enhanced graph algorithms
+    quantum_blockchain_integration,  % for quantum-secure distributed ledger
+    quantum_dimensional_scaling,  % for accessing higher dimensional data
+    quantum_entanglement_swapping_nodes = [],  % for extending quantum networks
+    quantum_clock_synchronization_accuracy,  % for precise timing in distributed systems
+    quantum_game_theory_payoff_matrix,  % for quantum game scenarios
+    quantum_error_correction_code,  % specific QEC code used
+    quantum_supremacy_task,  % task demonstrating quantum advantage
+    quantum_reservoir_computing_state,  % for quantum reservoir computing
+    quantum_generative_adversarial_network_params = #{},  % for quantum GANs
+    quantum_reinforcement_learning_policy,  % for quantum RL agents
+    quantum_contextuality_measure,  % degree of non-classical behavior
+    data = #{}
 }).
