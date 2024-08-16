@@ -6,6 +6,8 @@ defmodule MazarynWeb.HomeLive.Home do
   alias Mazaryn.Posts
   alias Account.Users
   alias Account.User
+  alias Core.PostClient
+
   require Logger
 
   # case reload home page
@@ -31,6 +33,16 @@ defmodule MazarynWeb.HomeLive.Home do
   def handle_event("do_search", %{"search" => search}, socket) do
     user = search_user_by_username(search)
     {:noreply, assign(socket, search: search, results: user || [])}
+  end
+
+  def handle_event("select_emoji", %{"name" => name}, socket) do
+    name |> IO.inspect(label: "ni emoji gani imechaguliwa")
+    # {:noreply, push_redirect(socket, to: Routes.emoji_path(socket, :show, name))}
+    # post_id = post_id |> to_charlist
+    # PostClient.delete_post(post_id)
+    send(self(), :reload_posts)
+
+    {:noreply, socket}
   end
 
   defp search_user_by_username(username) do

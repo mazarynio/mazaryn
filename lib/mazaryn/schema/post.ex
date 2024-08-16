@@ -12,6 +12,7 @@ defmodule Mazaryn.Schema.Post do
 
   @optional_fields ~w(
     id
+    ai_post_id
     media
     hashtag
     mention
@@ -26,6 +27,7 @@ defmodule Mazaryn.Schema.Post do
     date_created
     date_updated
     report
+    device_info
     data
   )a
 
@@ -36,6 +38,7 @@ defmodule Mazaryn.Schema.Post do
   # date_created
   embedded_schema do
     field(:content, :string)
+    field(:ai_post_id, :string)
     field(:media, {:array, :string}, default: [])
     field(:hashtag, :string)
     field(:mention, :string)
@@ -52,12 +55,13 @@ defmodule Mazaryn.Schema.Post do
     field(:date_created, :utc_datetime)
     field(:date_updated, :utc_datetime)
     field(:report, {:array, :string}, default: [])
+    field(:device_info, :string)
     field(:data, :map)
   end
 
   def erl_changeset(
-        {:post, id, content, comments, likes, media, hashtag, mention, emoji, link_url, author,
-         other, date_created, date_updated, report, data}
+        {:post, id, ai_post_id, content, comments, likes, media, hashtag, mention, emoji, link_url, author,
+         other, date_created, date_updated, report, device_info, data}
       ) do
     new_likes =
       case likes do
@@ -70,6 +74,7 @@ defmodule Mazaryn.Schema.Post do
     %__MODULE__{}
     |> change(%{
       id: id,
+      ai_post_id: ai_post_id,
       content: content,
       comments: preload_comments,
       likes: new_likes,
@@ -83,6 +88,7 @@ defmodule Mazaryn.Schema.Post do
       date_created: handle_datetime(date_created),
       date_updated: handle_datetime(date_updated),
       report: report,
+      device_info: device_info,
       data: data
     })
   end

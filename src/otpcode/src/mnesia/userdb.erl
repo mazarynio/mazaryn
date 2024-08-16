@@ -13,7 +13,7 @@
          get_save_posts/1, get_follower/1, get_following/1,
          block/2, unblock/2, get_blocked/1, search_user/1, search_user_pattern/1,
          insert_avatar/2, insert_banner/2, report_user/4, update_last_activity/2,
-         last_activity_status/1, make_private/1, make_public/1]).
+         last_activity_status/1, make_private/1, make_public/1, get_token/1, validate_user/1]).
 
 -define(LIMIT_SEARCH, 50).
 
@@ -55,17 +55,21 @@ set_user_info(Username, Fields, Values) ->
   Res. 
 
 %% Register User account
-insert(Username, Password, Email) ->
+insert(Username, Password, Email) -> 
     %% check username exist or not
     Fun = fun() ->
             case {check_username(Username), check_email(Email)} of
               {undefined, undefined} ->
                 Now = calendar:universal_time(),
                 Id = nanoid:gen(),
+                AI_User_ID = ai_userdb:insert(Id),
                 TokenID = nanoid:gen(),
                 Address = key_guardian:gen_address(80),
+                QuantumID = key_guardian:gen_address(80),
                 KNode = kademlia:insert_node(Id),
                 User = #user{id = Id,
+                             ai_user_id = AI_User_ID,
+                             quantum_id = QuantumID,
                              username = Username,
                              password = erlpass:hash(Password),
                              email = Email,
@@ -202,7 +206,7 @@ get_user_by_id(Id) ->
     _ -> error
   end.
 
-% TODO: add verified or confirmed field
+% TODO: add verified or confirmed field 
 get_token_by_id(TokenID) ->
   Res = mnesia:transaction(
           fun() ->
@@ -210,7 +214,8 @@ get_token_by_id(TokenID) ->
           end),
   case Res of
     {atomic, []} -> token_not_exist;
-    {atomic, [User]} -> User;
+    % {atomic, [User]} -> User;
+    {atomic, [User]} -> validate_user(User#user.id);
     _ -> error
   end.
 
@@ -525,4 +530,31 @@ make_public(UserID) ->
   end,
   {atomic, Res} = mnesia:transaction(Fun),
   Res.
+
+
+get_token(TokenID) ->
+    F = fun() ->
+        mnesia:index_read(user, TokenID, token_id)
+        end,
+    Res = mnesia:transaction(F),
+    case Res of
+      {atomic, [User]} -> User;
+      {atomic, []} -> not_exist;
+      _ -> error
+    end.
+
+validate_user(UserID) ->
+    Fun = fun() ->
+        case get_user_by_id(UserID) of
+            {error, Reason} ->
+                {error, Reason};
+            User ->
+                UpdatedUser = User#user{verified = true},
+                mnesia:write(UpdatedUser),
+                io:fwrite("~p~n", [UpdatedUser]),
+                UpdatedUser
+        end
+    end,
+    {atomic, Res} = mnesia:transaction(Fun),
+                    Res.
     

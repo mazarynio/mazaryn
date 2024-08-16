@@ -67,4 +67,4 @@ static ErlNifFunc nif_funcs[] = {
     {"apply", 8, box_filter_nif}
 };
 
-ERL_NIF_INIT(box_filter, nif_funcs, NULL, NULL, NULL, NULL)
+ERL_NIF_INIT(box_filter, nif_funcs, nullptr, nullptr, nullptr, nullptr)

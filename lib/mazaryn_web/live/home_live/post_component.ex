@@ -143,6 +143,7 @@ defmodule MazarynWeb.HomeLive.PostComponent do
     PostClient.like_post(user_id, post_id)
 
     post = rebuild_post(post_id)
+    post |> IO.inspect(label: "checki post")
 
     {:noreply,
      socket

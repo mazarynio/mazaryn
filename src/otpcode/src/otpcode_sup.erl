@@ -1,5 +1,6 @@
 -module(otpcode_sup).
 
+-inlcude("business.hrl").
 -include("records.hrl").
 -include("kademlia/kademlia.hrl").
 -include("supervisor.hrl").
@@ -10,7 +11,8 @@
 
 -define(SERVER, ?MODULE).
 -define(MNESIA_DIR, "Mnesia/").
--define(TABLES, [post, notif, user, blog_post, comment, blog_comment, like, chat, media, report, knode]).
+-define(TABLES, [post, notif, user, blog_post, comment, blog_comment, like, chat, media, report, knode, business, ads, quantum,
+ ai_user, ai_post, ai_chat, ai_media, ai_business, ai_ads]).
 
 %% API
 start_link() ->
@@ -36,7 +38,16 @@ init([]) ->
         ?CHAT_SERVER,
         ?BLOG_SERVER,
         ?MEDIA_SERVER,
-        ?NOTIF_EVENT
+        ?NOTIF_EVENT,
+        ?BUSINESS_SERVER,
+        ?QUANTUM_SERVER,
+        ?ADS_SERVER,
+        ?AI_USER_SERVER,
+        ?AI_POST_SERVER,
+        ?AI_CHAT_SERVER,
+        ?AI_MEDIA_SERVER,
+        ?AI_BUSINESS_SERVER,
+        ?AI_ADS_SERVER
     ],
     {ok, {SupFlags, ChildSpecs}}.
 
@@ -179,4 +190,13 @@ table_attributes(like) -> record_info(fields, like);
 table_attributes(chat) -> record_info(fields, chat);
 table_attributes(media) -> record_info(fields, media);
 table_attributes(report) -> record_info(fields, report);
-table_attributes(knode) -> record_info(fields, knode).
+table_attributes(knode) -> record_info(fields, knode);
+table_attributes(business) -> record_info(fields, business);
+table_attributes(ads) -> record_info(fields, ads);
+table_attributes(quantum) -> record_info(fields, quantum);
+table_attributes(ai_user) -> record_info(fields, ai_user);
+table_attributes(ai_post) -> record_info(fields, ai_post);
+table_attributes(ai_chat) -> record_info(fields, ai_chat);
+table_attributes(ai_media) -> record_info(fields, ai_media);
+table_attributes(ai_business) -> record_info(fields, ai_business);
+table_attributes(ai_ads) -> record_info(fields, ai_ads).

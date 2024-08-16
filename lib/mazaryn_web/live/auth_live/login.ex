@@ -26,22 +26,27 @@ defmodule MazarynWeb.AuthLive.Login do
         |> Ecto.Changeset.put_change(:form_disabled, true)
         |> Map.put(:action, :insert)
 
-
-        case Login.Form.get_user_by_email(changeset) do
+      case Login.Form.get_user_by_email(changeset) do
         %User{email: email} ->
           insert_session_token(key, email)
 
           {:ok, user} = Account.Users.one_by_email(email)
-          if(user.verified === true) do
-            user|> IO.inspect(label: "USER record")
-            {:noreply,
-            push_redirect(socket,
-              to: Routes.live_path(socket, MazarynWeb.HomeLive.Home, socket.assigns.locale)
-            )}
-          else
-            {:noreply, assign(socket |> put_flash(:error, "Account not verified."), changeset: changeset)}
-          end
 
+          if(user.verified === true) do
+            user |> IO.inspect(label: "USER record")
+
+            {:noreply,
+             push_redirect(socket,
+               to: Routes.live_path(socket, MazarynWeb.HomeLive.Home, socket.assigns.locale)
+             )}
+          else
+            socket =
+              socket
+              |> assign(mess: "unverified")
+              |> assign(changeset: changeset)
+
+            {:noreply, socket}
+          end
 
         changeset ->
           changeset =
@@ -50,6 +55,8 @@ defmodule MazarynWeb.AuthLive.Login do
 
           {:noreply, assign(socket, changeset: changeset)}
       end
+
+      # |> IO.inspect(label: "cheki login ")
     else
       {:noreply, socket}
     end

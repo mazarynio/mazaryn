@@ -9,11 +9,13 @@
 send_msg(UserID, RecipientID, Body, Media) ->
     Fun = fun() ->
         Id = nanoid:gen(),
+        AI_Chat_ID = ai_chatdb:insert(Id),
         Date = calendar:universal_time(),
         [SenderUser] = mnesia:read(user, UserID),
         SenderChats = SenderUser#user.chat,
         mnesia:write(#chat{
             id = Id,
+            ai_chat_id = AI_Chat_ID,
             user_id = UserID,
             recipient_id = RecipientID,
             body = chat_dense_coding:send_msg(Body),

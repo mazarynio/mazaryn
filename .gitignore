@@ -39,3 +39,4 @@ mazaryn-front
 /src/otpcode/src/nif/tensorflow/CMakeCache.txt
 
 .idea
+.iex.exs

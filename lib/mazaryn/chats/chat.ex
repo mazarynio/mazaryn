@@ -3,9 +3,10 @@ defmodule Mazaryn.Chats.Chat do
   use Ecto.Schema
   import Ecto.Changeset
 
-  @fields ~w(id user_id recipient_id body media bot date_created date_updated data)a
+  @fields ~w(id ai_chat_id user_id recipient_id body media bot date_created date_updated data)a
   @required_fields ~w(user_id recipient_id body)a
   embedded_schema do
+    field(:ai_chat_id, :string)
     field(:user_id, :string)
     field(:recipient_id, :string)
     field(:body, :string)
@@ -32,7 +33,7 @@ defmodule Mazaryn.Chats.Chat do
 
   @doc false
   def erl_changeset(
-        {:chat, _id, _user_id, _recipient_id, _body, _media, _bot, _date_created, _date_updated,
+        {:chat, _id, _ai_chat_id, _user_id, _recipient_id, _body, _media, _bot, _date_created, _date_updated,
          _data} = record
       ) do
     params = params(record)

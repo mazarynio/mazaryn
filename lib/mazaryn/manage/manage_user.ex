@@ -34,12 +34,17 @@ defmodule ManageUser do
   end
 
   ## Unverify user by username or user_id
+  @spec unverify_user(any(), any()) :: any()
   def unverify_user(username_or_id, admin_username) do
     :manage_user.unverify_user(username_or_id, admin_username)
   end
 
   def unverify_user_no_admin(username_or_id, admin_username) do
     :manage_user.unverify_user_no_admin(username_or_id, admin_username)
+  end
+
+  def verify_user_no_admin(username_or_id) do
+    :manage_user.verify_user_no_admin(username_or_id)
   end
 
   ## Suspend user based on user_id and duration (target time)

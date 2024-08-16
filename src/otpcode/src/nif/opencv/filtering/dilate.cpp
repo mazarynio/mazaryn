@@ -57,4 +57,4 @@ static ErlNifFunc nif_funcs[] = {
     {"apply", 7, dilate_nif}
 };
 
-ERL_NIF_INIT(dilate, nif_funcs, NULL, NULL, NULL, NULL)
+ERL_NIF_INIT(dilate, nif_funcs, nullptr, nullptr, nullptr, nullptr)

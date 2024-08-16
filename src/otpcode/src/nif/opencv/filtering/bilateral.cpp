@@ -57,4 +57,4 @@ static ErlNifFunc nif_funcs[] = {
     {"apply", 5, bilateral_filter_nif}
 };
 
-ERL_NIF_INIT(bilateral, nif_funcs, NULL, NULL, NULL, NULL)
+ERL_NIF_INIT(bilateral, nif_funcs, nullptr, nullptr, nullptr, nullptr)
