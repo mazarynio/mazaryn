@@ -48,6 +48,7 @@ defmodule Account.User do
     field(:ai_user_id, :string)
     field(:business_id, {:array, :string}, default: [])
     field(:ads_id, {:array, :string}, default: [])
+    field(:quantum_id, :string)
     field(:username, :string)
     field(:email, :string)
     field(:password, :string, virtual: true)
@@ -82,7 +83,7 @@ defmodule Account.User do
   end
 
   def erl_changeset(
-        {:user, id, ai_user_id, business_id, ads_id, username, password, email, address, knode, media, posts, blog_post, notif,
+        {:user, id, ai_user_id, business_id, ads_id, quantum_id, username, password, email, address, knode, media, posts, blog_post, notif,
          following, follower, blocked, saved_posts, other_info, private, date_created,
          date_updated, avatar_url, banner_url, token_id, chat, verified, report, level,
          last_activity, suspend, data} = _user
@@ -111,6 +112,7 @@ defmodule Account.User do
       ai_user_id: ai_user_id,
       business_id: business_id,
       ads_id: ads_id,
+      quantum_id: quantum_id,
       username: username,
       password: password,
       email: email,

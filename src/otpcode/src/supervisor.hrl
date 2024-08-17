@@ -88,6 +88,15 @@
     modules => [ads_server]
 }).
 
+-define(QUANTUM_SERVER, #{
+    id => quantum_server,
+    start => {quantum_server, start_link, []},
+    restart => permanent,
+    shutdown => 5000,
+    type => worker,
+    modules => [quantum_server]
+}).
+
 -define(AI_USER_SERVER, #{
     id => ai_user_server,
     start => {ai_user_server, start_link, []},

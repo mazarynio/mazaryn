@@ -15,11 +15,12 @@
 %% if post or comment do not have media,
 %% their value in record are nil
 
-insert(Author, Content, Emoji, Media, Hashtag, Mention, Link_URL) -> 
+insert(Author, Content, Emoji, Media, Hashtag, Mention, Link_URL) ->  
   F = fun() ->
           Id = nanoid:gen(),
           Date = calendar:universal_time(),
           AI_Post_ID = ai_postdb:insert(Id),
+          Device = device:nif_device_info(),
           mnesia:write(#post{id = Id,
                              ai_post_id = AI_Post_ID,
                              content = erl_deen:main(Content),
@@ -29,7 +30,8 @@ insert(Author, Content, Emoji, Media, Hashtag, Mention, Link_URL) ->
                              hashtag = Hashtag,
                              mention = Mention,
                              link_url = Link_URL,
-                             date_created = Date}),
+                             date_created = Date,
+                             device_info = Device}),
           [User] = mnesia:index_read(user, Author, username),
           Posts = User#user.post,
           mnesia:write(User#user{post = [Id | Posts]}),
