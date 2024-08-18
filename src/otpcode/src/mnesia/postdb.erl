@@ -1,7 +1,7 @@
 -module(postdb).
 -author("Zaryn Technologies").
--export([insert/7, get_post_by_id/1,
-         modify_post/7, get_posts_by_author/1, 
+-export([insert/7, get_post_by_id/1, get_post_content_by_id/1,
+         modify_post/7, get_posts_by_author/1, get_posts_content_by_author/1,
          get_posts_by_hashtag/1, update_post/2,
          delete_post/1, get_posts/0,
          get_all_posts_from_date/4, get_all_posts_from_month/3,
@@ -70,6 +70,14 @@ get_post_by_id(Id) ->
   {atomic, Res} = mnesia:transaction(Fun),
   Res.
 
+get_post_content_by_id(Id) -> 
+    Fun = fun() ->
+              [Post] = mnesia:read({post, Id}),
+              Post#post.content
+          end,
+    {atomic, Res} = mnesia:transaction(Fun),
+    Res.
+
 %% get_posts_by_author(Username)
 get_posts_by_author(Author) ->
   Fun = fun() ->
@@ -78,6 +86,14 @@ get_posts_by_author(Author) ->
         end,
   {atomic, Res} = mnesia:transaction(Fun),
   Res.
+
+get_posts_content_by_author(Author) ->
+    Fun = fun() ->
+              Posts = mnesia:match_object(#post{author = Author, _ = '_'}),
+              [Post#post.content || Post <- Posts]
+          end,
+    {atomic, Res} = mnesia:transaction(Fun),
+    Res.
 
 get_posts_by_hashtag(Hashtag) ->
   Fun = fun() ->

@@ -26,10 +26,18 @@ defmodule Core.PostClient do
   def get_by_id(id) do
     :post_server.get_post_by_id(id)
   end
+  ## Get post's Content using PostID
+  def get_post_content_by_id(id) do
+    :post_server.get_post_content_by_id(id)
+  end
 
   ## Get all posts of specific user using username
   def get_posts_by_author(author) do
     :post_server.get_posts_by_author(author)
+  end
+
+  def get_posts_content_by_author(author) do
+    :post_server.get_posts_content_by_author(author)
   end
 
   ## Get all posts related to Specific Hashtag
