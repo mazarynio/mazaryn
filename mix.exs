@@ -78,8 +78,9 @@ defmodule Mazaryn.MixProject do
       {:rustler, "~> 0.29"},
 
       # Machine Learning
-      {:nx, "~> 0.5"},
+      {:nx, "~> 0.7"},
       {:earmark, "~> 1.4"},
+      {:axon, "~> 0.6"},
 
       # OpenAI
       {:ex_openai, "~> 1.2.1"}
