@@ -23,16 +23,17 @@ defmodule MazarynWeb.AuthLive.Login do
       changeset =
         Login.Form.changeset(%Login.Form{}, params)
         |> Ecto.Changeset.put_change(:form_submitted, true)
-        |> Ecto.Changeset.put_change(:form_disabled, true)
+        |> Ecto.Changeset.put_change(:form_disabled, false)
         |> Map.put(:action, :insert)
 
       case Login.Form.get_user_by_email(changeset) do
         %User{email: email} ->
           insert_session_token(key, email)
 
-          {:ok, user} = Account.Users.one_by_email(email)
+          {:ok, user} =
+            Account.Users.one_by_email(email)
 
-          if(user.verified === true) do
+          if Mix.env() == :dev do
             user |> IO.inspect(label: "USER record")
 
             {:noreply,
@@ -40,12 +41,21 @@ defmodule MazarynWeb.AuthLive.Login do
                to: Routes.live_path(socket, MazarynWeb.HomeLive.Home, socket.assigns.locale)
              )}
           else
-            socket =
-              socket
-              |> assign(mess: "unverified")
-              |> assign(changeset: changeset)
+            if(user.verified === true) do
+              user |> IO.inspect(label: "USER record")
 
-            {:noreply, socket}
+              {:noreply,
+               push_redirect(socket,
+                 to: Routes.live_path(socket, MazarynWeb.HomeLive.Home, socket.assigns.locale)
+               )}
+            else
+              socket =
+                socket
+                |> assign(mess: "unverified")
+                |> assign(changeset: changeset)
+
+              {:noreply, socket}
+            end
           end
 
         changeset ->
