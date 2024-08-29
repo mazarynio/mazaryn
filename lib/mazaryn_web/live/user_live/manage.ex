@@ -129,7 +129,7 @@ defmodule MazarynWeb.UserLive.Manage do
 
   def fetch_data(data) do
     Enum.map(data, fn
-      {:user, id, username, password_hash, email, address, knode, media, post, blog_post, notif,
+      {:user, id, ai_user_id, business_id, ads_id, quantum_id, username, password_hash, email, address, knode, media, posts, blog_post, notif,
        following, follower, blocked, saved_posts, other_info, private, date_created, date_updated,
        avatar_url, banner_url, token_id, chat, verified, report, level, last_activity, suspend,
        data} ->
@@ -138,15 +138,18 @@ defmodule MazarynWeb.UserLive.Manage do
 
         %{
           id: id,
+          ai_user_id: ai_user_id,
+          business_id: business_id,
+          ads_id: ads_id,
+          quantum_id: quantum_id,
           username: username,
           password: password_hash,
           email: email,
           address: address,
           knode: knode,
           media: media,
-          post: post,
+          posts: posts,
           blog_post: blog_post,
-          notif: notif,
           following: following,
           follower: follower,
           blocked: blocked,
@@ -158,6 +161,7 @@ defmodule MazarynWeb.UserLive.Manage do
           avatar_url: avatar_url,
           banner_url: banner_url,
           token_id: token_id,
+          notif: notif,
           chat: chat,
           verified: verified,
           report: report,
