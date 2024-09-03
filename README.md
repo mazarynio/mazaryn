@@ -2,7 +2,7 @@
 
 ##### OpenSource Social Network which Empower users to explore their Talents
 
-#### If you're Interested to Joining on the Core team Connect via mail: support@mazaryn.io
+#### If you're Interested to Joining on the Core team Connect via mail: admin@mazaryn.io
 
 To start your Phoenix server:
   
