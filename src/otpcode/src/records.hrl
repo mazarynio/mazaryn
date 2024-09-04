@@ -90,7 +90,7 @@
 
 -record(chat, {id, 
                ai_chat_id,
-               user_id,
+               user_id, 
                recipient_id,
                body,
                media = [],
