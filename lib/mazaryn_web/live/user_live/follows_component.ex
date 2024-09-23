@@ -5,7 +5,7 @@ defmodule MazarynWeb.UserLive.FollowsComponent do
   def render(assigns) do
     ~H"""
     <div id="follows">
-      <%= for {:ok, user} <- @following do %>
+      <%= for user <- @following do %>
         <div class="flex w-full justify-between items-center my-4">
           <div class="mr-3">
             <%= if user.avatar_url do %>
@@ -54,6 +54,8 @@ defmodule MazarynWeb.UserLive.FollowsComponent do
   end
 
   def update(%{current_user: %Account.User{following: following_ids}} = assigns, socket) do
+    IO.inspect(assigns, label: "follows --->")
+
     {:ok,
      socket
      |> assign(assigns)
@@ -62,7 +64,6 @@ defmodule MazarynWeb.UserLive.FollowsComponent do
 
   defp get_following(following_ids) do
     following_ids
-    |> Enum.map(fn following_id -> following_id |> Core.UserClient.get_user_by_id() end)
-    |> Enum.map(&(&1 |> elem(2) |> Account.Users.one_by_username()))
+    |> Enum.map(fn following_id -> following_id |> Account.Users.get_user_by_id() end)
   end
 end

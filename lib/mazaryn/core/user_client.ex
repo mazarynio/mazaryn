@@ -30,6 +30,7 @@ defmodule Core.UserClient do
     :user_server.login(email, password)
   end
 
+  @spec set_user_info(any(), any(), any()) :: any()
   def set_user_info(username, fields, values) do
     :user_server.set_user_info(username, fields, values)
   end

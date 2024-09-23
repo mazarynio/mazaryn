@@ -83,10 +83,10 @@ defmodule Account.User do
   end
 
   def erl_changeset(
-        {:user, id, ai_user_id, business_id, ads_id, quantum_id, username, password, email, address, knode, media, posts, blog_post, notif,
-         following, follower, blocked, saved_posts, other_info, private, date_created,
-         date_updated, avatar_url, banner_url, token_id, chat, verified, report, level,
-         last_activity, suspend, data} = _user
+        {:user, id, ai_user_id, business_id, ads_id, quantum_id, username, password, email,
+         address, knode, media, posts, blog_post, notif, following, follower, blocked,
+         saved_posts, other_info, private, date_created, date_updated, avatar_url, banner_url,
+         token_id, chat, verified, report, level, last_activity, suspend, data} = _user
       ) do
     avatar_url =
       case avatar_url do

@@ -33,8 +33,8 @@ defmodule Mazaryn.Chats.Chat do
 
   @doc false
   def erl_changeset(
-        {:chat, _id, _ai_chat_id, _user_id, _recipient_id, _body, _media, _bot, _date_created, _date_updated,
-         _data} = record
+        {:chat, _id, _ai_chat_id, _user_id, _recipient_id, _body, _media, _bot, _date_created,
+         _date_updated, _data} = record
       ) do
     params = params(record)
 

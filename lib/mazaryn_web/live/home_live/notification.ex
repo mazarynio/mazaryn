@@ -48,14 +48,21 @@ defmodule MazarynWeb.HomeLive.Notification do
                       src={user.avatar_url || "/images/default-user.svg"}
                     />
                     <div class="ml-3.5 text-sm leading-tight mt-5">
-                    <span class="block text-[#60616D] text-sm">
+                      <span class="block text-[#60616D] text-sm">
                         <a
                           class="text-blue-500"
-                          href={Routes.live_path(@socket, MazarynWeb.UserLive.Profile, user.username, @locale)}
+                          href={
+                            Routes.live_path(
+                              @socket,
+                              MazarynWeb.UserLive.Profile,
+                              user.username,
+                              @locale
+                            )
+                          }
                         >
                           <%= user.username %>
                         </a>
-                    </span>
+                      </span>
                       <span class="block text-[#60616D] text-sm"><%= message %></span>
                       <span class="block text-[#60616D] text-sm"><%= time_passed %></span>
                     </div>

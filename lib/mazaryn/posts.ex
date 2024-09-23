@@ -75,6 +75,32 @@ defmodule Mazaryn.Posts do
     end
   end
 
+  # comments
+  def build_comments_structure(id) do
+    case Core.PostClient.get_single_comment(id) do
+      erl_comment ->
+        erl_comment
+        |> Comment.erl_changeset()
+        |> Comment.build()
+    end
+  end
+
+  # fetch comments by post id
+  def get_comment_by_post_id(post_id) do
+    case :postdb.get_comments() do
+      comments when is_list(comments) ->
+        comments
+        |> Enum.map(fn comment ->
+          {:ok, comment} =
+            comment
+            |> build_comments_structure()
+
+          comment
+        end)
+        |> Enum.filter(&(&1.post_id == post_id))
+    end
+  end
+
   def get_posts_by_author(author) do
     case PostClient.get_posts_by_author(author) do
       posts when is_list(posts) ->
@@ -158,5 +184,10 @@ defmodule Mazaryn.Posts do
   def create_a_post(author, content, media \\ [], hashtag, mention, link_url) do
     PostClient.create(author, content, media, hashtag, mention, link_url)
     |> one_by_id()
+  end
+
+  @spec get_likes_by_post_id(integer()) :: list(map())
+  def get_likes_by_post_id(post_id) do
+    Core.PostClient.get_likes(post_id)
   end
 end

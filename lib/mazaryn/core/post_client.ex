@@ -26,6 +26,7 @@ defmodule Core.PostClient do
   def get_by_id(id) do
     :post_server.get_post_by_id(id)
   end
+
   ## Get post's Content using PostID
   def get_post_content_by_id(id) do
     :post_server.get_post_content_by_id(id)
