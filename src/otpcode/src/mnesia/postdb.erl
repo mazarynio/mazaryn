@@ -8,6 +8,7 @@
          like_post/2, unlike_post/2, add_comment/3, update_comment/2,
          get_all_comments/1, delete_comment/2, get_likes/1,
          get_single_comment/1, get_media/1, report_post/4, update_activity/2]).
+-export([get_comments/0]).
 
 -include("../records.hrl").
 -include_lib("stdlib/include/qlc.hrl").
@@ -237,6 +238,15 @@ get_all_comments(PostId) ->
         end,
   {atomic, Res} = mnesia:transaction(Fun),
   Res.
+
+%% Get all posts
+get_comments() ->
+  Fun = fun() ->
+            mnesia:all_keys(comment)
+        end,
+  {atomic, Res} = mnesia:transaction(Fun),
+  Res.
+
 
 delete_comment(CommentID, PostId) ->
   Fun = fun() -> 

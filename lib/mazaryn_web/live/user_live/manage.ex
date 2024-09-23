@@ -129,10 +129,10 @@ defmodule MazarynWeb.UserLive.Manage do
 
   def fetch_data(data) do
     Enum.map(data, fn
-      {:user, id, ai_user_id, business_id, ads_id, quantum_id, username, password_hash, email, address, knode, media, posts, blog_post, notif,
-       following, follower, blocked, saved_posts, other_info, private, date_created, date_updated,
-       avatar_url, banner_url, token_id, chat, verified, report, level, last_activity, suspend,
-       data} ->
+      {:user, id, ai_user_id, business_id, ads_id, quantum_id, username, password_hash, email,
+       address, knode, media, posts, blog_post, notif, following, follower, blocked, saved_posts,
+       other_info, private, date_created, date_updated, avatar_url, banner_url, token_id, chat,
+       verified, report, level, last_activity, suspend, data} ->
         naive_datetime = NaiveDateTime.from_erl!(last_activity)
         human_readable_time = NaiveDateTime.to_string(naive_datetime)
 

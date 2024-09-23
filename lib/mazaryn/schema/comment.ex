@@ -22,7 +22,6 @@ defmodule Mazaryn.Schema.Comment do
   embedded_schema do
     field(:content, :string)
     field(:date_created, :date)
-
     field(:author, :string)
     field(:post_id, :string)
     field(:data, :map)

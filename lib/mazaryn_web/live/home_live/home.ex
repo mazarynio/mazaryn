@@ -7,6 +7,7 @@ defmodule MazarynWeb.HomeLive.Home do
   alias Account.Users
   alias Account.User
   alias Core.PostClient
+  alias Phoenix.LiveView.JS
 
   require Logger
 
@@ -22,6 +23,21 @@ defmodule MazarynWeb.HomeLive.Home do
   def mount(_params, %{"session_uuid" => session_uuid} = _session, socket) do
     socket |> assign(results: [])
     {:ok, do_mount(get_user_id(session_uuid), socket)}
+  end
+
+  @impl true
+  def handle_event("show-comments", %{"id" => post_id}, socket) do
+    JS.toggle(to: "#test-toggle", in: "fade-in-scale", out: "fade-out-scale")
+    IO.inspect(post_id)
+
+    comments =
+      post_id
+      |> to_charlist()
+      |> Mazaryn.Posts.get_comment_by_post_id()
+
+    IO.inspect(comments, label: "this comments are workin")
+
+    {:noreply, socket |> assign(:comments, comments)}
   end
 
   @impl true

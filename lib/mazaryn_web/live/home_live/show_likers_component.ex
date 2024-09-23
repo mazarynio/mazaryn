@@ -4,7 +4,7 @@ defmodule MazarynWeb.HomeLive.ShowLikersComponent do
   def render(assigns) do
     ~H"""
     <div id="likers">
-      <%= for {:ok, user} <- @users do %>
+      <%= for user <- @users do %>
         <div class="flex w-full justify-between items-center my-4">
           <div class="mr-3">
             <%= if user.avatar_url do %>
@@ -63,7 +63,6 @@ defmodule MazarynWeb.HomeLive.ShowLikersComponent do
     post_id
     |> Core.PostClient.get_likes()
     |> Enum.map(&(&1 |> Home.Like.erl_changeset() |> Home.Like.build() |> elem(1)))
-    |> Enum.map(fn like -> like.user_id |> Core.UserClient.get_user_by_id() end)
-    |> Enum.map(&(&1 |> elem(2) |> Account.Users.one_by_username()))
+    |> Enum.map(fn like -> like.user_id |> Account.Users.get_user_by_id() end)
   end
 end
