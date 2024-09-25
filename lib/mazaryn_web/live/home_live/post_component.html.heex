@@ -158,7 +158,11 @@
     </div>
   </div>
   <div class="flex items-center mr-6">
-    <span class="text-[#4385F5] text-base cursor-pointer" phx-value-id={@post.id} phx-click={Phoenix.LiveView.JS.toggle(to: "#view-comments-#{@post.id}")}>
+    <span
+      class="text-[#4385F5] text-base cursor-pointer"
+      phx-value-id={@post.id}
+      phx-click={Phoenix.LiveView.JS.toggle(to: "#view-comments-#{@post.id}")}
+    >
       View <%= Enum.count(@post.likes) %> comments
     </span>
   </div>
@@ -192,8 +196,6 @@
   </div>
 
   <div id={"view-comments-#{@post.id}"} class="w-full flex flex-col justify-start items-center">
-    <div></div>
-    <div></div>
     <%= for comment <- Mazaryn.Posts.get_comment_by_post_id(@post.id |> to_charlist) do %>
       <div
         x-data="{open: false, openComment: false}"
@@ -311,7 +313,11 @@
 
     <%= if @like_action do %>
       <.modal>
-        <.live_component module={MazarynWeb.HomeLive.ShowLikersComponent} locale={@locale} id={@post.id} />
+        <.live_component
+          module={MazarynWeb.HomeLive.ShowLikersComponent}
+          locale={@locale}
+          id={@post.id}
+        />
       </.modal>
     <% end %>
   </div>

@@ -61,7 +61,8 @@ defmodule MazarynWeb.HomeLive.PostComponent do
       ) do
     post_id = post_id |> to_charlist
     comment_id = comment_id |> to_charlist
-    PostClient.delete_comment(comment_id, post_id)
+
+    :postdb.delete_comment_from_mnesia(comment_id)
 
     post =
       post_id

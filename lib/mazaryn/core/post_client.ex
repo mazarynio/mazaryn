@@ -101,6 +101,10 @@ defmodule Core.PostClient do
     :post_server.delete_comment(commentID, postId)
   end
 
+  def delete_comment_from_mnesia(commentID) do
+    :post_server.delete_comment_from_mnesia(commentID)
+  end
+
   ## Get all likes for specific post using PostID
   def get_likes(postID) do
     :post_server.get_likes(postID)
