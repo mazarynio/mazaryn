@@ -97,13 +97,13 @@
     <span class="text-[#4385F5] text-sm"><%= Enum.join(@post.profile_tags, " ") %></span>
   </p>
 
-  <div class="w-full grid grid-cols-4 gap-4">
-    <%= for _media_url <- @post.media do %>
-      <img
-        class="rounded-full align-middle border border-gray-100 max-h-6 max-w-6 mt-2 rounded-2xl"
-        src={Routes.static_path(@socket, "/images/hand-thumb-up.svg")}
-      />
-    <% end %>
+  <div :if={!Enum.empty?(@post.media)} class="w-full grid grid-cols-4 gap-4">
+    <%!-- <%= for _media_url <- @post.media do %> --%>
+    <img
+      class="align-middle border border-gray-100 max-h-6 max-w-6 mt-2 rounded-2xl"
+      src={Routes.static_path(@socket, "/images/hand-thumb-up.svg")}
+    />
+    <%!-- <% end %> --%>
   </div>
 
   <div class="text-gray-500 flex mt-3 pt-10 pb-5">
@@ -122,7 +122,7 @@
         phx-value-action="like-post"
         phx-click={JS.push("open_modal") |> open_modal()}
       >
-        <%= Enum.count(Posts.get_likes_by_post_id(@post.id)) %>
+        <%= Enum.count(@post.media) %>
       </span>
     </div>
     <div class="flex items-baseline mr-6">

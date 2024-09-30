@@ -28,6 +28,7 @@ defmodule MazarynWeb.HomeLive.PostComponent do
         |> Map.put(:comments, assigns.post.comments)
         |> Map.put(:report_action, false)
         |> Map.put(:like_action, false)
+        |> Map.put(:is_liked, false)
 
       assign(socket, assigns)
     end)
@@ -180,16 +181,22 @@ defmodule MazarynWeb.HomeLive.PostComponent do
     post = rebuild_post(post_id)
     post |> IO.inspect(label: "checki post")
 
+    Posts.get_likes_by_post_id(post_id)
+    |> IO.inspect(label: "likes kess")
+
     {:noreply,
      socket
      |> assign(:post, post)
      |> assign(:like_icon, like_icon(user_id, post_id))
-     |> assign(:like_event, like_event(user_id, post_id))}
+     |> assign(:like_event, like_event(user_id, post_id))
+     |> assign(:is_liked, true)}
   end
 
   def handle_event("unlike_post", %{"post-id" => post_id}, socket) do
     post_id = post_id |> to_charlist
     user_id = socket.assigns.current_user.id
+
+    Posts.get_likes_by_post_id(post_id)
 
     like =
       post_id
@@ -197,13 +204,11 @@ defmodule MazarynWeb.HomeLive.PostComponent do
       |> Enum.map(&(&1 |> Home.Like.erl_changeset() |> Home.Like.build() |> elem(1)))
       |> Enum.filter(&(&1.user_id == user_id))
       |> hd()
-      |> IO.inspect(label: "unlikes")
 
     PostClient.unlike_post(like.id, post_id)
 
     post =
       rebuild_post(post_id)
-      |> IO.inspect(label: "posts on unlike")
 
     {:noreply,
      socket
@@ -238,8 +243,6 @@ defmodule MazarynWeb.HomeLive.PostComponent do
   end
 
   def handle_event("open_modal", %{"action" => "like-post"}, socket) do
-    IO.puts("this is the open modal for likes")
-
     {:noreply,
      socket
      |> assign(
