@@ -6,7 +6,7 @@
          delete_post/1, get_posts/0,
          get_all_posts_from_date/4, get_all_posts_from_month/3,
          like_post/2, unlike_post/2, add_comment/3, update_comment/2,
-         get_all_comments/1, delete_comment/2, get_likes/1,
+         get_all_comments/1, delete_comment/2, delete_comment_from_mnesia/1, get_likes/1,
          get_single_comment/1, get_media/1, report_post/4, update_activity/2]).
 -export([get_comments/0]).
 
@@ -255,6 +255,13 @@ delete_comment(CommentID, PostId) ->
             mnesia:write(Post#post{comments = Update,
                                    date_created = calendar:universal_time()})
         end,
+  {atomic, Res} = mnesia:transaction(Fun),
+  Res.
+
+delete_comment_from_mnesia(CommentID) ->
+  Fun = fun() -> 
+    mnesia:delete({comment, CommentID})
+  end,
   {atomic, Res} = mnesia:transaction(Fun),
   Res.
 
