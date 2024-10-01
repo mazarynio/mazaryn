@@ -58,18 +58,15 @@ modify_post(Author, NewContent, NewEmoji, NewMedia, NewHashtag, NewMention, NewL
 
 %% Get post by PostID
 get_post_by_id(Id) ->
-  Fun = fun() ->
-            mnesia:match_object(#comment{post = Id,
-                                         _ = '_'}),
-            [Post] = mnesia:read({post, Id}),
-            Comments = lists:foldl(fun(Id, Acc) ->
-                                       [Comment] = mnesia:read({comment, Id}),
-                                       [Comment|Acc]
-                                   end,[], Post#post.comments),
-            Post#post{comments = Comments}
-        end,
-  {atomic, Res} = mnesia:transaction(Fun),
-  Res.
+  Res = mnesia:transaction(
+          fun() ->
+              mnesia:match_object(#post{id = Id, _= '_'})
+          end),
+  case Res of
+    {atomic, []} -> post_not_exist;
+    {atomic, [Post]} -> Post;
+    _ -> error
+  end.
 
 get_post_content_by_id(Id) -> 
     Fun = fun() ->
