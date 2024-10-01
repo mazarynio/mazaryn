@@ -62,8 +62,11 @@ defmodule MazarynWeb.HomeLive.PostComponent do
       ) do
     post_id = post_id |> to_charlist
     comment_id = comment_id |> to_charlist
+    IO.inspect(comment_id, label: "comment id")
+    IO.inspect(post_id, label: "post id")
 
-    PostClient.delete_comment(comment_id, post_id)
+    :postdb.delete_comment_from_mnesia(comment_id)
+    |> IO.inspect(label: "delete comment feedback")
 
     post =
       post_id
@@ -120,7 +123,7 @@ defmodule MazarynWeb.HomeLive.PostComponent do
   end
 
   def handle_event("save-comment", %{"comment" => comment_params} = _params, socket) do
-    IO.inspect(comment_params, label: "the comments")
+    IO.inspect(comment_params, label: "the comments that is beeing added")
 
     %Comment{}
     |> Comment.changeset(comment_params)
@@ -135,9 +138,9 @@ defmodule MazarynWeb.HomeLive.PostComponent do
 
     IO.puts("below i am buildting")
 
-    Enum.map(post.likes, fn p ->
-      IO.inspect(p |> Mazaryn.Schema.Comment.build(), label: "comment has been build")
-    end)
+    # Enum.map(post.likes, fn p ->
+    #   IO.inspect(p |> Mazaryn.Schema.Comment.build(), label: "comment has been build")
+    # end)
 
     comments = Posts.get_comment_by_post_id(post.id)
 
@@ -196,7 +199,7 @@ defmodule MazarynWeb.HomeLive.PostComponent do
     post_id = post_id |> to_charlist
     user_id = socket.assigns.current_user.id
 
-    Posts.get_likes_by_post_id(post_id)
+    # Posts.get_likes_by_post_id(post_id)
 
     like =
       post_id
