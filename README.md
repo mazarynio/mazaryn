@@ -1,19 +1,8 @@
 # Mazaryn
 
-##### OpenSource Social Network which Empower users to benefits Form the Blockchain Projects on a Secure Platform
+##### OpenSource Social Network which Empower users to explore their Talents
 
-##### The Current Supported Projects: Aeternity, Polkadot & Kusama, Cardano, Hedera
- ![image](https://user-images.githubusercontent.com/59366270/186899335-8d643e93-6f69-4ae9-8079-ebe2670d474b.png)
- ![image](https://user-images.githubusercontent.com/59366270/186899239-0e5be8cf-ad6b-478a-b2c1-698fe7295bb2.png)
- ![image](https://user-images.githubusercontent.com/59366270/186899085-265ee32e-5b39-431a-b62e-3d490e572991.png)
- ![image](https://user-images.githubusercontent.com/59366270/186899448-66fef70f-efed-4be8-ac2e-ff20db893e7e.png)
- 
-
-
-
-
-
-#### If you're Interested to Joining on the Core team Connect via mail: support@mazaryn.io
+#### If you're Interested to Joining on the Core team Connect via mail: admin@mazaryn.io
 
 To start your Phoenix server:
   

@@ -5,7 +5,7 @@ defmodule MazarynWeb.UserLive.FollowerComponent do
   def render(assigns) do
     ~H"""
     <div id="followers">
-      <%= for {:ok, user} <- @followers do %>
+      <%= for user <- @followers do %>
         <div class="flex w-full justify-between items-center my-4">
           <div class="mr-3">
             <%= if user.avatar_url do %>
@@ -62,7 +62,6 @@ defmodule MazarynWeb.UserLive.FollowerComponent do
 
   defp get_followers(follower_ids) do
     follower_ids
-    |> Enum.map(fn follower_id -> follower_id |> Core.UserClient.get_user_by_id() end)
-    |> Enum.map(&(&1 |> elem(2) |> Account.Users.one_by_username()))
+    |> Enum.map(fn follower_id -> follower_id |> Account.Users.get_user_by_id() end)
   end
 end

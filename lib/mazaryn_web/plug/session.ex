@@ -23,8 +23,8 @@ defmodule MazarynWeb.Plug.Session do
   def check_if_admin(conn, _opts) do
     user_id = Map.get(conn.assigns, :user_id)
 
-    {:user, _, username, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
-     _, _} = Core.UserClient.get_user_by_email(user_id)
+    {:user, _, _, _, _, _, username, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
+     _, _, _, _, _, _} = Core.UserClient.get_user_by_email(user_id)
 
     if username == nil do
       conn

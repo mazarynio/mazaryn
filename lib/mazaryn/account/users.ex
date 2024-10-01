@@ -163,4 +163,16 @@ defmodule Account.Users do
     UserClient.register(username, password, email)
     |> one_by_id()
   end
+
+  @spec get_user_by_id(charlist()) :: map()
+  def get_user_by_id(id) do
+    {:ok, user} =
+      id
+      |> to_charlist()
+      |> Core.UserClient.get_user_by_id()
+      |> User.erl_changeset()
+      |> User.build()
+
+    user
+  end
 end

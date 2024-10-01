@@ -28,6 +28,7 @@ defmodule MazarynWeb.HomeLive.PostComponent do
         |> Map.put(:comments, assigns.post.comments)
         |> Map.put(:report_action, false)
         |> Map.put(:like_action, false)
+        |> Map.put(:is_liked, false)
 
       assign(socket, assigns)
     end)
@@ -61,16 +62,19 @@ defmodule MazarynWeb.HomeLive.PostComponent do
       ) do
     post_id = post_id |> to_charlist
     comment_id = comment_id |> to_charlist
+
     PostClient.delete_comment(comment_id, post_id)
 
     post =
       post_id
       |> rebuild_post()
 
+    comments = Posts.get_comment_by_post_id(post.id)
+
     {:noreply,
      socket
      |> assign(:post, post)
-     |> assign(:comments, post.comments)}
+     |> assign(:comments, comments)}
   end
 
   def handle_event("validate-update-comment", %{"comment" => comment_params} = _params, socket) do
@@ -83,19 +87,26 @@ defmodule MazarynWeb.HomeLive.PostComponent do
   end
 
   def handle_event("update-comment", %{"comment" => comment_params} = _params, socket) do
+    IO.puts("this is working")
+
     comment =
       %Comment{}
       |> Comment.update_changeset(comment_params)
       |> Posts.update_comment()
+      |> IO.inspect(label: "this is another commen")
 
     post =
       comment.changes.post_id
       |> rebuild_post()
+      |> IO.inspect(label: "this is the post ---->>>>")
+
+    IO.inspect(post, label: "post-->")
+    comments = Posts.get_comment_by_post_id(post.id)
 
     {:noreply,
      socket
      |> assign(:post, post)
-     |> assign(:comments, post.comments)
+     |> assign(:comments, comments)
      |> assign(:update_comment_changeset, Comment.changeset(%Comment{}))}
   end
 
@@ -109,20 +120,45 @@ defmodule MazarynWeb.HomeLive.PostComponent do
   end
 
   def handle_event("save-comment", %{"comment" => comment_params} = _params, socket) do
+    IO.inspect(comment_params, label: "the comments")
+
     %Comment{}
     |> Comment.changeset(comment_params)
     |> Posts.create_comment()
+    |> IO.inspect(label: "the comment that has been added")
 
     post =
       comment_params["post_id"]
       |> to_charlist
       |> rebuild_post()
+      |> IO.inspect(label: "this is working")
+
+    IO.puts("below i am buildting")
+
+    Enum.map(post.likes, fn p ->
+      IO.inspect(p |> Mazaryn.Schema.Comment.build(), label: "comment has been build")
+    end)
+
+    comments = Posts.get_comment_by_post_id(post.id)
 
     {:noreply,
      socket
      |> assign(:post, post)
-     |> assign(:comments, post.comments)
+     |> assign(:comments, comments)
      |> assign(:changeset, Comment.changeset(%Comment{}))}
+  end
+
+  def handle_event("show-comments", %{"id" => post_id}, socket) do
+    # get the comments by post_id
+    Phoenix.LiveView.JS.toggle(to: "test")
+
+    comments =
+      Posts.get_comment_by_post_id(post_id)
+      |> IO.inspect()
+
+    {:noreply,
+     socket
+     |> assign(:comments, comments)}
   end
 
   def handle_event("follow_user", %{"username" => username}, socket) do
@@ -145,16 +181,22 @@ defmodule MazarynWeb.HomeLive.PostComponent do
     post = rebuild_post(post_id)
     post |> IO.inspect(label: "checki post")
 
+    Posts.get_likes_by_post_id(post_id)
+    |> IO.inspect(label: "likes kess")
+
     {:noreply,
      socket
      |> assign(:post, post)
      |> assign(:like_icon, like_icon(user_id, post_id))
-     |> assign(:like_event, like_event(user_id, post_id))}
+     |> assign(:like_event, like_event(user_id, post_id))
+     |> assign(:is_liked, true)}
   end
 
   def handle_event("unlike_post", %{"post-id" => post_id}, socket) do
     post_id = post_id |> to_charlist
     user_id = socket.assigns.current_user.id
+
+    Posts.get_likes_by_post_id(post_id)
 
     like =
       post_id
@@ -165,7 +207,8 @@ defmodule MazarynWeb.HomeLive.PostComponent do
 
     PostClient.unlike_post(like.id, post_id)
 
-    post = rebuild_post(post_id)
+    post =
+      rebuild_post(post_id)
 
     {:noreply,
      socket

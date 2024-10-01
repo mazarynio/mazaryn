@@ -1,13 +1,14 @@
 -module(postdb).
 -author("Zaryn Technologies").
--export([insert/7, get_post_by_id/1,
-         modify_post/7, get_posts_by_author/1, 
+-export([insert/7, get_post_by_id/1, get_post_content_by_id/1,
+         modify_post/7, get_posts_by_author/1, get_posts_content_by_author/1,
          get_posts_by_hashtag/1, update_post/2,
          delete_post/1, get_posts/0,
          get_all_posts_from_date/4, get_all_posts_from_month/3,
          like_post/2, unlike_post/2, add_comment/3, update_comment/2,
-         get_all_comments/1, delete_comment/2, get_likes/1,
+         get_all_comments/1, delete_comment/2, delete_comment_from_mnesia/1, get_likes/1,
          get_single_comment/1, get_media/1, report_post/4, update_activity/2]).
+-export([get_comments/0]).
 
 -include("../records.hrl").
 -include_lib("stdlib/include/qlc.hrl").
@@ -20,7 +21,7 @@ insert(Author, Content, Emoji, Media, Hashtag, Mention, Link_URL) ->
           Id = nanoid:gen(),
           Date = calendar:universal_time(),
           AI_Post_ID = ai_postdb:insert(Id),
-          Device = device:nif_device_info(),
+          %Device = device:nif_device_info(),
           mnesia:write(#post{id = Id,
                              ai_post_id = AI_Post_ID,
                              content = erl_deen:main(Content),
@@ -30,8 +31,8 @@ insert(Author, Content, Emoji, Media, Hashtag, Mention, Link_URL) ->
                              hashtag = Hashtag,
                              mention = Mention,
                              link_url = Link_URL,
-                             date_created = Date,
-                             device_info = Device}),
+                             date_created = Date}),
+                             %device_info = Device}),
           [User] = mnesia:index_read(user, Author, username),
           Posts = User#user.post,
           mnesia:write(User#user{post = [Id | Posts]}),
@@ -57,18 +58,23 @@ modify_post(Author, NewContent, NewEmoji, NewMedia, NewHashtag, NewMention, NewL
 
 %% Get post by PostID
 get_post_by_id(Id) ->
-  Fun = fun() ->
-            mnesia:match_object(#comment{post = Id,
-                                         _ = '_'}),
-            [Post] = mnesia:read({post, Id}),
-            Comments = lists:foldl(fun(Id, Acc) ->
-                                       [Comment] = mnesia:read({comment, Id}),
-                                       [Comment|Acc]
-                                   end,[], Post#post.comments),
-            Post#post{comments = Comments}
-        end,
-  {atomic, Res} = mnesia:transaction(Fun),
-  Res.
+  Res = mnesia:transaction(
+          fun() ->
+              mnesia:match_object(#post{id = Id, _= '_'})
+          end),
+  case Res of
+    {atomic, []} -> post_not_exist;
+    {atomic, [Post]} -> Post;
+    _ -> error
+  end.
+
+get_post_content_by_id(Id) -> 
+    Fun = fun() ->
+              [Post] = mnesia:read({post, Id}),
+              Post#post.content
+          end,
+    {atomic, Res} = mnesia:transaction(Fun),
+    Res.
 
 %% get_posts_by_author(Username)
 get_posts_by_author(Author) ->
@@ -78,6 +84,14 @@ get_posts_by_author(Author) ->
         end,
   {atomic, Res} = mnesia:transaction(Fun),
   Res.
+
+get_posts_content_by_author(Author) ->
+    Fun = fun() ->
+              Posts = mnesia:match_object(#post{author = Author, _ = '_'}),
+              [Post#post.content || Post <- Posts]
+          end,
+    {atomic, Res} = mnesia:transaction(Fun),
+    Res.
 
 get_posts_by_hashtag(Hashtag) ->
   Fun = fun() ->
@@ -222,6 +236,15 @@ get_all_comments(PostId) ->
   {atomic, Res} = mnesia:transaction(Fun),
   Res.
 
+%% Get all posts
+get_comments() ->
+  Fun = fun() ->
+            mnesia:all_keys(comment)
+        end,
+  {atomic, Res} = mnesia:transaction(Fun),
+  Res.
+
+
 delete_comment(CommentID, PostId) ->
   Fun = fun() -> 
             [Post] = mnesia:read(post, PostId),
@@ -229,6 +252,13 @@ delete_comment(CommentID, PostId) ->
             mnesia:write(Post#post{comments = Update,
                                    date_created = calendar:universal_time()})
         end,
+  {atomic, Res} = mnesia:transaction(Fun),
+  Res.
+
+delete_comment_from_mnesia(CommentID) ->
+  Fun = fun() -> 
+    mnesia:delete({comment, CommentID})
+  end,
   {atomic, Res} = mnesia:transaction(Fun),
   Res.
 

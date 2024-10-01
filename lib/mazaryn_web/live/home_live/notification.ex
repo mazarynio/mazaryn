@@ -51,7 +51,14 @@ defmodule MazarynWeb.HomeLive.Notification do
                       <span class="block text-[#60616D] text-sm">
                         <a
                           class="text-blue-500"
-                          href={Routes.live_path(@socket, MazarynWeb.UserLive.Profile, user.username)}
+                          href={
+                            Routes.live_path(
+                              @socket,
+                              MazarynWeb.UserLive.Profile,
+                              user.username,
+                              @locale
+                            )
+                          }
                         >
                           <%= user.username %>
                         </a>

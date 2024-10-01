@@ -50,7 +50,7 @@
           x-transition:leave="transition ease-in duration-200"
           x-transition:leave-start="opacity-100"
           x-transition:leave-end="opacity-0"
-          class="absolute top-4 right-4 bg-white rounded rounded-md text-blue-900 border p-3 border-blue space-y-2 w-32"
+          class="absolute top-4 right-4 bg-white rounded-md text-blue-900 border p-3 border-blue space-y-2 w-32"
         >
           <%= if @post.author != @current_user.username  do %>
             <li class="">
@@ -97,13 +97,13 @@
     <span class="text-[#4385F5] text-sm"><%= Enum.join(@post.profile_tags, " ") %></span>
   </p>
 
-  <div class="w-full grid grid-cols-4 gap-4">
-    <%= for _media_url <- @post.media do %>
-      <img
-        class="rounded-full align-middle border border-gray-100 max-h-6 max-w-6 mt-2 rounded-2xl"
-        src={Routes.static_path(@socket, "/images/hand-thumb-up.svg")}
-      />
-    <% end %>
+  <div :if={!Enum.empty?(@post.media)} class="w-full grid grid-cols-4 gap-4">
+    <%!-- <%= for _media_url <- @post.media do %> --%>
+    <img
+      class="align-middle border border-gray-100 max-h-6 max-w-6 mt-2 rounded-2xl"
+      src={Routes.static_path(@socket, "/images/hand-thumb-up.svg")}
+    />
+    <%!-- <% end %> --%>
   </div>
 
   <div class="text-gray-500 flex mt-3 pt-10 pb-5">
@@ -122,7 +122,7 @@
         phx-value-action="like-post"
         phx-click={JS.push("open_modal") |> open_modal()}
       >
-        <%= Enum.count(@post.likes) %>
+        <%= Enum.count(@post.media) %>
       </span>
     </div>
     <div class="flex items-baseline mr-6">
@@ -160,9 +160,10 @@
   <div class="flex items-center mr-6">
     <span
       class="text-[#4385F5] text-base cursor-pointer"
+      phx-value-id={@post.id}
       phx-click={Phoenix.LiveView.JS.toggle(to: "#view-comments-#{@post.id}")}
     >
-      View <%= Enum.count(@post.comments) %> comments
+      View <%= Enum.count(@post.likes) %> comments
     </span>
   </div>
   <div class="border-[#E5E5E5] border border-b-0 mt-7 mb-3.5"></div>
@@ -193,22 +194,28 @@
     </.form>
     <!-- TODO smiley face and add image -->
   </div>
+
   <div id={"view-comments-#{@post.id}"} class="w-full flex flex-col justify-start items-center">
-    <%= for comment <- @comments do %>
+    <%= for comment <- Mazaryn.Posts.get_comment_by_post_id(@post.id |> to_charlist) do %>
       <div
         x-data="{open: false, openComment: false}"
         x-on:click.outside="open = false; openComment = false"
         class="w-full flex flex-row justify-between items-start pt-2 pb-2"
       >
         <div class="flex">
-          <img src={get_user_avatar(comment.author.id)} class="h-8 w-8 rounded-full mr-3 mb-3 " />
+          <img
+            src={get_user_avatar(comment.id |> to_charlist())}
+            class="h-8 w-8 rounded-full mr-3 mb-3 "
+          />
           <div class="flex flex-col justify-center items-start">
             <div class="grid grid-flow-col auto-cols-max">
               <div class="relative">
-                <p class="text-sm font-normal"><%= comment.author.username %></p>
+                <p class="text-sm font-normal">
+                  <%= Account.Users.get_user_by_id(comment.author).username %>
+                </p>
               </div>
 
-              <%= if comment.author.verified  do %>
+              <%= if Account.Users.get_user_by_id(comment.author).verified do %>
                 <div class="relative">
                   <span>
                     <img
@@ -266,9 +273,9 @@
             x-transition:leave="transition ease-in duration-200"
             x-transition:leave-start="opacity-100"
             x-transition:leave-end="opacity-0"
-            class="absolute top-4 right-4 bg-white rounded rounded-md text-blue-900 border p-3 border-blue space-y-2 w-32"
+            class="absolute top-4 right-4 bg-white rounded-md text-blue-900 border p-3 border-blue space-y-2 w-32"
           >
-            <%= if comment.author.id != @current_user.id  do %>
+            <%= if comment.author != @current_user.id  do %>
               <li class="">
                 <p class="text-gray-500 m-2 cursor-pointer">Report</p>
               </li>
@@ -306,7 +313,11 @@
 
     <%= if @like_action do %>
       <.modal>
-        <.live_component module={MazarynWeb.HomeLive.ShowLikersComponent} id={@post.id} />
+        <.live_component
+          module={MazarynWeb.HomeLive.ShowLikersComponent}
+          locale={@locale}
+          id={@post.id}
+        />
       </.modal>
     <% end %>
   </div>

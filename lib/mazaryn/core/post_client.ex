@@ -27,9 +27,18 @@ defmodule Core.PostClient do
     :post_server.get_post_by_id(id)
   end
 
+  ## Get post's Content using PostID
+  def get_post_content_by_id(id) do
+    :post_server.get_post_content_by_id(id)
+  end
+
   ## Get all posts of specific user using username
   def get_posts_by_author(author) do
     :post_server.get_posts_by_author(author)
+  end
+
+  def get_posts_content_by_author(author) do
+    :post_server.get_posts_content_by_author(author)
   end
 
   ## Get all posts related to Specific Hashtag
@@ -90,6 +99,10 @@ defmodule Core.PostClient do
   ## Remove comment Permanently using CommentID and related PostID
   def delete_comment(commentID, postId) do
     :post_server.delete_comment(commentID, postId)
+  end
+
+  def delete_comment_from_mnesia(commentID) do
+    :post_server.delete_comment_from_mnesia(commentID)
   end
 
   ## Get all likes for specific post using PostID

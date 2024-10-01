@@ -31,7 +31,8 @@ defmodule Mazaryn.Schema.Media do
   end
 
   def erl_changeset(
-        {:media, id, ai_media_id, file, files, user_id, type, date_created, date_updated, report, data}
+        {:media, id, ai_media_id, file, files, user_id, type, date_created, date_updated, report,
+         data}
       ) do
     %__MODULE__{}
     |> change(%{
