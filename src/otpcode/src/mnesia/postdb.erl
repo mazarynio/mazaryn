@@ -122,9 +122,26 @@ update_post(PostId, NewContent) ->
 %% delete_post(PostID)
 delete_post(Id) ->
   F = fun() ->
-          mnesia:delete({post, Id})
-      end,
-  mnesia:activity(transaction, F).
+      %% Check if the post exists
+      case mnesia:read({post, Id}) of
+          [] -> 
+              {error, post_not_found};  %% Return error if post doesn't exist
+          _ ->
+              %% Delete the post
+              mnesia:delete({post, Id}),
+              ok  %% Return success after deleting
+      end
+  end,
+
+  case mnesia:activity(transaction, F) of
+      ok -> 
+          ok;  %% Return success message
+      {error, post_not_found} -> 
+          {error, post_not_found};  %% Handle case when the post does not exist
+      {aborted, Reason} -> 
+          {error, transaction_failed, Reason}  %% Handle aborted transactions
+  end.
+
 
 %% Get all posts
 get_posts() ->
