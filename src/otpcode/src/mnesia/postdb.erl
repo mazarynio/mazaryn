@@ -289,7 +289,7 @@ get_comments() ->
   Res.
 
 
-  delete_comment(CommentID, PostId) ->
+delete_comment(CommentID, PostId) ->
     Fun = fun() -> 
         %% Check if the post exists
         case mnesia:read(post, PostId) of
@@ -301,25 +301,31 @@ get_comments() ->
                     false -> 
                         {error, comment_not_found}; 
                     true -> 
-                        %% Update the post's comments and timestamp
+                        %% Remove the comment from the post's comment list
                         UpdatedComments = lists:delete(CommentID, Post#post.comments),
                         UpdatedPost = Post#post{
                             comments = UpdatedComments,
                             date_created = calendar:universal_time()
                         },
+                        %% Write the updated post back to the database
                         mnesia:write(UpdatedPost),
-                        {ok, updated} 
+                        
+                        %% Delete the comment from the `comment` table
+                        mnesia:delete({comment, CommentID}),
+                        
+                        {ok, comment_deleted}
                 end
         end
     end,
     case mnesia:transaction(Fun) of
-        {atomic, {ok, updated}} -> 
+        {atomic, {ok, comment_deleted}} -> 
             {ok, comment_deleted};  
         {atomic, {error, Reason}} -> 
             {error, Reason}; 
         {aborted, Reason} -> 
             {error, transaction_failed, Reason}  
     end.
+
 
 
 delete_comment_from_mnesia(CommentID) ->
