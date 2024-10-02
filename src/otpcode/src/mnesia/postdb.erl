@@ -122,9 +122,26 @@ update_post(PostId, NewContent) ->
 %% delete_post(PostID)
 delete_post(Id) ->
   F = fun() ->
-          mnesia:delete({post, Id})
-      end,
-  mnesia:activity(transaction, F).
+      %% Check if the post exists
+      case mnesia:read({post, Id}) of
+          [] -> 
+              {error, post_not_found};  %% Return error if post doesn't exist
+          _ ->
+              %% Delete the post
+              mnesia:delete({post, Id}),
+              ok  %% Return success after deleting
+      end
+  end,
+
+  case mnesia:activity(transaction, F) of
+      ok -> 
+          ok;  %% Return success message
+      {error, post_not_found} -> 
+          {error, post_not_found};  %% Handle case when the post does not exist
+      {aborted, Reason} -> 
+          {error, transaction_failed, Reason}  %% Handle aborted transactions
+  end.
+
 
 %% Get all posts
 get_posts() ->
@@ -187,22 +204,49 @@ unlike_post(LikeID, PostId) ->
         end,
   {atomic, Res} = mnesia:transaction(Fun),
   Res.
+
 %% Content = [{text, Text}, {media, Media}, {mention, Name}, {like, Like}]
 add_comment(Author, PostID, Content) ->
   Fun = fun() ->
-            Id = nanoid:gen(),
-            mnesia:write(#comment{id = Id,
-                                  post = PostID,
-                                  author = Author,
-                                  content = Content,
-                                  date_created = calendar:universal_time()}),
-            [Post] = mnesia:read({post, PostID}),
-            Comments = Post#post.comments,
-            mnesia:write(Post#post{comments = [Id|Comments]}),
-            Id
-        end,
-  {atomic, Res} = mnesia:transaction(Fun),
-  Res.
+      %% Check if the post exists
+      case mnesia:read({post, PostID}) of
+          [] -> 
+              {error, post_not_found}; 
+          [Post] ->
+              %% Generate a unique ID for the new comment
+              Id = nanoid:gen(),
+
+              %% Write the new comment to the database
+              Comment = #comment{
+                  id = Id,
+                  post = PostID,
+                  author = Author,
+                  content = Content,
+                  date_created = calendar:universal_time()
+              },
+              mnesia:write(Comment),
+
+              %% Add the comment ID to the post's comment list
+              UpdatedComments = [Id | Post#post.comments],
+              UpdatedPost = Post#post{
+                  comments = UpdatedComments
+              },
+
+              %% Update the post with the new comment list
+              mnesia:write(UpdatedPost),
+              Id  %% Return success and the new comment ID
+      end
+  end,
+
+  case mnesia:transaction(Fun) of
+      {atomic, Id} -> 
+          Id;  %% Return the ID of the newly added comment
+      {atomic, {error, Reason}} -> 
+          {error, Reason};  %% Return the specific error reason
+      {aborted, Reason} -> 
+          {error, transaction_failed, Reason}  %% Handle aborted transactions
+  end.
+
 
 update_comment(CommentID, NewContent) ->
   Fun = fun() ->
@@ -245,15 +289,38 @@ get_comments() ->
   Res.
 
 
-delete_comment(CommentID, PostId) ->
-  Fun = fun() -> 
-            [Post] = mnesia:read(post, PostId),
-            Update = lists:delete(CommentID, Post#post.comments),
-            mnesia:write(Post#post{comments = Update,
-                                   date_created = calendar:universal_time()})
-        end,
-  {atomic, Res} = mnesia:transaction(Fun),
-  Res.
+  delete_comment(CommentID, PostId) ->
+    Fun = fun() -> 
+        %% Check if the post exists
+        case mnesia:read(post, PostId) of
+            [] -> 
+                {error, post_not_found}; 
+            [Post] ->
+                %% Check if the comment exists in the post
+                case lists:member(CommentID, Post#post.comments) of
+                    false -> 
+                        {error, comment_not_found}; 
+                    true -> 
+                        %% Update the post's comments and timestamp
+                        UpdatedComments = lists:delete(CommentID, Post#post.comments),
+                        UpdatedPost = Post#post{
+                            comments = UpdatedComments,
+                            date_created = calendar:universal_time()
+                        },
+                        mnesia:write(UpdatedPost),
+                        {ok, updated} 
+                end
+        end
+    end,
+    case mnesia:transaction(Fun) of
+        {atomic, {ok, updated}} -> 
+            {ok, comment_deleted};  
+        {atomic, {error, Reason}} -> 
+            {error, Reason}; 
+        {aborted, Reason} -> 
+            {error, transaction_failed, Reason}  
+    end.
+
 
 delete_comment_from_mnesia(CommentID) ->
   Fun = fun() -> 
