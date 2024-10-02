@@ -187,22 +187,49 @@ unlike_post(LikeID, PostId) ->
         end,
   {atomic, Res} = mnesia:transaction(Fun),
   Res.
+
 %% Content = [{text, Text}, {media, Media}, {mention, Name}, {like, Like}]
 add_comment(Author, PostID, Content) ->
   Fun = fun() ->
-            Id = nanoid:gen(),
-            mnesia:write(#comment{id = Id,
-                                  post = PostID,
-                                  author = Author,
-                                  content = Content,
-                                  date_created = calendar:universal_time()}),
-            [Post] = mnesia:read({post, PostID}),
-            Comments = Post#post.comments,
-            mnesia:write(Post#post{comments = [Id|Comments]}),
-            Id
-        end,
-  {atomic, Res} = mnesia:transaction(Fun),
-  Res.
+      %% Check if the post exists
+      case mnesia:read({post, PostID}) of
+          [] -> 
+              {error, post_not_found}; 
+          [Post] ->
+              %% Generate a unique ID for the new comment
+              Id = nanoid:gen(),
+
+              %% Write the new comment to the database
+              Comment = #comment{
+                  id = Id,
+                  post = PostID,
+                  author = Author,
+                  content = Content,
+                  date_created = calendar:universal_time()
+              },
+              mnesia:write(Comment),
+
+              %% Add the comment ID to the post's comment list
+              UpdatedComments = [Id | Post#post.comments],
+              UpdatedPost = Post#post{
+                  comments = UpdatedComments
+              },
+
+              %% Update the post with the new comment list
+              mnesia:write(UpdatedPost),
+              Id  %% Return success and the new comment ID
+      end
+  end,
+
+  case mnesia:transaction(Fun) of
+      {atomic, Id} -> 
+          Id;  %% Return the ID of the newly added comment
+      {atomic, {error, Reason}} -> 
+          {error, Reason};  %% Return the specific error reason
+      {aborted, Reason} -> 
+          {error, transaction_failed, Reason}  %% Handle aborted transactions
+  end.
+
 
 update_comment(CommentID, NewContent) ->
   Fun = fun() ->
