@@ -15,6 +15,7 @@ defmodule MazarynWeb.UserLive.Profile do
   alias Phoenix.LiveView.JS
   alias MazarynWeb.Router.Helpers, as: Routes
 
+  # this is
   @impl true
   def mount(
         %{"username" => username} = _params,
@@ -50,6 +51,7 @@ defmodule MazarynWeb.UserLive.Profile do
       |> assign(verified_action: false)
       |> assign(admins: ["arvand"])
       |> assign(results: [])
+      |> assign(followers: [])
 
     {:ok, socket}
   end
@@ -149,7 +151,22 @@ defmodule MazarynWeb.UserLive.Profile do
   end
 
   def handle_event("open_modal", %{"action" => "follower"}, socket) do
-    {:noreply, socket |> assign(follower_action: true, edit_action: false, follows_action: false)}
+    followers =
+      socket.assigns.user.follower
+      |> Enum.map(fn user ->
+        {:ok, user} = Account.Users.one_by_id(user)
+        user
+      end)
+      |> IO.inspect(label: "followerss --<>")
+
+    {:noreply,
+     socket
+     |> assign(
+       follower_action: true,
+       followers: followers,
+       edit_action: false,
+       follows_action: false
+     )}
   end
 
   def handle_event("open_modal", %{"action" => "edit"}, socket) do

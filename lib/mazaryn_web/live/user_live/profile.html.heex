@@ -418,13 +418,13 @@
     <% end %>
 
     <%= if @follower_action do %>
-      <div></div>
       <.modal>
         <.live_component
           module={MazarynWeb.UserLive.FollowerComponent}
           id={@user.username}
           locale={@locale}
-          current_user={@current_user}
+          current_user={@user}
+          followers={@followers}
         />
       </.modal>
     <% end %>
@@ -434,7 +434,7 @@
         <.live_component
           module={MazarynWeb.UserLive.FollowsComponent}
           id={@user.username}
-          current_user={@current_user}
+          current_user={@user}
           locale={@locale}
         />
       </.modal>
