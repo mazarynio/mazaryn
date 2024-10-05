@@ -163,7 +163,7 @@
       phx-value-id={@post.id}
       phx-click={Phoenix.LiveView.JS.toggle(to: "#view-comments-#{@post.id}")}
     >
-      View <%= Enum.count(@post.likes) %> comments
+      View <%= Mazaryn.Posts.get_comment_by_post_id(@post.id |> to_charlist) |> Enum.count() %> comments
     </span>
   </div>
   <div class="border-[#E5E5E5] border border-b-0 mt-7 mb-3.5"></div>

@@ -54,8 +54,6 @@ defmodule MazarynWeb.UserLive.FollowsComponent do
   end
 
   def update(%{current_user: %Account.User{following: following_ids}} = assigns, socket) do
-    IO.inspect(assigns, label: "follows --->")
-
     {:ok,
      socket
      |> assign(assigns)

@@ -5,6 +5,7 @@ defmodule MazarynWeb.UserLive.FollowerComponent do
   def render(assigns) do
     ~H"""
     <div id="followers">
+      fakd
       <%= for user <- @followers do %>
         <div class="flex w-full justify-between items-center my-4">
           <div class="mr-3">
