@@ -26,7 +26,10 @@ defmodule Mazaryn.Posts do
 
   def create_comment(%Ecto.Changeset{valid?: false} = changeset), do: changeset
 
-  def create_comment(%Ecto.Changeset{changes: %{author: author, content: content, post_id: post_id}} = _changeset) do
+  def create_comment(
+        %Ecto.Changeset{changes: %{author: author, content: content, post_id: post_id}} =
+          _changeset
+      ) do
     author = author |> to_charlist
     post_id = post_id |> to_charlist
 
