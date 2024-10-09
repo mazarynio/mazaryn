@@ -75,7 +75,7 @@ config :mnesia, dir: ~c"Mnesia/"
 
 config :mazaryn, Mazaryn.Gettext,
   default_locale: "en",
-  locales: ["en", "fa"]
+  locales: ["en", "fa", "ru"]
 
 config :mazaryn, Mazaryn.Mailer,
   adapter: Swoosh.Adapters.Mailjet,
