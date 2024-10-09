@@ -128,7 +128,6 @@ defmodule MazarynWeb.HomeLive.PostComponent do
       comment_params["post_id"]
       |> to_charlist
       |> rebuild_post()
-      |> IO.inspect(label: "this is working")
 
     # Enum.map(post.likes, fn p ->
     #   IO.inspect(p |> Mazaryn.Schema.Comment.build(), label: "comment has been build")

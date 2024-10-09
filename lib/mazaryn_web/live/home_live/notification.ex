@@ -15,6 +15,13 @@ defmodule MazarynWeb.HomeLive.Notification do
      |> assign(notifs: get_all_user_notifs(user))}
   end
 
+  def handle_params(_params, url, socket) do
+  socket = assign(socket, current_path: URI.parse(url).path)
+
+  IO.inspect("this is this is workin")
+  MazarynWeb.HomeLive.NavComponent.handle_path(socket)
+  end
+
   def render(assigns) do
     ~H"""
     <!-- navigation -->

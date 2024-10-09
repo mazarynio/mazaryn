@@ -14,6 +14,7 @@ defmodule MazarynWeb.HomeLive.Home do
   # case reload home page
   @impl true
   def mount(_params, %{"user_id" => user_id} = _session, socket) do
+    IO.inspect(socket.assigns, label: "home assign")
     Logger.info(user_id: user_id)
     socket |> assign(results: [])
     {:ok, do_mount(user_id, socket)}
@@ -25,10 +26,16 @@ defmodule MazarynWeb.HomeLive.Home do
     {:ok, do_mount(get_user_id(session_uuid), socket)}
   end
 
+  def handle_params(_params, url, socket) do
+  socket = assign(socket, current_path: URI.parse(url).path)
+   IO.inspect(label: URI.parse(url).path)
+    {:noreply, socket}
+  end
+
+
   @impl true
   def handle_event("show-comments", %{"id" => post_id}, socket) do
     JS.toggle(to: "#test-toggle", in: "fade-in-scale", out: "fade-out-scale")
-    IO.inspect(post_id)
 
     comments =
       post_id
