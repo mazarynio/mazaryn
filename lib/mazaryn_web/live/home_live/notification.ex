@@ -16,10 +16,10 @@ defmodule MazarynWeb.HomeLive.Notification do
   end
 
   def handle_params(_params, url, socket) do
-  socket = assign(socket, current_path: URI.parse(url).path)
+    socket = assign(socket, current_path: URI.parse(url).path)
 
-  IO.inspect("this is this is workin")
-  MazarynWeb.HomeLive.NavComponent.handle_path(socket)
+    IO.inspect("this is this is workin")
+    MazarynWeb.HomeLive.NavComponent.handle_path(socket)
   end
 
   def render(assigns) do

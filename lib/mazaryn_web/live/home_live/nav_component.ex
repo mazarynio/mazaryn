@@ -12,7 +12,8 @@ defmodule MazarynWeb.HomeLive.NavComponent do
       |> Core.NotifEvent.get_all_notifs()
       |> Enum.count()
 
-    {:ok, socket |> assign(assigns) |> assign(notifs_count: notifs_count) |> assign(current_path: "")}
+    {:ok,
+     socket |> assign(assigns) |> assign(notifs_count: notifs_count) |> assign(current_path: "")}
   end
 
   def handle_params(_params, url, socket) do
@@ -20,7 +21,7 @@ defmodule MazarynWeb.HomeLive.NavComponent do
     socket = assign(socket, current_path: URI.parse(url).path)
     handle_path(socket)
     #  IO.inspect(URI.parse(url).path, label: "path in the nav component")
-      # {:noreply, socket}
+    # {:noreply, socket}
   end
 
   def handle_path(socket) do

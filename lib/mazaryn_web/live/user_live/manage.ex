@@ -9,6 +9,7 @@ defmodule MazarynWeb.UserLive.Manage do
 
   def mount(_params, %{"session_uuid" => session_uuid} = _session, socket) do
     {:ok, current_user} = Users.get_by_session_uuid(session_uuid)
+    IO.inspect(current_user, label: "this is the current user")
 
     users_info_list = ManageUser.get_users_info()
 
@@ -27,9 +28,14 @@ defmodule MazarynWeb.UserLive.Manage do
 
   @impl true
   def handle_event("activate-user", %{"user-id" => id}, socket) do
-    ManageUser.verify_user(id, "mazaryn")
+    case check_if_is_admin(socket.assigns.current_user.username) do
+      true -> ManageUser.verify_user(id, socket.assigns.current_user.username)
+      false -> IO.inspect("not an admin")
+    end
 
-    users_info_list = ManageUser.get_users_info()
+    users_info_list =
+      ManageUser.get_users_info()
+      |> IO.inspect(label: "users info list")
 
     users = fetch_data(users_info_list)
 
@@ -43,7 +49,11 @@ defmodule MazarynWeb.UserLive.Manage do
 
   @impl true
   def handle_event("deactivate-user", %{"user-id" => id}, socket) do
-    ManageUser.unverify_user(id, "mazaryn")
+    # ManageUser.unverify_user(id, "mazaryn")
+    case check_if_is_admin(socket.assigns.current_user.username) do
+      true -> ManageUser.unverify_user(id, socket.assigns.current_user.username)
+      false -> IO.inspect("not an admin")
+    end
 
     users_info_list = ManageUser.get_users_info()
 
@@ -171,5 +181,11 @@ defmodule MazarynWeb.UserLive.Manage do
           data: data
         }
     end)
+  end
+
+  @spec check_if_is_admin(String.t()) :: boolean()
+  defp check_if_is_admin(admin_username) do
+    ["arvand", "mazaryn", "zaryn"]
+    |> Enum.member?(admin_username)
   end
 end

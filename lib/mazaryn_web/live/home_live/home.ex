@@ -27,11 +27,10 @@ defmodule MazarynWeb.HomeLive.Home do
   end
 
   def handle_params(_params, url, socket) do
-  socket = assign(socket, current_path: URI.parse(url).path)
-   IO.inspect(label: URI.parse(url).path)
+    socket = assign(socket, current_path: URI.parse(url).path)
+    IO.inspect(label: URI.parse(url).path)
     {:noreply, socket}
   end
-
 
   @impl true
   def handle_event("show-comments", %{"id" => post_id}, socket) do
