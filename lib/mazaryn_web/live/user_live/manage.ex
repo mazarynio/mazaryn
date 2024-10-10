@@ -9,7 +9,6 @@ defmodule MazarynWeb.UserLive.Manage do
 
   def mount(_params, %{"session_uuid" => session_uuid} = _session, socket) do
     {:ok, current_user} = Users.get_by_session_uuid(session_uuid)
-    IO.inspect(current_user, label: "this is the current user")
 
     users_info_list = ManageUser.get_users_info()
 
@@ -35,7 +34,6 @@ defmodule MazarynWeb.UserLive.Manage do
 
     users_info_list =
       ManageUser.get_users_info()
-      |> IO.inspect(label: "users info list")
 
     users = fetch_data(users_info_list)
 
@@ -131,9 +129,16 @@ defmodule MazarynWeb.UserLive.Manage do
     {:noreply, socket}
   end
 
+  def handle_event("do_search", %{"search" => search}, socket) do
+    users = MazarynWeb.HomeLive.Home.search_user_by_username(search)
+
+    {:noreply, assign(socket, search: search, users: users || [])}
+  end
+
   def sort_by_date(list) when is_list(list) do
     Enum.sort(list, fn %{last_activity: date1}, %{last_activity: date2} ->
-      NaiveDateTime.from_iso8601!(date2) >= NaiveDateTime.from_iso8601!(date1)
+      NaiveDateTime.from_iso8601!(format_date(date1)) >=
+        NaiveDateTime.from_iso8601!(format_date(date2))
     end)
   end
 
@@ -176,11 +181,17 @@ defmodule MazarynWeb.UserLive.Manage do
           verified: verified,
           report: report,
           level: level,
-          last_activity: human_readable_time,
+          last_activity: last_activity,
           suspend: suspend,
           data: data
         }
     end)
+  end
+
+  defp format_date(date) do
+    date
+    |> NaiveDateTime.from_erl!()
+    |> NaiveDateTime.to_string()
   end
 
   @spec check_if_is_admin(String.t()) :: boolean()

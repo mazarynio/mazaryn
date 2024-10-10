@@ -14,7 +14,6 @@ defmodule MazarynWeb.HomeLive.Home do
   # case reload home page
   @impl true
   def mount(_params, %{"user_id" => user_id} = _session, socket) do
-    IO.inspect(socket.assigns, label: "home assign")
     Logger.info(user_id: user_id)
     socket |> assign(results: [])
     {:ok, do_mount(user_id, socket)}
@@ -28,7 +27,6 @@ defmodule MazarynWeb.HomeLive.Home do
 
   def handle_params(_params, url, socket) do
     socket = assign(socket, current_path: URI.parse(url).path)
-    IO.inspect(label: URI.parse(url).path)
     {:noreply, socket}
   end
 
@@ -53,6 +51,7 @@ defmodule MazarynWeb.HomeLive.Home do
   end
 
   def handle_event("do_search", %{"search" => search}, socket) do
+    IO.puts("searching")
     user = search_user_by_username(search)
     {:noreply, assign(socket, search: search, results: user || [])}
   end
@@ -67,7 +66,7 @@ defmodule MazarynWeb.HomeLive.Home do
     {:noreply, socket}
   end
 
-  defp search_user_by_username(username) do
+  def search_user_by_username(username) do
     case username |> Core.UserClient.search_user() do
       :username_not_exist ->
         nil
