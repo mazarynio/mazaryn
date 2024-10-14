@@ -77,8 +77,6 @@ verify_user(UsernameOrID, AdminUsername) ->
         {error, _} = Error ->
             Error;
         {ok, _} ->
-            case lists:member(AdminUsername, ?ADMIN_USERNAMES) of
-                true ->
                     Fun = fun() ->
                         case get_user(UsernameOrID) of
                             {error, Reason} ->
@@ -91,10 +89,7 @@ verify_user(UsernameOrID, AdminUsername) ->
                         end
                     end,
                     {atomic, Res} = mnesia:transaction(Fun),
-                    Res;
-                false ->
-                    {error, not_admin}
-            end
+                    Res
     end.
 
 verify_user_no_admin(UsernameOrID) ->
@@ -117,8 +112,6 @@ unverify_user(UsernameOrID, AdminUsername) ->
         {error, _} = Error ->
             Error;
         {ok, _} ->
-            case lists:member(AdminUsername, ?ADMIN_USERNAMES) of
-                true ->
                     Fun = fun() ->
                         case get_user(UsernameOrID) of
                             {error, Reason} ->
@@ -131,12 +124,12 @@ unverify_user(UsernameOrID, AdminUsername) ->
                         end
                     end,
                     {atomic, Res} = mnesia:transaction(Fun),
-                    Res;
-                false ->
-                    {error, not_admin}
-            end
+                    Res
     end.
 
+    % the following is an improvised version of the unverified user
+    % it lists:member returns false even towards an admin that exists
+    % rewritten to be done in manage.ex
 
 unverify_user_no_admin(UsernameOrID, AdminUsername) ->
     Fun = fun() ->
