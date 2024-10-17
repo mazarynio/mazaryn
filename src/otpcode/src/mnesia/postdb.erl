@@ -68,38 +68,92 @@ get_post_by_id(Id) ->
     _ -> error
   end.
 
-get_post_content_by_id(Id) -> 
+get_post_content_by_id(Id) ->
     Fun = fun() ->
-              [Post] = mnesia:read({post, Id}),
-              Post#post.content
+              case mnesia:read({post, Id}) of
+                  [] -> 
+                      {error, not_found}; 
+                  [Post] -> 
+                      Post#post.content; 
+                  _ -> 
+                      {error, multiple_posts_found}  
+              end
           end,
-    {atomic, Res} = mnesia:transaction(Fun),
-    Res.
+    case mnesia:transaction(Fun) of
+        {atomic, Content} when is_binary(Content) -> 
+            Content; 
+        {atomic, {error, not_found}} -> 
+            io:format("Error: Post with ID ~p not found.~n", [Id]),
+            {error, "Post not found"};  
+        {atomic, {error, multiple_posts_found}} -> 
+            io:format("Error: Multiple posts found for ID ~p.~n", [Id]),
+            {error, "Multiple posts found"};  
+        {aborted, Reason} -> 
+            io:format("Error: Transaction aborted with reason ~p~n", [Reason]),
+            {error, "Transaction aborted: " ++ atom_to_list(Reason)}  
+    end.
+
 
 %% get_posts_by_author(Username)
 get_posts_by_author(Author) ->
   Fun = fun() ->
-            mnesia:match_object(#post{author = Author,
-                                      _ = '_'})
+            mnesia:match_object(#post{author = Author, _ = '_'})
         end,
-  {atomic, Res} = mnesia:transaction(Fun),
-  Res.
+  case mnesia:transaction(Fun) of
+      {atomic, []} -> 
+          io:format("No posts found for author: ~p~n", [Author]),
+          {error, "No posts found for author"};  
+      {atomic, Posts} -> 
+          Posts;  
+      {aborted, Reason} -> 
+          io:format("Transaction aborted: ~p~n", [Reason]),
+          {error, "Transaction aborted: " ++ atom_to_list(Reason)} 
+  end.
+
 
 get_posts_content_by_author(Author) ->
     Fun = fun() ->
               Posts = mnesia:match_object(#post{author = Author, _ = '_'}),
-              [Post#post.content || Post <- Posts]
+              case Posts of
+                  [] -> 
+                      {error, no_posts_found};  
+                  _ -> 
+                      [Post#post.content || Post <- Posts]  
+              end
           end,
-    {atomic, Res} = mnesia:transaction(Fun),
-    Res.
+    case mnesia:transaction(Fun) of
+        {atomic, {error, no_posts_found}} ->
+            io:format("No posts found for author: ~p~n", [Author]),
+            {error, "No posts found for author"};
+        {atomic, Contents} ->
+            Contents; 
+        {aborted, Reason} ->
+            io:format("Transaction aborted: ~p~n", [Reason]),
+            {error, "Transaction aborted: " ++ atom_to_list(Reason)}
+    end.
+
 
 get_posts_by_hashtag(Hashtag) ->
-  Fun = fun() ->
-            mnesia:match_object(#post{hashtag = Hashtag,
-                                      _ = '_'})
-        end,
-  {atomic, Res} = mnesia:transaction(Fun),
-  Res.
+    Fun = fun() ->
+              Posts = mnesia:match_object(#post{hashtag = Hashtag, _ = '_'}),
+              case Posts of
+                  [] -> 
+                      {error, no_posts_found};  
+                  _ -> 
+                      Posts  
+              end
+          end,
+    case mnesia:transaction(Fun) of
+        {atomic, {error, no_posts_found}} ->
+            io:format("No posts found for hashtag: ~p~n", [Hashtag]),
+            {error, "No posts found for hashtag"};
+        {atomic, Posts} ->
+            Posts;  
+        {aborted, Reason} ->
+            io:format("Transaction aborted: ~p~n", [Reason]),
+            {error, "Transaction aborted: " ++ atom_to_list(Reason)}
+    end.
+
 
 update_post(PostId, NewContent) ->
   Fun = fun() ->
@@ -125,11 +179,11 @@ delete_post(Id) ->
       %% Check if the post exists
       case mnesia:read({post, Id}) of
           [] -> 
-              {error, post_not_found};  %% Return error if post doesn't exist
+              {error, post_not_found};  
           _ ->
               %% Delete the post
               mnesia:delete({post, Id}),
-              ok  %% Return success after deleting
+              ok  
       end
   end,
 

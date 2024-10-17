@@ -196,15 +196,23 @@ get_user_by_email(Email) ->
   end.
 
 get_user_by_id(Id) ->
-  Res = mnesia:transaction(
-          fun() ->
+    Fun = fun() ->
               mnesia:match_object(#user{id = Id, _= '_'})
-          end),
-  case Res of
-    {atomic, []} -> user_not_exist;
-    {atomic, [User]} -> User;
-    _ -> error
-  end.
+          end,
+    case mnesia:transaction(Fun) of
+        {atomic, []} -> 
+            io:format("User with ID ~p does not exist.~n", [Id]),
+            {error, "User does not exist"};  
+        {atomic, [User]} -> 
+            User;  
+        {atomic, _Users} -> 
+            io:format("Multiple users found with ID ~p.~n", [Id]),
+            {error, "Multiple users found"}; 
+        {aborted, Reason} -> 
+            io:format("Transaction aborted: ~p~n", [Reason]),
+            {error, "Transaction aborted: " ++ atom_to_list(Reason)} 
+    end.
+
 
 % TODO: add verified or confirmed field 
 get_token_by_id(TokenID) ->
