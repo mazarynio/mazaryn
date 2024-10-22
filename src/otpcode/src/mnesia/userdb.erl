@@ -12,7 +12,7 @@
          save_post/2, save_posts/2, unsave_post/2, unsave_posts/2,
          get_save_posts/1, get_follower/1, get_following/1,
          block/2, unblock/2, get_blocked/1, search_user/1, search_user_pattern/1,
-         insert_avatar/2, insert_banner/2, report_user/4, update_last_activity/2,
+         insert_avatar/2, insert_banner/2, get_avatar/1, get_banner/1, report_user/4, update_last_activity/2,
          last_activity_status/1, make_private/1, make_public/1, get_token/1, validate_user/1]).
 
 -define(LIMIT_SEARCH, 50).
@@ -105,29 +105,65 @@ insert_media(Id, Type, Url) ->
   Res.
 
 insert_avatar(Id, AvatarUrl) ->
-  Fun = fun() ->
-            [User] = mnesia:read(user, Id),
-            mnesia:write(User#user{avatar_url = AvatarUrl,
-                                   date_updated = calendar:universal_time()}),
-            User
-        end,
-  {atomic, Res} = mnesia:transaction(Fun),
-  case Res of
-    {atomic, [User]} -> User;
-    Res -> Res
-  end.
+    Fun = fun() ->
+        case mnesia:read(user, Id) of
+            [] -> 
+                {error, user_not_found}; % Handle case where user does not exist
+            [User] ->
+                UpdatedUser = User#user{avatar_url = AvatarUrl,
+                                        date_updated = calendar:universal_time()},
+                mnesia:write(UpdatedUser),
+                {ok, UpdatedUser} % Return updated user
+        end
+    end,
+    case mnesia:transaction(Fun) of
+        {atomic, {ok, UpdatedUser}} -> 
+            UpdatedUser; % Return the updated user
+        {aborted, Reason} -> 
+            {error, Reason} % Handle transaction failure
+    end.
+
 
 insert_banner(Id, BannerUrl) ->
-  Fun = fun() ->
-            [User] = mnesia:read(user, Id),
-            mnesia:write(User#user{banner_url = BannerUrl,
-                                   date_updated = calendar:universal_time()}),
-            User
-        end,
-  {atomic, Res} = mnesia:transaction(Fun),
+    Fun = fun() ->
+        case mnesia:read(user, Id) of
+            [] -> 
+                {error, user_not_found}; % Handle case where user does not exist
+            [User] ->
+                UpdatedUser = User#user{banner_url = BannerUrl,
+                                        date_updated = calendar:universal_time()},
+                mnesia:write(UpdatedUser),
+                {ok, UpdatedUser} % Return updated user
+        end
+    end,
+    case mnesia:transaction(Fun) of
+        {atomic, {ok, UpdatedUser}} -> 
+            UpdatedUser; % Return the updated user
+        {aborted, Reason} -> 
+            {error, Reason} % Handle transaction failure
+    end.
+
+
+get_avatar(UserID) ->
+  F = fun() ->
+    mnesia:read(user, UserID)
+    end,
+  Res = mnesia:transaction(F),
   case Res of
-    {atomic, [User]} -> User;
-    Res -> Res
+    {atomic, [User]} -> User#user.avatar_url;
+    {atomic, []} -> user_not_existed;
+    _ -> error
+  end.
+
+get_banner(UserID) ->
+  F = fun() ->
+    mnesia:read(user, UserID)
+    end,
+  Res = mnesia:transaction(F),
+  case Res of
+    {atomic, [User]} -> User#user.banner_url;
+    {atomic, []} -> user_not_existed;
+    _ -> error
   end.
 
 get_media(Id, Type) ->

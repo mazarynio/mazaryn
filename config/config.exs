@@ -77,6 +77,12 @@ config :mazaryn, Mazaryn.Gettext,
   default_locale: "en",
   locales: ["en", "fa", "ru"]
 
+config :mazaryn, :media,
+  uploads_dir: Path.join([File.cwd!(), "priv", "static", "uploads"])
+
+config :mazaryn, MazarynWeb.Endpoint,
+  static_paths: ~w(assets fonts images favicon.ico robots.txt uploads)
+
 config :mazaryn, Mazaryn.Mailer,
   adapter: Swoosh.Adapters.Mailjet,
   api_key: "",
