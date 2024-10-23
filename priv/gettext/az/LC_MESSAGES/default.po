@@ -8,24 +8,24 @@
 ### to merge POT files into PO files.
 msgid ""
 msgstr ""
-"Language: ru\n"
-"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100 != 11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10||n%100>=20) ? 1 : 2);\n"
+"Language: az\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #: lib/mazaryn_web/templates/layout/root.html.heex:97
 #: lib/mazaryn_web/templates/page/about.html.heex:8
 #, elixir-autogen, elixir-format
 msgid "About"
-msgstr "О"
+msgstr ""
 
 #: lib/mazaryn_web/templates/page/about.html.heex:19
 #, elixir-autogen, elixir-format
 msgid "About this site"
-msgstr "Об этом сайте"
+msgstr ""
 
 #: lib/mazaryn_web/templates/page/index.html.heex:36
 #, elixir-autogen, elixir-format
 msgid "An Online Community which empower users to explore their talents."
-msgstr "Интернет-сообщество, которое дает пользователям возможность раскрыть свои таланты."
+msgstr ""
 
 #: lib/mazaryn_web/templates/layout/root.html.heex:87
 #: lib/mazaryn_web/templates/page/about.html.heex:11
@@ -35,24 +35,24 @@ msgstr "Интернет-сообщество, которое дает поль�
 #: lib/mazaryn_web/templates/page/privacy.html.heex:11
 #, elixir-autogen, elixir-format
 msgid "Blog"
-msgstr "Блог"
+msgstr ""
 
 #: lib/mazaryn_web/templates/layout/root.html.heex:102
 #: lib/mazaryn_web/templates/page/careers.html.heex:8
 #, elixir-autogen, elixir-format
 msgid "Careers"
-msgstr "Карьера"
+msgstr ""
 
 #: lib/mazaryn_web/templates/layout/root.html.heex:92
 #, elixir-autogen, elixir-format
 msgid "Contact"
-msgstr "Контакт"
+msgstr ""
 
 #: lib/mazaryn_web/live/auth_live/login.html.heex:33
 #: lib/mazaryn_web/templates/page/index.html.heex:52
 #, elixir-autogen, elixir-format
 msgid "Login"
-msgstr "Авторизоваться"
+msgstr ""
 
 #: lib/mazaryn_web/templates/page/about.html.heex:22
 #, elixir-autogen, elixir-format
@@ -68,7 +68,7 @@ msgstr ""
 #: lib/mazaryn_web/templates/page/index.html.heex:34
 #, elixir-autogen, elixir-format
 msgid "Mazaryn SN"
-msgstr "Социальная сеть Мазарини"
+msgstr ""
 
 #: lib/mazaryn_web/templates/page/privacy.html.heex:8
 #, elixir-autogen, elixir-format
@@ -85,7 +85,7 @@ msgstr ""
 #: lib/mazaryn_web/templates/page/index.html.heex:46
 #, elixir-autogen, elixir-format
 msgid "Sign Up"
-msgstr "Зарегистрироваться"
+msgstr ""
 
 #: lib/mazaryn_web/templates/layout/root.html.heex:113
 #, elixir-autogen, elixir-format
@@ -95,7 +95,7 @@ msgstr ""
 #: lib/mazaryn_web/templates/page/contact.html.heex:19
 #, elixir-autogen, elixir-format
 msgid "Contact Mazaryn Support"
-msgstr "Свяжитесь co службой поддержки Mazaryn"
+msgstr ""
 
 #: lib/mazaryn_web/templates/page/contact.html.heex:22
 #, elixir-autogen, elixir-format
@@ -103,77 +103,77 @@ msgid "Mazaryn Help channel will answer all your questions about our services, y
 msgstr ""
 
 #: lib/mazaryn_web/templates/page/contact.html.heex:44
-#, elixir-autogen, elixir-format, fuzzy
+#, elixir-autogen, elixir-format
 msgid "Contact us"
 msgstr ""
 
 #: lib/mazaryn_web/templates/page/contact.html.heex:8
 #, elixir-autogen, elixir-format
 msgid "Help"
-msgstr "Помощь"
+msgstr ""
 
 #: lib/mazaryn_web/templates/page/careers.html.heex:29
 #, elixir-autogen, elixir-format
 msgid "Apply"
-msgstr "Применять"
+msgstr ""
 
 #: lib/mazaryn_web/templates/page/careers.html.heex:19
-#, elixir-autogen, elixir-format, fuzzy
+#, elixir-autogen, elixir-format
 msgid "Mazaryn Careers"
-msgstr "Карьера в Мазарини"
+msgstr ""
 
 #: lib/mazaryn_web/templates/page/careers.html.heex:22
 #, elixir-autogen, elixir-format
 msgid "We're Hiring! We're looking for talented people to join our team."
-msgstr "Мы нанимаем! Мы ищем талантливых людей в нашу команду."
+msgstr ""
 
 #: lib/mazaryn_web/live/auth_live/login.html.heex:38
 #: lib/mazaryn_web/live/auth_live/signup.html.heex:62
 #, elixir-autogen, elixir-format
 msgid "Email*"
-msgstr "Электронная почта*"
+msgstr ""
 
 #: lib/mazaryn_web/live/auth_live/login.html.heex:62
 #: lib/mazaryn_web/live/auth_live/signup.html.heex:85
 #, elixir-autogen, elixir-format
 msgid "Password*"
-msgstr "Пароль*"
+msgstr ""
 
 #: lib/mazaryn_web/live/auth_live/signup.html.heex:109
 #, elixir-autogen, elixir-format
 msgid "Repeat Password*"
-msgstr "Повторите пароль*"
+msgstr ""
 
 #: lib/mazaryn_web/live/auth_live/signup.html.heex:38
 #, elixir-autogen, elixir-format
 msgid "Username*"
-msgstr "Имя пользователя"
+msgstr ""
 
 #: lib/mazaryn_web/live/auth_live/reset.html.heex:27
 #, elixir-autogen, elixir-format
 msgid "Reset Your Password"
-msgstr "Сбросить пароль"
+msgstr ""
 
 #: lib/mazaryn_web/live/auth_live/reset.html.heex:31
 #, elixir-autogen, elixir-format
 msgid "To request a new password, enter your email"
-msgstr "Чтобы запросить новый пароль, введите адрес электронной почты"
+msgstr ""
 
 #: lib/mazaryn_web/live/auth_live/reset.html.heex:55
 #, elixir-autogen, elixir-format
 msgid "Continue"
-msgstr "Продолжать"
+msgstr ""
 
 #: lib/mazaryn_web/live/auth_live/reset.html.heex:38
 #, elixir-autogen, elixir-format
 msgid "Enter your email"
-msgstr "Введите адрес электронной почты"
+msgstr ""
 
 #: lib/mazaryn_web/live/home_live/home.html.heex:135
 #: lib/mazaryn_web/live/home_live/home.html.heex:156
 #, elixir-autogen, elixir-format
 msgid "Follow"
-msgstr "Следовать"
+msgstr ""
 
 #: lib/mazaryn_web/live/home_live/home.html.heex:203
 #: lib/mazaryn_web/live/home_live/home.html.heex:234
@@ -184,17 +184,17 @@ msgstr ""
 #: lib/mazaryn_web/live/home_live/home.html.heex:54
 #, elixir-autogen, elixir-format
 msgid "Profile"
-msgstr "Профиль"
+msgstr ""
 
 #: lib/mazaryn_web/live/home_live/home.html.heex:189
 #, elixir-autogen, elixir-format
 msgid "Sports"
-msgstr "Спорт"
+msgstr ""
 
 #: lib/mazaryn_web/live/home_live/home.html.heex:112
 #, elixir-autogen, elixir-format
 msgid "Trending"
-msgstr "Тенденции"
+msgstr ""
 
 #: lib/mazaryn_web/live/home_live/left_sidebar_component.ex:69
 #, elixir-autogen, elixir-format

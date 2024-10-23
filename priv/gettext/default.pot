@@ -196,16 +196,6 @@ msgstr ""
 msgid "Trending"
 msgstr ""
 
-#: lib/mazaryn_web/live/auth_live/login.html.heex:114
-#, elixir-autogen, elixir-format
-msgid "Welcome"
-msgstr ""
-
-#: lib/mazaryn_web/live/auth_live/login.html.heex:114
-#, elixir-autogen, elixir-format
-msgid "back!"
-msgstr ""
-
 #: lib/mazaryn_web/live/home_live/left_sidebar_component.ex:69
 #, elixir-autogen, elixir-format
 msgid "Chat"
