@@ -148,6 +148,7 @@
                 "zh" -> "Chinese"
                 "ar" -> "Arabic"
                 "az" -> "Azerbaijani"
+                "es" -> "Spanish"
               end %>
             </div>
             <div
@@ -155,7 +156,7 @@
               class="z-10 absolute col-span-full sm:col-span-3 mt-1 max-h-60 overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm"
             >
               <ul x-show="open" role="listbox" tabindex="-1">
-                <li :for={locale <- ~w(en fa ru zh ar az) -- [@conn.assigns.locale]}>
+                <li :for={locale <- ~w(en fa ru zh ar az es) -- [@conn.assigns.locale]}>
                   <a
                     href={set_locale(locale, @conn)}
                     x-on:click="open = !open"
@@ -169,6 +170,7 @@
                       "zh" -> "Chinese"
                       "ar" -> "Arabic"
                       "az" -> "Azerbaijani"
+                      "es" -> "Spanish"
                     end %>
                   </a>
                 </li>
