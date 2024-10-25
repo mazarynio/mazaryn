@@ -75,7 +75,7 @@ config :mnesia, dir: ~c"Mnesia/"
 
 config :mazaryn, Mazaryn.Gettext,
   default_locale: "en",
-  locales: ["en", "fa", "ru", "zh", "az"]
+  locales: ["en", "fa", "ru", "zh", "az", "ar", "es", "vi", "hi"]
 
 config :mazaryn, :media,
   uploads_dir: Path.join([File.cwd!(), "priv", "static", "uploads"])
