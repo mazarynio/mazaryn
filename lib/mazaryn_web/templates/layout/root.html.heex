@@ -151,6 +151,10 @@
                 "es" -> "Spanish"
                 "vi" -> "Vietnamese"
                 "hi" -> "Hindi"
+                "de" -> "German"
+                "fr" -> "French"
+                "it" -> "Italian"
+                "pt" -> "Portuguese"
               end %>
             </div>
             <div
@@ -158,7 +162,7 @@
               class="z-10 absolute col-span-full sm:col-span-3 mt-1 max-h-60 overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm"
             >
               <ul x-show="open" role="listbox" tabindex="-1">
-                <li :for={locale <- ~w(en fa ru zh ar az es vi hi) -- [@conn.assigns.locale]}>
+                <li :for={locale <- ~w(en fa ru zh ar az es vi hi de fr it pt) -- [@conn.assigns.locale]}>
                   <a
                     href={set_locale(locale, @conn)}
                     x-on:click="open = !open"
@@ -175,6 +179,10 @@
                       "es" -> "Spanish"
                       "vi" -> "Vietnamese"
                       "hi" -> "Hindi"
+                      "de" -> "German"
+                      "fr" -> "French"
+                      "it" -> "Italian"
+                      "pt" -> "Portuguese"
                     end %>
                   </a>
                 </li>
