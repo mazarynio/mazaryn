@@ -97,13 +97,13 @@
                 <img
                   alt="..."
                   src={"#{@user.avatar_url}"}
-                  class="shadow-xl rounded-full max-w-[150px] h-auto align-middle border-none absolute -m-16 -ml-20 lg:-ml-20 ring-8 ring-gray-100"
+                  class="shadow-xl rounded-full max-w-[90px] h-auto align-middle border-none absolute -m-16 -ml-20 lg:-ml-20 ring-8 ring-gray-100"
                 />
               <% else %>
                 <img
                   alt="Default user"
                   src={Routes.static_path(@socket, "/images/default-user.svg")}
-                  class="rounded-full max-w-[150px] bg-gray-100 h-auto align-middle border-none absolute -m-16 -ml-20 lg:-ml-20 ring-8 ring-gray-100"
+                  class="rounded-full max-w-[90px] bg-gray-100 h-auto align-middle border-none absolute -m-16 -ml-20 lg:-ml-20 ring-8 ring-gray-100"
                 />
               <% end %>
             </div>

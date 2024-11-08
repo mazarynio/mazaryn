@@ -181,67 +181,91 @@
           Profile Image
         </div>
         <div class="js--accordion acc-3 form-body w-full group-focus:max-h-screen max-h-0 overflow-hidden transition ease duration-500">
-          <.form
+          <%!--  <.form
             :let={f}
             for={@changeset}
             class="w-full"
             phx-target={@myself}
             phx-blur="validate-profile-photo"
-            phx-submit="save-profile-photo"
+            phx-submit="save-profile"
             multipart
           >
-            <div class="form-input-container">
-              <div class="w-full max-h-[260px]">
-                <div class="flex">
-                  <label class="form__label-profile-photo z-20 cursor-pointer">
-                    <figure
-                      class="w-full relative max-w-[150px] max-h-[80px]"
-                      phx-drop-target={@uploads.avatar_url.ref}
-                      phx-click={
-                        Phoenix.LiveView.JS.dispatch("click",
-                          to: "##{@uploads.avatar_url.ref}",
-                          bubbles: false
-                        )
-                      }
-                    >
-                      <img
-                        class="block cursor-pointer rounded-[50%]"
-                        src="https://avatars1.githubusercontent.com/u/11435231?s=460&v=4"
-                        alt="profile-photo"
-                      />
-                      <figcaption class="contents">
-                        <svg
-                          class="relative invisible left-[55px] top-[-95px] z-30 cursor-pointer ease duration-200"
-                          width="40"
-                          height="40"
-                          viewBox="0 0 40 40"
-                          fill="none"
-                          xmlns="http://www.w3.org/2000/svg"
-                        >
-                          <circle cx="20" cy="20" r="20" fill="#ebebeb" fill-opacity="0.5" />
-                          <path
-                            d="M14.1172 17.1328C14.6055 17.6207 15.3969 17.6211 15.8848 17.1329L18.75 14.2695V23.75C18.75 24.4402 19.3098 25 20 25C20.6902 25 21.25 24.4402 21.25 23.75V14.2695L24.1164 17.1359C24.6043 17.6238 25.3957 17.6238 25.884 17.1359C26.3719 16.648 26.3719 15.8566 25.884 15.3683L20.884 10.3683C20.6406 10.1221 20.3203 10 20 10C19.6797 10 19.3594 10.1221 19.1172 10.3662L14.1172 15.3672C13.6281 15.8555 13.6281 16.6445 14.1172 17.1328ZM28.75 23.75H22.5C22.5 25.1309 21.3809 26.25 20 26.25C18.6191 26.25 17.5 25.1309 17.5 23.75H11.25C10.5598 23.75 10 24.3098 10 25V28.75C10 29.4402 10.5598 30 11.25 30H28.75C29.4402 30 30 29.4402 30 28.75V25C30 24.3086 29.4414 23.75 28.75 23.75ZM26.875 27.8125C26.3594 27.8125 25.9375 27.3906 25.9375 26.875C25.9375 26.3594 26.3594 25.9375 26.875 25.9375C27.3906 25.9375 27.8125 26.3594 27.8125 26.875C27.8125 27.3906 27.3906 27.8125 26.875 27.8125Z"
-                            fill="#FAFAFA"
-                          />
-                        </svg>
-                      </figcaption>
-                    </figure>
-                  </label>
+          --%>
+          <div class="form-input-container">
+            <div class="w-full max-h-[260px]">
+              <div class="flex">
+                <label class="form__label-profile-photo z-20 cursor-pointer">
+                  <figure
+                    class="w-full relative max-w-[80px] max-h-[80px]"
+                    phx-drop-target={@uploads.avatar_url.ref}
+                    phx-click={
+                      Phoenix.LiveView.JS.dispatch("click",
+                        to: "##{@uploads.avatar_url.ref}",
+                        bubbles: false
+                      )
+                    }
+                  >
+                    <img
+                      class="block cursor-pointer rounded-[50%]"
+                      src="https://avatars1.githubusercontent.com/u/11435231?s=460&v=4"
+                      alt="profile-photo"
+                    />
+                    <figcaption class="contents">
+                      <svg
+                        class="relative invisible left-[55px] top-[-95px] z-30 cursor-pointer ease duration-200"
+                        width="40"
+                        height="40"
+                        viewBox="0 0 40 40"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <circle cx="20" cy="20" r="20" fill="#ebebeb" fill-opacity="0.5" />
+                        <path
+                          d="M14.1172 17.1328C14.6055 17.6207 15.3969 17.6211 15.8848 17.1329L18.75 14.2695V23.75C18.75 24.4402 19.3098 25 20 25C20.6902 25 21.25 24.4402 21.25 23.75V14.2695L24.1164 17.1359C24.6043 17.6238 25.3957 17.6238 25.884 17.1359C26.3719 16.648 26.3719 15.8566 25.884 15.3683L20.884 10.3683C20.6406 10.1221 20.3203 10 20 10C19.6797 10 19.3594 10.1221 19.1172 10.3662L14.1172 15.3672C13.6281 15.8555 13.6281 16.6445 14.1172 17.1328ZM28.75 23.75H22.5C22.5 25.1309 21.3809 26.25 20 26.25C18.6191 26.25 17.5 25.1309 17.5 23.75H11.25C10.5598 23.75 10 24.3098 10 25V28.75C10 29.4402 10.5598 30 11.25 30H28.75C29.4402 30 30 29.4402 30 28.75V25C30 24.3086 29.4414 23.75 28.75 23.75ZM26.875 27.8125C26.3594 27.8125 25.9375 27.3906 25.9375 26.875C25.9375 26.3594 26.3594 25.9375 26.875 25.9375C27.3906 25.9375 27.8125 26.3594 27.8125 26.875C27.8125 27.3906 27.3906 27.8125 26.875 27.8125Z"
+                          fill="#FAFAFA"
+                        />
+                      </svg>
+                    </figcaption>
+                  </figure>
+                </label>
 
-                  <%= for {_ref, msg} <- @uploads.avatar_url.errors do %>
-                    <p class="alert alert-danger"><%= Phoenix.Naming.humanize(msg) %></p>
+                <%= for {_ref, msg} <- @uploads.avatar_url.errors do %>
+                  <p class="alert alert-danger"><%= Phoenix.Naming.humanize(msg) %></p>
+                <% end %>
+                <%!-- <.live_file_input upload={@uploads.avatar_url} /> --%>
+
+                <div>
+                  <.form
+                    phx-target={@myself}
+                    id="profile-upload"
+                    phx-submit="save-profile-pic"
+                    phx-change="validate-profile-photo"
+                  >
+                    <.live_file_input upload={@uploads.avatar_url} />
+                    <button
+                      type="submit"
+                      class="bg-blue-500 hover:bg-blue-700 text-white py-3 px-14 rounded-md"
+                    >
+                      Save
+                    </button>
+                  </.form>
+
+                  <%= for err <- upload_errors(@uploads.avatar_url) do %>
+                    <p><%= error_to_string(err) %></p>
                   <% end %>
-                  <.live_file_input upload={@uploads.avatar_url} />
                 </div>
               </div>
-              <div class="mt-[90px] md:mt-[60px] mb-[30px] ml-auto">
+            </div>
+            <%!-- <div class="mt-[90px] md:mt-[60px] mb-[30px] ml-auto">
                 <%= submit("Save",
                   phx_disabled_with: "Saving...",
-                  class: "bg-blue-500 hover:bg-blue-700 text-white py-3 px-14 rounded-md"
+                  class: "bg-red-500 hover:bg-blue-700 text-white py-3 px-14 rounded-md"
                 ) %>
               </div>
-            </div>
-          </.form>
+              --%>
+          </div>
+
+          <%!--</.form> --%>
         </div>
       </div>
     </div>

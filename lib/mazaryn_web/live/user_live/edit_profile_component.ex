@@ -43,7 +43,7 @@ defmodule MazarynWeb.UserLive.EditProfileComponent do
     {:noreply, save_user_info(socket, params)}
   end
 
-  def handle_event("save-profile-photo", _params, socket) do
+  def handle_event("save-profile", _params, socket) do
     current_user = socket.assigns.current_user
 
     case consume_upload(socket, :avatar_url) do
@@ -54,6 +54,34 @@ defmodule MazarynWeb.UserLive.EditProfileComponent do
       [] ->
         {:noreply, socket}
     end
+  end
+
+  def handle_event("save-profile-pic", _params, socket) do
+    current_user = socket.assigns.current_user
+    IO.inspect(socket.assigns.uploads.avatar_url, label: "socket")
+
+    uploaded_files =
+      consume_uploaded_entries(socket, :avatar_url, fn %{path: path}, entry ->
+        dest =
+          Path.join(Application.app_dir(:mazaryn, "priv/static/uploads"), Path.basename(path))
+
+        File.cp!(path, dest)
+        {:ok, ~p"/uploads/#{Path.basename(dest)}"}
+      end)
+
+    # save the file to database
+    case uploaded_files do
+      [upload_url] ->
+        Account.Users.insert_avatar(current_user.id, upload_url)
+        {:noreply, socket}
+
+      [] ->
+        {:noreply, socket}
+    end
+
+    IO.inspect(uploaded_files, label: "uploaded ")
+
+    {:noreply, socket}
   end
 
   def handle_event("validate-banner", _params, socket) do
@@ -88,6 +116,9 @@ defmodule MazarynWeb.UserLive.EditProfileComponent do
   #     assigns
   #   end)
   # end
+
+  defp error_to_string(:too_large), do: "Too large"
+  defp error_to_string(:not_accepted), do: "You have selected an unacceptable file type"
 
   defp save_user_info(socket, params) do
     current_user = socket.assigns.current_user
