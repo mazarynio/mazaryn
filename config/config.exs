@@ -75,10 +75,25 @@ config :mnesia, dir: ~c"Mnesia/"
 
 config :mazaryn, Mazaryn.Gettext,
   default_locale: "en",
-  locales: ["en", "fa", "ru", "zh", "az", "ar", "es", "vi", "hi", "de", "fr", "it", "pt", "fil", "id"]
+  locales: [
+    "en",
+    "fa",
+    "ru",
+    "zh",
+    "az",
+    "ar",
+    "es",
+    "vi",
+    "hi",
+    "de",
+    "fr",
+    "it",
+    "pt",
+    "fil",
+    "id"
+  ]
 
-config :mazaryn, :media,
-  uploads_dir: Path.join([File.cwd!(), "priv", "static", "uploads"])
+config :mazaryn, :media, uploads_dir: Path.join([File.cwd!(), "priv", "static", "uploads"])
 
 config :mazaryn, MazarynWeb.Endpoint,
   static_paths: ~w(assets fonts images favicon.ico robots.txt uploads)

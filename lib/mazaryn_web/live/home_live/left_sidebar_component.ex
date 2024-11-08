@@ -314,7 +314,9 @@ defmodule MazarynWeb.HomeLive.LeftSidebarComponent do
                       />
                     </svg>
                   </i>
-                  <div class="leading-6 text-[#60616D] group-hover:text-[#4385F5]"><%= gettext("Marketplace") %></div>
+                  <div class="leading-6 text-[#60616D] group-hover:text-[#4385F5]">
+                    <%= gettext("Marketplace") %>
+                  </div>
                 </a>
               </li>
               <li class="flex align-center items-center  group mx-2 ">
