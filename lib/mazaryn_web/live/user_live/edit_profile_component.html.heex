@@ -280,7 +280,7 @@
           Banner
         </div>
         <div class="js--accordion acc-4 form-body w-full group-focus:max-h-screen max-h-0 overflow-hidden transition ease duration-500">
-          <.form
+        <%!--  <.form
             :let={f}
             for={@changeset}
             class="w-full"
@@ -289,6 +289,7 @@
             phx-submit="save-banner"
             multipart
           >
+          --%>
             <div class="form-input-container">
               <div class="w-full max-h-[260px]">
                 <div>
@@ -327,18 +328,31 @@
                       </figcaption>
                     </figure>
                   </label>
-                  <.live_file_input upload={@uploads.banner_url} />
                   <!-- -->
                 </div>
               </div>
-              <div class="mt-[90px] md:mt-[60px] mb-[30px] ml-auto">
-                <%= submit("Save",
-                  phx_disabled_with: "Saving...",
-                  class: "bg-blue-500 hover:bg-blue-700 text-white py-3 px-14 rounded-md"
-                ) %>
-              </div>
+
+              <.form
+                phx-target={@myself}
+                id="profile-upload"
+                phx-submit="save-banner-pic"
+                phx-change="validate-banner"
+              >
+                <.live_file_input upload={@uploads.banner_url} />
+                <button
+                  type="submit"
+                  class="bg-blue-500 hover:bg-blue-700 text-white py-3 px-14 rounded-md"
+                >
+                  Save
+                </button>
+              </.form>
+
+              <%= for err <- upload_errors(@uploads.banner_url) do %>
+                <p><%= error_to_string(err) %></p>
+              <% end %>
+
             </div>
-          </.form>
+     <%!--     </.form> --%>
         </div>
       </div>
     </div>
