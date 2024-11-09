@@ -58,28 +58,16 @@ defmodule MazarynWeb.UserLive.EditProfileComponent do
 
   def handle_event("save-profile-pic", _params, socket) do
     current_user = socket.assigns.current_user
-    IO.inspect(socket.assigns.uploads.avatar_url, label: "socket")
-
-    uploaded_files =
-      consume_uploaded_entries(socket, :avatar_url, fn %{path: path}, entry ->
-        dest =
-          Path.join(Application.app_dir(:mazaryn, "priv/static/uploads"), Path.basename(path))
-
-        File.cp!(path, dest)
-        {:ok, ~p"/uploads/#{Path.basename(dest)}"}
-      end)
-
     # save the file to database
-    case uploaded_files do
+    case uploads(:avatar_url, socket) do
       [upload_url] ->
-        Account.Users.insert_avatar(current_user.id, upload_url)
+        Account.Users.insert_avatar_url(current_user.id, upload_url)
         {:noreply, socket}
 
       [] ->
         {:noreply, socket}
     end
 
-    IO.inspect(uploaded_files, label: "uploaded ")
 
     {:noreply, socket}
   end
@@ -89,6 +77,7 @@ defmodule MazarynWeb.UserLive.EditProfileComponent do
   end
 
   def handle_event("save-banner", _params, socket) do
+
     current_user = socket.assigns.current_user
 
     case consume_upload(socket, :banner_url) do
@@ -101,11 +90,34 @@ defmodule MazarynWeb.UserLive.EditProfileComponent do
     end
   end
 
+  def handle_event("save-banner-pic", _params, socket) do
+    current_user = socket.assigns.current_user
+    uploads(:banner_url, socket)
+    |> case do
+      [upload_url] -> 
+        Account.Users.insert_banner(current_user.id, upload_url)
+      [] ->
+        {:noreply, socket}
+    end
+
+
+  end
+
   @impl Phoenix.LiveComponent
   def update_many(assigns_socket_list) do
     Enum.map(assigns_socket_list, fn {assigns, socket} ->
       assign(socket, assigns)
     end)
+  end
+
+  defp uploads(upload_url, socket) do
+
+      consume_uploaded_entries(socket, upload_url, fn %{path: path}, entry ->
+        dest = 
+          Path.join(Application.app_dir(:mazaryn, "priv/static/uploads"), Path.basename(path))
+        File.cp!(path, dest)
+        {:ok, ~p"/uploads/#{Path.basename(dest)}"}
+      end)
   end
 
   # TODO: delete below once edit profile bug is fixed
