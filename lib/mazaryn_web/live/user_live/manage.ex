@@ -149,7 +149,7 @@ defmodule MazarynWeb.UserLive.Manage do
        other_info, private, date_created, date_updated, avatar_url, banner_url, token_id, chat,
        verified, report, level, last_activity, suspend, data} ->
         naive_datetime = NaiveDateTime.from_erl!(last_activity)
-        human_readable_time = NaiveDateTime.to_string(naive_datetime)
+        _human_readable_time = NaiveDateTime.to_string(naive_datetime)
 
         %{
           id: id,

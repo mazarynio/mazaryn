@@ -92,10 +92,9 @@
               ) %>
             </a>
             <a>
-              <%= live_patch("Sign Up",
-                to: ~p"/#{@locale}/signup",
-                class: "text-blue-600 pl-6"
-              ) %>
+              <.link navigate={~p"/#{@locale}/signup"} class="text-blue-600 pl-6">
+                  Sign Up
+              </.link>
             </a>
           </div>
 

@@ -6,7 +6,7 @@ defmodule MazarynWeb.HomeLive.Home do
   alias Mazaryn.Posts
   alias Account.Users
   alias Account.User
-  alias Core.PostClient
+  #alias Core.PostClient
   alias Phoenix.LiveView.JS
 
   require Logger
@@ -25,6 +25,7 @@ defmodule MazarynWeb.HomeLive.Home do
     {:ok, do_mount(get_user_id(session_uuid), socket)}
   end
 
+  @impl true
   def handle_params(_params, url, socket) do
     socket = assign(socket, current_path: URI.parse(url).path)
     {:noreply, socket}
@@ -84,11 +85,6 @@ defmodule MazarynWeb.HomeLive.Home do
   @impl true
   def handle_info(:reload_posts, socket) do
     {:noreply, assign(socket, posts: get_posts())}
-  end
-
-  @impl true
-  def handle_params(_params, _uri, socket) do
-    {:noreply, socket}
   end
 
   defp get_posts, do: Posts.get_home_posts()

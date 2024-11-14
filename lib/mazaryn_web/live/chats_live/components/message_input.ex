@@ -1,8 +1,8 @@
 defmodule MazarynWeb.ChatsLive.Components.MessageInput do
   use MazarynWeb, :live_component
 
-  alias MazarynWeb.Component.CustomComponents
-  alias MazarynWeb.Live.Helper
+  #alias MazarynWeb.Component.CustomComponents
+  #alias MazarynWeb.Live.Helper
   alias Mazaryn.Chats
   alias Mazaryn.Chats.Chat
   alias :chat_server, as: ChatClient

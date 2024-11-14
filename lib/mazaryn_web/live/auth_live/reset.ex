@@ -17,14 +17,11 @@ defmodule MazarynWeb.AuthLive.Reset do
          {:ok, %User{} = user} <- Users.one_by_email(email) do
       case Users.reset_password(user) do
         {:ok, :reseted} ->
-          # TODO: handle
+          # TODO: handle successful reset
           {:noreply, socket}
-
-        {:error, _res} ->
-          {:noreply, redirect(socket, to: "/reset")}
       end
     else
-      # TODO: Display error msg on frontend
+      # TODO: Display error message on frontend
       {:error, _msg} ->
         {:noreply, redirect(socket, to: "/reset")}
     end
