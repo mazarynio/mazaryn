@@ -57,8 +57,6 @@ let liveSocket = new LiveSocket("/live", Socket, {
 
       if (window.location.pathname == "/en/notifications") {
         notification.classList.add("hidden")
-      }else{
-        notification.classList.remove("hidden")
       }
     },
     
