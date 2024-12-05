@@ -1,0 +1,237 @@
+## "msgid"s in this file come from POT (.pot) files.
+###
+### Do not add, change, or remove "msgid"s manually here as
+### they're tied to the ones in the corresponding POT file
+### (with the same domain).
+###
+### Use "mix gettext.extract --merge" or "mix gettext.merge"
+### to merge POT files into PO files.
+msgid ""
+msgstr ""
+"Language: it\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: lib/mazaryn_web/templates/layout/root.html.heex:97
+#: lib/mazaryn_web/templates/page/about.html.heex:8
+#, elixir-autogen, elixir-format
+msgid "About"
+msgstr "Di"
+
+#: lib/mazaryn_web/templates/page/about.html.heex:19
+#, elixir-autogen, elixir-format
+msgid "About this site"
+msgstr "Informazioni su questo sito"
+
+#: lib/mazaryn_web/templates/page/index.html.heex:36
+#, elixir-autogen, elixir-format
+msgid "An Online Community which empower users to explore their talents."
+msgstr "Una comunità online che consente agli utenti di esplorare i propri talenti."
+
+#: lib/mazaryn_web/templates/layout/root.html.heex:87
+#: lib/mazaryn_web/templates/page/about.html.heex:11
+#: lib/mazaryn_web/templates/page/careers.html.heex:11
+#: lib/mazaryn_web/templates/page/contact.html.heex:11
+#: lib/mazaryn_web/templates/page/index.html.heex:12
+#: lib/mazaryn_web/templates/page/privacy.html.heex:11
+#, elixir-autogen, elixir-format
+msgid "Blog"
+msgstr "Blog"
+
+#: lib/mazaryn_web/templates/layout/root.html.heex:102
+#: lib/mazaryn_web/templates/page/careers.html.heex:8
+#, elixir-autogen, elixir-format
+msgid "Careers"
+msgstr "Carriere"
+
+#: lib/mazaryn_web/templates/layout/root.html.heex:92
+#, elixir-autogen, elixir-format
+msgid "Contact"
+msgstr "Contatto"
+
+#: lib/mazaryn_web/live/auth_live/login.html.heex:33
+#: lib/mazaryn_web/templates/page/index.html.heex:52
+#, elixir-autogen, elixir-format
+msgid "Login"
+msgstr "Login"
+
+#: lib/mazaryn_web/templates/page/about.html.heex:22
+#, elixir-autogen, elixir-format
+msgid "MAZARYN is an Smart and OpenSource Platform of Inspiration & innovation. We take Care of User's Privacy and Content's Quality to Make the Happier Moments."
+msgstr "MAZARYN è una piattaforma intelligente e OpenSource di ispirazione e innovazione. Ci prendiamo cura della privacy degli utenti e della qualità dei contenuti per rendere i momenti più felici."
+
+#: lib/mazaryn_web/templates/layout/email_base.html.heex:5
+#: lib/mazaryn_web/templates/layout/root.html.heex:82
+#, elixir-autogen, elixir-format
+msgid "Mazaryn"
+msgstr ""
+
+#: lib/mazaryn_web/templates/page/index.html.heex:34
+#, elixir-autogen, elixir-format
+msgid "Mazaryn SN"
+msgstr "Rete sociale Mazaryn"
+
+#: lib/mazaryn_web/templates/page/privacy.html.heex:8
+#, elixir-autogen, elixir-format
+msgid "Privacy"
+msgstr "Privacy"
+
+#: lib/mazaryn_web/templates/layout/root.html.heex:107
+#: lib/mazaryn_web/templates/page/privacy.html.heex:19
+#, elixir-autogen, elixir-format
+msgid "Privacy policy"
+msgstr "politica sulla riservatezza"
+
+#: lib/mazaryn_web/live/auth_live/signup.html.heex:32
+#: lib/mazaryn_web/templates/page/index.html.heex:46
+#, elixir-autogen, elixir-format
+msgid "Sign Up"
+msgstr "Iscrizione"
+
+#: lib/mazaryn_web/templates/layout/root.html.heex:113
+#, elixir-autogen, elixir-format
+msgid "©2022 Mazaryn Social"
+msgstr ""
+
+#: lib/mazaryn_web/templates/page/contact.html.heex:19
+#, elixir-autogen, elixir-format
+msgid "Contact Mazaryn Support"
+msgstr "Contatta l'assistenza Mazaryn"
+
+#: lib/mazaryn_web/templates/page/contact.html.heex:22
+#, elixir-autogen, elixir-format
+msgid "Mazaryn Help channel will answer all your questions about our services, your account and more."
+msgstr "Il canale di assistenza di Mazaryn risponderà a tutte le tue domande sui nostri servizi, sul tuo account e altro ancora."
+
+#: lib/mazaryn_web/templates/page/contact.html.heex:44
+#, elixir-autogen, elixir-format
+msgid "Contact us"
+msgstr "Contattaci"
+
+#: lib/mazaryn_web/templates/page/contact.html.heex:8
+#, elixir-autogen, elixir-format
+msgid "Help"
+msgstr "Aiuto"
+
+#: lib/mazaryn_web/templates/page/careers.html.heex:29
+#, elixir-autogen, elixir-format
+msgid "Apply"
+msgstr "Fare domanda a"
+
+#: lib/mazaryn_web/templates/page/careers.html.heex:19
+#, elixir-autogen, elixir-format
+msgid "Mazaryn Careers"
+msgstr "Carriere di Mazaryn"
+
+#: lib/mazaryn_web/templates/page/careers.html.heex:22
+#, elixir-autogen, elixir-format
+msgid "We're Hiring! We're looking for talented people to join our team."
+msgstr "Stiamo assumendo! Cerchiamo persone di talento da inserire nel nostro team."
+
+#: lib/mazaryn_web/live/auth_live/login.html.heex:38
+#: lib/mazaryn_web/live/auth_live/signup.html.heex:62
+#, elixir-autogen, elixir-format
+msgid "Email*"
+msgstr "E-mail*"
+
+#: lib/mazaryn_web/live/auth_live/login.html.heex:62
+#: lib/mazaryn_web/live/auth_live/signup.html.heex:85
+#, elixir-autogen, elixir-format
+msgid "Password*"
+msgstr "Password*"
+
+#: lib/mazaryn_web/live/auth_live/signup.html.heex:109
+#, elixir-autogen, elixir-format
+msgid "Repeat Password*"
+msgstr "Ripeti la password*"
+
+#: lib/mazaryn_web/live/auth_live/signup.html.heex:38
+#, elixir-autogen, elixir-format
+msgid "Username*"
+msgstr "Nome utente*"
+
+#: lib/mazaryn_web/live/auth_live/reset.html.heex:27
+#, elixir-autogen, elixir-format
+msgid "Reset Your Password"
+msgstr "Reimposta la tua password"
+
+#: lib/mazaryn_web/live/auth_live/reset.html.heex:31
+#, elixir-autogen, elixir-format
+msgid "To request a new password, enter your email"
+msgstr "Per richiedere una nuova password, inserisci la tua email"
+
+#: lib/mazaryn_web/live/auth_live/reset.html.heex:55
+#, elixir-autogen, elixir-format
+msgid "Continue"
+msgstr "Continuare"
+
+#: lib/mazaryn_web/live/auth_live/reset.html.heex:38
+#, elixir-autogen, elixir-format
+msgid "Enter your email"
+msgstr "Inserisci la tua email"
+
+#: lib/mazaryn_web/live/home_live/home.html.heex:135
+#: lib/mazaryn_web/live/home_live/home.html.heex:156
+#, elixir-autogen, elixir-format
+msgid "Follow"
+msgstr "Seguire"
+
+#: lib/mazaryn_web/live/home_live/home.html.heex:203
+#: lib/mazaryn_web/live/home_live/home.html.heex:234
+#, elixir-autogen, elixir-format
+msgid "Join"
+msgstr "Giuntura"
+
+#: lib/mazaryn_web/live/home_live/home.html.heex:54
+#, elixir-autogen, elixir-format
+msgid "Profile"
+msgstr "Profilo"
+
+#: lib/mazaryn_web/live/home_live/home.html.heex:189
+#, elixir-autogen, elixir-format
+msgid "Sports"
+msgstr "Sport"
+
+#: lib/mazaryn_web/live/home_live/home.html.heex:112
+#, elixir-autogen, elixir-format
+msgid "Trending"
+msgstr "Tendenza"
+
+#: lib/mazaryn_web/live/home_live/left_sidebar_component.ex:69
+#, elixir-autogen, elixir-format
+msgid "Chat"
+msgstr "Chiacchierata"
+
+#: lib/mazaryn_web/live/home_live/left_sidebar_component.ex:149
+#, elixir-autogen, elixir-format
+msgid "Dashboard"
+msgstr "Pannello di controllo"
+
+#: lib/mazaryn_web/live/home_live/left_sidebar_component.ex:231
+#, elixir-autogen, elixir-format
+msgid "Explore"
+msgstr "Esplorare"
+
+#: lib/mazaryn_web/live/home_live/left_sidebar_component.ex:85
+#, elixir-autogen, elixir-format
+msgid "Group"
+msgstr "Gruppo"
+
+#: lib/mazaryn_web/live/home_live/left_sidebar_component.ex:33
+#, elixir-autogen, elixir-format
+msgid "Home"
+msgstr "Casa"
+
+#: lib/mazaryn_web/live/home_live/left_sidebar_component.ex:221
+#, elixir-autogen, elixir-format
+msgid "Manage Users"
+msgstr "Gestisci utenti"
+
+#: lib/mazaryn_web/live/home_live/left_sidebar_component.ex:317
+#, elixir-autogen, elixir-format
+msgid "Marketplace"
+msgstr "Mercato"
+
+#: lib/mazaryn_web/live/home_live/left_sidebar_component.ex:115
+#, elixir-autogen, elixir-format
+msgid "Settings"
+msgstr "Impostazioni"

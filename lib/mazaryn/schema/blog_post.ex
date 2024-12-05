@@ -13,11 +13,11 @@ defmodule Mazaryn.Schema.BlogPost do
     author
     date_created
     date_updated
-  )
+  )a
 
   @required_fields ~w(
     content
-  )
+  )a
 
   embedded_schema do
     field(:content, :string)
@@ -42,7 +42,7 @@ defmodule Mazaryn.Schema.BlogPost do
       media: media,
       author: author,
       date_created: handle_datetime(date_created),
-      date_updated: handle_datetime(date_created),
+      date_updated: handle_datetime(date_updated),
       data: data
     })
   end

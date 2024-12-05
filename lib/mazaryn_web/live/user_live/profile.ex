@@ -261,8 +261,8 @@ defmodule MazarynWeb.UserLive.Profile do
     {:noreply, socket |> assign(form: to_form(user_changeset)) |> assign(privacy: privacy)}
   end
 
-  def handle_event("verify_user", %{"username" => username}, socket) do
-    ManageUser.verify_user(username)
+  def handle_event("verify_user", %{"username" => username, "admin_username" => admin_username}, socket) do
+    ManageUser.verify_user(username, admin_username)
 
     {:noreply,
      socket
@@ -270,8 +270,8 @@ defmodule MazarynWeb.UserLive.Profile do
      |> push_redirect(to: Routes.live_path(socket, __MODULE__, socket.assings.locale, username))}
   end
 
-  def handle_event("unverify_user", %{"username" => username}, socket) do
-    ManageUser.unverify_user(username)
+  def handle_event("unverify_user", %{"username" => username, "admin_username" => admin_username}, socket) do
+    ManageUser.unverify_user(username, admin_username)
 
     {:noreply,
      socket

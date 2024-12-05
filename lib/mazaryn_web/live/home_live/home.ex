@@ -6,7 +6,7 @@ defmodule MazarynWeb.HomeLive.Home do
   alias Mazaryn.Posts
   alias Account.Users
   alias Account.User
-  alias Core.PostClient
+  #alias Core.PostClient
   alias Phoenix.LiveView.JS
 
   require Logger
@@ -26,9 +26,14 @@ defmodule MazarynWeb.HomeLive.Home do
   end
 
   @impl true
+  def handle_params(_params, url, socket) do
+    socket = assign(socket, current_path: URI.parse(url).path)
+    {:noreply, socket}
+  end
+
+  @impl true
   def handle_event("show-comments", %{"id" => post_id}, socket) do
     JS.toggle(to: "#test-toggle", in: "fade-in-scale", out: "fade-out-scale")
-    IO.inspect(post_id)
 
     comments =
       post_id
@@ -47,6 +52,7 @@ defmodule MazarynWeb.HomeLive.Home do
   end
 
   def handle_event("do_search", %{"search" => search}, socket) do
+    IO.puts("searching")
     user = search_user_by_username(search)
     {:noreply, assign(socket, search: search, results: user || [])}
   end
@@ -61,7 +67,7 @@ defmodule MazarynWeb.HomeLive.Home do
     {:noreply, socket}
   end
 
-  defp search_user_by_username(username) do
+  def search_user_by_username(username) do
     case username |> Core.UserClient.search_user() do
       :username_not_exist ->
         nil
@@ -79,11 +85,6 @@ defmodule MazarynWeb.HomeLive.Home do
   @impl true
   def handle_info(:reload_posts, socket) do
     {:noreply, assign(socket, posts: get_posts())}
-  end
-
-  @impl true
-  def handle_params(_params, _uri, socket) do
-    {:noreply, socket}
   end
 
   defp get_posts, do: Posts.get_home_posts()

@@ -30,7 +30,7 @@ defmodule MazarynWeb.HomeLive.LeftSidebarComponent do
                     </svg>
                   </i>
                   <div class="text-[#60616D] text-base leading-6 group-hover:text-[#4385F5]">
-                    Home
+                    <%= gettext("Home") %>
                   </div>
                 <% end %>
               </li>
@@ -66,7 +66,7 @@ defmodule MazarynWeb.HomeLive.LeftSidebarComponent do
                     </svg>
                   </i>
                   <div class="text-[#60616D] text-base leading-6 group-hover:text-[#4385F5]">
-                    Chat
+                    <%= gettext("Chat") %>
                   </div>
                 </.link>
               </li>
@@ -82,7 +82,7 @@ defmodule MazarynWeb.HomeLive.LeftSidebarComponent do
                     ) %>
                   </i>
                   <div class="text-base leading-6 text-[#60616D] group-hover:text-[#4385F5]">
-                    Group
+                    <%= gettext("Group") %>
                   </div>
                 </a>
               </li>
@@ -112,7 +112,7 @@ defmodule MazarynWeb.HomeLive.LeftSidebarComponent do
                     </svg>
                   </i>
                   <div class="text-base leading-6 text-[#60616D] group-hover:text-[#4385F5]">
-                    Settings
+                    <%= gettext("Settings") %>
                   </div>
                 </a>
               </li>
@@ -146,7 +146,7 @@ defmodule MazarynWeb.HomeLive.LeftSidebarComponent do
                     </svg>
                   </i>
                   <div class="text-base leading-6 text-[#60616D] group-hover:text-[#4385F5]">
-                    Dashboard
+                    <%= gettext("Dashboard") %>
                   </div>
                 </a>
               </li>
@@ -218,7 +218,7 @@ defmodule MazarynWeb.HomeLive.LeftSidebarComponent do
                       ) %>
                     </i>
                     <div class="text-base leading-6 text-[#60616D] group-hover:text-[#4385F5]">
-                      Manage Users
+                      <%= gettext("Manage Users") %>
                     </div>
                   </.link>
                 </li>
@@ -228,7 +228,7 @@ defmodule MazarynWeb.HomeLive.LeftSidebarComponent do
         </div>
       <% end %>
 
-      <div class="font-medium text-base leading-6 text-[#60616D]">Explore</div>
+      <div class="font-medium text-base leading-6 text-[#60616D]"><%= gettext("Explore") %></div>
 
       <div class="social-box w-full bg-white white:bg-gray-800 py-6 px-5 my-6 rounded-[20px]">
         <div class="flex justify-between align-center items-center">
@@ -314,7 +314,9 @@ defmodule MazarynWeb.HomeLive.LeftSidebarComponent do
                       />
                     </svg>
                   </i>
-                  <div class="leading-6 text-[#60616D] group-hover:text-[#4385F5]">Marketplace</div>
+                  <div class="leading-6 text-[#60616D] group-hover:text-[#4385F5]">
+                    <%= gettext("Marketplace") %>
+                  </div>
                 </a>
               </li>
               <li class="flex align-center items-center  group mx-2 ">

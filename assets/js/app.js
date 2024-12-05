@@ -33,16 +33,35 @@ import topbar from "../vendor/topbar";
 let Hooks = {};
 
 let csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
+
+//  notifications
+const notification = document.getElementById("notification")
+
+Hooks.Notifications = {
+  mounted(){
+    if(window.location.pathname == "/en/notifications"){
+      notification.classList.add("hidden")
+      }else{
+        this.el.classList.remove("hidden")
+      }
+  }
+}
+
 let liveSocket = new LiveSocket("/live", Socket, {
-  hooks: Hooks,
   params: { _csrf_token: csrfToken },
   dom: {
     onBeforeElUpdated(from, to) {
       if (from._x_dataStack) {
         window.Alpine.clone(from, to);
       }
+
+      if (window.location.pathname == "/en/notifications") {
+        notification.classList.add("hidden")
+      }
     },
+    
   },
+  hooks: Hooks,
 });
 
 // Show progress bar on live navigation and form submits

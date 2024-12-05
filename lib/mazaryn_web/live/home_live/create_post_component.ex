@@ -2,7 +2,7 @@ defmodule MazarynWeb.HomeLive.CreatePostComponent do
   use MazarynWeb, :live_component
 
   alias MazarynWeb.Live.Helper
-  alias MazarynWeb.Component.CustomComponents
+  #alias MazarynWeb.Component.CustomComponents
   alias MazarynWeb.Component.SelectLive
   alias Mazaryn.Schema.Post
   alias Mazaryn.Posts
@@ -132,9 +132,11 @@ defmodule MazarynWeb.HomeLive.CreatePostComponent do
     with {:ok, %User{id: id}} <- Users.one_by_username(mention) do
       Core.NotifEvent.mention(user_id, id)
     else
-      nil -> :ok
+      {:error, _reason} -> :ok
+      _other -> :ok
     end
   end
+
 
   defp fetch_from_content(regex, %{"content" => content}) do
     regex

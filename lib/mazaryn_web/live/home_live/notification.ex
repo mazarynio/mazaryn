@@ -15,6 +15,15 @@ defmodule MazarynWeb.HomeLive.Notification do
      |> assign(notifs: get_all_user_notifs(user))}
   end
 
+  @impl true
+  def handle_params(_params, url, socket) do
+    socket = assign(socket, current_path: URI.parse(url).path)
+
+    IO.inspect("this is this is workin")
+    MazarynWeb.HomeLive.NavComponent.handle_path(socket)
+  end
+
+  @impl true
   def render(assigns) do
     ~H"""
     <!-- navigation -->
@@ -77,10 +86,11 @@ defmodule MazarynWeb.HomeLive.Notification do
     """
   end
 
+  @impl true
   def handle_info(:time_diff, socket) do
     notifs =
       socket.assigns.notifs
-      |> Enum.map(fn {user, message, time_passed, time_stamp} ->
+      |> Enum.map(fn {user, message, _time_passed, time_stamp} ->
         time_passed = time_passed(time_stamp)
         {user, message, time_passed, time_stamp}
       end)
@@ -113,7 +123,7 @@ defmodule MazarynWeb.HomeLive.Notification do
     end
   end
 
-  defp time_difference([h | t] = granulaties, date_time) do
+  defp time_difference([h | t] = _granulaties, date_time) do
     case Timex.diff(Timex.now(), date_time, h) do
       0 -> time_difference(t, date_time)
       diff -> "#{diff} #{h} ago"

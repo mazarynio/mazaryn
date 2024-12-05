@@ -17,7 +17,7 @@ msgstr ""
 msgid "About"
 msgstr "درباره"
 
-#: lib/mazaryn_web/templates/page/about.html.heex:17
+#: lib/mazaryn_web/templates/page/about.html.heex:19
 #, elixir-autogen, elixir-format
 msgid "About this site"
 msgstr "درباره این سایت"
@@ -28,7 +28,7 @@ msgid "An Online Community which empower users to explore their talents."
 msgstr "یک انجمن آنلاین که به کاربران امکان می دهد استعدادهای خود را کشف کنند"
 
 #: lib/mazaryn_web/templates/layout/root.html.heex:87
-#: lib/mazaryn_web/templates/page/about.html.heex:10
+#: lib/mazaryn_web/templates/page/about.html.heex:11
 #: lib/mazaryn_web/templates/page/careers.html.heex:11
 #: lib/mazaryn_web/templates/page/contact.html.heex:11
 #: lib/mazaryn_web/templates/page/index.html.heex:12
@@ -48,13 +48,13 @@ msgstr "حرفه"
 msgid "Contact"
 msgstr "تماس"
 
-#: lib/mazaryn_web/live/auth_live/login.html.heex:22
+#: lib/mazaryn_web/live/auth_live/login.html.heex:33
 #: lib/mazaryn_web/templates/page/index.html.heex:52
 #, elixir-autogen, elixir-format
 msgid "Login"
 msgstr "ورود"
 
-#: lib/mazaryn_web/templates/page/about.html.heex:20
+#: lib/mazaryn_web/templates/page/about.html.heex:22
 #, elixir-autogen, elixir-format
 msgid "MAZARYN is an Smart and OpenSource Platform of Inspiration & innovation. We take Care of User's Privacy and Content's Quality to Make the Happier Moments."
 msgstr "MAZARYN یک پلتفرم هوشمند و منبع باز الهام بخش و نوآوری است. ما از حریم خصوصی کاربر و کیفیت محتوا مراقبت می کنیم تا لحظات شادتری داشته باشیم."
@@ -81,7 +81,7 @@ msgstr "حریم خصوصی"
 msgid "Privacy policy"
 msgstr "سیاست‌نامه حریم خصوصی"
 
-#: lib/mazaryn_web/live/auth_live/signup.html.heex:27
+#: lib/mazaryn_web/live/auth_live/signup.html.heex:32
 #: lib/mazaryn_web/templates/page/index.html.heex:46
 #, elixir-autogen, elixir-format
 msgid "Sign Up"
@@ -127,44 +127,111 @@ msgstr "مازارین"
 msgid "We're Hiring! We're looking for talented people to join our team."
 msgstr "ما در حال استخدام هستیم! ما به دنبال افراد با استعداد هستیم تا به تیم ما بپیوندند."
 
-#: lib/mazaryn_web/live/auth_live/login.html.heex:27
-#: lib/mazaryn_web/live/auth_live/signup.html.heex:57
+#: lib/mazaryn_web/live/auth_live/login.html.heex:38
+#: lib/mazaryn_web/live/auth_live/signup.html.heex:62
 #, elixir-autogen, elixir-format
 msgid "Email*"
 msgstr "پست الکترونیک*"
 
-#: lib/mazaryn_web/live/auth_live/login.html.heex:51
-#: lib/mazaryn_web/live/auth_live/signup.html.heex:80
+#: lib/mazaryn_web/live/auth_live/login.html.heex:62
+#: lib/mazaryn_web/live/auth_live/signup.html.heex:85
 #, elixir-autogen, elixir-format
 msgid "Password*"
 msgstr "کلمه عبور*"
 
-#: lib/mazaryn_web/live/auth_live/signup.html.heex:104
+#: lib/mazaryn_web/live/auth_live/signup.html.heex:109
 #, elixir-autogen, elixir-format
 msgid "Repeat Password*"
 msgstr "تکرار رمز عبور*"
 
-#: lib/mazaryn_web/live/auth_live/signup.html.heex:33
+#: lib/mazaryn_web/live/auth_live/signup.html.heex:38
 #, elixir-autogen, elixir-format
 msgid "Username*"
 msgstr "نام کاربری*"
 
-#: lib/mazaryn_web/live/auth_live/reset.html.heex:22
+#: lib/mazaryn_web/live/auth_live/reset.html.heex:27
 #, elixir-autogen, elixir-format
 msgid "Reset Your Password"
 msgstr "رمز عبور خود را بازنشانی کنید"
 
-#: lib/mazaryn_web/live/auth_live/reset.html.heex:26
+#: lib/mazaryn_web/live/auth_live/reset.html.heex:31
 #, elixir-autogen, elixir-format
 msgid "To request a new password, enter your email"
 msgstr "برای درخواست رمز عبور جدید، ایمیل خود را وارد کنید"
 
-#: lib/mazaryn_web/live/auth_live/reset.html.heex:50
+#: lib/mazaryn_web/live/auth_live/reset.html.heex:55
 #, elixir-autogen, elixir-format
 msgid "Continue"
 msgstr "ادامه هید"
 
-#: lib/mazaryn_web/live/auth_live/reset.html.heex:33
+#: lib/mazaryn_web/live/auth_live/reset.html.heex:38
 #, elixir-autogen, elixir-format
 msgid "Enter your email"
 msgstr "ایمیل خود را وارد کنید"
+
+#: lib/mazaryn_web/live/home_live/home.html.heex:135
+#: lib/mazaryn_web/live/home_live/home.html.heex:156
+#, elixir-autogen, elixir-format
+msgid "Follow"
+msgstr "دنبال کنید"
+
+#: lib/mazaryn_web/live/home_live/home.html.heex:203
+#: lib/mazaryn_web/live/home_live/home.html.heex:234
+#, elixir-autogen, elixir-format
+msgid "Join"
+msgstr "بپیوندید"
+
+#: lib/mazaryn_web/live/home_live/home.html.heex:54
+#, elixir-autogen, elixir-format
+msgid "Profile"
+msgstr "نمایه"
+
+#: lib/mazaryn_web/live/home_live/home.html.heex:189
+#, elixir-autogen, elixir-format
+msgid "Sports"
+msgstr "ورزش"
+
+#: lib/mazaryn_web/live/home_live/home.html.heex:112
+#, elixir-autogen, elixir-format
+msgid "Trending"
+msgstr "پرطرفدار"
+
+#: lib/mazaryn_web/live/home_live/left_sidebar_component.ex:69
+#, elixir-autogen, elixir-format
+msgid "Chat"
+msgstr "چت کنید"
+
+#: lib/mazaryn_web/live/home_live/left_sidebar_component.ex:149
+#, elixir-autogen, elixir-format
+msgid "Dashboard"
+msgstr "داشبورد"
+
+#: lib/mazaryn_web/live/home_live/left_sidebar_component.ex:231
+#, elixir-autogen, elixir-format
+msgid "Explore"
+msgstr "کاوش کنید"
+
+#: lib/mazaryn_web/live/home_live/left_sidebar_component.ex:85
+#, elixir-autogen, elixir-format
+msgid "Group"
+msgstr "گروه"
+
+#: lib/mazaryn_web/live/home_live/left_sidebar_component.ex:33
+#, elixir-autogen, elixir-format
+msgid "Home"
+msgstr "صفحه اصلی"
+
+#: lib/mazaryn_web/live/home_live/left_sidebar_component.ex:221
+#, elixir-autogen, elixir-format
+msgid "Manage Users"
+msgstr "مدیریت کاربران"
+
+#: lib/mazaryn_web/live/home_live/left_sidebar_component.ex:317
+#, elixir-autogen, elixir-format
+msgid "Marketplace"
+msgstr "بازار"
+
+#: lib/mazaryn_web/live/home_live/left_sidebar_component.ex:115
+#, elixir-autogen, elixir-format
+msgid "Settings"
+msgstr "تنظیمات"

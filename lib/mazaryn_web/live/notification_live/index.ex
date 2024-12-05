@@ -6,6 +6,7 @@ defmodule MazarynWeb.NotificationLive.Index do
 
   alias Core.UserClient, as: UserClient
 
+  @spec handle_event(<<_::72, _::_*24>>, map(), map()) :: {:noreply, map()}
   def handle_event("insert_notif", %{"userID" => userID, "message" => message}, socket) do
     userID = UserClient.get_user_by_id(userID)
     UserClient.insert_notif(userID, message)

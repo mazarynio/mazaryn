@@ -37,6 +37,16 @@ defmodule MazarynWeb.Router do
   #   plug :ensure_user_confirmed
   # end
 
+  scope "/api" do
+    pipe_through(:api)
+
+    forward("/graphiql", Absinthe.Plug.GraphiQL,
+      schema: MazarynWeb.Schema,
+      interface: :simple
+    )
+
+    forward("/", Absinthe.Plug, schema: MazarynWeb.Schema)
+  end
   get "/", MazarynWeb.PageController, :add_locale
 
   scope "/:locale", MazarynWeb do
@@ -110,20 +120,6 @@ defmodule MazarynWeb.Router do
       live("/:username/:locale", UserLive.Profile)
     end
   end
-
-  scope "/api" do
-    pipe_through(:api)
-
-    forward("/graphiql", Absinthe.Plug.GraphiQL,
-      schema: MazarynWeb.Schema,
-      interface: :simple
-    )
-
-    forward("/", Absinthe.Plug, schema: MazarynWeb.Schema)
-  end
-
-  # Other scopes may use custom stacks.
-
   # Other scopes may use custom stacks.
   # scope "/api", MazarynWeb do
   #   pipe_through :api
