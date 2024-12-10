@@ -6,7 +6,7 @@
 -include_lib("stdlib/include/qlc.hrl").
 
 % Send Message (UserID, RecipientID, Body, Media)
-send_msg(UserID, RecipientID, Body, Media) ->
+send_msg(UserID, RecipientID, Body, Media) -> 
     Fun = fun() ->
         Id = nanoid:gen(),
         AI_Chat_ID = ai_chatdb:insert(Id),
@@ -18,7 +18,8 @@ send_msg(UserID, RecipientID, Body, Media) ->
             ai_chat_id = AI_Chat_ID,
             user_id = UserID,
             recipient_id = RecipientID,
-            body = chat_dense_coding:send_msg(Body),
+            %%body = chat_dense_coding:send_msg(Body),
+            body = Body,
             media = Media,
             date_created = Date
         }),
