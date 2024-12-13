@@ -21,7 +21,7 @@ defmodule Mazaryn.Chats.Chat do
   def changeset(chat, attrs) do
     attrs =
       Enum.reduce(
-        [:id, :user_id, :recipient_id],
+        [:id, :ai_chat_id, :user_id, :recipient_id],
         attrs,
         &((&2[&1] && Map.put(&2, &1, to_string(&2[&1]))) || &2)
       )

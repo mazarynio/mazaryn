@@ -169,137 +169,210 @@
   <div class="border-[#E5E5E5] border border-b-0 mt-7 mb-3.5"></div>
   <div class="flex justify-between align-center items-center py-5">
     <.form
-      :let={f}
-      for={@changeset}
-      phx-blur="validate-comment"
-      phx-target={@myself}
-      phx-submit="save-comment"
-      class="relative flex justify-center items-center w-full"
-    >
-      <img class="h-8 w-8 rounded-full" src={get_user_avatar(@post.author)} />
-      <div class="relative top-2.5 w-full ml-4 text-sm leading-tight">
-        <%= hidden_input(f, :post_id, value: @post.id, id: "comment[post-#{@post.id}]") %>
-        <%= hidden_input(f, :author,
-          value: @current_user.id,
-          id: "comment[author-#{Ecto.UUID.generate()}]"
-        ) %>
-        <%= text_input(f, :content,
-          class:
-            "w-full border-none px-0 resize-none focus:text-black focus:ring-0 font-normal leading-[24px] block placeholder:text-[#C5C7C8]",
-          placeholder: "Type something",
-          id: "comment[content-#{@post.id}]"
-        ) %>
-        <%= submit("Send", style: "display: none;") %>
-      </div>
-    </.form>
+       :let={f}
+       for={@changeset}
+       phx-blur="validate-comment"
+       phx-target={@myself}
+       phx-submit="save-comment"
+       class="relative flex justify-center items-center w-full"
+     >
+       <img class="h-8 w-8 rounded-full" src={get_user_avatar(@post.author)} />
+       <div class="relative top-2.5 w-full ml-4 text-sm leading-tight flex items-center">
+         <%= hidden_input(f, :post_id, value: @post.id, id: "comment[post-#{@post.id}]") %>
+         <%= hidden_input(f, :author,
+           value: @current_user.id,
+           id: "comment[author-#{Ecto.UUID.generate()}]"
+         ) %>
+         <div class="flex-grow mr-2">
+           <%= text_input(f, :content,
+             class:
+               "w-full border-none px-0 resize-none focus:text-black focus:ring-0 font-normal leading-[24px] block placeholder:text-[#C5C7C8]",
+             placeholder: "Type something",
+             id: "comment[content-#{@post.id}]"
+           ) %>
+         </div>
+         <%= submit("Send", 
+           class: "bg-cyan-500 text-white px-2 py-0.5 rounded-md text-xs hover:bg-cyan-600 transition-colors",
+           phx_disabled_with: "Sending..."
+         ) %>
+       </div>
+     </.form>
     <!-- TODO smiley face and add image -->
   </div>
 
   <div id={"view-comments-#{@post.id}"} class="w-full flex flex-col justify-start items-center">
     <%= for comment <- Mazaryn.Posts.get_comment_by_post_id(@post.id |> to_charlist) do %>
       <div
-        x-data="{open: false, openComment: false}"
-        x-on:click.outside="open = false; openComment = false"
-        class="w-full flex flex-row justify-between items-start pt-2 pb-2"
-      >
-        <div class="flex">
-          <img
-            src={get_user_avatar(comment.id |> to_charlist())}
-            class="h-8 w-8 rounded-full mr-3 mb-3 "
-          />
-          <div class="flex flex-col justify-center items-start">
-            <div class="grid grid-flow-col auto-cols-max">
-              <div class="relative">
-                <p class="text-sm font-normal">
-                  <%= Account.Users.get_user_by_id(comment.author).username %>
-                </p>
-              </div>
-
-              <%= if Account.Users.get_user_by_id(comment.author).verified do %>
-                <div class="relative">
-                  <span>
-                    <img
-                      alt="verified user"
-                      src={Routes.static_path(@socket, "/images/verified.png")}
-                      class="rounded-full align-middle border-none max-h-6 max-w-6"
-                    />
-                  </span>
-                </div>
-              <% end %>
-            </div>
-
-            <p class="text-xs font-normal text-gray-400">
-              <%= Timex.from_now(comment.date_created) %>
-            </p>
-            <p class="text-sm font-normal text-gray-600 mt-5" x-show="!openComment">
-              <%= comment.content %>
-            </p>
-            <.form
-              :let={f}
-              for={@update_comment_changeset}
-              phx-blur="validate-update-comment"
-              phx-target={@myself}
-              phx-submit="update-comment"
-              x-show="openComment"
-              class=" flex justify-center items-center w-full"
-            >
-              <div class="w-fulltext-sm leading-tight">
-                <%= hidden_input(f, :id, value: comment.id, id: "comment[#{comment.id}]") %>
-                <%= text_input(f, :content,
-                  class:
-                    "w-full border-none px-0 resize-none focus:text-black focus:ring-0 font-normal leading-[24px] block placeholder:text-[#C5C7C8]",
-                  placeholder: "Type something",
-                  id: "comment[comment-#{comment.id}]"
-                ) %>
-                <div @click="openComment = false; open = false">
-                  <%= submit("Send", style: "display: none;") %>
-                </div>
-              </div>
-            </.form>
-          </div>
+  x-data="{
+    open: false, 
+    isEditing: false, 
+    editedContent: 'new content', 
+    toggleMenu() { 
+      this.open = !this.open; 
+      this.isEditing = false; 
+    },
+    startEditing() {
+      this.isEditing = true;
+      this.open = false;
+    },
+    cancelEditing() {
+      this.isEditing = false;
+      this.editedContent = '{{ comment.content }}';
+    }
+  }"
+  x-on:click.outside="open = false; isEditing = false"
+  class="w-full flex flex-row justify-between items-start py-3 relative"
+>
+  <div class="flex items-start space-x-3 w-full">
+    <img
+      src={get_user_avatar(comment.id |> to_charlist())}
+      class="h-8 w-8 rounded-full shrink-0"
+    />
+    
+    <div class="flex-grow">
+      <div class="flex items-center space-x-2 mb-1">
+        <div class="grid grid-flow-col auto-cols-max items-center">
+          <p class="text-sm font-semibold mr-2">
+            <%= Account.Users.get_user_by_id(comment.author).username %>
+          </p>
+          
+          <%= if Account.Users.get_user_by_id(comment.author).verified do %>
+            <img
+              alt="verified user"
+              src={Routes.static_path(@socket, "/images/verified.png")}
+              class="rounded-full h-4 w-4"
+            />
+          <% end %>
         </div>
-        <div class="relative">
-          <i @click="open = !open">
-            <%= Heroicons.icon("ellipsis-vertical",
-              type: "solid",
-              class: "relative h-7 w-7 fill-[#60616D] cursor-pointer"
-            ) %>
-          </i>
-          <ul
-            x-show="open"
-            x-transition:enter="transition ease-out duration-200"
-            x-transition:enter-start="opacity-0"
-            x-transition:enter-end="opacity-100"
-            x-transition:leave="transition ease-in duration-200"
-            x-transition:leave-start="opacity-100"
-            x-transition:leave-end="opacity-0"
-            class="absolute top-4 right-4 bg-white rounded-md text-blue-900 border p-3 border-blue space-y-2 w-32"
-          >
-            <%= if comment.author != @current_user.id  do %>
-              <li class="">
-                <p class="text-gray-500 m-2 cursor-pointer">Report</p>
-              </li>
-            <% else %>
-              <li class="">
-                <p class="text-gray-500 m-2 cursor-pointer" @click="openComment = !openComment">
-                  Update
-                </p>
-              </li>
-              <li class="">
-                <p
-                  class="text-gray-500 m-2 cursor-pointer"
-                  phx-click="delete-comment"
-                  phx-value-comment-id={comment.id}
-                  phx-value-post-id={comment.post_id}
-                  phx-target={@myself}
-                >
-                  Delete
-                </p>
-              </li>
-            <% end %>
-          </ul>
-        </div>
+        
+        <span class="text-xs text-gray-400">
+          <%= Timex.from_now(comment.date_created) %>
+        </span>
       </div>
+
+      <!-- View Mode -->
+      <div x-show="!isEditing" class="text-sm text-gray-700">
+        <%= comment.content %>
+      </div>
+
+      <!-- Edit Mode -->
+      <div x-show="isEditing" class="mt-1">
+        <.form
+          :let={f}
+          for={@update_comment_changeset}
+          phx-blur="validate-update-comment"
+          phx-target={@myself}
+          phx-submit="update-comment"
+          class="flex space-x-2"
+        >
+          <%= hidden_input(f, :id, value: comment.id) %>
+          <%= text_input(f, :content, 
+            x_model: "editedContent",
+            class: "w-full px-2 py-1 border rounded text-sm",
+            placeholder: "Edit your comment"
+          ) %>
+          <div class="flex space-x-1">
+            <button 
+              type="submit" 
+              class="bg-blue-500 text-white px-2 py-1 rounded text-xs hover:bg-blue-600 transition"
+            >
+              Save
+            </button>
+            <button 
+              type="button" 
+              @click="cancelEditing()"
+              class="bg-gray-200 text-gray-700 px-2 py-1 rounded text-xs hover:bg-gray-300 transition"
+            >
+              Cancel
+            </button>
+          </div>
+        </.form>
+      </div>
+  <div class="flex items-center space-x-2 mt-2">
+  <!-- Like Button -->
+  <button 
+    phx-click="like-comment"
+    phx-value-comment-id={comment.id}
+    phx-target={@myself}
+    class="flex items-center space-x-1 px-1 py-1 rounded-full bg-gray-100 hover:bg-blue-100 transition shadow-sm hover:shadow-md group"
+  >
+    <svg 
+      xmlns="http://www.w3.org/2000/svg" 
+      class="h-3 w-3 group-hover:fill-blue-600 fill-gray-500 transition" 
+      viewBox="0 0 24 24"
+    >
+      <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+    </svg>
+    <span class="text-xs font-semibold text-gray-700 group-hover:text-blue-600">Like</span>
+  </button>
+
+  <!-- Reply Button -->
+  <button 
+    @click="isReplying = !isReplying"
+    class="flex items-center space-x-1 px-1 py-1 rounded-full bg-gray-100 hover:bg-green-100 transition shadow-sm hover:shadow-md group"
+  >
+    <svg 
+      xmlns="http://www.w3.org/2000/svg" 
+      class="h-3 w-3 group-hover:fill-green-600 fill-gray-500 transition" 
+      viewBox="0 0 24 24"
+    >
+      <path d="M10 9V5l-7 7 7 7v-4.1c5 0 8.5 1.6 11 5.1-1-5-4-10-11-11z"/>
+    </svg>
+    <span class="text-xs font-semibold text-gray-700 group-hover:text-green-600">Reply</span>
+  </button>
+</div>
+
+
+
+    </div>
+  </div>
+
+  <!-- Dropdown Menu -->
+  <div class="relative">
+    <button 
+      @click="toggleMenu()" 
+      class="text-gray-500 hover:text-gray-700 p-1 rounded-full transition"
+    >
+      <%= Heroicons.icon("ellipsis-vertical", 
+        type: "solid", 
+        class: "h-5 w-5"
+      ) %>
+    </button>
+
+    <div 
+      x-show="open"
+      x-transition
+      class="absolute top-full right-0 mt-1 w-32 bg-white border rounded-md shadow-lg z-10"
+    >
+      <%= if comment.author != @current_user.id do %>
+        <button 
+          @click="open = false"
+          phx-click="report-comment"
+          phx-value-comment-id={comment.id}
+          class="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 transition"
+        >
+          Report
+        </button>
+      <% else %>
+        <button 
+          @click="startEditing()"
+          class="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 transition"
+        >
+          Edit
+        </button>
+        <button 
+          phx-click="delete-comment"
+          phx-value-comment-id={comment.id}
+          phx-value-post-id={comment.post_id}
+          phx-target={@myself}
+          class="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50 transition"
+        >
+          Delete
+        </button>
+      <% end %>
+    </div>
+  </div>
+</div>
     <% end %>
     <%= if @report_action do %>
       <.modal>
