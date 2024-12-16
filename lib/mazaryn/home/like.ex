@@ -7,6 +7,7 @@ defmodule Home.Like do
 
   embedded_schema do
     field(:post_id, :string)
+    field(:comment_id, :string)
     field(:user_id, :string)
     field(:date_created, :utc_datetime)
     field(:data, :map)
@@ -17,11 +18,12 @@ defmodule Home.Like do
     # timestamps()
   end
 
-  def erl_changeset({:like, id, post_id, user_id, date_created, data}) do
+  def erl_changeset({:like, id, post_id, comment_id, user_id, date_created, data}) do
     %__MODULE__{}
     |> change(%{
       id: id,
       post_id: post_id,
+      comment_id: comment_id,
       user_id: user_id,
       date_created: handle_datetime(date_created),
       data: data

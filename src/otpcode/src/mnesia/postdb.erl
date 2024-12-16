@@ -5,8 +5,8 @@
          get_posts_by_hashtag/1, update_post/2,
          delete_post/1, get_posts/0,
          get_all_posts_from_date/4, get_all_posts_from_month/3,
-         like_post/2, unlike_post/2, add_comment/3, update_comment/2,
-         get_all_comments/1, delete_comment/2, delete_comment_from_mnesia/1, get_likes/1,
+         like_post/2, unlike_post/2, add_comment/3, update_comment/2, like_comment/2, get_comment_likes/1, reply_comment/3,
+          get_reply/1, get_all_replies/1, get_all_comments/1, delete_comment/2, delete_comment_from_mnesia/1, get_likes/1,
          get_single_comment/1, get_media/1, report_post/4, update_activity/2]).
 -export([get_comments/0]).
 
@@ -213,10 +213,8 @@ add_comment(Author, PostID, Content) ->
           [] -> 
               {error, post_not_found}; 
           [Post] ->
-              %% Generate a unique ID for the new comment
               Id = nanoid:gen(),
 
-              %% Write the new comment to the database
               Comment = #comment{
                   id = Id,
                   post = PostID,
@@ -226,15 +224,13 @@ add_comment(Author, PostID, Content) ->
               },
               mnesia:write(Comment),
 
-              %% Add the comment ID to the post's comment list
               UpdatedComments = [Id | Post#post.comments],
               UpdatedPost = Post#post{
                   comments = UpdatedComments
               },
 
-              %% Update the post with the new comment list
               mnesia:write(UpdatedPost),
-              Id  %% Return success and the new comment ID
+              Id 
       end
   end,
 
@@ -242,9 +238,9 @@ add_comment(Author, PostID, Content) ->
       {atomic, Id} -> 
           Id;  %% Return the ID of the newly added comment
       {atomic, {error, Reason}} -> 
-          {error, Reason};  %% Return the specific error reason
+          {error, Reason};  
       {aborted, Reason} -> 
-          {error, transaction_failed, Reason}  %% Handle aborted transactions
+          {error, transaction_failed, Reason}  
   end.
 
 
@@ -253,6 +249,94 @@ update_comment(CommentID, NewContent) ->
             [Comment] = mnesia:read({comment, CommentID}),
             mnesia:write(Comment#comment{content = NewContent}),
             CommentID
+        end,
+  {atomic, Res} = mnesia:transaction(Fun),
+  Res.
+
+like_comment(UserID, CommentID) ->  
+  Fun = fun() ->
+            ID = nanoid:gen(),
+            mnesia:write(#like{id = ID,
+                               comment = CommentID,
+                               userID = UserID,
+                               date_created = calendar:universal_time()}),
+            [Comment] = mnesia:read({comment, CommentID}),
+            Likes = Comment#comment.likes,
+            mnesia:write(Comment#comment{likes = [ID|Likes]}),
+            ID
+        end,
+  {atomic, Res} = mnesia:transaction(Fun),
+  Res.
+
+get_comment_likes(CommentID) -> 
+  Fun = fun() ->
+            mnesia:match_object(#like{comment = CommentID,
+                                      _ = '_'}),
+            [Comment] = mnesia:read({comment, CommentID}),
+            lists:foldl(fun(ID, Acc) ->
+                            [Like] = mnesia:read({like, ID}),
+                            [Like|Acc]
+                        end,
+                        [], Comment#comment.likes)
+        end,
+  {atomic, Res} = mnesia:transaction(Fun),
+  Res.
+
+reply_comment(UserID, CommentID, Content) ->
+  Fun = fun() ->
+      %% Check if the post exists
+      case mnesia:read({comment, CommentID}) of
+          [] -> 
+              {error, comment_not_found}; 
+          [Comment] ->
+              Id = nanoid:gen(),
+
+              Reply = #reply{
+                  id = Id,
+                  comment = CommentID,
+                  userID = UserID,
+                  content = Content,
+                  date_created = calendar:universal_time()
+              },
+              mnesia:write(Reply),
+
+              UpdatedReplies = [Id | Comment#comment.replies],
+              UpdatedComment = Comment#comment{
+                  replies = UpdatedReplies
+              },
+
+              mnesia:write(UpdatedComment),
+              Id 
+      end
+  end,
+
+  case mnesia:transaction(Fun) of
+      {atomic, Id} -> 
+          Id;  %% Return the ID of the newly added comment
+      {atomic, {error, Reason}} -> 
+          {error, Reason};  
+      {aborted, Reason} -> 
+          {error, transaction_failed, Reason}  
+  end.
+
+get_reply(ReplyID) ->
+  Fun = fun() ->
+    [Reply] = mnesia:read({reply, ReplyID}),
+    Reply 
+  end,
+  {atomic, Res} = mnesia:transaction(Fun),
+  Res.
+
+get_all_replies(CommentID) ->
+  Fun = fun() ->
+            mnesia:match_object(#reply{comment = CommentID,
+                                         _ = '_'}),
+            [Comment] = mnesia:read({comment, CommentID}),
+            lists:foldl(fun(Id, Acc) ->
+                            [Reply] = mnesia:read({reply, Id}),
+                            [Reply|Acc]
+                        end,
+                        [], Comment#comment.replies)
         end,
   {atomic, Res} = mnesia:transaction(Fun),
   Res.

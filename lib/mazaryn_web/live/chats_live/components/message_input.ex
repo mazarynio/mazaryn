@@ -48,4 +48,12 @@ defmodule MazarynWeb.ChatsLive.Components.MessageInput do
 
     {:noreply, socket}
   end
+
+  def handle_event("edit-message", %{"chat-id" => chat_id, "new-content" => new_content} = _params, socket) do
+    chat_id = chat_id |> to_charlist
+    ChatClient.edit_msg(chat_id, new_content)
+    send(self(), :reload_chats)
+
+    {:noreply, socket}
+  end
 end
