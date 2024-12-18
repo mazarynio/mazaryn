@@ -1,9 +1,9 @@
 -module(businessdb). 
--author("Zaryn Technologies").
+-author("Zaryn Technologies"). 
 -include("../records.hrl").
--export([insert/3, get_business_account_by_business_id/1, get_business_account_by_user_id/1, get_business_account_by_username/1]).
+-export([insert/4, get_business_account_by_business_id/1, get_business_account_by_user_id/1, get_business_account_by_username/1]).
 
-insert(UserID, Industry, BusinessEmail) ->
+insert(UserID, CompanyName, Industry, BusinessEmail) ->
     Fun = fun() ->
         ID = nanoid:gen(),
         AI_Business_ID = ai_businessdb:insert(ID),
@@ -12,6 +12,7 @@ insert(UserID, Industry, BusinessEmail) ->
             id = ID,
             user_id = UserID,
             ai_business_id = AI_Business_ID,
+            company_name = CompanyName,
             industry = Industry,
             business_email = BusinessEmail,
             date_created = Now
