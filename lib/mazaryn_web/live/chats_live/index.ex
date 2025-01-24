@@ -8,6 +8,7 @@ defmodule MazarynWeb.ChatsLive.Index do
   alias Account.Users
   alias Account.User
   alias Mazaryn.Chats
+  alias Core.ChatClient
 
   on_mount {MazarynWeb.UserLiveAuth, :user_resource}
 
@@ -42,6 +43,12 @@ defmodule MazarynWeb.ChatsLive.Index do
     user = search_user_by_username(search_query)
 
     {:noreply, assign(socket, recent_chat_recepients: user || [], search_query: search_query)}
+  end
+
+  def handle_event("delete-message", %{"message-id" => msg_id} = _params, socket) do
+    updated_messages = Enum.reject(socket.assigns.messages, fn msg -> msg.id == msg_id end) 
+    ChatClient.delete_msg(to_charlist(msg_id))
+    {:noreply, assign(socket, :messages, updated_messages)}
   end
 
   @impl true
