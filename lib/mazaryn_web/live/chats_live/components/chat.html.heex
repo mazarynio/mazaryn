@@ -179,6 +179,28 @@
           </div>
         </div>
 
+        <div :if={@editting_message && @editting_message.id == message.id} class="edit-message-form">
+          <form phx-submit="save-edit">
+            <input type="hidden" name="message_id" value={@editting_message.id} />
+            <input
+              type="text"
+              name="message_body"
+              value={@editting_message.body}
+              class="w-full p-2 border rounded"
+            />
+            <div class="flex space-x-2">
+              <button type="submit" class="bg-green-500 text-white p-2 rounded">Save</button>
+              <button
+                type="button"
+                phx-click="cancel-edit"
+                class="bg-gray-300 text-gray-700 p-2 rounded"
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
+        </div>
+
         <div :if={message.user_id == "#{@actor.id}"} class="chat-message">
           <div class="flex items-end justify-end">
             <div class="flex flex-col space-y-2 text-xs max-w-xs mx-2 order-1 items-end">
@@ -214,7 +236,8 @@
                     class="absolute z-20 right-0 mt-2 w-48 bg-white rounded-lg shadow-xl border border-gray-200"
                   >
                     <button
-                      @click="editMessage(message)"
+                      phx-click="edit-message"
+                      phx-value-message-id={message.id}
                       class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 transition-colors duration-200 flex items-center space-x-2"
                     >
                       <svg
