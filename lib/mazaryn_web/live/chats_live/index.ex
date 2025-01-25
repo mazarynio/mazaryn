@@ -8,6 +8,7 @@ defmodule MazarynWeb.ChatsLive.Index do
   alias Account.Users
   alias Account.User
   alias Mazaryn.Chats
+  alias Core.ChatClient
 
   on_mount {MazarynWeb.UserLiveAuth, :user_resource}
 
@@ -19,7 +20,8 @@ defmodule MazarynWeb.ChatsLive.Index do
       chats: [],
       users_without_chats: [],
       show_search: false,
-      search_query: nil
+      search_query: nil,
+      editting_message: false
     ]
 
     if connected?(socket),
@@ -42,6 +44,37 @@ defmodule MazarynWeb.ChatsLive.Index do
     user = search_user_by_username(search_query)
 
     {:noreply, assign(socket, recent_chat_recepients: user || [], search_query: search_query)}
+  end
+
+  @impl true
+  def handle_event("edit-message", %{"message-id" => msg_id} = _params, socket) do
+    [message_to_edit] = Enum.filter(socket.assigns.messages, fn msg -> msg.id == msg_id end)
+    {:noreply, assign(socket, :editting_message, message_to_edit)}
+  end
+
+  @impl true
+  def handle_event("save-edit", %{"message_body" => new_body, "message_id" => msg_id}, socket) do
+  ChatClient.edit_msg(to_charlist(msg_id), new_body)
+  updated_messages = Enum.map(socket.assigns.messages, fn msg ->
+    if msg.id == msg_id, do: %{msg | body: new_body}, else: msg
+  end)
+
+  {:noreply, 
+   socket
+   |> assign(:messages, updated_messages)
+   |> assign(:editting_message, nil)}
+end
+
+ @impl true
+  def handle_event("cancel-edit", _params, socket) do
+  {:noreply, assign(socket, :editting_message, nil)}
+end
+
+  @impl true
+  def handle_event("delete-message", %{"message-id" => msg_id} = _params, socket) do
+    updated_messages = Enum.reject(socket.assigns.messages, fn msg -> msg.id == msg_id end) 
+    ChatClient.delete_msg(to_charlist(msg_id))
+    {:noreply, assign(socket, :messages, updated_messages)}
   end
 
   @impl true
