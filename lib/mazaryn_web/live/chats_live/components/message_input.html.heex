@@ -3,7 +3,7 @@
     :let={f}
     for={@changeset}
     phx-change="validate-message"
-    phx-submit="send-message"
+    phx-submit={if @editting_message, do: "save-edit", else: "send-message"}
     phx-target={@myself}
     class="flex flex-col justify-between align-center w-full m-0"
     id="message-form"
@@ -17,6 +17,7 @@
         <%= textarea(
           f,
           :body,
+          value: if(@editting_message, do: @editting_message.body, else: ""),
           class:
             "w-full border-none resize-none focus:text-black focus:ring-0 font-normal leading-[24px] block placeholder:text-[#C5C7C8]",
           placeholder: "Write your message"
@@ -100,13 +101,25 @@
           <.live_file_input upload={@uploads.media} class="hidden" />
         </i>
       </div>
-      <button
-        type="submit"
-        form="message-form"
-        class="bg-[#4ade80] text-black rounded-[10px] py-1.5 px-6 self-auto min-h-[40px] min-w-[100px]"
-      >
-        Send
-      </button>
-    </div>
+      <div class="flex justify-center items-center gap-4">
+        <button
+          type="submit"
+          form="message-form"
+          class="bg-[#4ade80] hover:bg-[#d0d6da] hover:border-[#4ade80] hover:border text-black rounded-[10px] py-1.5 px-6 self-auto min-h-[40px] min-w-[100px]"
+          >
+           <%= if @editting_message, do: "Save", else: "Send" %>
+        </button>
+        <%= if @editting_message do %>
+          <button
+            type="button"
+            phx-click="cancel-edit"
+            class="bg-[#d0d6da] hover:border-[#4ade80] hover:border text-black rounded-[10px] py-1.5 px-6 self-auto min-h-[40px] min-w-[100px]"
+          >
+            Cancel
+          </button>
+        <% end %>
+
+      </div>
+      </div>
   </.form>
 </div>

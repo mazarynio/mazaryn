@@ -41,22 +41,35 @@ defmodule MazarynWeb.ChatsLive.Components.MessageInput do
     |> then(&{:noreply, &1})
   end
 
-  def handle_event("delete-message", %{"chat-id" => chat_id} = _params, socket) do
-    chat_id = chat_id |> to_charlist
-    ChatClient.delete_msg(chat_id)
-    send(self(), :reload_chats)
-    {:noreply, socket}
+  @impl true
+def handle_event("save-edit", %{"chat" => chat}, socket) do
+  %{"body" => body} = chat
+
+  if String.trim(body) == "" do
+    changeset =
+      socket.assigns.message
+      |> Chats.Chat.changeset(chat)
+      |> Map.put(:action, :validate)
+
+    {:noreply, assign(socket, :changeset, changeset)}
+  else
+    msg_id = socket.assigns.editting_message.id
+    ChatClient.edit_msg(to_charlist(msg_id), body)
+
+    updated_messages = Enum.map(socket.assigns.messages, fn msg ->
+      if msg.id == msg_id, do: %{msg | body: body}, else: msg
+    end)
+
+    {:noreply,
+     socket
+     |> assign(:messages, updated_messages)
+     |> assign(:editting_message, nil)
+     |> assign(:changeset, Chat.changeset(%Chat{}, %{}))}
   end
+end
 
-  def handle_event(
-        "edit-message",
-        %{"chat-id" => chat_id, "new-content" => new_content} = _params,
-        socket
-      ) do
-    chat_id = chat_id |> to_charlist
-    ChatClient.edit_msg(chat_id, new_content)
-    send(self(), :reload_chats)
-
-    {:noreply, socket}
+ @impl true
+  def handle_event("cancel-edit", _params, socket) do
+  {:noreply, assign(socket, :editting_message, nil)}
   end
 end
