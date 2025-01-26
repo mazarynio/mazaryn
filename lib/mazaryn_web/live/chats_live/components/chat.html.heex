@@ -114,63 +114,6 @@
           </div>
         </div>
 
-        <div
-          :if={@editting_message}
-          class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4"
-        >
-          <div class="bg-white rounded-lg shadow-xl w-full max-w-md mx-auto p-6 relative">
-            <div class="flex justify-between items-center border-b pb-3 mb-4">
-              <h2 class="text-xl font-semibold text-gray-800">Edit Message</h2>
-              <button
-                phx-click="cancel-edit"
-                class="text-gray-500 hover:text-gray-700 focus:outline-none"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  class="h-6 w-6"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
-              </button>
-            </div>
-
-            <form phx-submit="save-edit" class="space-y-4">
-              <input type="hidden" name="message_id" value={@editting_message.id} />
-              <div>
-                <input
-                  type="text"
-                  name="message_body"
-                  value={@editting_message.body}
-                  class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                />
-              </div>
-              <div class="flex justify-end space-x-3">
-                <button
-                  type="button"
-                  phx-click="cancel-edit"
-                  class="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors duration-200"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  class="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors duration-200"
-                >
-                  Save Changes
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-
         <div :if={message.user_id == "#{@actor.id}"} class="chat-message">
           <div class="flex items-end justify-end">
             <div class="flex flex-col space-y-2 text-xs max-w-xs mx-2 order-1 items-end">
