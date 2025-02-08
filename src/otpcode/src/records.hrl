@@ -73,6 +73,8 @@
                   author,
                   content,
                   date_created,
+                  likes = [],
+                  replies = [],
                   data = #{} }).
 
 -record(blog_comment, {id,
@@ -84,9 +86,18 @@
 
 -record(like, {id,
                post,
+               comment,
                userID,
                date_created,
                data = #{} }).
+
+-record(reply, {id,
+                comment,
+                chat,
+                userID,
+                content,
+                date_created,
+                data = #{} }).
 
 -record(chat, {id, 
                ai_chat_id,

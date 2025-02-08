@@ -7,7 +7,7 @@
 %%% Created : 14. May 2022 9:45 PM
 %%%-------------------------------------------------------------------
 -module(post_server).
--author("Zaryn Technologies").
+-author("Zaryn Technologies"). 
 -define(NUM, 5).
 -include_lib("kernel/include/logger.hrl").
 
@@ -16,8 +16,8 @@
 -export([start_link/0, insert/7, get_post_by_id/1, get_post_content_by_id/1, modify_post/7,
          get_posts_by_author/1, get_posts_content_by_author/1, get_posts_by_hashtag/1, get_latest_posts/1, update_post/2, delete_post/1, 
          like_post/2, unlike_post/2, add_comment/3,
-         update_comment/2, get_single_comment/1, get_all_comments/1, delete_comment/2,
-    get_likes/1,
+         update_comment/2, like_comment/2, get_comment_likes/1, reply_comment/3, get_reply/1, get_all_replies/1,
+         get_single_comment/1, get_all_comments/1, delete_comment/2, get_likes/1,
          get_media/1, get_posts/0,
          get_all_posts_from_date/4, get_all_posts_from_month/3]).
 
@@ -75,6 +75,21 @@ add_comment(Author, PostID, Content) ->
 
 update_comment(CommentID, NewContent) ->
     gen_server:call({global, ?MODULE}, {update_comment, CommentID, NewContent}).
+
+like_comment(UserID, CommentID) ->
+    gen_server:call({global, ?MODULE}, {like_comment, UserID, CommentID}). 
+
+get_comment_likes(CommentID) ->
+    gen_server:call({global, ?MODULE}, {get_comment_likes, CommentID}). 
+
+reply_comment(UserID, CommentID, Content) ->
+    gen_server:call({global, ?MODULE}, {reply_comment, UserID, CommentID, Content}).
+
+get_reply(ReplyID) ->
+    gen_server:call({global, ?MODULE}, {get_reply, ReplyID}).
+
+get_all_replies(CommentID) ->
+    gen_server:call({global, ?MODULE}, {get_all_replies, CommentID}).
 
 get_single_comment(CommentId) ->
     gen_server:call({global, ?MODULE}, {get_single_comment, CommentId}).
@@ -180,6 +195,26 @@ handle_call({add_comment, Author, PostID, Content}, _From, State) ->
 handle_call({update_comment, CommentID, NewContent}, _From, State) ->
     postdb:update_comment(CommentID, NewContent),
     {reply, ok, State};
+
+handle_call({like_comment, UserID, CommentID}, _From, State) ->
+    ID = postdb:like_comment(UserID, CommentID),
+    {reply, ID, State};
+
+handle_call({get_comment_likes, CommentID}, _From, State) ->
+    IDs = postdb:get_comment_likes(CommentID),
+    {reply, IDs, State};
+
+handle_call({reply_comment, UserID, CommentID, Content}, _From, State) ->
+    ID = postdb:reply_comment(UserID, CommentID, Content),
+    {reply, ID, State};
+
+handle_call({get_reply, ReplyID}, _From, State) ->
+    ID = postdb:get_reply(ReplyID),
+    {reply, ID, State};
+
+handle_call({get_all_replies, CommentID}, _From, State) ->
+    IDs = postdb:get_all_replies(CommentID),
+    {reply, IDs, State};
 
 handle_call({get_single_comment, CommentId}, _From, State) ->
     Comment = postdb:get_single_comment(CommentId),

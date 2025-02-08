@@ -1,9 +1,9 @@
 -module(adsdb).
 -author("Zaryn Technologies").
 -include("../records.hrl").
--export([insert/2, get_ads_by_ads_id/1, get_ads_by_user_id/1, get_ads_by_username/1]).
+-export([insert/3, get_ads_by_ads_id/1, get_ads_by_user_id/1, get_ads_by_username/1]).
 
-insert(UserID, Ad_type) ->
+insert(UserID, Ad_type, Content) ->
     Fun = fun() ->
         ID = nanoid:gen(),
         AI_Ads_ID = ai_adsdb:insert(ID),
@@ -13,7 +13,8 @@ insert(UserID, Ad_type) ->
             user_id = UserID,
             ai_ads_id = AI_Ads_ID,
             ad_type = Ad_type,
-            date_created = Now
+            date_created = Now,
+            content = Content
         },
         mnesia:write(Ads),
         ID
@@ -32,8 +33,8 @@ get_ads_by_ads_id(ID) ->
       _ -> error
 end.
 
-get_ads_by_user_id(ID) ->
-    User = userdb:get_user_by_id(ID),
+get_ads_by_user_id(UserID) ->
+    User = userdb:get_user_by_id(UserID),
     Ads_ID = User#user.ads_id,
     Ads = get_ads_by_ads_id(Ads_ID),
     Ads.

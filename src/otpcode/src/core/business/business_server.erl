@@ -2,10 +2,10 @@
 -author("Zaryn Technologies").
 -include_lib("kernel/include/logger.hrl").
 -behaviour(gen_server).
--define(SERVER, ?MODULE).
+-define(SERVER, ?MODULE). 
 -record(state, {}).
 
--export([start_link/0, insert/1, get_business_account_by_business_id/1, get_business_account_by_user_id/1, get_business_account_by_username/1]).
+-export([start_link/0, insert/4, get_business_account_by_business_id/1, get_business_account_by_user_id/1, get_business_account_by_username/1]).
 
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2,
@@ -14,8 +14,8 @@
 start_link() ->
     gen_server:start_link({global, ?SERVER}, ?MODULE, [], []).
 
-insert(UserID) ->
-    gen_server:call({global, ?MODULE}, {insert, UserID}).
+insert(UserID, CompanyName, Industry, BusinessEmail) ->
+    gen_server:call({global, ?MODULE}, {insert, UserID, CompanyName, Industry, BusinessEmail}).
 
 get_business_account_by_business_id(ID) ->
     gen_server:call({global, ?MODULE}, {get_business_account_by_business_id, ID}).
@@ -30,8 +30,8 @@ init([]) ->
     ?LOG_NOTICE("Business server has been started - ~p", [self()]),
     {ok, #state{}}.
 
-handle_call({insert, UserID}, _From, State) ->
-    Res = businessdb:insert(UserID),
+handle_call({insert, UserID, CompanyName, Industry, BusinessEmail}, _From, State) ->
+    Res = businessdb:insert(UserID, CompanyName, Industry, BusinessEmail),
     {reply, Res, State};
 
 handle_call({get_business_account_by_business_id, ID}, _From, State) ->

@@ -1,8 +1,8 @@
 defmodule MazarynWeb.ChatsLive.Components.MessageInput do
   use MazarynWeb, :live_component
 
-  #alias MazarynWeb.Component.CustomComponents
-  #alias MazarynWeb.Live.Helper
+  # alias MazarynWeb.Component.CustomComponents
+  # alias MazarynWeb.Live.Helper
   alias Mazaryn.Chats
   alias Mazaryn.Chats.Chat
   alias :chat_server, as: ChatClient
@@ -41,11 +41,35 @@ defmodule MazarynWeb.ChatsLive.Components.MessageInput do
     |> then(&{:noreply, &1})
   end
 
-  def handle_event("delete-message", %{"chat-id" => chat_id} = _params, socket) do
-    chat_id = chat_id |> to_charlist
-    ChatClient.delete_msg(chat_id)
-    send(self(), :reload_chats)
+  @impl true
+def handle_event("save-edit", %{"chat" => chat}, socket) do
+  %{"body" => body} = chat
 
-    {:noreply, socket}
+  if String.trim(body) == "" do
+    changeset =
+      socket.assigns.message
+      |> Chats.Chat.changeset(chat)
+      |> Map.put(:action, :validate)
+
+    {:noreply, assign(socket, :changeset, changeset)}
+  else
+    msg_id = socket.assigns.editting_message.id
+    ChatClient.edit_msg(to_charlist(msg_id), body)
+
+    updated_messages = Enum.map(socket.assigns.messages, fn msg ->
+      if msg.id == msg_id, do: %{msg | body: body}, else: msg
+    end)
+
+    {:noreply,
+     socket
+     |> assign(:messages, updated_messages)
+     |> assign(:editting_message, nil)
+     |> assign(:changeset, Chat.changeset(%Chat{}, %{}))}
+  end
+end
+
+ @impl true
+  def handle_event("cancel-edit", _params, socket) do
+  {:noreply, assign(socket, :editting_message, nil)}
   end
 end

@@ -11,7 +11,7 @@
 
 -define(SERVER, ?MODULE).
 -define(MNESIA_DIR, "Mnesia/").
--define(TABLES, [post, notif, user, blog_post, comment, blog_comment, like, chat, media, report, knode, business, ads, quantum,
+-define(TABLES, [post, notif, user, blog_post, comment, blog_comment, like, reply, chat, media, report, knode, business, ads, quantum,
  ai_user, ai_post, ai_chat, ai_media, ai_business, ai_ads]).
 
 %% API
@@ -187,6 +187,7 @@ table_attributes(blog_post) -> record_info(fields, blog_post);
 table_attributes(comment) -> record_info(fields, comment);
 table_attributes(blog_comment) -> record_info(fields, blog_comment);
 table_attributes(like) -> record_info(fields, like);
+table_attributes(reply) -> record_info(fields, reply);
 table_attributes(chat) -> record_info(fields, chat);
 table_attributes(media) -> record_info(fields, media);
 table_attributes(report) -> record_info(fields, report);

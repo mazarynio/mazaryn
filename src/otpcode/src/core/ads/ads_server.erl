@@ -5,17 +5,17 @@
 -define(SERVER, ?MODULE).
 -record(state, {}).
 
--export([start_link/0, insert/1, get_ads_by_ads_id/1, get_ads_by_user_id/1, get_ads_by_username/1]).
+-export([start_link/0, insert/3, get_ads_by_ads_id/1, get_ads_by_user_id/1, get_ads_by_username/1]).
 
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2,
   code_change/3]).
 
-start_link() ->
+start_link() -> 
     gen_server:start_link({global, ?SERVER}, ?MODULE, [], []).
 
-insert(UserID) ->
-    gen_server:call({global, ?MODULE}, {insert, UserID}).
+insert(UserID, Ad_type, Content) ->
+    gen_server:call({global, ?MODULE}, {insert, UserID, Ad_type, Content}).
 
 get_ads_by_ads_id(ID) ->
     gen_server:call({global, ?MODULE}, {get_ads_by_ads_id, ID}).
@@ -30,8 +30,8 @@ init([]) ->
     ?LOG_NOTICE("Ads server has been started - ~p", [self()]),
     {ok, #state{}}.
 
-handle_call({insert, UserID}, _From, State) ->
-    Res = adsdb:insert(UserID),
+handle_call({insert, UserID, Ad_type, Content}, _From, State) ->
+    Res = adsdb:insert(UserID, Ad_type, Content),
     {reply, Res, State};
 
 handle_call({get_ads_by_ads_id, ID}, _From, State) ->

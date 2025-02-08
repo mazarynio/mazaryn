@@ -17,6 +17,7 @@ defmodule MazarynWeb.HomeLive.PostComponent do
     update_comment_changeset = Comment.changeset(%Comment{})
 
     Enum.map(list_of_assigns, fn {assigns, socket} ->
+      comments = Posts.get_comment_by_post_id(assigns.post.id)
       assigns =
         assigns
         |> Map.put(:follow_event, follow_event(assigns.current_user.id, assigns.post.author))
@@ -25,7 +26,7 @@ defmodule MazarynWeb.HomeLive.PostComponent do
         |> Map.put(:like_event, like_event(assigns.current_user.id, assigns.post.id))
         |> Map.put(:changeset, changeset)
         |> Map.put(:update_comment_changeset, update_comment_changeset)
-        |> Map.put(:comments, assigns.post.comments)
+        |> Map.put(:comments, comments)
         |> Map.put(:report_action, false)
         |> Map.put(:like_action, false)
         |> Map.put(:is_liked, false)
@@ -89,6 +90,7 @@ defmodule MazarynWeb.HomeLive.PostComponent do
   end
 
   def handle_event("update-comment", %{"comment" => comment_params} = _params, socket) do
+    IO.inspect(comment_params, lable: "COMMENT PARAMS")
     comment =
       %Comment{}
       |> Comment.update_changeset(comment_params)

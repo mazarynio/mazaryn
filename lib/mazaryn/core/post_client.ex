@@ -86,6 +86,26 @@ defmodule Core.PostClient do
     :post_server.update_comment(commentID, newContent)
   end
 
+  def like_comment(userID, commentID) do
+    :post_server.like_comment(userID, commentID)
+  end
+
+  def get_comment_likes(commentID) do
+    :post_server.get_comment_likes(commentID)
+  end
+
+  def reply_comment(userID, commentID, content) do
+    :post_server.reply_comment(userID, commentID, content)
+  end
+
+  def get_reply(replyID) do
+    :post_server.get_reply(replyID)
+  end
+
+  def get_all_replies(commentID) do
+    :post_server.get_all_replies(commentID)
+  end
+
   ## Get specific comment using CommentID
   def get_single_comment(commentId) do
     :post_server.get_single_comment(commentId)

@@ -1,6 +1,6 @@
-defmodule Mazaryn.Schema.Comment do
+defmodule Mazaryn.Schema.Reply do
   @moduledoc """
-  Embedded schema to represent Mazaryn.Schema.Comment
+  Embedded schema to represent Mazaryn.Schema.Reply
   """
 
   use Ecto.Schema
@@ -9,38 +9,36 @@ defmodule Mazaryn.Schema.Comment do
 
   @optional_fields ~w(
     id
+    comment
+    chat
     date_created
-    likes
-    replies
     data
   )a
 
   @required_fields ~w(
     content
-    author
-    post_id
+    user_id
   )a
+
 
   embedded_schema do
     field(:content, :string)
     field(:date_created, :date)
-    field(:likes, :string)
-    field(:replies, :string)
-    field(:author, :string)
-    field(:post_id, :string)
+    field(:comment, :string)
+    field(:chat, :string)
+    field(:user_id, :string)
     field(:data, :map)
   end
 
-  def erl_changeset({:comment, id, post, author, content, date_created, likes, replies, data}) do
+  def erl_changeset({:reply, id, comment, chat, user_id, content, date_created, data}) do
     %__MODULE__{}
     |> change(%{
       id: id,
-      post_id: post,
-      author: author,
+      comment: comment,
+      chat: chat,
+      user_id: user_id,
       content: content,
       date_created: handle_datetime(date_created),
-      likes: likes,
-      replies: replies,
       data: data
     })
   end
