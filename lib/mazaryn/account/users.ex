@@ -96,7 +96,7 @@ defmodule Account.Users do
 
   def register(username, pass, email) do
     case UserClient.register(username, pass, email) do
-      user_id when is_binary(user_id) ->
+      user_id when is_list(user_id) ->
         username
         |> Mail.UserEmail.register_email(email)
         |> Mailer.deliver()

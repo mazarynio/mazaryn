@@ -35,7 +35,8 @@ config :mazaryn, Mazaryn.Mailer,
   api_client: false
 
 # Swoosh API client is needed for adapters other than SMTP.
-config :swoosh, :api_client, false
+config :swoosh, :api_client, Swoosh.ApiClient.Hackney
+
 
 config :mazaryn, MazarynWeb.Gettext,
   locales: ~w(en ru fa),

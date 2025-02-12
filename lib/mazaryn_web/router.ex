@@ -37,7 +37,7 @@ defmodule MazarynWeb.Router do
   #   plug :ensure_user_confirmed
   # end
 
-  scope "/api" do
+  scope "/en/api" do
     pipe_through(:api)
 
     forward("/graphiql", Absinthe.Plug.GraphiQL,
