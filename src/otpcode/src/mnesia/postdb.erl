@@ -106,14 +106,19 @@ update_post(PostId, NewContent) ->
             [Post] = mnesia:read({post, PostId}),
             Content = Post#post.content,
             UpdatedContent =
-            lists:foldl(fun({Key, Value}, Acc) ->
-                            case lists:keymember(Key, 1, Acc) of
-                              true ->
-                                lists:keyreplace(Key, 1, Acc, {Key, Value});
-                              false ->
-                                [{Key, Value}|Acc]
-                            end
-                        end, Content, NewContent),
+              case NewContent of
+                [{Key, Value} | _] ->  % Handle key-value pairs
+                  lists:foldl(fun({K, V}, Acc) ->
+                    case lists:keymember(K, 1, Acc) of
+                      true ->
+                        lists:keyreplace(K, 1, Acc, {K, V});
+                      false ->
+                        [{K, V} | Acc]
+                    end
+                  end, Content, NewContent);
+                _ ->  % Handle raw string
+                  NewContent
+              end,
             mnesia:write(Post#post{content = UpdatedContent})
         end,
   {atomic, Res} = mnesia:transaction(Fun),
