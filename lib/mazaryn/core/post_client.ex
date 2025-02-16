@@ -167,6 +167,6 @@ defmodule Core.PostClient do
 
   def translate_post(postID, target) do
     text =  :postdb.get_post_content_by_id(postID)
-    TranslationClient.translate_text(text, "en", target)
+    Translator.translate_text(text, "en", target)
   end
 end
