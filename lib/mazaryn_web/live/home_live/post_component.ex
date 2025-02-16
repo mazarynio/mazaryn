@@ -8,6 +8,7 @@ defmodule MazarynWeb.HomeLive.PostComponent do
   alias Core.PostClient
   alias Mazaryn.Schema.Comment
   alias Mazaryn.Posts
+  alias Mazaryn.Schema.Post
   alias Phoenix.LiveView.JS
 
   # TODO: revert to the deprecated `preload/1` if this doesn't work; I think it works
@@ -15,9 +16,11 @@ defmodule MazarynWeb.HomeLive.PostComponent do
   def update_many(list_of_assigns) do
     changeset = Comment.changeset(%Comment{})
     update_comment_changeset = Comment.changeset(%Comment{})
+    update_post_changeset = Post.changeset(%Post{})
 
     Enum.map(list_of_assigns, fn {assigns, socket} ->
       comments = Posts.get_comment_by_post_id(assigns.post.id)
+
       assigns =
         assigns
         |> Map.put(:follow_event, follow_event(assigns.current_user.id, assigns.post.author))
@@ -30,6 +33,7 @@ defmodule MazarynWeb.HomeLive.PostComponent do
         |> Map.put(:report_action, false)
         |> Map.put(:like_action, false)
         |> Map.put(:is_liked, false)
+        |> Map.put(:update_post_changeset, update_post_changeset)
 
       assign(socket, assigns)
     end)
@@ -40,6 +44,7 @@ defmodule MazarynWeb.HomeLive.PostComponent do
     {:ok,
      socket
      |> assign(:uploaded_files, [])
+     |> assign(:editing_post, false)
      |> allow_upload(:media, accept: ~w(.png .jpg .jpeg), max_entries: 2)}
   end
 
@@ -89,8 +94,49 @@ defmodule MazarynWeb.HomeLive.PostComponent do
     {:noreply, assign(socket, :update_comment_changeset, changeset)}
   end
 
+  def handle_event("edit_post", %{"post-id" => post_id}, socket) do
+    post_id = post_id |> to_charlist
+    post = PostClient.get_post_content_by_id(post_id)
+    {:noreply, socket |> assign(:editing_post, post) |> assign(:edit_post_id, post_id)}
+  end
+
+  def handle_event("update-post", %{"post" => post_params}, socket) do
+    post_id = socket.assigns.edit_post_id
+
+    changeset =
+      %Post{}
+      |> Post.changeset(post_params)
+
+    case changeset.valid? do
+      true ->
+        new_content = post_params["content"]
+
+        case PostClient.update_post(post_id, new_content) do
+          :ok ->
+            send(self(), :reload_posts)
+
+            {:noreply,
+             socket
+             |> assign(:editing_post, false)
+             |> assign(:edit_post_id, nil)}
+
+          error ->
+            IO.inspect(error, label: "Error updating post")
+            {:noreply, socket}
+        end
+
+      false ->
+        {:noreply, assign(socket, :update_post_changeset, %{changeset | action: :validate})}
+    end
+  end
+
+  def handle_event("cancel-edit", _params, socket) do
+    {:noreply, assign(socket, :editing_post, false)}
+  end
+
   def handle_event("update-comment", %{"comment" => comment_params} = _params, socket) do
     IO.inspect(comment_params, lable: "COMMENT PARAMS")
+
     comment =
       %Comment{}
       |> Comment.update_changeset(comment_params)
