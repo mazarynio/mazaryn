@@ -131,15 +131,23 @@ defmodule Mazaryn.Schema.AiPost do
     field(:data, :map)
   end
 
-  def erl_changeset({:ai_post, id, post_id, csentiment_score, topic_classification, content_category, language, readability_score,
-   engagement_rate, virality_score, content_quality_score, controversy_score, originality_score, user_segments, ai_generated_tags,
-    entity_recognition, sentiment_distribution, relevance_scores, content_warnings, accessibility_metrics, seo_metrics, related_posts,
-    interaction_predictions, ab_test_variant, content_freshness_score, fact_check_results, monetization_potential, content_summary, key_phrases,
-    image_analysis_results, video_analysis_results, audio_analysis_results, cross_platform_performance, user_retention_impact, content_lifecycle_stage,
-    ai_recommended_actions, embedding_vector, nlp_features, semantic_analysis, emotion_detection, style_analysis, intent_classification, time_series_data,
-    topic_modeling, content_authenticity, multimedia_analysis, user_interaction_patterns, network_effect_metrics, content_moderation, cross_lingual_features,
-    contextual_relevance, content_structure_analysis, trend_analysis, content_recommendation_features, anomaly_detection, causal_inference_data,
-    federated_learning_contributions, explainable_ai_outputs, data}) do
+  def erl_changeset(
+        {:ai_post, id, post_id, csentiment_score, topic_classification, content_category,
+         language, readability_score, engagement_rate, virality_score, content_quality_score,
+         controversy_score, originality_score, user_segments, ai_generated_tags,
+         entity_recognition, sentiment_distribution, relevance_scores, content_warnings,
+         accessibility_metrics, seo_metrics, related_posts, interaction_predictions,
+         ab_test_variant, content_freshness_score, fact_check_results, monetization_potential,
+         content_summary, key_phrases, image_analysis_results, video_analysis_results,
+         audio_analysis_results, cross_platform_performance, user_retention_impact,
+         content_lifecycle_stage, ai_recommended_actions, embedding_vector, nlp_features,
+         semantic_analysis, emotion_detection, style_analysis, intent_classification,
+         time_series_data, topic_modeling, content_authenticity, multimedia_analysis,
+         user_interaction_patterns, network_effect_metrics, content_moderation,
+         cross_lingual_features, contextual_relevance, content_structure_analysis, trend_analysis,
+         content_recommendation_features, anomaly_detection, causal_inference_data,
+         federated_learning_contributions, explainable_ai_outputs, data}
+      ) do
     %__MODULE__{}
     |> change(%{
       id: id,
@@ -225,5 +233,4 @@ defmodule Mazaryn.Schema.AiPost do
   def build(changeset) do
     apply_action(changeset, :build)
   end
-
 end

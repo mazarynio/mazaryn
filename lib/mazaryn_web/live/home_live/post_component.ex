@@ -21,6 +21,15 @@ defmodule MazarynWeb.HomeLive.PostComponent do
     Enum.map(list_of_assigns, fn {assigns, socket} ->
       comments = Posts.get_comment_by_post_id(assigns.post.id)
 
+      comments_with_like_events =
+        Enum.map(comments, fn comment ->
+          Map.put(
+            comment,
+            :like_comment_event,
+            like_comment_event(assigns.current_user.id, comment.id)
+          )
+        end)
+IO.inspect(comments_with_like_events, label: "COMMENT DETAILS COMING IN ")
       assigns =
         assigns
         |> Map.put(:follow_event, follow_event(assigns.current_user.id, assigns.post.author))
@@ -29,7 +38,7 @@ defmodule MazarynWeb.HomeLive.PostComponent do
         |> Map.put(:like_event, like_event(assigns.current_user.id, assigns.post.id))
         |> Map.put(:changeset, changeset)
         |> Map.put(:update_comment_changeset, update_comment_changeset)
-        |> Map.put(:comments, comments)
+        |> Map.put(:comments, comments_with_like_events)
         |> Map.put(:report_action, false)
         |> Map.put(:like_action, false)
         |> Map.put(:is_liked, false)
@@ -202,6 +211,115 @@ defmodule MazarynWeb.HomeLive.PostComponent do
      socket
      |> assign(:comments, comments)}
   end
+  # def handle_event("like-comment", %{"comment-id" => comment_id}, socket) do
+  #   IO.inspect(comment_id, label: "COMMENT IS BEING LIKED")
+  #   comment_id = comment_id |> to_charlist
+  #   user_id = socket.assigns.current_user.id
+  #
+  #   IO.inspect(user_id, label: "HERE IS THE USERID LIKING THE COMMENT")
+  #   # Like the comment
+  #   PostClient.like_comment(user_id, comment_id)
+  #
+  #   # Fetch the updated comment and post
+  #   post = rebuild_post(socket.assigns.post.id)
+  #   IO.inspect(post, label: "HERE IS THE POST WITH THE COMMENT BEING LIKED")
+  #   comments = Posts.get_comment_by_post_id(post.id)
+  #   IO.inspect(comments, label: "HERE ARE THE COMMENTS OF THE POST BEING LIKED")
+  #
+  #   {:noreply,
+  #    socket
+  #    |> assign(:post, post)
+  #    |> assign(:comments, comments)}
+  # end
+  def handle_event("like-comment", %{"comment-id" => comment_id}, socket) do
+    IO.inspect(comment_id, label: "COMMENT IS BEING LIKED")
+    comment_id = comment_id |> to_charlist
+    user_id = socket.assigns.current_user.id
+ comments = socket.assigns.comments
+
+  # Find the specific comment that was unliked
+  current_comment = Enum.find(comments, fn comment -> comment.id == comment_id |> to_charlist end)
+    # IO.inspect(user_id, label: "HERE IS THE USERID LIKING THE COMMENT")
+    # Like the comment
+    PostClient.like_comment(user_id, comment_id)
+
+    # Fetch the updated comment and post
+    post_id = socket.assigns.post.id |> to_charlist
+    # IO.inspect(post, label: "HERE IS THE POST WITH THE COMMENT BEING LIKED")
+    # comments = Posts.get_comment_by_post_id(post.id)
+    # IO.inspect(comments, label: "HERE ARE THE COMMENTS OF THE POST BEING LIKED")
+
+    updated_comments = Posts.get_comment_by_post_id(post_id)
+    IO.inspect(updated_comments, label: "HERE ARE THE UPDATED COMMENTS")
+
+  # Update the `like_comment_event` for the specific comment
+     comments_with_like_events =
+      Enum.map(updated_comments, fn comment ->
+        Map.put(
+          comment,
+          :like_comment_event,
+          like_comment_event(user_id, comment.id)
+        )
+      end)
+
+  post = rebuild_post(post_id)
+
+    {:noreply,
+     socket
+     |> assign(:post, post)
+     |> assign(:comments, comments_with_like_events)}
+  end
+
+def handle_event("unlike-comment", %{"comment-id" => comment_id}, socket) do
+  IO.inspect(comment_id, label: "UNLIKE COMMENT EVENT HAS BEEN CALLED!!!")
+  post_id = socket.assigns.post.id |> to_charlist
+  user_id = socket.assigns.current_user.id |> to_charlist
+
+  # Fetch the current comments for the post
+  # comments = Posts.get_comment_by_post_id(post_id)
+  comments = socket.assigns.comments
+
+  # Find the specific comment that was unliked
+  current_comment = Enum.find(comments, fn comment -> comment.id == comment_id |> to_charlist end)
+
+  # Fetch the like associated with the comment and user
+  like =
+    comment_id
+    |> to_charlist
+    |> PostClient.get_comment_likes()
+    |> Enum.map(&(&1 |> Home.Like.erl_changeset() |> Home.Like.build() |> elem(1)))
+    |> Enum.filter(&(&1.user_id == user_id))
+    |> hd()
+IO.inspect([like.id, post_id], label: "LIKE TO BE REMOVED!!!")
+  # Unlike the comment
+  # :postdb.unlike_comment(like.id, post_id)
+
+  # Rebuild the post to get the updated state
+  post = rebuild_post(post_id)
+
+  # Fetch the updated comments for the post
+  updated_comments = Posts.get_comment_by_post_id(post_id)
+    IO.inspect(updated_comments, label: "HERE ARE THE UPDATED COMMENTS")
+
+  # Update the `like_comment_event` for the specific comment
+  comments_with_like_events =
+    Enum.map(updated_comments, fn comment ->
+      if comment.id == comment_id |> to_charlist do
+        # Update the `like_comment_event` for the unliked comment
+        Map.put(comment, :like_comment_event, "like-comment")
+      else
+        # Keep the existing `like_comment_event` for other comments
+        comment
+      end
+    end)
+
+    IO.inspect(comments_with_like_events, label: "NEW COMMENTS WITH THEIR LIKE EVENTS")
+  {:noreply,
+   socket
+   |> assign(:post, post)
+   |> assign(:comments, comments_with_like_events)}
+end
+ 
 
   def handle_event("follow_user", %{"username" => username}, socket) do
     user_id = socket.assigns.current_user.id
@@ -447,7 +565,10 @@ defmodule MazarynWeb.HomeLive.PostComponent do
     post_id
     |> PostClient.get_likes()
     |> Enum.map(fn like ->
-      like |> Home.Like.erl_changeset() |> Home.Like.build() |> elem(1)
+      like
+      |> Home.Like.erl_changeset()
+      |> Home.Like.build()
+      |> elem(1)
     end)
     |> Enum.any?(&(&1.user_id == user_id))
   end
@@ -469,5 +590,35 @@ defmodule MazarynWeb.HomeLive.PostComponent do
       {:ok, user} -> user.verified
       _ -> false
     end
+  end
+
+  defp like_comment_event(user_id, comment_id) do
+    if one_of_comment_likes?(user_id, comment_id),
+      do: "unlike-comment",
+      else: "like-comment"
+  end
+
+  defp one_of_comment_likes?(user_id, comment_id) do
+    comment_id
+    |> PostClient.get_comment_likes()
+    |> Enum.map(fn like ->
+      like
+      |> Home.Like.erl_changeset()
+      |> Home.Like.build()
+      |> elem(1)
+
+      # |> IO.inspect(label: "HERE ARE The LIKE afeter ELEM")
+    end)
+    |> Enum.any?(&(&1.user_id == user_id))
+
+    # |> IO.inspect(label: "AFTER CHECKING IF USERID IS THERE??")
+  end
+
+  defp comment_like_color(user_id, comment_id) do
+    if one_of_comment_likes?(user_id, comment_id),
+      # Blue color when liked
+      do: "text-blue-500",
+      # Gray color when unliked
+      else: "text-gray-500"
   end
 end

@@ -106,8 +106,8 @@
           type="submit"
           form="message-form"
           class="bg-[#4ade80] hover:bg-[#d0d6da] hover:border-[#4ade80] hover:border text-black rounded-[10px] py-1.5 px-6 self-auto min-h-[40px] min-w-[100px]"
-          >
-           <%= if @editting_message, do: "Save", else: "Send" %>
+        >
+          <%= if @editting_message, do: "Save", else: "Send" %>
         </button>
         <%= if @editting_message do %>
           <button
@@ -118,8 +118,7 @@
             Cancel
           </button>
         <% end %>
-
       </div>
-      </div>
+    </div>
   </.form>
 </div>

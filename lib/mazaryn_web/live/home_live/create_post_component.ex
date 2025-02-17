@@ -2,7 +2,7 @@ defmodule MazarynWeb.HomeLive.CreatePostComponent do
   use MazarynWeb, :live_component
 
   alias MazarynWeb.Live.Helper
-  #alias MazarynWeb.Component.CustomComponents
+  # alias MazarynWeb.Component.CustomComponents
   alias MazarynWeb.Component.SelectLive
   alias Mazaryn.Schema.Post
   alias Mazaryn.Posts
@@ -136,7 +136,6 @@ defmodule MazarynWeb.HomeLive.CreatePostComponent do
       _other -> :ok
     end
   end
-
 
   defp fetch_from_content(regex, %{"content" => content}) do
     regex

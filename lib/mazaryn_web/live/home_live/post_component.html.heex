@@ -103,44 +103,44 @@
       </div>
     </div>
   </div>
-        <%= if @editing_post do %>
-  <div class="w-full  pr-[1.35rem] pl-[1.6rem] pb-2 pt-5 mt-8 ">
-    <.form
-      :let={f}
-      for={@update_post_changeset}
-      phx-submit="update-post"
-      phx-target={@myself}
-      class="w-full"
-    >
-      <div class="flex flex-col space-y-4">
-        <%= textarea(f, :content,
-          class: "w-full border border-[#87efad] rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-[#87efad]",
-          placeholder: "Edit your post...",
-          value: @editing_post
-        ) %>
-        <div class="flex justify-end space-x-2">
-          <%= submit("Save",
-            class: "bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-[#87efad] transition-colors"
+  <%= if @editing_post do %>
+    <div class="w-full  pr-[1.35rem] pl-[1.6rem] pb-2 pt-5 mt-8 ">
+      <.form
+        :let={f}
+        for={@update_post_changeset}
+        phx-submit="update-post"
+        phx-target={@myself}
+        class="w-full"
+      >
+        <div class="flex flex-col space-y-4">
+          <%= textarea(f, :content,
+            class: "w-full border rounded-md p-2",
+            placeholder: "Edit your post...",
+            value: @editing_post
           ) %>
-          <button
-            type="button"
-            phx-click="cancel-edit"
-            phx-target={@myself}
-            class="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600 transition-colors"
-          >
-            Cancel
-          </button>
+          <div class="flex justify-end space-x-2">
+            <%= submit("Save",
+              class:
+                "bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-[#87efad] transition-colors"
+            ) %>
+            <button
+              type="button"
+              phx-click="cancel-edit"
+              phx-target={@myself}
+              class="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600 transition-colors"
+            >
+              Cancel
+            </button>
+          </div>
         </div>
-      </div>
-    </.form>
-  </div>
-<% else %>
-  <!-- Original post content goes here -->
-  <p class="text-black block text-base mt-3">
-    <%= raw(@post |> activate_content_characters(@socket)) %>
-    <span class="text-[#4385F5] text-sm"><%= Enum.join(@post.profile_tags, " ") %></span>
-  </p>
-<% end %>
+      </.form>
+    </div>
+  <% else %>
+    <p class="text-black block text-base mt-3">
+      <%= raw(@post |> activate_content_characters(@socket)) %>
+      <span class="text-[#4385F5] text-sm"><%= Enum.join(@post.profile_tags, " ") %></span>
+    </p>
+  <% end %>
 
   <div :if={!Enum.empty?(@post.media)} class="w-full grid grid-cols-4 gap-4">
     <%!-- <%= for _media_url <- @post.media do %> --%>
@@ -336,23 +336,42 @@
             <div class="flex items-center space-x-2 mt-2">
               <!-- Like Button -->
               <button
-                phx-click="like-comment"
+                phx-click={comment.like_comment_event}
                 phx-value-comment-id={comment.id}
                 phx-target={@myself}
                 class="flex items-center space-x-1 px-1 py-1 rounded-full bg-gray-100 hover:bg-blue-100 transition shadow-sm hover:shadow-md group"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  class="h-3 w-3 group-hover:fill-blue-600 fill-gray-500 transition"
+                  class={"h-4 w-4 #{comment_like_color(@current_user.id, comment.id)} transition"}
                   viewBox="0 0 24 24"
+                  fill={
+                    if comment.like_comment_event == "unlike-comment",
+                      do: "currentColor",
+                      else: "none"
+                  }
+                  stroke="currentColor"
                 >
-                  <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d={
+                      if comment.like_comment_event == "unlike-comment",
+                        # Filled heart
+                        do:
+                          "M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z",
+                        # Outline heart
+                        else:
+                          "M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+                    }
+                  />
                 </svg>
-                <span class="text-xs font-semibold text-gray-700 group-hover:text-blue-600">
+                <span class={"text-xs font-semibold #{comment_like_color(@current_user.id, comment.id)} group-hover:text-blue-600"}>
                   Like
                 </span>
               </button>
-              <!-- Reply Button -->
+
               <button
                 @click="isReplying = !isReplying"
                 class="flex items-center space-x-1 px-1 py-1 rounded-full bg-gray-100 hover:bg-green-100 transition shadow-sm hover:shadow-md group"

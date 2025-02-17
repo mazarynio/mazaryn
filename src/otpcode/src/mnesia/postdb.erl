@@ -5,7 +5,7 @@
          get_posts_by_hashtag/1, update_post/2,
          delete_post/1, get_posts/0,
          get_all_posts_from_date/4, get_all_posts_from_month/3,
-         like_post/2, unlike_post/2, add_comment/3, update_comment/2, like_comment/2, get_comment_likes/1, reply_comment/3,
+         like_post/2, unlike_post/2, add_comment/3, update_comment/2, like_comment/2, unlike_comment/2, get_comment_likes/1, reply_comment/3,
           get_reply/1, get_all_replies/1, get_all_comments/1, delete_comment/2, delete_comment_from_mnesia/1, get_likes/1,
          get_single_comment/1, get_media/1, report_post/4, update_activity/2]).
 -export([get_comments/0]).
@@ -184,7 +184,7 @@ get_all_posts_from_month(Year, Month, Author) ->
   {atomic, Res} = mnesia:transaction(fun() -> mnesia:match_object(Object) end),
   Res.
 
-%% like_post(MyID, PoastID)
+%% like_post(MyID, PostID)
 like_post(UserID, PostId) ->  
   Fun = fun() ->
             ID = nanoid:gen(),
@@ -258,31 +258,79 @@ update_comment(CommentID, NewContent) ->
   {atomic, Res} = mnesia:transaction(Fun),
   Res.
 
-like_comment(UserID, CommentID) ->  
+like_comment(UserID, CommentId) ->  
   Fun = fun() ->
             ID = nanoid:gen(),
             mnesia:write(#like{id = ID,
-                               comment = CommentID,
+                               post = CommentId,
                                userID = UserID,
                                date_created = calendar:universal_time()}),
-            [Comment] = mnesia:read({comment, CommentID}),
+            [Comment] = mnesia:read({comment, CommentId}),
             Likes = Comment#comment.likes,
             mnesia:write(Comment#comment{likes = [ID|Likes]}),
             ID
         end,
   {atomic, Res} = mnesia:transaction(Fun),
   Res.
-
+%unlike_comment(LikeID, CommentId) ->  
+%  Fun = fun() -> 
+%            case mnesia:read({comment, CommentId}) of
+%                [] -> 
+%                    {error, comment_not_found};
+%                [Comment] ->
+%                    case lists:member(LikeID, Comment#comment.likes) of
+%                        false -> 
+%                            {error, like_not_found};
+%                        true -> 
+%                            UpdatedLikes = lists:delete(LikeID, Comment#comment.likes),
+%                            UpdatedComment = Comment#comment{likes = UpdatedLikes},
+%                            mnesia:write(UpdatedComment),
+%                            {ok, like_removed}
+%                    end
+%            end
+%        end,
+%  {atomic, Res} = mnesia:transaction(Fun),
+%  Res.
+%unlike_comment(LikeID, CommentId) ->  
+%  Fun = fun() -> 
+%            [Comment] = mnesia:read(comment, CommentId),
+%            Unlike = lists:delete(LikeID, Comment#comment.likes),
+%            mnesia:write(Comment#comment{likes = Unlike,
+%                                   date_created = calendar:universal_time()})
+%        end,
+%  {atomic, Res} = mnesia:transaction(Fun),
+%  Res.
+unlike_comment(LikeID, CommentId) ->  
+    Fun = fun() -> 
+        case mnesia:read(comment, CommentId) of
+            [] -> 
+                {error, comment_not_found};
+            [Comment] ->
+                Unlike = lists:delete(LikeID, Comment#comment.likes),
+                mnesia:write(Comment#comment{
+                    likes = Unlike,
+                    date_created = calendar:universal_time()
+                }),
+                ok
+        end
+    end,
+    case mnesia:transaction(Fun) of
+        {atomic, ok} -> ok;
+        {atomic, {error, Reason}} -> {error, Reason};
+        {aborted, Reason} -> {error, Reason}
+    end.
 get_comment_likes(CommentID) -> 
   Fun = fun() ->
-            mnesia:match_object(#like{comment = CommentID,
-                                      _ = '_'}),
-            [Comment] = mnesia:read({comment, CommentID}),
-            lists:foldl(fun(ID, Acc) ->
-                            [Like] = mnesia:read({like, ID}),
-                            [Like|Acc]
-                        end,
-                        [], Comment#comment.likes)
+            case mnesia:read({comment, CommentID}) of
+                [] -> 
+                    [];  % Return an empty list if the comment doesn't exist
+                [Comment] ->
+                    lists:foldl(fun(ID, Acc) ->
+                                    [Like] = mnesia:read({like, ID}),
+                                    [Like|Acc]
+                                end,
+                                [], Comment#comment.likes)
+            end
         end,
   {atomic, Res} = mnesia:transaction(Fun),
   Res.
