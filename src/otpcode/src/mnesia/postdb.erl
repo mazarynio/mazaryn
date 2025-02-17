@@ -272,25 +272,7 @@ like_comment(UserID, CommentId) ->
         end,
   {atomic, Res} = mnesia:transaction(Fun),
   Res.
-%unlike_comment(LikeID, CommentId) ->  
-%  Fun = fun() -> 
-%            case mnesia:read({comment, CommentId}) of
-%                [] -> 
-%                    {error, comment_not_found};
-%                [Comment] ->
-%                    case lists:member(LikeID, Comment#comment.likes) of
-%                        false -> 
-%                            {error, like_not_found};
-%                        true -> 
-%                            UpdatedLikes = lists:delete(LikeID, Comment#comment.likes),
-%                            UpdatedComment = Comment#comment{likes = UpdatedLikes},
-%                            mnesia:write(UpdatedComment),
-%                            {ok, like_removed}
-%                    end
-%            end
-%        end,
-%  {atomic, Res} = mnesia:transaction(Fun),
-%  Res.
+
 %unlike_comment(LikeID, CommentId) ->  
 %  Fun = fun() -> 
 %            [Comment] = mnesia:read(comment, CommentId),

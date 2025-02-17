@@ -197,19 +197,34 @@ defmodule Core.Account.Business do
     field(:business_email, :string)
   end
 
-  def erl_changeset({:business, id, ai_business_id, ads_id, company_size, website, business_phone, tax_id, verification_status, business_type, founding_date,
-  location, operating_hours, products_services, social_media_links, business_description, logo_url, banner_url, followers_count, following_count, posts, posts_count,
-  average_engagement_rate, customer_support_email, payment_info, subscription_tier, account_managers, business_golas, data_created, date_updated, brand_colors,
-  brand_voice_keywords, certifications, awards, partnerships, sustainability_initiatives, corporate_values, employee_count, annual_revenue, target_audience,
-  content_calendar, crm_integration, loyalty_program, user_generated_content, virtual_events, augmented_reality_experiences, chatbot_enabled, blockchain_initiatives,
-  data_privacy_certifications, ai_powered_features_enabled, social_responsibility_score, innovation_index, customer_satisfaction_index, crisis_management_plan,
-  digital_asset_portfolio, metaverse_presence, carbon_footprint_data, diversity_inclusion_metrics, talent_acquisition_channels, knowledge_base_url,
-  api_integrations, virtual_reality_spaces, voice_interaction_profile, biometric_authentication_methods, iot_integration_points,
-  quantum_resistant_security_measures, neurofeedback_enabled_services, emotional_intelligence_score, cultural_adaptation_strategies,
-  language_localization_status, continual_learning_initiatives, cross_platform_presence, ethical_ai_commitment, blockchain_integration, ai_ethical_guidelines,
-  digital_transformation_score, circular_economy_initiatives, global_expansion_roadmap, intellectual_property_portfolio, regulatory_compliance_status,
-  supply_chain_transparency, customer_data_management_practices, digital_asset_management, quantum_computing_readiness, augmented_workforce_metrics,
-  ecosystem_partnerships, cyber_resilience_score, decentralized_autonomous_organization_status, data, user_id, company_name, industry, business_email}) do
+  def erl_changeset(
+        {:business, id, ai_business_id, ads_id, company_size, website, business_phone, tax_id,
+         verification_status, business_type, founding_date, location, operating_hours,
+         products_services, social_media_links, business_description, logo_url, banner_url,
+         followers_count, following_count, posts, posts_count, average_engagement_rate,
+         customer_support_email, payment_info, subscription_tier, account_managers,
+         business_golas, data_created, date_updated, brand_colors, brand_voice_keywords,
+         certifications, awards, partnerships, sustainability_initiatives, corporate_values,
+         employee_count, annual_revenue, target_audience, content_calendar, crm_integration,
+         loyalty_program, user_generated_content, virtual_events, augmented_reality_experiences,
+         chatbot_enabled, blockchain_initiatives, data_privacy_certifications,
+         ai_powered_features_enabled, social_responsibility_score, innovation_index,
+         customer_satisfaction_index, crisis_management_plan, digital_asset_portfolio,
+         metaverse_presence, carbon_footprint_data, diversity_inclusion_metrics,
+         talent_acquisition_channels, knowledge_base_url, api_integrations,
+         virtual_reality_spaces, voice_interaction_profile, biometric_authentication_methods,
+         iot_integration_points, quantum_resistant_security_measures,
+         neurofeedback_enabled_services, emotional_intelligence_score,
+         cultural_adaptation_strategies, language_localization_status,
+         continual_learning_initiatives, cross_platform_presence, ethical_ai_commitment,
+         blockchain_integration, ai_ethical_guidelines, digital_transformation_score,
+         circular_economy_initiatives, global_expansion_roadmap, intellectual_property_portfolio,
+         regulatory_compliance_status, supply_chain_transparency,
+         customer_data_management_practices, digital_asset_management,
+         quantum_computing_readiness, augmented_workforce_metrics, ecosystem_partnerships,
+         cyber_resilience_score, decentralized_autonomous_organization_status, data, user_id,
+         company_name, industry, business_email}
+      ) do
     %__MODULE__{}
     |> change(%{
       id: id,

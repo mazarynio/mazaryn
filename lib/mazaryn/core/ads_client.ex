@@ -1,5 +1,4 @@
 defmodule Client.Ads do
-
   def insert(user_id, ad_type, content) do
     :ads_server.insert(user_id, ad_type, content)
   end
