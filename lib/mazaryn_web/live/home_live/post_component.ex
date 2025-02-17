@@ -292,7 +292,7 @@ def handle_event("unlike-comment", %{"comment-id" => comment_id}, socket) do
     |> hd()
 IO.inspect([like.id, post_id], label: "LIKE TO BE REMOVED!!!")
   # Unlike the comment
-  # :postdb.unlike_comment(like.id, post_id)
+  :postdb.unlike_comment(like.id, post_id)
 
   # Rebuild the post to get the updated state
   post = rebuild_post(post_id)
