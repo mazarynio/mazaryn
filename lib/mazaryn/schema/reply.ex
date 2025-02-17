@@ -20,7 +20,6 @@ defmodule Mazaryn.Schema.Reply do
     user_id
   )a
 
-
   embedded_schema do
     field(:content, :string)
     field(:date_created, :date)

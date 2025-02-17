@@ -68,7 +68,6 @@ defmodule MazarynWeb.UserLive.EditProfileComponent do
         {:noreply, socket}
     end
 
-
     {:noreply, socket}
   end
 
@@ -77,7 +76,6 @@ defmodule MazarynWeb.UserLive.EditProfileComponent do
   end
 
   def handle_event("save-banner", _params, socket) do
-
     current_user = socket.assigns.current_user
 
     case consume_upload(socket, :banner_url) do
@@ -92,15 +90,15 @@ defmodule MazarynWeb.UserLive.EditProfileComponent do
 
   def handle_event("save-banner-pic", _params, socket) do
     current_user = socket.assigns.current_user
+
     uploads(:banner_url, socket)
     |> case do
-      [upload_url] -> 
+      [upload_url] ->
         Account.Users.insert_banner(current_user.id, upload_url)
+
       [] ->
         {:noreply, socket}
     end
-
-
   end
 
   @impl Phoenix.LiveComponent
@@ -111,13 +109,13 @@ defmodule MazarynWeb.UserLive.EditProfileComponent do
   end
 
   defp uploads(upload_url, socket) do
+    consume_uploaded_entries(socket, upload_url, fn %{path: path}, entry ->
+      dest =
+        Path.join(Application.app_dir(:mazaryn, "priv/static/uploads"), Path.basename(path))
 
-      consume_uploaded_entries(socket, upload_url, fn %{path: path}, entry ->
-        dest = 
-          Path.join(Application.app_dir(:mazaryn, "priv/static/uploads"), Path.basename(path))
-        File.cp!(path, dest)
-        {:ok, ~p"/uploads/#{Path.basename(dest)}"}
-      end)
+      File.cp!(path, dest)
+      {:ok, ~p"/uploads/#{Path.basename(dest)}"}
+    end)
   end
 
   # TODO: delete below once edit profile bug is fixed

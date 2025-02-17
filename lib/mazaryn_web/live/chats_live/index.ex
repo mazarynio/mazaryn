@@ -54,7 +54,7 @@ defmodule MazarynWeb.ChatsLive.Index do
 
   @impl true
   def handle_event("delete-message", %{"message-id" => msg_id} = _params, socket) do
-    updated_messages = Enum.reject(socket.assigns.messages, fn msg -> msg.id == msg_id end) 
+    updated_messages = Enum.reject(socket.assigns.messages, fn msg -> msg.id == msg_id end)
     ChatClient.delete_msg(to_charlist(msg_id))
     {:noreply, assign(socket, :messages, updated_messages)}
   end
