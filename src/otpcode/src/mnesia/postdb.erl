@@ -3,9 +3,9 @@
 -export([insert/7, get_post_by_id/1, get_post_content_by_id/1,
          modify_post/7, get_posts_by_author/1, get_posts_content_by_author/1,
          get_posts_by_hashtag/1, update_post/2,
-         delete_post/1, get_posts/0,
+         delete_post/1, get_posts/0, delete_reply_from_mnesia/1,
          get_all_posts_from_date/4, get_all_posts_from_month/3,
-         like_post/2, unlike_post/2, add_comment/3, update_comment/2, like_comment/2, update_comment_likes/2, get_comment_likes/1, reply_comment/3,
+         like_post/2, unlike_post/2, add_comment/3, update_comment/2, like_comment/2, update_comment_likes/2, get_comment_likes/1, get_comment_replies/1, reply_comment/3,
           get_reply/1, get_all_replies/1, get_all_comments/1, delete_comment/2, delete_comment_from_mnesia/1, get_likes/1,
          get_single_comment/1, get_media/1, report_post/4, update_activity/2]).
 -export([get_comments/0]).
@@ -298,6 +298,22 @@ get_comment_likes(CommentID) ->
   {atomic, Res} = mnesia:transaction(Fun),
   Res.
 
+get_comment_replies(CommentID) -> 
+  Fun = fun() ->
+            case mnesia:read({comment, CommentID}) of
+                [] -> 
+                    [];  % Return an empty list if the comment doesn't exist
+                [Comment] ->
+                    lists:foldl(fun(ID, Acc) ->
+                                    [Reply] = mnesia:read({reply, ID}),
+                                    [Reply|Acc]
+                                end,
+                                [], Comment#comment.replies)
+            end
+        end,
+  {atomic, Res} = mnesia:transaction(Fun),
+  Res.
+
 reply_comment(UserID, CommentID, Content) ->
   Fun = fun() ->
       %% Check if the post exists
@@ -335,6 +351,12 @@ reply_comment(UserID, CommentID, Content) ->
           {error, transaction_failed, Reason}  
   end.
 
+delete_reply_from_mnesia(ReplyID) ->
+  Fun = fun() -> 
+    mnesia:delete({reply, ReplyID})
+  end,
+  {atomic, Res} = mnesia:transaction(Fun),
+  Res.
 get_reply(ReplyID) ->
   Fun = fun() ->
     [Reply] = mnesia:read({reply, ReplyID}),
