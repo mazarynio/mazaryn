@@ -333,9 +333,9 @@
                 </div>
               </.form>
             </div>
-            <div class="flex items-center space-x-2 mt-2">
-              <!-- Like Button -->
-              <button
+            <div class="flex flex-col">
+<div class="flex items-center space-x-2 mt-2">
+                        <button
                 phx-click={comment.like_comment_event}
                 phx-value-comment-id={comment.id}
                 phx-target={@myself}
@@ -373,7 +373,9 @@
               </button>
 
               <button
-                @click="isReplying = !isReplying"
+                phx-click="reply_comment"
+                phx-value-comment-id={comment.id}
+                phx-target={@myself}
                 class="flex items-center space-x-1 px-1 py-1 rounded-full bg-gray-100 hover:bg-green-100 transition shadow-sm hover:shadow-md group"
               >
                 <svg
@@ -387,6 +389,68 @@
                   Reply
                 </span>
               </button>
+          </div>
+<div>
+  <%= for reply <- comment.replies do %>
+    <div class="ml-8 mt-2">
+      <div class="flex items-center space-x-2">
+        <img
+          src={get_user_avatar(reply.user_id |> to_charlist())}
+          class="h-6 w-6 rounded-full"
+        />
+        <p class="text-sm font-semibold">
+          <%= Account.Users.get_user_by_id(reply.user_id).username %>
+        </p>
+        <%= if reply.user_id == @current_user.id do %>
+          <button
+            phx-click="delete-reply"
+            phx-value-reply-id={reply.id}
+            phx-value-comment-id={comment.id}
+            phx-target={@myself}
+            class="text-red-500 hover:text-red-700"
+          >
+                        <i><%= Heroicons.icon("trash", class: "h-4 w-4 mr-3") %></i>
+          </button>
+        <% end %>
+      </div>
+      <p class="text-sm text-gray-700 ml-8">
+        <%= reply.content %>
+      </p>
+    </div>
+  <% end %>
+</div>
+          
+            </div>
+            <div :if={@reply_comment} class="mt-2">
+              <.form
+                :let={f}
+                for={@changeset}
+                phx-submit="reply_comment_content"
+                phx-target={@myself}
+                class="flex space-x-2"
+              >
+                <%= hidden_input(f, :comment_id, value: comment.id) %>
+                <div class="flex-grow">
+                  <%= text_input(f, :content,
+                    class:
+                      "w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500",
+                    placeholder: "Write a reply..."
+                  ) %>
+                </div>
+                <button
+                  type="submit"
+                  class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition-colors"
+                >
+                  Reply
+                </button>
+                <button
+                  type="button"
+                  phx-click="cancel-comment-reply"
+                  class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition-colors"
+                >
+                  Cancel
+                </button>
+              </.form>
             </div>
           </div>
         </div>
