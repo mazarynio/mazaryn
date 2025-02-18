@@ -164,4 +164,9 @@ defmodule Core.PostClient do
   def report_post(my_id, post_id, type, description) do
     :post_server.report_post(my_id, post_id, type, description)
   end
+
+  def translate_post(postID, target) do
+    text =  :postdb.get_post_content_by_id(postID)
+    Translator.translate_text(text, "en", target)
+  end
 end
