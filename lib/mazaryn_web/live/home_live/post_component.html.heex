@@ -421,7 +421,7 @@
 </div>
           
             </div>
-            <div :if={@reply_comment} class="mt-2">
+            <div :if={@reply_comment && @replying_to_comment_id == comment.id} class="mt-2">
               <.form
                 :let={f}
                 for={@changeset}
