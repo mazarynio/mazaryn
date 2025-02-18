@@ -66,6 +66,7 @@ defmodule MazarynWeb.HomeLive.PostComponent do
      |> assign(:uploaded_files, [])
      |> assign(:editing_post, false)
      |> assign(:reply_comment, false)
+    |> assign(:replying_to_comment_id, nil)
      |> allow_upload(:media, accept: ~w(.png .jpg .jpeg), max_entries: 2)}
   end
 
@@ -265,14 +266,14 @@ def handle_event(
    |> assign(:comments, comments)}
   end
 
-  def handle_event("reply_comment", _params, socket) do
-    {:noreply, socket |> assign(:reply_comment, true)}
-  end
+    def handle_event("reply_comment", %{"comment-id" => comment_id}, socket) do
+  {:noreply, socket |> assign(:reply_comment, true) |> assign(:replying_to_comment_id, comment_id |> to_charlist)}
+end
 
-  def handle_event("cancel-comment-reply", _, socket) do
-    {:noreply, socket |> assign(:reply_comment, false)}
-  end
-
+def handle_event("cancel-comment-reply", _, socket) do
+  {:noreply, socket |> assign(:reply_comment, false) |> assign(:replying_to_comment_id, nil)}
+end
+ 
   def handle_event("show-comments", %{"id" => post_id}, socket) do
     # get the comments by post_id
     Phoenix.LiveView.JS.toggle(to: "test")
