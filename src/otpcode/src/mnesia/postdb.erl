@@ -6,7 +6,7 @@
          delete_post/1, get_posts/0, delete_reply_from_mnesia/1,
          get_all_posts_from_date/4, get_all_posts_from_month/3,
          like_post/2, unlike_post/2, add_comment/3, update_comment/2, like_comment/2, update_comment_likes/2, get_comment_likes/1, get_comment_replies/1, reply_comment/3,
-          get_reply/1, get_all_replies/1, get_all_comments/1, delete_comment/2, delete_comment_from_mnesia/1, get_likes/1,
+          get_reply/1, get_all_replies/1, delete_reply/1, get_all_comments/1, delete_comment/2, delete_comment_from_mnesia/1, get_likes/1,
          get_single_comment/1, get_media/1, report_post/4, update_activity/2]).
 -export([get_comments/0]).
 
@@ -378,6 +378,26 @@ get_all_replies(CommentID) ->
         end,
   {atomic, Res} = mnesia:transaction(Fun),
   Res.
+
+delete_reply(ReplyID) ->
+  F = fun() ->
+      case mnesia:read({reply, ReplyID}) of
+          [] -> 
+              {error, post_not_found};  
+          _ ->
+              mnesia:delete({reply, ReplyID}),
+              ok 
+      end
+  end,
+
+  case mnesia:activity(transaction, F) of
+      ok -> 
+          ok;  
+      {error, post_not_found} -> 
+          {error, post_not_found}; 
+      {aborted, Reason} -> 
+          {error, transaction_failed, Reason}  
+  end.
 
 get_single_comment(CommentId) ->
   Fun = fun() ->

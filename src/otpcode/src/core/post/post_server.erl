@@ -16,7 +16,7 @@
 -export([start_link/0, insert/7, get_post_by_id/1, get_post_content_by_id/1, modify_post/7,
          get_posts_by_author/1, get_posts_content_by_author/1, get_posts_by_hashtag/1, get_latest_posts/1, update_post/2, delete_post/1, 
          like_post/2, unlike_post/2, add_comment/3,
-         update_comment/2, like_comment/2, get_comment_likes/1, reply_comment/3, get_reply/1, get_all_replies/1,
+         update_comment/2, like_comment/2, get_comment_likes/1, reply_comment/3, delete_reply/1, get_reply/1, get_all_replies/1,
          get_single_comment/1, get_all_comments/1, delete_comment/2, get_likes/1,
          get_media/1, get_posts/0,
          get_all_posts_from_date/4, get_all_posts_from_month/3]).
@@ -84,6 +84,9 @@ get_comment_likes(CommentID) ->
 
 reply_comment(UserID, CommentID, Content) ->
     gen_server:call({global, ?MODULE}, {reply_comment, UserID, CommentID, Content}).
+
+delete_reply(ReplyID) ->
+    gen_server:call({global, ?MODULE}, {delete_reply, ReplyID}).
 
 get_reply(ReplyID) ->
     gen_server:call({global, ?MODULE}, {get_reply, ReplyID}).
@@ -207,6 +210,10 @@ handle_call({get_comment_likes, CommentID}, _From, State) ->
 handle_call({reply_comment, UserID, CommentID, Content}, _From, State) ->
     ID = postdb:reply_comment(UserID, CommentID, Content),
     {reply, ID, State};
+
+handle_call({delete_reply, ReplyID}, _From, State) ->
+    postdb:delete_reply(ReplyID),
+    {reply, ok, State};
 
 handle_call({get_reply, ReplyID}, _From, State) ->
     ID = postdb:get_reply(ReplyID),

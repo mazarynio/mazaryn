@@ -102,6 +102,10 @@ defmodule Core.PostClient do
     :post_server.get_reply(replyID)
   end
 
+  def delete_reply(replyID) do
+    :post_server.delete_reply(replyID)
+  end
+
   def get_all_replies(commentID) do
     :post_server.get_all_replies(commentID)
   end
