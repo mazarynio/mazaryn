@@ -4,7 +4,8 @@ from tf.user_tfrecord import router as user_router
 from tf.chat_tfrecord import router as chat_router
 from tf.business_tfrecord import router as business_router
 from tf.user_csv import router as user_csv_router
-from tf.post_csv import router as post_csv_router
+from tf.user_json import router as user_json_router
+from tf.post_json import router as post_json_router
 
 app = FastAPI()
 
@@ -13,7 +14,8 @@ app.include_router(user_router, prefix="/api")
 app.include_router(chat_router, prefix="/api")
 app.include_router(business_router, prefix="/api")
 app.include_router(user_csv_router, prefix="/api")
-app.include_router(post_csv_router, prefix="/api")
+app.include_router(user_json_router, prefix="/api")
+app.include_router(post_json_router, prefix="/api")
 
 # Run the server
 if __name__ == "__main__":
