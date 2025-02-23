@@ -2,6 +2,7 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 import csv
 import io
+import os 
 
 router = APIRouter()
 
@@ -67,5 +68,34 @@ def convert_user_to_csv(request: UserDataRequest):
             f.write(output.getvalue())
 
         return {"message": f"User saved to {request.filename}"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/append_user_to_csv")
+def append_user_to_csv(request: UserDataRequest):
+    try:
+        file_exists = os.path.exists(request.filename)
+
+        with open(request.filename, mode="a", newline="", encoding="utf-8") as f:
+            writer = csv.writer(f, quoting=csv.QUOTE_ALL)
+
+            if not file_exists:
+                writer.writerow([
+                    "id", "ai_user_id", "business_id", "ads_id", "quantum_id", "username", "password", "email", "address", 
+                    "knode", "media", "post", "blog_post", "notif", "following", "follower", "blocked", "saved_posts", 
+                    "other_info", "private", "date_created", "date_updated", "avatar_url", "banner_url", "token_id", 
+                    "chat", "verified", "report", "level", "last_activity", "suspend"
+                ])
+
+            writer.writerow([
+                request.id, request.ai_user_id, request.business_id, request.ads_id, request.quantum_id, request.username, 
+                request.password, request.email, request.address, request.knode, request.media, request.post, 
+                request.blog_post, request.notif, request.following, request.follower, request.blocked, request.saved_posts, 
+                request.other_info, request.private, request.date_created, request.date_updated, request.avatar_url, 
+                request.banner_url, request.token_id, request.chat, request.verified, request.report, request.level, 
+                request.last_activity, request.suspend
+            ])
+
+        return {"message": f"User appended to {request.filename}"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
