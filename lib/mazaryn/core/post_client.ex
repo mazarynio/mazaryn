@@ -102,6 +102,10 @@ defmodule Core.PostClient do
     :post_server.get_reply(replyID)
   end
 
+  def delete_reply(replyID) do
+    :post_server.delete_reply(replyID)
+  end
+
   def get_all_replies(commentID) do
     :post_server.get_all_replies(commentID)
   end
@@ -163,5 +167,10 @@ defmodule Core.PostClient do
   ## Report specific post using MyID, PostID, Type(Spam, Harassment, Violence ..) and Content
   def report_post(my_id, post_id, type, description) do
     :post_server.report_post(my_id, post_id, type, description)
+  end
+
+  def translate_post(postID, target) do
+    text =  :postdb.get_post_content_by_id(postID)
+    Translator.translate_text(text, "en", target)
   end
 end

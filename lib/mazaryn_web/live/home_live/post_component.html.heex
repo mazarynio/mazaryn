@@ -77,7 +77,7 @@
               </p>
             </li>
           <% else %>
-          <li class="">
+            <li class="">
               <p
                 class="text-gray-500 m-2 cursor-pointer hover:text-[#87efad]"
                 phx-click="edit_post"
@@ -103,10 +103,44 @@
       </div>
     </div>
   </div>
-  <p class="text-black block text-base mt-3">
-    <%= raw(@post |> activate_content_characters(@socket)) %>
-    <span class="text-[#4385F5] text-sm"><%= Enum.join(@post.profile_tags, " ") %></span>
-  </p>
+  <%= if @editing_post do %>
+    <div class="w-full  pr-[1.35rem] pl-[1.6rem] pb-2 pt-5 mt-8 ">
+      <.form
+        :let={f}
+        for={@update_post_changeset}
+        phx-submit="update-post"
+        phx-target={@myself}
+        class="w-full"
+      >
+        <div class="flex flex-col space-y-4">
+          <%= textarea(f, :content,
+            class: "w-full border rounded-md p-2",
+            placeholder: "Edit your post...",
+            value: @editing_post
+          ) %>
+          <div class="flex justify-end space-x-2">
+            <%= submit("Save",
+              class:
+                "bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-[#87efad] transition-colors"
+            ) %>
+            <button
+              type="button"
+              phx-click="cancel-edit"
+              phx-target={@myself}
+              class="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600 transition-colors"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      </.form>
+    </div>
+  <% else %>
+    <p class="text-black block text-base mt-3">
+      <%= raw(@post |> activate_content_characters(@socket)) %>
+      <span class="text-[#4385F5] text-sm"><%= Enum.join(@post.profile_tags, " ") %></span>
+    </p>
+  <% end %>
 
   <div :if={!Enum.empty?(@post.media)} class="w-full grid grid-cols-4 gap-4">
     <%!-- <%= for _media_url <- @post.media do %> --%>
@@ -165,7 +199,7 @@
           fill="#CFD0DD"
         />
       </svg>
-      <span class="ml-2.5 text-[#CFD0DD] text-base"><%= Enum.count(@post.comments) %></span>
+      <span class="ml-2.5 text-[#CFD0DD] text-base"><%= Enum.count(@comments) %></span>
     </div>
   </div>
   <div class="flex items-center mr-6">
@@ -204,7 +238,7 @@
         </div>
         <%= submit("Send",
           class:
-            "bg-amber-100 text-black px-2 py-0.5 rounded-md text-xs hover:bg-green-400 transition-colors",
+            "bg-[#ced1dd] text-black px-4 py-2 rounded-md text-xs hover:bg-green-400 transition-colors",
           phx_disabled_with: "Sending..."
         ) %>
       </div>
@@ -275,13 +309,13 @@
                 phx-submit="update-comment"
                 class="flex space-x-2"
               >
-
-             <%= hidden_input(f, :id, value: comment.id) %> <!-- Pass the comment ID -->
-             <%= text_input(f, :content,
-               value: comment.content,
-               class: "w-full px-2 py-1 text-sm",
-               placeholder: "Edit your comment"
-              ) %>
+                <%= hidden_input(f, :id, value: comment.id) %>
+                <!-- Pass the comment ID -->
+                <%= text_input(f, :content,
+                  value: comment.content,
+                  class: "w-full px-2 py-1 text-sm",
+                  placeholder: "Edit your comment"
+                ) %>
                 <div class="flex space-x-1">
                   <button
                     type="submit"
@@ -299,28 +333,49 @@
                 </div>
               </.form>
             </div>
-            <div class="flex items-center space-x-2 mt-2">
-              <!-- Like Button -->
-              <button
-                phx-click="like-comment"
+            <div class="flex flex-col">
+<div class="flex items-center space-x-2 mt-2">
+                        <button
+                phx-click={comment.like_comment_event}
                 phx-value-comment-id={comment.id}
                 phx-target={@myself}
                 class="flex items-center space-x-1 px-1 py-1 rounded-full bg-gray-100 hover:bg-blue-100 transition shadow-sm hover:shadow-md group"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  class="h-3 w-3 group-hover:fill-blue-600 fill-gray-500 transition"
+                  class={"h-4 w-4 #{comment_like_color(@current_user.id, comment.id)} transition"}
                   viewBox="0 0 24 24"
+                  fill={
+                    if comment.like_comment_event == "unlike-comment",
+                      do: "currentColor",
+                      else: "none"
+                  }
+                  stroke="currentColor"
                 >
-                  <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d={
+                      if comment.like_comment_event == "unlike-comment",
+                        # Filled heart
+                        do:
+                          "M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z",
+                        # Outline heart
+                        else:
+                          "M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+                    }
+                  />
                 </svg>
-                <span class="text-xs font-semibold text-gray-700 group-hover:text-blue-600">
+                <span class={"text-xs font-semibold #{comment_like_color(@current_user.id, comment.id)} group-hover:text-blue-600"}>
                   Like
                 </span>
               </button>
-              <!-- Reply Button -->
+
               <button
-                @click="isReplying = !isReplying"
+                phx-click="reply_comment"
+                phx-value-comment-id={comment.id}
+                phx-target={@myself}
                 class="flex items-center space-x-1 px-1 py-1 rounded-full bg-gray-100 hover:bg-green-100 transition shadow-sm hover:shadow-md group"
               >
                 <svg
@@ -334,6 +389,68 @@
                   Reply
                 </span>
               </button>
+          </div>
+<div>
+  <%= for reply <- comment.replies do %>
+    <div class="ml-8 mt-2">
+      <div class="flex items-center space-x-2">
+        <img
+          src={get_user_avatar(reply.user_id |> to_charlist())}
+          class="h-6 w-6 rounded-full"
+        />
+        <p class="text-sm font-semibold">
+          <%= Account.Users.get_user_by_id(reply.user_id).username %>
+        </p>
+        <%= if reply.user_id == @current_user.id do %>
+          <button
+            phx-click="delete-reply"
+            phx-value-reply-id={reply.id}
+            phx-value-comment-id={comment.id}
+            phx-target={@myself}
+            class="text-red-500 hover:text-red-700"
+          >
+                        <i><%= Heroicons.icon("trash", class: "h-4 w-4 mr-3") %></i>
+          </button>
+        <% end %>
+      </div>
+      <p class="text-sm text-gray-700 ml-8">
+        <%= reply.content %>
+      </p>
+    </div>
+  <% end %>
+</div>
+          
+            </div>
+            <div :if={@reply_comment && @replying_to_comment_id == comment.id} class="mt-2">
+              <.form
+                :let={f}
+                for={@changeset}
+                phx-submit="reply_comment_content"
+                phx-target={@myself}
+                class="flex space-x-2"
+              >
+                <%= hidden_input(f, :comment_id, value: comment.id) %>
+                <div class="flex-grow">
+                  <%= text_input(f, :content,
+                    class:
+                      "w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500",
+                    placeholder: "Write a reply..."
+                  ) %>
+                </div>
+                <button
+                  type="submit"
+                  class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition-colors"
+                >
+                  Reply
+                </button>
+                <button
+                  type="button"
+                  phx-click="cancel-comment-reply"
+                  class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition-colors"
+                >
+                  Cancel
+                </button>
+              </.form>
             </div>
           </div>
         </div>

@@ -3,10 +3,10 @@
 -export([insert/7, get_post_by_id/1, get_post_content_by_id/1,
          modify_post/7, get_posts_by_author/1, get_posts_content_by_author/1,
          get_posts_by_hashtag/1, update_post/2,
-         delete_post/1, get_posts/0,
+         delete_post/1, get_posts/0, delete_reply_from_mnesia/1,
          get_all_posts_from_date/4, get_all_posts_from_month/3,
-         like_post/2, unlike_post/2, add_comment/3, update_comment/2, like_comment/2, get_comment_likes/1, reply_comment/3,
-          get_reply/1, get_all_replies/1, get_all_comments/1, delete_comment/2, delete_comment_from_mnesia/1, get_likes/1,
+         like_post/2, unlike_post/2, add_comment/3, update_comment/2, like_comment/2, update_comment_likes/2, get_comment_likes/1, get_comment_replies/1, reply_comment/3,
+          get_reply/1, get_all_replies/1, delete_reply/1, get_all_comments/1, delete_comment/2, delete_comment_from_mnesia/1, get_likes/1,
          get_single_comment/1, get_media/1, report_post/4, update_activity/2]).
 -export([get_comments/0]).
 
@@ -106,14 +106,19 @@ update_post(PostId, NewContent) ->
             [Post] = mnesia:read({post, PostId}),
             Content = Post#post.content,
             UpdatedContent =
-            lists:foldl(fun({Key, Value}, Acc) ->
-                            case lists:keymember(Key, 1, Acc) of
-                              true ->
-                                lists:keyreplace(Key, 1, Acc, {Key, Value});
-                              false ->
-                                [{Key, Value}|Acc]
-                            end
-                        end, Content, NewContent),
+              case NewContent of
+                [{Key, Value} | _] ->  % Handle key-value pairs
+                  lists:foldl(fun({K, V}, Acc) ->
+                    case lists:keymember(K, 1, Acc) of
+                      true ->
+                        lists:keyreplace(K, 1, Acc, {K, V});
+                      false ->
+                        [{K, V} | Acc]
+                    end
+                  end, Content, NewContent);
+                _ ->  % Handle raw string
+                  NewContent
+              end,
             mnesia:write(Post#post{content = UpdatedContent})
         end,
   {atomic, Res} = mnesia:transaction(Fun),
@@ -179,7 +184,7 @@ get_all_posts_from_month(Year, Month, Author) ->
   {atomic, Res} = mnesia:transaction(fun() -> mnesia:match_object(Object) end),
   Res.
 
-%% like_post(MyID, PoastID)
+%% like_post(MyID, PostID)
 like_post(UserID, PostId) ->  
   Fun = fun() ->
             ID = nanoid:gen(),
@@ -253,14 +258,14 @@ update_comment(CommentID, NewContent) ->
   {atomic, Res} = mnesia:transaction(Fun),
   Res.
 
-like_comment(UserID, CommentID) ->  
+like_comment(UserID, CommentId) ->  
   Fun = fun() ->
             ID = nanoid:gen(),
             mnesia:write(#like{id = ID,
-                               comment = CommentID,
+                               post = CommentId,
                                userID = UserID,
                                date_created = calendar:universal_time()}),
-            [Comment] = mnesia:read({comment, CommentID}),
+            [Comment] = mnesia:read({comment, CommentId}),
             Likes = Comment#comment.likes,
             mnesia:write(Comment#comment{likes = [ID|Likes]}),
             ID
@@ -268,16 +273,43 @@ like_comment(UserID, CommentID) ->
   {atomic, Res} = mnesia:transaction(Fun),
   Res.
 
+update_comment_likes(CommentID, NewLikes) ->
+  Fun = fun() ->
+            [Comment] = mnesia:read({comment, CommentID}),
+            mnesia:write(Comment#comment{likes = NewLikes}),
+            CommentID
+        end,
+  {atomic, Res} = mnesia:transaction(Fun),
+  Res.
+
 get_comment_likes(CommentID) -> 
   Fun = fun() ->
-            mnesia:match_object(#like{comment = CommentID,
-                                      _ = '_'}),
-            [Comment] = mnesia:read({comment, CommentID}),
-            lists:foldl(fun(ID, Acc) ->
-                            [Like] = mnesia:read({like, ID}),
-                            [Like|Acc]
-                        end,
-                        [], Comment#comment.likes)
+            case mnesia:read({comment, CommentID}) of
+                [] -> 
+                    [];  % Return an empty list if the comment doesn't exist
+                [Comment] ->
+                    lists:foldl(fun(ID, Acc) ->
+                                    [Like] = mnesia:read({like, ID}),
+                                    [Like|Acc]
+                                end,
+                                [], Comment#comment.likes)
+            end
+        end,
+  {atomic, Res} = mnesia:transaction(Fun),
+  Res.
+
+get_comment_replies(CommentID) -> 
+  Fun = fun() ->
+            case mnesia:read({comment, CommentID}) of
+                [] -> 
+                    [];  % Return an empty list if the comment doesn't exist
+                [Comment] ->
+                    lists:foldl(fun(ID, Acc) ->
+                                    [Reply] = mnesia:read({reply, ID}),
+                                    [Reply|Acc]
+                                end,
+                                [], Comment#comment.replies)
+            end
         end,
   {atomic, Res} = mnesia:transaction(Fun),
   Res.
@@ -319,6 +351,12 @@ reply_comment(UserID, CommentID, Content) ->
           {error, transaction_failed, Reason}  
   end.
 
+delete_reply_from_mnesia(ReplyID) ->
+  Fun = fun() -> 
+    mnesia:delete({reply, ReplyID})
+  end,
+  {atomic, Res} = mnesia:transaction(Fun),
+  Res.
 get_reply(ReplyID) ->
   Fun = fun() ->
     [Reply] = mnesia:read({reply, ReplyID}),
@@ -340,6 +378,26 @@ get_all_replies(CommentID) ->
         end,
   {atomic, Res} = mnesia:transaction(Fun),
   Res.
+
+delete_reply(ReplyID) ->
+  F = fun() ->
+      case mnesia:read({reply, ReplyID}) of
+          [] -> 
+              {error, post_not_found};  
+          _ ->
+              mnesia:delete({reply, ReplyID}),
+              ok 
+      end
+  end,
+
+  case mnesia:activity(transaction, F) of
+      ok -> 
+          ok;  
+      {error, post_not_found} -> 
+          {error, post_not_found}; 
+      {aborted, Reason} -> 
+          {error, transaction_failed, Reason}  
+  end.
 
 get_single_comment(CommentId) ->
   Fun = fun() ->

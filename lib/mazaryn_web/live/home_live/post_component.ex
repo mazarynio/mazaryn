@@ -8,6 +8,7 @@ defmodule MazarynWeb.HomeLive.PostComponent do
   alias Core.PostClient
   alias Mazaryn.Schema.Comment
   alias Mazaryn.Posts
+  alias Mazaryn.Schema.Post
   alias Phoenix.LiveView.JS
 
   # TODO: revert to the deprecated `preload/1` if this doesn't work; I think it works
@@ -15,9 +16,31 @@ defmodule MazarynWeb.HomeLive.PostComponent do
   def update_many(list_of_assigns) do
     changeset = Comment.changeset(%Comment{})
     update_comment_changeset = Comment.changeset(%Comment{})
+    update_post_changeset = Post.changeset(%Post{})
 
     Enum.map(list_of_assigns, fn {assigns, socket} ->
       comments = Posts.get_comment_by_post_id(assigns.post.id)
+
+      comments_with_like_events =
+        Enum.map(comments, fn comment ->
+          Map.put(
+            comment,
+            :like_comment_event,
+            like_comment_event(assigns.current_user.id, comment.id)
+          )
+        end)
+
+      comments_with_replies =
+    comments_with_like_events
+    |> Enum.map(fn comment ->
+      replies = :postdb.get_comment_replies(comment.id |> to_charlist)
+      list_replies =
+        replies
+        |> Enum.map(&(&1 |> Mazaryn.Schema.Reply.erl_changeset() |> Mazaryn.Schema.Reply.build() |> elem(1)))
+
+      Map.put(comment, :replies, list_replies)
+    end)
+            
       assigns =
         assigns
         |> Map.put(:follow_event, follow_event(assigns.current_user.id, assigns.post.author))
@@ -26,10 +49,11 @@ defmodule MazarynWeb.HomeLive.PostComponent do
         |> Map.put(:like_event, like_event(assigns.current_user.id, assigns.post.id))
         |> Map.put(:changeset, changeset)
         |> Map.put(:update_comment_changeset, update_comment_changeset)
-        |> Map.put(:comments, comments)
+        |> Map.put(:comments, comments_with_replies)
         |> Map.put(:report_action, false)
         |> Map.put(:like_action, false)
         |> Map.put(:is_liked, false)
+        |> Map.put(:update_post_changeset, update_post_changeset)
 
       assign(socket, assigns)
     end)
@@ -40,6 +64,9 @@ defmodule MazarynWeb.HomeLive.PostComponent do
     {:ok,
      socket
      |> assign(:uploaded_files, [])
+     |> assign(:editing_post, false)
+     |> assign(:reply_comment, false)
+    |> assign(:replying_to_comment_id, nil)
      |> allow_upload(:media, accept: ~w(.png .jpg .jpeg), max_entries: 2)}
   end
 
@@ -89,8 +116,49 @@ defmodule MazarynWeb.HomeLive.PostComponent do
     {:noreply, assign(socket, :update_comment_changeset, changeset)}
   end
 
+  def handle_event("edit_post", %{"post-id" => post_id}, socket) do
+    post_id = post_id |> to_charlist
+    post = PostClient.get_post_content_by_id(post_id)
+    {:noreply, socket |> assign(:editing_post, post) |> assign(:edit_post_id, post_id)}
+  end
+
+  def handle_event("update-post", %{"post" => post_params}, socket) do
+    post_id = socket.assigns.edit_post_id
+
+    changeset =
+      %Post{}
+      |> Post.changeset(post_params)
+
+    case changeset.valid? do
+      true ->
+        new_content = post_params["content"]
+
+        case PostClient.update_post(post_id, new_content) do
+          :ok ->
+            send(self(), :reload_posts)
+
+            {:noreply,
+             socket
+             |> assign(:editing_post, false)
+             |> assign(:edit_post_id, nil)}
+
+          error ->
+            IO.inspect(error, label: "Error updating post")
+            {:noreply, socket}
+        end
+
+      false ->
+        {:noreply, assign(socket, :update_post_changeset, %{changeset | action: :validate})}
+    end
+  end
+
+  def handle_event("cancel-edit", _params, socket) do
+    {:noreply, assign(socket, :editing_post, false)}
+  end
+
   def handle_event("update-comment", %{"comment" => comment_params} = _params, socket) do
     IO.inspect(comment_params, lable: "COMMENT PARAMS")
+
     comment =
       %Comment{}
       |> Comment.update_changeset(comment_params)
@@ -144,6 +212,68 @@ defmodule MazarynWeb.HomeLive.PostComponent do
      |> assign(:changeset, Comment.changeset(%Comment{}))}
   end
 
+  def handle_event("reply_comment_content", %{"comment" => comment_params} = _params, socket) do
+  %{
+    "comment_id" => comment_id,
+    "content" => content
+  } = comment_params
+
+  user_id = socket.assigns.current_user.id
+
+  PostClient.reply_comment(user_id, to_charlist(comment_id), content)
+
+  post = rebuild_post(socket.assigns.post.id)
+  comments = Posts.get_comment_by_post_id(post.id)
+
+  replies = :postdb.get_comment_replies(comment_id |> to_charlist)
+
+  list_replies =
+    replies
+    |> Enum.map(&(&1 |> Mazaryn.Schema.Reply.erl_changeset() |> Mazaryn.Schema.Reply.build() |> elem(1)))
+
+  comments_with_replies =
+    Enum.map(comments, fn comment ->
+      if comment.id == comment_id |> to_charlist do
+        Map.put(comment, :replies, list_replies)
+      else
+        comment
+      end
+    end)
+
+  {:noreply,
+   socket
+   |> assign(:post, post)
+   |> assign(:comments, comments_with_replies)}
+end
+
+def handle_event(
+      "delete-reply",
+      %{"reply-id" => reply_id, "comment-id" => comment_id},
+      socket
+    ) do
+    reply_id = reply_id |> to_charlist
+  comment_id = comment_id |> to_charlist
+
+  :postdb.delete_reply_from_mnesia(reply_id)
+
+  post = rebuild_post(socket.assigns.post.id)
+
+  comments = Posts.get_comment_by_post_id(post.id)
+
+  {:noreply,
+   socket
+   |> assign(:post, post)
+   |> assign(:comments, comments)}
+  end
+
+    def handle_event("reply_comment", %{"comment-id" => comment_id}, socket) do
+  {:noreply, socket |> assign(:reply_comment, true) |> assign(:replying_to_comment_id, comment_id |> to_charlist)}
+end
+
+def handle_event("cancel-comment-reply", _, socket) do
+  {:noreply, socket |> assign(:reply_comment, false) |> assign(:replying_to_comment_id, nil)}
+end
+ 
   def handle_event("show-comments", %{"id" => post_id}, socket) do
     # get the comments by post_id
     Phoenix.LiveView.JS.toggle(to: "test")
@@ -155,6 +285,79 @@ defmodule MazarynWeb.HomeLive.PostComponent do
     {:noreply,
      socket
      |> assign(:comments, comments)}
+  end
+
+  def handle_event("like-comment", %{"comment-id" => comment_id}, socket) do
+    comment_id = comment_id |> to_charlist
+    user_id = socket.assigns.current_user.id
+
+    PostClient.like_comment(user_id, comment_id)
+
+    post_id = socket.assigns.post.id |> to_charlist
+
+    updated_comments = Posts.get_comment_by_post_id(post_id)
+
+    comments_with_like_events =
+      Enum.map(updated_comments, fn comment ->
+        Map.put(
+          comment,
+          :like_comment_event,
+          like_comment_event(user_id, comment.id)
+        )
+      end)
+
+    post = rebuild_post(post_id)
+
+    {:noreply,
+     socket
+     |> assign(:post, post)
+     |> assign(:comments, comments_with_like_events)}
+  end
+
+  def handle_event("unlike-comment", %{"comment-id" => comment_id}, socket) do
+    comment_id = comment_id |> to_charlist
+    user_id = socket.assigns.current_user.id |> to_charlist
+    comments = socket.assigns.comments
+
+    comment =
+      Enum.find(comments, fn comment -> comment.id == comment_id |> to_charlist end)
+
+    like =
+      comment_id
+      |> PostClient.get_comment_likes()
+      |> Enum.map(&(&1 |> Home.Like.erl_changeset() |> Home.Like.build() |> elem(1)))
+      |> Enum.filter(&(&1.user_id == user_id))
+      |> hd()
+
+    like_id = like.id
+
+    updated_likes =
+      Enum.filter(comment.likes, fn like ->
+        like != like_id
+      end)
+
+    new_updated_likes = %{comment | likes: updated_likes}
+
+    :postdb.update_comment_likes(comment_id, updated_likes)
+
+    post_id = socket.assigns.post.id |> to_charlist
+    post = rebuild_post(post_id)
+
+    updated_comments = Posts.get_comment_by_post_id(post_id)
+
+    comments_with_like_events =
+      Enum.map(updated_comments, fn comment ->
+        if comment.id == comment_id |> to_charlist do
+          Map.put(comment, :like_comment_event, "like-comment")
+        else
+          comment
+        end
+      end)
+
+    {:noreply,
+     socket
+     |> assign(:post, post)
+     |> assign(:comments, comments_with_like_events)}
   end
 
   def handle_event("follow_user", %{"username" => username}, socket) do
@@ -401,7 +604,10 @@ defmodule MazarynWeb.HomeLive.PostComponent do
     post_id
     |> PostClient.get_likes()
     |> Enum.map(fn like ->
-      like |> Home.Like.erl_changeset() |> Home.Like.build() |> elem(1)
+      like
+      |> Home.Like.erl_changeset()
+      |> Home.Like.build()
+      |> elem(1)
     end)
     |> Enum.any?(&(&1.user_id == user_id))
   end
@@ -423,5 +629,35 @@ defmodule MazarynWeb.HomeLive.PostComponent do
       {:ok, user} -> user.verified
       _ -> false
     end
+  end
+
+  defp like_comment_event(user_id, comment_id) do
+    if one_of_comment_likes?(user_id, comment_id),
+      do: "unlike-comment",
+      else: "like-comment"
+  end
+
+  defp one_of_comment_likes?(user_id, comment_id) do
+    comment_id
+    |> PostClient.get_comment_likes()
+    |> Enum.map(fn like ->
+      like
+      |> Home.Like.erl_changeset()
+      |> Home.Like.build()
+      |> elem(1)
+
+      # |> IO.inspect(label: "HERE ARE The LIKE afeter ELEM")
+    end)
+    |> Enum.any?(&(&1.user_id == user_id))
+
+    # |> IO.inspect(label: "AFTER CHECKING IF USERID IS THERE??")
+  end
+
+  defp comment_like_color(user_id, comment_id) do
+    if one_of_comment_likes?(user_id, comment_id),
+      # Blue color when liked
+      do: "text-blue-500",
+      # Gray color when unliked
+      else: "text-gray-500"
   end
 end

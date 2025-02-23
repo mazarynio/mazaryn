@@ -189,141 +189,144 @@ defmodule Core.AiUser do
   end
 
   def erl_changeset(
-      {:ai_user, id, user_id, interests, behavior_tags, interaction_history, device_info,
-       language_preferences, active_times, user_segments, ai_generated_recommendations, ab_test_groups,
-       gdpr_consent_log, sentiment_scores, engagement_metrics, content_preferences, personality_traits,
-       social_graph_metrics, content_creation_stats, feature_usage_stats, privacy_settings,
-       accessibility_preferences, notification_preferences, third_party_integrations, user_activity_patterns,
-       contextual_data, historical_interaction_trends, content_engagement_metrics, user_feedback,
-       behavioral_predictions, model_performance_metrics, user_sentiment_over_time, custom_attributes,
-       engagement_heatmaps, feature_vectors, embedding_vectors, cluster_assignments, recommendation_history,
-       user_journey_stage, anomaly_detection_scores, natural_language_processing, time_series_forecasts,
-       reinforcement_learning_state, multi_armed_bandit_data, collaborative_filtering_data,
-       content_based_filtering_data, similarity_scores, user_segmentation, causal_inference_data,
-       explainable_ai_outputs, federated_learning_contributions, transfer_learning_adaptations,
-       meta_learning_parameters, active_learning_queries, user_knowledge_graph, multimodal_data,
-       cognitive_load_estimates, attention_models, trust_and_safety_scores, augmented_reality_data,
-       virtual_reality_profile, voice_interaction_patterns, biometric_data, iot_device_interactions,
-       blockchain_identity, quantum_resistant_security, neurofeedback_data, emotional_intelligence_scores,
-       cultural_context_model, language_model_adaptation, continual_learning_state, cross_platform_identity,
-       neural_network_embeddings, nlp_features, computer_vision_data, speech_recognition_data,
-       recommender_system_data, anomaly_detection_metrics, deep_learning_features, graph_neural_network_data,
-       quantum_computing_data, multimodal_learning_data, time_series_analysis, natural_language_generation,
-       autonomous_agent_data, privacy_preserving_ml_data, unsupervised_learning_clusters, data}) do
+        {:ai_user, id, user_id, interests, behavior_tags, interaction_history, device_info,
+         language_preferences, active_times, user_segments, ai_generated_recommendations,
+         ab_test_groups, gdpr_consent_log, sentiment_scores, engagement_metrics,
+         content_preferences, personality_traits, social_graph_metrics, content_creation_stats,
+         feature_usage_stats, privacy_settings, accessibility_preferences,
+         notification_preferences, third_party_integrations, user_activity_patterns,
+         contextual_data, historical_interaction_trends, content_engagement_metrics,
+         user_feedback, behavioral_predictions, model_performance_metrics,
+         user_sentiment_over_time, custom_attributes, engagement_heatmaps, feature_vectors,
+         embedding_vectors, cluster_assignments, recommendation_history, user_journey_stage,
+         anomaly_detection_scores, natural_language_processing, time_series_forecasts,
+         reinforcement_learning_state, multi_armed_bandit_data, collaborative_filtering_data,
+         content_based_filtering_data, similarity_scores, user_segmentation,
+         causal_inference_data, explainable_ai_outputs, federated_learning_contributions,
+         transfer_learning_adaptations, meta_learning_parameters, active_learning_queries,
+         user_knowledge_graph, multimodal_data, cognitive_load_estimates, attention_models,
+         trust_and_safety_scores, augmented_reality_data, virtual_reality_profile,
+         voice_interaction_patterns, biometric_data, iot_device_interactions, blockchain_identity,
+         quantum_resistant_security, neurofeedback_data, emotional_intelligence_scores,
+         cultural_context_model, language_model_adaptation, continual_learning_state,
+         cross_platform_identity, neural_network_embeddings, nlp_features, computer_vision_data,
+         speech_recognition_data, recommender_system_data, anomaly_detection_metrics,
+         deep_learning_features, graph_neural_network_data, quantum_computing_data,
+         multimodal_learning_data, time_series_analysis, natural_language_generation,
+         autonomous_agent_data, privacy_preserving_ml_data, unsupervised_learning_clusters, data}
+      ) do
+    %__MODULE__{}
+    |> change(%{
+      id: id,
+      user_id: user_id,
+      interests: interests,
+      behavior_tags: behavior_tags,
+      interaction_history: interaction_history,
+      device_info: device_info,
+      language_preferences: language_preferences,
+      active_times: active_times,
+      user_segments: user_segments,
+      ai_generated_recommendations: ai_generated_recommendations,
+      ab_test_groups: ab_test_groups,
+      gdpr_consent_log: gdpr_consent_log,
+      sentiment_scores: sentiment_scores,
+      engagement_metrics: engagement_metrics,
+      content_preferences: content_preferences,
+      personality_traits: personality_traits,
+      social_graph_metrics: social_graph_metrics,
+      content_creation_stats: content_creation_stats,
+      feature_usage_stats: feature_usage_stats,
+      privacy_settings: privacy_settings,
+      accessibility_preferences: accessibility_preferences,
+      notification_preferences: notification_preferences,
+      third_party_integrations: third_party_integrations,
+      user_activity_patterns: user_activity_patterns,
+      contextual_data: contextual_data,
+      historical_interaction_trends: historical_interaction_trends,
+      content_engagement_metrics: content_engagement_metrics,
+      user_feedback: user_feedback,
+      behavioral_predictions: behavioral_predictions,
+      model_performance_metrics: model_performance_metrics,
+      user_sentiment_over_time: user_sentiment_over_time,
+      custom_attributes: custom_attributes,
+      engagement_heatmaps: engagement_heatmaps,
+      feature_vectors: feature_vectors,
+      embedding_vectors: embedding_vectors,
+      cluster_assignments: cluster_assignments,
+      recommendation_history: recommendation_history,
+      user_journey_stage: user_journey_stage,
+      anomaly_detection_scores: anomaly_detection_scores,
+      natural_language_processing: natural_language_processing,
+      time_series_forecasts: time_series_forecasts,
+      reinforcement_learning_state: reinforcement_learning_state,
+      multi_armed_bandit_data: multi_armed_bandit_data,
+      collaborative_filtering_data: collaborative_filtering_data,
+      content_based_filtering_data: content_based_filtering_data,
+      similarity_scores: similarity_scores,
+      user_segmentation: user_segmentation,
+      causal_inference_data: causal_inference_data,
+      explainable_ai_outputs: explainable_ai_outputs,
+      federated_learning_contributions: federated_learning_contributions,
+      transfer_learning_adaptations: transfer_learning_adaptations,
+      meta_learning_parameters: meta_learning_parameters,
+      active_learning_queries: active_learning_queries,
+      user_knowledge_graph: user_knowledge_graph,
+      multimodal_data: multimodal_data,
+      cognitive_load_estimates: cognitive_load_estimates,
+      attention_models: attention_models,
+      trust_and_safety_scores: trust_and_safety_scores,
+      augmented_reality_data: augmented_reality_data,
+      virtual_reality_profile: virtual_reality_profile,
+      voice_interaction_patterns: voice_interaction_patterns,
+      biometric_data: biometric_data,
+      iot_device_interactions: iot_device_interactions,
+      blockchain_identity: blockchain_identity,
+      quantum_resistant_security: quantum_resistant_security,
+      neurofeedback_data: neurofeedback_data,
+      emotional_intelligence_scores: emotional_intelligence_scores,
+      cultural_context_model: cultural_context_model,
+      language_model_adaptation: language_model_adaptation,
+      continual_learning_state: continual_learning_state,
+      cross_platform_identity: cross_platform_identity,
+      neural_network_embeddings: neural_network_embeddings,
+      nlp_features: nlp_features,
+      computer_vision_data: computer_vision_data,
+      speech_recognition_data: speech_recognition_data,
+      recommender_system_data: recommender_system_data,
+      anomaly_detection_metrics: anomaly_detection_metrics,
+      deep_learning_features: deep_learning_features,
+      graph_neural_network_data: graph_neural_network_data,
+      quantum_computing_data: quantum_computing_data,
+      multimodal_learning_data: multimodal_learning_data,
+      time_series_analysis: time_series_analysis,
+      natural_language_generation: natural_language_generation,
+      autonomous_agent_data: autonomous_agent_data,
+      privacy_preserving_ml_data: privacy_preserving_ml_data,
+      unsupervised_learning_clusters: unsupervised_learning_clusters,
+      data: data
+    })
+  end
 
-  %__MODULE__{}
-  |> change(%{
-    id: id,
-    user_id: user_id,
-    interests: interests,
-    behavior_tags: behavior_tags,
-    interaction_history: interaction_history,
-    device_info: device_info,
-    language_preferences: language_preferences,
-    active_times: active_times,
-    user_segments: user_segments,
-    ai_generated_recommendations: ai_generated_recommendations,
-    ab_test_groups: ab_test_groups,
-    gdpr_consent_log: gdpr_consent_log,
-    sentiment_scores: sentiment_scores,
-    engagement_metrics: engagement_metrics,
-    content_preferences: content_preferences,
-    personality_traits: personality_traits,
-    social_graph_metrics: social_graph_metrics,
-    content_creation_stats: content_creation_stats,
-    feature_usage_stats: feature_usage_stats,
-    privacy_settings: privacy_settings,
-    accessibility_preferences: accessibility_preferences,
-    notification_preferences: notification_preferences,
-    third_party_integrations: third_party_integrations,
-    user_activity_patterns: user_activity_patterns,
-    contextual_data: contextual_data,
-    historical_interaction_trends: historical_interaction_trends,
-    content_engagement_metrics: content_engagement_metrics,
-    user_feedback: user_feedback,
-    behavioral_predictions: behavioral_predictions,
-    model_performance_metrics: model_performance_metrics,
-    user_sentiment_over_time: user_sentiment_over_time,
-    custom_attributes: custom_attributes,
-    engagement_heatmaps: engagement_heatmaps,
-    feature_vectors: feature_vectors,
-    embedding_vectors: embedding_vectors,
-    cluster_assignments: cluster_assignments,
-    recommendation_history: recommendation_history,
-    user_journey_stage: user_journey_stage,
-    anomaly_detection_scores: anomaly_detection_scores,
-    natural_language_processing: natural_language_processing,
-    time_series_forecasts: time_series_forecasts,
-    reinforcement_learning_state: reinforcement_learning_state,
-    multi_armed_bandit_data: multi_armed_bandit_data,
-    collaborative_filtering_data: collaborative_filtering_data,
-    content_based_filtering_data: content_based_filtering_data,
-    similarity_scores: similarity_scores,
-    user_segmentation: user_segmentation,
-    causal_inference_data: causal_inference_data,
-    explainable_ai_outputs: explainable_ai_outputs,
-    federated_learning_contributions: federated_learning_contributions,
-    transfer_learning_adaptations: transfer_learning_adaptations,
-    meta_learning_parameters: meta_learning_parameters,
-    active_learning_queries: active_learning_queries,
-    user_knowledge_graph: user_knowledge_graph,
-    multimodal_data: multimodal_data,
-    cognitive_load_estimates: cognitive_load_estimates,
-    attention_models: attention_models,
-    trust_and_safety_scores: trust_and_safety_scores,
-    augmented_reality_data: augmented_reality_data,
-    virtual_reality_profile: virtual_reality_profile,
-    voice_interaction_patterns: voice_interaction_patterns,
-    biometric_data: biometric_data,
-    iot_device_interactions: iot_device_interactions,
-    blockchain_identity: blockchain_identity,
-    quantum_resistant_security: quantum_resistant_security,
-    neurofeedback_data: neurofeedback_data,
-    emotional_intelligence_scores: emotional_intelligence_scores,
-    cultural_context_model: cultural_context_model,
-    language_model_adaptation: language_model_adaptation,
-    continual_learning_state: continual_learning_state,
-    cross_platform_identity: cross_platform_identity,
-    neural_network_embeddings: neural_network_embeddings,
-    nlp_features: nlp_features,
-    computer_vision_data: computer_vision_data,
-    speech_recognition_data: speech_recognition_data,
-    recommender_system_data: recommender_system_data,
-    anomaly_detection_metrics: anomaly_detection_metrics,
-    deep_learning_features: deep_learning_features,
-    graph_neural_network_data: graph_neural_network_data,
-    quantum_computing_data: quantum_computing_data,
-    multimodal_learning_data: multimodal_learning_data,
-    time_series_analysis: time_series_analysis,
-    natural_language_generation: natural_language_generation,
-    autonomous_agent_data: autonomous_agent_data,
-    privacy_preserving_ml_data: privacy_preserving_ml_data,
-    unsupervised_learning_clusters: unsupervised_learning_clusters,
-    data: data
-  })
-end
+  def erl_changeset(_), do: %{}
 
-def erl_changeset(_), do: %{}
+  defp handle_datetime(:undefined), do: nil
+  defp handle_datetime(datetime), do: Timex.to_naive_datetime(datetime)
 
-defp handle_datetime(:undefined), do: nil
-defp handle_datetime(datetime), do: Timex.to_naive_datetime(datetime)
+  def changeset(%__MODULE__{} = struct, attrs \\ %{}) do
+    struct
+    |> cast(attrs, @optional_fields ++ @required_fields)
+    |> validate_required(@required_fields)
+  end
 
-def changeset(%__MODULE__{} = struct, attrs \\ %{}) do
-  struct
-  |> cast(attrs, @optional_fields ++ @required_fields)
-  |> validate_required(@required_fields)
-end
+  def update_changeset(%__MODULE__{} = struct, attrs \\ %{}) do
+    struct
+    |> cast(attrs, [:id, :content])
+    |> validate_required([:id, :content])
+  end
 
-def update_changeset(%__MODULE__{} = struct, attrs \\ %{}) do
-  struct
-  |> cast(attrs, [:id, :content])
-  |> validate_required([:id, :content])
-end
+  def build(map) when map == %{}, do: %{}
 
-def build(map) when map == %{}, do: %{}
-
-def build(changeset) do
-  apply_action(changeset, :build)
-end
-
+  def build(changeset) do
+    apply_action(changeset, :build)
+  end
 end

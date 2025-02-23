@@ -47,6 +47,7 @@ defmodule MazarynWeb.Router do
 
     forward("/", Absinthe.Plug, schema: MazarynWeb.Schema)
   end
+
   get "/", MazarynWeb.PageController, :add_locale
 
   scope "/:locale", MazarynWeb do
@@ -120,6 +121,7 @@ defmodule MazarynWeb.Router do
       live("/:username/:locale", UserLive.Profile)
     end
   end
+
   # Other scopes may use custom stacks.
   # scope "/api", MazarynWeb do
   #   pipe_through :api
