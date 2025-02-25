@@ -8,23 +8,23 @@ router = APIRouter()
 
 def parse_tfrecord(example_proto):
     feature_description = {
-        'mention': tf.io.FixedLenFeature([], tf.string),
+        'emoji': tf.io.FixedLenFeature([], tf.string),
         'date_created': tf.io.FixedLenFeature([], tf.string),
         'author': tf.io.FixedLenFeature([], tf.string),
     }
     return tf.io.parse_single_example(example_proto, feature_description)
 
-def count_mentions(dataset):
-    mention_counter = defaultdict(int)
+def count_emojis(dataset):
+    emoji_counter = defaultdict(int)
     for record in dataset:
-        mention = record['mention'].numpy().decode('utf-8')  
-        if mention:  
-            mention_counter[mention] += 1
-    return mention_counter
+        emoji = record['emoji'].numpy().decode('utf-8')  
+        if emoji:  
+            emoji_counter[emoji] += 1
+    return emoji_counter
 
-def get_top_mentions(mention_counter, top_n=10):
-    sorted_mentions = sorted(mention_counter.items(), key=lambda x: x[1], reverse=True)
-    return sorted_mentions[:top_n]
+def get_top_emojis(emoji_counter, top_n=10):
+    sorted_emojis = sorted(emoji_counter.items(), key=lambda x: x[1], reverse=True)
+    return sorted_emojis[:top_n]
 
 def filter_by_author(dataset, author):
     filtered_records = []
@@ -58,8 +58,8 @@ def load_dataset():
     parsed_dataset = raw_dataset.map(parse_tfrecord)
     return parsed_dataset
 
-@router.get("/top_mentions")
-def get_top_mentions_api(
+@router.get("/top_emojis")
+def get_top_emojis_api(
     period: str = Query(..., description="Time period: 'all_time', 'monthly', or 'daily'"),
     target_month: Optional[int] = Query(None, description="Target month (1-12)"),
     target_year: Optional[int] = Query(None, description="Target year (e.g., 2025)"),
@@ -69,26 +69,26 @@ def get_top_mentions_api(
         dataset = load_dataset()
 
         if period == "all_time":
-            mentions = count_mentions(dataset)
-            top_mentions = get_top_mentions(mentions)
-            return {"top_mentions": top_mentions}
+            emojis = count_emojis(dataset)
+            top_emojis = get_top_emojis(emojis)
+            return {"top_emojis": top_emojis}
 
         elif period == "monthly":
             if not target_month or not target_year:
                 raise HTTPException(status_code=400, detail="target_month and target_year are required for monthly period")
             filtered_dataset = filter_by_month(dataset, target_month, target_year)
-            mentions = count_mentions(filtered_dataset)
-            top_mentions = get_top_mentions(mentions)
-            return {"top_mentions": top_mentions}
+            emojis = count_emojis(filtered_dataset)
+            top_emojis = get_top_emojis(emojis)
+            return {"top_emojis": top_emojis}
 
         elif period == "daily":
             if not target_day:
                 raise HTTPException(status_code=400, detail="target_day is required for daily period")
             target_date = datetime.datetime.strptime(target_day, "%Y-%m-%d").date()
             filtered_dataset = filter_by_day(dataset, target_date)
-            mentions = count_mentions(filtered_dataset)
-            top_mentions = get_top_mentions(mentions)
-            return {"top_mentions": top_mentions}
+            emojis = count_emojis(filtered_dataset)
+            top_emojis = get_top_emojis(emojis)
+            return {"top_emojis": top_emojis}
 
         else:
             raise HTTPException(status_code=400, detail="Invalid period. Use 'all_time', 'monthly', or 'daily'")
@@ -96,8 +96,8 @@ def get_top_mentions_api(
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.get("/top_mentions_by_author")
-def get_top_mentions_by_author_api(
+@router.get("/top_emojis_by_author")
+def get_top_emojis_by_author_api(
     author: str = Query(..., description="Author name"),
     period: str = Query(..., description="Time period: 'all_time', 'monthly', or 'daily'"),
     target_month: Optional[int] = Query(None, description="Target month (1-12)"),
@@ -110,26 +110,26 @@ def get_top_mentions_by_author_api(
         filtered_dataset = filter_by_author(dataset, author)
 
         if period == "all_time":
-            mentions = count_mentions(filtered_dataset)
-            top_mentions = get_top_mentions(mentions)
-            return {"top_mentions": top_mentions}
+            emojis = count_emojis(filtered_dataset)
+            top_emojis = get_top_emojis(emojis)
+            return {"top_emojis": top_emojis}
 
         elif period == "monthly":
             if not target_month or not target_year:
                 raise HTTPException(status_code=400, detail="target_month and target_year are required for monthly period")
             filtered_dataset = filter_by_month(filtered_dataset, target_month, target_year)
-            mentions = count_mentions(filtered_dataset)
-            top_mentions = get_top_mentions(mentions)
-            return {"top_mentions": top_mentions}
+            emojis = count_emojis(filtered_dataset)
+            top_emojis = get_top_emojis(emojis)
+            return {"top_emojis": top_emojis}
 
         elif period == "daily":
             if not target_day:
                 raise HTTPException(status_code=400, detail="target_day is required for daily period")
             target_date = datetime.datetime.strptime(target_day, "%Y-%m-%d").date()
             filtered_dataset = filter_by_day(filtered_dataset, target_date)
-            mentions = count_mentions(filtered_dataset)
-            top_mentions = get_top_mentions(mentions)
-            return {"top_mentions": top_mentions}
+            emojis = count_emojis(filtered_dataset)
+            top_emojis = get_top_emojis(emojis)
+            return {"top_emojis": top_emojis}
 
         else:
             raise HTTPException(status_code=400, detail="Invalid period. Use 'all_time', 'monthly', or 'daily'")
