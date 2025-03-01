@@ -1,82 +1,108 @@
 import pandas as pd
-import re
-from sklearn.preprocessing import LabelEncoder
 from sklearn.model_selection import train_test_split
-from tensorflow.keras.preprocessing.text import Tokenizer
-from tensorflow.keras.preprocessing.sequence import pad_sequences
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Embedding, LSTM, Dense, Dropout
-import pickle
+from sklearn.preprocessing import LabelEncoder
+from transformers import DistilBertTokenizer, DistilBertForSequenceClassification, Trainer, TrainingArguments
+import torch
+from torch.utils.data import Dataset
+from sklearn.metrics import accuracy_score
 
 parquet_file = "keywords.parquet"
 df = pd.read_parquet(parquet_file)
 
-print("Dataset Head:")
-print(df.head())
-print("\nDataset Info:")
-print(df.info())
-
-def clean_text(text):
-    text = re.sub(r"[^a-zA-Z\s]", "", text)
-    text = text.lower()
-    return text
-
-df["keyword"] = df["keyword"].apply(clean_text)
-
+# Encode labels
 label_encoder = LabelEncoder()
 df["label"] = label_encoder.fit_transform(df["category"])
 
-print("\nEncoded Labels:")
-print(df[["category", "label"]].drop_duplicates())
-
+# Split the dataset
 train_df, val_df = train_test_split(df, test_size=0.2, random_state=42)
 
-print(f"\nTraining samples: {len(train_df)}")
-print(f"Validation samples: {len(val_df)}")
+# Load DistilBERT tokenizer
+tokenizer = DistilBertTokenizer.from_pretrained("distilbert-base-uncased")
 
-tokenizer = Tokenizer(num_words=10000)
-tokenizer.fit_on_texts(train_df["keyword"])
+# Tokenize the data
+def tokenize_data(texts, max_length=128):
+    return tokenizer(
+        texts.tolist(),
+        padding=True,
+        truncation=True,
+        max_length=max_length,
+        return_tensors="pt"
+    )
 
-train_sequences = tokenizer.texts_to_sequences(train_df["keyword"])
-val_sequences = tokenizer.texts_to_sequences(val_df["keyword"])
+train_encodings = tokenize_data(train_df["keyword"])
+val_encodings = tokenize_data(val_df["keyword"])
 
-max_length = 20  
-train_padded = pad_sequences(train_sequences, maxlen=max_length, padding="post", truncating="post")
-val_padded = pad_sequences(val_sequences, maxlen=max_length, padding="post", truncating="post")
+# Create PyTorch Dataset
+class KeywordDataset(Dataset):
+    def __init__(self, encodings, labels):
+        self.encodings = encodings
+        self.labels = labels
 
-model = Sequential([
-    Embedding(input_dim=10000, output_dim=128, input_length=max_length),
-    LSTM(64, return_sequences=False),
-    Dropout(0.5),
-    Dense(64, activation="relu"),
-    Dense(len(label_encoder.classes_), activation="softmax")  
-])
+    def __getitem__(self, idx):
+        item = {key: val[idx] for key, val in self.encodings.items()}
+        item["labels"] = torch.tensor(self.labels[idx])
+        return item
 
-model.compile(optimizer="adam", loss="sparse_categorical_crossentropy", metrics=["accuracy"])
+    def __len__(self):
+        return len(self.labels)
 
-print("\nModel Summary:")
-model.summary()
+train_dataset = KeywordDataset(train_encodings, train_df["label"].tolist())
+val_dataset = KeywordDataset(val_encodings, val_df["label"].tolist())
 
-print("\nTraining the model...")
-history = model.fit(
-    train_padded,
-    train_df["label"],
-    validation_data=(val_padded, val_df["label"]),
-    epochs=10,
-    batch_size=32
+# Load pre-trained DistilBERT model
+model = DistilBertForSequenceClassification.from_pretrained(
+    "distilbert-base-uncased",
+    num_labels=len(label_encoder.classes_)
 )
 
-val_loss, val_accuracy = model.evaluate(val_padded, val_df["label"])
-print(f"\nValidation Loss: {val_loss}")
-print(f"Validation Accuracy: {val_accuracy}")
+# Define training arguments
+training_args = TrainingArguments(
+    output_dir="./results",
+    eval_strategy="epoch",  
+    learning_rate=2e-5,
+    per_device_train_batch_size=16,
+    per_device_eval_batch_size=16,
+    num_train_epochs=3,
+    weight_decay=0.01,
+    save_total_limit=2,
+    save_steps=500,
+    logging_dir="./logs",
+    logging_steps=10,
+)
 
-model.save("text_classification_model.h5")
-print("\nModel saved as 'text_classification_model.h5'.")
+# Define metrics
+def compute_metrics(pred):
+    labels = pred.label_ids
+    preds = pred.predictions.argmax(-1)
+    acc = accuracy_score(labels, preds)
+    return {"accuracy": acc}
 
-with open("tokenizer.pkl", "wb") as f:
-    pickle.dump(tokenizer, f)
+# Train the model
+trainer = Trainer(
+    model=model,
+    args=training_args,
+    train_dataset=train_dataset,
+    eval_dataset=val_dataset,
+    compute_metrics=compute_metrics,
+)
 
-with open("label_encoder.pkl", "wb") as f:
-    pickle.dump(label_encoder, f)
+trainer.train()
 
-print("Tokenizer and label encoder saved as 'tokenizer.pkl' and 'label_encoder.pkl'.")
+# Evaluate the model
+results = trainer.evaluate()
+print(f"Validation Accuracy: {results['eval_accuracy']}")
+
+# Save the model
+model.save_pretrained("./fine_tuned_distilbert")
+tokenizer.save_pretrained("./fine_tuned_distilbert")
+
+# Make predictions
+def predict(texts):
+    inputs = tokenizer(texts, return_tensors="pt", padding=True, truncation=True, max_length=128)
+    outputs = model(**inputs)
+    preds = torch.argmax(outputs.logits, dim=-1)
+    return label_encoder.inverse_transform(preds)
+
+new_keywords = ["new fashion trend", "abstract painting"]
+predictions = predict(new_keywords)
+print(predictions)

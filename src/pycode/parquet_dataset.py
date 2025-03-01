@@ -1,20 +1,23 @@
 import pandas as pd
-from dataset import art_keywords
-from dataset import fashion_keywords
-from dataset import entertainment_keywords
-from dataset import finance_keywords
-from dataset import psychology_keywords
-from dataset import science_keywords
-from dataset import sport_keywords
-from dataset import tech_keywords
-from dataset import travel_keywords
+from dataset import (
+    art_keywords,
+    entertainment_keywords,
+    fashion_keywords,
+    finance_keywords,
+    psychology_keywords,
+    science_keywords,
+    sport_keywords,
+    tech_keywords,
+    travel_keywords
+)
 
 def save_all_keywords(output_file="keywords.parquet"):
+    # Load keywords for each category
     art_df = art_keywords.get_art_keywords()
     print(f"Loaded {len(art_df)} art keywords.")
 
     entertainment_df = entertainment_keywords.get_entertainment_keywords()
-    print(f"Loaded {len(art_df)} entertainment keywords.")
+    print(f"Loaded {len(entertainment_df)} entertainment keywords.")
 
     fashion_df = fashion_keywords.get_fashion_keywords()
     print(f"Loaded {len(fashion_df)} fashion keywords.")
@@ -37,10 +40,22 @@ def save_all_keywords(output_file="keywords.parquet"):
     travel_df = travel_keywords.get_travel_keywords()
     print(f"Loaded {len(travel_df)} travel keywords.")
 
-    combined_df = pd.concat([art_df, entertainment_df, fashion_df, finance_df, psychology_df, science_df,
-    sport_df, tech_df, travel_df]).drop_duplicates(subset=["keyword"])
+    # Combine all DataFrames and remove duplicates
+    combined_df = pd.concat([
+        art_df,
+        entertainment_df,
+        fashion_df,
+        finance_df,
+        psychology_df,
+        science_df,
+        sport_df,
+        tech_df,
+        travel_df
+    ]).drop_duplicates(subset=["keyword"])
+
     print(f"Total unique keywords: {len(combined_df)}")
 
+    # Save to Parquet file
     combined_df.to_parquet(output_file, engine="pyarrow", compression="snappy")
     print(f"Saved all keywords to {output_file}")
 
