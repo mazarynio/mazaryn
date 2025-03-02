@@ -37,7 +37,7 @@ jobs:
       - name: Build release
         run: |
           MIX_ENV=prod mix release --overwrite --path ../mazaryn_release_new
-          ls -alh ../mazaryn_release_new
+          # ls -alh ../mazaryn_release_new
           tar -czvf mazaryn_release.tar.gz ../mazaryn_release_new
 
       - name: Upload artifact
@@ -45,6 +45,16 @@ jobs:
         with:
           name: mazaryn_release
           path: mazaryn_release.tar.gz
+
+      - name: Test SSH
+        id: test_ssh
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SSH_HOST_2 }}
+          username: ${{ secrets.SSH_USER }}
+          password: ${{ secrets.SSH_PASSWORD_2 }}
+          script: |
+            hostname
 
       - name: push artifact to remote server 1
         id: deploy
