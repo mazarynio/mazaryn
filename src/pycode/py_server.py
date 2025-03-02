@@ -17,6 +17,7 @@ from ai.post_link import router as post_link_router
 from ai.post_mention import router as post_mention_router
 from ai.post_emoji import router as post_emoji_router
 from ai.post_like import router as post_like_router 
+from ai.post_predict import router as post_predict_router
 
 app = FastAPI()
 
@@ -38,6 +39,7 @@ app.include_router(post_link_router, prefix="/api")
 app.include_router(post_mention_router, prefix="/api")
 app.include_router(post_emoji_router, prefix="/api") 
 app.include_router(post_like_router, prefix="/api")
+app.include_router(post_predict_router, prefix="/api")
 
 # Run the server
 if __name__ == "__main__":

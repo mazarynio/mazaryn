@@ -5,13 +5,19 @@ from transformers import DistilBertTokenizer, DistilBertForSequenceClassificatio
 import torch
 from torch.utils.data import Dataset
 from sklearn.metrics import accuracy_score
+import pickle  # Add this import
 
+# Load the Parquet file
 parquet_file = "keywords.parquet"
 df = pd.read_parquet(parquet_file)
 
 # Encode labels
 label_encoder = LabelEncoder()
 df["label"] = label_encoder.fit_transform(df["category"])
+
+# Save the label encoder
+with open("label_encoder.pkl", "wb") as f:
+    pickle.dump(label_encoder, f)
 
 # Split the dataset
 train_df, val_df = train_test_split(df, test_size=0.2, random_state=42)
