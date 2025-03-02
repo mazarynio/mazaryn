@@ -46,15 +46,33 @@ jobs:
           name: mazaryn_release
           path: mazaryn_release.tar.gz
 
+      - name: Test SSH
+        id: test_ssh
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SSH_HOST_2 }}
+          username: ${{ secrets.SSH_USER }}
+          password: ${{ secrets.SSH_PASSWORD_2 }}
+          script: |
+            echo "CAN SSH to $(hostname)"
+
       - name: push artifact to remote server 1
         id: deploy
-        uses: up9cloud/action-rsync@master
-        env:
-          HOST: ${{ secrets.SSH_HOST_2 }}
-          USER: ${{ secrets.SSH_USER }}
-          PASSWORD: ${{ secrets.SSH_PASSWORD_2 }}
-          SOURCE: mazaryn_release.tar.gz
-          TARGET: /home/zaryn/mazaryn_release.tar.gz
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SSH_HOST_2 }}
+          username: ${{ secrets.SSH_USER }}
+          password: ${{ secrets.SSH_PASSWORD_2 }}
+          port: 22
+          source: mazaryn_release.tar.gz
+          target: /home/zaryn/mazaryn_release.tar.gz
+        # uses: up9cloud/action-rsync@master
+        # env:
+        #   HOST: ${{ secrets.SSH_HOST_2 }}
+        #   USER: ${{ secrets.SSH_USER }}
+        #   PASSWORD: ${{ secrets.SSH_PASSWORD_2 }}
+        #   SOURCE: mazaryn_release.tar.gz
+        #   TARGET: /home/zaryn/mazaryn_release.tar.gz
 
   deploy:
     needs: build
