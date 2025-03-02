@@ -87,7 +87,11 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           password: ${{ secrets.SSH_PASSWORD_2 }}
           script: |
+            mv mazaryn_release.tar.gz/* artifact
+            rm -rf mazaryn_release.tar.gz
+            mv artifact mazaryn_release.tar.gz
             tar -xvf mazaryn_release.tar.gz
+            rm -rf mazaryn_release.tar.gz
 
       - name: executing remote ssh commands to deploy new build
         id: deployment
