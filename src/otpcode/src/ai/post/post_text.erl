@@ -1,11 +1,17 @@
 -module(post_text).
+-author("Zaryn Technologies").
 -export([category/1]).
 
 -define(API_URL, "http://127.0.0.1:8000/api/text_predict").
 
 % Function to get the categories for a sentence
-category(Sentence) ->
-    JsonPayload = jsx:encode([{<<"sentence">>, list_to_binary(Sentence)}]),
+category(Content) ->
+    BinaryContent = case is_binary(Content) of
+                      true -> Content; 
+                      false -> list_to_binary(Content) 
+                    end,
+    
+    JsonPayload = jsx:encode([{<<"sentence">>, BinaryContent}]),
     
     case httpc:request(post, {?API_URL, [], "application/json", JsonPayload}, [], []) of
         {ok, {{_, 200, _}, _, ResponseBody}} ->

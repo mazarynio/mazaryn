@@ -42,6 +42,7 @@
 
 -record(post, { id,
                 ai_post_id,
+                user_id,
                 content,
                 emoji = [],
                 comments = [],

@@ -37,8 +37,16 @@ defmodule Core.PostClient do
     :post_server.get_posts_by_author(author)
   end
 
+  def get_posts_by_user_id(user_id) do
+    :post_server.get_posts_by_user_id(user_id)
+  end
+
   def get_posts_content_by_author(author) do
     :post_server.get_posts_content_by_author(author)
+  end
+
+  def get_posts_content_by_user_id(user_id) do
+    :post_server.get_posts_content_by_user_id(user_id)
   end
 
   ## Get all posts related to Specific Hashtag

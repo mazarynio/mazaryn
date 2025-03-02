@@ -9,13 +9,13 @@
 -module(post_server).
 -author("Zaryn Technologies"). 
 -define(NUM, 5).
--include_lib("kernel/include/logger.hrl").
+-include_lib("kernel/include/logger.hrl"). 
 
 -behaviour(gen_server).
 %% API
 -export([start_link/0, insert/7, get_post_by_id/1, get_post_content_by_id/1, modify_post/7,
-         get_posts_by_author/1, get_posts_content_by_author/1, get_posts_by_hashtag/1, get_latest_posts/1, update_post/2, delete_post/1, 
-         like_post/2, unlike_post/2, add_comment/3,
+         get_posts_by_author/1, get_posts_by_user_id/1, get_posts_content_by_author/1, get_posts_by_hashtag/1, get_latest_posts/1, update_post/2,
+         delete_post/1, like_post/2, unlike_post/2, add_comment/3, get_posts_content_by_user_id/1,
          update_comment/2, like_comment/2, get_comment_likes/1, reply_comment/3, delete_reply/1, get_reply/1, get_all_replies/1,
          get_single_comment/1, get_all_comments/1, delete_comment/2, get_likes/1,
          get_media/1, get_posts/0,
@@ -49,8 +49,14 @@ get_post_content_by_id(Id) ->
 get_posts_by_author(Author) ->
   gen_server:call({global, ?MODULE}, {get_posts_by_author, Author}).
 
+get_posts_by_user_id(UserID) ->
+  gen_server:call({global, ?MODULE}, {get_posts_by_user_id, UserID}).
+
 get_posts_content_by_author(Author) ->
   gen_server:call({global, ?MODULE}, {get_posts_content_by_author, Author}).
+
+get_posts_content_by_user_id(UserID) ->
+  gen_server:call({global, ?MODULE}, {get_posts_content_by_user_id, UserID}).
 
 get_posts_by_hashtag(Hashtag) ->
   gen_server:call({global, ?MODULE}, {get_posts_by_hashtag, Hashtag}).
@@ -160,6 +166,10 @@ handle_call({get_post_content_by_id, Id}, _From, State) ->
 
 handle_call({get_posts_by_author, Author}, _From, State) ->
     Posts = postdb:get_posts_by_author(Author),
+    {reply, Posts, State};
+
+handle_call({get_posts_by_user_id, UserID}, _From, State) ->
+    Posts = postdb:get_posts_by_user_id(UserID),
     {reply, Posts, State};
 
 handle_call({get_posts_content_by_author, Author}, _From, State) ->
