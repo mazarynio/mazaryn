@@ -192,7 +192,7 @@ get_user_id(Username) ->
             {error, {user_not_found, Username}};
         User ->
             UserID = User#user.id,
-            {ok, UserID}
+            UserID
     end.
 
 get_user_in_transaction(Username) ->

@@ -1,8 +1,8 @@
 -module(postdb).
 -author("Zaryn Technologies").
 -export([insert/7, get_post_by_id/1, get_post_content_by_id/1,
-         modify_post/7, get_posts_by_author/1, get_posts_content_by_author/1,
-         get_posts_by_hashtag/1, update_post/2,
+         modify_post/7, get_posts_by_author/1, get_posts_by_user_id/1, get_posts_content_by_author/1, get_posts_content_by_user_id/1,
+         get_posts_by_hashtag/1, update_post/2, get_last_50_posts_content_by_user_id/1,
          delete_post/1, get_posts/0, delete_reply_from_mnesia/1,
          get_all_posts_from_date/4, get_all_posts_from_month/3,
          like_post/2, unlike_post/2, add_comment/3, update_comment/2, like_comment/2, update_comment_likes/2, get_comment_likes/1, get_comment_replies/1, reply_comment/3,
@@ -21,9 +21,11 @@ insert(Author, Content, Emoji, Media, Hashtag, Mention, Link_URL) ->
           Id = nanoid:gen(),
           Date = calendar:universal_time(),
           AI_Post_ID = ai_postdb:insert(Id),
+          UserID = userdb:get_user_id(Author),
           %Device = device:nif_device_info(),
           mnesia:write(#post{id = Id,
                              ai_post_id = AI_Post_ID,
+                             user_id = UserID,
                              content = erl_deen:main(Content),
                              emoji = Emoji,
                              author = Author,
@@ -85,10 +87,40 @@ get_posts_by_author(Author) ->
   {atomic, Res} = mnesia:transaction(Fun),
   Res.
 
+get_posts_by_user_id(UserID) ->
+  Fun = fun() ->
+            mnesia:match_object(#post{user_id = UserID,
+                                      _ = '_'})
+        end,
+  {atomic, Res} = mnesia:transaction(Fun),
+  Res.
+
 get_posts_content_by_author(Author) ->
     Fun = fun() ->
               Posts = mnesia:match_object(#post{author = Author, _ = '_'}),
               [Post#post.content || Post <- Posts]
+          end,
+    {atomic, Res} = mnesia:transaction(Fun),
+    Res.
+
+get_posts_content_by_user_id(UserID) ->
+    Fun = fun() ->
+              Posts = mnesia:match_object(#post{user_id = UserID, _ = '_'}),
+              [Post#post.content || Post <- Posts]
+          end,
+    {atomic, Res} = mnesia:transaction(Fun),
+    Res.
+
+get_last_50_posts_content_by_user_id(UserID) ->
+    Fun = fun() ->
+              Posts = mnesia:match_object(#post{user_id = UserID, _ = '_'}),
+              
+              SortedPosts = lists:sort(fun(A, B) -> 
+                                          A#post.date_created > B#post.date_created 
+                                       end, Posts),
+              
+              Last60Posts = lists:sublist(SortedPosts, 50),
+              [Post#post.content || Post <- Last60Posts]
           end,
     {atomic, Res} = mnesia:transaction(Fun),
     Res.

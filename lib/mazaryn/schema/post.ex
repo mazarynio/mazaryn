@@ -13,6 +13,7 @@ defmodule Mazaryn.Schema.Post do
   @optional_fields ~w(
     id
     ai_post_id
+    user_id
     media
     hashtag
     mention
@@ -39,6 +40,7 @@ defmodule Mazaryn.Schema.Post do
   embedded_schema do
     field(:content, :string)
     field(:ai_post_id, :string)
+    field(:user_id, :string)
     field(:media, {:array, :string}, default: [])
     field(:hashtag, :string)
     field(:mention, :string)
@@ -60,7 +62,7 @@ defmodule Mazaryn.Schema.Post do
   end
 
   def erl_changeset(
-        {:post, id, ai_post_id, content, comments, likes, media, hashtag, mention, emoji,
+        {:post, id, ai_post_id, user_id, content, comments, likes, media, hashtag, mention, emoji,
          link_url, author, other, date_created, date_updated, report, device_info, data}
       ) do
     new_likes =
@@ -75,6 +77,7 @@ defmodule Mazaryn.Schema.Post do
     |> change(%{
       id: id,
       ai_post_id: ai_post_id,
+      user_id: user_id,
       content: content,
       comments: preload_comments,
       likes: new_likes,
