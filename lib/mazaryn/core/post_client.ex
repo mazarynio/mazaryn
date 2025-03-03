@@ -123,9 +123,17 @@ defmodule Core.PostClient do
     :post_server.get_single_comment(commentId)
   end
 
+  def get_user_by_single_comment(commentID) do
+    :post_server.get_user_by_single_comment(commentID)
+  end
+
   ## Get all comments related to specific post using PostID
   def get_all_comments(postId) do
     :post_server.get_all_comments(postId)
+  end
+
+  def get_all_comments_by_user_id(post_id, user_id) do
+    :post_Server.get_all_comments_by_user_id(post_id, user_id)
   end
 
   ## Remove comment Permanently using CommentID and related PostID

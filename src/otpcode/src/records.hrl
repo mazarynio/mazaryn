@@ -70,6 +70,7 @@
                     data = #{} }).
 
 -record(comment, {id,
+                  user_id,
                   post,
                   author,
                   content,

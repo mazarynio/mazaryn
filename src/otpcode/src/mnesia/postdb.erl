@@ -2,9 +2,9 @@
 -author("Zaryn Technologies").
 -export([insert/7, get_post_by_id/1, get_post_content_by_id/1,
          modify_post/7, get_posts_by_author/1, get_posts_by_user_id/1, get_posts_content_by_author/1, get_posts_content_by_user_id/1,
-         get_posts_by_hashtag/1, update_post/2, get_last_50_posts_content_by_user_id/1,
-         delete_post/1, get_posts/0, delete_reply_from_mnesia/1,
-         get_all_posts_from_date/4, get_all_posts_from_month/3,
+         get_posts_by_hashtag/1, update_post/2, get_last_50_posts_content_by_user_id/1, get_last_50_comments_for_user/1,
+         delete_post/1, get_posts/0, delete_reply_from_mnesia/1, get_all_comments_by_user_id/2, get_user_by_single_comment/1, get_last_50_comments_content_for_user/1,
+         get_all_posts_from_date/4, get_all_posts_from_month/3, get_all_comments_for_user/1, get_all_likes_for_user/1, get_last_50_likes_for_user/1,
          like_post/2, unlike_post/2, add_comment/3, update_comment/2, like_comment/2, update_comment_likes/2, get_comment_likes/1, get_comment_replies/1, reply_comment/3,
           get_reply/1, get_all_replies/1, delete_reply/1, get_all_comments/1, delete_comment/2, delete_comment_from_mnesia/1, get_likes/1,
          get_single_comment/1, get_media/1, report_post/4, update_activity/2]).
@@ -242,9 +242,32 @@ unlike_post(LikeID, PostId) ->
   {atomic, Res} = mnesia:transaction(Fun),
   Res.
 
+get_all_likes_for_user(UserID) ->
+  Fun = fun() ->
+            Likes = mnesia:match_object(#like{userID = UserID, _ = '_'}),
+            Likes
+        end,
+  {atomic, Res} = mnesia:transaction(Fun),
+  Res.
+
+get_last_50_likes_for_user(UserID) ->
+  Fun = fun() ->
+            Likes = mnesia:match_object(#like{userID = UserID, _ = '_'}),
+            SortedLikes = lists:sort(
+              fun(A, B) ->
+                A#like.date_created > B#like.date_created
+              end,
+              Likes
+            ),
+            lists:sublist(SortedLikes, 50)
+        end,
+  {atomic, Res} = mnesia:transaction(Fun),
+  Res.
+
 %% Content = [{text, Text}, {media, Media}, {mention, Name}, {like, Like}]
 add_comment(Author, PostID, Content) ->
   Fun = fun() ->
+      UserID = userdb:get_user_id(Author),
       %% Check if the post exists
       case mnesia:read({post, PostID}) of
           [] -> 
@@ -254,6 +277,7 @@ add_comment(Author, PostID, Content) ->
 
               Comment = #comment{
                   id = Id,
+                  user_id = UserID,
                   post = PostID,
                   author = Author,
                   content = Content,
@@ -439,6 +463,22 @@ get_single_comment(CommentId) ->
   {atomic, Res} = mnesia:transaction(Fun),
   Res.
 
+get_user_by_single_comment(CommentID) ->
+  Fun = fun() ->
+            case mnesia:read({comment, CommentID}) of
+              [Comment] ->
+                UserID = Comment#comment.user_id,
+                case mnesia:read({user, UserID}) of
+                  [User] -> User; 
+                  _     -> undefined 
+                end;
+              _ ->
+                []
+            end
+        end,
+  {atomic, Res} = mnesia:transaction(Fun),
+  Res.
+
 %% Get all Comments for Specific Post using PostID
 get_all_comments(PostId) ->
   Fun = fun() ->
@@ -450,6 +490,67 @@ get_all_comments(PostId) ->
                             [Comment|Acc]
                         end,
                         [], Post#post.comments)
+        end,
+  {atomic, Res} = mnesia:transaction(Fun),
+  Res.
+
+get_all_comments_for_user(UserID) ->
+  Fun = fun() ->
+            Comments = mnesia:match_object(#comment{user_id = UserID, _ = '_'}),
+            Comments
+        end,
+  {atomic, Res} = mnesia:transaction(Fun),
+  Res.
+
+get_last_50_comments_for_user(UserID) ->
+  Fun = fun() ->
+            Comments = mnesia:match_object(#comment{user_id = UserID, _ = '_'}),
+            SortedComments = lists:sort(
+              fun(A, B) ->
+                A#comment.date_created > B#comment.date_created
+              end,
+              Comments
+            ),
+            lists:sublist(SortedComments, 50)
+        end,
+  {atomic, Res} = mnesia:transaction(Fun),
+  Res.
+
+get_last_50_comments_content_for_user(UserID) ->
+  Fun = fun() ->
+            Comments = mnesia:match_object(#comment{user_id = UserID, _ = '_'}),
+            SortedComments = lists:sort(
+              fun(A, B) ->
+                A#comment.date_created > B#comment.date_created
+              end,
+              Comments
+            ),
+            Last50Comments = lists:sublist(SortedComments, 50),
+            lists:map(fun(Comment) -> Comment#comment.content end, Last50Comments)
+        end,
+  {atomic, Res} = mnesia:transaction(Fun),
+  Res.
+
+get_all_comments_by_user_id(PostId, UserID) ->
+  Fun = fun() ->
+            case mnesia:read({post, PostId}) of
+              [Post] ->
+                Comments = lists:filter(
+                  fun(Id) ->
+                    case mnesia:read({comment, Id}) of
+                      [Comment] -> Comment#comment.user_id =:= UserID;
+                      _ -> false
+                    end
+                  end,
+                  Post#post.comments
+                ),
+                lists:map(fun(Id) -> 
+                  [Comment] = mnesia:read({comment, Id}),
+                  Comment
+                end, Comments);
+              _ ->
+                []
+            end
         end,
   {atomic, Res} = mnesia:transaction(Fun),
   Res.
