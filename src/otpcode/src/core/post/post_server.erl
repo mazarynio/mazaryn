@@ -6,19 +6,19 @@
 %%% @end
 %%% Created : 14. May 2022 9:45 PM
 %%%-------------------------------------------------------------------
--module(post_server).
+-module(post_server). 
 -author("Zaryn Technologies"). 
 -define(NUM, 5).
--include_lib("kernel/include/logger.hrl").
+-include_lib("kernel/include/logger.hrl"). 
 
 -behaviour(gen_server).
 %% API
 -export([start_link/0, insert/7, get_post_by_id/1, get_post_content_by_id/1, modify_post/7,
-         get_posts_by_author/1, get_posts_content_by_author/1, get_posts_by_hashtag/1, get_latest_posts/1, update_post/2, delete_post/1, 
-         like_post/2, unlike_post/2, add_comment/3,
+         get_posts_by_author/1, get_posts_by_user_id/1, get_posts_content_by_author/1, get_posts_by_hashtag/1, get_latest_posts/1, update_post/2,
+         delete_post/1, like_post/2, unlike_post/2, add_comment/3, get_posts_content_by_user_id/1, get_user_by_single_comment/1,
          update_comment/2, like_comment/2, get_comment_likes/1, reply_comment/3, delete_reply/1, get_reply/1, get_all_replies/1,
-         get_single_comment/1, get_all_comments/1, delete_comment/2, get_likes/1,
-         get_media/1, get_posts/0,
+         get_single_comment/1, get_all_comments/1, delete_comment/2, get_likes/1, get_all_likes_for_user/1, get_last_50_likes_for_user/1,
+         get_media/1, get_posts/0, get_all_comments_by_user_id/2, get_all_comments_for_user/1, get_last_50_comments_for_user/1,
          get_all_posts_from_date/4, get_all_posts_from_month/3]).
 
 -export([save_post/2, unsave_post/2,
@@ -49,8 +49,14 @@ get_post_content_by_id(Id) ->
 get_posts_by_author(Author) ->
   gen_server:call({global, ?MODULE}, {get_posts_by_author, Author}).
 
+get_posts_by_user_id(UserID) ->
+  gen_server:call({global, ?MODULE}, {get_posts_by_user_id, UserID}).
+
 get_posts_content_by_author(Author) ->
   gen_server:call({global, ?MODULE}, {get_posts_content_by_author, Author}).
+
+get_posts_content_by_user_id(UserID) ->
+  gen_server:call({global, ?MODULE}, {get_posts_content_by_user_id, UserID}).
 
 get_posts_by_hashtag(Hashtag) ->
   gen_server:call({global, ?MODULE}, {get_posts_by_hashtag, Hashtag}).
@@ -82,6 +88,19 @@ like_comment(UserID, CommentID) ->
 get_comment_likes(CommentID) ->
     gen_server:call({global, ?MODULE}, {get_comment_likes, CommentID}). 
 
+get_all_likes_for_user(UserID) ->
+    gen_server:call({global, ?MODULE}, {get_all_likes_for_user, UserID}).
+
+get_last_50_likes_for_user(UserID) ->
+    gen_server:call({global, ?MODULE}, {get_last_50_likes_for_user, UserID}).
+
+get_all_comments_for_user(UserID) ->
+    gen_server:call({global, ?MODULE}, {get_all_comments_for_user, UserID}).
+
+get_last_50_comments_for_user(UserID) ->
+    gen_server:call({global, ?MODULE}, {get_last_50_comments_for_user, UserID}).
+    
+
 reply_comment(UserID, CommentID, Content) ->
     gen_server:call({global, ?MODULE}, {reply_comment, UserID, CommentID, Content}).
 
@@ -97,8 +116,14 @@ get_all_replies(CommentID) ->
 get_single_comment(CommentId) ->
     gen_server:call({global, ?MODULE}, {get_single_comment, CommentId}).
 
+get_user_by_single_comment(CommentID) ->
+    gen_server:call({global, ?MODULE}, {get_user_by_single_comment, CommentID}).
+
 get_all_comments(PostId) ->
     gen_server:call({global, ?MODULE}, {get_all_comments, PostId}).
+
+get_all_comments_by_user_id(PostId, UserID) ->
+    gen_server:call({global, ?MODULE}, {get_all_comments_by_user_id, PostId, UserID}).
 
 delete_comment(CommentID, PostId) ->
     gen_server:call({global, ?MODULE}, {delete_comment, CommentID, PostId}).
@@ -162,6 +187,10 @@ handle_call({get_posts_by_author, Author}, _From, State) ->
     Posts = postdb:get_posts_by_author(Author),
     {reply, Posts, State};
 
+handle_call({get_posts_by_user_id, UserID}, _From, State) ->
+    Posts = postdb:get_posts_by_user_id(UserID),
+    {reply, Posts, State};
+
 handle_call({get_posts_content_by_author, Author}, _From, State) ->
     Posts = postdb:get_posts_content_by_author(Author),
     {reply, Posts, State};
@@ -207,6 +236,22 @@ handle_call({get_comment_likes, CommentID}, _From, State) ->
     IDs = postdb:get_comment_likes(CommentID),
     {reply, IDs, State};
 
+handle_call({get_all_likes_for_user, UserID}, _From, State) ->
+    IDs = postdb:get_all_likes_for_user(UserID),
+    {reply, IDs, State};
+
+handle_call({get_last_50_likes_for_user, UserID}, _From, State) ->
+    IDs = postdb:get_last_50_likes_for_user(UserID),
+    {reply, IDs, State};
+
+handle_call({get_all_comments_for_user, UserID}, _From, State) ->
+    IDs = postdb:get_all_comments_for_user(UserID),
+    {reply, IDs, State};
+
+handle_call({get_last_50_comments_for_user, UserID}, _From, State) ->
+    IDs = postdb:get_last_50_comments_for_user(UserID),
+    {reply, IDs, State};
+
 handle_call({reply_comment, UserID, CommentID, Content}, _From, State) ->
     ID = postdb:reply_comment(UserID, CommentID, Content),
     {reply, ID, State};
@@ -227,8 +272,16 @@ handle_call({get_single_comment, CommentId}, _From, State) ->
     Comment = postdb:get_single_comment(CommentId),
     {reply, Comment, State};
 
+handle_call({get_user_by_single_comment, CommentID}, _From, State) ->
+    Comment = postdb:get_user_by_single_comment(CommentID),
+    {reply, Comment, State};
+
 handle_call({get_all_comments, PostId}, _From, State) ->
     postdb:get_all_comments(PostId),
+    {reply, ok, State};
+
+handle_call({get_all_comments_by_user_id, PostId, UserID}, _From, State) ->
+    postdb:get_all_comments_by_user_id(PostId, UserID),
     {reply, ok, State};
 
 handle_call({delete_comment, CommentID, PostId}, _From, State) ->

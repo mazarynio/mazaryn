@@ -37,6 +37,17 @@ mazaryn-front
 /src/otpcode/src/nif/tensorflow/Makefile
 /src/otpcode/src/nif/tensorflow/CMakeFiles
 /src/otpcode/src/nif/tensorflow/CMakeCache.txt
+/src/pycode/ai/__pycache__
+/src/pycode/dataset/__pycache__
+/src/pycode/fine_tuned_distilbert
+/src/pycode/tf/__pycache__
+/src/pycode/results
+/src/pycode/*.parquet
+/src/pycode/*.pkl
+/src/pycode/*.tfrecord
+/src/pycode/ai/*.h5
+/src/pycode/ai/*.pkl 
+/src/pycode/ai/*.zip
 
 .idea
 .iex.exs
