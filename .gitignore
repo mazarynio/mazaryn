@@ -44,7 +44,10 @@ mazaryn-front
 /src/pycode/results
 /src/pycode/*.parquet
 /src/pycode/*.pkl
-/src/pycode/*tfrecord
+/src/pycode/*.tfrecord
+/src/pycode/ai/*.h5
+/src/pycode/ai/*.pkl 
+/src/pycode/ai/*.zip
 
 .idea
 .iex.exs
