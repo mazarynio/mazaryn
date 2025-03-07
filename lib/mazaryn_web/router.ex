@@ -134,7 +134,7 @@ defmodule MazarynWeb.Router do
   # If your application does not have an admins-only section yet,
   # you can use Plug.BasicAuth to set up some basic authentication
   # as long as you are also using SSL (which you should anyway).
-  if Mix.env() in [:dev, :test] do
+  if Application.get_env(:mazaryn, :env) in [:dev, :test] do
     import Phoenix.LiveDashboard.Router
 
     scope "/" do
@@ -156,7 +156,7 @@ defmodule MazarynWeb.Router do
   #
   # Note that preview only shows emails that were sent by the same
   # node running the Phoenix server.
-  if Mix.env() == :dev do
+  if Application.get_env(:mazaryn, :env) == :dev do
     scope "/dev" do
       pipe_through(:browser)
 
