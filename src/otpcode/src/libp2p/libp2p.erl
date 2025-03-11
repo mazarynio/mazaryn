@@ -14,7 +14,6 @@
 
 -define(BASE_URL, "http://localhost:3000").
 
-% Initialize inets application if needed
 ensure_inets_started() ->
     case lists:member(inets, application:which_applications()) of
         true -> ok;
@@ -25,7 +24,6 @@ ensure_inets_started() ->
         false -> application:start(ssl)
     end.
 
-% Initialize JSX if available
 ensure_jsx_loaded() ->
     case code:which(jsx) of
         non_existing ->
@@ -33,11 +31,15 @@ ensure_jsx_loaded() ->
         _ -> ok
     end.
 
-% Create a new node with auto-generated ID
+%% {ok, _} = libp2p:create_node("node1").
+%% {ok, _} = libp2p:create_node("node2").
+%% Addr1 = libp2p:get_single_address("node1").
+%% Addr2 = libp2p:get_single_address("node2").
+%% libp2p:connect_to_peer("node1", Addr2).
+%% libp2p:ping_peer("node1", Addr2).
 create_node() ->
     create_node(generate_node_id()).
 
-% Create a new node with specified ID
 create_node(NodeId) when is_list(NodeId) ->
     ensure_inets_started(),
     ensure_jsx_loaded(),
@@ -56,7 +58,6 @@ create_node(NodeId) when is_list(NodeId) ->
 create_node(NodeId) when is_binary(NodeId) ->
     create_node(binary_to_list(NodeId)).
 
-% List all nodes
 list_nodes() ->
     ensure_inets_started(),
     case httpc:request(get, {?BASE_URL ++ "/nodes", []}, [], []) of
@@ -70,7 +71,6 @@ list_nodes() ->
             {error, Reason}
     end.
 
-% Delete a node
 delete_node(NodeId) ->
     ensure_inets_started(),
     case httpc:request(delete, {?BASE_URL ++ "/nodes/" ++ NodeId, []}, [], []) of
@@ -84,7 +84,6 @@ delete_node(NodeId) ->
             {error, Reason}
     end.
 
-% Get addresses for a node
 get_addresses(NodeId) ->
     ensure_inets_started(),
     case httpc:request(get, {?BASE_URL ++ "/nodes/" ++ NodeId ++ "/addresses", []}, [], []) of
@@ -98,7 +97,6 @@ get_addresses(NodeId) ->
             {error, Reason}
     end.
 
-% Get single address for a node
 get_single_address(NodeId) ->
     ensure_inets_started(),
     case httpc:request(get, {?BASE_URL ++ "/nodes/" ++ NodeId ++ "/single-address", []}, [], []) of
@@ -112,7 +110,6 @@ get_single_address(NodeId) ->
             {error, Reason}
     end.
 
-% Get peer ID for a node
 get_peerid(NodeId) ->
     ensure_inets_started(),
     case httpc:request(get, {?BASE_URL ++ "/nodes/" ++ NodeId ++ "/peerid", []}, [], []) of
@@ -126,7 +123,6 @@ get_peerid(NodeId) ->
             {error, Reason}
     end.
 
-% Ping a peer from a specific node
 ping_peer(NodeId, RemoteAddr) ->
     ensure_inets_started(),
     Body = jsx:encode([{remoteAddr, list_to_binary(RemoteAddr)}]),
@@ -141,19 +137,18 @@ ping_peer(NodeId, RemoteAddr) ->
             {error, Reason}
     end.
 
-%%{ok, _} = libp2p:create_node("node1").
-%%{ok, _} = libp2p:create_node("node2").
-%%Addr2 = libp2p:get_single_address("node2").
-%%libp2p:connect_to_peer("node1", Addr2).
 connect_to_peer(NodeId, RemoteAddr) ->
     ensure_inets_started(),
+    io:format("Attempting to connect node ~p to ~p~n", [NodeId, RemoteAddr]),
     OwnPeerId = get_peerid(NodeId),
     case is_error(OwnPeerId) of
         true ->
+            io:format("Error getting own peer ID for node ~p~n", [NodeId]),
             try_connect(NodeId, RemoteAddr);
         false ->
             case string:find(RemoteAddr, OwnPeerId) of
                 nomatch ->
+                    io:format("Attempting connection to remote peer~n"),
                     try_connect(NodeId, RemoteAddr);
                 _ ->
                     io:format("Error: Cannot connect to self. This is our own node.~n"),
@@ -163,6 +158,7 @@ connect_to_peer(NodeId, RemoteAddr) ->
 
 is_error({error, _}) -> true;
 is_error(_) -> false.
+
 try_connect(NodeId, RemoteAddr) ->
     Body = jsx:encode([{remoteAddr, list_to_binary(RemoteAddr)}]),
     case httpc:request(post, {?BASE_URL ++ "/nodes/" ++ NodeId ++ "/connect", [], "application/json", Body}, [], []) of

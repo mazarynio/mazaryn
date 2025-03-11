@@ -12,6 +12,26 @@ app.use(express.json());
 
 const nodes = new Map();
 
+const inspectEventStructure = (evt, nodeId, eventType) => {
+  console.log(`[Node ${nodeId}] ${eventType} event structure inspection:`);
+  console.log(`[Node ${nodeId}] Event type: ${evt.type}`);
+  console.log(`[Node ${nodeId}] Event detail available: ${evt.detail !== undefined}`);
+  
+  if (evt.detail) {
+    console.log(`[Node ${nodeId}] Detail properties: ${Object.keys(evt.detail).join(', ')}`);
+    
+    if (evt.detail.connection) {
+      console.log(`[Node ${nodeId}] Connection properties: ${Object.keys(evt.detail.connection).join(', ')}`);
+    }
+  }
+  
+  if (evt.target) {
+    console.log(`[Node ${nodeId}] Event target type: ${typeof evt.target}`);
+    if (typeof evt.target === 'object') {
+      console.log(`[Node ${nodeId}] Event target properties: ${Object.keys(evt.target).join(', ')}`);
+    }
+  }
+};
 
 const createAndStartNode = async (nodeId) => {
   if (nodes.has(nodeId)) {
@@ -39,6 +59,11 @@ const createAndStartNode = async (nodeId) => {
   };
 
   node.addEventListener('peer:discovery', (evt) => {
+    if (!evt.detail || !evt.detail.id) {
+      console.error(`[Node ${nodeId}] Invalid peer discovery event:`, evt);
+      return;
+    }
+
     const peerId = evt.detail.id.toString();
     const peerInfo = {
       id: peerId,
@@ -51,20 +76,86 @@ const createAndStartNode = async (nodeId) => {
   });
 
   node.addEventListener('peer:connect', (evt) => {
-    const peerId = evt.detail.id.toString();
-    console.log(`[Node ${nodeId}] Connected to peer:`, peerId);
+    console.log(`[Node ${nodeId}] Peer connect event received`);
+    
+    
+    inspectEventStructure(evt, nodeId, 'peer:connect');
+    
+    let peerId = null;
+    
+    if (evt.detail && evt.detail.remotePeer) {
+      peerId = evt.detail.remotePeer.toString();
+      console.log(`[Node ${nodeId}] Found peer ID in detail.remotePeer: ${peerId}`);
+    }
+    else if (evt.detail && evt.detail.connection && evt.detail.connection.remotePeer) {
+      peerId = evt.detail.connection.remotePeer.toString();
+      console.log(`[Node ${nodeId}] Found peer ID in detail.connection.remotePeer: ${peerId}`);
+    }
+    else if (evt.detail && evt.detail.id) {
+      peerId = evt.detail.id.toString();
+      console.log(`[Node ${nodeId}] Found peer ID in detail.id: ${peerId}`);
+    }
+    else if (evt.target && evt.target.remotePeer) {
+      peerId = evt.target.remotePeer.toString();
+      console.log(`[Node ${nodeId}] Found peer ID in target.remotePeer: ${peerId}`);
+    }
+    else {
+      try {
+        const peers = node.getPeers();
+        if (peers && peers.length > 0) {
+          peerId = peers[0].toString();
+          console.log(`[Node ${nodeId}] Using first connected peer as fallback: ${peerId}`);
+        }
+      } catch (err) {
+        console.error(`[Node ${nodeId}] Error accessing peers: ${err.message}`);
+      }
+    }
+    
+    if (!peerId) {
+      console.error(`[Node ${nodeId}] Could not extract peer ID from connect event`);
+      return;
+    }
+    
+    console.log(`[Node ${nodeId}] Connected to peer: ${peerId}`);
     
     if (nodeData.discoveredPeers.has(peerId)) {
       const peerInfo = nodeData.discoveredPeers.get(peerId);
       peerInfo.connected = true;
       peerInfo.lastConnected = new Date().toISOString();
       nodeData.discoveredPeers.set(peerId, peerInfo);
+    } else {
+      nodeData.discoveredPeers.set(peerId, {
+        id: peerId,
+        connected: true,
+        lastConnected: new Date().toISOString(),
+        discovered: new Date().toISOString()
+      });
     }
   });
 
   node.addEventListener('peer:disconnect', (evt) => {
-    const peerId = evt.detail.id.toString();
-    console.log(`[Node ${nodeId}] Disconnected from peer:`, peerId);
+    console.log(`[Node ${nodeId}] Peer disconnect event received`);
+    
+    inspectEventStructure(evt, nodeId, 'peer:disconnect');
+    
+    let peerId = null;
+    
+    if (evt.detail && evt.detail.remotePeer) {
+      peerId = evt.detail.remotePeer.toString();
+    } else if (evt.detail && evt.detail.connection && evt.detail.connection.remotePeer) {
+      peerId = evt.detail.connection.remotePeer.toString();
+    } else if (evt.detail && evt.detail.id) {
+      peerId = evt.detail.id.toString();
+    } else if (evt.target && evt.target.remotePeer) {
+      peerId = evt.target.remotePeer.toString();
+    }
+    
+    if (!peerId) {
+      console.error(`[Node ${nodeId}] Could not extract peer ID from disconnect event`);
+      return;
+    }
+    
+    console.log(`[Node ${nodeId}] Disconnected from peer: ${peerId}`);
     
     if (nodeData.discoveredPeers.has(peerId)) {
       const peerInfo = nodeData.discoveredPeers.get(peerId);
@@ -116,41 +207,50 @@ const pingPeer = async (nodeId, remoteAddr) => {
 
 const connectToPeer = async (nodeId, remoteAddr) => {
   const { node, discoveredPeers } = getNode(nodeId);
-  
+
   try {
     const ma = multiaddr(remoteAddr);
-    const peerIdStr = ma.getPeerId();
-    
-    if (peerIdStr && peerIdStr === node.peerId.toString()) {
+    const remotePeerIdStr = ma.getPeerId();
+
+    if (!remotePeerIdStr) {
+      return {
+        success: false,
+        error: "Invalid remote address: No peer ID found."
+      };
+    }
+
+    if (remotePeerIdStr === node.peerId.toString()) {
       return {
         success: false,
         error: "Cannot connect to self. This is our own node."
       };
     }
-    
+
+    console.log(`[Node ${nodeId}] Attempting to dial: ${remoteAddr}`);
     const connection = await node.dial(ma);
-    const remotePeerId = connection.remotePeer.toString();
-    
-    discoveredPeers.set(remotePeerId, {
-      id: remotePeerId,
+    console.log(`[Node ${nodeId}] Dial result:`, connection);
+
+    // Update peer information
+    discoveredPeers.set(remotePeerIdStr, {
+      id: remotePeerIdStr,
       multiaddrs: [remoteAddr],
       connected: true,
       lastConnected: new Date().toISOString(),
       discovered: new Date().toISOString()
     });
-    
+
     return {
       success: true,
-      peerId: remotePeerId
+      peerId: remotePeerIdStr
     };
   } catch (error) {
+    console.error(`[Node ${nodeId}] Connection error:`, error);
     return {
       success: false,
       error: error.message
     };
   }
 };
-
 
 const getDiscoveredPeers = (nodeId) => {
   const { discoveredPeers } = getNode(nodeId);
@@ -177,7 +277,6 @@ const listAllNodes = () => {
   }
   return nodesList;
 };
-
 
 app.post('/nodes', async (req, res) => {
   try {
@@ -226,6 +325,7 @@ app.delete('/nodes/:nodeId', async (req, res) => {
     });
   }
 });
+
 app.get('/nodes/:nodeId/addresses', (req, res) => {
   try {
     const { nodeId } = req.params;
