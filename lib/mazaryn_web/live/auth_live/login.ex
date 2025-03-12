@@ -33,7 +33,7 @@ defmodule MazarynWeb.AuthLive.Login do
           {:ok, user} =
             Account.Users.one_by_email(email)
 
-          if Mix.env() == :dev do
+          if Application.get_env(:mazaryn, :env) == :dev do
             user |> IO.inspect(label: "USER record")
 
             {:noreply,

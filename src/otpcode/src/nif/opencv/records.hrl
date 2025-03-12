@@ -1,4 +1,0 @@
--define(PrivDirSegment, "/home/zaryn/mazaryn/src/otpcode/src/nif/opencv/segmentation").
--define(PrivDirFiltering, "/home/zaryn/mazaryn/src/otpcode/src/nif/opencv/filtering").
--define(PrivDirFeature, "/home/zaryn/mazaryn/src/otpcode/src/nif/opencv/feature").
--define(PrivDirCalcBack, "/home/zaryn/mazaryn/src/otpcode/src/nif/opencv/histograms").

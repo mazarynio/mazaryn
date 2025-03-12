@@ -42,6 +42,7 @@
 
 -record(post, { id,
                 ai_post_id,
+                user_id,
                 content,
                 emoji = [],
                 comments = [],
@@ -69,6 +70,7 @@
                     data = #{} }).
 
 -record(comment, {id,
+                  user_id,
                   post,
                   author,
                   content,
@@ -109,6 +111,12 @@
                date_created,
                date_updated,
                data = #{} }).
+
+-record(p2p_node, { 
+    address,
+    date_created,
+    data = #{}
+}).
 
 
 -record(event, {name, date, loc, desc, data = #{} }).
