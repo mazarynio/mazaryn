@@ -30,13 +30,11 @@ config :mazaryn, MazarynWeb.Endpoint,
 #
 # For production it's recommended to configure a different adapter
 # at the `config/runtime.exs`.
-config :mazaryn, Mazaryn.Mailer,
-  adapter: Swoosh.Adapters.Local,
-  api_key: "SG.x.x",
-  api_client: false
+
 
 # Swoosh API client is needed for adapters other than SMTP.
 config :swoosh, :api_client, false
+config :swoosh, :local, true
 
 config :mazaryn, MazarynWeb.Gettext,
   locales: ~w(en ru fa),
@@ -101,8 +99,8 @@ config :mazaryn, MazarynWeb.Endpoint,
 
 config :mazaryn, Mazaryn.Mailer,
   adapter: Swoosh.Adapters.Mailjet,
-  api_key: "",
-  secret: ""
+  api_key: System.get_env("MAILJET_API_KEY"),
+  secret: System.get_env("MAILJET_SECRET_KEY")
 
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.
