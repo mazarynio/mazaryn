@@ -3,6 +3,8 @@ defmodule Account.UserNotifier do
 
   alias Mazaryn.Mailer
 
+  require Logger
+
   @support_email "support@mazaryn.io"
   @noreply_email "noreply@mazaryn.io"
   @admin_email   "admin@mazaryn.io"
