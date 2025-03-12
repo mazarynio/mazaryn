@@ -9,7 +9,7 @@
     get_peerid/1,
     ping_peer/2,
     connect_to_peer/2,
-    get_peers/1
+    get_peers/1, subscribe_to_topic/2, unsubscribe_from_topic/2, publish_message/3, get_subscriptions/1
 ]).
 
 -define(BASE_URL, "http://localhost:3000").
@@ -182,6 +182,73 @@ get_peers(NodeId) ->
             {error, {Status, ErrorBody}};
         {error, Reason} ->
             io:format("Error getting peers: ~p~n", [Reason]),
+            {error, Reason}
+    end.
+
+subscribe_to_topic(NodeId, Topic) ->
+    ensure_inets_started(),
+    ensure_jsx_loaded(),
+    Body = jsx:encode([{topic, list_to_binary(Topic)}]),
+    case httpc:request(post, {?BASE_URL ++ "/nodes/" ++ NodeId ++ "/pubsub/subscribe", [], "application/json", Body}, [], []) of
+        {ok, {{_, 200, _}, _, ResponseBody}} ->
+            {ok, jsx:decode(list_to_binary(ResponseBody))};
+        {ok, {{_, Status, _}, _, ErrorBody}} ->
+            io:format("Error subscribing to topic: HTTP status ~p, Body: ~p~n", [Status, ErrorBody]),
+            {error, {Status, ErrorBody}};
+        {error, Reason} ->
+            io:format("Error subscribing to topic: ~p~n", [Reason]),
+            {error, Reason}
+    end.
+
+unsubscribe_from_topic(NodeId, Topic) ->
+    ensure_inets_started(),
+    ensure_jsx_loaded(),
+    Body = jsx:encode([{topic, list_to_binary(Topic)}]),
+    case httpc:request(post, {?BASE_URL ++ "/nodes/" ++ NodeId ++ "/pubsub/unsubscribe", [], "application/json", Body}, [], []) of
+        {ok, {{_, 200, _}, _, ResponseBody}} ->
+            {ok, jsx:decode(list_to_binary(ResponseBody))};
+        {ok, {{_, Status, _}, _, ErrorBody}} ->
+            io:format("Error unsubscribing from topic: HTTP status ~p, Body: ~p~n", [Status, ErrorBody]),
+            {error, {Status, ErrorBody}};
+        {error, Reason} ->
+            io:format("Error unsubscribing from topic: ~p~n", [Reason]),
+            {error, Reason}
+    end.
+
+%% {ok, _} = libp2p:create_node("node1").
+%% {ok, _} = libp2p:create_node("node2").
+%% Addr1 = libp2p:get_single_address("node1").
+%% Addr2 = libp2p:get_single_address("node2").
+%% libp2p:connect_to_peer("node1", Addr2).
+%% libp2p:connect_to_peer("node2", Addr1).
+%% libp2p:subscribe_to_topic("node1", "test-topic").
+%% libp2p:subscribe_to_topic("node2", "test-topic").
+%% libp2p:publish_message("node1", "test-topic", "Hello from node1!").
+publish_message(NodeId, Topic, Message) ->
+    ensure_inets_started(),
+    ensure_jsx_loaded(),
+    Body = jsx:encode([{topic, list_to_binary(Topic)}, {message, list_to_binary(Message)}]),
+    case httpc:request(post, {?BASE_URL ++ "/nodes/" ++ NodeId ++ "/pubsub/publish", [], "application/json", Body}, [], []) of
+        {ok, {{_, 200, _}, _, ResponseBody}} ->
+            {ok, jsx:decode(list_to_binary(ResponseBody))};
+        {ok, {{_, Status, _}, _, ErrorBody}} ->
+            io:format("Error publishing message: HTTP status ~p, Body: ~p~n", [Status, ErrorBody]),
+            {error, {Status, ErrorBody}};
+        {error, Reason} ->
+            io:format("Error publishing message: ~p~n", [Reason]),
+            {error, Reason}
+    end.
+
+get_subscriptions(NodeId) ->
+    ensure_inets_started(),
+    case httpc:request(get, {?BASE_URL ++ "/nodes/" ++ NodeId ++ "/pubsub/subscriptions", []}, [], []) of
+        {ok, {{_, 200, _}, _, Body}} ->
+            {ok, jsx:decode(list_to_binary(Body))};
+        {ok, {{_, Status, _}, _, ErrorBody}} ->
+            io:format("Error getting subscriptions: HTTP status ~p, Body: ~p~n", [Status, ErrorBody]),
+            {error, {Status, ErrorBody}};
+        {error, Reason} ->
+            io:format("Error getting subscriptions: ~p~n", [Reason]),
             {error, Reason}
     end.
 
