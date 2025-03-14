@@ -13,6 +13,8 @@ import {
   unsubscribeFromTopic,
   publishToTopic,
   getSubscriptions,
+  addFileToIPFS,
+  getFileFromIPFS,
 } from './libp2p.js';
 
 const app = express();
@@ -272,6 +274,51 @@ app.get('/nodes/:nodeId/pubsub/subscriptions', (req, res) => {
     res.status(200).json({
       success: true,
       subscriptions,
+    });
+  } catch (error) {
+    res.status(404).json({
+      success: false,
+      error: error.message,
+    });
+  }
+});
+
+// Add a file to IPFS
+app.post('/nodes/:nodeId/ipfs/add', async (req, res) => {
+  try {
+    const { nodeId } = req.params;
+    const { fileContent } = req.body;
+
+    if (!fileContent) {
+      return res.status(400).json({
+        success: false,
+        error: 'File content is required',
+      });
+    }
+
+    const cid = await addFileToIPFS(nodeId, fileContent);
+    res.status(200).json({
+      success: true,
+      cid,
+      message: `File added to IPFS with CID: ${cid}`,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message,
+    });
+  }
+});
+
+// Get a file from IPFS
+app.get('/nodes/:nodeId/ipfs/get/:cid', async (req, res) => {
+  try {
+    const { nodeId, cid } = req.params;
+    const fileContent = await getFileFromIPFS(nodeId, cid);
+    res.status(200).json({
+      success: true,
+      fileContent,
+      message: `File retrieved from IPFS with CID: ${cid}`,
     });
   } catch (error) {
     res.status(404).json({

@@ -51,6 +51,7 @@ mazaryn-front
 /src/pycode/text_classification_model
 /src/jscode/node_modules 
 /src/jscode/package-lock.json
+/src/golangcode/*.sum
 
 .idea
 .iex.exs

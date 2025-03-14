@@ -14,6 +14,9 @@
     "@chainsafe/libp2p-gossipsub": "^14.1.0",
     "@chainsafe/libp2p-noise": "^16.0.3",
     "@chainsafe/libp2p-yamux": "^7.0.1",
+    "@helia/http": "^2.0.4",
+    "@helia/interface": "^5.2.0",
+    "@helia/unixfs": "^4.0.2",
     "@libp2p/bootstrap": "^11.0.30",
     "@libp2p/identify": "^3.0.25",
     "@libp2p/kad-dht": "^14.2.13",
@@ -24,6 +27,7 @@
     "@libp2p/tcp": "^10.1.6",
     "@libp2p/websockets": "^9.2.6",
     "express": "^4.21.2",
+    "helia": "^5.2.1",
     "libp2p": "^2.8.0",
     "multiaddr": "^10.0.1"
   }

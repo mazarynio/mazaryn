@@ -6,6 +6,8 @@ import { multiaddr } from 'multiaddr';
 import { ping } from '@libp2p/ping';
 import { gossipsub } from '@chainsafe/libp2p-gossipsub';
 import { identify } from '@libp2p/identify';
+import { createHelia } from 'helia';
+import { unixfs } from '@helia/unixfs';
 
 const nodes = new Map();
 
@@ -35,7 +37,8 @@ export const createAndStartNode = async (nodeId) => {
     throw new Error(`Node with ID ${nodeId} already exists`);
   }
 
-  const node = await createLibp2p({
+  // Create libp2p node
+  const libp2pNode = await createLibp2p({
     addresses: {
       listen: ['/ip4/127.0.0.1/tcp/0'],
     },
@@ -51,24 +54,31 @@ export const createAndStartNode = async (nodeId) => {
     },
   });
 
+  // Create Helia node using the existing libp2p node
+  const heliaNode = await createHelia({
+    libp2p: libp2pNode,
+  });
+
   const nodeData = {
-    node,
+    libp2pNode,
+    heliaNode,
     discoveredPeers: new Map(),
     createdAt: new Date().toISOString(),
     subscriptions: new Set(),
   };
 
-  node.services.pubsub.addEventListener('subscription-change', (evt) => {
+  // Event listeners for libp2p node
+  libp2pNode.services.pubsub.addEventListener('subscription-change', (evt) => {
     const { peerId, subscriptions } = evt.detail;
     console.log(`[Node ${nodeId}] Peer ${peerId} changed subscriptions:`, subscriptions);
   });
 
-  node.services.pubsub.addEventListener('message', (evt) => {
+  libp2pNode.services.pubsub.addEventListener('message', (evt) => {
     const { from, topic, data } = evt.detail;
     console.log(`[Node ${nodeId}] Received message from ${from} on topic ${topic}:`, data.toString());
   });
 
-  node.addEventListener('peer:discovery', (evt) => {
+  libp2pNode.addEventListener('peer:discovery', (evt) => {
     if (!evt.detail || !evt.detail.id) {
       console.error(`[Node ${nodeId}] Invalid peer discovery event:`, evt);
       return;
@@ -85,7 +95,7 @@ export const createAndStartNode = async (nodeId) => {
     console.log(`[Node ${nodeId}] Discovered peer:`, peerId);
   });
 
-  node.addEventListener('peer:connect', (evt) => {
+  libp2pNode.addEventListener('peer:connect', (evt) => {
     console.log(`[Node ${nodeId}] Peer connect event received`);
     inspectEventStructure(evt, nodeId, 'peer:connect');
 
@@ -105,7 +115,7 @@ export const createAndStartNode = async (nodeId) => {
       console.log(`[Node ${nodeId}] Found peer ID in target.remotePeer: ${peerId}`);
     } else {
       try {
-        const peers = node.getPeers();
+        const peers = libp2pNode.getPeers();
         if (peers && peers.length > 0) {
           peerId = peers[0].toString();
           console.log(`[Node ${nodeId}] Using first connected peer as fallback: ${peerId}`);
@@ -137,7 +147,7 @@ export const createAndStartNode = async (nodeId) => {
     }
   });
 
-  node.addEventListener('peer:disconnect', (evt) => {
+  libp2pNode.addEventListener('peer:disconnect', (evt) => {
     console.log(`[Node ${nodeId}] Peer disconnect event received`);
     inspectEventStructure(evt, nodeId, 'peer:disconnect');
 
@@ -168,9 +178,9 @@ export const createAndStartNode = async (nodeId) => {
     }
   });
 
-  await node.start();
+  await libp2pNode.start();
   nodes.set(nodeId, nodeData);
-  console.log(`[Node ${nodeId}] libp2p node has started`);
+  console.log(`[Node ${nodeId}] libp2p and Helia nodes have started`);
   return nodeId;
 };
 
@@ -182,14 +192,14 @@ export const getNode = (nodeId) => {
 };
 
 export const getNodeAddresses = (nodeId) => {
-  const { node } = getNode(nodeId);
-  const addresses = node.getMultiaddrs().map((addr) => addr.toString());
+  const { libp2pNode } = getNode(nodeId);
+  const addresses = libp2pNode.getMultiaddrs().map((addr) => addr.toString());
   return addresses;
 };
 
 export const getNodeSingleAddress = (nodeId) => {
-  const { node } = getNode(nodeId);
-  const addresses = node.getMultiaddrs();
+  const { libp2pNode } = getNode(nodeId);
+  const addresses = libp2pNode.getMultiaddrs();
   if (addresses.length === 0) {
     throw new Error('No addresses found');
   }
@@ -197,19 +207,19 @@ export const getNodeSingleAddress = (nodeId) => {
 };
 
 export const getNodePeerId = (nodeId) => {
-  const { node } = getNode(nodeId);
-  return node.peerId.toString();
+  const { libp2pNode } = getNode(nodeId);
+  return libp2pNode.peerId.toString();
 };
 
 export const pingPeer = async (nodeId, remoteAddr) => {
-  const { node } = getNode(nodeId);
+  const { libp2pNode } = getNode(nodeId);
   const ma = multiaddr(remoteAddr);
-  const latency = await node.services.ping.ping(ma);
+  const latency = await libp2pNode.services.ping.ping(ma);
   return latency;
 };
 
 export const connectToPeer = async (nodeId, remoteAddr) => {
-  const { node, discoveredPeers } = getNode(nodeId);
+  const { libp2pNode, discoveredPeers } = getNode(nodeId);
 
   try {
     const ma = multiaddr(remoteAddr);
@@ -222,7 +232,7 @@ export const connectToPeer = async (nodeId, remoteAddr) => {
       };
     }
 
-    if (remotePeerIdStr === node.peerId.toString()) {
+    if (remotePeerIdStr === libp2pNode.peerId.toString()) {
       return {
         success: false,
         error: 'Cannot connect to self. This is our own node.',
@@ -230,7 +240,7 @@ export const connectToPeer = async (nodeId, remoteAddr) => {
     }
 
     console.log(`[Node ${nodeId}] Attempting to dial: ${remoteAddr}`);
-    const connection = await node.dial(ma);
+    const connection = await libp2pNode.dial(ma);
     console.log(`[Node ${nodeId}] Dial result:`, connection);
 
     discoveredPeers.set(remotePeerIdStr, {
@@ -260,10 +270,11 @@ export const getDiscoveredPeers = (nodeId) => {
 };
 
 export const stopNode = async (nodeId) => {
-  const { node } = getNode(nodeId);
-  await node.stop();
+  const { libp2pNode, heliaNode } = getNode(nodeId);
+  await libp2pNode.stop();
+  await heliaNode.stop();
   nodes.delete(nodeId);
-  console.log(`[Node ${nodeId}] libp2p node has stopped`);
+  console.log(`[Node ${nodeId}] libp2p and Helia nodes have stopped`);
 };
 
 export const listAllNodes = () => {
@@ -271,8 +282,8 @@ export const listAllNodes = () => {
   for (const [nodeId, nodeData] of nodes.entries()) {
     nodesList.push({
       id: nodeId,
-      peerId: nodeData.node.peerId.toString(),
-      addresses: nodeData.node.getMultiaddrs().map((addr) => addr.toString()),
+      peerId: nodeData.libp2pNode.peerId.toString(),
+      addresses: nodeData.libp2pNode.getMultiaddrs().map((addr) => addr.toString()),
       peerCount: nodeData.discoveredPeers.size,
       createdAt: nodeData.createdAt,
     });
@@ -281,23 +292,41 @@ export const listAllNodes = () => {
 };
 
 export const subscribeToTopic = async (nodeId, topic) => {
-  const { node, subscriptions } = getNode(nodeId);
-  await node.services.pubsub.subscribe(topic);
+  const { libp2pNode, subscriptions } = getNode(nodeId);
+  await libp2pNode.services.pubsub.subscribe(topic);
   subscriptions.add(topic);
 };
 
 export const unsubscribeFromTopic = async (nodeId, topic) => {
-  const { node, subscriptions } = getNode(nodeId);
-  await node.services.pubsub.unsubscribe(topic);
+  const { libp2pNode, subscriptions } = getNode(nodeId);
+  await libp2pNode.services.pubsub.unsubscribe(topic);
   subscriptions.delete(topic);
 };
 
 export const publishToTopic = async (nodeId, topic, message) => {
-  const { node } = getNode(nodeId);
-  await node.services.pubsub.publish(topic, new TextEncoder().encode(message));
+  const { libp2pNode } = getNode(nodeId);
+  await libp2pNode.services.pubsub.publish(topic, new TextEncoder().encode(message));
 };
 
 export const getSubscriptions = (nodeId) => {
   const { subscriptions } = getNode(nodeId);
   return Array.from(subscriptions);
+};
+
+// Helia-specific functions
+export const addFileToIPFS = async (nodeId, fileContent) => {
+  const { heliaNode } = getNode(nodeId);
+  const fs = unixfs(heliaNode);
+  const cid = await fs.addBytes(new TextEncoder().encode(fileContent));
+  return cid.toString();
+};
+
+export const getFileFromIPFS = async (nodeId, cid) => {
+  const { heliaNode } = getNode(nodeId); 
+  const fs = unixfs(heliaNode);
+  const data = [];
+  for await (const chunk of fs.cat(cid)) {
+    data.push(chunk);
+  }
+  return Buffer.concat(data).toString();
 };
