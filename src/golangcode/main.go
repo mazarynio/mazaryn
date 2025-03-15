@@ -22,7 +22,6 @@ import (
 	"github.com/multiformats/go-multiaddr"
 )
 
-// Node represents a libp2p node with associated services.
 type Node struct {
 	ID              string
 	Host            host.Host
@@ -67,14 +66,12 @@ func createAndStartNode(nodeID string) (*Node, error) {
 
 	nodes[nodeID] = node
 
-	// Set up event handlers
 	node.setupEventHandlers()
 
 	log.Printf("Node %s created and started\n", nodeID)
 	return node, nil
 }
 
-// setupEventHandlers sets up network event handlers for the node.
 func (n *Node) setupEventHandlers() {
 	n.Host.Network().Notify(&network.NotifyBundle{
 		ConnectedF: func(network network.Network, conn network.Conn) {
@@ -97,7 +94,6 @@ func (n *Node) setupEventHandlers() {
 	})
 }
 
-// getNode retrieves a node by its ID.
 func getNode(nodeID string) (*Node, error) {
 	node, exists := nodes[nodeID]
 	if !exists {
@@ -106,7 +102,6 @@ func getNode(nodeID string) (*Node, error) {
 	return node, nil
 }
 
-// getNodeAddresses retrieves the addresses of a node.
 func getNodeAddresses(nodeID string) ([]string, error) {
 	node, err := getNode(nodeID)
 	if err != nil {
@@ -120,7 +115,6 @@ func getNodeAddresses(nodeID string) ([]string, error) {
 	return addresses, nil
 }
 
-// getNodePeerID retrieves the peer ID of a node.
 func getNodePeerID(nodeID string) (string, error) {
 	node, err := getNode(nodeID)
 	if err != nil {
@@ -161,7 +155,6 @@ func pingPeer(nodeID string, remoteAddr string) (time.Duration, error) {
 	}
 }
 
-// connectToPeer connects to a remote peer.
 func connectToPeer(nodeID string, remoteAddr string) error {
 	node, err := getNode(nodeID)
 	if err != nil {
@@ -188,7 +181,6 @@ func connectToPeer(nodeID string, remoteAddr string) error {
 	return nil
 }
 
-// getDiscoveredPeers retrieves the list of discovered peers.
 func getDiscoveredPeers(nodeID string) ([]peer.AddrInfo, error) {
 	node, err := getNode(nodeID)
 	if err != nil {
@@ -221,16 +213,20 @@ func stopNode(nodeID string) error {
 	return nil
 }
 
-// listAllNodes lists all active nodes.
-func listAllNodes() []string {
-	var nodeIDs []string
-	for nodeID := range nodes {
-		nodeIDs = append(nodeIDs, nodeID)
+// lists all active nodes
+func listAllNodes() []map[string]string {
+	var nodeList []map[string]string
+	for nodeID, node := range nodes {
+		nodeInfo := map[string]string{
+			"id":      nodeID,
+			"peer_id": node.Host.ID().String(),
+		}
+		nodeList = append(nodeList, nodeInfo)
 	}
-	return nodeIDs
+	return nodeList
 }
 
-// subscribeToTopic subscribes to a PubSub topic.
+// subscribes to a PubSub topic.
 func subscribeToTopic(nodeID string, topic string) error {
 	node, err := getNode(nodeID)
 	if err != nil {
@@ -249,7 +245,7 @@ func subscribeToTopic(nodeID string, topic string) error {
 	return nil
 }
 
-// unsubscribeFromTopic unsubscribes from a PubSub topic.
+// unsubscribes from a PubSub topic.
 func unsubscribeFromTopic(nodeID string, topic string) error {
 	node, err := getNode(nodeID)
 	if err != nil {
@@ -263,26 +259,37 @@ func unsubscribeFromTopic(nodeID string, topic string) error {
 	return nil
 }
 
-// publishToTopic publishes a message to a PubSub topic.
-func publishToTopic(nodeID string, topic string, message string) error {
+// publishes a message to a PubSub topic
+func publishToTopic(nodeID, topicName, message string) error {
 	node, err := getNode(nodeID)
 	if err != nil {
 		return err
 	}
 
-	t, err := node.PubSub.Join(topic)
-	if err != nil {
-		return fmt.Errorf("failed to join topic: %w", err)
+	node.mu.Lock()
+	topic, exists := node.Subscriptions[topicName]
+	node.mu.Unlock()
+
+	if !exists {
+		var err error
+		topic, err = node.PubSub.Join(topicName)
+		if err != nil {
+			return fmt.Errorf("failed to join topic: %v", err)
+		}
+
+		node.mu.Lock()
+		node.Subscriptions[topicName] = topic
+		node.mu.Unlock()
 	}
 
-	if err := t.Publish(context.Background(), []byte(message)); err != nil {
-		return fmt.Errorf("failed to publish message: %w", err)
+	if err := topic.Publish(context.Background(), []byte(message)); err != nil {
+		return fmt.Errorf("failed to publish message: %v", err)
 	}
 
 	return nil
 }
 
-// getSubscriptions retrieves the list of subscribed topics.
+// retrieves the list of subscribed topics.
 func getSubscriptions(nodeID string) ([]string, error) {
 	node, err := getNode(nodeID)
 	if err != nil {
@@ -299,9 +306,8 @@ func getSubscriptions(nodeID string) ([]string, error) {
 	return subscriptions, nil
 }
 
-// addFileToIPFS adds a file to IPFS and returns the CID.
+// adds a file to IPFS and returns the CID.
 func addFileToIPFS(nodeID string, fileContent string) (string, error) {
-	// Kubo RPC API endpoint for adding files
 	url := "http://localhost:5001/api/v0/add"
 
 	// Create a multipart form request
@@ -322,7 +328,6 @@ func addFileToIPFS(nodeID string, fileContent string) (string, error) {
 		return "", fmt.Errorf("failed to close writer: %w", err)
 	}
 
-	// Send the request to the Kubo RPC API
 	req, err := http.NewRequest("POST", url, body)
 	if err != nil {
 		return "", fmt.Errorf("failed to create HTTP request: %w", err)
@@ -336,7 +341,6 @@ func addFileToIPFS(nodeID string, fileContent string) (string, error) {
 	}
 	defer resp.Body.Close()
 
-	// Parse the response
 	var result struct {
 		Name string `json:"Name"`
 		Hash string `json:"Hash"`
@@ -349,19 +353,16 @@ func addFileToIPFS(nodeID string, fileContent string) (string, error) {
 	return result.Hash, nil
 }
 
-// getFileFromIPFS retrieves a file from IPFS using its CID via the Kubo RPC API.
+// retrieves a file from IPFS using its CID via the Kubo RPC API.
 func getFileFromIPFS(nodeID string, cidStr string) (string, error) {
-	// Kubo RPC API endpoint for retrieving files
 	url := fmt.Sprintf("http://localhost:5001/api/v0/cat?arg=%s", cidStr)
 
-	// Send the request to the Kubo RPC API
 	resp, err := http.Get(url)
 	if err != nil {
 		return "", fmt.Errorf("failed to send request to IPFS: %w", err)
 	}
 	defer resp.Body.Close()
 
-	// Read the response body
 	data, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return "", fmt.Errorf("failed to read file content: %w", err)
@@ -370,6 +371,7 @@ func getFileFromIPFS(nodeID string, cidStr string) (string, error) {
 	return string(data), nil
 }
 
+// handles requests to the /nodes endpoint
 func handleNodes(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodPost:
@@ -385,19 +387,23 @@ func handleNodes(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		// Return a JSON response
 		response := map[string]string{
 			"message": fmt.Sprintf("Node %s created successfully with peer ID %s", nodeID, node.Host.ID().String()),
 		}
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(response)
+
+	case http.MethodGet:
+		nodeList := listAllNodes()
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(nodeList)
+
 	default:
 		http.Error(w, `{"error": "Method not allowed"}`, http.StatusMethodNotAllowed)
 	}
 }
 
 func handleNodeOperations(w http.ResponseWriter, r *http.Request) {
-	// Extract node ID from URL path
 	path := strings.TrimPrefix(r.URL.Path, "/nodes/")
 	parts := strings.Split(path, "/")
 	if len(parts) < 1 {
@@ -407,57 +413,65 @@ func handleNodeOperations(w http.ResponseWriter, r *http.Request) {
 
 	nodeID := parts[0]
 
-	// Check if the node exists
-	if _, err := getNode(nodeID); err != nil {
+	_, err := getNode(nodeID)
+	if err != nil {
 		http.Error(w, fmt.Sprintf("Node not found: %v", err), http.StatusNotFound)
 		return
 	}
 
-	// Handle different operations based on URL path and method
 	if len(parts) == 1 {
 		switch r.Method {
 		case http.MethodGet:
-			// Get node information
 			addresses, _ := getNodeAddresses(nodeID)
 			peerID, _ := getNodePeerID(nodeID)
 
-			fmt.Fprintf(w, "Node ID: %s\nPeer ID: %s\nAddresses: %v", nodeID, peerID, addresses)
+			response := map[string]interface{}{
+				"id":        nodeID,
+				"peer_id":   peerID,
+				"addresses": addresses,
+			}
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(response)
+
 		case http.MethodDelete:
-			// Stop and remove the node
 			if err := stopNode(nodeID); err != nil {
 				http.Error(w, fmt.Sprintf("Failed to stop node: %v", err), http.StatusInternalServerError)
 				return
 			}
 
 			fmt.Fprintf(w, "Node %s stopped and removed successfully", nodeID)
+
 		default:
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		}
 		return
 	}
 
-	// Handle additional operations
 	operation := parts[1]
 
 	switch operation {
 	case "connect":
 		if r.Method != http.MethodPost {
-			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+			http.Error(w, `{"error": "Method not allowed"}`, http.StatusMethodNotAllowed)
 			return
 		}
 
 		remoteAddr := r.URL.Query().Get("addr")
 		if remoteAddr == "" {
-			http.Error(w, "Missing remote address", http.StatusBadRequest)
+			http.Error(w, `{"error": "Missing remote address"}`, http.StatusBadRequest)
 			return
 		}
 
 		if err := connectToPeer(nodeID, remoteAddr); err != nil {
-			http.Error(w, fmt.Sprintf("Failed to connect to peer: %v", err), http.StatusInternalServerError)
+			http.Error(w, fmt.Sprintf(`{"error": "Failed to connect to peer: %v"}`, err), http.StatusInternalServerError)
 			return
 		}
 
-		fmt.Fprintf(w, "Successfully connected to %s", remoteAddr)
+		response := map[string]string{
+			"message": fmt.Sprintf("Successfully connected to %s", remoteAddr),
+		}
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(response)
 
 	case "ping":
 		if r.Method != http.MethodGet {
@@ -491,71 +505,143 @@ func handleNodeOperations(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		fmt.Fprintf(w, "Discovered peers: %v", peers)
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"peers": peers,
+		})
 
 	case "pubsub":
 		topicName := r.URL.Query().Get("topic")
-		if topicName == "" {
-			http.Error(w, "Missing topic name", http.StatusBadRequest)
+		if topicName == "" && r.Method != http.MethodGet {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusBadRequest)
+			json.NewEncoder(w).Encode(map[string]string{
+				"error": "Missing topic name",
+			})
 			return
 		}
 
 		switch r.Method {
 		case http.MethodGet:
-			// Get subscriptions
 			subscriptions, err := getSubscriptions(nodeID)
 			if err != nil {
-				http.Error(w, fmt.Sprintf("Failed to get subscriptions: %v", err), http.StatusInternalServerError)
+				w.Header().Set("Content-Type", "application/json")
+				w.WriteHeader(http.StatusInternalServerError)
+				json.NewEncoder(w).Encode(map[string]string{
+					"error": fmt.Sprintf("Failed to get subscriptions: %v", err),
+				})
 				return
 			}
 
-			fmt.Fprintf(w, "Subscriptions: %v", subscriptions)
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusOK)
+			json.NewEncoder(w).Encode(map[string]interface{}{
+				"subscriptions": subscriptions,
+			})
 
 		case http.MethodPost:
-			// Subscribe to topic
 			if err := subscribeToTopic(nodeID, topicName); err != nil {
-				http.Error(w, fmt.Sprintf("Failed to subscribe to topic: %v", err), http.StatusInternalServerError)
+				w.Header().Set("Content-Type", "application/json")
+				w.WriteHeader(http.StatusInternalServerError)
+				json.NewEncoder(w).Encode(map[string]string{
+					"error": fmt.Sprintf("Failed to subscribe to topic: %v", err),
+				})
 				return
 			}
 
-			fmt.Fprintf(w, "Successfully subscribed to topic %s", topicName)
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusOK)
+			json.NewEncoder(w).Encode(map[string]string{
+				"message": fmt.Sprintf("Successfully subscribed to topic %s", topicName),
+			})
 
 		case http.MethodPut:
-			// Publish to topic
 			message := r.URL.Query().Get("message")
 			if message == "" {
-				http.Error(w, "Missing message", http.StatusBadRequest)
+				w.Header().Set("Content-Type", "application/json")
+				w.WriteHeader(http.StatusBadRequest)
+				json.NewEncoder(w).Encode(map[string]string{
+					"error": "Missing message",
+				})
 				return
 			}
 
 			if err := publishToTopic(nodeID, topicName, message); err != nil {
-				http.Error(w, fmt.Sprintf("Failed to publish to topic: %v", err), http.StatusInternalServerError)
+				w.Header().Set("Content-Type", "application/json")
+				w.WriteHeader(http.StatusInternalServerError)
+				json.NewEncoder(w).Encode(map[string]string{
+					"error": fmt.Sprintf("Failed to publish to topic: %v", err),
+				})
 				return
 			}
 
-			fmt.Fprintf(w, "Successfully published to topic %s", topicName)
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusOK)
+			json.NewEncoder(w).Encode(map[string]string{
+				"message": fmt.Sprintf("Successfully published to topic %s", topicName),
+			})
 
 		case http.MethodDelete:
-			// Unsubscribe from topic
 			if err := unsubscribeFromTopic(nodeID, topicName); err != nil {
-				http.Error(w, fmt.Sprintf("Failed to unsubscribe from topic: %v", err), http.StatusInternalServerError)
+				w.Header().Set("Content-Type", "application/json")
+				w.WriteHeader(http.StatusInternalServerError)
+				json.NewEncoder(w).Encode(map[string]string{
+					"error": fmt.Sprintf("Failed to unsubscribe from topic: %v", err),
+				})
 				return
 			}
 
-			fmt.Fprintf(w, "Successfully unsubscribed from topic %s", topicName)
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusOK)
+			json.NewEncoder(w).Encode(map[string]string{
+				"message": fmt.Sprintf("Successfully unsubscribed from topic %s", topicName),
+			})
 
 		default:
-			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusMethodNotAllowed)
+			json.NewEncoder(w).Encode(map[string]string{
+				"error": "Method not allowed",
+			})
 		}
+
+	case "peerid":
+		if r.Method != http.MethodGet {
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+
+		peerID, err := getNodePeerID(nodeID)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Failed to get peer ID: %v", err), http.StatusInternalServerError)
+			return
+		}
+
+		fmt.Fprintf(w, "%s", peerID)
+
+	case "addresses":
+		if r.Method != http.MethodGet {
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+
+		addresses, err := getNodeAddresses(nodeID)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Failed to get addresses: %v", err), http.StatusInternalServerError)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"addresses": addresses,
+		})
 
 	default:
 		http.Error(w, "Invalid operation", http.StatusBadRequest)
 	}
 }
 
-// getSingleAddress retrieves a single address of a node.
 func getSingleAddress(w http.ResponseWriter, r *http.Request) {
-	// Extract node ID from the URL path
 	path := strings.TrimPrefix(r.URL.Path, "/nodes/")
 	parts := strings.Split(path, "/")
 	if len(parts) < 2 {
@@ -570,14 +656,12 @@ func getSingleAddress(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Get the node's addresses
 	addresses := node.Host.Addrs()
 	if len(addresses) == 0 {
 		http.Error(w, "No addresses found", http.StatusNotFound)
 		return
 	}
 
-	// Return the first address
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]string{
 		"address": addresses[0].String(),
@@ -590,7 +674,6 @@ func handleIPFSAdd(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Extract node ID from URL path
 	path := strings.TrimPrefix(r.URL.Path, "/nodes/")
 	parts := strings.Split(path, "/")
 	if len(parts) < 1 {
@@ -600,14 +683,12 @@ func handleIPFSAdd(w http.ResponseWriter, r *http.Request) {
 
 	nodeID := parts[0]
 
-	// Read request body
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("Failed to read request body: %v", err), http.StatusBadRequest)
 		return
 	}
 
-	// Add file to IPFS
 	cid, err := addFileToIPFS(nodeID, string(body))
 	if err != nil {
 		http.Error(w, fmt.Sprintf("Failed to add file to IPFS: %v", err), http.StatusInternalServerError)
@@ -623,7 +704,6 @@ func handleIPFSGet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Extract node ID and CID from URL path
 	path := strings.TrimPrefix(r.URL.Path, "/nodes/")
 	parts := strings.Split(path, "/")
 	if len(parts) < 4 {
@@ -634,7 +714,6 @@ func handleIPFSGet(w http.ResponseWriter, r *http.Request) {
 	nodeID := parts[0]
 	cid := parts[3]
 
-	// Get file from IPFS
 	content, err := getFileFromIPFS(nodeID, cid)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("Failed to get file from IPFS: %v", err), http.StatusInternalServerError)
@@ -645,13 +724,11 @@ func handleIPFSGet(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	// Existing handlers
 	http.HandleFunc("/nodes", handleNodes)
 	http.HandleFunc("/nodes/", handleNodeOperations)
 	http.HandleFunc("/nodes/{nodeId}/ipfs/add", handleIPFSAdd)
 	http.HandleFunc("/nodes/{nodeId}/ipfs/get/", handleIPFSGet)
 
-	// New handler for single address
 	http.HandleFunc("/nodes/{nodeId}/single-address", getSingleAddress)
 
 	log.Println("HTTP server running on port 3000")

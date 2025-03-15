@@ -94,15 +94,25 @@ get_addresses(NodeId) ->
             {error, Reason}
     end.
 
-%% Get a single address of a node
+%% Get a single address of a node, including the peer ID
 get_single_address(NodeId) ->
     ensure_inets_started(),
     case httpc:request(get, {?BASE_URL ++ "/nodes/" ++ NodeId ++ "/single-address", []}, [], []) of
         {ok, {{_, 200, _}, _, Body}} ->
-            % Parse the JSON response
             case jsx:decode(list_to_binary(Body), [return_maps]) of
                 #{<<"address">> := Address} ->
-                    Address;
+                    AddressStr = binary_to_list(Address),
+                    case get_peerid(NodeId) of
+                        {ok, PeerId} ->
+                            PeerIdStr = case is_binary(PeerId) of
+                                          true -> binary_to_list(PeerId);
+                                          false -> PeerId
+                                       end,
+                            FullAddr = AddressStr ++ "/p2p/" ++ PeerIdStr,
+                            {ok, list_to_binary(FullAddr)};
+                        {error, Reason} ->
+                            {error, Reason}
+                    end;
                 _ ->
                     {error, invalid_response}
             end;
@@ -115,9 +125,10 @@ get_single_address(NodeId) ->
 %% Get the peer ID of a node
 get_peerid(NodeId) ->
     ensure_inets_started(),
-    case httpc:request(get, {?BASE_URL ++ "/nodes/" ++ NodeId ++ "/peerid", []}, [], []) of
+    Url = ?BASE_URL ++ "/nodes/" ++ uri_string:quote(NodeId) ++ "/peerid",
+    case httpc:request(get, {Url, []}, [], []) of
         {ok, {{_, 200, _}, _, Body}} ->
-            Body;
+            {ok, Body}; 
         {ok, {{_, Status, _}, _, ErrorBody}} ->
             {error, {Status, ErrorBody}};
         {error, Reason} ->
@@ -125,32 +136,48 @@ get_peerid(NodeId) ->
     end.
 
 %% Ping a remote peer
-ping_peer(NodeId, RemoteAddr) ->
+ping_peer(NodeId, {ok, RemoteAddr}) ->
     ensure_inets_started(),
-    Body = jsx:encode([{remoteAddr, list_to_binary(RemoteAddr)}]),
-    case httpc:request(post, {?BASE_URL ++ "/nodes/" ++ NodeId ++ "/ping", [], "application/json", Body}, [], []) of
+    RemoteAddrStr = case is_binary(RemoteAddr) of
+                      true -> binary_to_list(RemoteAddr);
+                      false -> RemoteAddr
+                   end,
+    EncodedAddr = uri_string:quote(RemoteAddrStr),
+    Url = ?BASE_URL ++ "/nodes/" ++ NodeId ++ "/ping?addr=" ++ EncodedAddr,
+    case httpc:request(get, {Url, []}, [], []) of
         {ok, {{_, 200, _}, _, ResponseBody}} ->
-            {ok, jsx:decode(list_to_binary(ResponseBody))};
+            ResponseBinary = list_to_binary(ResponseBody),
+            ResponseUtf8 = unicode:characters_to_list(ResponseBinary, utf8),
+            {ok, ResponseUtf8};
         {ok, {{_, Status, _}, _, ErrorBody}} ->
             {error, {Status, ErrorBody}};
         {error, Reason} ->
             {error, Reason}
-    end.
+    end;
+ping_peer(_, {error, Reason}) ->
+    {error, Reason}.
 
-%% Connect to a remote peer
-connect_to_peer(NodeId, RemoteAddr) ->
+connect_to_peer(NodeId, {ok, RemoteAddr}) ->
     ensure_inets_started(),
-    Body = jsx:encode([{remoteAddr, list_to_binary(RemoteAddr)}]),
-    case httpc:request(post, {?BASE_URL ++ "/nodes/" ++ NodeId ++ "/connect", [], "application/json", Body}, [], []) of
+    RemoteAddrStr = case is_binary(RemoteAddr) of
+                      true -> binary_to_list(RemoteAddr);
+                      false -> RemoteAddr
+                   end,
+    EncodedAddr = uri_string:quote(RemoteAddrStr),
+    Url = ?BASE_URL ++ "/nodes/" ++ NodeId ++ "/connect?addr=" ++ EncodedAddr,
+    
+    case httpc:request(post, {Url, [], "application/json", <<>>}, [], []) of
         {ok, {{_, 200, _}, _, ResponseBody}} ->
-            {ok, jsx:decode(list_to_binary(ResponseBody))};
+            io:format("ResponseBody: ~p~n", [ResponseBody]), 
+            {ok, jsx:decode(list_to_binary(ResponseBody), [return_maps])};
         {ok, {{_, Status, _}, _, ErrorBody}} ->
             {error, {Status, ErrorBody}};
         {error, Reason} ->
             {error, Reason}
-    end.
+    end;
+connect_to_peer(_, {error, Reason}) ->
+    {error, Reason}.
 
-%% Get discovered peers of a node
 get_peers(NodeId) ->
     ensure_inets_started(),
     case httpc:request(get, {?BASE_URL ++ "/nodes/" ++ NodeId ++ "/peers", []}, [], []) of
@@ -165,10 +192,11 @@ get_peers(NodeId) ->
 %% Subscribe to a PubSub topic
 subscribe_to_topic(NodeId, Topic) ->
     ensure_inets_started(),
-    Body = jsx:encode([{topic, list_to_binary(Topic)}]),
-    case httpc:request(post, {?BASE_URL ++ "/nodes/" ++ NodeId ++ "/pubsub/subscribe", [], "application/json", Body}, [], []) of
+    EncodedTopic = uri_string:quote(Topic),
+    Url = ?BASE_URL ++ "/nodes/" ++ NodeId ++ "/pubsub/subscribe?topic=" ++ EncodedTopic,
+    case httpc:request(post, {Url, [], "application/json", <<>>}, [], []) of
         {ok, {{_, 200, _}, _, ResponseBody}} ->
-            {ok, jsx:decode(list_to_binary(ResponseBody))};
+            {ok, jsx:decode(list_to_binary(ResponseBody), [return_maps])};
         {ok, {{_, Status, _}, _, ErrorBody}} ->
             {error, {Status, ErrorBody}};
         {error, Reason} ->
@@ -191,10 +219,12 @@ unsubscribe_from_topic(NodeId, Topic) ->
 %% Publish a message to a PubSub topic
 publish_message(NodeId, Topic, Message) ->
     ensure_inets_started(),
-    Body = jsx:encode([{topic, list_to_binary(Topic)}, {message, list_to_binary(Message)}]),
-    case httpc:request(post, {?BASE_URL ++ "/nodes/" ++ NodeId ++ "/pubsub/publish", [], "application/json", Body}, [], []) of
+    EncodedTopic = uri_string:quote(Topic),
+    EncodedMessage = uri_string:quote(Message),
+    Url = ?BASE_URL ++ "/nodes/" ++ NodeId ++ "/pubsub/publish?topic=" ++ EncodedTopic ++ "&message=" ++ EncodedMessage,
+    case httpc:request(put, {Url, [], "application/json", <<>>}, [], []) of
         {ok, {{_, 200, _}, _, ResponseBody}} ->
-            {ok, jsx:decode(list_to_binary(ResponseBody))};
+            {ok, jsx:decode(list_to_binary(ResponseBody), [return_maps])};
         {ok, {{_, Status, _}, _, ErrorBody}} ->
             {error, {Status, ErrorBody}};
         {error, Reason} ->
@@ -204,9 +234,10 @@ publish_message(NodeId, Topic, Message) ->
 %% Get subscriptions of a node
 get_subscriptions(NodeId) ->
     ensure_inets_started(),
-    case httpc:request(get, {?BASE_URL ++ "/nodes/" ++ NodeId ++ "/pubsub/subscriptions", []}, [], []) of
-        {ok, {{_, 200, _}, _, Body}} ->
-            {ok, jsx:decode(list_to_binary(Body))};
+    Url = ?BASE_URL ++ "/nodes/" ++ NodeId ++ "/pubsub/subscriptions",
+    case httpc:request(get, {Url, []}, [], []) of
+        {ok, {{_, 200, _}, _, ResponseBody}} ->
+            {ok, jsx:decode(list_to_binary(ResponseBody), [return_maps])};
         {ok, {{_, Status, _}, _, ErrorBody}} ->
             {error, {Status, ErrorBody}};
         {error, Reason} ->
