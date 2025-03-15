@@ -306,11 +306,10 @@ func getSubscriptions(nodeID string) ([]string, error) {
 	return subscriptions, nil
 }
 
-// adds a file to IPFS and returns the CID.
+// addFileToIPFS adds a file to IPFS and returns the CID
 func addFileToIPFS(nodeID string, fileContent string) (string, error) {
 	url := "http://localhost:5001/api/v0/add"
 
-	// Create a multipart form request
 	body := &bytes.Buffer{}
 	writer := multipart.NewWriter(body)
 	part, err := writer.CreateFormFile("file", "file.txt")
@@ -355,9 +354,11 @@ func addFileToIPFS(nodeID string, fileContent string) (string, error) {
 
 // retrieves a file from IPFS using its CID via the Kubo RPC API.
 func getFileFromIPFS(nodeID string, cidStr string) (string, error) {
+	log.Printf("Retrieving file from IPFS for node %s with CID %s", nodeID, cidStr)
+
 	url := fmt.Sprintf("http://localhost:5001/api/v0/cat?arg=%s", cidStr)
 
-	resp, err := http.Get(url)
+	resp, err := http.Post(url, "application/json", nil)
 	if err != nil {
 		return "", fmt.Errorf("failed to send request to IPFS: %w", err)
 	}
@@ -670,14 +671,22 @@ func getSingleAddress(w http.ResponseWriter, r *http.Request) {
 
 func handleIPFSAdd(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		json.NewEncoder(w).Encode(map[string]string{
+			"error": "Method not allowed",
+		})
 		return
 	}
 
 	path := strings.TrimPrefix(r.URL.Path, "/nodes/")
 	parts := strings.Split(path, "/")
 	if len(parts) < 1 {
-		http.Error(w, "Invalid URL path", http.StatusBadRequest)
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]string{
+			"error": "Invalid URL path",
+		})
 		return
 	}
 
@@ -685,29 +694,49 @@ func handleIPFSAdd(w http.ResponseWriter, r *http.Request) {
 
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		http.Error(w, fmt.Sprintf("Failed to read request body: %v", err), http.StatusBadRequest)
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]string{
+			"error": fmt.Sprintf("Failed to read request body: %v", err),
+		})
 		return
 	}
 
 	cid, err := addFileToIPFS(nodeID, string(body))
 	if err != nil {
-		http.Error(w, fmt.Sprintf("Failed to add file to IPFS: %v", err), http.StatusInternalServerError)
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(map[string]string{
+			"error": fmt.Sprintf("Failed to add file to IPFS: %v", err),
+		})
 		return
 	}
 
-	fmt.Fprintf(w, "File added to IPFS with CID: %s", cid)
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string]string{
+		"cid": cid,
+	})
 }
 
 func handleIPFSGet(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		json.NewEncoder(w).Encode(map[string]string{
+			"error": "Method not allowed",
+		})
 		return
 	}
 
 	path := strings.TrimPrefix(r.URL.Path, "/nodes/")
 	parts := strings.Split(path, "/")
 	if len(parts) < 4 {
-		http.Error(w, "Invalid URL path", http.StatusBadRequest)
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]string{
+			"error": "Invalid URL path",
+		})
 		return
 	}
 
@@ -716,11 +745,17 @@ func handleIPFSGet(w http.ResponseWriter, r *http.Request) {
 
 	content, err := getFileFromIPFS(nodeID, cid)
 	if err != nil {
-		http.Error(w, fmt.Sprintf("Failed to get file from IPFS: %v", err), http.StatusInternalServerError)
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(map[string]string{
+			"error": fmt.Sprintf("Failed to get file from IPFS: %v", err),
+		})
 		return
 	}
 
-	fmt.Fprint(w, content)
+	w.Header().Set("Content-Type", "text/plain")
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte(content))
 }
 
 func main() {

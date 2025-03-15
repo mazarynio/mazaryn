@@ -206,10 +206,11 @@ subscribe_to_topic(NodeId, Topic) ->
 %% Unsubscribe from a PubSub topic
 unsubscribe_from_topic(NodeId, Topic) ->
     ensure_inets_started(),
-    Body = jsx:encode([{topic, list_to_binary(Topic)}]),
-    case httpc:request(post, {?BASE_URL ++ "/nodes/" ++ NodeId ++ "/pubsub/unsubscribe", [], "application/json", Body}, [], []) of
+    EncodedTopic = uri_string:quote(Topic),
+    Url = ?BASE_URL ++ "/nodes/" ++ NodeId ++ "/pubsub/unsubscribe?topic=" ++ EncodedTopic,
+    case httpc:request(delete, {Url, []}, [], []) of
         {ok, {{_, 200, _}, _, ResponseBody}} ->
-            {ok, jsx:decode(list_to_binary(ResponseBody))};
+            {ok, jsx:decode(list_to_binary(ResponseBody), [return_maps])};
         {ok, {{_, Status, _}, _, ErrorBody}} ->
             {error, {Status, ErrorBody}};
         {error, Reason} ->
@@ -250,19 +251,22 @@ add_file_to_ipfs(NodeId, FileContent) ->
     Body = jsx:encode([{fileContent, list_to_binary(FileContent)}]),
     case httpc:request(post, {?BASE_URL ++ "/nodes/" ++ NodeId ++ "/ipfs/add", [], "application/json", Body}, [], []) of
         {ok, {{_, 200, _}, _, ResponseBody}} ->
-            {ok, jsx:decode(list_to_binary(ResponseBody))};
+            {ok, jsx:decode(list_to_binary(ResponseBody), [return_maps])};
         {ok, {{_, Status, _}, _, ErrorBody}} ->
             {error, {Status, ErrorBody}};
         {error, Reason} ->
             {error, Reason}
     end.
 
+
 %% Get a file from IPFS
 get_file_from_ipfs(NodeId, Cid) ->
     ensure_inets_started(),
-    case httpc:request(get, {?BASE_URL ++ "/nodes/" ++ NodeId ++ "/ipfs/get/" ++ Cid, []}, [], []) of
+    Url = ?BASE_URL ++ "/nodes/" ++ NodeId ++ "/ipfs/get/" ++ Cid,
+    case httpc:request(get, {Url, []}, [], []) of
         {ok, {{_, 200, _}, _, Body}} ->
-            {ok, jsx:decode(list_to_binary(Body))};
+            % Return the file content as a binary
+            {ok, Body};
         {ok, {{_, Status, _}, _, ErrorBody}} ->
             {error, {Status, ErrorBody}};
         {error, Reason} ->
