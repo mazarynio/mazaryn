@@ -3,7 +3,7 @@
     create_node/0,
     create_node/1,
     list_nodes/0,
-    delete_node/1, get_peer_info/1, get_peer_info/2,
+    delete_node/1, get_peer_info/1, get_peer_info/2, connect_to_ipfs_network/2, get_ipfs_singleaddr/0, get_ipfs_multiaddr/0,
     get_addresses/1,
     get_single_address/1,
     get_peerid/1,
@@ -276,12 +276,44 @@ publish_message(NodeId, Topic, Message) ->
         {error, Reason} ->
             {error, Reason}
     end.
+    
 
 %% Get subscriptions of a node
 get_subscriptions(NodeId) ->
     ensure_inets_started(),
     Url = ?BASE_URL ++ "/nodes/" ++ NodeId ++ "/pubsub/subscriptions",
     case httpc:request(get, {Url, []}, [], []) of
+        {ok, {{_, 200, _}, _, ResponseBody}} ->
+            {ok, jsx:decode(list_to_binary(ResponseBody), [return_maps])};
+        {ok, {{_, Status, _}, _, ErrorBody}} ->
+            {error, {Status, ErrorBody}};
+        {error, Reason} ->
+            {error, Reason}
+    end.
+
+get_ipfs_singleaddr() ->
+    {ok, IPFSInfo} = go_libp2p:get_ipfs_multiaddr(),
+    IpfsMultiaddr = lists:nth(1, maps:get(<<"Addresses">>, IPFSInfo)),
+    IpfsMultiaddr.
+
+get_ipfs_multiaddr() ->
+    ensure_inets_started(),
+    Url = "http://localhost:5001/api/v0/id",
+    case httpc:request(post, {Url, [], "application/json", <<>>}, [], []) of
+        {ok, {{_, 200, _}, _, ResponseBody}} ->
+            {ok, jsx:decode(list_to_binary(ResponseBody), [return_maps])};
+        {ok, {{_, Status, _}, _, ErrorBody}} ->
+            {error, {Status, ErrorBody}};
+        {error, Reason} ->
+            {error, Reason}
+    end.
+
+
+%% Connect the libp2p node to the IPFS network
+connect_to_ipfs_network(NodeId, IpfsMultiaddr) ->
+    ensure_inets_started(),
+    Url = "http://localhost:3000/nodes/" ++ NodeId ++ "/connect-ipfs?addr=" ++ uri_string:quote(IpfsMultiaddr),
+    case httpc:request(post, {Url, [], "application/json", <<>>}, [], []) of
         {ok, {{_, 200, _}, _, ResponseBody}} ->
             {ok, jsx:decode(list_to_binary(ResponseBody), [return_maps])};
         {ok, {{_, Status, _}, _, ErrorBody}} ->
@@ -309,10 +341,8 @@ get_file_from_ipfs(NodeId, Cid) ->
     Url = ?BASE_URL ++ "/nodes/" ++ NodeId ++ "/ipfs/get/" ++ Cid,
     case httpc:request(get, {Url, []}, [], []) of
         {ok, {{_, 200, _}, _, Body}} ->
-            % Decode the JSON response
             case jsx:decode(list_to_binary(Body), [return_maps]) of
                 #{<<"fileContent">> := FileContent} ->
-                    % Convert binary to string (list of characters)
                     FileContentStr = binary_to_list(FileContent),
                     {ok, FileContentStr};
                 _ ->

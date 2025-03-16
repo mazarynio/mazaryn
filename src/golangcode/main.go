@@ -41,19 +41,16 @@ func createAndStartNode(nodeID string) (*Node, error) {
 		return nil, fmt.Errorf("node with ID %s already exists", nodeID)
 	}
 
-	// Create a new libp2p host
 	host, err := libp2p.New()
 	if err != nil {
 		return nil, fmt.Errorf("failed to create libp2p host: %w", err)
 	}
 
-	// Create a new PubSub service
 	ps, err := pubsub.NewGossipSub(context.Background(), host)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create pubsub service: %w", err)
 	}
 
-	// Create a new Ping service
 	pingService := ping.NewPingService(host)
 
 	node := &Node{
@@ -307,71 +304,71 @@ func getSubscriptions(nodeID string) ([]string, error) {
 	return subscriptions, nil
 }
 
-// getPeerInfo retrieves information about a peer based on nodeID and peerID.
+// getPeerInfo retrieves information about a peer using the IPFS HTTP API.
 func getPeerInfo(nodeID, peerID string) (map[string]interface{}, error) {
-	node, exists := nodes[nodeID]
-	if !exists {
-		return nil, fmt.Errorf("node with ID %s does not exist", nodeID)
+	// Query the IPFS API for peer information
+	url := fmt.Sprintf("http://localhost:5001/api/v0/id?arg=%s", peerID)
+	req, err := http.NewRequest("POST", url, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create HTTP request: %w", err)
 	}
+	req.Header.Set("Content-Type", "application/json")
 
-	if peerID != "" {
-		peerIDObj, err := peer.Decode(peerID)
+	client := &http.Client{Timeout: 10 * time.Second}
+	resp, err := client.Do(req)
+	if err != nil {
+		node, err := getNode(nodeID)
 		if err != nil {
-			return nil, fmt.Errorf("invalid peer ID: %w", err)
+			return nil, fmt.Errorf("failed to get local node: %w", err)
 		}
 
-		node.mu.RLock()
-		peerInfo, exists := node.DiscoveredPeers[peerIDObj]
-		node.mu.RUnlock()
-
-		if !exists {
-			url := fmt.Sprintf("http://localhost:5001/api/v0/id?arg=%s", peerID)
-			req, err := http.NewRequest("POST", url, bytes.NewBuffer([]byte{}))
-			if err != nil {
-				return nil, fmt.Errorf("failed to create HTTP request: %w", err)
-			}
-			req.Header.Set("Content-Type", "application/json")
-
-			client := &http.Client{Timeout: 10 * time.Second}
-			resp, err := client.Do(req)
-			if err != nil {
-				return nil, fmt.Errorf("failed to send request to IPFS: %w", err)
-			}
-			defer resp.Body.Close()
-
-			if resp.StatusCode != http.StatusOK {
-				body, _ := io.ReadAll(resp.Body)
-				return nil, fmt.Errorf("IPFS API returned status: %s, body: %s", resp.Status, body)
-			}
-
-			var ipfsPeerInfo map[string]interface{}
-			if err := json.NewDecoder(resp.Body).Decode(&ipfsPeerInfo); err != nil {
-				return nil, fmt.Errorf("failed to decode IPFS response: %w", err)
-			}
-
-			return ipfsPeerInfo, nil
-		}
-
-		// Return information from DiscoveredPeers
 		return map[string]interface{}{
-			"peerID": peerIDObj.String(),
-			"addrs":  peerInfo.Addrs,
+			"peerID": node.Host.ID().String(),
+			"addrs":  node.Host.Addrs(),
 			"nodeID": nodeID,
 			"local":  true,
 		}, nil
 	}
+	defer resp.Body.Close()
 
-	return map[string]interface{}{
-		"peerID": node.Host.ID().String(),
-		"addrs":  node.Host.Addrs(),
-		"nodeID": nodeID,
-		"local":  true,
-	}, nil
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		return nil, fmt.Errorf("IPFS API returned status: %s, body: %s", resp.Status, body)
+	}
+
+	var ipfsPeerInfo map[string]interface{}
+	if err := json.NewDecoder(resp.Body).Decode(&ipfsPeerInfo); err != nil {
+		return nil, fmt.Errorf("failed to decode IPFS response: %w", err)
+	}
+
+	return ipfsPeerInfo, nil
+}
+
+// connectToIPFSNetwork connects the libp2p node to the IPFS network.
+func connectToIPFSNetwork(node *Node, ipfsMultiaddr string) error {
+	ma, err := multiaddr.NewMultiaddr(ipfsMultiaddr)
+	if err != nil {
+		return fmt.Errorf("invalid IPFS multiaddress: %w", err)
+	}
+
+	peerInfo, err := peer.AddrInfoFromP2pAddr(ma)
+	if err != nil {
+		return fmt.Errorf("failed to extract peer info from multiaddress: %w", err)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	if err := node.Host.Connect(ctx, *peerInfo); err != nil {
+		return fmt.Errorf("failed to connect to IPFS daemon: %w", err)
+	}
+
+	log.Printf("Node %s connected to IPFS daemon at %s\n", node.ID, ipfsMultiaddr)
+	return nil
 }
 
 // addFileToIPFS adds a file to IPFS and returns the CID
 func addFileToIPFS(nodeID string, fileContent string) (string, error) {
-	// Check if IPFS daemon is running
 	if !isIPFSDaemonRunning() {
 		err := startIPFSDaemon()
 		if err != nil {
@@ -446,7 +443,6 @@ func getFileFromIPFS(nodeID string, cidStr string) (string, error) {
 
 // isIPFSDaemonRunning checks if the IPFS daemon is running
 func isIPFSDaemonRunning() bool {
-	// Try to connect to the IPFS API
 	_, err := http.Get("http://localhost:5001/api/v0/id")
 	return err == nil
 }
@@ -781,6 +777,64 @@ func handleGetPeerInfo(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(peerInfo)
 }
 
+func handleConnectToIPFSNetwork(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		json.NewEncoder(w).Encode(map[string]string{
+			"error": "Method not allowed",
+		})
+		return
+	}
+
+	path := strings.TrimPrefix(r.URL.Path, "/nodes/")
+	parts := strings.Split(path, "/")
+	if len(parts) < 2 {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]string{
+			"error": "Invalid URL path",
+		})
+		return
+	}
+
+	nodeID := parts[0]
+	ipfsMultiaddr := r.URL.Query().Get("addr")
+	if ipfsMultiaddr == "" {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]string{
+			"error": "Missing IPFS multiaddress",
+		})
+		return
+	}
+
+	node, err := getNode(nodeID)
+	if err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusNotFound)
+		json.NewEncoder(w).Encode(map[string]string{
+			"error": fmt.Sprintf("Node not found: %v", err),
+		})
+		return
+	}
+
+	if err := connectToIPFSNetwork(node, ipfsMultiaddr); err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(map[string]string{
+			"error": fmt.Sprintf("Failed to connect to IPFS network: %v", err),
+		})
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string]string{
+		"message": fmt.Sprintf("Successfully connected to IPFS network at %s", ipfsMultiaddr),
+	})
+}
+
 func handleIPFSAdd(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		w.Header().Set("Content-Type", "application/json")
@@ -876,7 +930,7 @@ func main() {
 	http.HandleFunc("/nodes/peer-info", handleGetPeerInfo)
 	http.HandleFunc("/nodes/{nodeId}/ipfs/add", handleIPFSAdd)
 	http.HandleFunc("/nodes/{nodeId}/ipfs/get/", handleIPFSGet)
-
+	http.HandleFunc("/nodes/{nodeId}/connect-ipfs", handleConnectToIPFSNetwork)
 	http.HandleFunc("/nodes/{nodeId}/single-address", getSingleAddress)
 
 	log.Println("HTTP server running on port 3000")
