@@ -9,6 +9,7 @@ import (
 	"log"
 	"mime/multipart"
 	"net/http"
+	"os/exec"
 	"strings"
 	"sync"
 	"time"
@@ -306,8 +307,79 @@ func getSubscriptions(nodeID string) ([]string, error) {
 	return subscriptions, nil
 }
 
+// getPeerInfo retrieves information about a peer based on nodeID and peerID.
+func getPeerInfo(nodeID, peerID string) (map[string]interface{}, error) {
+	node, exists := nodes[nodeID]
+	if !exists {
+		return nil, fmt.Errorf("node with ID %s does not exist", nodeID)
+	}
+
+	if peerID != "" {
+		peerIDObj, err := peer.Decode(peerID)
+		if err != nil {
+			return nil, fmt.Errorf("invalid peer ID: %w", err)
+		}
+
+		node.mu.RLock()
+		peerInfo, exists := node.DiscoveredPeers[peerIDObj]
+		node.mu.RUnlock()
+
+		if !exists {
+			url := fmt.Sprintf("http://localhost:5001/api/v0/id?arg=%s", peerID)
+			req, err := http.NewRequest("POST", url, bytes.NewBuffer([]byte{}))
+			if err != nil {
+				return nil, fmt.Errorf("failed to create HTTP request: %w", err)
+			}
+			req.Header.Set("Content-Type", "application/json")
+
+			client := &http.Client{Timeout: 10 * time.Second}
+			resp, err := client.Do(req)
+			if err != nil {
+				return nil, fmt.Errorf("failed to send request to IPFS: %w", err)
+			}
+			defer resp.Body.Close()
+
+			if resp.StatusCode != http.StatusOK {
+				body, _ := io.ReadAll(resp.Body)
+				return nil, fmt.Errorf("IPFS API returned status: %s, body: %s", resp.Status, body)
+			}
+
+			var ipfsPeerInfo map[string]interface{}
+			if err := json.NewDecoder(resp.Body).Decode(&ipfsPeerInfo); err != nil {
+				return nil, fmt.Errorf("failed to decode IPFS response: %w", err)
+			}
+
+			return ipfsPeerInfo, nil
+		}
+
+		// Return information from DiscoveredPeers
+		return map[string]interface{}{
+			"peerID": peerIDObj.String(),
+			"addrs":  peerInfo.Addrs,
+			"nodeID": nodeID,
+			"local":  true,
+		}, nil
+	}
+
+	return map[string]interface{}{
+		"peerID": node.Host.ID().String(),
+		"addrs":  node.Host.Addrs(),
+		"nodeID": nodeID,
+		"local":  true,
+	}, nil
+}
+
 // addFileToIPFS adds a file to IPFS and returns the CID
 func addFileToIPFS(nodeID string, fileContent string) (string, error) {
+	// Check if IPFS daemon is running
+	if !isIPFSDaemonRunning() {
+		err := startIPFSDaemon()
+		if err != nil {
+			return "", fmt.Errorf("failed to start IPFS daemon: %w", err)
+		}
+		time.Sleep(5 * time.Second)
+	}
+
 	url := "http://localhost:5001/api/v0/add"
 
 	body := &bytes.Buffer{}
@@ -370,6 +442,31 @@ func getFileFromIPFS(nodeID string, cidStr string) (string, error) {
 	}
 
 	return string(data), nil
+}
+
+// isIPFSDaemonRunning checks if the IPFS daemon is running
+func isIPFSDaemonRunning() bool {
+	// Try to connect to the IPFS API
+	_, err := http.Get("http://localhost:5001/api/v0/id")
+	return err == nil
+}
+
+// startIPFSDaemon starts the IPFS daemon in the background
+func startIPFSDaemon() error {
+	cmd := exec.Command("ipfs", "daemon")
+	err := cmd.Start()
+	if err != nil {
+		return fmt.Errorf("failed to start IPFS daemon: %w", err)
+	}
+
+	go func() {
+		err := cmd.Wait()
+		if err != nil {
+			log.Printf("IPFS daemon exited with error: %v", err)
+		}
+	}()
+
+	return nil
 }
 
 // handles requests to the /nodes endpoint
@@ -669,6 +766,21 @@ func getSingleAddress(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+// handleGetPeerInfo handles HTTP requests to retrieve peer information.
+func handleGetPeerInfo(w http.ResponseWriter, r *http.Request) {
+	nodeID := r.URL.Query().Get("nodeID")
+	peerID := r.URL.Query().Get("peerID")
+
+	peerInfo, err := getPeerInfo(nodeID, peerID)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Failed to get peer info: %v", err), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(peerInfo)
+}
+
 func handleIPFSAdd(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		w.Header().Set("Content-Type", "application/json")
@@ -761,6 +873,7 @@ func handleIPFSGet(w http.ResponseWriter, r *http.Request) {
 func main() {
 	http.HandleFunc("/nodes", handleNodes)
 	http.HandleFunc("/nodes/", handleNodeOperations)
+	http.HandleFunc("/nodes/peer-info", handleGetPeerInfo)
 	http.HandleFunc("/nodes/{nodeId}/ipfs/add", handleIPFSAdd)
 	http.HandleFunc("/nodes/{nodeId}/ipfs/get/", handleIPFSGet)
 

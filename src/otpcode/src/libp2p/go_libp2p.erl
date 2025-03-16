@@ -3,7 +3,7 @@
     create_node/0,
     create_node/1,
     list_nodes/0,
-    delete_node/1,
+    delete_node/1, get_peer_info/1, get_peer_info/2,
     get_addresses/1,
     get_single_address/1,
     get_peerid/1,
@@ -50,7 +50,6 @@ create_node(NodeId) when is_list(NodeId) ->
     Url = ?BASE_URL ++ "/nodes?id=" ++ NodeId, 
     case httpc:request(post, {Url, [], "application/json", <<>>}, [], []) of
         {ok, {{_, 200, _}, _, ResponseBody}} ->
-            % Parse the JSON response
             {ok, jsx:decode(list_to_binary(ResponseBody), [return_maps])};
         {ok, {{_, Status, _}, _, ErrorBody}} ->
             {error, {Status, ErrorBody}};
@@ -80,6 +79,52 @@ delete_node(NodeId) ->
             {error, {Status, ErrorBody}};
         {error, Reason} ->
             {error, Reason}
+    end.
+
+%% Get peer information by nodeID
+get_peer_info(NodeId) ->
+    ensure_inets_started(),
+    ensure_jsx_loaded(),
+    Url = ?BASE_URL ++ "/nodes/peer-info?nodeID=" ++ NodeId,
+    case httpc:request(get, {Url, []}, [], []) of
+        {ok, {{_, 200, _}, _, Body}} ->
+            {ok, jsx:decode(list_to_binary(Body), [return_maps])};
+        {ok, {{_, Status, _}, _, ErrorBody}} ->
+            {error, {Status, ErrorBody}};
+        {error, Reason} ->
+            {error, Reason}
+    end.
+
+%% Get peer information by nodeID and peerID
+get_peer_info(NodeId, PeerId) ->
+    ensure_inets_started(),
+    ensure_jsx_loaded(),
+    Url = ?BASE_URL ++ "/nodes/peer-info?nodeID=" ++ NodeId ++ "&peerID=" ++ PeerId,
+    case httpc:request(post, {Url, [], "application/json", <<>>}, [], []) of
+        {ok, {{_, 200, _}, _, Body}} ->
+            {ok, jsx:decode(list_to_binary(Body), [return_maps])};
+        {ok, {{_, 500, _}, _, _ErrorBody}} ->
+            case check_ipfs_api() of
+                {ok, _} ->
+                    {error, {500, "Failed to query peer info from IPFS API"}};
+                {error, Reason} ->
+                    {error, {500, "IPFS API is not accessible: " ++ Reason}}
+            end;
+        {ok, {{_, Status, _}, _, ErrorBody}} ->
+            {error, {Status, ErrorBody}};
+        {error, Reason} ->
+            {error, Reason}
+    end.
+
+check_ipfs_api() ->
+    Url = "http://localhost:5001/api/v0/id",
+    case httpc:request(post, {Url, [], "application/json", <<>>}, [], []) of
+        {ok, {{_, 200, _}, _, _}} ->
+            {ok, "IPFS API is accessible"};
+        {ok, {{_, Status, _}, _, _ErrorBody}} ->
+            {error, "IPFS API returned status: " ++ integer_to_list(Status)};
+        {error, Reason} ->
+            {error, "Failed to connect to IPFS API: " ++ Reason}
     end.
 
 %% Get addresses of a node
@@ -258,15 +303,21 @@ add_file_to_ipfs(NodeId, FileContent) ->
             {error, Reason}
     end.
 
-
 %% Get a file from IPFS
 get_file_from_ipfs(NodeId, Cid) ->
     ensure_inets_started(),
     Url = ?BASE_URL ++ "/nodes/" ++ NodeId ++ "/ipfs/get/" ++ Cid,
     case httpc:request(get, {Url, []}, [], []) of
         {ok, {{_, 200, _}, _, Body}} ->
-            % Return the file content as a binary
-            {ok, Body};
+            % Decode the JSON response
+            case jsx:decode(list_to_binary(Body), [return_maps]) of
+                #{<<"fileContent">> := FileContent} ->
+                    % Convert binary to string (list of characters)
+                    FileContentStr = binary_to_list(FileContent),
+                    {ok, FileContentStr};
+                _ ->
+                    {error, invalid_response}
+            end;
         {ok, {{_, Status, _}, _, ErrorBody}} ->
             {error, {Status, ErrorBody}};
         {error, Reason} ->
