@@ -174,3 +174,81 @@ func startIPFSDaemon() error {
 
 	return nil
 }
+
+func publishToIPNS(nodeID string, cid string) (string, error) {
+	if !isIPFSDaemonRunning() {
+		err := startIPFSDaemon()
+		if err != nil {
+			return "", fmt.Errorf("failed to start IPFS daemon: %w", err)
+		}
+		time.Sleep(5 * time.Second)
+	}
+
+	url := fmt.Sprintf("http://localhost:5001/api/v0/name/publish?arg=%s", cid)
+	req, err := http.NewRequest("POST", url, nil)
+	if err != nil {
+		return "", fmt.Errorf("failed to create HTTP request: %w", err)
+	}
+	req.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{Timeout: 10 * time.Second}
+	resp, err := client.Do(req)
+	if err != nil {
+		return "", fmt.Errorf("failed to send request to IPFS: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		return "", fmt.Errorf("IPFS API returned status: %s, body: %s", resp.Status, body)
+	}
+
+	var result struct {
+		Name  string `json:"Name"`
+		Value string `json:"Value"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return "", fmt.Errorf("failed to decode IPFS response: %w", err)
+	}
+
+	return result.Name, nil
+}
+
+// resolves an IPNS name to its current CID.
+func resolveIPNS(nodeID string, ipnsName string) (string, error) {
+	if !isIPFSDaemonRunning() {
+		err := startIPFSDaemon()
+		if err != nil {
+			return "", fmt.Errorf("failed to start IPFS daemon: %w", err)
+		}
+		time.Sleep(5 * time.Second)
+	}
+
+	url := fmt.Sprintf("http://localhost:5001/api/v0/name/resolve?arg=%s", ipnsName)
+	req, err := http.NewRequest("POST", url, nil)
+	if err != nil {
+		return "", fmt.Errorf("failed to create HTTP request: %w", err)
+	}
+	req.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{Timeout: 10 * time.Second}
+	resp, err := client.Do(req)
+	if err != nil {
+		return "", fmt.Errorf("failed to send request to IPFS: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		return "", fmt.Errorf("IPFS API returned status: %s, body: %s", resp.Status, body)
+	}
+
+	var result struct {
+		Path string `json:"Path"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return "", fmt.Errorf("failed to decode IPFS response: %w", err)
+	}
+
+	return result.Path, nil
+}

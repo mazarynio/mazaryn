@@ -4,7 +4,7 @@
     create_node/1,
     list_nodes/0,
     delete_node/1, get_peer_info/1, get_peer_info/2, connect_to_ipfs_network/2, get_ipfs_singleaddr/0, get_ipfs_multiaddr/0,
-    get_addresses/1,
+    get_addresses/1, publish_to_ipns/2, resolve_ipns/2,
     get_single_address/1,
     get_peerid/1,
     ping_peer/2,
@@ -388,6 +388,44 @@ get_file_from_ipfs(NodeId, Cid) ->
             {error, {Status, ErrorBody}};
         {error, Reason} ->
             {error, Reason}
+    end.
+
+publish_to_ipns(NodeId, Cid) ->
+    ensure_inets_started(),
+    ensure_jsx_loaded(),
+    Url = ?BASE_URL ++ "/nodes/" ++ NodeId ++ "/ipns/publish?nodeID=" ++ NodeId ++ "&cid=" ++ Cid,
+    case httpc:request(post, {Url, [], "application/json", <<>>}, [], []) of
+        {ok, {{_, 200, _}, _, ResponseBody}} ->
+            try
+                #{<<"ipns_name">> := IpnsName} = jsx:decode(list_to_binary(ResponseBody), [return_maps]),
+                {ok, IpnsName}
+            catch
+                _:_ ->
+                    {error, {invalid_response, json_decode_failed}}
+            end;
+        {ok, {{_, Status, _}, _, ErrorBody}} ->
+            {error, {http_error, Status, ErrorBody}};
+        {error, Reason} ->
+            {error, {http_request_failed, Reason}}
+    end.
+
+resolve_ipns(NodeId, IpnsName) ->
+    ensure_inets_started(),
+    ensure_jsx_loaded(),
+    Url = ?BASE_URL ++ "/nodes/" ++ NodeId ++ "/ipns/resolve?nodeID=" ++ NodeId ++ "&ipnsName=" ++ IpnsName,
+    case httpc:request(get, {Url, []}, [], []) of
+        {ok, {{_, 200, _}, _, ResponseBody}} ->
+            try
+                #{<<"resolved_path">> := ResolvedPath} = jsx:decode(list_to_binary(ResponseBody), [return_maps]),
+                {ok, ResolvedPath}
+            catch
+                _:_ ->
+                    {error, {invalid_response, json_decode_failed}}
+            end;
+        {ok, {{_, Status, _}, _, ErrorBody}} ->
+            {error, {http_error, Status, ErrorBody}};
+        {error, Reason} ->
+            {error, {http_request_failed, Reason}}
     end.
 
 %% Generate a random node ID

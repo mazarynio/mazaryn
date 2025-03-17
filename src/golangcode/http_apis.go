@@ -464,3 +464,39 @@ func handleIPFSGet(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte(content))
 }
+
+// Publish a CID to IPNS
+func handlePublishToIPNS(w http.ResponseWriter, r *http.Request) {
+	nodeID := r.URL.Query().Get("nodeID")
+	cid := r.URL.Query().Get("cid")
+
+	ipnsName, err := publishToIPNS(nodeID, cid)
+	if err != nil {
+		http.Error(w, fmt.Sprintf(`{"error": "Failed to publish to IPNS: %v"}`, err), http.StatusInternalServerError)
+		return
+	}
+
+	response := map[string]string{
+		"ipns_name": ipnsName,
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(response)
+}
+
+// Resolve an IPNS name to its current CID
+func handleResolveIPNS(w http.ResponseWriter, r *http.Request) {
+	nodeID := r.URL.Query().Get("nodeID")
+	ipnsName := r.URL.Query().Get("ipnsName")
+
+	resolvedPath, err := resolveIPNS(nodeID, ipnsName)
+	if err != nil {
+		http.Error(w, fmt.Sprintf(`{"error": "Failed to resolve IPNS name: %v"}`, err), http.StatusInternalServerError)
+		return
+	}
+
+	response := map[string]string{
+		"resolved_path": resolvedPath,
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(response)
+}
