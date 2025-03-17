@@ -500,3 +500,34 @@ func handleResolveIPNS(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(response)
 }
+
+// handles HTTP requests to retrieve the network status.
+func handleGetNetworkStatus(w http.ResponseWriter, r *http.Request) {
+	nodeID := r.URL.Query().Get("nodeID")
+
+	networkStatus, err := getNetworkStatus(nodeID)
+	if err != nil {
+		http.Error(w, fmt.Sprintf(`{"error": "Failed to get network status: %v"}`, err), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(networkStatus)
+}
+
+func handleRunGarbageCollection(w http.ResponseWriter, r *http.Request) {
+	nodeID := r.URL.Query().Get("nodeID")
+	if nodeID == "" {
+		http.Error(w, `{"error": "Missing node ID"}`, http.StatusBadRequest)
+		return
+	}
+
+	gcResults, err := runGarbageCollection(nodeID)
+	if err != nil {
+		http.Error(w, fmt.Sprintf(`{"error": "Failed to run garbage collection: %v"}`, err), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(gcResults)
+}
