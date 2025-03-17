@@ -43,18 +43,35 @@ ensure_jsx_loaded() ->
 create_node() ->
     create_node(generate_node_id()).
 
-%% Create a new node with a specific ID
+
+%% Create a new node with a specific ID and automatically connect it to the IPFS network
 create_node(NodeId) when is_list(NodeId) ->
     ensure_inets_started(),
     ensure_jsx_loaded(),
-    Url = ?BASE_URL ++ "/nodes?id=" ++ NodeId, 
+    Url = ?BASE_URL ++ "/nodes?id=" ++ NodeId,
     case httpc:request(post, {Url, [], "application/json", <<>>}, [], []) of
         {ok, {{_, 200, _}, _, ResponseBody}} ->
-            {ok, jsx:decode(list_to_binary(ResponseBody), [return_maps])};
+            try
+                NodeInfo = jsx:decode(list_to_binary(ResponseBody), [return_maps]),
+                case get_ipfs_singleaddr() of
+                    {ok, IpfsSingleAddr} ->
+                        case connect_to_ipfs_network(NodeId, IpfsSingleAddr) of
+                            {ok, ConnectionResult} ->
+                                {ok, #{<<"node_info">> => NodeInfo, <<"connection_result">> => ConnectionResult}};
+                            {error, ConnectionError} ->
+                                {ok, #{<<"node_info">> => NodeInfo, <<"connection_error">> => ConnectionError}}
+                        end;
+                    {error, IpfsError} ->
+                        {ok, #{<<"node_info">> => NodeInfo, <<"ipfs_error">> => IpfsError}}
+                end
+            catch
+                _:_ ->
+                    {error, {invalid_response, json_decode_failed}}
+            end;
         {ok, {{_, Status, _}, _, ErrorBody}} ->
-            {error, {Status, ErrorBody}};
+            {error, {http_error, Status, ErrorBody}};
         {error, Reason} ->
-            {error, Reason}
+            {error, {http_request_failed, Reason}}
     end.
 
 %% List all active nodes
@@ -291,10 +308,29 @@ get_subscriptions(NodeId) ->
             {error, Reason}
     end.
 
+%% Get the single address of the IPFS node
 get_ipfs_singleaddr() ->
-    {ok, IPFSInfo} = go_libp2p:get_ipfs_multiaddr(),
-    IpfsMultiaddr = lists:nth(1, maps:get(<<"Addresses">>, IPFSInfo)),
-    IpfsMultiaddr.
+    ensure_inets_started(),
+    Url = "http://localhost:5001/api/v0/id",
+    case httpc:request(post, {Url, [], "application/json", <<>>}, [], []) of
+        {ok, {{_, 200, _}, _, ResponseBody}} ->
+            try
+                Decoded = jsx:decode(list_to_binary(ResponseBody), [return_maps]),
+                case Decoded of
+                    #{<<"Addresses">> := [IpfsMultiaddr | _]} ->
+                        {ok, binary_to_list(IpfsMultiaddr)}; 
+                    _ ->
+                        {error, {invalid_response, no_addresses_found}}
+                end
+            catch
+                _:_ ->
+                    {error, {invalid_response, json_decode_failed}}
+            end;
+        {ok, {{_, Status, _}, _, ErrorBody}} ->
+            {error, {http_error, Status, ErrorBody}};
+        {error, Reason} ->
+            {error, {http_request_failed, Reason}}
+    end.
 
 get_ipfs_multiaddr() ->
     ensure_inets_started(),
