@@ -4,7 +4,7 @@
     create_node/1,
     list_nodes/0,
     delete_node/1, get_peer_info/1, get_peer_info/2, connect_to_ipfs_network/2, get_ipfs_singleaddr/0, get_ipfs_multiaddr/0,
-    get_addresses/1, publish_to_ipns/2, resolve_ipns/2, get_network_status/1, 
+    get_addresses/1, publish_to_ipns/2, resolve_ipns/2, get_network_status/1, get_file_metadata/2,
     get_single_address/1,
     get_peerid/1,
     ping_peer/2,
@@ -447,6 +447,36 @@ get_network_status(NodeId) ->
             {error, {http_request_failed, Reason}}
     end.
 
+%% Get metadata of a file from IPFS
+get_file_metadata(NodeId, Cid) ->
+    ensure_inets_started(),
+    BaseUrl = case NodeId of
+        "node1" -> "http://localhost:5001/api/v0";
+        "node2" -> "http://localhost:5002/api/v0";
+        "node3" -> "http://localhost:5003/api/v0";
+        _ -> {error, invalid_node_id}
+    end,
+    case BaseUrl of
+        {error, Reason} ->
+            {error, Reason};
+        _ ->
+            Url = BaseUrl ++ "/dag/stat?arg=" ++ Cid,
+            io:format("Sending request to URL: ~p~n", [Url]), 
+            case httpc:request(post, {Url, [], [], []}, [], [{body_format, binary}]) of
+                {ok, {{_, 200, _}, _, Body}} ->
+                    JsonObjects = binary:split(Body, <<"\n">>, [global, trim]),
+                    DecodedObjects = lists:map(fun(Json) ->
+                        jsx:decode(Json, [return_maps])
+                    end, JsonObjects),
+                    {ok, DecodedObjects};
+                {ok, {{_, Status, _}, _, ErrorBody}} ->
+                    io:format("Error response: Status=~p, Body=~p~n", [Status, ErrorBody]), 
+                    {error, {Status, ErrorBody}};
+                {error, Reason} ->
+                    io:format("Request failed: ~p~n", [Reason]), 
+                    {error, Reason}
+            end
+    end.
 %% Generate a random node ID
 generate_node_id() ->
     RandomBytes = crypto:strong_rand_bytes(4),

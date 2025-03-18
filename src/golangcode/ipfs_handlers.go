@@ -289,3 +289,34 @@ func getNetworkStatus(nodeID string) (map[string]interface{}, error) {
 
 	return networkStatus, nil
 }
+
+// retrieves metadata of a file from IPFS using its CID.
+func getFileMetadata(nodeID string, cidStr string) (map[string]interface{}, error) {
+	url := fmt.Sprintf("http://localhost:5001/api/v0/dag/stat?arg=%s", cidStr)
+
+	req, err := http.NewRequest("POST", url, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create request: %w", err)
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("failed to send request to IPFS: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		return nil, fmt.Errorf("IPFS API returned status: %s, body: %s", resp.Status, body)
+	}
+
+	var metadata map[string]interface{}
+	if err := json.NewDecoder(resp.Body).Decode(&metadata); err != nil {
+		return nil, fmt.Errorf("failed to decode IPFS response: %w", err)
+	}
+
+	return metadata, nil
+}

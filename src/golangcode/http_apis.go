@@ -255,7 +255,7 @@ func handleNodeOperations(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(networkStatus)
 
 	default:
-		http.Error(w, "Invalid operation", http.StatusBadRequest)
+		http.Error(w, "Invalid IPFS operation", http.StatusBadRequest)
 	}
 }
 
@@ -409,6 +409,27 @@ func handleIPFSOperations(w http.ResponseWriter, r *http.Request, nodeID string,
 
 		w.Header().Set("Content-Type", "text/plain")
 		w.Write([]byte(content))
+
+	case "get-metadata":
+		if r.Method != http.MethodGet {
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+
+		if len(parts) < 4 {
+			http.Error(w, "Missing CID in URL path", http.StatusBadRequest)
+			return
+		}
+
+		cid := parts[3]
+		metadata, err := getFileMetadata(nodeID, cid)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Failed to get file metadata from IPFS: %v", err), http.StatusInternalServerError)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(metadata)
 
 	default:
 		http.Error(w, "Invalid IPFS operation", http.StatusBadRequest)
@@ -712,4 +733,43 @@ func handleGetNetworkStatus(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(networkStatus)
+}
+
+func handleIPFSGetMetadata(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		json.NewEncoder(w).Encode(map[string]string{
+			"error": "Method not allowed",
+		})
+		return
+	}
+
+	path := strings.TrimPrefix(r.URL.Path, "/nodes/")
+	parts := strings.Split(path, "/")
+	if len(parts) < 3 {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]string{
+			"error": "Invalid URL path. Expected /nodes/{nodeID}/get-metadata/{CID}",
+		})
+		return
+	}
+
+	nodeID := parts[0]
+	cid := parts[2]
+
+	metadata, err := getFileMetadata(nodeID, cid)
+	if err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(map[string]string{
+			"error": fmt.Sprintf("Failed to get file metadata from IPFS: %v", err),
+		})
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(metadata)
 }

@@ -6,8 +6,7 @@ import (
 )
 
 func main() {
-	http.HandleFunc("/nodes", handleNodes)
-	http.HandleFunc("/nodes/", handleNodeOperations)
+
 	http.HandleFunc("/nodes/peer-info", handleGetPeerInfo)
 	http.HandleFunc("/nodes/ipfs/add", handleIPFSAdd)
 	http.HandleFunc("/nodes/ipfs/get/", handleIPFSGet)
@@ -16,6 +15,9 @@ func main() {
 	http.HandleFunc("/nodes/ipns/publish", handlePublishToIPNS)
 	http.HandleFunc("/nodes/ipns/resolve", handleResolveIPNS)
 	http.HandleFunc("/nodes/network-status", handleGetNetworkStatus)
+
+	http.HandleFunc("/nodes", handleNodes)
+	http.HandleFunc("/nodes/", handleNodeOperations)
 
 	log.Println("HTTP server running on port 3000")
 	if err := http.ListenAndServe(":3000", nil); err != nil {
