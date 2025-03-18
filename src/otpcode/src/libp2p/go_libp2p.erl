@@ -4,7 +4,7 @@
     create_node/1,
     list_nodes/0,
     delete_node/1, get_peer_info/1, get_peer_info/2, connect_to_ipfs_network/2, get_ipfs_singleaddr/0, get_ipfs_multiaddr/0,
-    get_addresses/1, publish_to_ipns/2, resolve_ipns/2, get_network_status/1, run_garbage_collection/1,
+    get_addresses/1, publish_to_ipns/2, resolve_ipns/2, get_network_status/1, 
     get_single_address/1,
     get_peerid/1,
     ping_peer/2,
@@ -437,25 +437,6 @@ get_network_status(NodeId) ->
             try
                 NetworkStatus = jsx:decode(list_to_binary(ResponseBody), [return_maps]),
                 {ok, NetworkStatus}
-            catch
-                _:_ ->
-                    {error, {invalid_response, json_decode_failed}}
-            end;
-        {ok, {{_, Status, _}, _, ErrorBody}} ->
-            {error, {http_error, Status, ErrorBody}};
-        {error, Reason} ->
-            {error, {http_request_failed, Reason}}
-    end.
-
-run_garbage_collection(NodeId) ->
-    ensure_inets_started(),
-    ensure_jsx_loaded(),
-    Url = ?BASE_URL ++ "/nodes/" ++ NodeId ++ "/gc?nodeID=" ++ NodeId,
-    case httpc:request(post, {Url, [], "application/json", <<>>}, [], []) of
-        {ok, {{_, 200, _}, _, ResponseBody}} ->
-            try
-                GCResults = jsx:decode(list_to_binary(ResponseBody), [return_maps]),
-                {ok, GCResults}
             catch
                 _:_ ->
                     {error, {invalid_response, json_decode_failed}}
