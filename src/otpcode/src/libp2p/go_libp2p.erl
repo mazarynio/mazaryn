@@ -5,7 +5,7 @@
     list_nodes/0,
     delete_node/1, get_peer_info/1, get_peer_info/2, connect_to_ipfs_network/2, get_ipfs_singleaddr/0, get_ipfs_multiaddr/0,
     get_addresses/1, publish_to_ipns/2, resolve_ipns/2, get_network_status/1, get_file_metadata/2,
-    get_single_address/1,
+    get_single_address/1, dht_find_peer/2, dht_find_provs/2, dht_provide/2,
     get_peerid/1,
     ping_peer/2,
     connect_to_peer/2,
@@ -450,33 +450,81 @@ get_network_status(NodeId) ->
 %% Get metadata of a file from IPFS
 get_file_metadata(NodeId, Cid) ->
     ensure_inets_started(),
-    BaseUrl = case NodeId of
-        "node1" -> "http://localhost:5001/api/v0";
-        "node2" -> "http://localhost:5002/api/v0";
-        "node3" -> "http://localhost:5003/api/v0";
-        _ -> {error, invalid_node_id}
-    end,
-    case BaseUrl of
+    BaseUrl = get_node_base_url(NodeId),
+    Url = BaseUrl ++ "/dag/stat?arg=" ++ Cid,
+    io:format("Sending request to URL: ~p~n", [Url]), 
+    case httpc:request(post, {Url, [], [], []}, [], [{body_format, binary}]) of
+        {ok, {{_, 200, _}, _, Body}} ->
+            JsonObjects = binary:split(Body, <<"\n">>, [global, trim]),
+            DecodedObjects = lists:map(fun(Json) ->
+                jsx:decode(Json, [return_maps])
+            end, JsonObjects),
+            {ok, DecodedObjects};
+        {ok, {{_, Status, _}, _, ErrorBody}} ->
+            io:format("Error response: Status=~p, Body=~p~n", [Status, ErrorBody]), 
+            {error, {Status, ErrorBody}};
         {error, Reason} ->
-            {error, Reason};
-        _ ->
-            Url = BaseUrl ++ "/dag/stat?arg=" ++ Cid,
-            io:format("Sending request to URL: ~p~n", [Url]), 
-            case httpc:request(post, {Url, [], [], []}, [], [{body_format, binary}]) of
+            io:format("Request failed: ~p~n", [Reason]), 
+            {error, Reason}
+    end.
+
+get_node_base_url(_NodeId) ->
+    "http://localhost:5001/api/v0".
+
+%% DHT Find Peer
+dht_find_peer(NodeId, PeerId) ->
+    ensure_inets_started(),
+    case get_peerid(NodeId) of
+        {ok, _PeerId} ->
+            Url = "http://localhost:5001/api/v0/routing/findpeer?arg=" ++ PeerId,
+            case httpc:request(post, {Url, [], "application/json", <<>>}, [], []) of
                 {ok, {{_, 200, _}, _, Body}} ->
-                    JsonObjects = binary:split(Body, <<"\n">>, [global, trim]),
-                    DecodedObjects = lists:map(fun(Json) ->
-                        jsx:decode(Json, [return_maps])
-                    end, JsonObjects),
-                    {ok, DecodedObjects};
+                    {ok, jsx:decode(list_to_binary(Body), [return_maps])};
                 {ok, {{_, Status, _}, _, ErrorBody}} ->
-                    io:format("Error response: Status=~p, Body=~p~n", [Status, ErrorBody]), 
                     {error, {Status, ErrorBody}};
                 {error, Reason} ->
-                    io:format("Request failed: ~p~n", [Reason]), 
                     {error, Reason}
-            end
+            end;
+        {error, Reason} ->
+            {error, Reason}
     end.
+
+%% DHT Find Providers
+dht_find_provs(NodeId, Cid) ->
+    ensure_inets_started(),
+    case get_peerid(NodeId) of
+        {ok, _PeerId} ->
+            Url = "http://localhost:5001/api/v0/routing/findprovs?arg=" ++ Cid,
+            case httpc:request(post, {Url, [], "application/json", <<>>}, [], []) of
+                {ok, {{_, 200, _}, _, Body}} ->
+                    {ok, jsx:decode(list_to_binary(Body))};
+                {ok, {{_, Status, _}, _, ErrorBody}} ->
+                    {error, {Status, ErrorBody}};
+                {error, Reason} ->
+                    {error, Reason}
+            end;
+        {error, Reason} ->
+            {error, Reason}
+    end.
+
+%% DHT Provide
+dht_provide(NodeId, Cid) ->
+    ensure_inets_started(),
+    case get_peerid(NodeId) of
+        {ok, _PeerId} ->
+            Url = "http://localhost:5001/api/v0/routing/provide?arg=" ++ Cid,
+            case httpc:request(post, {Url, [], "application/json", <<>>}, [], []) of
+                {ok, {{_, 200, _}, _, Body}} ->
+                    {ok, jsx:decode(list_to_binary(Body), [return_maps])};
+                {ok, {{_, Status, _}, _, ErrorBody}} ->
+                    {error, {Status, ErrorBody}};
+                {error, Reason} ->
+                    {error, Reason}
+            end;
+        {error, Reason} ->
+            {error, Reason}
+    end.
+
 %% Generate a random node ID
 generate_node_id() ->
     RandomBytes = crypto:strong_rand_bytes(4),

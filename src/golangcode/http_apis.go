@@ -773,3 +773,45 @@ func handleIPFSGetMetadata(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(metadata)
 }
+
+func handleDHTFindPeer(w http.ResponseWriter, r *http.Request) {
+	nodeID := r.URL.Query().Get("nodeID")
+	peerID := r.URL.Query().Get("peerID")
+
+	result, err := DHTFindPeer(nodeID, peerID)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("{\"error\": \"Failed to find peer: %v\"}", err), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(result)
+}
+
+func handleDHTFindProvs(w http.ResponseWriter, r *http.Request) {
+	nodeID := r.URL.Query().Get("nodeID")
+	cid := r.URL.Query().Get("cid")
+
+	results, err := DHTFindProvs(nodeID, cid)
+	if err != nil {
+		http.Error(w, fmt.Sprintf(`{"error": "Failed to find providers: %v"}`, err), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(results)
+}
+
+func handleDHTProvide(w http.ResponseWriter, r *http.Request) {
+	nodeID := r.URL.Query().Get("nodeID")
+	cid := r.URL.Query().Get("cid")
+
+	result, err := DHTProvide(nodeID, cid)
+	if err != nil {
+		http.Error(w, fmt.Sprintf(`{"error": "Failed to provide CID: %v"}`, err), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(result)
+}

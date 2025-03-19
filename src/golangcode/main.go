@@ -15,6 +15,11 @@ func main() {
 	http.HandleFunc("/nodes/ipns/publish", handlePublishToIPNS)
 	http.HandleFunc("/nodes/ipns/resolve", handleResolveIPNS)
 	http.HandleFunc("/nodes/network-status", handleGetNetworkStatus)
+	http.HandleFunc("/nodes/ipfs/get-metadata/", handleIPFSGetMetadata)
+
+	http.HandleFunc("/dht/findpeer", handleDHTFindPeer)
+	http.HandleFunc("/dht/findprovs", handleDHTFindProvs)
+	http.HandleFunc("/dht/provide", handleDHTProvide)
 
 	http.HandleFunc("/nodes", handleNodes)
 	http.HandleFunc("/nodes/", handleNodeOperations)

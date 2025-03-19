@@ -320,3 +320,97 @@ func getFileMetadata(nodeID string, cidStr string) (map[string]interface{}, erro
 
 	return metadata, nil
 }
+
+// finds a peer in the DHT by its peer ID.
+func DHTFindPeer(nodeID string, peerID string) (map[string]interface{}, error) {
+	url := fmt.Sprintf("http://localhost:5001/api/v0/dht/findpeer?arg=%s", peerID)
+	req, err := http.NewRequest("POST", url, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create HTTP request: %w", err)
+	}
+	req.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{Timeout: 30 * time.Second}
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("failed to send request to IPFS: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		return nil, fmt.Errorf("IPFS API returned status: %s, body: %s", resp.Status, body)
+	}
+
+	var result map[string]interface{}
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return nil, fmt.Errorf("failed to decode IPFS response: %w", err)
+	}
+
+	return result, nil
+}
+
+// finds providers for a given CID in the DHT.
+func DHTFindProvs(nodeID string, cid string) ([]map[string]interface{}, error) {
+	url := fmt.Sprintf("http://localhost:5001/api/v0/dht/findprovs?arg=%s", cid)
+	req, err := http.NewRequest("POST", url, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create HTTP request: %w", err)
+	}
+	req.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{Timeout: 30 * time.Second}
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("failed to send request to IPFS: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		return nil, fmt.Errorf("IPFS API returned status: %s, body: %s", resp.Status, body)
+	}
+
+	var results []map[string]interface{}
+	decoder := json.NewDecoder(resp.Body)
+	for {
+		var result map[string]interface{}
+		if err := decoder.Decode(&result); err == io.EOF {
+			break
+		} else if err != nil {
+			return nil, fmt.Errorf("failed to decode IPFS response: %w", err)
+		}
+		results = append(results, result)
+	}
+
+	return results, nil
+}
+
+// announces that the local node can provide a given CID.
+func DHTProvide(nodeID string, cid string) (map[string]interface{}, error) {
+	url := fmt.Sprintf("http://localhost:5001/api/v0/routing/provide?arg=%s", cid)
+	req, err := http.NewRequest("POST", url, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create HTTP request: %w", err)
+	}
+	req.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{Timeout: 30 * time.Second}
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("failed to send request to IPFS: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		return nil, fmt.Errorf("IPFS API returned status: %s, body: %s", resp.Status, body)
+	}
+
+	var result map[string]interface{}
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return nil, fmt.Errorf("failed to decode IPFS response: %w", err)
+	}
+
+	return result, nil
+}
