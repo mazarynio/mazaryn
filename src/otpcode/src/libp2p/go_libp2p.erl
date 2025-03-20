@@ -1,14 +1,15 @@
 -module(go_libp2p).
+-author("Zaryn Technologies").
 -export([
-    create_node/0,
+    create_node/0, make_post_request/2,
     create_node/1,
     list_nodes/0,
     delete_node/1, get_peer_info/1, get_peer_info/2, connect_to_ipfs_network/2, get_ipfs_singleaddr/0, get_ipfs_multiaddr/0,
     get_addresses/1, publish_to_ipns/2, resolve_ipns/2, get_network_status/1, get_file_metadata/2,
     get_single_address/1, dht_find_peer/2, dht_find_provs/2, dht_provide/2,
-    get_peerid/1,
-    ping_peer/2,
-    connect_to_peer/2,
+    get_peerid/1, add_dag_node/1, link_dag_nodes/1, get_dag_node/1, resolve_dag_path/2, traverse_dag/1,
+    ping_peer/2, bitswap_wantlist/0, bitswap_stat/0, bitswap_ledger/1,
+    connect_to_peer/2, mfs_mkdir/1, mfs_write/2, mfs_ls/1, mfs_read/1, mfs_rm/1, mfs_cp/2, mfs_mv/2,
     get_peers/1,
     subscribe_to_topic/2,
     unsubscribe_from_topic/2,
@@ -37,6 +38,18 @@ ensure_jsx_loaded() ->
         non_existing ->
             io:format("Warning: JSX module not found. JSON handling may be limited.~n");
         _ -> ok
+    end.
+
+make_post_request(Url, Body) ->
+    ensure_inets_started(),
+    Headers = [{"Content-Type", "application/json"}],
+    case httpc:request(post, {Url, Headers, "application/json", Body}, [], []) of
+        {ok, {{_, 200, _}, _, ResponseBody}} ->
+            {ok, ResponseBody};
+        {ok, {{_, Status, _}, _, ErrorBody}} ->
+            {error, {Status, ErrorBody}};
+        {error, Reason} ->
+            {error, Reason}
     end.
 
 %% Create a new node with a random ID
@@ -390,6 +403,114 @@ get_file_from_ipfs(NodeId, Cid) ->
             {error, Reason}
     end.
 
+%% Create a directory in MFS
+mfs_mkdir(Path) ->
+    ensure_inets_started(),
+    Url = "http://localhost:5001/api/v0/files/mkdir?arg=" ++ Path,
+    case httpc:request(post, {Url, [], "application/json", <<>>}, [], []) of
+        {ok, {{_, 200, _}, _, _}} ->
+            ok;
+        {ok, {{_, Status, _}, _, ErrorBody}} ->
+            {error, {Status, ErrorBody}};
+        {error, Reason} ->
+            {error, Reason}
+    end.
+
+%% Write a file to MFS
+mfs_write(FilePath, MfsPath) ->
+    ensure_inets_started(),
+    case file:read_file(FilePath) of
+        {ok, FileData} ->
+            Url = "http://localhost:5001/api/v0/files/write?arg=" ++ MfsPath ++ "&create=true",
+
+            Boundary = "----------boundary" ++ integer_to_list(erlang:system_time()),
+            ContentType = "multipart/form-data; boundary=" ++ Boundary,
+            
+            FormStart = list_to_binary("--" ++ Boundary ++ "\r\n" ++
+                      "Content-Disposition: form-data; name=\"file\"; filename=\"" ++ 
+                      filename:basename(FilePath) ++ "\"\r\n" ++
+                      "Content-Type: application/octet-stream\r\n\r\n"),
+            FormEnd = list_to_binary("\r\n--" ++ Boundary ++ "--\r\n"),
+            
+            FormData = [FormStart, FileData, FormEnd],
+            
+            case httpc:request(post, {Url, [], ContentType, FormData}, [], []) of
+                {ok, {{_, 200, _}, _, _}} ->
+                    ok;
+                {ok, {{_, Status, _}, _, ErrorBody}} ->
+                    {error, {Status, ErrorBody}};
+                {error, Reason} ->
+                    {error, Reason}
+            end;
+        {error, Reason} ->
+            {error, {file_read_error, Reason}}
+    end.
+
+%% List files and directories in MFS
+mfs_ls(Path) ->
+    ensure_inets_started(),
+    Url = "http://localhost:5001/api/v0/files/ls?arg=" ++ Path ++ "&long=true",
+    case httpc:request(post, {Url, [], "application/json", <<>>}, [], []) of
+        {ok, {{_, 200, _}, _, ResponseBody}} ->
+            {ok, jsx:decode(list_to_binary(ResponseBody))};
+        {ok, {{_, Status, _}, _, ErrorBody}} ->
+            {error, {Status, ErrorBody}};
+        {error, Reason} ->
+            {error, Reason}
+    end.
+
+%% Read a file from MFS
+mfs_read(MfsPath) ->
+    ensure_inets_started(),
+    Url = "http://localhost:5001/api/v0/files/read?arg=" ++ MfsPath,
+    case httpc:request(post, {Url, [], "application/json", <<>>}, [], []) of
+        {ok, {{_, 200, _}, _, ResponseBody}} ->
+            {ok, list_to_binary(ResponseBody)};
+        {ok, {{_, Status, _}, _, ErrorBody}} ->
+            {error, {Status, ErrorBody}};
+        {error, Reason} ->
+            {error, Reason}
+    end.
+
+%% Remove a file or directory from MFS
+mfs_rm(Path) ->
+    ensure_inets_started(),
+    Url = "http://localhost:5001/api/v0/files/rm?arg=" ++ Path,
+    case httpc:request(post, {Url, [], "application/json", <<>>}, [], []) of
+        {ok, {{_, 200, _}, _, _}} ->
+            ok;
+        {ok, {{_, Status, _}, _, ErrorBody}} ->
+            {error, {Status, ErrorBody}};
+        {error, Reason} ->
+            {error, Reason}
+    end.
+
+%% Copy a file or directory in MFS
+mfs_cp(SourcePath, DestPath) ->
+    ensure_inets_started(),
+    Url = "http://localhost:5001/api/v0/files/cp?arg=" ++ SourcePath ++ "&arg=" ++ DestPath,
+    case httpc:request(post, {Url, [], "application/json", <<>>}, [], []) of
+        {ok, {{_, 200, _}, _, _}} ->
+            ok;
+        {ok, {{_, Status, _}, _, ErrorBody}} ->
+            {error, {Status, ErrorBody}};
+        {error, Reason} ->
+            {error, Reason}
+    end.
+
+%% Move a file or directory in MFS
+mfs_mv(SourcePath, DestPath) ->
+    ensure_inets_started(),
+    Url = "http://localhost:5001/api/v0/files/mv?arg=" ++ SourcePath ++ "&arg=" ++ DestPath,
+    case httpc:request(post, {Url, [], "application/json", <<>>}, [], []) of
+        {ok, {{_, 200, _}, _, _}} ->
+            ok;
+        {ok, {{_, Status, _}, _, ErrorBody}} ->
+            {error, {Status, ErrorBody}};
+        {error, Reason} ->
+            {error, Reason}
+    end.
+
 publish_to_ipns(NodeId, Cid) ->
     ensure_inets_started(),
     ensure_jsx_loaded(),
@@ -524,6 +645,195 @@ dht_provide(NodeId, Cid) ->
         {error, Reason} ->
             {error, Reason}
     end.
+
+%% Add a DAG node to IPFS
+add_dag_node(Data) ->
+    ensure_inets_started(),
+    Url = "http://localhost:5001/api/v0/dag/put?store-codec=dag-json",
+    JsonData = jsx:encode(Data),
+    
+    Boundary = "----------boundary" ++ integer_to_list(erlang:system_time()),
+    FormData = "--" ++ Boundary ++ "\r\n" ++
+              "Content-Disposition: form-data; name=\"object data\"; filename=\"data.json\"\r\n" ++
+              "Content-Type: application/json\r\n\r\n" ++
+              binary_to_list(JsonData) ++ "\r\n" ++
+              "--" ++ Boundary ++ "--\r\n",
+    
+    ContentType = "multipart/form-data; boundary=" ++ Boundary,
+    Headers = [{"Content-Type", ContentType}],
+    
+    case httpc:request(post, {Url, Headers, ContentType, FormData}, [], []) of
+        {ok, {{_, 200, _}, _, ResponseBody}} ->
+            DecodedBody = jsx:decode(list_to_binary(ResponseBody)),
+            Cid = maps:get(<<"Cid">>, DecodedBody),
+            {ok, Cid};
+        {ok, {{_, Status, _}, _, ErrorBody}} ->
+            {error, {Status, ErrorBody}};
+        {error, Reason} ->
+            {error, Reason}
+    end.
+
+%% Create a parent DAG node that links to child nodes
+link_dag_nodes(ChildCids) ->
+    Links = lists:map(fun(Cid) -> 
+        case is_map(Cid) andalso maps:is_key(<<"/">>, Cid) of
+            true -> 
+                Cid;
+            false ->
+                CidValue = if
+                    is_binary(Cid) -> Cid;
+                    is_list(Cid) -> list_to_binary(Cid)
+                end,
+                #{<<"/">> => CidValue}
+        end
+    end, ChildCids),  
+    ParentData = #{<<"links">> => Links},
+    add_dag_node(ParentData).
+
+%% Retrieve a DAG node by its CID
+get_dag_node(Cid) ->
+    ensure_inets_started(),
+    FormattedCid = case is_binary(Cid) of
+        true -> binary_to_list(Cid);
+        false -> 
+            case is_map(Cid) andalso maps:is_key(<<"/">>, Cid) of
+                true -> binary_to_list(maps:get(<<"/">>, Cid));
+                false -> Cid  
+            end
+    end,
+    
+    Url = "http://localhost:5001/api/v0/dag/get?arg=" ++ FormattedCid,
+    
+    case httpc:request(post, {Url, [], "application/json", <<>>}, [], []) of
+        {ok, {{_, 200, _}, _, ResponseBody}} ->
+            {ok, jsx:decode(list_to_binary(ResponseBody))};
+        {ok, {{_, Status, _}, _, ErrorBody}} ->
+            {error, {Status, ErrorBody}};
+        {error, Reason} ->
+            {error, Reason}
+    end.
+
+%% Resolve a path within a DAG
+resolve_dag_path(Cid, Path) ->
+    ensure_inets_started(),
+    
+    FormattedCid = format_cid(Cid),
+    FormattedPath = format_path(Path),
+    
+    Url = "http://localhost:5001/api/v0/dag/resolve?arg=" ++ FormattedCid ++ FormattedPath,
+    
+    case httpc:request(post, {Url, [], "application/json", <<>>}, [], []) of
+        {ok, {{_, 200, _}, _, ResponseBody}} ->
+            {ok, jsx:decode(list_to_binary(ResponseBody))};
+        {ok, {{_, Status, _}, _, ErrorBody}} ->
+            {error, {Status, ErrorBody}};
+        {error, Reason} ->
+            {error, Reason}
+    end.
+    
+% Helper function to format path properly
+format_path(Path) when is_list(Path), Path =/= [] ->
+    case hd(Path) of
+        $/ -> Path;
+        _ -> "/" ++ Path
+    end;
+format_path(Path) when is_binary(Path), byte_size(Path) > 0 ->
+    <<FirstByte:8, _/binary>> = Path,
+    case FirstByte of
+        $/ -> binary_to_list(Path);
+        _ -> "/" ++ binary_to_list(Path)
+    end;
+format_path(Path) when is_binary(Path) ->
+    binary_to_list(Path);
+format_path(Path) ->
+    Path.
+
+%% traverse the DAG
+traverse_dag(Cid) ->
+    case get_dag_node(Cid) of
+        {ok, Node} ->
+            case maps:get(<<"links">>, Node, []) of
+                [] ->
+                    {ok, Node};
+                Links ->
+                    ChildResults = lists:map(fun(Link) ->
+                        LinkCid = case maps:is_key(<<"/">>, Link) of
+                            true -> 
+                                #{<<"/">> := CidValue} = Link,
+                                CidValue;
+                            false -> 
+                                case maps:is_key(<<"Cid">>, Link) of
+                                    true -> maps:get(<<"Cid">>, Link);
+                                    false -> Link 
+                                end
+                        end,
+                        {ok, ChildNode} = traverse_dag(LinkCid),
+                        ChildNode
+                    end, Links),
+                    {ok, #{<<"node">> => Node, <<"children">> => ChildResults}}
+            end;
+        {error, Reason} ->
+            {error, Reason}
+    end.
+
+%% Helper function to format CID in a consistent way
+format_cid(Cid) ->
+    case is_binary(Cid) of
+        true -> binary_to_list(Cid);
+        false -> 
+            case is_map(Cid) andalso maps:is_key(<<"/">>, Cid) of
+                true -> binary_to_list(maps:get(<<"/">>, Cid));
+                false -> 
+                    case is_map(Cid) andalso maps:is_key(<<"Cid">>, Cid) of
+                        true -> binary_to_list(maps:get(<<"Cid">>, Cid));
+                        false -> 
+                            if is_list(Cid) -> Cid;
+                               true -> erlang:error({invalid_cid_format, Cid})
+                            end
+                    end
+            end
+    end.
+
+%% Retrieve the list of blocks your node is currently requesting
+bitswap_wantlist() ->
+    ensure_inets_started(),
+    Url = "http://localhost:5001/api/v0/bitswap/wantlist",
+    case httpc:request(post, {Url, [], "application/json", <<>>}, [], []) of
+        {ok, {{_, 200, _}, _, ResponseBody}} ->
+            {ok, jsx:decode(list_to_binary(ResponseBody))};
+        {ok, {{_, Status, _}, _, ErrorBody}} ->
+            {error, {Status, ErrorBody}};
+        {error, Reason} ->
+            {error, Reason}
+    end.
+
+%% Get statistics about Bitswap activity
+bitswap_stat() ->
+    ensure_inets_started(),
+    Url = "http://localhost:5001/api/v0/bitswap/stat",
+    case httpc:request(post, {Url, [], "application/json", <<>>}, [], []) of
+        {ok, {{_, 200, _}, _, ResponseBody}} ->
+            {ok, jsx:decode(list_to_binary(ResponseBody))};
+        {ok, {{_, Status, _}, _, ErrorBody}} ->
+            {error, {Status, ErrorBody}};
+        {error, Reason} ->
+            {error, Reason}
+    end.
+
+%% Retrieve the ledger for a specific peer
+bitswap_ledger(PeerId) ->
+    ensure_inets_started(),
+    Url = "http://localhost:5001/api/v0/bitswap/ledger?arg=" ++ PeerId,
+    case httpc:request(post, {Url, [], "application/json", <<>>}, [], []) of
+        {ok, {{_, 200, _}, _, ResponseBody}} ->
+            {ok, jsx:decode(list_to_binary(ResponseBody))};
+        {ok, {{_, Status, _}, _, ErrorBody}} ->
+            {error, {Status, ErrorBody}};
+        {error, Reason} ->
+            {error, Reason}
+    end.
+
+
 
 %% Generate a random node ID
 generate_node_id() ->
