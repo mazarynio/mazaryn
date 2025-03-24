@@ -107,7 +107,7 @@ list_nodes() ->
     ensure_inets_started(),
     case httpc:request(get, {?BASE_URL ++ "/nodes", []}, [], []) of
         {ok, {{_, 200, _}, _, Body}} ->
-            {ok, jsx:decode(list_to_binary(Body))};
+            {ok, jiffy:decode(list_to_binary(Body))};
         {ok, {{_, Status, _}, _, ErrorBody}} ->
             {error, {Status, ErrorBody}};
         {error, Reason} ->
@@ -119,7 +119,7 @@ delete_node(NodeId) ->
     ensure_inets_started(),
     case httpc:request(delete, {?BASE_URL ++ "/nodes/" ++ NodeId, []}, [], []) of
         {ok, {{_, 200, _}, _, ResponseBody}} ->
-            {ok, jsx:decode(list_to_binary(ResponseBody))};
+            {ok, jiffy:decode(list_to_binary(ResponseBody))};
         {ok, {{_, Status, _}, _, ErrorBody}} ->
             {error, {Status, ErrorBody}};
         {error, Reason} ->
@@ -329,7 +329,7 @@ get_subscriptions(NodeId) ->
     Url = ?BASE_URL ++ "/nodes/" ++ NodeId ++ "/pubsub/subscriptions",
     case httpc:request(get, {Url, []}, [], []) of
         {ok, {{_, 200, _}, _, ResponseBody}} ->
-            {ok, jsx:decode(list_to_binary(ResponseBody), [return_maps])};
+            {ok, jiffy:decode(list_to_binary(ResponseBody), [return_maps])};
         {ok, {{_, Status, _}, _, ErrorBody}} ->
             {error, {Status, ErrorBody}};
         {error, Reason} ->
@@ -400,14 +400,12 @@ add_file_to_ipfs(NodeId, FileContent) ->
         {ok, {{_, 200, _}, _, ResponseBody}} ->
             Response = jiffy:decode(list_to_binary(ResponseBody), [return_maps]),
             CidBinary = maps:get(<<"cid">>, Response),
-            CidString = binary_to_list(CidBinary),
-            {ok, #{"cid" => CidString}};
+            binary_to_list(CidBinary);
         {ok, {{_, Status, _}, _, ErrorBody}} ->
             {error, {Status, ErrorBody}};
         {error, Reason} ->
             {error, Reason}
     end.
-
 
 add_file_to_ipfs(FileContent) ->
     add_file_to_ipfs(?DEFAULT_NODE, FileContent).
@@ -421,8 +419,7 @@ get_file_from_ipfs(NodeId, Cid) ->
         {ok, {{_, 200, _}, _, Body}} ->
             case jiffy:decode(list_to_binary(Body), [return_maps]) of  
                 #{<<"fileContent">> := FileContent} ->
-                    FileContentStr = binary_to_list(FileContent),
-                    {ok, FileContentStr};
+                    binary_to_list(FileContent);
                 _ ->
                     {error, invalid_response}
             end;
