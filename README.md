@@ -1,17 +1,22 @@
 # Mazaryn
 
-##### OpenSource Social Network which Empower users to explore their Talents
+##### Open Source Social Network Empowering Users to Explore Their Talents
 
-#### If you're Interested to Joining on the Core team Connect via mail: admin@mazaryn.io
+#### Interested in joining the Core team? Connect via email: admin@mazaryn.io
 
-To start your Phoenix server:
-  
-  * First, Install Rust Language https://www.rust-lang.org/tools/install
-  * Git clone the repo git clone https://github.com/mazarynio/mazaryn
-  * Setup the project on your local development environment by running:
-    - `asdf install`, then,
-    - `mix setup`
-  * Start Phoenix endpoint with `mix phx.server` or inside IEx with `iex -S mix phx.server`
+## Complete Development Setup Guide
+
+1. **Install Dependencies**:
+   - Rust: https://www.rust-lang.org/tools/install
+   - Go (latest version): https://go.dev/doc/install
+   - IPFS: https://docs.ipfs.tech/install/
+
+2. **Clone and Setup**:
+   ```bash
+   git clone https://github.com/mazarynio/mazaryn
+   cd mazaryn
+   asdf install
+   mix setup
 
 Now you can visit [`localhost:4000`](http://localhost:4000) from your browser.
 
