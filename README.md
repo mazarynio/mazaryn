@@ -10,13 +10,23 @@
    - Rust: https://www.rust-lang.org/tools/install
    - Go (latest version): https://go.dev/doc/install
    - IPFS: https://docs.ipfs.tech/install/
-
+  
 2. **Clone and Setup**:
    ```bash
    git clone https://github.com/mazarynio/mazaryn
+   cd mazaryn/src/golangcode
+   go build -o myapp
+   ./myapp
+
+3. **Clone and Setup**:
+   ```bash
+   git clone https://github.com/mazarynio/mazaryn
    cd mazaryn
-   asdf install
-   mix setup
+   cd assets
+   yarn
+   cd ..
+   mix deps.get
+   mix phx.server
 
 Now you can visit [`localhost:4000`](http://localhost:4000) from your browser.
 
