@@ -7,7 +7,8 @@ defmodule Core.PostClient do
     ~c"zKegB4mWRXP3PDVuntpnA"
   """
   def create(author, content, emoji, media \\ [], hashtag, mention, link_url) do
-    :post_server.insert(author, content, emoji, media, hashtag, mention, link_url)
+    content_erlang = String.to_charlist(content)
+    :post_server.insert(author, content_erlang, emoji, media, hashtag, mention, link_url)
   end
 
   def modify_post(author, newContent, newEmoji, newMedia, newHashtag, newMention, newLink_url) do
@@ -30,6 +31,14 @@ defmodule Core.PostClient do
   ## Get post's Content using PostID
   def get_post_content_by_id(id) do
     :post_server.get_post_content_by_id(id)
+  end
+
+  def get_user_id_by_post_id(post_id) do
+    :postdb.get_user_id_by_post_id(post_id)
+  end
+
+  def get_file_from_ipfs(user_id, cid) do
+    :go_libp2p.get_file_from_ipfs(user_id, cid)
   end
 
   ## Get all posts of specific user using username

@@ -11,7 +11,6 @@ defmodule MazarynWeb.HomeLive.PostComponent do
   alias Mazaryn.Schema.Post
   alias Phoenix.LiveView.JS
 
-  # TODO: revert to the deprecated `preload/1` if this doesn't work; I think it works
   @impl Phoenix.LiveComponent
   def update_many(list_of_assigns) do
     changeset = Comment.changeset(%Comment{})
@@ -40,7 +39,7 @@ defmodule MazarynWeb.HomeLive.PostComponent do
 
       Map.put(comment, :replies, list_replies)
     end)
-            
+
       assigns =
         assigns
         |> Map.put(:follow_event, follow_event(assigns.current_user.id, assigns.post.author))
@@ -273,7 +272,7 @@ end
 def handle_event("cancel-comment-reply", _, socket) do
   {:noreply, socket |> assign(:reply_comment, false) |> assign(:replying_to_comment_id, nil)}
 end
- 
+
   def handle_event("show-comments", %{"id" => post_id}, socket) do
     # get the comments by post_id
     Phoenix.LiveView.JS.toggle(to: "test")
@@ -470,32 +469,61 @@ end
   defp activate_content_characters(post, socket) do
     link_regex = ~r/([\w+]+\:\/\/)?([\w\d-]+\.)*[\w-]+[\.\:]\w+([\/\?\=\&\#\.]?[\w-]+)*\/?/
 
-    post.content
-    |> String.split()
-    |> Enum.map(fn con ->
-      case {check_regex(con, ~r/@\S[a-zA-Z]*/), check_regex(con, ~r/#\S[a-zA-Z]*/),
-            check_regex(con, link_regex)} do
-        {[[mention]], [], []} ->
-          activate_mention_only(mention, socket)
+    user_id = case post.user_id do
+      id when is_binary(id) -> id
+      id when is_list(id) -> List.to_string(id)
+      _ -> ""
+    end
 
-        {[], [[hashtag]], []} ->
-          activate_hashtag_only(hashtag, socket)
+    cid = case post.content do
+      content when is_binary(content) -> content
+      content when is_list(content) -> List.to_string(content)
+      _ -> ""
+    end
 
-        {[], [], [[url | _rest]]} ->
-          activate_url_only(url)
+    user_id_safe = :erlang.binary_to_list(user_id)
+    cid_safe = :erlang.binary_to_list(cid)
 
-        {[[mention]], [[hashtag]], [[url | _rest]]} ->
-          activate_mention_only(mention, socket)
-          activate_hashtag_only(hashtag, socket)
-          activate_url_only(url)
+    case Core.PostClient.get_file_from_ipfs(user_id_safe, cid_safe) do
+      {:error, reason} ->
+        "Error loading content: #{inspect(reason)}"
+        |> Earmark.as_html!(compact_output: true)
+        |> apply_styles()
 
-        _ ->
-          escape_char(con)
-      end
-    end)
-    |> Enum.join(" ")
-    |> Earmark.as_html!(compact_output: true)
-    |> apply_styles()
+      content ->
+        content_str = case content do
+          c when is_binary(c) -> c
+          c when is_list(c) -> List.to_string(c)
+          _ -> ""
+        end
+
+        content_str
+        |> String.split()
+        |> Enum.map(fn con ->
+          case {check_regex(con, ~r/@\S[a-zA-Z]*/), check_regex(con, ~r/#\S[a-zA-Z]*/),
+                check_regex(con, link_regex)} do
+            {[[mention]], [], []} ->
+              activate_mention_only(mention, socket)
+
+            {[], [[hashtag]], []} ->
+              activate_hashtag_only(hashtag, socket)
+
+            {[], [], [[url | _rest]]} ->
+              activate_url_only(url)
+
+            {[[mention]], [[hashtag]], [[url | _rest]]} ->
+              activate_mention_only(mention, socket)
+              activate_hashtag_only(hashtag, socket)
+              activate_url_only(url)
+
+            _ ->
+              escape_char(con)
+          end
+        end)
+        |> Enum.join(" ")
+        |> Earmark.as_html!(compact_output: true)
+        |> apply_styles()
+    end
   end
 
   defp apply_styles(html) do

@@ -34,7 +34,7 @@
   0},
  {<<"nanoid">>,
   {git,"https://github.com/zaryntech/nanoid.git",
-       {ref,"ba450219a55e5baac34b38668a7843582d0f975b"}},
+       {ref,"9fab2c7c02be60358aab10642e367842e1e1c8fd"}},
   0},
  {<<"poolboy">>,{pkg,<<"poolboy">>,<<"1.5.2">>},1},
  {<<"proper">>,

@@ -6,9 +6,9 @@
     list_nodes/0,
     delete_node/1, get_peer_info/1, get_peer_info/2, connect_to_ipfs_network/2, get_ipfs_singleaddr/0, get_ipfs_multiaddr/0,
     get_addresses/1, publish_to_ipns/2, resolve_ipns/2, get_network_status/1, get_file_metadata/2,
-    get_single_address/1, dht_find_peer/2, dht_find_provs/2, dht_provide/2,
+    get_single_address/1, dht_find_peer/2, dht_find_provs/2, dht_provide/2, add_file_to_ipfs/1, get_file_from_ipfs/1,
     get_peerid/1, add_dag_node/1, link_dag_nodes/1, get_dag_node/1, resolve_dag_path/2, traverse_dag/1,
-    ping_peer/2, bitswap_wantlist/0, bitswap_stat/0, bitswap_ledger/1,
+    ping_peer/2, bitswap_wantlist/0, bitswap_stat/0, bitswap_ledger/1, 
     connect_to_peer/2, mfs_mkdir/1, mfs_write/2, mfs_ls/1, mfs_read/1, mfs_rm/1, mfs_cp/2, mfs_mv/2,
     get_peers/1,
     subscribe_to_topic/2,
@@ -20,14 +20,17 @@
 ]).
 
 -define(BASE_URL, "http://localhost:3000").
+-define(DEFAULT_NODE, "default").
 
 %% Ensure inets and ssl applications are started
 ensure_inets_started() ->
-    case lists:member(inets, application:which_applications()) of
+    InetsStarted = lists:keymember(inets, 1, application:which_applications()),
+    case InetsStarted of
         true -> ok;
         false -> application:start(inets)
     end,
-    case lists:member(ssl, application:which_applications()) of
+    SslStarted = lists:keymember(ssl, 1, application:which_applications()),
+    case SslStarted of
         true -> ok;
         false -> application:start(ssl)
     end.
@@ -57,34 +60,46 @@ create_node() ->
     create_node(generate_node_id()).
 
 
-%% Create a new node with a specific ID and automatically connect it to the IPFS network
+ensure_jiffy_loaded() ->
+    case code:ensure_loaded(jiffy) of
+        {module, jiffy} -> ok;
+        {error, _} -> 
+            error_logger:warning_msg("Jiffy module not found. JSON handling may be limited."),
+            {error, jiffy_not_found}
+    end.
+
+%% Update your create_node function to use Jiffy
 create_node(NodeId) when is_list(NodeId) ->
     ensure_inets_started(),
-    ensure_jsx_loaded(),
-    Url = ?BASE_URL ++ "/nodes?id=" ++ NodeId,
-    case httpc:request(post, {Url, [], "application/json", <<>>}, [], []) of
-        {ok, {{_, 200, _}, _, ResponseBody}} ->
-            try
-                NodeInfo = jsx:decode(list_to_binary(ResponseBody), [return_maps]),
-                case get_ipfs_singleaddr() of
-                    {ok, IpfsSingleAddr} ->
-                        case connect_to_ipfs_network(NodeId, IpfsSingleAddr) of
-                            {ok, ConnectionResult} ->
-                                {ok, #{<<"node_info">> => NodeInfo, <<"connection_result">> => ConnectionResult}};
-                            {error, ConnectionError} ->
-                                {ok, #{<<"node_info">> => NodeInfo, <<"connection_error">> => ConnectionError}}
-                        end;
-                    {error, IpfsError} ->
-                        {ok, #{<<"node_info">> => NodeInfo, <<"ipfs_error">> => IpfsError}}
-                end
-            catch
-                _:_ ->
-                    {error, {invalid_response, json_decode_failed}}
+    case ensure_jiffy_loaded() of
+        ok ->
+            Url = ?BASE_URL ++ "/nodes?id=" ++ NodeId,
+            case httpc:request(post, {Url, [], "application/json", <<>>}, [], []) of
+                {ok, {{_, 200, _}, _, ResponseBody}} ->
+                    try
+                        NodeInfo = jiffy:decode(list_to_binary(ResponseBody), [return_maps]),
+                        case get_ipfs_singleaddr() of
+                            {ok, IpfsSingleAddr} ->
+                                case connect_to_ipfs_network(NodeId, IpfsSingleAddr) of
+                                    {ok, ConnectionResult} ->
+                                        {ok, #{<<"node_info">> => NodeInfo, <<"connection_result">> => ConnectionResult}};
+                                    {error, ConnectionError} ->
+                                        {ok, #{<<"node_info">> => NodeInfo, <<"connection_error">> => ConnectionError}}
+                                end;
+                            {error, IpfsError} ->
+                                {ok, #{<<"node_info">> => NodeInfo, <<"ipfs_error">> => IpfsError}}
+                        end
+                    catch
+                        error:Reason ->
+                            {error, {invalid_response, json_decode_failed, Reason}}
+                    end;
+                {ok, {{_, Status, _}, _, ErrorBody}} ->
+                    {error, {http_error, Status, ErrorBody}};
+                {error, Reason} ->
+                    {error, {http_request_failed, Reason}}
             end;
-        {ok, {{_, Status, _}, _, ErrorBody}} ->
-            {error, {http_error, Status, ErrorBody}};
         {error, Reason} ->
-            {error, {http_request_failed, Reason}}
+            {error, Reason}
     end.
 
 %% List all active nodes
@@ -92,7 +107,7 @@ list_nodes() ->
     ensure_inets_started(),
     case httpc:request(get, {?BASE_URL ++ "/nodes", []}, [], []) of
         {ok, {{_, 200, _}, _, Body}} ->
-            {ok, jsx:decode(list_to_binary(Body))};
+            {ok, jiffy:decode(list_to_binary(Body))};
         {ok, {{_, Status, _}, _, ErrorBody}} ->
             {error, {Status, ErrorBody}};
         {error, Reason} ->
@@ -104,7 +119,7 @@ delete_node(NodeId) ->
     ensure_inets_started(),
     case httpc:request(delete, {?BASE_URL ++ "/nodes/" ++ NodeId, []}, [], []) of
         {ok, {{_, 200, _}, _, ResponseBody}} ->
-            {ok, jsx:decode(list_to_binary(ResponseBody))};
+            {ok, jiffy:decode(list_to_binary(ResponseBody))};
         {ok, {{_, Status, _}, _, ErrorBody}} ->
             {error, {Status, ErrorBody}};
         {error, Reason} ->
@@ -114,11 +129,11 @@ delete_node(NodeId) ->
 %% Get peer information by nodeID
 get_peer_info(NodeId) ->
     ensure_inets_started(),
-    ensure_jsx_loaded(),
+    ensure_jiffy_loaded(),
     Url = ?BASE_URL ++ "/nodes/peer-info?nodeID=" ++ NodeId,
     case httpc:request(get, {Url, []}, [], []) of
         {ok, {{_, 200, _}, _, Body}} ->
-            {ok, jsx:decode(list_to_binary(Body), [return_maps])};
+            {ok, jiffy:decode(list_to_binary(Body), [return_maps])};
         {ok, {{_, Status, _}, _, ErrorBody}} ->
             {error, {Status, ErrorBody}};
         {error, Reason} ->
@@ -128,11 +143,11 @@ get_peer_info(NodeId) ->
 %% Get peer information by nodeID and peerID
 get_peer_info(NodeId, PeerId) ->
     ensure_inets_started(),
-    ensure_jsx_loaded(),
+    ensure_jiffy_loaded(),
     Url = ?BASE_URL ++ "/nodes/peer-info?nodeID=" ++ NodeId ++ "&peerID=" ++ PeerId,
     case httpc:request(post, {Url, [], "application/json", <<>>}, [], []) of
         {ok, {{_, 200, _}, _, Body}} ->
-            {ok, jsx:decode(list_to_binary(Body), [return_maps])};
+            {ok, jiffy:decode(list_to_binary(Body), [return_maps])};
         {ok, {{_, 500, _}, _, _ErrorBody}} ->
             case check_ipfs_api() of
                 {ok, _} ->
@@ -162,7 +177,7 @@ get_addresses(NodeId) ->
     ensure_inets_started(),
     case httpc:request(get, {?BASE_URL ++ "/nodes/" ++ NodeId ++ "/addresses", []}, [], []) of
         {ok, {{_, 200, _}, _, Body}} ->
-            {ok, jsx:decode(list_to_binary(Body))};
+            {ok, jiffy:decode(list_to_binary(Body))};
         {ok, {{_, Status, _}, _, ErrorBody}} ->
             {error, {Status, ErrorBody}};
         {error, Reason} ->
@@ -174,7 +189,7 @@ get_single_address(NodeId) ->
     ensure_inets_started(),
     case httpc:request(get, {?BASE_URL ++ "/nodes/" ++ NodeId ++ "/single-address", []}, [], []) of
         {ok, {{_, 200, _}, _, Body}} ->
-            case jsx:decode(list_to_binary(Body), [return_maps]) of
+            case jiffy:decode(list_to_binary(Body), [return_maps]) of
                 #{<<"address">> := Address} ->
                     AddressStr = binary_to_list(Address),
                     case get_peerid(NodeId) of
@@ -244,7 +259,7 @@ connect_to_peer(NodeId, {ok, RemoteAddr}) ->
     case httpc:request(post, {Url, [], "application/json", <<>>}, [], []) of
         {ok, {{_, 200, _}, _, ResponseBody}} ->
             io:format("ResponseBody: ~p~n", [ResponseBody]), 
-            {ok, jsx:decode(list_to_binary(ResponseBody), [return_maps])};
+            {ok, jiffy:decode(list_to_binary(ResponseBody), [return_maps])};
         {ok, {{_, Status, _}, _, ErrorBody}} ->
             {error, {Status, ErrorBody}};
         {error, Reason} ->
@@ -257,7 +272,7 @@ get_peers(NodeId) ->
     ensure_inets_started(),
     case httpc:request(get, {?BASE_URL ++ "/nodes/" ++ NodeId ++ "/peers", []}, [], []) of
         {ok, {{_, 200, _}, _, Body}} ->
-            {ok, jsx:decode(list_to_binary(Body))};
+            {ok, jiffy:decode(list_to_binary(Body))};
         {ok, {{_, Status, _}, _, ErrorBody}} ->
             {error, {Status, ErrorBody}};
         {error, Reason} ->
@@ -271,7 +286,7 @@ subscribe_to_topic(NodeId, Topic) ->
     Url = ?BASE_URL ++ "/nodes/" ++ NodeId ++ "/pubsub/subscribe?topic=" ++ EncodedTopic,
     case httpc:request(post, {Url, [], "application/json", <<>>}, [], []) of
         {ok, {{_, 200, _}, _, ResponseBody}} ->
-            {ok, jsx:decode(list_to_binary(ResponseBody), [return_maps])};
+            {ok, jiffy:decode(list_to_binary(ResponseBody), [return_maps])};
         {ok, {{_, Status, _}, _, ErrorBody}} ->
             {error, {Status, ErrorBody}};
         {error, Reason} ->
@@ -285,7 +300,7 @@ unsubscribe_from_topic(NodeId, Topic) ->
     Url = ?BASE_URL ++ "/nodes/" ++ NodeId ++ "/pubsub/unsubscribe?topic=" ++ EncodedTopic,
     case httpc:request(delete, {Url, []}, [], []) of
         {ok, {{_, 200, _}, _, ResponseBody}} ->
-            {ok, jsx:decode(list_to_binary(ResponseBody), [return_maps])};
+            {ok, jiffy:decode(list_to_binary(ResponseBody), [return_maps])};
         {ok, {{_, Status, _}, _, ErrorBody}} ->
             {error, {Status, ErrorBody}};
         {error, Reason} ->
@@ -300,7 +315,7 @@ publish_message(NodeId, Topic, Message) ->
     Url = ?BASE_URL ++ "/nodes/" ++ NodeId ++ "/pubsub/publish?topic=" ++ EncodedTopic ++ "&message=" ++ EncodedMessage,
     case httpc:request(put, {Url, [], "application/json", <<>>}, [], []) of
         {ok, {{_, 200, _}, _, ResponseBody}} ->
-            {ok, jsx:decode(list_to_binary(ResponseBody), [return_maps])};
+            {ok, jiffy:decode(list_to_binary(ResponseBody), [return_maps])};
         {ok, {{_, Status, _}, _, ErrorBody}} ->
             {error, {Status, ErrorBody}};
         {error, Reason} ->
@@ -314,7 +329,7 @@ get_subscriptions(NodeId) ->
     Url = ?BASE_URL ++ "/nodes/" ++ NodeId ++ "/pubsub/subscriptions",
     case httpc:request(get, {Url, []}, [], []) of
         {ok, {{_, 200, _}, _, ResponseBody}} ->
-            {ok, jsx:decode(list_to_binary(ResponseBody), [return_maps])};
+            {ok, jiffy:decode(list_to_binary(ResponseBody), [return_maps])};
         {ok, {{_, Status, _}, _, ErrorBody}} ->
             {error, {Status, ErrorBody}};
         {error, Reason} ->
@@ -328,7 +343,7 @@ get_ipfs_singleaddr() ->
     case httpc:request(post, {Url, [], "application/json", <<>>}, [], []) of
         {ok, {{_, 200, _}, _, ResponseBody}} ->
             try
-                Decoded = jsx:decode(list_to_binary(ResponseBody), [return_maps]),
+                Decoded = jiffy:decode(list_to_binary(ResponseBody), [return_maps]),
                 case Decoded of
                     #{<<"Addresses">> := [IpfsMultiaddr | _]} ->
                         {ok, binary_to_list(IpfsMultiaddr)}; 
@@ -364,7 +379,7 @@ connect_to_ipfs_network(NodeId, IpfsMultiaddr) ->
     Url = "http://localhost:3000/nodes/" ++ NodeId ++ "/connect-ipfs?addr=" ++ uri_string:quote(IpfsMultiaddr),
     case httpc:request(post, {Url, [], "application/json", <<>>}, [], []) of
         {ok, {{_, 200, _}, _, ResponseBody}} ->
-            {ok, jsx:decode(list_to_binary(ResponseBody), [return_maps])};
+            {ok, jiffy:decode(list_to_binary(ResponseBody), [return_maps])};
         {ok, {{_, Status, _}, _, ErrorBody}} ->
             {error, {Status, ErrorBody}};
         {error, Reason} ->
@@ -374,26 +389,37 @@ connect_to_ipfs_network(NodeId, IpfsMultiaddr) ->
 %% Add a file to IPFS
 add_file_to_ipfs(NodeId, FileContent) ->
     ensure_inets_started(),
-    Body = jsx:encode([{fileContent, list_to_binary(FileContent)}]),
+    ensure_jiffy_loaded(),  
+    FileContentBinary = if
+        is_list(FileContent), is_integer(hd(FileContent)) -> list_to_binary(FileContent);
+        is_binary(FileContent) -> FileContent;
+        true -> list_to_binary(io_lib:format("~p", [FileContent]))
+    end,
+    Body = jiffy:encode({[{<<"fileContent">>, FileContentBinary}]}), 
     case httpc:request(post, {?BASE_URL ++ "/nodes/" ++ NodeId ++ "/ipfs/add", [], "application/json", Body}, [], []) of
         {ok, {{_, 200, _}, _, ResponseBody}} ->
-            {ok, jsx:decode(list_to_binary(ResponseBody), [return_maps])};
+            Response = jiffy:decode(list_to_binary(ResponseBody), [return_maps]),
+            CidBinary = maps:get(<<"cid">>, Response),
+            binary_to_list(CidBinary);
         {ok, {{_, Status, _}, _, ErrorBody}} ->
             {error, {Status, ErrorBody}};
         {error, Reason} ->
             {error, Reason}
     end.
 
+add_file_to_ipfs(FileContent) ->
+    add_file_to_ipfs(?DEFAULT_NODE, FileContent).
+
 %% Get a file from IPFS
 get_file_from_ipfs(NodeId, Cid) ->
     ensure_inets_started(),
+    ensure_jiffy_loaded(),  
     Url = ?BASE_URL ++ "/nodes/" ++ NodeId ++ "/ipfs/get/" ++ Cid,
     case httpc:request(get, {Url, []}, [], []) of
         {ok, {{_, 200, _}, _, Body}} ->
-            case jsx:decode(list_to_binary(Body), [return_maps]) of
+            case jiffy:decode(list_to_binary(Body), [return_maps]) of  
                 #{<<"fileContent">> := FileContent} ->
-                    FileContentStr = binary_to_list(FileContent),
-                    {ok, FileContentStr};
+                    binary_to_list(FileContent);
                 _ ->
                     {error, invalid_response}
             end;
@@ -402,6 +428,9 @@ get_file_from_ipfs(NodeId, Cid) ->
         {error, Reason} ->
             {error, Reason}
     end.
+
+get_file_from_ipfs(Cid) ->
+    get_file_from_ipfs(?DEFAULT_NODE, Cid).
 
 %% Create a directory in MFS
 mfs_mkdir(Path) ->
@@ -513,12 +542,12 @@ mfs_mv(SourcePath, DestPath) ->
 
 publish_to_ipns(NodeId, Cid) ->
     ensure_inets_started(),
-    ensure_jsx_loaded(),
+    ensure_jiffy_loaded(),  
     Url = ?BASE_URL ++ "/nodes/" ++ NodeId ++ "/ipns/publish?nodeID=" ++ NodeId ++ "&cid=" ++ Cid,
     case httpc:request(post, {Url, [], "application/json", <<>>}, [], []) of
         {ok, {{_, 200, _}, _, ResponseBody}} ->
             try
-                #{<<"ipns_name">> := IpnsName} = jsx:decode(list_to_binary(ResponseBody), [return_maps]),
+                #{<<"ipns_name">> := IpnsName} = jiffy:decode(list_to_binary(ResponseBody), [return_maps]),
                 {ok, IpnsName}
             catch
                 _:_ ->
@@ -532,12 +561,12 @@ publish_to_ipns(NodeId, Cid) ->
 
 resolve_ipns(NodeId, IpnsName) ->
     ensure_inets_started(),
-    ensure_jsx_loaded(),
+    ensure_jiffy_loaded(),  
     Url = ?BASE_URL ++ "/nodes/" ++ NodeId ++ "/ipns/resolve?nodeID=" ++ NodeId ++ "&ipnsName=" ++ IpnsName,
     case httpc:request(get, {Url, []}, [], []) of
         {ok, {{_, 200, _}, _, ResponseBody}} ->
             try
-                #{<<"resolved_path">> := ResolvedPath} = jsx:decode(list_to_binary(ResponseBody), [return_maps]),
+                #{<<"resolved_path">> := ResolvedPath} = jiffy:decode(list_to_binary(ResponseBody), [return_maps]),
                 {ok, ResolvedPath}
             catch
                 _:_ ->
