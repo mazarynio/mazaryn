@@ -92,6 +92,19 @@ config :mazaryn, Mazaryn.Gettext,
     "id"
   ]
 
+  config :mazaryn, :ipfs,
+  enabled: true,
+  api_url: "http://localhost:5001",
+  gateway_url: "http://localhost:8080"
+
+  config :mazaryn, :golang_api,
+  enabled: true,
+  api_url: "http://localhost:3000"
+
+  config :mazaryn, :http_client,
+  timeout: 60_000,
+  max_connections: 10
+
 config :mazaryn, :media, uploads_dir: Path.join([File.cwd!(), "priv", "static", "uploads"])
 
 config :mazaryn, MazarynWeb.Endpoint,

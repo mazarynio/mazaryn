@@ -1,5 +1,6 @@
 %% TODO: change id order for testing, modify later
 -record(user, { id, 
+                p2p_node_address,
                 ai_user_id,
                 business_id = [],
                 ads_id = [],
@@ -43,11 +44,11 @@
 -record(post, { id,
                 ai_post_id,
                 user_id,
-                content,
+                content_cid,
                 emoji = [],
                 comments = [],
                 likes = [],
-                media = [],
+                media_cids = [],
                 hashtag = [],
                 mention,
                 link_url,
@@ -113,7 +114,9 @@
                data = #{} }).
 
 -record(p2p_node, { 
+    node_id, 
     address,
+    peer_id,  % Constant
     date_created,
     data = #{}
 }).

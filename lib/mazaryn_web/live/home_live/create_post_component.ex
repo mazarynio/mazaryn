@@ -63,26 +63,40 @@ defmodule MazarynWeb.HomeLive.CreatePostComponent do
   end
 
   defp handle_save_post(socket, %{"post" => post_params} = _params) do
+    IO.inspect(post_params, label: "Initial post_params")
+
     {:ok, user} =
       socket.assigns.user.id
       |> Users.one_by_id()
 
+    IO.inspect(user, label: "User details")
+
     urls = consume_upload(socket)
+
+    IO.inspect(urls, label: "Uploaded media URLs")
 
     post_params =
       post_params
       |> Map.put("author", user.username)
       |> Map.put("media", urls)
 
+    IO.inspect(post_params, label: "Post params after adding author and media")
+
     hashtags = fetch_from_content(~r/#\S[a-zA-Z]*/, post_params)
+
+    IO.inspect(hashtags, label: "Extracted hashtags")
 
     mentions =
       ~r/@\S[a-zA-Z]*/
       |> fetch_from_content(post_params)
 
+    IO.inspect(mentions, label: "Extracted mentions")
+
     link_urls =
       ~r/([\w+]+\:\/\/)?([\w\d-]+\.)*[\w-]+[\.\:]\w+([\/\?\=\&\#\.]?[\w-]+)*\/?/
       |> fetch_link_urls_from_content(post_params)
+
+    IO.inspect(link_urls, label: "Extracted link URLs")
 
     post_params =
       case {hashtags, mentions, link_urls} do
@@ -105,20 +119,29 @@ defmodule MazarynWeb.HomeLive.CreatePostComponent do
           |> Map.put("link_url", link_urls)
       end
 
-    %Post{}
-    |> Post.changeset(post_params)
-    |> Posts.create_post()
-    |> case do
-      {:ok, %Post{}} ->
+    IO.inspect(post_params, label: "Final post_params")
+
+    changeset =
+      %Post{}
+      |> Post.changeset(post_params)
+
+    IO.inspect(changeset, label: "Changeset before create_post")
+
+    case Posts.create_post(changeset) do
+      {:ok, %Post{} = post} ->
+        IO.inspect(post, label: "Post created successfully")
+
         add_mention_to_notif(mentions, socket.assigns.user.id)
-        # send event to parent live-view
         send(self(), :reload_posts)
 
         socket
         |> assign(:changeset, Post.changeset(%Post{}))
 
-      _other ->
+      {:error, reason} ->
+        IO.inspect(reason, label: "Error creating post")
+
         socket
+        |> assign(:changeset, changeset)
     end
   end
 

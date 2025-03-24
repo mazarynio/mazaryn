@@ -14,7 +14,7 @@ defmodule Mazaryn.Schema.Post do
     id
     ai_post_id
     user_id
-    media
+    media_cids
     hashtag
     mention
     emoji
@@ -33,15 +33,15 @@ defmodule Mazaryn.Schema.Post do
   )a
 
   @required_fields ~w(
-    content
+    content_cid
   )a
 
   # date_created
   embedded_schema do
-    field(:content, :string)
+    field(:content_cid, :string)
     field(:ai_post_id, :string)
     field(:user_id, :string)
-    field(:media, {:array, :string}, default: [])
+    field(:media_cids, {:array, :string}, default: [])
     field(:hashtag, :string)
     field(:mention, :string)
     field(:emoji, :string)
@@ -62,7 +62,7 @@ defmodule Mazaryn.Schema.Post do
   end
 
   def erl_changeset(
-        {:post, id, ai_post_id, user_id, content, comments, likes, media, hashtag, mention, emoji,
+        {:post, id, ai_post_id, user_id, content_cid, comments, likes, media_cids, hashtag, mention, emoji,
          link_url, author, other, date_created, date_updated, report, device_info, data}
       ) do
     new_likes =
@@ -78,10 +78,10 @@ defmodule Mazaryn.Schema.Post do
       id: id,
       ai_post_id: ai_post_id,
       user_id: user_id,
-      content: content,
+      content_cid: content_cid,
       comments: preload_comments,
       likes: new_likes,
-      media: media,
+      media_cids: media_cids,
       hashtag: hashtag,
       mention: mention,
       emoji: emoji,

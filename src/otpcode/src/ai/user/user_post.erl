@@ -65,7 +65,7 @@ get_last_50_liked_posts_content(UserID) ->
               fun(Post) ->
                 case Post of
                   undefined -> false; 
-                  _ -> {true, Post#post.content} 
+                  _ -> {true, Post#post.content_cid} 
                 end
               end,
               Posts
@@ -99,7 +99,7 @@ get_last_50_liked_posts_content_with_category(UserID) ->
                 case Post of
                   undefined -> false; 
                   _ -> 
-                    Content = Post#post.content,
+                    Content = Post#post.content_cid,
                     Category = post_text:category(Content),
                     {true, {Content, Category}} 
                 end

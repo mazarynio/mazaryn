@@ -6,8 +6,14 @@ defmodule Core.PostClient do
     iex> Core.PostClient.create("username", "Hello World", "#world", "@friend", "https://mazaryn.io")
     ~c"zKegB4mWRXP3PDVuntpnA"
   """
-  def create(author, content, emoji, media \\ [], hashtag, mention, link_url) do
-    :post_server.insert(author, content, emoji, media, hashtag, mention, link_url)
+  def create(author, content, emoji, media, hashtag, mention, link_url) do
+    content_erlang = cond do
+      is_binary(content) -> String.to_charlist(content)
+      is_list(content) -> content
+      true -> to_charlist(inspect(content))
+    end
+
+    :post_server.insert(author, content_erlang, emoji, media, hashtag, mention, link_url)
   end
 
   def modify_post(author, newContent, newEmoji, newMedia, newHashtag, newMention, newLink_url) do

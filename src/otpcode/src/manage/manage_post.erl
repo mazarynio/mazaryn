@@ -66,7 +66,7 @@ delete_hashtag(PostID, AdminUsername) ->
 delete_post_content(PostID) ->
   Post = postdb:get_post_by_id(PostID),
   BannedList = post_content:banned_list(),
-  Content = Post#post.content,
+  Content = Post#post.content_cid,
   case lists:member(Content, BannedList) of
     true ->
       F = fun() ->
