@@ -17,6 +17,8 @@
    cd mazaryn/src/golangcode
    go build -o myapp
    ./myapp
+   Open another Terminal and run: 
+   ipfs daemon
 
 3. **Clone and Setup**:
    ```bash
