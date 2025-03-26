@@ -12,14 +12,9 @@ defmodule Core.PostClient do
   end
 
   def modify_post(author, newContent, newEmoji, newMedia, newHashtag, newMention, newLink_url) do
+    content_erlang = String.to_charlist(newContent)
     :post_server.modify_post(
-      author,
-      newContent,
-      newEmoji,
-      newMedia,
-      newHashtag,
-      newMention,
-      newLink_url
+      author, content_erlang, newEmoji, newMedia, newHashtag, newMention, newLink_url
     )
   end
 

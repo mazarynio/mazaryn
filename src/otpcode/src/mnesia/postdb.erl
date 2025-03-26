@@ -49,19 +49,37 @@ insert(Author, Content, Emoji, Media, Hashtag, Mention, Link_URL) ->
   {atomic, Res} = mnesia:transaction(F),
   Res.
 
-modify_post(Author, NewContent, NewEmoji, NewMedia, NewHashtag, NewMention, NewLink_URL) ->
-  Fun = fun() ->
-            [Post] = mnesia:read({post, Author}),
-            mnesia:write(Post#post{content = erl_deen:main(NewContent),
-                                   emoji = NewEmoji,
-                                   media = NewMedia,
-                                   hashtag = NewHashtag,
-                                   mention = NewMention,
-                                   link_url = NewLink_URL,
-                                   date_updated = calendar:universal_time()})
+  modify_post(Author, NewContent, NewEmoji, NewMedia, NewHashtag, NewMention, NewLink_URL) ->
+    F = fun() ->
+              PostQuery = qlc:q([P || P <- mnesia:table(post), 
+                                       P#post.author =:= Author]),
+              Posts = qlc:e(PostQuery),
+              case Posts of
+                  [] -> 
+                      error;
+                  [Post] -> 
+                      UserID = userdb:get_user_id(Author),
+                      ContentToUse = if
+                          is_binary(NewContent) -> binary_to_list(NewContent);
+                          true -> NewContent
+                      end,
+                      CIDString = go_libp2p:add_file_to_ipfs(UserID, ContentToUse),
+                      UpdatedPost = Post#post{
+                          content = CIDString,
+                          emoji = NewEmoji,
+                          media = NewMedia,
+                          hashtag = NewHashtag,
+                          mention = NewMention,
+                          link_url = NewLink_URL,
+                          date_updated = calendar:universal_time()
+                      },
+                      mnesia:write(UpdatedPost);
+                  _ -> 
+                      error
+              end
         end,
-  {atomic, Res} = mnesia:transaction(Fun),
-  Res.
+    {atomic, Result} = mnesia:transaction(F),
+    Result.
 
 %% Get post by PostID
 get_post_by_id(Id) ->

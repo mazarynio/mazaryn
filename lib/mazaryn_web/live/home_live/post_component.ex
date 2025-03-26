@@ -124,6 +124,8 @@ defmodule MazarynWeb.HomeLive.PostComponent do
   def handle_event("update-post", %{"post" => post_params}, socket) do
     post_id = socket.assigns.edit_post_id
 
+    post_id = if is_binary(post_id), do: :erlang.binary_to_list(post_id), else: post_id
+
     changeset =
       %Post{}
       |> Post.changeset(post_params)
@@ -132,8 +134,21 @@ defmodule MazarynWeb.HomeLive.PostComponent do
       true ->
         new_content = post_params["content"]
 
+        IO.puts("Attempting to update post")
+        IO.inspect(post_id, label: "Post ID")
+        IO.inspect(new_content, label: "New Content")
+
         case PostClient.update_post(post_id, new_content) do
           :ok ->
+            try do
+              retrieved_post = rebuild_post(post_id)
+              IO.inspect(retrieved_post, label: "Retrieved Post After Update")
+            catch
+              _, e ->
+                IO.puts("Error retrieving post after update")
+                IO.inspect(e, label: "Retrieval Error")
+            end
+
             send(self(), :reload_posts)
 
             {:noreply,
@@ -142,8 +157,11 @@ defmodule MazarynWeb.HomeLive.PostComponent do
              |> assign(:edit_post_id, nil)}
 
           error ->
-            IO.inspect(error, label: "Error updating post")
-            {:noreply, socket}
+            IO.puts("Error in updating post")
+            IO.inspect(error, label: "Update Error")
+            {:noreply,
+             socket
+             |> put_flash(:error, "Failed to update post: #{inspect(error)}")}
         end
 
       false ->
@@ -392,8 +410,6 @@ end
     post_id = post_id |> to_charlist
     user_id = socket.assigns.current_user.id
 
-    # Posts.get_likes_by_post_id(post_id)
-
     like =
       post_id
       |> PostClient.get_likes()
@@ -467,35 +483,36 @@ end
   end
 
   defp activate_content_characters(post, socket) do
-    link_regex = ~r/([\w+]+\:\/\/)?([\w\d-]+\.)*[\w-]+[\.\:]\w+([\/\?\=\&\#\.]?[\w-]+)*\/?/
+    try do
+      content_str = cond do
+        ipfs_content = Core.PostClient.get_post_content_by_id(post.id) ->
+          cond do
+            is_binary(ipfs_content) -> ipfs_content
+            is_list(ipfs_content) -> List.to_string(ipfs_content)
+            true ->
+              case post.content do
+                content when is_binary(content) -> content
+                content when is_list(content) -> List.to_string(content)
+                _ ->
+                  IO.puts("Failed to retrieve post content")
+                  "No content available"
+              end
+          end
 
-    user_id = case post.user_id do
-      id when is_binary(id) -> id
-      id when is_list(id) -> List.to_string(id)
-      _ -> ""
-    end
+        true ->
+          case post.content do
+            content when is_binary(content) -> content
+            content when is_list(content) -> List.to_string(content)
+            _ ->
+              IO.puts("Failed to retrieve post content")
+              "No content available"
+          end
+      end
 
-    cid = case post.content do
-      content when is_binary(content) -> content
-      content when is_list(content) -> List.to_string(content)
-      _ -> ""
-    end
-
-    user_id_safe = :erlang.binary_to_list(user_id)
-    cid_safe = :erlang.binary_to_list(cid)
-
-    case Core.PostClient.get_file_from_ipfs(user_id_safe, cid_safe) do
-      {:error, reason} ->
-        "Error loading content: #{inspect(reason)}"
-        |> Earmark.as_html!(compact_output: true)
-        |> apply_styles()
-
-      content ->
-        content_str = case content do
-          c when is_binary(c) -> c
-          c when is_list(c) -> List.to_string(c)
-          _ -> ""
-        end
+      if content_str == "" do
+        "No content available"
+      else
+        link_regex = ~r/([\w+]+\:\/\/)?([\w\d-]+\.)*[\w-]+[\.\:]\w+([\/\?\=\&\#\.]?[\w-]+)*\/?/
 
         content_str
         |> String.split()
@@ -523,8 +540,18 @@ end
         |> Enum.join(" ")
         |> Earmark.as_html!(compact_output: true)
         |> apply_styles()
+      end
+    catch
+      type, reason ->
+        IO.puts("Unexpected error in content processing")
+        IO.inspect({type, reason}, label: "Error Details")
+
+        "Error processing content"
+        |> Earmark.as_html!(compact_output: true)
+        |> apply_styles()
     end
   end
+
 
   defp apply_styles(html) do
     html
