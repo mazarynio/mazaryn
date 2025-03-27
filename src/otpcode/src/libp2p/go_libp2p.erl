@@ -365,7 +365,7 @@ get_ipfs_multiaddr() ->
     Url = "http://localhost:5001/api/v0/id",
     case httpc:request(post, {Url, [], "application/json", <<>>}, [], []) of
         {ok, {{_, 200, _}, _, ResponseBody}} ->
-            {ok, jsx:decode(list_to_binary(ResponseBody), [return_maps])};
+            {ok, jiffy:decode(list_to_binary(ResponseBody), [return_maps])};
         {ok, {{_, Status, _}, _, ErrorBody}} ->
             {error, {Status, ErrorBody}};
         {error, Reason} ->
@@ -481,7 +481,7 @@ mfs_ls(Path) ->
     Url = "http://localhost:5001/api/v0/files/ls?arg=" ++ Path ++ "&long=true",
     case httpc:request(post, {Url, [], "application/json", <<>>}, [], []) of
         {ok, {{_, 200, _}, _, ResponseBody}} ->
-            {ok, jsx:decode(list_to_binary(ResponseBody))};
+            {ok, jiffy:decode(list_to_binary(ResponseBody))};
         {ok, {{_, Status, _}, _, ErrorBody}} ->
             {error, {Status, ErrorBody}};
         {error, Reason} ->
@@ -585,7 +585,7 @@ get_network_status(NodeId) ->
     case httpc:request(get, {Url, []}, [], []) of
         {ok, {{_, 200, _}, _, ResponseBody}} ->
             try
-                NetworkStatus = jsx:decode(list_to_binary(ResponseBody), [return_maps]),
+                NetworkStatus = jiffy:decode(list_to_binary(ResponseBody), [return_maps]),
                 {ok, NetworkStatus}
             catch
                 _:_ ->
@@ -607,7 +607,7 @@ get_file_metadata(NodeId, Cid) ->
         {ok, {{_, 200, _}, _, Body}} ->
             JsonObjects = binary:split(Body, <<"\n">>, [global, trim]),
             DecodedObjects = lists:map(fun(Json) ->
-                jsx:decode(Json, [return_maps])
+                jiffy:decode(Json, [return_maps])
             end, JsonObjects),
             {ok, DecodedObjects};
         {ok, {{_, Status, _}, _, ErrorBody}} ->
@@ -629,7 +629,7 @@ dht_find_peer(NodeId, PeerId) ->
             Url = "http://localhost:5001/api/v0/routing/findpeer?arg=" ++ PeerId,
             case httpc:request(post, {Url, [], "application/json", <<>>}, [], []) of
                 {ok, {{_, 200, _}, _, Body}} ->
-                    {ok, jsx:decode(list_to_binary(Body), [return_maps])};
+                    {ok, jiffy:decode(list_to_binary(Body), [return_maps])};
                 {ok, {{_, Status, _}, _, ErrorBody}} ->
                     {error, {Status, ErrorBody}};
                 {error, Reason} ->
@@ -647,7 +647,7 @@ dht_find_provs(NodeId, Cid) ->
             Url = "http://localhost:5001/api/v0/routing/findprovs?arg=" ++ Cid,
             case httpc:request(post, {Url, [], "application/json", <<>>}, [], []) of
                 {ok, {{_, 200, _}, _, Body}} ->
-                    {ok, jsx:decode(list_to_binary(Body))};
+                    {ok, jiffy:decode(list_to_binary(Body))};
                 {ok, {{_, Status, _}, _, ErrorBody}} ->
                     {error, {Status, ErrorBody}};
                 {error, Reason} ->
@@ -665,7 +665,7 @@ dht_provide(NodeId, Cid) ->
             Url = "http://localhost:5001/api/v0/routing/provide?arg=" ++ Cid,
             case httpc:request(post, {Url, [], "application/json", <<>>}, [], []) of
                 {ok, {{_, 200, _}, _, Body}} ->
-                    {ok, jsx:decode(list_to_binary(Body), [return_maps])};
+                    {ok, jiffy:decode(list_to_binary(Body), [return_maps])};
                 {ok, {{_, Status, _}, _, ErrorBody}} ->
                     {error, {Status, ErrorBody}};
                 {error, Reason} ->
@@ -679,7 +679,7 @@ dht_provide(NodeId, Cid) ->
 add_dag_node(Data) ->
     ensure_inets_started(),
     Url = "http://localhost:5001/api/v0/dag/put?store-codec=dag-json",
-    JsonData = jsx:encode(Data),
+    JsonData = jiffy:encode(Data),
     
     Boundary = "----------boundary" ++ integer_to_list(erlang:system_time()),
     FormData = "--" ++ Boundary ++ "\r\n" ++
@@ -693,7 +693,7 @@ add_dag_node(Data) ->
     
     case httpc:request(post, {Url, Headers, ContentType, FormData}, [], []) of
         {ok, {{_, 200, _}, _, ResponseBody}} ->
-            DecodedBody = jsx:decode(list_to_binary(ResponseBody)),
+            DecodedBody = jiffy:decode(list_to_binary(ResponseBody)),
             Cid = maps:get(<<"Cid">>, DecodedBody),
             {ok, Cid};
         {ok, {{_, Status, _}, _, ErrorBody}} ->
@@ -735,7 +735,7 @@ get_dag_node(Cid) ->
     
     case httpc:request(post, {Url, [], "application/json", <<>>}, [], []) of
         {ok, {{_, 200, _}, _, ResponseBody}} ->
-            {ok, jsx:decode(list_to_binary(ResponseBody))};
+            {ok, jiffy:decode(list_to_binary(ResponseBody))};
         {ok, {{_, Status, _}, _, ErrorBody}} ->
             {error, {Status, ErrorBody}};
         {error, Reason} ->
@@ -753,7 +753,7 @@ resolve_dag_path(Cid, Path) ->
     
     case httpc:request(post, {Url, [], "application/json", <<>>}, [], []) of
         {ok, {{_, 200, _}, _, ResponseBody}} ->
-            {ok, jsx:decode(list_to_binary(ResponseBody))};
+            {ok, jiffy:decode(list_to_binary(ResponseBody))};
         {ok, {{_, Status, _}, _, ErrorBody}} ->
             {error, {Status, ErrorBody}};
         {error, Reason} ->

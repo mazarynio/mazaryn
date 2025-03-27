@@ -8,6 +8,7 @@ from tensorflow.keras.layers import Embedding, LSTM, Dense, Dropout
 from tensorflow.keras.callbacks import ModelCheckpoint
 import pickle
 import os
+import zipfile 
 
 def extract_train_csv():
     print("Extracting train.csv from train.csv.zip...")
@@ -93,6 +94,7 @@ def save_tokenizer(tokenizer):
     print("Tokenizer saved successfully!")
 
 def main():
+    extract_train_csv()  
     train_data = load_dataset()
     
     X_train, X_val, y_train, y_val, tokenizer = preprocess_data(train_data)
@@ -104,6 +106,7 @@ def main():
     evaluate_model(model, X_val, y_val)
     
     save_tokenizer(tokenizer)
+
 
 if __name__ == "__main__":
     main()
