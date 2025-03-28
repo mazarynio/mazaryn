@@ -7,7 +7,7 @@
          get_all_posts_from_date/4, get_all_posts_from_month/3, get_all_comments_for_user/1, get_all_likes_for_user/1, get_last_50_likes_for_user/1,
          like_post/2, unlike_post/2, add_comment/3, update_comment/2, like_comment/2, update_comment_likes/2, get_comment_likes/1, get_comment_replies/1, reply_comment/3,
           get_reply/1, get_all_replies/1, delete_reply/1, get_all_comments/1, delete_comment/2, delete_comment_from_mnesia/1, get_likes/1,
-         get_single_comment/1, get_media/1, report_post/4, update_activity/2, get_user_id_by_post_id/1]).
+         get_single_comment/1, get_media/1, report_post/4, update_activity/2, get_user_id_by_post_id/1, get_comment_content/1, get_reply_content/1]).
 -export([get_comments/0]).
 
 -include("../records.hrl").
@@ -305,7 +305,11 @@ get_last_50_likes_for_user(UserID) ->
 add_comment(Author, PostID, Content) ->
   Fun = fun() ->
       UserID = userdb:get_user_id(Author),
-      %% Check if the post exists
+      ContentToUse = if
+          is_binary(Content) -> binary_to_list(Content);
+          true -> Content
+      end,
+      CIDString = go_libp2p:add_file_to_ipfs(UserID, ContentToUse),
       case mnesia:read({post, PostID}) of
           [] -> 
               {error, post_not_found}; 
@@ -317,7 +321,7 @@ add_comment(Author, PostID, Content) ->
                   user_id = UserID,
                   post = PostID,
                   author = Author,
-                  content = Content,
+                  content = CIDString,
                   date_created = calendar:universal_time()
               },
               mnesia:write(Comment),
@@ -334,7 +338,7 @@ add_comment(Author, PostID, Content) ->
 
   case mnesia:transaction(Fun) of
       {atomic, Id} -> 
-          Id;  %% Return the ID of the newly added comment
+          Id;  
       {atomic, {error, Reason}} -> 
           {error, Reason};  
       {aborted, Reason} -> 
@@ -343,13 +347,30 @@ add_comment(Author, PostID, Content) ->
 
 
 update_comment(CommentID, NewContent) ->
-  Fun = fun() ->
+  Fun = fun() ->    
             [Comment] = mnesia:read({comment, CommentID}),
-            mnesia:write(Comment#comment{content = NewContent}),
+            UserID = userdb:get_user_id(Comment#comment.author),
+            ContentToUse = if
+                is_binary(NewContent) -> binary_to_list(NewContent);
+                true -> NewContent
+            end,
+            CIDString = go_libp2p:add_file_to_ipfs(UserID, ContentToUse),
+            mnesia:write(Comment#comment{content = CIDString}),
             CommentID
         end,
   {atomic, Res} = mnesia:transaction(Fun),
   Res.
+
+get_comment_content(CommentID) ->
+  Fun = fun() ->
+              [Comment] = mnesia:read({comment, CommentID}),
+              UserID = userdb:get_user_id(Comment#comment.author),
+              CID = Comment#comment.content,
+              Content = go_libp2p:get_file_from_ipfs(UserID, CID),
+              Content  
+          end,
+    {atomic, Res} = mnesia:transaction(Fun),
+    Res.
 
 like_comment(UserID, CommentId) ->  
   Fun = fun() ->
@@ -379,7 +400,7 @@ get_comment_likes(CommentID) ->
   Fun = fun() ->
             case mnesia:read({comment, CommentID}) of
                 [] -> 
-                    [];  % Return an empty list if the comment doesn't exist
+                    [];  
                 [Comment] ->
                     lists:foldl(fun(ID, Acc) ->
                                     [Like] = mnesia:read({like, ID}),
@@ -409,18 +430,22 @@ get_comment_replies(CommentID) ->
 
 reply_comment(UserID, CommentID, Content) ->
   Fun = fun() ->
-      %% Check if the post exists
       case mnesia:read({comment, CommentID}) of
           [] -> 
               {error, comment_not_found}; 
           [Comment] ->
               Id = nanoid:gen(),
+              ContentToUse = if
+                  is_binary(Content) -> binary_to_list(Content);
+                  true -> Content
+              end,
+              CIDString = go_libp2p:add_file_to_ipfs(UserID, ContentToUse),
 
               Reply = #reply{
                   id = Id,
                   comment = CommentID,
                   userID = UserID,
-                  content = Content,
+                  content = CIDString,
                   date_created = calendar:universal_time()
               },
               mnesia:write(Reply),
@@ -443,6 +468,17 @@ reply_comment(UserID, CommentID, Content) ->
       {aborted, Reason} -> 
           {error, transaction_failed, Reason}  
   end.
+
+get_reply_content(ReplyID) ->
+  Fun = fun() ->
+              [Reply] = mnesia:read({reply, ReplyID}),
+              UserID = Reply#reply.userID,
+              CID = Reply#reply.content,
+              Content = go_libp2p:get_file_from_ipfs(UserID, CID),
+              Content  
+          end,
+    {atomic, Res} = mnesia:transaction(Fun),
+    Res.
 
 delete_reply_from_mnesia(ReplyID) ->
   Fun = fun() -> 
