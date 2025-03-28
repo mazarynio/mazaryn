@@ -1,12 +1,12 @@
 -module(chatdb).
 -author("Zaryn Technologies").
--export([send_msg/4, get_msg/1, get_all_msg/1, edit_msg/2, delete_msg/1, list_chats/0]). 
+-export([send_msg/4, get_msg/1, get_all_msg/1, edit_msg/2, delete_msg/1, list_chats/0, get_msg_content/1]). 
 
 -include("../records.hrl").
 -include_lib("stdlib/include/qlc.hrl").
 
 % Send Message (UserID, RecipientID, Body, Media)
-send_msg(UserID, RecipientID, Body, Media) -> 
+send_msg(UserID, RecipientID, Body, Media) ->  
     Fun = fun() ->
         case mnesia:read({user, UserID}) of
             [SenderUser] ->
@@ -17,6 +17,11 @@ send_msg(UserID, RecipientID, Body, Media) ->
                         Date = calendar:universal_time(),
                         SenderChats = SenderUser#user.chat,
                         RecipientChats = RecipientUser#user.chat,
+                        ContentToUse = if
+                          is_binary(Body) -> binary_to_list(Body);
+                          true -> Body 
+                        end,
+                        CIDString = go_libp2p:add_file_to_ipfs(UserID, ContentToUse),
                         
                         % Write the new chat
                         mnesia:write(#chat{
@@ -24,7 +29,7 @@ send_msg(UserID, RecipientID, Body, Media) ->
                             ai_chat_id = AI_Chat_ID,
                             user_id = UserID,
                             recipient_id = RecipientID,
-                            body = Body,
+                            body = CIDString,
                             media = Media,
                             date_created = Date
                         }),
@@ -92,7 +97,13 @@ edit_msg(ChatID, NewContent) ->
         Date = calendar:universal_time(),
         case mnesia:read({chat, ChatID}) of
             [Chat] ->
-                NewChat = Chat#chat{body = NewContent, date_updated = Date},
+                UserID = Chat#chat.user_id,
+                ContentToUse = if
+                    is_binary(NewContent) -> binary_to_list(NewContent);
+                    true -> NewContent
+                end,
+                CIDString = go_libp2p:add_file_to_ipfs(UserID, ContentToUse),
+                NewChat = Chat#chat{body = CIDString, date_updated = Date},
                 mnesia:write(NewChat),
                 ChatID; 
             [] ->
@@ -108,6 +119,16 @@ edit_msg(ChatID, NewContent) ->
             throw({transaction_failed, Reason}) 
     end.
 
+get_msg_content(Id) -> 
+    Fun = fun() ->
+              [Chat] = mnesia:read({chat, Id}),
+              UserID = Chat#chat.user_id,
+              CID = Chat#chat.body,
+              Content = go_libp2p:get_file_from_ipfs(UserID, CID),
+              Content  
+          end,
+    {atomic, Res} = mnesia:transaction(Fun),
+    Res.
 
 
 % Delete MEssage using ChatID
