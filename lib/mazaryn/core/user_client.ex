@@ -38,9 +38,27 @@ defmodule Core.UserClient do
 
   ## Get User Informations using Username
   def get_user(username) do
-    :user_server.get_user(username)
+    username_str =
+      cond do
+        is_binary(username) -> username
+        is_list(username) -> to_string(username)
+        is_atom(username) -> Atom.to_string(username)
+        true -> to_string(username)
+      end
+    :user_server.get_user(username_str)
   end
 
+  def get_user_id(username) do
+    username_str =
+      cond do
+        is_binary(username) -> username
+        is_list(username) -> to_string(username)
+        is_atom(username) -> Atom.to_string(username)
+        true -> to_string(username)
+      end
+
+    :userdb.get_user_id(username_str)
+  end
   def get_user_in_transaction(username) do
     :user_server.get_user_in_transaction(username)
   end

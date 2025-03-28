@@ -98,6 +98,17 @@ defmodule Core.PostClient do
     :post_server.update_comment(commentID, newContent)
   end
 
+  def get_comment_content(commentID) do
+    commentID_str =
+      cond do
+        is_binary(commentID) -> commentID
+        is_list(commentID) -> to_string(commentID)
+        is_atom(commentID) -> Atom.to_string(commentID)
+        true -> to_string(commentID)
+      end
+    :postdb.get_comment_content(commentID_str)
+  end
+
   def like_comment(userID, commentID) do
     :post_server.like_comment(userID, commentID)
   end
@@ -108,6 +119,10 @@ defmodule Core.PostClient do
 
   def reply_comment(userID, commentID, content) do
     :post_server.reply_comment(userID, commentID, content)
+  end
+
+  def get_reply_content(replyID) do
+    :postdb.get_reply_content(replyID)
   end
 
   def get_reply(replyID) do
