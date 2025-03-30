@@ -10,7 +10,7 @@
     get_peerid/1, add_dag_node/1, link_dag_nodes/1, get_dag_node/1, resolve_dag_path/2, traverse_dag/1,
     ping_peer/2, bitswap_wantlist/0, bitswap_stat/0, bitswap_ledger/1, 
     connect_to_peer/2, mfs_mkdir/1, mfs_write/2, mfs_ls/1, mfs_read/1, mfs_rm/1, mfs_cp/2, mfs_mv/2,
-    get_peers/1,
+    get_peers/1, ensure_inets_started/0,
     subscribe_to_topic/2,
     unsubscribe_from_topic/2,
     publish_message/3,
@@ -21,6 +21,8 @@
 
 -define(BASE_URL, "http://localhost:3000").
 -define(DEFAULT_NODE, "default").
+
+
 
 %% Ensure inets and ssl applications are started
 ensure_inets_started() ->
