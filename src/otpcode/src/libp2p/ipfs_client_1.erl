@@ -1,4 +1,4 @@
--module(ipfs_client).
+-module(ipfs_client_1).
 -author("Zaryn Technologies").
 -export([block_get/1, block_get_raw/1, extract_json/1, add_file/2, add_file/3, bitswap_ledger/1, bitswap_stat/0, bitswap_stat/1,
 bitswap_wantlist/0, bitswap_wantlist/1, block_put/2, block_put/3, block_rm/1, block_rm/2, block_stat/1, bootstrap/0, bootstrap_list/0, bootstrap_add/1,
