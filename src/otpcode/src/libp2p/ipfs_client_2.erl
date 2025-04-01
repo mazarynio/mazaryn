@@ -2,7 +2,7 @@
 -author("Zaryn Technologies").
 -export([merge_options/2, cid_hashes/0, cid_hashes/1, cid_hashes/2, commands/0, commands/1, config_get/1, config_set/2, config_set/3, config_profile_apply/1,
 config_profile_apply/2, config_replace/1, config_show/0, dag_export/1, dag_export/2, dag_get/1, dag_get/2, dag_import/2, dag_put/1, dag_put/2, dag_resolve/1,
-dag_stat/1, dag_stat/2]).
+dag_stat/1, dag_stat/2, diag_cmds/0, diag_cmds/1, diag_cmds_clear/0, diag_cmds_set_time/1, diag_profile/0, diag_profile/1, diag_sys/0]).
 
 -define(RPC_API, "http://localhost:5001/api").
 
@@ -425,25 +425,174 @@ dag_stat(RootCID, Progress) when is_list(RootCID) orelse is_binary(RootCID) ->
             {progress, Progress}
         ]),
         Url = ?RPC_API ++ "/v0/dag/stat" ++ QueryString,
+        
         case httpc:request(post, 
                          {Url, [], "application/json", ""},
                          [],
                          [{body_format, binary}]) of
-            {ok, {{_, 200, _}, Headers, Body}} ->
-                case proplists:get_value("content-type", Headers) of
-                    "application/json" ++ _ ->
-                        try jsx:decode(Body) of
-                            #{<<"DagStats">> := DagStats} = FullResponse ->
-                                {ok, DagStats, maps:remove(<<"DagStats">>, FullResponse)};
-                            Other ->
-                                {error, {unexpected_format, Other}}
-                        catch
-                            error:_ ->
-                                {error, {invalid_json, Body}}
+            {ok, {{_, 200, _}, _, Body}} ->
+                DecodedResult = try_decode(Body),
+                case DecodedResult of
+                    {ok, Decoded} ->
+                        case Decoded of
+                            #{<<"DagStats">> := DagStats} ->
+                                Summary = maps:remove(<<"DagStats">>, Decoded),
+                                {ok, DagStats, Summary};
+                            _ ->
+                                {error, {missing_dag_stats_key, Decoded}}
                         end;
-                    ContentType ->
-                        {error, {unexpected_content_type, ContentType}}
+                    {error, _} = Error ->
+                        Error
                 end;
+            {ok, {{_, StatusCode, _}, _, Body}} ->
+                {error, {status_code, StatusCode, Body}};
+            {error, Reason} ->
+                {error, Reason}
+        end
+    catch
+        error ->
+            error 
+    end.
+
+try_decode(Body) ->
+    try
+        {ok, jsx:decode(Body)}
+    catch
+        _:_ ->
+            try
+                {ok, jiffy:decode(Body, [return_maps])}
+            catch
+                _:_ ->
+                    try
+                        {match, [CapturedJson]} = re:run(Body, 
+                                                        "{\".*DagStats.*}",
+                                                        [{capture, all, binary}]),
+                        {ok, jsx:decode(CapturedJson)}
+                    catch
+                        _:_ ->
+                            {error, {all_decoding_attempts_failed, Body}}
+                    end
+            end
+    end.
+
+%% List commands run on this IPFS node.
+diag_cmds() ->
+    diag_cmds(false).
+
+%% {ok, VerboseCmds} = ipfs_client_2:diag_cmds(true).
+diag_cmds(Verbose) when is_boolean(Verbose) ->
+    try
+        QueryString = build_query_string([{verbose, Verbose}]),
+        Url = ?RPC_API ++ "/v0/diag/cmds" ++ QueryString,
+        
+        case httpc:request(post, 
+                         {Url, [], "application/json", ""},
+                         [],
+                         [{body_format, binary}]) of
+            {ok, {{_, 200, _}, _, Body}} ->
+                {ok, jiffy:decode(Body)};
+            {ok, {{_, StatusCode, _}, _, Body}} ->
+                {error, {status_code, StatusCode, Body}};
+            {error, Reason} ->
+                {error, Reason}
+        end
+    catch
+        error ->
+            error 
+    end.
+
+%% Clear inactive requests from the log.
+diag_cmds_clear() ->
+    try
+        Url = ?RPC_API ++ "/v0/diag/cmds/clear",
+        case httpc:request(post, 
+                         {Url, [], "application/json", ""},
+                         [],
+                         [{body_format, binary}]) of
+            {ok, {{_, 200, _}, _, _}} ->
+                ok;
+            {ok, {{_, StatusCode, _}, _, Body}} ->
+                {error, {status_code, StatusCode, Body}};
+            {error, Reason} ->
+                {error, Reason}
+        end
+    catch
+        error ->
+            error 
+    end.
+
+%% @doc Set how long to keep inactive requests in the log
+%% ok = ipfs_client_2:diag_cmds_set_time("5m").
+%% ok = ipfs_client_2:diag_cmds_set_time("1h30m").
+diag_cmds_set_time(Time) when is_list(Time) orelse is_binary(Time) ->
+    try
+        QueryString = build_query_string([{arg, Time}]),
+        Url = ?RPC_API ++ "/v0/diag/cmds/set-time" ++ QueryString,
+        
+        case httpc:request(post, 
+                         {Url, [], "application/json", ""},
+                         [],
+                         [{body_format, binary}]) of
+            {ok, {{_, 200, _}, _, _}} ->
+                ok;
+            {ok, {{_, StatusCode, _}, _, Body}} ->
+                {error, {status_code, StatusCode, Body}};
+            {error, Reason} ->
+                {error, Reason}
+        end
+    catch
+        error ->
+            error 
+    end.
+
+diag_profile() ->
+    diag_profile([]).
+
+%% {ok, OutputPath} = ipfs_client_2:diag_profile([{output, "/tmp/profile.zip"}, {profile_time, "10s"}]).
+diag_profile(Options) when is_list(Options) ->
+    try
+        DefaultFilename = "./ipfs-profile-" ++ timestamp() ++ ".zip",
+        OutputPath = proplists:get_value(output, Options, DefaultFilename),
+        
+        BaseUrl = ?RPC_API ++ "/v0/diag/profile",
+        
+        ProfileTime = proplists:get_value(profile_time, Options, "30s"),
+        QueryString = "?profile-time=" ++ uri_string:quote(ProfileTime),
+        
+        Url = BaseUrl ++ QueryString,
+        
+        case httpc:request(post, 
+                         {Url, [], "application/json", ""},
+                         [],
+                         [{body_format, binary}]) of
+            {ok, {{_, 200, _}, _Headers, Body}} ->
+                case file:write_file(OutputPath, Body) of
+                    ok -> 
+                        {ok, OutputPath};
+                    {error, WriteError} ->
+                        {error, {file_write_error, WriteError}}
+                end;
+            {ok, {{_, StatusCode, _}, _, Body}} ->
+                {error, {status_code, StatusCode, binary_to_list(Body)}};
+            {error, Reason} ->
+                {error, Reason}
+        end
+    catch
+        error ->
+            error 
+    end.
+
+%% @doc Print system diagnostic information
+%% {ok, SysInfo} = ipfs_client_2:diag_sys().
+diag_sys() ->
+    try
+        Url = ?RPC_API ++ "/v0/diag/sys",
+        case httpc:request(post, 
+                         {Url, [], "application/json", ""},
+                         [],
+                         [{body_format, binary}]) of
+            {ok, {{_, 200, _}, _, Body}} ->
+                {ok, binary_to_list(Body)};
             {ok, {{_, StatusCode, _}, _, Body}} ->
                 {error, {status_code, StatusCode, Body}};
             {error, Reason} ->
@@ -484,3 +633,9 @@ merge_options(Defaults, Options) ->
     lists:ukeymerge(1, 
         lists:ukeysort(1, Options), 
         lists:ukeysort(1, Defaults)).
+
+%% Generate timestamp for default filename
+timestamp() ->
+    {{Year, Month, Day}, {Hour, Minute, Second}} = calendar:local_time(),
+    lists:flatten(io_lib:format("~4..0w~2..0w~2..0w-~2..0w~2..0w~2..0w", 
+                               [Year, Month, Day, Hour, Minute, Second])).
