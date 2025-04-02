@@ -131,7 +131,7 @@ files_flush(Path) when is_list(Path) orelse is_binary(Path) ->
 files_ls() ->
     files_ls([]).
 
-files_ls(Options) ->
+files_ls(Options) when is_list(Options) ->
     try
         Defaults = [
             {arg, "/"},
@@ -139,11 +139,11 @@ files_ls(Options) ->
             {'U', false},
             {timeout, 30000}  % 30 second timeout
         ],
-        MergedOpts = merge_options(Options, Defaults),
+        MergedOpts = merge_options_v2(Defaults, Options),
         
         HttpOptions = [{timeout, proplists:get_value(timeout, MergedOpts)}],
         
-        QueryString = build_query_string([
+        QueryString = build_query_string_v2([
             {arg, proplists:get_value(arg, MergedOpts)},
             {long, proplists:get_value(long, MergedOpts)},
             {'U', proplists:get_value('U', MergedOpts)}
@@ -168,9 +168,15 @@ files_ls(Options) ->
                 {error, Reason}
         end
     catch
-        error ->
-            error 
-    end.
+        error:Error ->
+            {error, Error}
+    end;
+
+files_ls(Path) when is_list(Path), is_integer(hd(Path)) ->
+    files_ls([{arg, Path}]);
+
+files_ls(Path) when is_binary(Path) ->
+    files_ls([{arg, binary_to_list(Path)}]).
 
 %% ok = ipfs_client_2:files_mkdir("/new-dir").
 %% ok = ipfs_client_2:files_mkdir("/path/to/new-dir", [{parents, true}]).
@@ -413,19 +419,26 @@ files_write(Path, Data, Options) when (is_list(Path) orelse is_binary(Path)) and
             {hash, undefined}
         ],
         
-        MergedOpts = merge_options(Options, Defaults),
+        FixedOptions = lists:map(
+            fun
+                ({cid_version, Value}) -> {'cid-version', Value};
+                ({raw_leaves, Value}) -> {'raw-leaves', Value};
+                (Other) -> Other
+            end, Options),
+        
+        MergedOpts = merge_options_v3(FixedOptions, Defaults),
         
         QueryParams = lists:filtermap(
             fun({Key, Value}) ->
                 case Value of
                     undefined -> false;
                     false -> false;
-                    true -> {true, {Key, true}};
-                    _ -> {true, {Key, Value}}
+                    true -> {true, {atom_to_string(Key), true}};
+                    _ -> {true, {atom_to_string(Key), Value}}
                 end
             end, MergedOpts),
         
-        QueryString = build_query_string([{arg, Path}|QueryParams]),
+        QueryString = build_query_string_v3([{arg, Path}|QueryParams]),
         Url = ?RPC_API ++ "/v0/files/write" ++ QueryString,
         
         Boundary = "------" ++ integer_to_list(erlang:unique_integer([positive])),
@@ -454,6 +467,12 @@ files_write(Path, Data, Options) when (is_list(Path) orelse is_binary(Path)) and
         error ->
             error 
     end.
+
+atom_to_string(Atom) when is_atom(Atom) ->
+    AtomStr = atom_to_list(Atom),
+    re:replace(AtomStr, "-", "\\-", [global, {return, list}]);
+atom_to_string(Other) ->
+    Other.
 
 %% @doc List blocks that exist in both filestore and standard block storage
 %% Returns:
@@ -610,3 +629,56 @@ merge_options(Defaults, Options) ->
     lists:ukeymerge(1, 
         lists:ukeysort(1, Options), 
         lists:ukeysort(1, Defaults)).
+
+merge_options_v2(Defaults, Options) ->
+    ValidOptions = case is_list(Options) of
+        true -> 
+            [Option || Option <- Options, is_tuple(Option), tuple_size(Option) >= 2];
+        false -> 
+            []
+    end,
+    
+    lists:ukeymerge(1, 
+        lists:ukeysort(1, ValidOptions), 
+        lists:ukeysort(1, Defaults)).
+
+build_query_string_v2(Params) ->
+    QueryParts = lists:map(
+        fun({Key, Value}) when is_atom(Key) ->
+            KeyStr = atom_to_list(Key),
+            case Value of
+                true -> KeyStr ++ "=true";
+                false -> KeyStr ++ "=false";
+                V when is_list(V) -> KeyStr ++ "=" ++ uri_string:quote(V);
+                V when is_binary(V) -> KeyStr ++ "=" ++ uri_string:quote(binary_to_list(V));
+                V when is_integer(V) -> KeyStr ++ "=" ++ integer_to_list(V);
+                _ -> KeyStr
+            end
+        end, 
+        Params),
+    case QueryParts of
+        [] -> "";
+        _ -> "?" ++ string:join(QueryParts, "&")
+    end.
+
+merge_options_v3(Options, Defaults) ->
+    lists:foldl(
+        fun({Key, Value}, Acc) ->
+            lists:keystore(Key, 1, Acc, {Key, Value})
+        end, Defaults, Options).
+
+build_query_string_v3(Params) ->
+    QueryParts = lists:map(
+        fun
+            ({Key, true}) ->
+                io_lib:format("~s=true", [Key]);
+            ({Key, Value}) when is_integer(Value) ->
+                io_lib:format("~s=~B", [Key, Value]);
+            ({Key, Value}) when is_list(Value) ->
+                io_lib:format("~s=~s", [Key, uri_string:quote(Value)]);
+            ({Key, Value}) when is_binary(Value) ->
+                io_lib:format("~s=~s", [Key, uri_string:quote(binary_to_list(Value))]);
+            ({Key, Value}) ->
+                io_lib:format("~s=~s", [Key, Value])
+        end, Params),
+    "?" ++ string:join(QueryParts, "&").
