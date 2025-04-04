@@ -1,4 +1,4 @@
--module(go_libp2p_cluster).
+-module(ipfs_cluster).
 -author("Zaryn Technologies").
 -export([
     get_cluster_info/0,
@@ -62,8 +62,6 @@ recover_pin(Cid) ->
 
 recover_all_pins() ->
     request(post, "/pins/recover").
-
-%%% Health and Monitoring Endpoints %%%
 
 get_cluster_health() ->
     case request(get, "/health") of

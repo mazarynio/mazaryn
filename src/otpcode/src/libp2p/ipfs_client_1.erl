@@ -523,18 +523,20 @@ extract_json(BlockData) ->
 add_file(Filename, FileData) ->
     add_file(Filename, FileData, []).
 
-%% Add a file to IPFS with custom options
 add_file(Filename, FileData, Options) ->
     Url = ?RPC_API ++ "/v0/add",
-    
     MergedOpts = merge_options(?DEFAULT_ADD_OPTS, Options),
     QueryString = build_query_string(MergedOpts),
     
-    Boundary = "------" ++ integer_to_list(erlang:unique_integer([positive])),
+    Boundary = generate_boundary(),
     ContentType = "multipart/form-data; boundary=" ++ Boundary,
     
     FormData = [
         "--", Boundary, "\r\n",
+        case proplists:get_value(nocopy, Options, false) of
+            true -> "Abspath: " ++ Filename ++ "\r\n";
+            false -> ""
+        end,
         "Content-Disposition: form-data; name=\"file\"; filename=\"", Filename, "\"\r\n",
         "Content-Type: application/octet-stream\r\n\r\n",
         FileData, "\r\n",
@@ -542,17 +544,28 @@ add_file(Filename, FileData, Options) ->
     ],
     
     FullUrl = Url ++ QueryString,
-    case httpc:request(post, {FullUrl, [], ContentType, list_to_binary(FormData)}, [], [{body_format, binary}]) of
-        {ok, {{_, 200, _}, _Headers, Body}} ->
-            jsx:decode(Body);
-        {ok, {{_, StatusCode, _}, _Headers, Body}} ->
-            {error, {status_code, StatusCode, Body}};
+    case httpc:request(post, {FullUrl, [], ContentType, iolist_to_binary(FormData)}, [], [{body_format, binary}]) of
+        {ok, {{_, 200, _}, _, Body}} ->
+            parse_ipfs_response(Body);
+        {ok, {{_, Code, _}, _, Body}} ->
+            {error, {ipfs_error, Code, Body}};
         {error, Reason} ->
             {error, Reason}
     end.
 
+parse_ipfs_response(Body) ->
+    case jsx:decode(Body, [return_maps]) of
+        #{<<"Hash">> := Hash} -> {ok, Hash};
+        #{<<"Message">> := Msg} -> {error, Msg};
+        _ -> {error, malformed_response}
+    end.
+
+%% Generate a random boundary
+generate_boundary() ->
+    "------" ++ integer_to_list(erlang:unique_integer([positive])).
+
 %% Get the Bitswap ledger for a specific peer
-%% ipfs_client:bitswap_ledger("12D3VooWGH2j4bWCJUNzb9NzkT6BLufcVYXvjyT4oZe5V5PTucr2")
+%% ipfs_client_1:bitswap_ledger("12D3VooWGH2j4bWCJUNzb9NzkT6BLufcVYXvjyT4oZe5V5PTucr2")
 bitswap_ledger(PeerID) ->
     Url = ?RPC_API ++ "/v0/bitswap/ledger?arg=" ++ PeerID,
     case httpc:request(post, {Url, [], "application/json", ""}, [], [{body_format, binary}]) of
