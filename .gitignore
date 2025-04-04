@@ -48,6 +48,9 @@ mazaryn-front
 /src/pycode/ai/*.h5
 /src/pycode/ai/*.pkl 
 /src/pycode/ai/*.zip
+/src/pycode/text_classification_model
+/src/jscode/node_modules 
+/src/jscode/package-lock.json
 
 .idea
 .iex.exs

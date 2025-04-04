@@ -23,16 +23,17 @@ defmodule Account.UserNotifier do
   Deliver instructions to confirm account.
   """
   def deliver_confirmation_instructions(user, url) do
-    deliver(user.email, "Confirmation instructions", """
+    case deliver(user.email, "Confirmation instructions", """
     ==============================
     Hi #{user.email},
     You can confirm your account by visiting the URL below:
-
     <a href="#{url}">#{url}</a>
-
     If you didn't create an account with us, please ignore this.
     ==============================
-    """)
+    """) do
+      {:ok, _} -> {:ok, :email_sent}
+      {:error, reason} -> {:error, reason}
+    end
   end
 
   @doc """

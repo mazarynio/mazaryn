@@ -112,6 +112,12 @@
                date_updated,
                data = #{} }).
 
+-record(p2p_node, { 
+    address,
+    date_created,
+    data = #{}
+}).
+
 
 -record(event, {name, date, loc, desc, data = #{} }).
 -record(follower, {id, username, data = #{}}).

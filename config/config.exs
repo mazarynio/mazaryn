@@ -10,7 +10,8 @@ import Config
 config :ex_heroicons, type: "solid"
 
 config :mazaryn,
-  ecto_repos: [Mazaryn.Repo]
+  ecto_repos: [Mazaryn.Repo],
+  env: config_env()
 
 # Configures the endpoint
 config :mazaryn, MazarynWeb.Endpoint,

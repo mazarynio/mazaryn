@@ -94,12 +94,19 @@ defmodule MazarynWeb.AuthLive.Signup do
          verification_url =
            MazarynWeb.Router.Helpers.url(socket) <>
              Routes.confirm_account_path(socket, :index, locale, token_id),
-         {:ok, _} <-
-           Account.UserNotifier.deliver_confirmation_instructions(user, verification_url) |> dbg() do
+         {:ok, _} <- Account.UserNotifier.deliver_confirmation_instructions(user, verification_url) do
       insert_session_token(key, email)
       Core.NotifEvent.welcome(user.id)
       {:noreply, push_redirect(socket, to: "/approve")}
     else
+      {:error, :connect_timeout} ->
+        changeset =
+          changeset
+          |> Ecto.Changeset.add_error(:email, "Failed to send confirmation email. Please try again.")
+          |> Ecto.Changeset.put_change(:form_disabled, false)
+
+        {:noreply, assign(socket, changeset: changeset)}
+
       :username_and_email_existed ->
         changeset =
           changeset
@@ -112,7 +119,8 @@ defmodule MazarynWeb.AuthLive.Signup do
         changeset = Ecto.Changeset.put_change(changeset, :form_disabled, false)
         Logger.info(changeset: changeset)
         {:noreply, assign(socket, changeset: changeset)}
-    end
+  end
+
 
     # case Signup.Form.create_user(changeset) do
     #   {:ok, %Account.User{email: email} = user} ->

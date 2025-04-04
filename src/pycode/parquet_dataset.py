@@ -8,7 +8,8 @@ from dataset import (
     science_keywords,
     sport_keywords,
     tech_keywords,
-    travel_keywords
+    travel_keywords,
+    politic_keywords
 )
 
 def save_all_keywords(output_file="keywords.parquet"):
@@ -40,6 +41,9 @@ def save_all_keywords(output_file="keywords.parquet"):
     travel_df = travel_keywords.get_travel_keywords()
     print(f"Loaded {len(travel_df)} travel keywords.")
 
+    politic_df = politic_keywords.get_politics_keywords()
+    print(f"Loaded {len(politic_df)} politic keywords.")
+
     # Combine all DataFrames and remove duplicates
     combined_df = pd.concat([
         art_df,
@@ -50,7 +54,8 @@ def save_all_keywords(output_file="keywords.parquet"):
         science_df,
         sport_df,
         tech_df,
-        travel_df
+        travel_df,
+        politic_df
     ]).drop_duplicates(subset=["keyword"])
 
     print(f"Total unique keywords: {len(combined_df)}")

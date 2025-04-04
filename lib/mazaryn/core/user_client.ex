@@ -8,6 +8,7 @@ defmodule Core.UserClient do
       iex> Core.UserClient.register("my_username", "my_pass", "my_email")
       ~c"zKegB4mWRXP3PDVuntpnA"
   """
+  @spec register(String.t(), String.t(), String.t()) :: atom() | charlist()
   def register(username, password, email) do
     :user_server.start_link()
     :user_server.create_account(username, password, email)

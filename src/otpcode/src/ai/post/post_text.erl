@@ -17,7 +17,7 @@ category(Content) ->
         {ok, {{_, 200, _}, _, ResponseBody}} ->
             case jsx:decode(list_to_binary(ResponseBody), [return_maps]) of
                 #{<<"categories">> := Categories} ->
-                    CategoryList = [binary_to_list(maps:get(<<"category">>, Cat)) || Cat <- Categories],
+                    CategoryList = [binary_to_list(Cat) || Cat <- Categories],
                     CategoryList;
                 _ ->
                     {error, invalid_response}
