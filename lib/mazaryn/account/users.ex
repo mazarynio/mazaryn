@@ -97,9 +97,14 @@ defmodule Account.Users do
   def register(username, pass, email) do
     case UserClient.register(username, pass, email) do
       user_id when is_list(user_id) ->
-        username
-        |> Mail.UserEmail.register_email(email)
-        |> Mailer.deliver()
+        case Mail.UserEmail.register_email(username, email) |> Mailer.deliver() do
+          {:ok, _} ->
+            {:ok, user_id}
+
+          {:error, reason} ->
+            Logger.error("[Users] Failed to send registration email to #{email}: #{inspect(reason)}")
+            {:error, :email_delivery_failed}
+        end
 
       res ->
         Logger.error("[Users] Failed to register user #{username}: #{res}")

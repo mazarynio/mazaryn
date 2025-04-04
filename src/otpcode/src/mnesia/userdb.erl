@@ -55,7 +55,7 @@ set_user_info(Username, Fields, Values) ->
   Res. 
 
 %% Register User account
-insert(Username, Password, Email) -> 
+insert(Username, Password, Email) ->  
     %% check username exist or not
     Fun = fun() ->
             case {check_username(Username), check_email(Email)} of
@@ -67,7 +67,9 @@ insert(Username, Password, Email) ->
                 Address = key_guardian:gen_address(80),
                 QuantumID = key_guardian:gen_address(80),
                 KNode = kademlia:insert_node(Id),
+                P2P_Node = p2pdb:insert(Id),
                 User = #user{id = Id,
+                             p2p_node_address = P2P_Node,
                              ai_user_id = AI_User_ID,
                              quantum_id = QuantumID,
                              username = Username,

@@ -83,10 +83,14 @@ config :phoenix, :plug_init_mode, :runtime
 # config :swoosh, :api_client, false
 config :swoosh, :api_client, Swoosh.ApiClient.Hackney
 
+# config/dev.exs
+config :mazaryn, Mazaryn.Mailer,
+  adapter: Swoosh.Adapters.Local
+
 config :joken, default_signer: "secret"
 
 config :mazaryn, Mazaryn.Mailer,
   adapter: Swoosh.Adapters.Local,
-  api_key: "",
-  secret: "",
+  api_key: System.get_env("MAILJET_API_KEY"),
+  secret: System.get_env("MAILJET_SECRET_KEY"),
   api_client: false

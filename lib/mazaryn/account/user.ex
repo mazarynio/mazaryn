@@ -8,6 +8,7 @@ defmodule Account.User do
 
   @optional_fields ~w(
     id
+    p2p_node_address
     ai_user_id
     business_id
     username
@@ -45,6 +46,7 @@ defmodule Account.User do
 
   embedded_schema do
     field(:form_disabled, :boolean)
+    field(:p2p_node_address, :string)
     field(:ai_user_id, :string)
     field(:business_id, {:array, :string}, default: [])
     field(:ads_id, {:array, :string}, default: [])
@@ -83,7 +85,7 @@ defmodule Account.User do
   end
 
   def erl_changeset(
-        {:user, id, ai_user_id, business_id, ads_id, quantum_id, username, password, email,
+        {:user, id, p2p_node_address, ai_user_id, business_id, ads_id, quantum_id, username, password, email,
          address, knode, media, posts, blog_post, notif, following, follower, blocked,
          saved_posts, other_info, private, date_created, date_updated, avatar_url, banner_url,
          token_id, chat, verified, report, level, last_activity, suspend, data} = _user
@@ -109,6 +111,7 @@ defmodule Account.User do
     %__MODULE__{}
     |> change(%{
       id: id,
+      p2p_node_address: p2p_node_address,
       ai_user_id: ai_user_id,
       business_id: business_id,
       ads_id: ads_id,

@@ -11,7 +11,6 @@ defmodule MazarynWeb.HomeLive.PostComponent do
   alias Mazaryn.Schema.Post
   alias Phoenix.LiveView.JS
 
-  # TODO: revert to the deprecated `preload/1` if this doesn't work; I think it works
   @impl Phoenix.LiveComponent
   def update_many(list_of_assigns) do
     changeset = Comment.changeset(%Comment{})
@@ -40,7 +39,7 @@ defmodule MazarynWeb.HomeLive.PostComponent do
 
       Map.put(comment, :replies, list_replies)
     end)
-            
+
       assigns =
         assigns
         |> Map.put(:follow_event, follow_event(assigns.current_user.id, assigns.post.author))
@@ -125,6 +124,8 @@ defmodule MazarynWeb.HomeLive.PostComponent do
   def handle_event("update-post", %{"post" => post_params}, socket) do
     post_id = socket.assigns.edit_post_id
 
+    post_id = if is_binary(post_id), do: :erlang.binary_to_list(post_id), else: post_id
+
     changeset =
       %Post{}
       |> Post.changeset(post_params)
@@ -133,8 +134,21 @@ defmodule MazarynWeb.HomeLive.PostComponent do
       true ->
         new_content = post_params["content"]
 
+        IO.puts("Attempting to update post")
+        IO.inspect(post_id, label: "Post ID")
+        IO.inspect(new_content, label: "New Content")
+
         case PostClient.update_post(post_id, new_content) do
           :ok ->
+            try do
+              retrieved_post = rebuild_post(post_id)
+              IO.inspect(retrieved_post, label: "Retrieved Post After Update")
+            catch
+              _, e ->
+                IO.puts("Error retrieving post after update")
+                IO.inspect(e, label: "Retrieval Error")
+            end
+
             send(self(), :reload_posts)
 
             {:noreply,
@@ -143,8 +157,11 @@ defmodule MazarynWeb.HomeLive.PostComponent do
              |> assign(:edit_post_id, nil)}
 
           error ->
-            IO.inspect(error, label: "Error updating post")
-            {:noreply, socket}
+            IO.puts("Error in updating post")
+            IO.inspect(error, label: "Update Error")
+            {:noreply,
+             socket
+             |> put_flash(:error, "Failed to update post: #{inspect(error)}")}
         end
 
       false ->
@@ -273,7 +290,7 @@ end
 def handle_event("cancel-comment-reply", _, socket) do
   {:noreply, socket |> assign(:reply_comment, false) |> assign(:replying_to_comment_id, nil)}
 end
- 
+
   def handle_event("show-comments", %{"id" => post_id}, socket) do
     # get the comments by post_id
     Phoenix.LiveView.JS.toggle(to: "test")
@@ -393,8 +410,6 @@ end
     post_id = post_id |> to_charlist
     user_id = socket.assigns.current_user.id
 
-    # Posts.get_likes_by_post_id(post_id)
-
     like =
       post_id
       |> PostClient.get_likes()
@@ -468,35 +483,75 @@ end
   end
 
   defp activate_content_characters(post, socket) do
-    link_regex = ~r/([\w+]+\:\/\/)?([\w\d-]+\.)*[\w-]+[\.\:]\w+([\/\?\=\&\#\.]?[\w-]+)*\/?/
+    try do
+      content_str = cond do
+        ipfs_content = Core.PostClient.get_post_content_by_id(post.id) ->
+          cond do
+            is_binary(ipfs_content) -> ipfs_content
+            is_list(ipfs_content) -> List.to_string(ipfs_content)
+            true ->
+              case post.content do
+                content when is_binary(content) -> content
+                content when is_list(content) -> List.to_string(content)
+                _ ->
+                  IO.puts("Failed to retrieve post content")
+                  "No content available"
+              end
+          end
 
-    post.content
-    |> String.split()
-    |> Enum.map(fn con ->
-      case {check_regex(con, ~r/@\S[a-zA-Z]*/), check_regex(con, ~r/#\S[a-zA-Z]*/),
-            check_regex(con, link_regex)} do
-        {[[mention]], [], []} ->
-          activate_mention_only(mention, socket)
-
-        {[], [[hashtag]], []} ->
-          activate_hashtag_only(hashtag, socket)
-
-        {[], [], [[url | _rest]]} ->
-          activate_url_only(url)
-
-        {[[mention]], [[hashtag]], [[url | _rest]]} ->
-          activate_mention_only(mention, socket)
-          activate_hashtag_only(hashtag, socket)
-          activate_url_only(url)
-
-        _ ->
-          escape_char(con)
+        true ->
+          case post.content do
+            content when is_binary(content) -> content
+            content when is_list(content) -> List.to_string(content)
+            _ ->
+              IO.puts("Failed to retrieve post content")
+              "No content available"
+          end
       end
-    end)
-    |> Enum.join(" ")
-    |> Earmark.as_html!(compact_output: true)
-    |> apply_styles()
+
+      if content_str == "" do
+        "No content available"
+      else
+        link_regex = ~r/([\w+]+\:\/\/)?([\w\d-]+\.)*[\w-]+[\.\:]\w+([\/\?\=\&\#\.]?[\w-]+)*\/?/
+
+        content_str
+        |> String.split()
+        |> Enum.map(fn con ->
+          case {check_regex(con, ~r/@\S[a-zA-Z]*/), check_regex(con, ~r/#\S[a-zA-Z]*/),
+                check_regex(con, link_regex)} do
+            {[[mention]], [], []} ->
+              activate_mention_only(mention, socket)
+
+            {[], [[hashtag]], []} ->
+              activate_hashtag_only(hashtag, socket)
+
+            {[], [], [[url | _rest]]} ->
+              activate_url_only(url)
+
+            {[[mention]], [[hashtag]], [[url | _rest]]} ->
+              activate_mention_only(mention, socket)
+              activate_hashtag_only(hashtag, socket)
+              activate_url_only(url)
+
+            _ ->
+              escape_char(con)
+          end
+        end)
+        |> Enum.join(" ")
+        |> Earmark.as_html!(compact_output: true)
+        |> apply_styles()
+      end
+    catch
+      type, reason ->
+        IO.puts("Unexpected error in content processing")
+        IO.inspect({type, reason}, label: "Error Details")
+
+        "Error processing content"
+        |> Earmark.as_html!(compact_output: true)
+        |> apply_styles()
+    end
   end
+
 
   defp apply_styles(html) do
     html

@@ -7,7 +7,7 @@
          get_all_posts_from_date/4, get_all_posts_from_month/3, get_all_comments_for_user/1, get_all_likes_for_user/1, get_last_50_likes_for_user/1,
          like_post/2, unlike_post/2, add_comment/3, update_comment/2, like_comment/2, update_comment_likes/2, get_comment_likes/1, get_comment_replies/1, reply_comment/3,
           get_reply/1, get_all_replies/1, delete_reply/1, get_all_comments/1, delete_comment/2, delete_comment_from_mnesia/1, get_likes/1,
-         get_single_comment/1, get_media/1, report_post/4, update_activity/2]).
+         get_single_comment/1, get_media/1, report_post/4, update_activity/2, get_user_id_by_post_id/1]).
 -export([get_comments/0]).
 
 -include("../records.hrl").
@@ -22,11 +22,16 @@ insert(Author, Content, Emoji, Media, Hashtag, Mention, Link_URL) ->
           Date = calendar:universal_time(),
           AI_Post_ID = ai_postdb:insert(Id),
           UserID = userdb:get_user_id(Author),
+          ContentToUse = if
+              is_binary(Content) -> binary_to_list(Content);
+              true -> Content
+          end,
+          CIDString = go_libp2p:add_file_to_ipfs(UserID, ContentToUse),
           %Device = device:nif_device_info(),
           mnesia:write(#post{id = Id,
                              ai_post_id = AI_Post_ID,
                              user_id = UserID,
-                             content = erl_deen:main(Content),
+                             content = CIDString,
                              emoji = Emoji,
                              author = Author,
                              media = Media,
@@ -44,19 +49,37 @@ insert(Author, Content, Emoji, Media, Hashtag, Mention, Link_URL) ->
   {atomic, Res} = mnesia:transaction(F),
   Res.
 
-modify_post(Author, NewContent, NewEmoji, NewMedia, NewHashtag, NewMention, NewLink_URL) ->
-  Fun = fun() ->
-            [Post] = mnesia:read({post, Author}),
-            mnesia:write(Post#post{content = erl_deen:main(NewContent),
-                                   emoji = NewEmoji,
-                                   media = NewMedia,
-                                   hashtag = NewHashtag,
-                                   mention = NewMention,
-                                   link_url = NewLink_URL,
-                                   date_updated = calendar:universal_time()})
+  modify_post(Author, NewContent, NewEmoji, NewMedia, NewHashtag, NewMention, NewLink_URL) ->
+    F = fun() ->
+              PostQuery = qlc:q([P || P <- mnesia:table(post), 
+                                       P#post.author =:= Author]),
+              Posts = qlc:e(PostQuery),
+              case Posts of
+                  [] -> 
+                      error;
+                  [Post] -> 
+                      UserID = userdb:get_user_id(Author),
+                      ContentToUse = if
+                          is_binary(NewContent) -> binary_to_list(NewContent);
+                          true -> NewContent
+                      end,
+                      CIDString = go_libp2p:add_file_to_ipfs(UserID, ContentToUse),
+                      UpdatedPost = Post#post{
+                          content = CIDString,
+                          emoji = NewEmoji,
+                          media = NewMedia,
+                          hashtag = NewHashtag,
+                          mention = NewMention,
+                          link_url = NewLink_URL,
+                          date_updated = calendar:universal_time()
+                      },
+                      mnesia:write(UpdatedPost);
+                  _ -> 
+                      error
+              end
         end,
-  {atomic, Res} = mnesia:transaction(Fun),
-  Res.
+    {atomic, Result} = mnesia:transaction(F),
+    Result.
 
 %% Get post by PostID
 get_post_by_id(Id) ->
@@ -70,10 +93,24 @@ get_post_by_id(Id) ->
     _ -> error
   end.
 
+get_user_id_by_post_id(PostId) ->
+    Res = mnesia:transaction(
+            fun() ->
+                mnesia:match_object(#post{id = PostId, _ = '_'})
+            end),
+    case Res of
+        {atomic, []} -> post_not_exist;
+        {atomic, [#post{user_id = UserId}]} -> UserId;
+        _ -> error
+    end.
+
 get_post_content_by_id(Id) -> 
     Fun = fun() ->
+              UserID = get_user_id_by_post_id(Id),
               [Post] = mnesia:read({post, Id}),
-              Post#post.content
+              CID = Post#post.content,
+              Content = go_libp2p:get_file_from_ipfs(UserID, CID),
+              Content  
           end,
     {atomic, Res} = mnesia:transaction(Fun),
     Res.

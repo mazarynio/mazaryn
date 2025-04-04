@@ -26,6 +26,46 @@ defmodule MazarynWeb.AuthLive.Login do
         |> Ecto.Changeset.put_change(:form_disabled, false)
         |> Map.put(:action, :insert)
 
+      ##case Login.Form.get_user_by_email(changeset) do
+        ##%User{email: email} ->
+          ##insert_session_token(key, email)
+
+          ##{:ok, user} =
+            ##Account.Users.one_by_email(email)
+
+          ##if Application.get_env(:mazaryn, :env) == :dev do
+            ##user |> IO.inspect(label: "USER record")
+
+            ##{:noreply,
+             ##push_redirect(socket,
+               ##to: Routes.live_path(socket, MazarynWeb.HomeLive.Home, socket.assigns.locale)
+             ##)}
+          ##else
+            ##if(user.verified === true) do
+              ##user |> IO.inspect(label: "USER record")
+
+              ##{:noreply,
+               ##push_redirect(socket,
+                 ##to: Routes.live_path(socket, MazarynWeb.HomeLive.Home, socket.assigns.locale)
+               ##)}
+            ##else
+              ##socket =
+                ##socket
+                ##|> assign(mess: "unverified")
+                ##|> assign(changeset: changeset)
+
+              ##{:noreply, socket}
+            ##end
+          ##end
+
+        ##changeset ->
+          ##changeset =
+            ##changeset
+            ##|> Ecto.Changeset.put_change(:form_disabled, false)
+
+          ##{:noreply, assign(socket, changeset: changeset)}
+      ##end
+
       case Login.Form.get_user_by_email(changeset) do
         %User{email: email} ->
           insert_session_token(key, email)
@@ -33,30 +73,12 @@ defmodule MazarynWeb.AuthLive.Login do
           {:ok, user} =
             Account.Users.one_by_email(email)
 
-          if Application.get_env(:mazaryn, :env) == :dev do
-            user |> IO.inspect(label: "USER record")
+          user |> IO.inspect(label: "USER record")
 
-            {:noreply,
-             push_redirect(socket,
-               to: Routes.live_path(socket, MazarynWeb.HomeLive.Home, socket.assigns.locale)
-             )}
-          else
-            if(user.verified === true) do
-              user |> IO.inspect(label: "USER record")
-
-              {:noreply,
-               push_redirect(socket,
-                 to: Routes.live_path(socket, MazarynWeb.HomeLive.Home, socket.assigns.locale)
-               )}
-            else
-              socket =
-                socket
-                |> assign(mess: "unverified")
-                |> assign(changeset: changeset)
-
-              {:noreply, socket}
-            end
-          end
+          {:noreply,
+           push_redirect(socket,
+             to: Routes.live_path(socket, MazarynWeb.HomeLive.Home, socket.assigns.locale)
+           )}
 
         changeset ->
           changeset =
@@ -65,6 +87,8 @@ defmodule MazarynWeb.AuthLive.Login do
 
           {:noreply, assign(socket, changeset: changeset)}
       end
+
+
 
       # |> IO.inspect(label: "cheki login ")
     else
