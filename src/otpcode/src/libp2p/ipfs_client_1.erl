@@ -30,16 +30,10 @@ cid_bases/2, cid_codecs/0, cid_codecs/1, cid_codecs/2, cid_format/1, cid_format/
 
 %% Get a raw IPFS block by CID 
 block_get(CID) ->
-    Url = ?RPC_API ++ "/v0/block/get?arg=" ++ CID,
+    Url = ?RPC_API ++ "/v0/block/get?arg=" ++ binary_to_list(iolist_to_binary(CID)),
     case httpc:request(post, {Url, [], "application/json", ""}, [], [{body_format, binary}]) of
         {ok, {{_, 200, _}, _Headers, Body}} ->
-            try
-                <<10, _Length:8, 8, 2, 18, JsonSize:8, JsonData:JsonSize/binary, _Rest/binary>> = Body,
-                jsx:decode(JsonData)
-            catch
-                error:_ ->
-                    {error, {cannot_parse_block, Body}}
-            end;
+            {ok, Body};
         {ok, {{_, StatusCode, _}, _Headers, Body}} ->
             {error, {status_code, StatusCode, Body}};
         {error, Reason} ->
