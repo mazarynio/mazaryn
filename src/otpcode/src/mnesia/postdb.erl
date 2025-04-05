@@ -26,7 +26,8 @@ insert(Author, Content, Emoji, Media, Hashtag, Mention, Link_URL) ->
               is_binary(Content) -> binary_to_list(Content);
               true -> Content
           end,
-          CIDString = go_libp2p:add_file_to_ipfs(UserID, ContentToUse),
+          CIDString = ipfs_content:upload_text(ContentToUse),
+          MediaCID = ipfs_media:upload_media(Media),
           %Device = device:nif_device_info(),
           mnesia:write(#post{id = Id,
                              ai_post_id = AI_Post_ID,
@@ -34,7 +35,7 @@ insert(Author, Content, Emoji, Media, Hashtag, Mention, Link_URL) ->
                              content = CIDString,
                              emoji = Emoji,
                              author = Author,
-                             media = Media,
+                             media = MediaCID,
                              hashtag = Hashtag,
                              mention = Mention,
                              link_url = Link_URL,
@@ -58,16 +59,17 @@ insert(Author, Content, Emoji, Media, Hashtag, Mention, Link_URL) ->
                   [] -> 
                       error;
                   [Post] -> 
-                      UserID = userdb:get_user_id(Author),
+                      _UserID = userdb:get_user_id(Author),
                       ContentToUse = if
                           is_binary(NewContent) -> binary_to_list(NewContent);
                           true -> NewContent
                       end,
-                      CIDString = go_libp2p:add_file_to_ipfs(UserID, ContentToUse),
+                      CIDString = ipfs_content:upload_text(ContentToUse),
+                      MediaCID = ipfs_media:upload_media(NewMedia),
                       UpdatedPost = Post#post{
                           content = CIDString,
                           emoji = NewEmoji,
-                          media = NewMedia,
+                          media = MediaCID,
                           hashtag = NewHashtag,
                           mention = NewMention,
                           link_url = NewLink_URL,
@@ -106,10 +108,10 @@ get_user_id_by_post_id(PostId) ->
 
 get_post_content_by_id(Id) -> 
     Fun = fun() ->
-              UserID = get_user_id_by_post_id(Id),
+              _UserID = get_user_id_by_post_id(Id),
               [Post] = mnesia:read({post, Id}),
               CID = Post#post.content,
-              Content = go_libp2p:get_file_from_ipfs(UserID, CID),
+              Content = ipfs_content:get_text_content(CID),
               Content  
           end,
     {atomic, Res} = mnesia:transaction(Fun),
@@ -176,7 +178,7 @@ update_post(PostId, NewContent) ->
             Content = Post#post.content,
             UpdatedContent =
               case NewContent of
-                [{Key, Value} | _] ->  % Handle key-value pairs
+                [{_Key, _Value} | _] -> 
                   lists:foldl(fun({K, V}, Acc) ->
                     case lists:keymember(K, 1, Acc) of
                       true ->
@@ -185,7 +187,7 @@ update_post(PostId, NewContent) ->
                         [{K, V} | Acc]
                     end
                   end, Content, NewContent);
-                _ ->  % Handle raw string
+                _ ->  
                   NewContent
               end,
             mnesia:write(Post#post{content = UpdatedContent})
@@ -196,24 +198,22 @@ update_post(PostId, NewContent) ->
 %% delete_post(PostID)
 delete_post(Id) ->
   F = fun() ->
-      %% Check if the post exists
       case mnesia:read({post, Id}) of
           [] -> 
-              {error, post_not_found};  %% Return error if post doesn't exist
+              {error, post_not_found};  
           _ ->
-              %% Delete the post
               mnesia:delete({post, Id}),
-              ok  %% Return success after deleting
+              ok  
       end
   end,
 
   case mnesia:activity(transaction, F) of
       ok -> 
-          ok;  %% Return success message
+          ok;  
       {error, post_not_found} -> 
-          {error, post_not_found};  %% Handle case when the post does not exist
+          {error, post_not_found};  
       {aborted, Reason} -> 
-          {error, transaction_failed, Reason}  %% Handle aborted transactions
+          {error, transaction_failed, Reason}  
   end.
 
 
@@ -334,7 +334,7 @@ add_comment(Author, PostID, Content) ->
 
   case mnesia:transaction(Fun) of
       {atomic, Id} -> 
-          Id;  %% Return the ID of the newly added comment
+          Id;  
       {atomic, {error, Reason}} -> 
           {error, Reason};  
       {aborted, Reason} -> 
@@ -379,7 +379,7 @@ get_comment_likes(CommentID) ->
   Fun = fun() ->
             case mnesia:read({comment, CommentID}) of
                 [] -> 
-                    [];  % Return an empty list if the comment doesn't exist
+                    []; 
                 [Comment] ->
                     lists:foldl(fun(ID, Acc) ->
                                     [Like] = mnesia:read({like, ID}),
@@ -395,7 +395,7 @@ get_comment_replies(CommentID) ->
   Fun = fun() ->
             case mnesia:read({comment, CommentID}) of
                 [] -> 
-                    [];  % Return an empty list if the comment doesn't exist
+                    []; 
                 [Comment] ->
                     lists:foldl(fun(ID, Acc) ->
                                     [Reply] = mnesia:read({reply, ID}),
@@ -437,7 +437,7 @@ reply_comment(UserID, CommentID, Content) ->
 
   case mnesia:transaction(Fun) of
       {atomic, Id} -> 
-          Id;  %% Return the ID of the newly added comment
+          Id;  
       {atomic, {error, Reason}} -> 
           {error, Reason};  
       {aborted, Reason} -> 
@@ -603,26 +603,21 @@ get_comments() ->
 
 delete_comment(CommentID, PostId) ->
     Fun = fun() -> 
-        %% Check if the post exists
         case mnesia:read(post, PostId) of
             [] -> 
                 {error, post_not_found}; 
             [Post] ->
-                %% Check if the comment exists in the post
                 case lists:member(CommentID, Post#post.comments) of
                     false -> 
                         {error, comment_not_found}; 
                     true -> 
-                        %% Remove the comment from the post's comment list
                         UpdatedComments = lists:delete(CommentID, Post#post.comments),
                         UpdatedPost = Post#post{
                             comments = UpdatedComments,
                             date_created = calendar:universal_time()
                         },
-                        %% Write the updated post back to the database
                         mnesia:write(UpdatedPost),
                         
-                        %% Delete the comment from the `comment` table
                         mnesia:delete({comment, CommentID}),
                         
                         {ok, comment_deleted}

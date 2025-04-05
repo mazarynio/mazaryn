@@ -1,6 +1,6 @@
 -module(ipfs_content).
 -author("Zaryn Technologies").
--export([upload_text/1, upload_text/2, get_text/1, get_text/2]).
+-export([upload_text/1, upload_text/2, get_text/1, get_text/2, get_text_content/1, get_text_content/2]).
 
 -define(RPC_API, "http://localhost:5001/api").
 -define(DEFAULT_CHUNK_SIZE, 262144). % 256KB chunks 
@@ -27,8 +27,11 @@ single_text_upload(Text, Filename) ->
             {cid_version, 1},
             {chunker, "size-" ++ integer_to_list(?DEFAULT_CHUNK_SIZE)}
         ]) of
-        {ok, CID} ->
-            cluster_pin(CID);
+        {ok, CID} -> 
+            case cluster_pin(CID) of
+                {ok, _} -> binary_to_list(CID);
+                Error -> Error
+            end;
         Error -> Error
     end.
 
@@ -55,10 +58,42 @@ chunked_text_upload(Text, Filename) ->
     
     case collect_text_chunks(TotalChunks, [], Workers, MonitorPid) of
         {ok, ChunkCIDs} ->
-            create_text_manifest(ChunkCIDs, TotalSize, Filename);
+            case create_text_manifest(ChunkCIDs, TotalSize, Filename) of
+                {ok, CID} -> binary_to_list(CID);
+                Error -> Error
+            end;
         Error -> Error
     end.
 
+get_text_content(CID) ->
+    get_text_content(CID, []).
+
+get_text_content(CID, Options) ->
+    try
+        Offset = proplists:get_value(offset, Options),
+        Length = proplists:get_value(length, Options),
+        
+        Result = case {Offset, Length} of
+            {undefined, undefined} -> 
+                ipfs_client_1:cat(CID);
+            {O, undefined} when O =/= undefined -> 
+                ipfs_client_1:cat(CID, O);
+            {undefined, L} when L =/= undefined -> 
+                ipfs_client_1:cat(CID, undefined, L);
+            {O, L} when O =/= undefined, L =/= undefined -> 
+                ipfs_client_1:cat(CID, O, L);
+            _ -> 
+                ipfs_client_1:cat(CID)
+        end,
+        
+        case Result of
+            {ok, Bin} -> binary_to_list(Bin);
+            Error -> Error
+        end
+    catch
+        error:Reason ->
+            {error, Reason}
+    end.
 
 get_text(CID) ->
     get_text(CID, []).
@@ -101,7 +136,7 @@ ipfs_add_file(Filename, Data, Opts) ->
                      [{timeout, 30000}],
                      [{body_format, binary}]) of
         {ok, {{_, 200, _}, _, Body}} ->
-            case jsx:decode(Body, [return_maps]) of
+            case jiffy:decode(Body, [return_maps]) of
                 #{<<"Hash">> := CID} -> {ok, CID};
                 _ -> {error, invalid_response}
             end;
@@ -141,7 +176,7 @@ create_text_manifest(ChunkCIDs, TotalSize, OriginalFilename) ->
         chunk_size => ?DEFAULT_CHUNK_SIZE,
         timestamp => erlang:system_time(seconds)
     },
-    case ipfs_add_file("manifest.json", jsx:encode(Manifest), []) of
+    case ipfs_add_file("manifest.json", jiffy:encode(Manifest), []) of
         {ok, ManifestCID} -> cluster_pin(ManifestCID);
         Error -> Error
     end.
