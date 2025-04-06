@@ -1,6 +1,15 @@
 -module(ipfs_media).
 -author("Zaryn Technologies").
--export([upload_media/1, upload_media/2, get_media/1, get_media/2, merge_options/2, ipfs_get_file/2]).
+-export([
+    upload_media/1, 
+    upload_media/2, 
+    get_media/1, 
+    get_media/2, 
+    get_media_binary/1, 
+    get_media_binary/2, 
+    merge_options/2, 
+    ipfs_get_file/2
+]).
 
 -define(RPC_API, "http://localhost:5001/api").
 -define(DEFAULT_CHUNK_SIZE, 1048576). % 1MB chunks 
@@ -46,7 +55,7 @@ single_upload(FilePath, CustomFilename) ->
             case ipfs_add_file(CustomFilename, MediaData, ?DEFAULT_ADD_OPTS) of
                 {ok, CID} -> 
                     case ipfs_cluster:pin_to_cluster(CID) of
-                        {ok, _} -> {ok, CID};
+                        {ok, _} -> binary_to_list(CID);
                         Error -> Error
                     end;
                 Error -> Error
@@ -91,6 +100,7 @@ parallel_chunked_upload(FilePath, CustomFilename, FileSize) ->
             {error, {file_open_error, Reason}}
     end.
 
+%%% GET MEDIA FUNCTIONS (FILE-BASED) %%%
 
 get_media(CID) ->
     get_media(CID, []).
@@ -118,6 +128,56 @@ get_media(CID, Options) ->
                 StatusError -> 
                     StatusError
             end
+    end.
+
+
+
+%% @doc Get media as binary from IPFS using CID with default options
+get_media_binary(CID) ->
+    get_media_binary(CID, []).
+
+get_media_binary(CID, _Options) ->
+    NormalizedCID = case is_binary(CID) of
+        true -> binary_to_list(CID);
+        false -> CID
+    end,
+    
+    case ipfs_get_binary_local(NormalizedCID) of
+        {ok, Binary} -> 
+            Binary;
+        {error, _} ->
+            case ipfs_cluster:get_pin_status(NormalizedCID) of
+                {ok, _} ->
+                    case ipfs_cluster:recover_pin(NormalizedCID) of
+                        {ok, _} ->
+                            timer:sleep(1000),  
+                            ipfs_get_binary_local(NormalizedCID);
+                        Error -> 
+                            Error
+                    end;
+                StatusError -> 
+                    StatusError
+            end
+    end.
+
+ipfs_get_binary_local(CID) ->
+    QueryString = build_query_string([
+        {arg, CID},
+        {archive, false},
+        {compress, false}
+    ]),
+    Url = ?RPC_API ++ "/v0/cat" ++ QueryString,
+    
+    case httpc:request(post, 
+                     {Url, [], "application/json", ""},
+                     [{timeout, 30000}],
+                     [{body_format, binary}]) of
+        {ok, {{_, 200, _}, _, Body}} ->
+            {ok, Body};
+        {ok, {{_, Status, _}, _, Body}} ->
+            {error, {status_code, Status, Body}};
+        {error, Reason} ->
+            {error, Reason}
     end.
 
 determine_output_path(CID, Options) ->
@@ -174,7 +234,6 @@ verify_download(Path) ->
         0 -> {error, zero_length_file};
         Size -> {ok, Path, Size}
     end.
-
 
 ipfs_add_file(Filename, Data, Opts) ->
     case ipfs_client_1:add_file(Filename, Data, Opts) of
@@ -322,7 +381,6 @@ get_next_chunk(Fd, ChunkSize, TotalChunks) ->
                 Error -> Error
             end
     end.
-
 
 merge_options(Options, Defaults) ->
     lists:ukeymerge(1, lists:sort(Options), lists:sort(Defaults)).
