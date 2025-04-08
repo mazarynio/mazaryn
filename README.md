@@ -19,6 +19,7 @@
    ./myapp
    Open another Terminal and run: 
    ipfs daemon
+   ipfs-cluster-service daemon
 
 3. **Clone and Setup**:
    ```bash
