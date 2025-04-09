@@ -1,6 +1,7 @@
 %% TODO: change id order for testing, modify later
 -record(user, { id, 
                 p2p_node_address,
+                ipfs_key,
                 ai_user_id,
                 business_id = [],
                 ads_id = [],
@@ -33,6 +34,10 @@
                 suspend = [],
                 data = #{} }). 
 
+-record(ipfs, {
+    key_id,
+    key_type 
+}).
 
 -record(notif, { id,
                  follower,

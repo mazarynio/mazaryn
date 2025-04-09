@@ -174,15 +174,15 @@ key_verify(Data, Signature, Options) when is_binary(Data),
         
         MergedOpts = merge_options(Options, Defaults),
         
-        FormattedSig = case Signature of
-            <<"uEJw", _/binary>> -> Signature; 
-            _ -> base64:encode(Signature) 
+        BinSignature = if
+            is_list(Signature) -> list_to_binary(Signature);
+            true -> Signature
         end,
         
         QueryParams = lists:filtermap(
             fun({Key, Value}) ->
                 case Key of
-                    signature -> {true, {Key, FormattedSig}};
+                    signature -> {true, {Key, BinSignature}};
                     _ -> 
                         case Value of
                             "self" when Key =:= key -> false;
@@ -190,9 +190,9 @@ key_verify(Data, Signature, Options) when is_binary(Data),
                             _ -> {true, {Key, Value}}
                         end
                 end
-            end, [{signature, Signature}|MergedOpts]),
+            end, [{signature, BinSignature}|MergedOpts]),
         
-        QueryString = build_query_string(QueryParams),
+        QueryString = build_query_string_v2(QueryParams),
         Url = ?RPC_API ++ "/v0/key/verify" ++ QueryString,
         
         Boundary = "------IPFSBoundary" ++ integer_to_list(erlang:unique_integer([positive])),
@@ -233,6 +233,27 @@ key_verify(Data, Signature, Options) when is_binary(Data),
     catch
         error ->
             error 
+    end.
+
+build_query_string_v2(Params) ->
+    case Params of
+        [] -> "";
+        _ -> 
+            QueryParts = lists:map(
+                fun({Key, Value}) ->
+                    KeyStr = case is_atom(Key) of
+                        true -> atom_to_list(Key);
+                        false -> Key
+                    end,
+                    
+                    ValueStr = case is_binary(Value) of
+                        true -> binary_to_list(Value);
+                        false -> Value
+                    end,
+                    
+                    uri_string:quote(KeyStr) ++ "=" ++ uri_string:quote(ValueStr)
+                end, Params),
+            "?" ++ string:join(QueryParts, "&")
     end.
 
 %% @doc Tail the IPFS log (EXPERIMENTAL)

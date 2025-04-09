@@ -20,18 +20,18 @@ pin_rm/1, pin_rm/2, pin_update/2, pin_update/3, pin_verify/0, pin_verify/1, ping
 name_publish(IPFSPath) ->
     name_publish(IPFSPath, []).
 
-%% {ok, Result} = ipfs_client_5:name_publish("/ipfs/Qm...", [{key, "mykey"},{lifetime, "168h"}, {ttl, "1h"},{'ipns-base', "base58btc"}]).
 name_publish(IPFSPath, Options) when is_list(IPFSPath) orelse is_binary(IPFSPath), is_list(Options) ->
     try
         Defaults = [
             {key, "self"},
-            {resolve, true},
-            {lifetime, "48h0m0s"},
-            {ttl, "5m0s"},
-            {quieter, false},
+            {resolve, false},              
+            {lifetime, "24h"},             
+            {ttl, "1m"},                   
+            {quieter, true},               
             {v1compat, true},
-            {'allow-offline', false},
-            {'ipns-base', "base36"}
+            {'allow-offline', false},      
+            {'ipns-base', "base58btc"},    
+            {'nocache', true}              
         ],
         
         MergedOpts = merge_options(Options, Defaults),
@@ -51,10 +51,13 @@ name_publish(IPFSPath, Options) when is_list(IPFSPath) orelse is_binary(IPFSPath
         
         case httpc:request(post, 
                          {Url, [], "application/json", ""},
-                         [{timeout, 30000}],  % Longer timeout for network operations
+                         [
+                             {timeout, 30000},
+                             {connect_timeout, 5000}
+                         ],
                          [{body_format, binary}]) of
             {ok, {{_, 200, _}, _, Body}} ->
-                case jsx:decode(Body, [return_maps]) of
+                case jiffy:decode(Body, [return_maps]) of
                     #{<<"Name">> := Name, <<"Value">> := Value} ->
                         {ok, #{name => Name, value => Value}};
                     Other ->
@@ -81,15 +84,14 @@ name_publish(IPFSPath, Options) when is_list(IPFSPath) orelse is_binary(IPFSPath
 name_resolve() ->
     name_resolve([]).
 
-%% {ok, Result} = ipfs_client_5:name_resolve([{arg, "k51qzi5uqu5dgn..."},{recursive, false},{'dht-timeout', "30s"}]).
 name_resolve(Options) when is_list(Options) ->
     try
         Defaults = [
             {arg, undefined},
             {recursive, true},
-            {nocache, false},
-            {'dht-record-count', 16},
-            {'dht-timeout', "1m0s"},
+            {nocache, true},               
+            {'dht-record-count', 32},     
+            {'dht-timeout', "30s"},       
             {stream, false}
         ],
         
@@ -113,7 +115,7 @@ name_resolve(Options) when is_list(Options) ->
                          [{timeout, 60000}],  
                          [{body_format, binary}]) of
             {ok, {{_, 200, _}, _, Body}} ->
-                case jsx:decode(Body, [return_maps]) of
+                case jiffy:decode(Body, [return_maps]) of
                     #{<<"Path">> := Path} ->
                         {ok, #{path => Path}};
                     Other ->
@@ -166,7 +168,7 @@ pin_add(IPFSPath) ->
                              [{timeout, 30000}],
                              [{body_format, binary}]) of
                 {ok, {{_, 200, _}, _, Body}} ->
-                    case jsx:decode(Body, [return_maps]) of
+                    case jiffy:decode(Body, [return_maps]) of
                         Result = #{<<"Pins">> := _} -> 
                             {ok, Result};
                         Other ->
@@ -225,7 +227,7 @@ pin_ls(Options) when is_list(Options) ->
                          [{timeout, 60000}],
                          [{body_format, binary}]) of
             {ok, {{_, 200, _}, _, Body}} ->
-                case jsx:decode(Body, [return_maps]) of
+                case jiffy:decode(Body, [return_maps]) of
                     #{<<"Keys">> := _} = Result -> 
                         {ok, Result};
                     #{<<"Cid">> := _} = Result -> 
@@ -283,7 +285,7 @@ pin_remote_add(IPFSPath, Service, Options) when is_list(IPFSPath) orelse is_bina
                          [{timeout, 30000}],
                          [{body_format, binary}]) of
             {ok, {{_, 200, _}, _, Body}} ->
-                case jsx:decode(Body, [return_maps]) of
+                case jiffy:decode(Body, [return_maps]) of
                     #{<<"Cid">> := _, <<"Name">> := _, <<"Status">> := _} = Result ->
                         {ok, Result};
                     Other ->
@@ -345,7 +347,7 @@ pin_remote_ls(Service, Options) when is_list(Service) orelse is_binary(Service),
                                  [{timeout, 60000}],
                                  [{body_format, binary}]) of
                     {ok, {{_, 200, _}, _, Body}} ->
-                        case jsx:decode(Body, [return_maps]) of
+                        case jiffy:decode(Body, [return_maps]) of
                             #{<<"Cid">> := _, <<"Name">> := _, <<"Status">> := _} = Result -> 
                                 {ok, Result};
                             List when is_list(List) -> 
@@ -691,7 +693,7 @@ parse_ndjson(Data) ->
     lists:filtermap(
         fun(Line) ->
             try
-                {true, jsx:decode(Line, [return_maps])}
+                {true, jiffy:decode(Line, [return_maps])}
             catch
                 _:_ -> false
             end
@@ -764,7 +766,7 @@ parse_ping_response(Data) ->
     lists:filtermap(
         fun(Line) ->
             try
-                case jsx:decode(Line, [return_maps]) of
+                case jiffy:decode(Line, [return_maps]) of
                     #{<<"Text">> := _} = Result -> 
                         {true, Result};
                     _ -> false

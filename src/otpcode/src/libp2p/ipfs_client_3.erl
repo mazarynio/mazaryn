@@ -106,7 +106,7 @@ files_flush(Path) when is_list(Path) orelse is_binary(Path) ->
                          [],
                          [{body_format, binary}]) of
             {ok, {{_, 200, _}, _, Body}} ->
-                case jsx:decode(Body) of
+                case jiffy:decode(Body) of
                     #{<<"Cid">> := Cid} -> {ok, Cid};
                     Other -> {error, {unexpected_response, Other}}
                 end;
@@ -156,7 +156,7 @@ files_ls(Options) when is_list(Options) ->
                          HttpOptions,  
                          [{body_format, binary}]) of
             {ok, {{_, 200, _}, _, Body}} ->
-                case jsx:decode(Body) of
+                case jiffy:decode(Body) of
                     #{<<"Entries">> := Entries} -> {ok, Entries};
                     Other -> {error, {unexpected_response, Other}}
                 end;
@@ -378,7 +378,7 @@ files_stat(Path, Options) when is_list(Path) orelse is_binary(Path), is_list(Opt
                          [],
                          [{body_format, binary}]) of
             {ok, {{_, 200, _}, _, Body}} ->
-                {ok, jsx:decode(Body, [return_maps])};
+                {ok, jiffy:decode(Body, [return_maps])};
             {ok, {{_, StatusCode, _}, _, Body}} ->
                 {error, {status_code, StatusCode, Body}};
             {error, Reason} ->
@@ -588,7 +588,7 @@ filestore_verify(Options) when is_list(Options) ->
                          [{timeout, 30000}],
                          [{body_format, binary}]) of
             {ok, {{_, 200, _}, _, Body}} ->
-                {ok, jsx:decode(Body, [return_maps])};
+                {ok, jiffy:decode(Body, [return_maps])};
             {ok, {{_, StatusCode, _}, _, Body}} ->
                 {error, {status_code, StatusCode, Body}};
             {error, Reason} ->

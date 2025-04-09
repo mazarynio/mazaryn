@@ -7,7 +7,7 @@
          get_all_posts_from_date/4, get_all_posts_from_month/3, get_all_comments_for_user/1, get_all_likes_for_user/1, get_last_50_likes_for_user/1,
          like_post/2, unlike_post/2, add_comment/3, update_comment/2, like_comment/2, update_comment_likes/2, get_comment_likes/1, get_comment_replies/1, reply_comment/3,
           get_reply/1, get_all_replies/1, delete_reply/1, get_all_comments/1, delete_comment/2, delete_comment_from_mnesia/1, get_likes/1,
-         get_single_comment/1, get_media/1, report_post/4, update_activity/2, get_user_id_by_post_id/1]).
+         get_single_comment/1, get_media/1, report_post/4, update_activity/2, get_user_id_by_post_id/1, get_post_ipns_by_id/1]).
 -export([get_comments/0]).
 
 -include("../records.hrl").
@@ -22,17 +22,21 @@ insert(Author, Content, Emoji, Media, Hashtag, Mention, Link_URL) ->
           Date = calendar:universal_time(),
           AI_Post_ID = ai_postdb:insert(Id),
           UserID = userdb:get_user_id(Author),
+          [User] = mnesia:index_read(user, Author, #user.username),
+          IPFS_Key = User#user.ipfs_key,
           ContentToUse = if
               is_binary(Content) -> binary_to_list(Content);
               true -> Content
           end,
           CIDString = ipfs_content:upload_text(ContentToUse),
+          {ok, #{name := NameBinary, value := _Value}} = ipfs_client_5:name_publish(CIDString, [{key, IPFS_Key}]),
+          IPNSString = binary_to_list(NameBinary),   
           MediaCID = ipfs_media:upload_media(Media),
           %Device = device:nif_device_info(),
           mnesia:write(#post{id = Id,
                              ai_post_id = AI_Post_ID,
                              user_id = UserID,
-                             content = CIDString,
+                             content = IPNSString,
                              emoji = Emoji,
                              author = Author,
                              media = MediaCID,
@@ -41,7 +45,6 @@ insert(Author, Content, Emoji, Media, Hashtag, Mention, Link_URL) ->
                              link_url = Link_URL,
                              date_created = Date}),
                              %device_info = Device}),
-          [User] = mnesia:index_read(user, Author, username),
           Posts = User#user.post,
           mnesia:write(User#user{post = [Id | Posts]}),
           update_activity(Author, Date),
@@ -50,38 +53,71 @@ insert(Author, Content, Emoji, Media, Hashtag, Mention, Link_URL) ->
   {atomic, Res} = mnesia:transaction(F),
   Res.
 
-  modify_post(Author, NewContent, NewEmoji, NewMedia, NewHashtag, NewMention, NewLink_URL) ->
+modify_post(Author, NewContent, NewEmoji, NewMedia, NewHashtag, NewMention, NewLink_URL) ->
     F = fun() ->
-              PostQuery = qlc:q([P || P <- mnesia:table(post), 
-                                       P#post.author =:= Author]),
-              Posts = qlc:e(PostQuery),
-              case Posts of
-                  [] -> 
-                      error;
-                  [Post] -> 
-                      _UserID = userdb:get_user_id(Author),
-                      ContentToUse = if
-                          is_binary(NewContent) -> binary_to_list(NewContent);
-                          true -> NewContent
-                      end,
-                      CIDString = ipfs_content:upload_text(ContentToUse),
-                      MediaCID = ipfs_media:upload_media(NewMedia),
-                      UpdatedPost = Post#post{
-                          content = CIDString,
-                          emoji = NewEmoji,
-                          media = MediaCID,
-                          hashtag = NewHashtag,
-                          mention = NewMention,
-                          link_url = NewLink_URL,
-                          date_updated = calendar:universal_time()
-                      },
-                      mnesia:write(UpdatedPost);
-                  _ -> 
-                      error
-              end
-        end,
-    {atomic, Result} = mnesia:transaction(F),
-    Result.
+        [User] = mnesia:index_read(user, Author, #user.username),
+        IPFS_Key = User#user.ipfs_key,
+        
+        PostQuery = qlc:q([P || P <- mnesia:table(post), 
+                             P#post.author =:= Author]),
+        Posts = qlc:e(PostQuery),
+        case Posts of
+            [] -> error;
+            [Post] -> 
+                ContentToUse = if
+                    is_binary(NewContent) -> binary_to_list(NewContent);
+                    true -> NewContent
+                end,
+                CIDString = ipfs_content:upload_text(ContentToUse),
+                
+                PublishOpts = [
+                    {key, IPFS_Key},
+                    {lifetime, "24h"},
+                    {ttl, "1m"},
+                    {resolve, false},
+                    {v1compat, true},
+                    {'allow-offline', false},
+                    {'ipns-base', "base58btc"},
+                    {'nocache', true}
+                ],
+                
+                case ipfs_client_5:name_publish(CIDString, PublishOpts) of
+                    {ok, #{name := NameBinary}} ->
+                        IPNSString = binary_to_list(NameBinary),
+                        
+                        MediaCID = case NewMedia of
+                            undefined -> Post#post.media;
+                            _ -> ipfs_media:upload_media(NewMedia)
+                        end,
+                        
+                        UpdatedPost = Post#post{
+                            content = IPNSString,
+                            emoji = NewEmoji,
+                            media = MediaCID,
+                            hashtag = NewHashtag,
+                            mention = NewMention,
+                            link_url = NewLink_URL,
+                            date_updated = calendar:universal_time()
+                        },
+                        mnesia:write(UpdatedPost),
+                        
+                        spawn(fun() ->
+                            timer:sleep(1000), 
+                            case ipfs_client_5:name_resolve([{arg, IPNSString}, {nocache, true}]) of
+                                {ok, _} -> ok;
+                                _ -> ok 
+                            end
+                        end),
+                        ok;
+                    _ -> error
+                end;
+            _ -> error
+        end
+    end,
+    case mnesia:transaction(F) of
+        {atomic, ok} -> ok;
+        _ -> error
+    end.
 
 %% Get post by PostID
 get_post_by_id(Id) ->
@@ -106,16 +142,58 @@ get_user_id_by_post_id(PostId) ->
         _ -> error
     end.
 
+get_post_ipns_by_id(Id) -> 
+    Fun = fun() ->
+              case mnesia:read({post, Id}) of
+                [Post] ->
+                  try
+                    IPNSString = Post#post.content,
+                    {ok, IPNSString}
+                  catch
+                    _:Error -> {error, Error}
+                  end;
+                [] -> {error, post_not_found}
+              end
+          end,
+    case mnesia:transaction(Fun) of
+      {atomic, {ok, IPNSString}} -> IPNSString;
+      {atomic, {error, Reason}} -> {error, Reason};
+      Error -> Error
+    end.
+  
+
 get_post_content_by_id(Id) -> 
     Fun = fun() ->
-              _UserID = get_user_id_by_post_id(Id),
-              [Post] = mnesia:read({post, Id}),
-              CID = Post#post.content,
-              Content = ipfs_content:get_text_content(CID),
-              Content  
+              case mnesia:read({post, Id}) of
+                [Post] ->
+                  try
+                    IPNSString = Post#post.content,
+                    case ipfs_client_5:name_resolve([{arg, IPNSString}]) of
+                      {ok, #{path := Path}} ->
+                        % Extract CID from path (format: /ipfs/QmXYZ...)
+                        CIDString = case Path of
+                            <<"/ipfs/", CIDBinary/binary>> -> binary_to_list(CIDBinary);
+                            _ when is_binary(Path) -> binary_to_list(Path);
+                            _ -> Path  % If it's already a string
+                        end,
+                        
+                        % Get the content using CID
+                        Content = ipfs_content:get_text_content(CIDString),
+                        {ok, Content};
+                      {error, Reason} ->
+                        {error, {ipns_resolve_failed, Reason}}
+                    end
+                  catch
+                    _:Error -> {error, Error}
+                  end;
+                [] -> {error, post_not_found}
+              end
           end,
-    {atomic, Res} = mnesia:transaction(Fun),
-    Res.
+    case mnesia:transaction(Fun) of
+      {atomic, {ok, Content}} -> Content;
+      {atomic, {error, Reason}} -> {error, Reason};
+      Error -> Error
+    end.
 
 %% get_posts_by_author(Username)
 get_posts_by_author(Author) ->

@@ -82,7 +82,7 @@ block_put(Filename, Data, Options) when is_binary(Data) ->
                          RequestOptions,
                          HttpcOptions) of
             {ok, {{_, 200, _}, _, Body}} ->
-                case jsx:decode(Body) of
+                case jiffy:decode(Body) of
                     #{<<"Key">> := CID, <<"Size">> := Size} -> 
                         {ok, #{cid => CID, size => Size}};
                     Other ->
@@ -123,7 +123,7 @@ block_rm(CID, Options, Force) when is_list(CID) orelse is_binary(CID) ->
                          [],
                          [{body_format, binary}]) of
             {ok, {{_, 200, _}, _, Body}} ->
-                Response = jsx:decode(Body),
+                Response = jiffy:decode(Body),
                 case maps:get(<<"Error">>, Response, <<>>) of
                     <<>> -> 
                         {ok, Response};
@@ -151,7 +151,7 @@ block_stat(CID) when is_list(CID); is_binary(CID) ->
                           [],
                           [{body_format, binary}]) of
             {ok, {{_, 200, _}, _, Body}} ->
-                case jsx:decode(Body) of
+                case jiffy:decode(Body) of
                     #{<<"Key">> := Key, <<"Size">> := Size} ->
                         {ok, #{key => Key, size => Size}};
                     Other ->
@@ -176,7 +176,7 @@ bootstrap() ->
                           [],
                           [{body_format, binary}]) of
             {ok, {{_, 200, _}, _, Body}} ->
-                case jsx:decode(Body) of
+                case jiffy:decode(Body) of
                     #{<<"Peers">> := Peers} ->
                         {ok, Peers};
                     Other ->
@@ -204,7 +204,7 @@ bootstrap_add(Peer, Options) ->
         Url = ?RPC_API ++ "/v0/bootstrap/add" ++ QueryString,
         case httpc:request(post, {Url, [], "application/json", ""}, [], [{body_format, binary}]) of
             {ok, {{_, 200, _}, _, Body}} ->
-                case jsx:decode(Body) of
+                case jiffy:decode(Body) of
                     #{<<"Peers">> := Peers} -> {ok, Peers};
                     Other -> {error, {unexpected_response, Other}}
                 end;
@@ -224,7 +224,7 @@ bootstrap_add_default() ->
         Url = ?RPC_API ++ "/v0/bootstrap/add/default",
         case httpc:request(post, {Url, [], "application/json", ""}, [], [{body_format, binary}]) of
             {ok, {{_, 200, _}, _, Body}} ->
-                case jsx:decode(Body) of
+                case jiffy:decode(Body) of
                     #{<<"Peers">> := Peers} -> 
                         {ok, Peers};
                     Other ->
@@ -246,7 +246,7 @@ bootstrap_list() ->
         Url = ?RPC_API ++ "/v0/bootstrap/list",
         case httpc:request(post, {Url, [], "application/json", ""}, [], [{body_format, binary}]) of
             {ok, {{_, 200, _}, _, Body}} ->
-                case jsx:decode(Body) of
+                case jiffy:decode(Body) of
                     #{<<"Peers">> := Peers} -> {ok, Peers};
                     Other -> {error, {unexpected_response, Other}}
                 end;
@@ -270,7 +270,7 @@ bootstrap_rm(Peer, Options) ->
         Url = ?RPC_API ++ "/v0/bootstrap/rm" ++ QueryString,
         case httpc:request(post, {Url, [], "application/json", ""}, [], [{body_format, binary}]) of
             {ok, {{_, 200, _}, _, Body}} ->
-                case jsx:decode(Body) of
+                case jiffy:decode(Body) of
                     #{<<"Peers">> := Peers} -> {ok, Peers};
                     Other -> {error, {unexpected_response, Other}}
                 end;
@@ -289,7 +289,7 @@ bootstrap_rm_all() ->
         Url = ?RPC_API ++ "/v0/bootstrap/rm/all",
         case httpc:request(post, {Url, [], "application/json", ""}, [], [{body_format, binary}]) of
             {ok, {{_, 200, _}, _, Body}} ->
-                case jsx:decode(Body) of
+                case jiffy:decode(Body) of
                     #{<<"Peers">> := Peers} -> 
                         {ok, Peers};  
                     Other ->
@@ -362,7 +362,7 @@ cid_to_base32(CID) when is_list(CID) orelse is_binary(CID) ->
                          [],
                          [{body_format, binary}]) of
             {ok, {{_, 200, _}, _, Body}} ->
-                case jsx:decode(Body) of
+                case jiffy:decode(Body) of
                     #{<<"Formatted">> := Formatted} = Response ->
                         case maps:get(<<"ErrorMsg">>, Response, <<>>) of
                             <<>> -> 
@@ -406,7 +406,7 @@ cid_bases(Prefix, Numeric) ->
                          [],
                          [{body_format, binary}]) of
             {ok, {{_, 200, _}, _, Body}} ->
-                {ok, jsx:decode(Body)};
+                {ok, jiffy:decode(Body)};
             {ok, {{_, StatusCode, _}, _, Body}} ->
                 {error, {status_code, StatusCode, Body}};
             {error, Reason} ->
@@ -440,7 +440,7 @@ cid_codecs(Numeric, Supported) ->
                          [],
                          [{body_format, binary}]) of
             {ok, {{_, 200, _}, _, Body}} ->
-                {ok, jsx:decode(Body)};
+                {ok, jiffy:decode(Body)};
             {ok, {{_, StatusCode, _}, _, Body}} ->
                 {error, {status_code, StatusCode, Body}};
             {error, Reason} ->
@@ -478,7 +478,7 @@ cid_format(CID, Options) when is_list(CID) orelse is_binary(CID) ->
                          [],
                          [{body_format, binary}]) of
             {ok, {{_, 200, _}, _, Body}} ->
-                case jsx:decode(Body) of
+                case jiffy:decode(Body) of
                     #{<<"Formatted">> := Formatted} = Response ->
                         case maps:get(<<"ErrorMsg">>, Response, <<>>) of
                             <<>> -> {ok, Formatted};
@@ -511,7 +511,7 @@ block_get_raw(CID) ->
 extract_json(BlockData) ->
     try
         <<10, _Length:8, 8, 2, 18, JsonSize:8, JsonData:JsonSize/binary, _Rest/binary>> = BlockData,
-        jsx:decode(JsonData)
+        jiffy:decode(JsonData)
     catch
         error:_ ->
             {error, {cannot_parse_block, BlockData}}
@@ -554,7 +554,7 @@ add_file(Filename, FileData, Options) ->
     end.
 
 parse_ipfs_response(Body) ->
-    case jsx:decode(Body, [return_maps]) of
+    case jiffy:decode(Body, [return_maps]) of
         #{<<"Hash">> := Hash} -> {ok, Hash};
         #{<<"Message">> := Msg} -> {error, Msg};
         _ -> {error, malformed_response}
@@ -570,7 +570,7 @@ bitswap_ledger(PeerID) ->
     Url = ?RPC_API ++ "/v0/bitswap/ledger?arg=" ++ PeerID,
     case httpc:request(post, {Url, [], "application/json", ""}, [], [{body_format, binary}]) of
         {ok, {{_, 200, _}, _Headers, Body}} ->
-            jsx:decode(Body);
+            jiffy:decode(Body);
         {ok, {{_, StatusCode, _}, _Headers, Body}} ->
             {error, {status_code, StatusCode, Body}};
         {error, Reason} ->
@@ -588,7 +588,7 @@ bitswap_stat(Options) ->
     FullUrl = Url ++ QueryString,
     case httpc:request(post, {FullUrl, [], "application/json", ""}, [], [{body_format, binary}]) of
         {ok, {{_, 200, _}, _Headers, Body}} ->
-            jsx:decode(Body);
+            jiffy:decode(Body);
         {ok, {{_, StatusCode, _}, _Headers, Body}} ->
             {error, {status_code, StatusCode, Body}};
         {error, Reason} ->
@@ -616,7 +616,7 @@ bitswap_wantlist(Options) when is_list(Options) ->
                          [{body_format, binary}, {timeout, 5000}]) of
             {ok, {{_, 200, _}, _Headers, Body}} ->
                 io:format("DEBUG: Received response: ~p~n", [Body]),
-                jsx:decode(Body);
+                jiffy:decode(Body);
             {ok, {{_, StatusCode, _}, _Headers, Body}} ->
                 io:format("ERROR: Bad status ~p: ~p~n", [StatusCode, Body]),
                 {error, {status_code, StatusCode, Body}};
