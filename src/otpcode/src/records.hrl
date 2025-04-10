@@ -27,7 +27,7 @@
                 banner_url,
                 token_id,
                 chat = [],
-                verified = false,
+                verified = true,
                 report = [],
                 level, % Includes 20 Levels based on User Activity
                 last_activity,
