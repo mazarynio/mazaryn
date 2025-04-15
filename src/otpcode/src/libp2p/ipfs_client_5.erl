@@ -137,52 +137,52 @@ name_resolve(Options) when is_list(Options) ->
 %%   - name (string): Optional name for the pin
 %%   - progress (boolean): Show progress (default: false)
 %% {ok, Result} = ipfs_client_5:pin_add("/ipfs/Qm...", [{name, "my-pin"},{progress, true}]).
-pin_add(IPFSPath) ->
+pin_add(IPFSPath) -> 
     pin_add(IPFSPath, []).
 
-    pin_add(IPFSPath, Options) when is_list(IPFSPath) orelse is_binary(IPFSPath), is_list(Options) ->
-        try
-            Defaults = [
-                {recursive, true},
-                {name, undefined},
-                {progress, false}
-            ],
+pin_add(IPFSPath, Options) when is_list(IPFSPath) orelse is_binary(IPFSPath), is_list(Options) ->
+    try
+        Defaults = [
+            {recursive, true},
+            {name, undefined},
+            {progress, false}
+        ],
             
-            MergedOpts = merge_options(Options, Defaults),
+        MergedOpts = merge_options(Options, Defaults),
             
-            QueryParams = lists:filtermap(
-                fun({Key, Value}) ->
-                    case Value of
-                        undefined -> false;
-                        false when Key =:= recursive -> {true, {Key, false}};
-                        false -> false;
-                        _ -> {true, {Key, Value}}
-                    end
-                end, MergedOpts),
+        QueryParams = lists:filtermap(
+            fun({Key, Value}) ->
+                case Value of
+                    undefined -> false;
+                    false when Key =:= recursive -> {true, {Key, false}};
+                    false -> false;
+                    _ -> {true, {Key, Value}}
+                end
+            end, MergedOpts),
             
-            QueryString = build_query_string([{arg, IPFSPath}|QueryParams]),
-            Url = ?RPC_API ++ "/v0/pin/add" ++ QueryString,
+        QueryString = build_query_string([{arg, IPFSPath}|QueryParams]),
+        Url = ?RPC_API ++ "/v0/pin/add" ++ QueryString,
             
-            case httpc:request(post, 
-                             {Url, [], "application/json", ""},
-                             [{timeout, 30000}],
-                             [{body_format, binary}]) of
-                {ok, {{_, 200, _}, _, Body}} ->
-                    case jiffy:decode(Body, [return_maps]) of
-                        Result = #{<<"Pins">> := _} -> 
-                            {ok, Result};
-                        Other ->
-                            {error, {unexpected_response, Other}}
-                    end;
-                {ok, {{_, StatusCode, _}, _, Body}} ->
-                    {error, {status_code, StatusCode, Body}};
-                {error, Reason} ->
-                    {error, Reason}
-            end
-        catch
-            error ->
-                error 
-        end.
+        case httpc:request(post, 
+                            {Url, [], "application/json", ""},
+                            [{timeout, 30000}],
+                            [{body_format, binary}]) of
+            {ok, {{_, 200, _}, _, Body}} ->
+                case jiffy:decode(Body, [return_maps]) of
+                    Result = #{<<"Pins">> := _} -> 
+                        {ok, Result};
+                    Other ->
+                        {error, {unexpected_response, Other}}
+                end;
+            {ok, {{_, StatusCode, _}, _, Body}} ->
+                {error, {status_code, StatusCode, Body}};
+            {error, Reason} ->
+                {error, Reason}
+        end
+    catch
+        error ->
+            error 
+    end.
 
 %% @doc List objects pinned to local storage
 %% Options can include:

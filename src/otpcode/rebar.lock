@@ -12,6 +12,7 @@
   {git,"https://github.com/ferd/erlpass.git",
        {ref,"535bb49e60c1bca9d979e3976f43b62e4fb121a2"}},
   0},
+ {<<"goldrush">>,{pkg,<<"goldrush">>,<<"0.1.9">>},1},
  {<<"gun">>,
   {git,"https://github.com/ninenines/gun",
        {ref,"8617acaba7cea76595caf5da5e27bb17d7559872"}},
@@ -32,6 +33,10 @@
   {git,"https://github.com/zaryntech/key-guardian",
        {ref,"2939b6a6b3ea324a9e875ae15b8d520b06b9db8b"}},
   0},
+ {<<"lager">>,
+  {git,"https://github.com/erlang-lager/lager",
+       {ref,"e6b31784e65b838a10d0a533f4b838da8029e402"}},
+  0},
  {<<"nanoid">>,
   {git,"https://github.com/zaryntech/nanoid.git",
        {ref,"9fab2c7c02be60358aab10642e367842e1e1c8fd"}},
@@ -44,8 +49,10 @@
 [
 {pkg_hash,[
  {<<"epgsql">>, <<"A403534D03811C867E79405BB18D6061A5FCEF92ACF0236A9150AC93748CE143">>},
+ {<<"goldrush">>, <<"F06E5D5F1277DA5C413E84D5A2924174182FB108DABB39D5EC548B27424CD106">>},
  {<<"poolboy">>, <<"392B007A1693A64540CEAD79830443ABF5762F5D30CF50BC95CB2C1AAAFA006B">>}]},
 {pkg_hash_ext,[
  {<<"epgsql">>, <<"6BE4910A02551F21EAB6F6F27D97B0D4B1DFFC617F1A64C8C95FDD45652FA9E1">>},
+ {<<"goldrush">>, <<"99CB4128CFFCB3227581E5D4D803D5413FA643F4EB96523F77D9E6937D994CEB">>},
  {<<"poolboy">>, <<"DAD79704CE5440F3D5A3681C8590B9DC25D1A561E8F5A9C995281012860901E3">>}]}
 ].

@@ -7,7 +7,8 @@
          get_all_posts_from_date/4, get_all_posts_from_month/3, get_all_comments_for_user/1, get_all_likes_for_user/1, get_last_50_likes_for_user/1,
          like_post/2, unlike_post/2, add_comment/3, update_comment/2, like_comment/2, update_comment_likes/2, get_comment_likes/1, get_comment_replies/1, reply_comment/3,
           get_reply/1, get_all_replies/1, delete_reply/1, get_all_comments/1, delete_comment/2, delete_comment_from_mnesia/1, get_likes/1,
-         get_single_comment/1, get_media/1, report_post/4, update_activity/2, get_user_id_by_post_id/1, get_post_ipns_by_id/1]).
+         get_single_comment/1, get_media/1, report_post/4, update_activity/2, get_user_id_by_post_id/1, get_post_ipns_by_id/1, get_post_ipfs_by_ipns/1,
+         pin_post/1]).
 -export([get_comments/0]).
 
 -include("../records.hrl").
@@ -194,6 +195,56 @@ get_post_content_by_id(Id) ->
       {atomic, {error, Reason}} -> {error, Reason};
       Error -> Error
     end.
+
+get_post_ipfs_by_ipns(IPNS) when is_binary(IPNS); is_list(IPNS) ->
+    try
+        case ipfs_client_5:name_resolve([{arg, IPNS}]) of
+            {ok, #{path := Path}} ->
+                case binary:split(Path, <<"/ipfs/">>) of
+                    [_, CID] -> 
+                        binary_to_list(CID);
+                    _ ->
+                        {error, invalid_path_format}
+                end;
+            {error, Reason} ->
+                {error, {ipfs_resolution_failed, Reason}};
+            UnexpectedResponse ->
+                {error, {unexpected_response, UnexpectedResponse}}
+        end
+    catch
+        error ->
+            error;
+        exit:Exit ->
+            {error, {exit, Exit}};
+        throw:Throw ->
+            {error, {throw, Throw}}
+    end;
+get_post_ipfs_by_ipns(IPNS) ->
+    {error, {invalid_ipns_format, IPNS}}.
+
+pin_post(PostID) ->
+  Fun = fun() ->
+          case mnesia:read({post, PostID}) of
+            [Post] ->
+              IPNS = Post#post.content,
+              case get_post_ipfs_by_ipns(IPNS) of
+                {ok, IPFS} ->
+                  case ipfs_client_5:pin_add([{arg, IPFS}]) of
+                    {ok, _} -> ok;  
+                    Error -> Error
+                  end;
+                Error -> Error
+              end;
+            [] -> {error, post_not_found};
+            Error -> Error
+          end
+        end,
+  case mnesia:transaction(Fun) of
+    {atomic, ok} -> ok;  
+    {atomic, Error} -> Error;
+    TransactionError -> TransactionError
+  end.
+    
 
 %% get_posts_by_author(Username)
 get_posts_by_author(Author) ->

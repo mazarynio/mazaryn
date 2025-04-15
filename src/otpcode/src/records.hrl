@@ -49,6 +49,7 @@
 -record(post, { id,
                 ai_post_id,
                 user_id,
+                business_id,
                 content,
                 emoji = [],
                 comments = [],
@@ -63,8 +64,41 @@
                 date_updated,
                 report = [],
                 device_info,
+                pin_info,
                 data = #{} }). 
 
+-record(pin_info, {
+    post_id,          
+    pin_id,          
+    pin_type,         
+    pin_name,        
+    content_cid,     
+    media_cids = [],  
+    size_bytes,
+    replication,      
+    service,         
+    pin_time,         
+    tags = [],        
+    region,           
+    expires_at,       
+    status,         
+    last_checked,     
+    verification_count = 0,  
+    metadata = #{}    
+}).
+
+-record(storage_quota, {
+    user_id,
+    business_id,
+    storage_used_bytes,
+    storage_limit_bytes,
+    pin_count,
+    pin_limit,
+    tier_level,          
+    cost_per_gb,
+    billing_cycle_start,
+    billing_cycle_end
+}).
 
 -record(blog_post, {id, 
                     content,
