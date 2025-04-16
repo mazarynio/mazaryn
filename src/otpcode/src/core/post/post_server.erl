@@ -19,7 +19,7 @@
          update_comment/2, like_comment/2, get_comment_likes/1, reply_comment/3, delete_reply/1, get_reply/1, get_all_replies/1,
          get_single_comment/1, get_all_comments/1, delete_comment/2, get_likes/1, get_all_likes_for_user/1, get_last_50_likes_for_user/1,
          get_media/1, get_posts/0, get_all_comments_by_user_id/2, get_all_comments_for_user/1, get_last_50_comments_for_user/1,
-         get_all_posts_from_date/4, get_all_posts_from_month/3]).
+         get_all_posts_from_date/4, get_all_posts_from_month/3, get_comment_content/1, get_reply_content/1, pin_post/1]).
 
 -export([save_post/2, unsave_post/2,
          save_posts/2, unsave_posts/2,
@@ -110,11 +110,17 @@ delete_reply(ReplyID) ->
 get_reply(ReplyID) ->
     gen_server:call({global, ?MODULE}, {get_reply, ReplyID}).
 
+get_reply_content(ReplyID) ->
+    gen_server:call({global, ?MODULE}, {get_reply_content, ReplyID}).
+
 get_all_replies(CommentID) ->
     gen_server:call({global, ?MODULE}, {get_all_replies, CommentID}).
 
 get_single_comment(CommentId) ->
     gen_server:call({global, ?MODULE}, {get_single_comment, CommentId}).
+
+get_comment_content(CommentID) ->
+    gen_server:call({global, ?MODULE}, {get_comment_content, CommentID}).
 
 get_user_by_single_comment(CommentID) ->
     gen_server:call({global, ?MODULE}, {get_user_by_single_comment, CommentID}).
@@ -161,27 +167,39 @@ get_save_posts(Username) ->
 report_post(MyID, PostID, Type, Description) ->
     gen_server:call({global, ?MODULE}, {report_post, MyID, PostID, Type, Description}).
 
+pin_post(PostID) ->
+    gen_server:call({global, ?MODULE}, {pin_post, PostID}).
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% INTERNAL FUNCTIONS %%%%%%%%%%%%%%%%%
 init([]) ->
     {ok, []}.
 
 
-handle_call({insert, Author, Content, Emoji, Media, Hashtag, Mention, Link_URL}, _From, State) ->
-    Id = postdb:insert(Author, Content, Emoji, Media, Hashtag, Mention, Link_URL),
-    {reply, Id, State};
+handle_call({insert, Author, Content, Emoji, Media, Hashtag, Mention, Link_URL}, From, State) ->
+    spawn(fun() ->
+        Id = postdb:insert(Author, Content, Emoji, Media, Hashtag, Mention, Link_URL),
+        gen_server:reply(From, Id)
+    end),
+    {noreply, State};
 
 handle_call({modify_post, PostID, Author, NewContent, NewEmoji, NewMedia, NewHashtag, NewMention, NewLink_URL},
              _From, State) ->
   Res = postdb:modify_post(PostID, Author, NewContent, NewEmoji, NewMedia, NewHashtag, NewMention, NewLink_URL),
   {reply, Res, State};
 
-handle_call({get_post_by_id, Id}, _From, State) ->
-    Posts = postdb:get_post_by_id(Id),
-    {reply, Posts, State};
+handle_call({get_post_by_id, Id}, From, State) ->
+    spawn(fun() ->
+        Result = postdb:get_post_by_id(Id),
+        gen_server:reply(From, Result)
+    end),
+    {noreply, State};
 
-handle_call({get_post_content_by_id, Id}, _From, State) ->
-    Posts = postdb:get_post_content_by_id(Id),
-    {reply, Posts, State};
+handle_call({get_post_content_by_id, Id}, From, State) ->
+    spawn(fun() ->
+        Result = postdb:get_post_content_by_id(Id),
+        gen_server:reply(From, Result)
+    end),
+    {noreply, State};
 
 handle_call({get_posts_by_author, Author}, _From, State) ->
     Posts = postdb:get_posts_by_author(Author),
@@ -212,13 +230,19 @@ handle_call({delete_post, Id}, _From, State) ->
     postdb:delete_post(Id),
     {reply, ok, State};
 
-handle_call({like_post, UserID, PostId}, _From, State) ->
-    Res = postdb:like_post(UserID, PostId),
-    {reply, Res, State};
+handle_call({like_post, UserID, PostId}, From, State) ->
+    spawn(fun() ->
+        Result = postdb:like_post(UserID, PostId),
+        gen_server:reply(From, Result)
+    end),
+    {noreply, State};
 
-handle_call({unlike_post, LikeID, PostId}, _From, State) ->
-    Res = postdb:unlike_post(LikeID, PostId),
-    {reply, Res, State};
+handle_call({unlike_post, LikeID, PostId}, From, State) ->
+    spawn(fun() ->
+        Result = postdb:unlike_post(LikeID, PostId),
+        gen_server:reply(From, Result)
+    end),
+    {noreply, State};
 
 handle_call({add_comment, Author, PostID, Content}, From, State) ->
     spawn(fun() ->
@@ -255,9 +279,12 @@ handle_call({get_last_50_comments_for_user, UserID}, _From, State) ->
     IDs = postdb:get_last_50_comments_for_user(UserID),
     {reply, IDs, State};
 
-handle_call({reply_comment, UserID, CommentID, Content}, _From, State) ->
-    ID = postdb:reply_comment(UserID, CommentID, Content),
-    {reply, ID, State};
+handle_call({reply_comment, UserID, CommentID, Content}, From, State) ->
+    spawn(fun() ->
+        Result = postdb:reply_comment(UserID, CommentID, Content),
+        gen_server:reply(From, Result)
+    end),
+    {noreply, State};
 
 handle_call({delete_reply, ReplyID}, _From, State) ->
     postdb:delete_reply(ReplyID),
@@ -267,6 +294,13 @@ handle_call({get_reply, ReplyID}, _From, State) ->
     ID = postdb:get_reply(ReplyID),
     {reply, ID, State};
 
+handle_call({get_reply_content, ReplyID}, From, State) ->
+    spawn(fun() ->
+        Result = postdb:get_reply_content(ReplyID), 
+        gen_server:reply(From, Result)
+    end),
+    {noreply, State};
+
 handle_call({get_all_replies, CommentID}, _From, State) ->
     IDs = postdb:get_all_replies(CommentID),
     {reply, IDs, State};
@@ -274,6 +308,13 @@ handle_call({get_all_replies, CommentID}, _From, State) ->
 handle_call({get_single_comment, CommentId}, _From, State) ->
     Comment = postdb:get_single_comment(CommentId),
     {reply, Comment, State};
+
+handle_call({get_comment_content, CommentID}, From, State) ->
+    spawn(fun() ->
+        Result = postdb:get_comment_content(CommentID), 
+        gen_server:reply(From, Result)
+    end),
+    {noreply, State};
 
 handle_call({get_user_by_single_comment, CommentID}, _From, State) ->
     Comment = postdb:get_user_by_single_comment(CommentID),
@@ -335,6 +376,13 @@ handle_call({get_save_posts, Username}, _From, State) ->
 handle_call({report_post, MyID, PostID, Type, Description}, _From, State) ->
     Res = postdb:report_post(MyID, PostID, Type, Description),
     {reply, Res, State};
+
+handle_call({pin_post, PostID}, From, State) ->
+    spawn(fun() ->
+        Result = postdb:pin_post(PostID),
+        gen_server:reply(From, Result)
+    end),
+    {noreply, State};
 
 handle_call(_Request, _From, State) ->
     {noreply, State}.

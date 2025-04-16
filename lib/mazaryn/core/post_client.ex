@@ -98,6 +98,10 @@ defmodule Core.PostClient do
     :post_server.update_comment(commentID, newContent)
   end
 
+  def get_comment_content(comment_id) do
+    :post_server.get_comment_content(comment_id)
+  end
+
   def like_comment(userID, commentID) do
     :post_server.like_comment(userID, commentID)
   end
@@ -112,6 +116,10 @@ defmodule Core.PostClient do
 
   def get_reply(replyID) do
     :post_server.get_reply(replyID)
+  end
+
+  def get_reply_content(reply_id) do
+    :post_server.get_reply_content(reply_id)
   end
 
   def delete_reply(replyID) do
