@@ -63,7 +63,7 @@ remote_pin_post(PostID, Service, Options) when (is_list(PostID) orelse is_binary
 
                         MediaCIDs = case MediaPinResult of
                             {ok, #{cid := MCID}} -> [MCID];
-                            {ok, #{cids := MCIDs}} -> MCIDs;
+                            {ok, _} -> [];
                             _ -> []
                         end,
 
@@ -119,16 +119,17 @@ remote_pin_post(PostID, Service, Options) when (is_list(PostID) orelse is_binary
                             store_pin_history(PinInfo)
                         end),
 
-                        case storage_quota:update_storage_quota(Quota, TotalSize) of
+                        UpdateResult = storage_quota:update_storage_quota(Quota, TotalSize),
+                        case UpdateResult of
                             {ok, _UpdatedQuota} ->
                                 UpdatedPost = Post#post{pin_info = PinInfo},
                                 mnesia:write(UpdatedPost),
                                 format_pin_result(ContentPinResult, MediaPinResult, ElapsedTime, PinID);
-                            {error, QuotaError} ->
+                            _ ->
                                 spawn(fun() ->
                                     rollback_pin_operation(ContentCID, MediaCIDs, Service)
                                 end),
-                                {error, {quota_update_failed, QuotaError}}
+                                {error, {quota_update_failed, UpdateResult}}
                         end;
                     {error, quota_exceeded} ->
                         {error, {quota_exceeded, <<"Storage quota exceeded. Please upgrade your plan to continue pinning content.">>}};
@@ -175,9 +176,6 @@ generate_pin_id(PostID, Timestamp) ->
 
 %% Helper function to store pin history for auditing
 store_pin_history(PinInfo) ->
-    % Implement storage of pin history in a separate table
-    % This could include timestamps, operation type, success/failure, etc.
-    % This is just a stub - implement according to your needs
     logger:info("Storing pin history: ~p", [PinInfo]),
     ok.
 

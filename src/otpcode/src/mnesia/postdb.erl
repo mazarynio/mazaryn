@@ -1,14 +1,14 @@
 -module(postdb).
 -author("Zaryn Technologies").
 -export([insert/7, get_post_by_id/1, get_post_content_by_id/1,
-         modify_post/7, get_posts_by_author/1, get_posts_by_user_id/1, get_posts_content_by_author/1, get_posts_content_by_user_id/1,
+         modify_post/8, get_posts_by_author/1, get_posts_by_user_id/1, get_posts_content_by_author/1, get_posts_content_by_user_id/1,
          get_posts_by_hashtag/1, update_post/2, get_last_50_posts_content_by_user_id/1, get_last_50_comments_for_user/1,
          delete_post/1, get_posts/0, delete_reply_from_mnesia/1, get_all_comments_by_user_id/2, get_user_by_single_comment/1, get_last_50_comments_content_for_user/1,
          get_all_posts_from_date/4, get_all_posts_from_month/3, get_all_comments_for_user/1, get_all_likes_for_user/1, get_last_50_likes_for_user/1,
          like_post/2, unlike_post/2, add_comment/3, update_comment/2, like_comment/2, update_comment_likes/2, get_comment_likes/1, get_comment_replies/1, reply_comment/3,
           get_reply/1, get_all_replies/1, delete_reply/1, get_all_comments/1, delete_comment/2, delete_comment_from_mnesia/1, get_likes/1,
          get_single_comment/1, get_media/1, report_post/4, update_activity/2, get_user_id_by_post_id/1, get_post_ipns_by_id/1, get_post_ipfs_by_ipns/1,
-         pin_post/1]).
+         pin_post/1, get_comment_content/1]).
 -export([get_comments/0]).
 
 -include("../records.hrl").
@@ -16,7 +16,6 @@
 
 %% if post or comment do not have media,
 %% their value in record are nil
-
 insert(Author, Content, Emoji, Media, Hashtag, Mention, Link_URL) ->  
   F = fun() ->
           Id = nanoid:gen(),
@@ -24,20 +23,20 @@ insert(Author, Content, Emoji, Media, Hashtag, Mention, Link_URL) ->
           AI_Post_ID = ai_postdb:insert(Id),
           UserID = userdb:get_user_id(Author),
           [User] = mnesia:index_read(user, Author, #user.username),
-          IPFS_Key = User#user.ipfs_key,
+          %%IPFS_Key = User#user.ipfs_key,
           ContentToUse = if
               is_binary(Content) -> binary_to_list(Content);
               true -> Content
           end,
           CIDString = ipfs_content:upload_text(ContentToUse),
-          {ok, #{name := NameBinary, value := _Value}} = ipfs_client_5:name_publish(CIDString, [{key, IPFS_Key}]),
-          IPNSString = binary_to_list(NameBinary),   
+          %%{ok, #{name := NameBinary, value := _Value}} = ipfs_client_5:name_publish(CIDString, [{key, IPFS_Key}]),
+          %%IPNSString = binary_to_list(NameBinary),   
           MediaCID = ipfs_media:upload_media(Media),
           %Device = device:nif_device_info(),
           mnesia:write(#post{id = Id,
                              ai_post_id = AI_Post_ID,
                              user_id = UserID,
-                             content = IPNSString,
+                             content = CIDString,
                              emoji = Emoji,
                              author = Author,
                              media = MediaCID,
@@ -54,37 +53,21 @@ insert(Author, Content, Emoji, Media, Hashtag, Mention, Link_URL) ->
   {atomic, Res} = mnesia:transaction(F),
   Res.
 
-modify_post(Author, NewContent, NewEmoji, NewMedia, NewHashtag, NewMention, NewLink_URL) ->
+modify_post(PostId, Author, NewContent, NewEmoji, NewMedia, NewHashtag, NewMention, NewLink_URL) ->
     F = fun() ->
-        [User] = mnesia:index_read(user, Author, #user.username),
-        IPFS_Key = User#user.ipfs_key,
-        
-        PostQuery = qlc:q([P || P <- mnesia:table(post), 
-                             P#post.author =:= Author]),
-        Posts = qlc:e(PostQuery),
-        case Posts of
-            [] -> error;
-            [Post] -> 
-                ContentToUse = if
-                    is_binary(NewContent) -> binary_to_list(NewContent);
-                    true -> NewContent
-                end,
-                CIDString = ipfs_content:upload_text(ContentToUse),
-                
-                PublishOpts = [
-                    {key, IPFS_Key},
-                    {lifetime, "24h"},
-                    {ttl, "1m"},
-                    {resolve, false},
-                    {v1compat, true},
-                    {'allow-offline', false},
-                    {'ipns-base', "base58btc"},
-                    {'nocache', true}
-                ],
-                
-                case ipfs_client_5:name_publish(CIDString, PublishOpts) of
-                    {ok, #{name := NameBinary}} ->
-                        IPNSString = binary_to_list(NameBinary),
+        case mnesia:read({post, PostId}) of
+            [] -> 
+                error;
+            [Post] ->
+                case Post#post.author =:= Author of
+                    false -> 
+                        unauthorized;
+                    true ->
+                        ContentToUse = if
+                            is_binary(NewContent) -> binary_to_list(NewContent);
+                            true -> NewContent
+                        end,
+                        CIDString = ipfs_content:upload_text(ContentToUse),
                         
                         MediaCID = case NewMedia of
                             undefined -> Post#post.media;
@@ -92,7 +75,7 @@ modify_post(Author, NewContent, NewEmoji, NewMedia, NewHashtag, NewMention, NewL
                         end,
                         
                         UpdatedPost = Post#post{
-                            content = IPNSString,
+                            content = CIDString,
                             emoji = NewEmoji,
                             media = MediaCID,
                             hashtag = NewHashtag,
@@ -101,22 +84,13 @@ modify_post(Author, NewContent, NewEmoji, NewMedia, NewHashtag, NewMention, NewL
                             date_updated = calendar:universal_time()
                         },
                         mnesia:write(UpdatedPost),
-                        
-                        spawn(fun() ->
-                            timer:sleep(1000), 
-                            case ipfs_client_5:name_resolve([{arg, IPNSString}, {nocache, true}]) of
-                                {ok, _} -> ok;
-                                _ -> ok 
-                            end
-                        end),
-                        ok;
-                    _ -> error
-                end;
-            _ -> error
+                        ok
+                end
         end
     end,
     case mnesia:transaction(F) of
         {atomic, ok} -> ok;
+        {atomic, unauthorized} -> {error, unauthorized};
         _ -> error
     end.
 
@@ -162,28 +136,14 @@ get_post_ipns_by_id(Id) ->
       Error -> Error
     end.
   
-
 get_post_content_by_id(Id) -> 
     Fun = fun() ->
               case mnesia:read({post, Id}) of
                 [Post] ->
                   try
-                    IPNSString = Post#post.content,
-                    case ipfs_client_5:name_resolve([{arg, IPNSString}]) of
-                      {ok, #{path := Path}} ->
-                        % Extract CID from path (format: /ipfs/QmXYZ...)
-                        CIDString = case Path of
-                            <<"/ipfs/", CIDBinary/binary>> -> binary_to_list(CIDBinary);
-                            _ when is_binary(Path) -> binary_to_list(Path);
-                            _ -> Path  % If it's already a string
-                        end,
-                        
-                        % Get the content using CID
-                        Content = ipfs_content:get_text_content(CIDString),
-                        {ok, Content};
-                      {error, Reason} ->
-                        {error, {ipns_resolve_failed, Reason}}
-                    end
+                    CIDString = Post#post.content,
+                    Content = ipfs_content:get_text_content(CIDString),
+                    {ok, Content}
                   catch
                     _:Error -> {error, Error}
                   end;
@@ -434,19 +394,19 @@ get_last_50_likes_for_user(UserID) ->
 add_comment(Author, PostID, Content) ->
   Fun = fun() ->
       UserID = userdb:get_user_id(Author),
-      %% Check if the post exists
       case mnesia:read({post, PostID}) of
           [] -> 
               {error, post_not_found}; 
           [Post] ->
               Id = nanoid:gen(),
-
+              PlaceholderContent = "uploading...",
+              
               Comment = #comment{
                   id = Id,
                   user_id = UserID,
                   post = PostID,
                   author = Author,
-                  content = Content,
+                  content = PlaceholderContent,
                   date_created = calendar:universal_time()
               },
               mnesia:write(Comment),
@@ -455,20 +415,61 @@ add_comment(Author, PostID, Content) ->
               UpdatedPost = Post#post{
                   comments = UpdatedComments
               },
-
               mnesia:write(UpdatedPost),
-              Id 
+              
+              {ok, Id}  
       end
   end,
 
   case mnesia:transaction(Fun) of
-      {atomic, Id} -> 
+      {atomic, {ok, Id}} -> 
+          spawn(fun() ->
+              ContentToUse = if
+                  is_binary(Content) -> binary_to_list(Content);
+                  true -> Content
+              end,
+              
+              CIDString = ipfs_content:upload_text(ContentToUse),
+              
+              UpdateF = fun() ->
+                  case mnesia:read({comment, Id}) of
+                      [CommentToUpdate] ->
+                          UpdatedComment = CommentToUpdate#comment{content = CIDString},
+                          mnesia:write(UpdatedComment);
+                      [] -> 
+                          ok
+                  end
+              end,
+              mnesia:transaction(UpdateF)
+          end),
+          
           Id;  
       {atomic, {error, Reason}} -> 
           {error, Reason};  
       {aborted, Reason} -> 
-          {error, transaction_failed, Reason}  
+          {error, {transaction_failed, Reason}}  
   end.
+
+get_comment_content(CommentID) ->
+    Fun = fun() ->
+        case mnesia:read({comment, CommentID}) of
+            [] -> 
+                {error, comment_not_found};
+            [Comment] ->
+                try
+                    CIDString = Comment#comment.content,
+                    Content = ipfs_content:get_text_content(CIDString),
+                    {ok, Content}
+                catch
+                    _:Error -> {error, Error}
+                end
+        end
+    end,
+    case mnesia:transaction(Fun) of
+        {atomic, {ok, Content}} -> Content;
+        {atomic, {error, Reason}} -> {error, Reason};
+        Error -> Error
+    end.
 
 
 update_comment(CommentID, NewContent) ->
@@ -538,13 +539,12 @@ get_comment_replies(CommentID) ->
 
 reply_comment(UserID, CommentID, Content) ->
   Fun = fun() ->
-      %% Check if the post exists
       case mnesia:read({comment, CommentID}) of
           [] -> 
               {error, comment_not_found}; 
           [Comment] ->
               Id = nanoid:gen(),
-
+  
               Reply = #reply{
                   id = Id,
                   comment = CommentID,
@@ -553,24 +553,24 @@ reply_comment(UserID, CommentID, Content) ->
                   date_created = calendar:universal_time()
               },
               mnesia:write(Reply),
-
+  
               UpdatedReplies = [Id | Comment#comment.replies],
               UpdatedComment = Comment#comment{
                   replies = UpdatedReplies
               },
-
+  
               mnesia:write(UpdatedComment),
-              Id 
+              {ok, Id}  
       end
   end,
-
+  
   case mnesia:transaction(Fun) of
-      {atomic, Id} -> 
+      {atomic, {ok, Id}} -> 
           Id;  
       {atomic, {error, Reason}} -> 
           {error, Reason};  
       {aborted, Reason} -> 
-          {error, transaction_failed, Reason}  
+          {error, {transaction_failed, Reason}}  
   end.
 
 delete_reply_from_mnesia(ReplyID) ->

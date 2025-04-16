@@ -13,7 +13,7 @@
 
 -behaviour(gen_server).
 %% API
--export([start_link/0, insert/7, get_post_by_id/1, get_post_content_by_id/1, modify_post/7,
+-export([start_link/0, insert/7, get_post_by_id/1, get_post_content_by_id/1, modify_post/8,
          get_posts_by_author/1, get_posts_by_user_id/1, get_posts_content_by_author/1, get_posts_by_hashtag/1, get_latest_posts/1, update_post/2,
          delete_post/1, like_post/2, unlike_post/2, add_comment/3, get_posts_content_by_user_id/1, get_user_by_single_comment/1,
          update_comment/2, like_comment/2, get_comment_likes/1, reply_comment/3, delete_reply/1, get_reply/1, get_all_replies/1,
@@ -36,9 +36,9 @@ start_link() ->
 insert(Author, Content, Emoji, Media, Hashtag, Mention, Link_URL) ->
   gen_server:call({global, ?MODULE}, {insert, Author, Content, Emoji, Media, Hashtag, Mention, Link_URL}).
 
-modify_post(Author, NewContent, NewEmoji, NewMedia, NewHashtag, NewMention, NewLink_URL) ->
+modify_post(PostID, Author, NewContent, NewEmoji, NewMedia, NewHashtag, NewMention, NewLink_URL) ->
   gen_server:call({global, ?MODULE},
-     {modify_post, Author, NewContent, NewEmoji, NewMedia, NewHashtag, NewMention, NewLink_URL}).
+     {modify_post, PostID, Author, NewContent, NewEmoji, NewMedia, NewHashtag, NewMention, NewLink_URL}).
 
 get_post_by_id(Id) ->
   gen_server:call({global, ?MODULE}, {get_post_by_id, Id}).
@@ -170,9 +170,9 @@ handle_call({insert, Author, Content, Emoji, Media, Hashtag, Mention, Link_URL},
     Id = postdb:insert(Author, Content, Emoji, Media, Hashtag, Mention, Link_URL),
     {reply, Id, State};
 
-handle_call({modify_post, Author, NewContent, NewEmoji, NewMedia, NewHashtag, NewMention, NewLink_URL},
+handle_call({modify_post, PostID, Author, NewContent, NewEmoji, NewMedia, NewHashtag, NewMention, NewLink_URL},
              _From, State) ->
-  Res = postdb:modify_post(Author, NewContent, NewEmoji, NewMedia, NewHashtag, NewMention, NewLink_URL),
+  Res = postdb:modify_post(PostID, Author, NewContent, NewEmoji, NewMedia, NewHashtag, NewMention, NewLink_URL),
   {reply, Res, State};
 
 handle_call({get_post_by_id, Id}, _From, State) ->
@@ -220,9 +220,12 @@ handle_call({unlike_post, LikeID, PostId}, _From, State) ->
     Res = postdb:unlike_post(LikeID, PostId),
     {reply, Res, State};
 
-handle_call({add_comment, Author, PostID, Content}, _From, State) ->
-    Id = postdb:add_comment(Author, PostID, Content),
-    {reply, Id, State};
+handle_call({add_comment, Author, PostID, Content}, From, State) ->
+    spawn(fun() ->
+        Id = postdb:add_comment(Author, PostID, Content),
+        gen_server:reply(From, Id)
+    end),
+    {noreply, State};
 
 handle_call({update_comment, CommentID, NewContent}, _From, State) ->
     postdb:update_comment(CommentID, NewContent),
