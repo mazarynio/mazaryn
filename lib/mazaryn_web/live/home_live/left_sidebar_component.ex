@@ -65,9 +65,10 @@ defmodule MazarynWeb.HomeLive.LeftSidebarComponent do
                       </defs>
                     </svg>
                   </i>
-                  <div class="text-[#60616D] text-base leading-6 group-hover:text-[#4385F5]">
-                    <%= gettext("Chat") %>
+                  <div class="text-[#60616D] text-base leading-6 group-hover:text-[#4385F5] flex items-center gap-2 relative">
+                    <%= gettext("Chat") %> 
                   </div>
+                  <span class="bg-green-700 p-1 w-full h-full rounded-[50%]"></span>
                 </.link>
               </li>
 
