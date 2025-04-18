@@ -17,15 +17,13 @@
    ipfs daemon
    ipfs-cluster-service daemon
    
-3. **Clone and Setup**:
+3. **Setup Go Server**:
    ```bash
    git clone https://github.com/mazarynio/mazaryn
    cd mazaryn/src/golangcode
    go mod tidy
    go build -o myapp
    ./myapp
-   Open another Terminal and run: 
-   ipfs daemon
 
 4. **Clone and Setup**:
    ```bash
