@@ -2,7 +2,8 @@
 -author("Zaryn Technologies").
 -export([
     check_storage_quota/2,update_storage_quota/2,create_default_user_quota/1,create_default_business_quota/1,calculate_content_size/1,
-    calculate_media_size/1,downgrade_to_free_tier/1,reset_quota_for_new_cycle/1,check_payment_status/1,add_days_to_date/2
+    calculate_media_size/1,downgrade_to_free_tier/1,reset_quota_for_new_cycle/1,check_payment_status/1,add_days_to_date/2, release_storage_quota/3,
+    update_quota_after_unpin/2
 ]).
 
 -include("../records.hrl").
@@ -73,6 +74,38 @@ validate_limits(Quota) ->
 update_storage_quota(Quota, SizeBytes) ->
     NewStorageUsed = Quota#storage_quota.storage_used_bytes + SizeBytes,
     NewPinCount = Quota#storage_quota.pin_count + 1,
+    
+    UpdatedQuota = Quota#storage_quota{
+        storage_used_bytes = NewStorageUsed,
+        pin_count = NewPinCount
+    },
+    
+    mnesia:write(UpdatedQuota),
+    {ok, UpdatedQuota}.
+
+%% @doc Release storage quota after unpinning content
+release_storage_quota(UserID, BusinessID, SizeBytes) ->
+    case BusinessID of
+        undefined ->
+            case mnesia:read({storage_quota, UserID}) of
+                [Quota] ->
+                    update_quota_after_unpin(Quota, SizeBytes);
+                [] ->
+                    {error, quota_not_found}
+            end;
+        _ ->
+            case mnesia:read({storage_quota, BusinessID}) of
+                [Quota] ->
+                    update_quota_after_unpin(Quota, SizeBytes);
+                [] ->
+                    {error, quota_not_found}
+            end
+    end.
+
+%% @doc Update quota after unpinning content
+update_quota_after_unpin(Quota, SizeBytes) ->
+    NewStorageUsed = max(0, Quota#storage_quota.storage_used_bytes - SizeBytes),
+    NewPinCount = max(0, Quota#storage_quota.pin_count - 1),
     
     UpdatedQuota = Quota#storage_quota{
         storage_used_bytes = NewStorageUsed,

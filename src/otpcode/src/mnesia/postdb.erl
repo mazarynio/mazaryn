@@ -16,75 +16,87 @@
 
 %% if post or comment do not have media,
 %% their value in record are nil
-insert(Author, Content, Emoji, Media, Hashtag, Mention, Link_URL) ->  
-  Fun = fun() ->
-      Id = nanoid:gen(),
-      Date = calendar:universal_time(),
-      AI_Post_ID = ai_postdb:insert(Id),
-      UserID = userdb:get_user_id(Author),
-      [User] = mnesia:index_read(user, Author, #user.username),
-      
-      PlaceholderContent = "uploading...",
-      PlaceholderMedia = "uploading...",
-      
-      mnesia:write(#post{
-          id = Id,
-          ai_post_id = AI_Post_ID,
-          user_id = UserID,
-          content = PlaceholderContent,
-          emoji = Emoji,
-          author = Author,
-          media = PlaceholderMedia,
-          hashtag = Hashtag,
-          mention = Mention,
-          link_url = Link_URL,
-          date_created = Date
-      }),
-      Posts = User#user.post,
-      mnesia:write(User#user{post = [Id | Posts]}),
-      update_activity(Author, Date),
-      
-      {ok, Id}
-  end,
-
-  case mnesia:transaction(Fun) of
-      {atomic, {ok, Id}} -> 
-          spawn(fun() ->
-              ContentToUse = if
-                  is_binary(Content) -> binary_to_list(Content);
-                  true -> Content
-              end,
-              CIDString = case ContentToUse of
-                  "" -> ""; 
-                  _ -> ipfs_content:upload_text(ContentToUse)
-              end,
-              
-              MediaCID = case Media of
-                  undefined -> undefined;
-                  "" -> "";
-                  _ -> ipfs_media:upload_media(Media)
-              end,
-              UpdateF = fun() ->
-                  case mnesia:read({post, Id}) of
-                      [Post] ->
-                          UpdatedPost = Post#post{
-                              content = CIDString,
-                              media = MediaCID
-                          },
-                          mnesia:write(UpdatedPost);
-                      [] -> 
-                          ok  
-                  end
-              end,
-              mnesia:transaction(UpdateF)
-          end),
-          
-          Id;
-      {atomic, {error, Reason}} -> 
-          {error, Reason};
-      {aborted, Reason} -> 
-          {error, {transaction_failed, Reason}}
-  end.
+insert(Author, Content, Media, Hashtag, Link_URL, Emoji, Mention) ->  
+    Fun = fun() ->
+        Id = nanoid:gen(),
+        Date = calendar:universal_time(),
+        AI_Post_ID = ai_postdb:insert(Id),
+        UserID = userdb:get_user_id(Author),
+        [User] = mnesia:index_read(user, Author, #user.username),
+        
+        PlaceholderContent = "uploading...",
+        PlaceholderMedia = "uploading...",
+        
+        mnesia:write(#post{
+            id = Id,
+            ai_post_id = AI_Post_ID,
+            user_id = UserID,
+            content = PlaceholderContent,
+            emoji = Emoji,
+            author = Author,
+            media = PlaceholderMedia,
+            hashtag = Hashtag,
+            mention = Mention,
+            link_url = Link_URL,
+            date_created = Date
+        }),
+        Posts = User#user.post,
+        mnesia:write(User#user{post = [Id | Posts]}),
+        update_activity(Author, Date),
+        
+        {ok, Id}
+    end,
+  
+    case mnesia:transaction(Fun) of
+        {atomic, {ok, Id}} -> 
+            spawn(fun() ->
+                ContentToUse = if
+                    is_binary(Content) -> binary_to_list(Content);
+                    true -> Content
+                end,
+                CIDString = case ContentToUse of
+                    "" -> ""; 
+                    _ -> ipfs_content:upload_text(ContentToUse)
+                end,
+                
+                MediaCID = case Media of
+                    undefined -> undefined;
+                    "" -> "";
+                    _ -> 
+                        case ipfs_media:upload_media(Media) of
+                            {error, Reason} -> 
+                                error_logger:error_msg("Failed to upload media: ~p", [Reason]),
+                                undefined;
+                            CID when is_list(CID) -> 
+                                CID;
+                            CID when is_binary(CID) -> 
+                                binary_to_list(CID);
+                            Other ->
+                                error_logger:error_msg("Unexpected result from upload_media: ~p", [Other]),
+                                undefined
+                        end
+                end,
+                UpdateF = fun() ->
+                    case mnesia:read({post, Id}) of
+                        [Post] ->
+                            UpdatedPost = Post#post{
+                                content = CIDString,
+                                media = MediaCID
+                            },
+                            mnesia:write(UpdatedPost);
+                        [] -> 
+                            ok  
+                    end
+                end,
+                mnesia:transaction(UpdateF)
+            end),
+            
+            Id;
+        {atomic, {error, Reason}} -> 
+            {error, Reason};
+        {aborted, Reason} -> 
+            {error, {transaction_failed, Reason}}
+    end.
 
 modify_post(PostId, Author, NewContent, NewEmoji, NewMedia, NewHashtag, NewMention, NewLink_URL) ->
     F = fun() ->

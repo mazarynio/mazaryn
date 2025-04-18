@@ -12,7 +12,8 @@
 -define(SERVER, ?MODULE).
 -define(MNESIA_DIR, "Mnesia/").
 -define(TABLES, [post, notif, user, blog_post, comment, blog_comment, like, reply, chat, media, report, knode, business, ads, quantum,
- ai_user, ai_post, ai_chat, ai_media, ai_business, ai_ads, p2p_node, pin_info, storage_quota]).
+ ai_user, ai_post, ai_chat, ai_media, ai_business, ai_ads, p2p_node,
+ pin_info, pin_params, pin_history, bulk_operation, scheduled_job, rate_limiter_usage, pin_info_lookup, pin_health_status, storage_quota]).
 
 %% API
 start_link() ->
@@ -203,4 +204,11 @@ table_attributes(ai_business) -> record_info(fields, ai_business);
 table_attributes(ai_ads) -> record_info(fields, ai_ads);
 table_attributes(p2p_node) -> record_info(fields, p2p_node);
 table_attributes(pin_info) -> record_info(fields, pin_info);
+table_attributes(pin_params) -> record_info(fields, pin_params);
+table_attributes(pin_history) -> record_info(fields, pin_history);
+table_attributes(bulk_operation) -> record_info(fields, bulk_operation);
+table_attributes(scheduled_job) -> record_info(fields, scheduled_job);
+table_attributes(rate_limiter_usage) -> record_info(fields, rate_limiter_usage);
+table_attributes(pin_info_lookup) -> record_info(fields, pin_info_lookup);
+table_attributes(pin_health_status) -> record_info(fields, pin_health);
 table_attributes(storage_quota) -> record_info(fields, storage_quota).

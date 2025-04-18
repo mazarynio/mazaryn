@@ -69,7 +69,8 @@
 
 -record(pin_info, {
     post_id,          
-    pin_id,          
+    pin_id,
+    user_id,          
     pin_type,         
     pin_name,        
     content_cid,     
@@ -81,10 +82,41 @@
     tags = [],        
     region,           
     expires_at,       
-    status,         
+    status,
+    tier,
+    encrypted,
+    access_control,         
     last_checked,     
     verification_count = 0,  
     metadata = #{}    
+}).
+
+-record(pin_params, {
+    name,
+    tags = [],
+    region,
+    expires_after,
+    replication,
+    tier = standard,
+    encrypt = false,
+    access_control,
+    webhook_url,
+    priority = medium,
+    metadata = #{},
+    start_time
+}).
+
+-record(pin_history, {
+    pin_id,
+    post_id,
+    author,
+    operation,
+    pin_time,
+    unpin_time,
+    status,
+    service,
+    size_bytes,
+    metadata = #{}
 }).
 
 -record(storage_quota, {
@@ -98,6 +130,49 @@
     cost_per_gb,
     billing_cycle_start,
     billing_cycle_end
+}).
+
+-record(bulk_operation, {
+    batch_id,           
+    operation,         
+    timestamp,         
+    results,           
+    success_count,     
+    failure_count      
+}).
+
+-record(scheduled_job, {
+    job_id,           
+    operation,       
+    post_id,          
+    schedule_time,    
+    options,          
+    created_at,      
+    status            
+}).
+
+-record(rate_limiter_usage, {
+    user_id,           
+    operation,        
+    count,            
+    timestamp         
+}).
+
+-record(pin_info_lookup, {
+    pin_id,
+    pin_info
+}).
+
+-record(pin_health, {
+    pin_id,                 
+    last_check,                
+    status,                    
+    availability_score,        
+    geographic_distribution,   
+    retrieval_latency,         
+    replication_actual,        
+    issues,                    
+    metadata = #{}             
 }).
 
 -record(blog_post, {id, 
