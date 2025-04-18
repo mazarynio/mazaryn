@@ -15,9 +15,10 @@ defmodule MazarynWeb.NotificationLive.Index do
 
   @impl true
   def handle_event("get_notif", %{"notifID" => notifID}, socket) do
-    UserClient.get_single_notif(notifID)
+    UserClient.mark_notif_as_seen(notifID)
     {:noreply, get_notification(socket, notifID)}
   end
+
 
   defp handle_notif(socket, userID, message) do
     socket

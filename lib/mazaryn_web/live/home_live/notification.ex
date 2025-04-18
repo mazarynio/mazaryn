@@ -49,7 +49,7 @@ defmodule MazarynWeb.HomeLive.Notification do
         <div class="w-full lg:w-[54%] py-6 pl-11 pr-8">
           <div class="flex flex-wrap justify-center align-center mb-6">
             <div class="w-full bg-white white:bg-gray-800 custom-box-shadow pr-[1.35rem] pl-[1.6rem] pb-2 pt-5 mt-8 rounded-[20px]">
-              <%= for {user, message, time_passed, _time_stamp} <- @notifs do %>
+              <%= for {user, message, time_passed, time_stamp, metadata} <- @notifs, not metadata[:seen] do %>
                 <div class="flex justify-between align-center items-center mb-5">
                   <div class="flex justify-center items-center">
                     <img

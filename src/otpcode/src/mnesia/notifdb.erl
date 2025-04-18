@@ -3,7 +3,7 @@
 -export([insert/2, welcome/2, follow/3, mention/3, chat/3, get_single_notif/1, get_notif_message/1, get_all_notifs/1,
 get_all_notif_ids/1,
  get_username_by_id/1, delete_notif/1, get_notif_time/1, get_five_latest_notif_ids/1,
- get_five_latest_notif_messages/1]). 
+ get_five_latest_notif_messages/1, mark_all_as_read/1, mark_as_read/1, count_unread/1]). 
 
 -include("../records.hrl").
 -include_lib("stdlib/include/qlc.hrl").
@@ -201,7 +201,49 @@ get_five_latest_notif_messages(UserID) ->
     Messages.
 
 
+mark_all_as_read(UserID) ->
+    Fun = fun() ->
+        [User] = mnesia:read({user, UserID}),
+        NotifIds = User#user.notif,
+        lists:foreach(fun(NotifId) ->
+            case mnesia:read({notif, NotifId}) of
+                [Notif] ->
+                    mnesia:write(Notif#notif{read = true});
+                _ ->
+                    ok
+            end
+        end, NotifIds),
+        ok
+    end,
+    mnesia:transaction(Fun).
 
+mark_as_read(NotifId) ->
+    Fun = fun() ->
+        case mnesia:read({notif, NotifId}) of
+            [Notif] ->
+                mnesia:write(Notif#notif{read = true}),
+                ok;
+            _ ->
+                {error, not_found}
+        end
+    end,
+    mnesia:transaction(Fun).
+
+count_unread(UserID) ->
+    Fun = fun() ->
+        [User] = mnesia:read({user, UserID}),
+        NotifIds = User#user.notif,
+        lists:foldl(fun(NotifId, Acc) ->
+            case mnesia:read({notif, NotifId}) of
+                [#notif{read = false}] ->
+                    Acc + 1;
+                _ ->
+                    Acc
+            end
+        end, 0, NotifIds)
+    end,
+    {atomic, Count} = mnesia:transaction(Fun),
+    Count.
 
 
 

@@ -44,6 +44,8 @@
                  user_id,
                  message,
                  date_created,
+                 target_id,
+                 read = false,
                  data = #{} }).
 
 -record(post, { id,
