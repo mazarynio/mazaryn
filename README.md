@@ -12,7 +12,7 @@
    - IPFS: https://docs.ipfs.tech/install/
    - IPFS-CLUSTER: https://ipfscluster.io/download/
   
-2. **Run IPFS & IPFS-CLUSTER
+2. **Run IPFS & IPFS-CLUSTER**
    ```bash
    ipfs daemon
    ipfs-cluster-service daemon
