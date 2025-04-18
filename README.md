@@ -15,6 +15,7 @@
    ```bash
    git clone https://github.com/mazarynio/mazaryn
    cd mazaryn/src/golangcode
+   go mod tidy
    go build -o myapp
    ./myapp
    Open another Terminal and run: 
