@@ -170,33 +170,46 @@ prepare_pin_parameters(PostID, Author, Options) ->
     }.
 
 %% @doc Create the pin info record
-create_pin_info_record(PostID, PinID, UserID, PinParams, ContentCID, MediaCIDs, Service, Size, Metadata, EncryptedContent) ->
-    #pin_info{
-        post_id = PostID,
-        pin_id = PinID,
-        user_id = UserID,
-        pin_type = cluster,
-        pin_name = PinParams#pin_params.name,
-        content_cid = ContentCID,
-        media_cids = MediaCIDs,
-        replication = determine_replication_strategy(UserID, PinParams#pin_params.replication),
-        service = Service,
-        pin_time = calendar:universal_time(),
-        tags = PinParams#pin_params.tags,
-        region = PinParams#pin_params.region,
-        expires_at = calculate_expiration(PinParams#pin_params.expires_after),
-        status = case ContentCID of
-            undefined -> failed;
-            _ -> active
-        end,
-        tier = PinParams#pin_params.tier,
-        encrypted = EncryptedContent,
-        access_control = PinParams#pin_params.access_control,
-        last_checked = calendar:universal_time(),
-        verification_count = 1,
-        size_bytes = Size,
-        metadata = Metadata
-    }.
+%% @doc Create a pin_info record for a pinned post.
+%% Calculates and stores the total size of content and media.
+create_pin_info_record(PostID, PinID, UserID, PinParams, ContentCID, MediaCIDs, Service, _Size, Metadata, EncryptedContent) ->
+    ContentSize = storage_quota:calculate_content_size(ContentCID),
+    MediaSize = storage_quota:calculate_media_size(MediaCIDs),
+    TotalSize = ContentSize + MediaSize,
+    logger:info("Pin ~p for post ~p: content_size=~p, media_size=~p, total_size=~p bytes",
+                [PinID, PostID, ContentSize, MediaSize, TotalSize]),
+    case TotalSize < 0 of
+        true ->
+            logger:error("Invalid total size ~p for pin ~p, setting to 0", [TotalSize, PinID]),
+            0;
+        false ->
+            #pin_info{
+                post_id = PostID,
+                pin_id = PinID,
+                user_id = UserID,
+                pin_type = cluster,
+                pin_name = PinParams#pin_params.name,
+                content_cid = ContentCID,
+                media_cids = MediaCIDs,
+                replication = determine_replication_strategy(UserID, PinParams#pin_params.replication),
+                service = Service,
+                pin_time = calendar:universal_time(),
+                tags = PinParams#pin_params.tags,
+                region = PinParams#pin_params.region,
+                expires_at = calculate_expiration(PinParams#pin_params.expires_after),
+                status = case ContentCID of
+                    undefined -> failed;
+                    _ -> active
+                end,
+                tier = PinParams#pin_params.tier,
+                encrypted = EncryptedContent,
+                access_control = PinParams#pin_params.access_control,
+                last_checked = calendar:universal_time(),
+                verification_count = 1,
+                size_bytes = TotalSize,
+                metadata = Metadata
+            }
+    end.
 
 %% @doc Extract CID from pin result
 extract_cid_from_result({ok, #{cid := CID}}) -> CID;
@@ -478,11 +491,17 @@ resolve_and_pin_content(IPNS, Service, PinParams) ->
     end.
 
 %% @doc Pin content to cluster with options
-pin_to_cluster_with_options(CID, _Service, PinParams) ->
+pin_to_cluster_with_options(CID, Service, PinParams) ->
     Options = build_pin_options(PinParams),
     case ipfs_cluster:pin_to_cluster(CID) of
         {ok, Result} ->
-            {ok, #{cid => CID, status => pinned, details => Result, options => Options}};
+            Replication = PinParams#pin_params.replication,
+            case ensure_replication(CID, Service, Replication) of
+                {ok, _} ->
+                    {ok, #{cid => CID, status => pinned, details => Result, options => Options}};
+                {error, Reason} ->
+                    {error, {replication_failed, Reason}}
+            end;
         Error ->
             {error, {cluster_pin_failed, Error}}
     end.
@@ -530,14 +549,17 @@ update_pinning_metrics(PostID, Author, ElapsedTime) ->
 
 %% @doc Determine replication strategy based on author verification status
 determine_replication_strategy(Author, ConfiguredReplication) ->
-    case ConfiguredReplication of
-        undefined ->
-            case is_verified_user(Author) of
-                true -> ?VERIFIED_USER_REPLICATION;
-                false -> ?DEFAULT_REPLICATION
-            end;
+    Default = case is_verified_user(Author) of
+        true -> ?VERIFIED_USER_REPLICATION;
+        false -> ?DEFAULT_REPLICATION
+    end,
+    Replication = case ConfiguredReplication of
+        undefined -> Default;
         Strategy -> Strategy
-    end.
+    end,
+    logger:info("Replication set to ~p for author ~p, but cluster may not enforce it",
+                [Replication, Author]),
+    Replication.
 
 %% @doc Check if user is verified
 is_verified_user(UserID) ->
@@ -621,7 +643,8 @@ verify_pin_health(PinID) ->
                 geographic_distribution = check_geographic_distribution(ContentCID, Service),
                 retrieval_latency = measure_retrieval_latency(ContentCID),
                 replication_actual = count_actual_replications(ContentCID, Service),
-                issues = identify_health_issues(ContentHealth, MediaHealth)
+                issues = identify_health_issues(ContentHealth, MediaHealth),
+                metadata = #{}
             },
             
             mnesia:dirty_write({pin_health_status, 
@@ -637,7 +660,7 @@ verify_pin_health(PinID) ->
             
             case HealthRecord#pin_health.status of
                 unhealthy ->
-                    spawn(fun() -> attempt_repair(PinID, HealthRecord) end);
+                    spawn(fun() -> attempt_repair(PinID, HealthRecord, PinInfo) end);
                 _ -> ok
             end,
             
@@ -645,6 +668,47 @@ verify_pin_health(PinID) ->
         [] ->
             {error, pin_not_found}
     end.
+
+%% @doc Attempt to repair pin issues
+attempt_repair(PinID, HealthRecord, PinInfo) ->
+    Issues = HealthRecord#pin_health.issues,
+    ReplicationFactor = PinInfo#pin_info.replication,
+    Service = PinInfo#pin_info.service,
+    lists:foreach(
+        fun(Issue) ->
+            case Issue of
+                "content_not_pinned" ->
+                    repin_content(PinInfo#pin_info.content_cid, Service, ReplicationFactor);
+                "insufficient_replication" ->
+                    repin_content(PinInfo#pin_info.content_cid, Service, ReplicationFactor);
+                IssueStr ->
+                    case string:prefix(IssueStr, "media_not_pinned:") of
+                        nomatch -> ok;
+                        MediaCID -> repin_content(MediaCID, Service, ReplicationFactor)
+                    end
+            end
+        end,
+        Issues
+    ),
+    
+    logger:info("Attempted repair of pin ~p with issues: ~p", [PinID, Issues]).
+
+%% @doc Repin content to cluster
+repin_content(CID, Service, _ReplicationFactor) when is_list(CID) orelse is_binary(CID) ->
+    case ipfs_cluster:pin_to_cluster(CID) of
+        {ok, Result} ->
+            logger:info("Successfully repinned CID ~p on service ~p", [CID, Service]),
+            {ok, Result};
+        {error, Reason} ->
+            logger:error("Failed to repin CID ~p on service ~p: ~p", [CID, Service, Reason]),
+            {error, Reason}
+    end;
+repin_content(undefined, _, _) ->
+    logger:warning("Cannot repin undefined CID"),
+    {ok, skipped};
+repin_content(Invalid, Service, _) ->
+    logger:error("Invalid CID format for repinning: ~p on service ~p", [Invalid, Service]),
+    {error, invalid_cid}.
 
 %% @doc Verify the health of a specific CID
 verify_cid_health(CID, Service) ->
@@ -1129,3 +1193,28 @@ generate_job_id(Resource, Type) ->
     Unique = integer_to_list(erlang:phash2({Resource, Type, os:timestamp()})),
     list_to_binary(atom_to_list(Type) ++ "_job_" ++ Unique).
 
+
+ensure_replication(CID, _Service, ExpectedReplicas) ->
+    case ipfs_cluster:get_allocation(CID) of
+        {ok, #{allocations := Allocations}} ->
+            ActualReplicas = length(Allocations),
+            if
+                ActualReplicas >= ExpectedReplicas -> {ok, ActualReplicas};
+                true ->
+                    logger:warning("Insufficient replicas for CID ~p: ~p < ~p, attempting recovery",
+                                   [CID, ActualReplicas, ExpectedReplicas]),
+                    ipfs_cluster:recover_pin(CID),
+                    timer:sleep(1000), 
+                    case ipfs_cluster:get_allocation(CID) of
+                        {ok, #{allocations := NewAllocations}} ->
+                            NewCount = length(NewAllocations),
+                            {ok, NewCount};
+                        Error ->
+                            logger:error("Replication recovery failed for CID ~p: ~p", [CID, Error]),
+                            {error, insufficient_replication}
+                    end
+            end;
+        Error ->
+            logger:error("Failed to check allocation for CID ~p: ~p", [CID, Error]),
+            Error
+    end.

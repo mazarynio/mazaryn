@@ -151,30 +151,93 @@ create_default_business_quota(BusinessID) ->
         billing_cycle_end = BillingEnd
     }.
 
-%% @doc Calculate content size in bytes
+%% @doc Calculate the size of a content CID in bytes.
+%% Returns 0 for undefined CIDs, the actual size if available, or an estimated size based on content type.
+%% Logs warnings for errors or fallbacks.
 calculate_content_size(undefined) ->
+    logger:debug("No CID provided for size calculation, returning 0"),
     0;
-calculate_content_size(ContentCID) ->
+calculate_content_size(ContentCID) when is_list(ContentCID) orelse is_binary(ContentCID) ->
     case ipfs_cluster:get_content_size(ContentCID) of
-        {ok, Size} when is_integer(Size) -> Size;
-        _ -> 1024 * 50 
-    end.
+        {ok, Size} when is_integer(Size), Size >= 0 ->
+            logger:debug("Size for CID ~p: ~p bytes", [ContentCID, Size]),
+            Size;
+        {ok, InvalidSize} ->
+            logger:warning("Invalid size ~p for CID ~p, using fallback", [InvalidSize, ContentCID]),
+            estimate_content_size(ContentCID);
+        {error, Reason} ->
+            logger:warning("Failed to get size for CID ~p: ~p, using fallback", [ContentCID, Reason]),
+            estimate_content_size(ContentCID)
+    end;
+calculate_content_size(Invalid) ->
+    logger:error("Invalid CID format ~p, returning 0", [Invalid]),
+    0.
 
-%% @doc Calculate size of all media files
+%% @doc Estimate content size based on CID or configuration.
+estimate_content_size(_CID) ->
+    % Use configuration for fallback size, defaulting to 50KB
+    FallbackSize = application:get_env(mazaryn, default_content_size, 1024 * 50),
+    logger:info("Using estimated content size: ~p bytes", [FallbackSize]),
+    FallbackSize.
+
+%% @doc Calculate the total size of a list of media CIDs in bytes.
+%% Returns 0 for empty lists, sums actual sizes when available, or uses estimated sizes for failures.
+%% Processes CIDs in parallel for performance.
 calculate_media_size([]) ->
+    logger:debug("No media CIDs provided, returning 0"),
     0;
-calculate_media_size(MediaCIDs) ->
-    lists:foldl(
-        fun(CID, Acc) ->
-            Size = case ipfs_cluster:get_content_size(CID) of
-                {ok, S} when is_integer(S) -> S;
-                _ -> 1024 * 100 
-            end,
-            Acc + Size
+calculate_media_size(MediaCIDs) when is_list(MediaCIDs) ->
+    % Use parallel map to process CIDs concurrently
+    Sizes = pmap(
+        fun(CID) ->
+            case calculate_single_media_size(CID) of
+                Size when is_integer(Size), Size >= 0 -> Size;
+                _ -> 0
+            end
         end,
-        0,
         MediaCIDs
-    ).
+    ),
+    TotalSize = lists:sum(Sizes),
+    logger:debug("Total media size for ~p CIDs: ~p bytes", [length(MediaCIDs), TotalSize]),
+    TotalSize;
+calculate_media_size(Invalid) ->
+    logger:error("Invalid media CIDs format ~p, returning 0", [Invalid]),
+    0.
+
+%% @doc Calculate size for a single media CID.
+calculate_single_media_size(CID) when is_list(CID) orelse is_binary(CID) ->
+    case ipfs_cluster:get_content_size(CID) of
+        {ok, Size} when is_integer(Size), Size >= 0 ->
+            logger:debug("Size for media CID ~p: ~p bytes", [CID, Size]),
+            Size;
+        {ok, InvalidSize} ->
+            logger:warning("Invalid size ~p for media CID ~p, using fallback", [InvalidSize, CID]),
+            estimate_media_size(CID);
+        {error, Reason} ->
+            logger:warning("Failed to get size for media CID ~p: ~p, using fallback", [CID, Reason]),
+            estimate_media_size(CID)
+    end;
+calculate_single_media_size(Invalid) ->
+    logger:error("Invalid media CID format ~p, returning 0", [Invalid]),
+    0.
+
+%% @doc Estimate media size based on CID or configuration.
+estimate_media_size(_CID) ->
+    % Use configuration for fallback size, defaulting to 100KB
+    FallbackSize = application:get_env(mazaryn, default_media_size, 1024 * 100),
+    logger:info("Using estimated media size: ~p bytes", [FallbackSize]),
+    FallbackSize.
+
+%% @doc Parallel map for processing lists concurrently.
+pmap(Fun, List) ->
+    Parent = self(),
+    Refs = [spawn_monitor(fun() -> Parent ! {self(), Fun(Item)} end) || Item <- List],
+    [receive
+         {Pid, Result} -> Result
+     after 60000 ->
+         logger:error("Timeout processing item in pmap for PID ~p", [Pid]),
+         0
+     end || {Pid, _Ref} <- Refs].
 
 %% @doc Reset quota for new billing cycle
 reset_quota_for_new_cycle(Quota) ->
