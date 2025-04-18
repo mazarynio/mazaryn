@@ -8,21 +8,34 @@ defmodule Mazaryn.Chats do
   alias :chat_server, as: ChatDB
   
   def create_chat(%User{id: actor_id}, %User{id: recipient_id}, params)
-      when actor_id != recipient_id do
-    %Chat{}
-    |> Chat.changeset(params)
-    |> Ecto.Changeset.apply_action(:validate)
-    |> case do
-      {:ok, %{body: body, media: media}} ->
+    when actor_id != recipient_id do
+  %Chat{}
+  |> Chat.changeset(params)
+  |> Ecto.Changeset.apply_action(:validate)
+  |> case do
+    {:ok, %{body: body, media: media}} ->
+      chat =
         actor_id
         |> ChatDB.send_msg(recipient_id, body, media)
         |> ChatDB.get_msg()
         |> Chat.erl_changeset()
-      any ->
-        any
-    end
+
+        Mazaryn.Notifications.create_notification(%{
+        user_id: recipient_id,
+        type: "chat",
+        message: "New message from #{actor_id}", # You can replace actor_id with username if available
+        metadata: %{
+          sender_id: actor_id
+        }
+      })
+
+      chat
+
+     any ->
+       any
+     end
   end
-  
+
   def create_chat(_actor, _recipient, _params), do: {:error, :invalid_chat_participants}
   
   def get_by_chat_id(id), do: id |> ChatDB.get_chat_by_id() |> Chat.erl_changeset()
