@@ -1185,4 +1185,10 @@
   .privacy-policy a {
     word-break: break-all;
    }
+
+ .hidden {
+    display: none;
+
+}
+
  }
