@@ -7,10 +7,10 @@ get_gateway_url/2,bulk_pin_posts/1,bulk_pin_posts/2,get_pin_statistics/0,get_pin
 
 -define(DEFAULT_GATEWAY, "http://localhost:8080").
 -define(MAZARYN_VERSION, "1.0.0").
--define(DEFAULT_TIMEOUT, 60000).  
 -define(DEFAULT_REPLICATION, 2).
 -define(VERIFIED_USER_REPLICATION, 3).
 -define(MAX_BULK_PINS, 25).
+
 
 %% @doc Pins a post to IPFS cluster with default options
 remote_pin_post(PostID) ->
@@ -154,12 +154,13 @@ execute_pin_transaction(PostID, Service, Options, RequestId) ->
 
 %% @doc Prepare pin parameters from options
 prepare_pin_parameters(PostID, Author, Options) ->
+    DefaultReplication = determine_replication_strategy(Author, maps:get(replication, Options, undefined)),
     #pin_params{
         name = maps:get(name, Options, generate_pin_name(PostID, Author)),
         tags = maps:get(tags, Options, []),
         region = maps:get(region, Options, undefined),
         expires_after = maps:get(expires_after, Options, undefined),
-        replication = maps:get(replication, Options, undefined),
+        replication = DefaultReplication,
         tier = maps:get(tier, Options, standard),
         encrypt = maps:get(encrypt, Options, false),
         access_control = maps:get(access_control, Options, undefined),
@@ -785,16 +786,15 @@ health_score(#{is_pinned := IsPinned, is_retrievable := IsRetrievable, has_expec
     PinScore + RetrieveScore + ReplicationScore.
 
 %% @doc Determine health status based on score
-determine_health_status(Score) when Score >= 90 -> healthy;
-determine_health_status(Score) when Score >= 70 -> degraded;
+determine_health_status(Score) when Score >= 80 -> healthy;
+determine_health_status(Score) when Score >= 60 -> degraded;
 determine_health_status(_) -> unhealthy.
 
 %% @doc Check geographic distribution of pin
 check_geographic_distribution(CID, _Service) ->
     case ipfs_cluster:get_allocation(CID) of
-        {ok, AllocationData} ->
-            Allocations = maps:get(allocations, AllocationData, []),
-            Allocations; 
+        {ok, #{<<"allocations">> := Allocations}} ->
+            Allocations;
         _ ->
             []
     end.
@@ -824,8 +824,7 @@ measure_retrieval_latency(CID) ->
 %% @doc Count actual replications
 count_actual_replications(CID, _Service) ->
     case ipfs_cluster:get_allocation(CID) of
-        {ok, AllocationData} ->
-            Allocations = maps:get(allocations, AllocationData, []),
+        {ok, #{<<"allocations">> := Allocations}} ->
             length(Allocations);
         _ ->
             0
@@ -861,56 +860,32 @@ identify_health_issues(ContentHealth, MediaHealthList) ->
     
     ContentIssues ++ RetrievalIssues ++ ReplicationIssues ++ MediaIssues.
 
-%% @doc Attempt to repair pin issues
-attempt_repair(PinID, HealthRecord) ->
-    Issues = HealthRecord#pin_health.issues,
-    case mnesia:dirty_read({pin_info_lookup, PinID}) of
-        [{pin_info_lookup, PinID, PinInfo}] ->
-            lists:foreach(
-                fun(Issue) ->
-                    case Issue of
-                        "content_not_pinned" ->
-                            repinContent(PinInfo#pin_info.content_cid, PinInfo#pin_info.service);
-                        "insufficient_replication" ->
-                            rebalanceReplication(PinInfo#pin_info.content_cid, PinInfo#pin_info.service, 
-                                               PinInfo#pin_info.replication);
-                        IssueStr ->
-                            case string:prefix(IssueStr, "media_not_pinned:") of
-                                nomatch -> ok;
-                                MediaCID -> repinContent(MediaCID, PinInfo#pin_info.service)
-                            end
-                    end
-                end,
-                Issues
-            ),
-            
-            logger:info("Attempted repair of pin ~p with issues: ~p", [PinID, Issues]);
-        [] ->
-            logger:warning("Cannot repair pin ~p: pin not found", [PinID])
-    end.
-
-%% @doc Repin content to cluster
-repinContent(CID, Service) ->
-    ipfs_cluster:repin(CID, Service).
-
-%% @doc Rebalance replication for a CID
-rebalanceReplication(CID, Service, TargetReplication) ->
-    ipfs_cluster:set_replication_factor(CID, Service, TargetReplication).
-
 %% @doc Get detailed pin information
 get_pin_info(PinID) ->
     case mnesia:dirty_read({pin_info_lookup, PinID}) of
         [{pin_info_lookup, PinID, PinInfo}] ->
             HealthInfo = case mnesia:dirty_read({pin_health, PinID}) of
-                [{pin_health, PinID, HealthRecord}] -> HealthRecord;
-                [] -> undefined
+                [{pin_health, PinID, LastCheck, Status, Score, GeoDist, Latency, ActualRep, Issues, Metadata}] ->
+                    #pin_health{
+                        pin_id = PinID,
+                        last_check = LastCheck,
+                        status = Status,
+                        availability_score = Score,
+                        geographic_distribution = GeoDist,
+                        retrieval_latency = Latency,
+                        replication_actual = ActualRep,
+                        issues = Issues,
+                        metadata = Metadata
+                    };
+                [] ->
+                    undefined
             end,
-            
             {ok, format_pin_info(PinInfo, HealthInfo)};
         [] ->
             {error, pin_not_found}
     end.
 
+%% @doc Format pin info for API response
 %% @doc Format pin info for API response
 format_pin_info(PinInfo, HealthInfo) ->
     BaseInfo = #{
@@ -928,10 +903,10 @@ format_pin_info(PinInfo, HealthInfo) ->
         size_bytes => PinInfo#pin_info.size_bytes,
         gateway_url => get_gateway_url(PinInfo#pin_info.content_cid)
     },
-    
     case HealthInfo of
-        undefined -> BaseInfo;
-        _ ->
+        undefined ->
+            BaseInfo;
+        #pin_health{} ->
             BaseInfo#{
                 health => #{
                     status => HealthInfo#pin_health.status,
@@ -1212,7 +1187,7 @@ generate_job_id(Resource, Type) ->
 
 ensure_replication(CID, _Service, ExpectedReplicas) ->
     case ipfs_cluster:get_allocation(CID) of
-        {ok, #{allocations := Allocations}} ->
+        {ok, #{<<"allocations">> := Allocations}} ->
             ActualReplicas = length(Allocations),
             if
                 ActualReplicas >= ExpectedReplicas -> {ok, ActualReplicas};
@@ -1220,9 +1195,9 @@ ensure_replication(CID, _Service, ExpectedReplicas) ->
                     logger:warning("Insufficient replicas for CID ~p: ~p < ~p, attempting recovery",
                                    [CID, ActualReplicas, ExpectedReplicas]),
                     ipfs_cluster:recover_pin(CID),
-                    timer:sleep(1000), 
+                    timer:sleep(1000),
                     case ipfs_cluster:get_allocation(CID) of
-                        {ok, #{allocations := NewAllocations}} ->
+                        {ok, #{<<"allocations">> := NewAllocations}} ->
                             NewCount = length(NewAllocations),
                             {ok, NewCount};
                         Error ->
