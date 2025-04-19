@@ -5,7 +5,7 @@ get_gateway_url/2,bulk_pin_posts/1,bulk_pin_posts/2,get_pin_statistics/0,get_pin
 
 -include("../records.hrl").
 
--define(DEFAULT_GATEWAY, "https://ipfs.mazaryn.io").
+-define(DEFAULT_GATEWAY, "http://localhost:8080").
 -define(MAZARYN_VERSION, "1.0.0").
 -define(DEFAULT_TIMEOUT, 60000).  
 -define(DEFAULT_REPLICATION, 2).
@@ -647,7 +647,7 @@ verify_pin_health(PinID) ->
                 metadata = #{}
             },
             
-            mnesia:dirty_write({pin_health_status, 
+            mnesia:dirty_write({pin_health, 
                                 HealthRecord#pin_health.pin_id,
                                 HealthRecord#pin_health.last_check,
                                 HealthRecord#pin_health.status,
@@ -715,16 +715,25 @@ verify_cid_health(CID, Service) ->
     ensure_inets_started(),
     ensure_ssl_started(),
 
+    % Check if CID is pinned in the cluster
     IsPinned = case ipfs_cluster:get_pin_status(CID) of
         {ok, _PinDetails} -> true;
         {error, {404, _}} -> false;
-        {error, _Reason} -> false
+        {error, Reason} ->
+            logger:error("Failed to check pin status for CID ~p: ~p", [CID, Reason]),
+            false
     end,
 
     GatewayUrl = get_gateway_url(CID),
-    IsRetrievable = case httpc:request(head, {GatewayUrl, []}, [{timeout, 30000}], []) of
-        {ok, {{_, StatusCode, _}, _, _}} when StatusCode >= 200, StatusCode < 300 -> true;
-        _ -> false
+    IsRetrievable = case httpc:request(head, {GatewayUrl, []}, [{timeout, 10000}, {connect_timeout, 5000}], []) of
+        {ok, {{_, StatusCode, _}, _, _}} when StatusCode >= 200, StatusCode < 300 ->
+            true;
+        {error, _Reason} ->
+            logger:warning("Failed to retrieve CID ~p from gateway ~p: ~p", [CID, GatewayUrl, _Reason]),
+            false;
+        {ok, {{_, StatusCode, _}, _, _}} ->
+            logger:warning("Unexpected status code ~p for CID ~p from gateway ~p", [StatusCode, CID, GatewayUrl]),
+            false
     end,
 
     ExpectedReplicas = application:get_env(mazaryn, default_replication, ?DEFAULT_REPLICATION),
@@ -796,13 +805,20 @@ measure_retrieval_latency(CID) ->
     ensure_ssl_started(),
     StartTime = erlang:system_time(millisecond),
     GatewayUrl = get_gateway_url(CID),
-    Result = httpc:request(head, {GatewayUrl, []}, [{timeout, 30000}], []),
+    
+    HttpOptions = [{timeout, 10000}, {connect_timeout, 5000}],
+    Result = httpc:request(head, {GatewayUrl, []}, HttpOptions, []),
     EndTime = erlang:system_time(millisecond),
     Latency = EndTime - StartTime,
     
     case Result of
-        {ok, _} -> Latency;
-        _ -> infinity
+        {ok, {{_, StatusCode, _}, _, _}} when StatusCode >= 200, StatusCode < 400 -> 
+            Latency;
+        {error, Reason} -> 
+            logger:error("HTTP request failed for ~p: ~p", [GatewayUrl, Reason]),
+            infinity;
+        _ -> 
+            infinity
     end.
 
 %% @doc Count actual replications
@@ -885,8 +901,8 @@ rebalanceReplication(CID, Service, TargetReplication) ->
 get_pin_info(PinID) ->
     case mnesia:dirty_read({pin_info_lookup, PinID}) of
         [{pin_info_lookup, PinID, PinInfo}] ->
-            HealthInfo = case mnesia:dirty_read({pin_health_status, PinID}) of
-                [{pin_health_status, PinID, HealthRecord}] -> HealthRecord;
+            HealthInfo = case mnesia:dirty_read({pin_health, PinID}) of
+                [{pin_health, PinID, HealthRecord}] -> HealthRecord;
                 [] -> undefined
             end,
             
