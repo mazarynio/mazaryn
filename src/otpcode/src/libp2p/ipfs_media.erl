@@ -42,9 +42,15 @@ upload_media(FilePath, CustomFilename) ->
         {error, Reason} -> 
             {error, {file_size_error, Reason}};
         Size when Size > ?LARGE_FILE_THRESHOLD ->
-            parallel_chunked_upload(FilePath, CustomFilename, Size);
+            case parallel_chunked_upload(FilePath, CustomFilename, Size) of
+                {ok, CID} -> binary_to_list(CID);
+                Error -> Error
+            end;
         Size when Size > ?DEFAULT_CHUNK_SIZE ->
-            sequential_chunked_upload(FilePath, CustomFilename, Size);
+            case sequential_chunked_upload(FilePath, CustomFilename, Size) of
+                {ok, CID} -> binary_to_list(CID);
+                Error -> Error
+            end;
         _ ->
             single_upload(FilePath, CustomFilename)
     end.
@@ -129,8 +135,6 @@ get_media(CID, Options) ->
                     StatusError
             end
     end.
-
-
 
 %% @doc Get media as binary from IPFS using CID with default options
 get_media_binary(CID) ->
@@ -273,8 +277,6 @@ upload_chunks(Fd, Filename, ChunkSize, Offset, TotalSize, Acc) ->
         {ok, Data} ->
             case ipfs_add_file(Filename, Data, ?DEFAULT_ADD_OPTS) of
                 {ok, CID} ->
-                    Progress = (Offset + byte_size(Data)) / TotalSize * 100,
-                    io:format("Upload progress: ~.1f%~n", [Progress]),
                     upload_chunks(Fd, Filename, ChunkSize, Offset + byte_size(Data), TotalSize, [CID|Acc]);
                 Error ->
                     Error
@@ -337,7 +339,8 @@ create_manifest(ChunkCIDs, TotalSize) ->
         chunk_size => ?DEFAULT_CHUNK_SIZE,
         chunk_count => length(ChunkCIDs)
     },
-    case ipfs_add_file("manifest.json", jsx:encode(Manifest), ?DEFAULT_ADD_OPTS) of
+    ManifestBinary = jsx:encode(Manifest),
+    case ipfs_add_file("manifest.json", ManifestBinary, ?DEFAULT_ADD_OPTS) of
         {ok, ManifestCID} -> 
             ipfs_cluster:pin_to_cluster(ManifestCID),
             {ok, ManifestCID};
@@ -360,13 +363,12 @@ ceiling(X) ->
 
 upload_monitor(TotalChunks) ->
     receive
-        {progress, N} ->
-            io:format("Upload progress: ~.1f%~n", [N*100/TotalChunks]),
+        {progress, _N} ->
             upload_monitor(TotalChunks);
         complete -> ok;
         cancel -> ok
     after
-        3600000 -> io:format("Upload monitor timeout~n")
+        3600000 -> ok 
     end.
 
 get_next_chunk(Fd, ChunkSize, TotalChunks) ->

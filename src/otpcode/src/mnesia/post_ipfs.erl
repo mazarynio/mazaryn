@@ -1,243 +1,11 @@
 -module(post_ipfs).
 -author("Zaryn Technologies").
 -export([
-    remote_pin_post/1,remote_pin_post/2,remote_pin_post/3,unpin_post/1,unpin_post/2,check_pin_status/1,check_pin_status/2,list_post_pins/0,list_post_pins/1,
+    check_pin_status/1,check_pin_status/2,list_post_pins/0,list_post_pins/1,
     get_post_pin_info/1,migrate_pins/2,set_pin_expiration/2,renew_pin/1,add_pin_tags/2,get_cluster_stats/0, pin_to_cluster/1, pin_to_cluster/2, get_pin_info/1,
-    format_pin_result/3, format_pin_result/4, update_post_pin_info/2
+    format_pin_result/3, update_post_pin_info/2
 ]).
 -include("../records.hrl").
-
-remote_pin_post(PostID) ->
-    remote_pin_post(PostID, #{}).
-
-remote_pin_post(PostID, Options) when is_map(Options) ->
-    remote_pin_post(PostID, undefined, Options);
-remote_pin_post(PostID, Service) when is_list(Service) orelse is_binary(Service) ->
-    remote_pin_post(PostID, Service, #{}).
-
-%% @doc Pins a post's content and media to a specific IPFS cluster service with options
-%% Options can include:
-%% - name: Custom pin name (default: generated from PostID and Author)
-%% - replication: Number of replicas (default: based on user verification status)
-%% - tags: List of tags to associate with the pin
-%% - expires_after: Time in seconds after which the pin will expire
-%% - region: Preferred geographic region for pinning
-%% - metadata: Additional metadata to store with the pin
-remote_pin_post(PostID, Service, Options) when (is_list(PostID) orelse is_binary(PostID)),
-                                              is_map(Options) ->
-    Fun = fun() ->
-        case mnesia:read({post, PostID}) of
-            [Post] ->
-                Author = Post#post.author,
-                UserID = Post#post.user_id,
-                BusinessID = Post#post.business_id,
-                IPNS = Post#post.content,
-                MediaCID = Post#post.media,
-                
-                case storage_quota:check_storage_quota(UserID, BusinessID) of
-                    {ok, Quota} ->
-                        PinName = maps:get(name, Options, generate_pin_name(PostID, Author)),
-                        Tags = maps:get(tags, Options, []),
-                        Region = maps:get(region, Options, undefined),
-                        ExpiresAfter = maps:get(expires_after, Options, undefined),
-                        Metadata = maps:get(metadata, Options, #{}),
-                        StartTime = erlang:system_time(millisecond),
-
-                        logger:info("Starting cluster pin operation for post ~p by ~p", [PostID, Author]),
-
-                        PinOpts = build_pin_options(Options),
-                        ContentPinResult = case resolve_and_pin_content(IPNS, Service, PinOpts) of
-                            {ok, ContentResult} ->
-                                {ok, ContentResult};
-                            Error ->
-                                logger:error("Failed to pin content: ~p", [Error]),
-                                Error
-                        end,
-
-                        MediaPinResult = pin_media_if_exists(MediaCID, Service, PinOpts),
-
-                        ContentCID = case ContentPinResult of
-                            {ok, #{cid := CID}} -> CID;
-                            _ -> undefined
-                        end,
-
-                        MediaCIDs = case MediaPinResult of
-                            {ok, #{cid := MCID}} -> [MCID];
-                            {ok, _} -> [];
-                            _ -> []
-                        end,
-
-                        EndTime = erlang:system_time(millisecond),
-                        ElapsedTime = EndTime - StartTime,
-                        logger:info("Cluster pin operation completed in ~pms", [ElapsedTime]),
-
-                        ContentSize = storage_quota:calculate_content_size(ContentCID),
-                        MediaSize = storage_quota:calculate_media_size(MediaCIDs),
-                        TotalSize = ContentSize + MediaSize,
-
-                        spawn(fun() ->
-                            update_pinning_metrics(PostID, Author, ElapsedTime)
-                        end),
-
-                        PinID = generate_pin_id(PostID, os:timestamp()),
-
-                        PinInfo = #pin_info{
-                            post_id = PostID,
-                            pin_id = PinID,
-                            pin_type = cluster,
-                            pin_name = PinName,
-                            content_cid = ContentCID,
-                            media_cids = MediaCIDs,
-                            replication = determine_replication_strategy(Post, Options),
-                            service = Service,
-                            pin_time = calendar:universal_time(),
-                            tags = Tags,
-                            region = Region,
-                            expires_at = calculate_expiration(ExpiresAfter),
-                            status = case ContentPinResult of
-                                {ok, _} -> active;
-                                _ -> failed
-                            end,
-                            last_checked = calendar:universal_time(),
-                            verification_count = 1,
-                            size_bytes = TotalSize,
-                            metadata = Metadata#{
-                                elapsed_time_ms => ElapsedTime,
-                                content_details => case ContentPinResult of 
-                                    {ok, #{details := Details}} -> Details;
-                                    _ -> #{}
-                                end,
-                                media_details => case MediaPinResult of
-                                    {ok, #{details := MDetails}} -> MDetails;
-                                    _ -> #{}
-                                end,
-                                quota_tier => Quota#storage_quota.tier_level
-                            }
-                        },
-
-                        spawn(fun() ->
-                            store_pin_history(PinInfo)
-                        end),
-
-                        UpdateResult = storage_quota:update_storage_quota(Quota, TotalSize),
-                        case UpdateResult of
-                            {ok, _UpdatedQuota} ->
-                                UpdatedPost = Post#post{pin_info = PinInfo},
-                                mnesia:write(UpdatedPost),
-                                format_pin_result(ContentPinResult, MediaPinResult, ElapsedTime, PinID);
-                            _ ->
-                                spawn(fun() ->
-                                    rollback_pin_operation(ContentCID, MediaCIDs, Service)
-                                end),
-                                {error, {quota_update_failed, UpdateResult}}
-                        end;
-                    {error, quota_exceeded} ->
-                        {error, {quota_exceeded, <<"Storage quota exceeded. Please upgrade your plan to continue pinning content.">>}};
-                    {error, pin_limit_reached} ->
-                        {error, {pin_limit_reached, <<"You have reached your pin limit. Please upgrade your plan to pin more content.">>}};
-                    {error, Reason} ->
-                        {error, {quota_check_failed, Reason}}
-                end;
-            [] ->
-                logger:warning("Post not found for pinning: ~p", [PostID]),
-                {error, post_not_found};
-            Error ->
-                logger:error("Database error: ~p", [Error]),
-                Error
-        end
-    end,
-
-    case mnesia:transaction(Fun) of
-        {atomic, Result} -> Result;
-        {aborted, Reason} ->
-            logger:error("Transaction failed: ~p", [Reason]),
-            {error, {transaction_failed, Reason}}
-    end.
-
-%% @doc Rollback a pin operation if quota update fails
-rollback_pin_operation(ContentCID, MediaCIDs, Service) ->
-    % Unpin content
-    case ContentCID of
-        undefined -> ok;
-        _ -> ipfs_cluster:unpin_from_cluster(ContentCID, Service)
-    end,
-    
-    lists:foreach(
-        fun(CID) ->
-            ipfs_cluster:unpin_from_cluster(CID, Service)
-        end,
-        MediaCIDs
-    ).
-
-%% Helper function to generate a unique pin ID
-generate_pin_id(PostID, Timestamp) ->
-    Unique = integer_to_list(erlang:phash2({PostID, Timestamp})),
-    list_to_binary("pin_" ++ Unique).
-
-%% Helper function to store pin history for auditing
-store_pin_history(PinInfo) ->
-    logger:info("Storing pin history: ~p", [PinInfo]),
-    ok.
-
-%% Updated format_pin_result to include pin_id
-format_pin_result(ContentPinResult, MediaPinResult, ElapsedTime, PinID) ->
-    {ok, #{
-        content => format_single_pin_result(ContentPinResult),
-        media => format_single_pin_result(MediaPinResult),
-        elapsed_time_ms => ElapsedTime,
-        pin_id => PinID
-    }}.
-
-%% Function to format an individual pin result
-format_single_pin_result({ok, Result}) ->
-    Result;
-format_single_pin_result(Error) ->
-    #{
-        status => failed,
-        error => Error
-    }.
-
-unpin_post(PostID) ->
-    unpin_post(PostID, undefined).
-
-unpin_post(PostID, Service) ->
-    Fun = fun() ->
-        case mnesia:read({post, PostID}) of
-            [Post] ->
-                IPNS = Post#post.content,
-                MediaCID = Post#post.media,
-                StartTime = erlang:system_time(millisecond),
-
-                logger:info("Starting cluster unpin operation for post ~p", [PostID]),
-
-                ContentResult = case postdb:get_post_ipfs_by_ipns(IPNS) of
-                    {ok, ContentCID} ->
-                        ipfs_cluster:unpin_from_cluster(ContentCID);
-                    ContentCID when is_list(ContentCID) orelse is_binary(ContentCID) ->
-                        ipfs_cluster:unpin_from_cluster(ContentCID);
-                    Error ->
-                        logger:error("Failed to resolve IPNS for unpinning ~p: ~p", [IPNS, Error]),
-                        {error, {ipns_resolution_failed, Error}}
-                end,
-
-                MediaResult = unpin_media_if_exists(MediaCID, Service),
-
-                EndTime = erlang:system_time(millisecond),
-                ElapsedTime = EndTime - StartTime,
-
-                UpdatedPost = mark_pins_inactive(Post),
-                mnesia:write(UpdatedPost),
-
-                format_unpin_result(ContentResult, MediaResult, ElapsedTime);
-            [] ->
-                {error, post_not_found}
-        end
-    end,
-
-    case mnesia:transaction(Fun) of
-        {atomic, Result} -> Result;
-        {aborted, Reason} -> {error, {transaction_failed, Reason}}
-    end.
 
 %% @doc Checks the status of a post's pins in the IPFS cluster
 check_pin_status(PostID) ->
@@ -368,7 +136,7 @@ migrate_pins(FromService, ToService) ->
                 PostID = Post#post.id,
                 try
                     ExistingOptions = get_existing_pin_options(Post, FromService),
-                    {PostID, remote_pin_post(PostID, ToService, ExistingOptions)}
+                    {PostID, pin_post:remote_pin_post(PostID, ToService, ExistingOptions)}
                 catch
                     _:Error -> {PostID, {error, Error}}
                 end
@@ -392,7 +160,7 @@ set_pin_expiration(PostID, ExpiresAfter) when is_integer(ExpiresAfter), ExpiresA
     Fun = fun() ->
         case mnesia:read({post, PostID}) of
             [Post] ->
-                ExpiresAt = calculate_expiration(ExpiresAfter),
+                ExpiresAt = pin_post:calculate_expiration(ExpiresAfter),
                 UpdatedPinInfo = update_pin_expiration(Post#post.pin_info, ExpiresAt),
                 UpdatedPost = Post#post{pin_info = UpdatedPinInfo},
                 mnesia:write(UpdatedPost),
@@ -419,7 +187,7 @@ renew_pin(PostID) ->
                         mnesia:write(UpdatedPost),
                         {ok, #{post_id => PostID, status => renewed}};
                     false ->
-                        remote_pin_post(PostID)
+                        pin_post:remote_pin_post(PostID)
                 end;
             [] ->
                 {error, post_not_found}
@@ -459,33 +227,6 @@ get_cluster_stats() ->
             Error
     end.
 
-%% @doc Resolves IPNS to CID and pins the content to the cluster
-resolve_and_pin_content(IPNS, Service, Options) ->
-    case postdb:get_post_ipfs_by_ipns(IPNS) of
-        {ok, ContentCID} ->
-            pin_to_cluster_with_options(ContentCID, Service, Options);
-        ContentCID when is_list(ContentCID) orelse is_binary(ContentCID) ->
-            pin_to_cluster_with_options(ContentCID, Service, Options);
-        Error ->
-            logger:error("Failed to resolve IPNS ~p: ~p", [IPNS, Error]),
-            {error, {ipns_resolution_failed, Error}}
-    end.
-
-pin_to_cluster_with_options(CID, undefined, Options) ->
-    case ipfs_cluster:pin_to_cluster(CID) of
-        {ok, Result} ->
-            {ok, #{cid => CID, status => pinned, details => Result, options => Options}};
-        Error ->
-            {error, {cluster_pin_failed, Error}}
-    end;
-pin_to_cluster_with_options(CID, _Service, Options) ->
-    case ipfs_cluster:pin_to_cluster(CID) of
-        {ok, Result} ->
-            {ok, #{cid => CID, status => pinned, details => Result, options => Options}};
-        Error ->
-            {error, {cluster_pin_failed, Error}}
-    end.
-
 %% @doc Pins content to the default cluster
 pin_to_cluster(CID) ->
     case ipfs_cluster:pin_to_cluster(CID) of
@@ -504,54 +245,6 @@ pin_to_cluster(CID, _Service) ->
         Error ->
             {error, {cluster_pin_failed, Error}}
     end.
-
-%% @doc Unpins content from the cluster
-unpin_from_cluster(CID, undefined) ->
-    unpin_from_cluster(CID);
-unpin_from_cluster(CID, _Service) ->
-    case ipfs_cluster:unpin_from_cluster(CID) of
-        {ok, Result} ->
-            {ok, #{cid => CID, status => unpinned, details => Result}};
-        Error ->
-            {error, {cluster_unpin_failed, Error}}
-    end.
-
-unpin_from_cluster(CID) ->
-    case ipfs_cluster:unpin_from_cluster(CID) of
-        {ok, Result} ->
-            {ok, #{cid => CID, status => unpinned, details => Result}};
-        Error ->
-            {error, {cluster_unpin_failed, Error}}
-    end.
-
-%% @doc Pins media CID if it exists and is valid
-pin_media_if_exists(undefined, _, _) -> {ok, skip_media};
-pin_media_if_exists(null, _, _) -> {ok, skip_media};
-pin_media_if_exists("", _, _) -> {ok, skip_media};
-pin_media_if_exists(MediaCID, Service, Options) when is_list(MediaCID) orelse is_binary(MediaCID) ->
-    case pin_to_cluster_with_options(MediaCID, Service, Options) of
-        {ok, Result} -> {ok, Result};
-        Error ->
-            logger:error("Failed to pin media ~p: ~p", [MediaCID, Error]),
-            Error
-    end;
-pin_media_if_exists(Invalid, _, _) ->
-    logger:error("Invalid media CID format: ~p", [Invalid]),
-    {error, invalid_media_cid}.
-
-unpin_media_if_exists(undefined, _) -> {ok, skip_media};
-unpin_media_if_exists(null, _) -> {ok, skip_media};
-unpin_media_if_exists("", _) -> {ok, skip_media};
-unpin_media_if_exists(MediaCID, Service) when is_list(MediaCID) orelse is_binary(MediaCID) ->
-    case unpin_from_cluster(MediaCID, Service) of
-        {ok, Result} -> {ok, Result};
-        Error ->
-            logger:error("Failed to unpin media ~p: ~p", [MediaCID, Error]),
-            Error
-    end;
-unpin_media_if_exists(Invalid, _) ->
-    logger:error("Invalid media CID format: ~p", [Invalid]),
-    {error, invalid_media_cid}.
 
 get_pin_status(CID, undefined) ->
     get_pin_status(CID);
@@ -584,23 +277,6 @@ format_pin_result(ContentResult, MediaResult, ElapsedTime) ->
         elapsed_time_ms => ElapsedTime
     }}.
 
-format_unpin_result({ok, ContentResult}, {ok, MediaResult}, ElapsedTime) ->
-    {ok, #{
-        content => ContentResult,
-        media => MediaResult,
-        elapsed_time_ms => ElapsedTime
-    }};
-format_unpin_result({error, ContentError}, _, _) ->
-    {error, {content_unpin_failed, ContentError}};
-format_unpin_result(_, {error, MediaError}, _) when MediaError =/= skip_media ->
-    {error, {media_unpin_failed, MediaError}};
-format_unpin_result(ContentResult, MediaResult, ElapsedTime) ->
-    {ok, #{
-        content => ContentResult,
-        media => MediaResult,
-        elapsed_time_ms => ElapsedTime
-    }}.
-
 %% @doc Format pinned posts for listing
 format_pinned_posts(Posts) ->
     lists:map(
@@ -615,59 +291,6 @@ format_pinned_posts(Posts) ->
         Posts
     ).
 
-%% @doc Generate a pin name for the IPFS cluster based on post details
-generate_pin_name(PostID, Author) ->
-    lists:flatten(io_lib:format("post_~s_by_~s_~s",
-                              [PostID,
-                               Author,
-                               format_date(calendar:universal_time())])).
-
-format_date({{Year, Month, Day}, {Hour, Min, _}}) ->
-    lists:flatten(io_lib:format("~4..0w~2..0w~2..0w_~2..0w~2..0w",
-                              [Year, Month, Day, Hour, Min])).
-
-determine_replication_strategy(Post, Options) ->
-    case maps:get(replication, Options, undefined) of
-        undefined ->
-            case is_verified_user(Post#post.author) of
-                true -> 3;
-                false -> 1
-            end;
-        Strategy -> Strategy
-    end.
-
-is_verified_user(UserID) ->
-    case mnesia:dirty_read({user, UserID}) of
-        [User] -> User#user.verified =:= true;
-        _ -> false
-    end.
-
-%% @doc Update metrics for pinning operations
-update_pinning_metrics(PostID, Author, ElapsedTime) ->
-    try
-        case code:ensure_loaded(prometheus_histogram) of
-            {module, _} ->
-                prometheus_histogram:observe(pinning_operation_duration,
-                                           #{operation => cluster_pin,
-                                             author => Author},
-                                           ElapsedTime),
-                prometheus_counter:inc(pins_created, #{type => cluster});
-            {error, _} ->
-                case erlang:function_exported(mazaryn_metrics, record_pin_operation, 3) of
-                    true ->
-                        mazaryn_metrics:record_pin_operation(PostID, Author, ElapsedTime);
-                    false ->
-                        logger:info("Pin metrics: post=~p author=~p time=~pms",
-                                   [PostID, Author, ElapsedTime])
-                end
-        end
-    catch
-        Class:Reason:Stacktrace ->
-            logger:warning("Failed to update metrics: ~p:~p~n~p",
-                          [Class, Reason, Stacktrace]),
-            ok
-    end.
-
 update_post_pin_info(Post, PinInfo) ->
     CurrentPins = case Post#post.pin_info of
         undefined -> [];
@@ -676,30 +299,6 @@ update_post_pin_info(Post, PinInfo) ->
     end,
     Post#post{pin_info = [PinInfo | CurrentPins]}.
 
-%% @doc Mark all pins as inactive (after unpinning)
-mark_pins_inactive(Post) ->
-    PinInfo = case Post#post.pin_info of
-        undefined -> [];
-        null -> [];
-        Pins when is_list(Pins) ->
-            lists:map(
-                fun(Pin) when is_map(Pin) ->
-                    maps:put(status, inactive, Pin);
-                   (Pin) -> Pin
-                end,
-                Pins
-            )
-    end,
-    Post#post{pin_info = PinInfo}.
-
-%% @doc Calculate expiration timestamp from duration in seconds
-calculate_expiration(undefined) ->
-    undefined;
-calculate_expiration(SecondsFromNow) when is_integer(SecondsFromNow) ->
-    Now = calendar:universal_time(),
-    calendar:gregorian_seconds_to_datetime(
-        calendar:datetime_to_gregorian_seconds(Now) + SecondsFromNow
-    ).
 
 %% @doc Update pin expiration for all active pins
 update_pin_expiration(PinInfo, ExpiresAt) when is_list(PinInfo) ->
@@ -788,22 +387,7 @@ get_existing_pin_options(Post, SourceService) ->
         [] -> #{}
     end.
 
-%% @doc Build pin options for cluster API
-build_pin_options(Options) ->
-    maps:fold(
-        fun(replication, Value, Acc) ->
-                maps:put(replication_factor, Value, Acc);
-           (region, Value, Acc) ->
-                maps:put(pinning_region, Value, Acc);
-           (name, Value, Acc) ->
-                maps:put(name, Value, Acc);
-           (tags, Value, Acc) ->
-                maps:put(tags, Value, Acc);
-           (_, _, Acc) -> Acc
-        end,
-        #{},
-        Options
-    ).
+
 
 %% @doc Analyze cluster allocations to get statistics
 analyze_cluster_allocations(Allocations) when is_map(Allocations) ->
