@@ -136,7 +136,6 @@ defmodule MazarynWeb.HomeLive.Notification do
     if new_visibility do
       user_id = socket.assigns.target_user.id
 
-      # ✅ FIXED: Properly mark notifications as read
       NotifEvent.mark_all_as_read(user_id)
 
       notification_count = 0
@@ -196,4 +195,3 @@ defmodule MazarynWeb.HomeLive.Notification do
     Users.one_by_id(id)
   end
 end
-
