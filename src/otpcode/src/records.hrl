@@ -44,8 +44,12 @@
                  user_id,
                  message,
                  date_created,
+<<<<<<< HEAD
                  target_id,
                  read = false,
+=======
+                 read,
+>>>>>>> main
                  data = #{} }).
 
 -record(post, { id,

@@ -72,14 +72,14 @@ defmodule MazarynWeb.HomeLive.Notification do
                         <div class="ml-3.5 text-sm leading-tight mt-5">
                           <span class="block text-[#60616D] text-sm">
                             <a class="text-blue-500"
-                              href={
-                                Routes.live_path(
-                                  @socket,
-                                  MazarynWeb.UserLive.Profile,
-                                  user.username,
-                                  @locale
-                                )
-                              }>
+                               href={
+                                 Routes.live_path(
+                                   @socket,
+                                   MazarynWeb.UserLive.Profile,
+                                   user.username,
+                                   @locale
+                                 )
+                               }>
                               <%= user.username %>
                             </a>
                           </span>
@@ -150,7 +150,8 @@ defmodule MazarynWeb.HomeLive.Notification do
       {:noreply,
        socket
        |> assign(:notification_visible, new_visibility)
-       |> assign(:notification_count, notification_count)}
+       |> assign(:notification_count, notification_count)
+       |> assign(:notifs, [])}  # Clear notifications if needed
     else
       {:noreply, assign(socket, :notification_visible, new_visibility)}
     end
