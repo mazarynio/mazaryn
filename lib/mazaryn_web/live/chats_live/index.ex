@@ -2,16 +2,14 @@ defmodule MazarynWeb.ChatsLive.Index do
   use MazarynWeb, :live_view
   use Phoenix.Component
   require Logger
-
   import MazarynWeb.ChatsLive.Components
-
   alias Account.Users
   alias Account.User
   alias Mazaryn.Chats
   alias Core.ChatClient
-
+  
   on_mount {MazarynWeb.UserLiveAuth, :user_resource}
-
+  
   @impl true
   def mount(_params, _session, socket) do
     assigns = [
@@ -23,35 +21,31 @@ defmodule MazarynWeb.ChatsLive.Index do
       search_query: nil,
       editting_message: false
     ]
-
-    if connected?(socket),
-      do: Phoenix.PubSub.subscribe(Mazaryn.PubSub, "chats:#{socket.assigns.user.id}"),
-      else:
-        Logger.warning(
-          "Socket not connected: failed to subscribe to chats:#{socket.assigns.user.id}"
-        )
-
+    
+    if connected?(socket), do: Phoenix.PubSub.subscribe(Mazaryn.PubSub, "chats:#{socket.assigns.user.id}"), else: Logger.warning(
+      "Socket not connected: failed to subscribe to chats:#{socket.assigns.user.id}"
+    )
+    
     {:ok, assign(socket, assigns)}
   end
-
+  
   @impl true
   def handle_params(params, _uri, socket) do
     {:noreply, apply_action(socket, socket.assigns.live_action, params)}
   end
-
+  
   @impl true
   def handle_event("search_following", %{"search_query" => search_query}, socket) do
     user = search_user_by_username(search_query)
-
     {:noreply, assign(socket, recent_chat_recepients: user || [], search_query: search_query)}
   end
-
+  
   @impl true
   def handle_event("edit-message", %{"message-id" => msg_id} = _params, socket) do
     [message_to_edit] = Enum.filter(socket.assigns.messages, fn msg -> msg.id == msg_id end)
     {:noreply, assign(socket, :editting_message, message_to_edit)}
   end
-
+  
   @impl true
   def handle_event("delete-message", %{"message-id" => msg_id} = _params, socket) do
     updated_messages = Enum.reject(socket.assigns.messages, fn msg -> msg.id == msg_id end)
@@ -59,6 +53,34 @@ defmodule MazarynWeb.ChatsLive.Index do
     {:noreply, assign(socket, :messages, updated_messages)}
   end
 
+  # New handler to mark messages as read when user opens a chat
+  @impl true
+  def handle_event("mark_messages_read", _params, %{assigns: %{user: actor, current_recipient: recipient}} = socket) do
+    case Chats.mark_messages_as_read(actor.id, recipient.id) do
+      {:ok, _} -> 
+        # Update the messages in the state to reflect they've been read
+        updated_messages = Enum.map(socket.assigns.messages, fn msg ->
+          if msg.recipient_id == actor.id and not msg.read do
+            Map.put(msg, :read, true)
+          else
+            msg
+          end
+        end)
+        
+        # Broadcast that messages have been read
+        Phoenix.PubSub.broadcast(
+          Mazaryn.PubSub, 
+          "chats:#{recipient.id}", 
+          {:messages_read, actor.id}
+        )
+        
+        {:noreply, assign(socket, messages: updated_messages)}
+      {:error, reason} ->
+        Logger.error("Failed to mark messages as read: #{inspect(reason)}")
+        {:noreply, socket}
+    end
+  end
+  
   @impl true
   def handle_info({:new_message, chat}, socket) do
     {:noreply, assign(socket, :messages, [chat | socket.assigns.messages])}
@@ -71,41 +93,49 @@ defmodule MazarynWeb.ChatsLive.Index do
       "chats:#{chat.recipient_id}",
       {:new_message, chat}
     )
-
     messages = List.insert_at(socket.assigns.messages, -1, chat)
     {:noreply, assign(socket, :messages, messages)}
   end
 
+  # New handler for when messages are marked as read
+  def handle_info({:messages_read, reader_id}, socket) do
+    # Update local messages to show they've been read
+    updated_messages = Enum.map(socket.assigns.messages, fn msg ->
+      if msg.recipient_id == reader_id and not msg.read do
+        Map.put(msg, :read, true)
+      else
+        msg
+      end
+    end)
+    
+    {:noreply, assign(socket, :messages, updated_messages)}
+  end
+  
   ## Private
-
   # index page loads most recent chat, and filters messages by the chat's recipient
   # index page also looks up for the specific chat given the recipient_id
   defp apply_action(%{assigns: %{user: actor}} = socket, :index, params) do
     previous_contacts = Chats.get_users_with_chats(actor)
     current_recipient = Chats.get_latest_recipient(params["recipient_id"] || actor)
     messages = Chats.get_chat_messages(actor, current_recipient)
-
     recent_chat_recepients = Chats.get_users_chatted_to(actor)
-
+    if current_recipient && current_recipient.id != actor.id do
+      send(self(), {:mark_messages_read, current_recipient.id})
+    end
+    
     assign(socket,
       current_recipient: current_recipient || struct(%User{}, chat: []),
       blank_chat?: is_nil(current_recipient),
       messages: messages,
       contacts: previous_contacts,
       recent_chat_recepients: recent_chat_recepients,
-      other_users:
-        Users.list()
-        |> Enum.map(&(&1 |> Users.one_by_id() |> elem(1)))
-        |> Kernel.--(previous_contacts)
-        |> Kernel.--([actor])
+      other_users: Users.list() |> Enum.map(&(&1 |> Users.one_by_id() |> elem(1))) |> Kernel.--(previous_contacts) |> Kernel.--([actor])
     )
   end
-
+  
   defp search_user_by_username(username) do
     case username |> Core.UserClient.search_user() do
-      :username_not_exist ->
-        nil
-
+      :username_not_exist -> nil
       erl_user ->
         [
           erl_user
@@ -114,5 +144,10 @@ defmodule MazarynWeb.ChatsLive.Index do
           |> elem(1)
         ]
     end
+  end
+
+  # New helper to mark messages as read when chat is opened
+  defp mark_messages_as_read(actor_id, recipient_id) do
+    send(self(), {:mark_messages_read, recipient_id})
   end
 end

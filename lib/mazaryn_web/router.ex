@@ -46,6 +46,7 @@ defmodule MazarynWeb.Router do
     )
 
     forward("/", Absinthe.Plug, schema: MazarynWeb.Schema)
+    live "/search", MazarynWeb.SearchLive
   end
 
   get "/", MazarynWeb.PageController, :add_locale

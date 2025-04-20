@@ -10,7 +10,7 @@ get_user_by_username(Username) ->
 
 welcome(UserID, Username) ->
     case userdb:get_user_by_id(UserID) of
-        User ->
+        User when User =/= undefined -> % Check if User is not undefined
             Message = io:fwrite("Welcome to Mazaryn Dear ~p~n", [Username]),
             notifdb:insert(UserID, Message);
         _ ->
@@ -20,9 +20,8 @@ welcome(UserID, Username) ->
 mention(Author, UserID, PostID) ->
     Post = postdb:get_post_by_id(PostID),
     case userdb:get_user_by_id(UserID) of
-        User ->
-            Message =
-            io:fwrite("User ~p mentioned you on post ~p~n", [Author, PostID]),
+        User when User =/= undefined -> % Check if User is not undefined
+            Message = io:fwrite("User  ~p mentioned you on post ~p: ~p~n", [Author, PostID, Post]),
             Notif = notifdb:insert(UserID, Message),
             Notif;
         _ ->
