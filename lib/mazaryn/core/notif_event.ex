@@ -137,4 +137,8 @@ defmodule Core.NotifEvent do
   def count_unread(user_id) do
     :notifdb.count_unread(user_id)
   end
+
+  def mark_notif_as_read(notif_id) do
+    :notifdb.mark_notif_as_read(notif_id)
+  end
 end

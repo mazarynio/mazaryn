@@ -103,7 +103,7 @@ defmodule MazarynWeb.HomeLive.Notification do
   defp get_all_user_notifs(user) do
     user.id
     |> Core.NotifEvent.get_all_notifs()
-    |> Enum.map(fn {:notif, _notif_id, actor_id, target_id, message, time_stamp, _metadata} ->
+    |> Enum.map(fn {:notif, _notif_id, actor_id, target_id, message, time_stamp, _read, _metadata} ->
       {:ok, user} = get_user(actor_id, target_id)
       time_passed = time_passed(time_stamp)
       {user, message, time_passed, time_stamp}
