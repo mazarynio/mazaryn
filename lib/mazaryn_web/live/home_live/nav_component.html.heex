@@ -43,20 +43,21 @@
       </li>
       <%= unless @current_path == Routes.live_path(@socket, MazarynWeb.NotificationLive.Index, @locale) do %>
         <li id="notificationss" class="mx-8 my-0">
-          <%= live_patch to: Routes.live_path(@socket, MazarynWeb.NotificationLive.Index, @locale), class: "flex bg-[#FAFAFA] center rounded-full py-2 px-2" do %>
-            <span class="relative inline-block">
-              <button>
-                <%= Heroicons.icon("bell", class: "w-7 h-7 rounded-full fill-[#AAAAAA]") %>
+          <%= live_patch to: Routes.live_path(@socket, MazarynWeb.NotificationLive.Index, @locale), 
+            class: "flex bg-[#FAFAFA] center rounded-full py-2 px-2 hover:bg-blue-100 transition-colors duration-200" do %>
+             <span class="relative inline-block">
+               <button class="focus:outline-none">
+                 <%= Heroicons.icon("bell", class: "w-7 h-7 rounded-full fill-[#AAAAAA] group-hover:fill-blue-400 hover:fill-blue-400 transition-colors duration-200") %>
 
-                <%= if @notifs_count && @notifs_count > 0 do %>
-                  <span class="absolute bg-teal-300 text-teal-900 px-2 py-1 text-xs font-bold rounded-full -top-3 -right-3">
-                    <%= @notifs_count %>
-                  </span>
-                <% end %>
-              </button>
-            </span>
-          <% end %>
-        </li>
+                  <%= if @notifs_count && @notifs_count > 0 do %>
+                 <span class="absolute bg-teal-300 text-teal-900 px-2 py-1 text-xs font-bold rounded-full -top-3 -right-3">
+                <%= @notifs_count %>
+               </span>
+              <% end %>
+             </button>
+             </span>
+            <% end %>
+           </li>
       <% end %>
       <li>
         <div @click="isopen = !isopen" class="relative z-10 inline-block text-left cursor-pointer">
