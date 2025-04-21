@@ -6,7 +6,7 @@
       <% end %>
     </div>
     <form
-      class="flex items-center w-full min-w-[380px] mx-auto my-auto h-11 outline-0 rounded-[10px] px-3.5 bg-[#FAFAFA] border-2 border-[#D2D2D1]"
+      class="flex items-center w-full min-w-[380px] mx-auto my-auto h-11 outline-0 rounded-[10px] px-3.5 bg-[#FAFAFA] border-2"
       phx-submit="do_search"
       phx-change="do_search"
     >
@@ -16,7 +16,7 @@
         placeholder="Search"
         name="search"
         value={@search}
-        class="w-full p-0 text-base leading-9 text-[#212121] caret-current placeholder:text-base placeholder:font-normal placeholder:leading-6 placeholder:text-[#AAAAAA] outline-none border-none bg-transparent hover:ring-transparent focus:text-base focus:leading-6 focus:ring-transparent focus-within:bg-transparent focus:bg-transparent"
+        class="w-full p-0 text-base leading-9 text-[#212121] caret-current placeholder:text-base placeholder:font-normal"
       />
       <button type="submit">
         <%= Heroicons.icon("magnifying-glass",
@@ -34,35 +34,34 @@
           <div class="rounded-full pr-4 flex-shrink-0">
             <img
               src={Routes.static_path(@socket, "/images/mazaryn-symbol.svg")}
-              alt="Mazaryn curryency symbol"
+              alt="Mazaryn currency symbol"
               class="w-6 h-6 rounded-full"
             />
           </div>
           <h1 class="text-base text-[#000]">0.1</h1>
         </div>
       </li>
+      <%= unless @current_path == Routes.live_path(@socket, MazarynWeb.NotificationLive.Index, @locale) do %>
+        <li id="notificationss" class="mx-8 my-0">
+          <%= live_patch to: Routes.live_path(@socket, MazarynWeb.NotificationLive.Index, @locale), class: "flex bg-[#FAFAFA] center rounded-full py-2 px-2" do %>
+            <span class="relative inline-block">
+              <button>
+                <%= Heroicons.icon("bell", class: "w-7 h-7 rounded-full fill-[#AAAAAA]") %>
 
-     <%= unless @current_path == Routes.live_path(@socket, MazarynWeb.NotificationLive.Index, @locale) do %>
-      <li phx-hook="Notifications" id="notificationss" class="mx-8 my-0">
-       <div id="notification" class="flex bg-[#FAFAFA] center rounded-full py-2 px-2">
-        <span class="relative inline-block">
-          <.link navigate={Routes.live_path(@socket, MazarynWeb.NotificationLive.Index, @locale)}>
-           <%= Heroicons.icon("bell", class: "w-7 h-7 rounded-full fill-[#AAAAAA]") %>
-          </.link>
-           <span class="absolute bg-teal-300 text-teal-900 px-2 py-1 text-xs font-bold rounded-full -top-3 -right-3">
-             <%= @notifs_count %>
-           </span>
-         </span>
-       </div>
-      </li>
-     <% end %>
-
-
+                <%= if @notifs_count && @notifs_count > 0 do %>
+                  <span class="absolute bg-teal-300 text-teal-900 px-2 py-1 text-xs font-bold rounded-full -top-3 -right-3">
+                    <%= @notifs_count %>
+                  </span>
+                <% end %>
+              </button>
+            </span>
+          <% end %>
+        </li>
+      <% end %>
       <li>
-
         <div @click="isopen = !isopen" class="relative z-10 inline-block text-left cursor-pointer">
           <div
-            class="dropdown inline-flex justify-center w-full rounded-md border border-slate-100 shadow-sm px-4 py-1.5 bg-slate-100 text-sm font-medium text-gray-700 flex-shrink-0 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-100 focus:ring-indigo-500 items-center"
+            class="dropdown inline-flex justify-center w-full rounded-md border border-slate-100 shadow-sm px-4 py-1.5 bg-slate"
             id="menu-button"
             aria-expanded="true"
             aria-haspopup="true"
@@ -89,14 +88,14 @@
             x-transition:leave="transition ease-in duration-200"
             x-transition:leave-start="opacity-100"
             x-transition:leave-end="opacity-0"
-            class="origin-top-right absolute z-100 right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 divide-y divide-gray-100 focus:outline-none"
+            class="origin-top-right absolute z-100 right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5"
             role="menu"
             aria-orientation="vertical"
             aria-labelledby="menu-button"
             tabindex="-1"
           >
             <div class="py-1" role="none">
-              <%= live_patch to: Routes.live_path(@socket, MazarynWeb.UserLive.Profile, @locale, @user.username),  class: "text-gray-700 block px-4 py-2 text-sm", role: "menuitem", tabindex: "-1", id: "menu-item-0" do %>
+              <%= live_patch to: Routes.live_path(@socket, MazarynWeb.UserLive.Profile, @locale, @user.username), class: "text" do %>
                 <div class="flex">
                   <div class="flex rounded-full pr-6">
                     <%= if @user.avatar_url do %>
