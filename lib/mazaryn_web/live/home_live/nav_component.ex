@@ -11,7 +11,10 @@ defmodule MazarynWeb.HomeLive.NavComponent do
     unread_count =
       user.id
       |> Core.NotifEvent.get_all_notifs()
-      |> Enum.filter(fn {:notif, _, _, _, _, _, viewed, _} -> not viewed end) # Handle tuple structure
+      |> Enum.filter(fn
+        {:notif, _, _, _, _, _, viewed, _} -> not viewed
+        %{} = notif -> !notif.viewed
+      end)
       |> Enum.count()
 
     {:ok,
@@ -47,11 +50,15 @@ defmodule MazarynWeb.HomeLive.NavComponent do
   @impl true
   def handle_info({:notification_update}, socket) do
     user_id = socket.assigns.user.id
+
     # Recalculate unread count
     unread_count =
       user_id
       |> Core.NotifEvent.get_all_notifs()
-      |> Enum.filter(fn {:notif, _, _, _, _, _, viewed, _} -> not viewed end) # Handle tuple structure
+      |> Enum.filter(fn
+        {:notif, _, _, _, _, _, viewed, _} -> not viewed
+        %{} = notif -> !notif.viewed
+      end)
       |> Enum.count()
 
     {:noreply, assign(socket, :notifs_count, unread_count)}
