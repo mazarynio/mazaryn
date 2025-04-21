@@ -122,7 +122,8 @@ defmodule Core.NotifEvent do
 
   def mark_notif_as_read(notif_id) do
     :notifdb.mark_notif_as_read(notif_id)
-  
+  end
+
 ## alias here to maintain compatibility with api
   def unread_count(user_id) do
     count_unread(user_id)
