@@ -124,4 +124,21 @@ defmodule Core.NotifEvent do
   def get_five_latest_messages(user_id) do
     :notif_event.get_five_latest_notif_messages(user_id)
   end
+
+  ## Update all unread notifications for this user to read true
+  def mark_all_as_read(user_id) do
+    :notifdb.mark_all_as_read(user_id)
+  end
+
+  def mark_as_read(notif_id) do
+    :notifdb.mark_as_read(notif_id)
+  end
+
+  def count_unread(user_id) do
+    :notifdb.count_unread(user_id)
+  end
+
+  def mark_notif_as_read(notif_id) do
+    :notifdb.mark_notif_as_read(notif_id)
+  end
 end

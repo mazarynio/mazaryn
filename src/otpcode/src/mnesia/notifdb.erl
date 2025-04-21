@@ -1,9 +1,8 @@
 -module(notifdb).
 -author("Zaryn Technologies").
 -export([insert/2, welcome/2, follow/3, mention/3, chat/3, get_single_notif/1, get_notif_message/1, get_all_notifs/1,
-get_all_notif_ids/1,
- get_username_by_id/1, delete_notif/1, get_notif_time/1, get_five_latest_notif_ids/1,
- get_five_latest_notif_messages/1]). 
+         get_all_notif_ids/1, get_username_by_id/1, delete_notif/1, get_notif_time/1, get_five_latest_notif_ids/1,
+         get_five_latest_notif_messages/1, mark_notif_as_read/1, count_unread/1]).
 
 -include("../records.hrl").
 -include_lib("stdlib/include/qlc.hrl").
@@ -14,7 +13,8 @@ insert(UserID, Message) ->
             mnesia:write(#notif{id = Id,
                                 user_id = UserID,
                                 message = Message,
-                                date_created = calendar:universal_time()}),
+                                date_created = calendar:universal_time(),
+                                read = false}),
             [User] = mnesia:read({user, UserID}),
             Notifs = User#user.notif,
             mnesia:write(User#user{notif = [Id|Notifs]}),
@@ -29,7 +29,8 @@ welcome(UserID, Message) ->
         mnesia:write(#notif{id = Id,
                             user_id = UserID,
                             message = Message,
-                            date_created = calendar:universal_time()}),
+                            date_created = calendar:universal_time(),
+                            read = false}),
         [User] = mnesia:read({user, UserID}),
         Notifs = User#user.notif,
         mnesia:write(User#user{notif = [Id|Notifs]}),
@@ -51,7 +52,8 @@ follow(FollowerID, UserID, Message) ->
                             follower = FollowerID,
                             user_id = UserID,
                             message = Message,
-                            date_created = calendar:universal_time()}),
+                            date_created = calendar:universal_time(),
+                            read = false}),
         [User] = mnesia:read({user, UserID}),
         Notifs = User#user.notif,
         mnesia:write(User#user{notif = [Id|Notifs]}),
@@ -72,7 +74,8 @@ mention(Mentionner, UserID, Message) ->
                             follower = Mentionner,
                             user_id = UserID,
                             message = Message,
-                            date_created = calendar:universal_time()}),
+                            date_created = calendar:universal_time(),
+                            read = false}),
         [User] = mnesia:read({user, UserID}),
         Notifs = User#user.notif,
         mnesia:write(User#user{notif = [Id|Notifs]}),
@@ -93,7 +96,8 @@ chat(Sender, Receiver, Message) ->
                             follower = Sender,
                             user_id = Receiver,
                             message = Message,
-                            date_created = calendar:universal_time()}),
+                            date_created = calendar:universal_time(),
+                            read = false}),
         [User] = mnesia:read({user, Receiver}),
         Notifs = User#user.notif,
         mnesia:write(User#user{notif = [Id|Notifs]}),
@@ -106,8 +110,7 @@ chat(Sender, Receiver, Message) ->
         end
     end),
     Id.
-    
-%
+
 get_single_notif(NotifID) ->
     Fun = fun() ->
         case mnesia:read({notif, NotifID}) of
@@ -128,7 +131,7 @@ get_notif_message(NotifID) ->
     Notification = get_single_notif(NotifID),
     NotifMessage = Notification#notif.message,
     NotifMessage.
-%
+
 get_all_notifs(UserID) ->
     Fun = fun() ->
         case mnesia:match_object(#notif{user_id = UserID, _ = '_'}) of
@@ -166,12 +169,11 @@ get_username_by_id(UserID) ->
     Username = User#user.username,
     Username.
 
-%% Delete notification bt Notif ID
 delete_notif(NotifID) ->
-  F = fun() ->
-          mnesia:delete({notif, NotifID})
-      end,
-  mnesia:activity(transaction, F).
+    F = fun() ->
+            mnesia:delete({notif, NotifID})
+        end,
+    mnesia:activity(transaction, F).
 
 get_notif_time(NotifID) ->
     Res = mnesia:transaction(
@@ -200,10 +202,35 @@ get_five_latest_notif_messages(UserID) ->
     Messages = [get_notif_message(NotifID) || NotifID <- LatestNotifIDs],
     Messages.
 
+mark_notif_as_read(NotifID) ->
+    Fun = fun() ->
+        case mnesia:read({notif, NotifID}) of
+            [Notif] ->
+                mnesia:write(Notif#notif{read = true}),
+                ok;
+            [] ->
+                {error, not_found}
+        end
+    end,
+    case mnesia:transaction(Fun) of
+        {atomic, Res} ->
+            Res;
+        {aborted, Reason} ->
+            {error, {aborted, Reason}}
+    end.
 
-
-
-
-
-
-    
+count_unread(UserID) ->
+    Fun = fun() ->
+        case mnesia:match_object(#notif{user_id = UserID, read = false, _ = '_'}) of
+            Objects when is_list(Objects) ->
+                length(Objects);
+            [] ->
+                0
+        end
+    end,
+    case mnesia:transaction(Fun) of
+        {atomic, Res} ->
+            Res;
+        {aborted, Reason} ->
+            {error, {aborted, Reason}}
+    end.

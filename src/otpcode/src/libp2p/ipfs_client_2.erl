@@ -29,7 +29,7 @@ cid_hashes(Numeric, Supported) ->
                          [],
                          [{body_format, binary}]) of
             {ok, {{_, 200, _}, _, Body}} ->
-                {ok, jsx:decode(Body)};
+                {ok, jiffy:decode(Body)};
             {ok, {{_, StatusCode, _}, _, Body}} ->
                 {error, {status_code, StatusCode, Body}};
             {error, Reason} ->
@@ -55,7 +55,7 @@ commands(Flags) when is_boolean(Flags) ->
                          [],
                          [{body_format, binary}]) of
             {ok, {{_, 200, _}, _, Body}} ->
-                {ok, jsx:decode(Body)};
+                {ok, jiffy:decode(Body)};
             {ok, {{_, StatusCode, _}, _, Body}} ->
                 {error, {status_code, StatusCode, Body}};
             {error, Reason} ->
@@ -75,7 +75,7 @@ config_get(Key) when is_list(Key) orelse is_binary(Key) ->
         
         case httpc:request(post, {Url, [], "application/json", ""}, [], [{body_format, binary}]) of
             {ok, {{_, 200, _}, _, Body}} ->
-                case jsx:decode(Body) of
+                case jiffy:decode(Body) of
                     #{<<"Key">> := K, <<"Value">> := V} -> {ok, K, V};
                     Other -> {error, {unexpected_response, Other}}
                 end;
@@ -110,7 +110,7 @@ config_set(Key, Value, Options) when is_list(Key) orelse is_binary(Key) ->
         
         case httpc:request(post, {Url, [], "application/json", ""}, [], [{body_format, binary}]) of
             {ok, {{_, 200, _}, _, Body}} ->
-                case jsx:decode(Body) of
+                case jiffy:decode(Body) of
                     #{<<"Key">> := K, <<"Value">> := V} -> {ok, K, V};
                     Other -> {error, {unexpected_response, Other}}
                 end;
@@ -143,7 +143,7 @@ config_profile_apply(Profile, DryRun) when is_list(Profile) orelse is_binary(Pro
                          [],
                          [{body_format, binary}]) of
             {ok, {{_, 200, _}, _, Body}} ->
-                case jsx:decode(Body) of
+                case jiffy:decode(Body) of
                     #{<<"OldCfg">> := OldCfg, <<"NewCfg">> := NewCfg} ->
                         {ok, OldCfg, NewCfg};
                     Other ->
@@ -203,7 +203,7 @@ config_show() ->
                          [],
                          [{body_format, binary}]) of
             {ok, {{_, 200, _}, _, Body}} ->
-                {ok, jsx:decode(Body)};
+                {ok, jiffy:decode(Body)};
             {ok, {{_, StatusCode, _}, _, Body}} ->
                 {error, {status_code, StatusCode, Body}};
             {error, Reason} ->
@@ -314,7 +314,7 @@ dag_import(FilePath, Options) when is_list(FilePath) orelse is_binary(FilePath) 
                          [],
                          [{body_format, binary}]) of
             {ok, {{_, 200, _}, _, Body}} ->
-                case jsx:decode(Body) of
+                case jiffy:decode(Body) of
                     #{<<"Root">> := Root} = Response ->
                         {ok, Root, maps:get(<<"Stats">>, Response, #{})};
                     Other ->
@@ -368,7 +368,7 @@ dag_put(Data, Options) when is_binary(Data) ->
                          [],
                          [{body_format, binary}]) of
             {ok, {{_, 200, _}, _, Body}} ->
-                case jsx:decode(Body) of
+                case jiffy:decode(Body) of
                     #{<<"Cid">> := #{<<"/">> := CID}} ->
                         {ok, CID};
                     Other ->
@@ -396,7 +396,7 @@ dag_resolve(Path) when is_list(Path) orelse is_binary(Path) ->
                          [],
                          [{body_format, binary}]) of
             {ok, {{_, 200, _}, _, Body}} ->
-                case jsx:decode(Body) of
+                case jiffy:decode(Body) of
                     #{<<"Cid">> := #{<<"/">> := CID}, <<"RemPath">> := RemPath} ->
                         {ok, CID, RemPath};
                     Other ->
@@ -456,7 +456,7 @@ dag_stat(RootCID, Progress) when is_list(RootCID) orelse is_binary(RootCID) ->
 
 try_decode(Body) ->
     try
-        {ok, jsx:decode(Body)}
+        {ok, jiffy:decode(Body)}
     catch
         _:_ ->
             try
@@ -467,7 +467,7 @@ try_decode(Body) ->
                         {match, [CapturedJson]} = re:run(Body, 
                                                         "{\".*DagStats.*}",
                                                         [{capture, all, binary}]),
-                        {ok, jsx:decode(CapturedJson)}
+                        {ok, jiffy:decode(CapturedJson)}
                     catch
                         _:_ ->
                             {error, {all_decoding_attempts_failed, Body}}

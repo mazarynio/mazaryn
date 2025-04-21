@@ -11,10 +11,10 @@ defmodule Core.PostClient do
     :post_server.insert(author, content_erlang, emoji, media, hashtag, mention, link_url)
   end
 
-  def modify_post(author, newContent, newEmoji, newMedia, newHashtag, newMention, newLink_url) do
+  def modify_post(post_id, author, newContent, newEmoji, newMedia, newHashtag, newMention, newLink_url) do
     content_erlang = String.to_charlist(newContent)
     :post_server.modify_post(
-      author, content_erlang, newEmoji, newMedia, newHashtag, newMention, newLink_url
+      post_id, author, content_erlang, newEmoji, newMedia, newHashtag, newMention, newLink_url
     )
   end
 
@@ -98,6 +98,10 @@ defmodule Core.PostClient do
     :post_server.update_comment(commentID, newContent)
   end
 
+  def get_comment_content(comment_id) do
+    :post_server.get_comment_content(comment_id)
+  end
+
   def like_comment(userID, commentID) do
     :post_server.like_comment(userID, commentID)
   end
@@ -112,6 +116,10 @@ defmodule Core.PostClient do
 
   def get_reply(replyID) do
     :post_server.get_reply(replyID)
+  end
+
+  def get_reply_content(reply_id) do
+    :post_server.get_reply_content(reply_id)
   end
 
   def delete_reply(replyID) do

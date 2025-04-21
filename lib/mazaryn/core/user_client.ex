@@ -184,4 +184,16 @@ defmodule Core.UserClient do
   def make_public(user_id) do
     :user_server.make_public(user_id)
   end
+
+  def mark_notif_as_seen(notif_id) do
+  :mnesia.transaction(fn ->
+    case :mnesia.read({:notif, notif_id}) do
+      [notif = {:notif, ^notif_id, actor, target, message, timestamp, metadata}] ->
+        updated_notif = {:notif, notif_id, actor, target, message, timestamp, Map.put(metadata, :seen, true)}
+        :mnesia.write(updated_notif)
+       [] -> :ok
+      end
+    end)
+  end
+
 end

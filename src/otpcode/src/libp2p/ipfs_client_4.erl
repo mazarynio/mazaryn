@@ -215,7 +215,7 @@ key_import(Name, KeyFile, Options) when is_list(Name) orelse is_binary(Name),
                          [],
                          [{body_format, binary}]) of
             {ok, {{_, 200, _}, _, Body}} ->
-                case jsx:decode(Body, [return_maps]) of
+                case jiffy:decode(Body, [return_maps]) of
                     #{<<"Id">> := Id, <<"Name">> := KeyName} ->
                         {ok, #{id => Id, name => KeyName}};
                     Other ->
@@ -264,7 +264,7 @@ key_list(Options) when is_list(Options) ->
                          [],
                          [{body_format, binary}]) of
             {ok, {{_, 200, _}, _, Body}} ->
-                case jsx:decode(Body, [return_maps]) of
+                case jiffy:decode(Body, [return_maps]) of
                     #{<<"Keys">> := Keys} ->
                         {ok, Keys};
                     Other ->
@@ -316,7 +316,7 @@ key_rename(OldName, NewName, Options) when (is_list(OldName) orelse is_binary(Ol
                          [],
                          [{body_format, binary}]) of
             {ok, {{_, 200, _}, _, Body}} ->
-                case jsx:decode(Body, [return_maps]) of
+                case jiffy:decode(Body, [return_maps]) of
                     #{<<"Id">> := Id, <<"Was">> := Was, <<"Now">> := Now, <<"Overwrite">> := Overwrite} ->
                         {ok, #{id => Id, was => Was, now => Now, overwrite => Overwrite}};
                     Other ->

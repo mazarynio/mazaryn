@@ -1,6 +1,7 @@
 %% TODO: change id order for testing, modify later
 -record(user, { id, 
                 p2p_node_address,
+                ipfs_key,
                 ai_user_id,
                 business_id = [],
                 ads_id = [],
@@ -26,24 +27,30 @@
                 banner_url,
                 token_id,
                 chat = [],
-                verified = false,
+                verified = true,
                 report = [],
                 level, % Includes 20 Levels based on User Activity
                 last_activity,
                 suspend = [],
                 data = #{} }). 
 
+-record(ipfs, {
+    key_id,
+    key_type 
+}).
 
 -record(notif, { id,
                  follower,
                  user_id,
                  message,
                  date_created,
+                 read = false,
                  data = #{} }).
 
 -record(post, { id,
                 ai_post_id,
                 user_id,
+                business_id,
                 content,
                 emoji = [],
                 comments = [],
@@ -58,8 +65,116 @@
                 date_updated,
                 report = [],
                 device_info,
+                pin_info,
                 data = #{} }). 
 
+-record(pin_info, {
+    post_id,          
+    pin_id,
+    user_id,          
+    pin_type,         
+    pin_name,        
+    content_cid,     
+    media_cids = [],  
+    size_bytes,
+    replication,      
+    service,         
+    pin_time,         
+    tags = [],        
+    region,           
+    expires_at,       
+    status,
+    tier,
+    encrypted,
+    access_control,         
+    last_checked,     
+    verification_count = 0,  
+    metadata = #{}    
+}).
+
+-record(pin_params, {
+    name,
+    tags = [],
+    region,
+    expires_after,
+    replication,
+    tier = standard,
+    encrypt = false,
+    access_control,
+    webhook_url,
+    priority = medium,
+    metadata = #{},
+    start_time
+}).
+
+-record(pin_history, {
+    pin_id,
+    post_id,
+    author,
+    operation,
+    pin_time,
+    unpin_time,
+    status,
+    service,
+    size_bytes,
+    metadata = #{}
+}).
+
+-record(storage_quota, {
+    user_id,
+    business_id,
+    storage_used_bytes,
+    storage_limit_bytes,
+    pin_count,
+    pin_limit,
+    tier_level,          
+    cost_per_gb,
+    billing_cycle_start,
+    billing_cycle_end
+}).
+
+-record(bulk_operation, {
+    batch_id,           
+    operation,         
+    timestamp,         
+    results,           
+    success_count,     
+    failure_count      
+}).
+
+-record(scheduled_job, {
+    job_id,           
+    operation,       
+    post_id,          
+    schedule_time,    
+    options,          
+    created_at,      
+    status            
+}).
+
+-record(rate_limiter_usage, {
+    user_id,           
+    operation,        
+    count,            
+    timestamp         
+}).
+
+-record(pin_info_lookup, {
+    pin_id,
+    pin_info
+}).
+
+-record(pin_health, {
+    pin_id,                 
+    last_check,                
+    status,                    
+    availability_score,        
+    geographic_distribution,   
+    retrieval_latency,         
+    replication_actual,        
+    issues,                    
+    metadata = #{}             
+}).
 
 -record(blog_post, {id, 
                     content,

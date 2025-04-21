@@ -73,24 +73,22 @@ unban_user(UsernameOrID) ->
     end).
 
 verify_user(UsernameOrID, AdminUsername) ->
-    case userdb:get_user_id(AdminUsername) of
-        {error, _} = Error ->
-            Error;
-        {ok, _} ->
-                    Fun = fun() ->
-                        case get_user(UsernameOrID) of
-                            {error, Reason} ->
-                                {error, Reason};
-                            User ->
-                                UpdatedUser = User#user{verified = true},
-                                mnesia:write(UpdatedUser),
-                                io:fwrite("~p~n", [UpdatedUser]),
-                                ok
-                        end
-                    end,
-                    {atomic, Res} = mnesia:transaction(Fun),
-                    Res
-    end.
+    _ = userdb:get_user_id(AdminUsername),
+    
+    Fun = fun() ->
+        case get_user(UsernameOrID) of
+            not_exist ->
+                {error, not_exist};
+            error ->
+                {error, db_error};
+            User ->
+                UpdatedUser = User#user{verified = true},
+                mnesia:write(UpdatedUser),
+                ok
+        end
+    end,
+    {atomic, Res} = mnesia:transaction(Fun),
+    Res.
 
 verify_user_no_admin(UsernameOrID) ->
     Fun = fun() ->
@@ -108,30 +106,24 @@ verify_user_no_admin(UsernameOrID) ->
     Res.
 
 unverify_user(UsernameOrID, AdminUsername) ->
-    case userdb:get_user_id(AdminUsername) of
-        {error, _} = Error ->
-            Error;
-        {ok, _} ->
-                    Fun = fun() ->
-                        case get_user(UsernameOrID) of
-                            {error, Reason} ->
-                                {error, Reason};
-                            User ->
-                                UpdatedUser = User#user{verified = false},
-                                mnesia:write(UpdatedUser),
-                                io:fwrite("~p~n", [UpdatedUser]),
-                                ok
-                        end
-                    end,
-                    {atomic, Res} = mnesia:transaction(Fun),
-                    Res
-    end.
+    _ = userdb:get_user_id(AdminUsername),
+    
+    Fun = fun() ->
+        case get_user(UsernameOrID) of
+            not_exist ->
+                {error, not_exist};
+            error ->
+                {error, db_error};
+            User ->
+                UpdatedUser = User#user{verified = false},
+                mnesia:write(UpdatedUser),
+                ok
+        end
+    end,
+    {atomic, Res} = mnesia:transaction(Fun),
+    Res.
 
-    % the following is an improvised version of the unverified user
-    % it lists:member returns false even towards an admin that exists
-    % rewritten to be done in manage.ex
-
-unverify_user_no_admin(UsernameOrID, AdminUsername) ->
+unverify_user_no_admin(UsernameOrID, _AdminUsername) ->
     Fun = fun() ->
         case get_user(UsernameOrID) of
             {error, Reason} ->
