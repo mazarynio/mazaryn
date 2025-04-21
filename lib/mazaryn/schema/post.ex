@@ -66,16 +66,24 @@ defmodule Mazaryn.Schema.Post do
   end
 
   def erl_changeset(
-        {:post, id, ai_post_id, user_id, business_id, content, comments, likes, media, hashtag, mention, emoji,
-         link_url, author, other, date_created, date_updated, report, device_info, pin_info, data}
-      ) do
+      {:post, id, ai_post_id, user_id, business_id, content, comments, likes, media, hashtag, mention, emoji,
+       link_url, author, other, date_created, date_updated, report, device_info, pin_info, data}
+    ) do
     new_likes =
       case likes do
         list when is_list(list) -> list
         _ -> []
       end
 
-    preload_comments = preload_comments(comments)
+    new_comments =
+      case comments do
+        list when is_list(list) -> list
+        nil -> []
+        :undefined -> []
+        _ -> []
+      end
+
+    preload_comments = preload_comments(new_comments)
 
     %__MODULE__{}
     |> change(%{
@@ -115,9 +123,10 @@ defmodule Mazaryn.Schema.Post do
     apply_action(changeset, :build)
   end
 
+  defp preload_comments(nil), do: []
   defp preload_comments([]), do: []
 
-  defp preload_comments(comments) do
+  defp preload_comments(comments) when is_list(comments) do
     Enum.map(comments, fn comment ->
       case comment do
         comment when is_tuple(comment) ->

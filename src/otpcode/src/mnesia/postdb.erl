@@ -38,6 +38,8 @@ insert(Author, Content, Media, Hashtag, Link_URL, Emoji, Mention) ->
             hashtag = Hashtag,
             mention = Mention,
             link_url = Link_URL,
+            comments = [], 
+            likes = [],
             date_created = Date
         }),
         Posts = User#user.post,
@@ -475,8 +477,13 @@ add_comment(Author, PostID, Content) ->
                   date_created = calendar:universal_time()
               },
               mnesia:write(Comment),
+              CurrentComments = case Post#post.comments of
+                nil -> [];
+                List when is_list(List) -> List;
+                _ -> []
+              end,
 
-              UpdatedComments = [Id | Post#post.comments],
+              UpdatedComments = [Id | CurrentComments],
               UpdatedPost = Post#post{
                   comments = UpdatedComments
               },
