@@ -135,21 +135,15 @@ defmodule MazarynWeb.HomeLive.Notification do
 
    if new_visibility do
     user_id = socket.assigns.target_user.id
-
-    # ✅ Mark all as read
     NotifEvent.mark_all_as_read(user_id)
-
-    # Reset unread count
     notification_count = 0
 
-    # Broadcast update
     Phoenix.PubSub.broadcast(
       Mazaryn.PubSub,
       "user:#{user_id}:notifications",
       {:notification_update}
     )
 
-    # Update assigns
     {:noreply,
      socket
      |> assign(:notification_visible, new_visibility)
@@ -163,13 +157,9 @@ defmodule MazarynWeb.HomeLive.Notification do
   @impl true
   def handle_event("mark_notifications_read", _params, socket) do
     user_id = socket.assigns.target_user.id
-
-  # ✅ Mark all as read again for explicit "mark as read" calls
-  NotifEvent.mark_all_as_read(user_id)
-
-  # Reset unread count
-  {:noreply, assign(socket, :notification_count, 0)}
-end
+     NotifEvent.mark_all_as_read(user_id)
+    {:noreply, assign(socket, :notification_count, 0)}
+  end
 
 
   defp get_all_user_notifs(user) do
