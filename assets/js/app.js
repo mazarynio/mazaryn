@@ -17,9 +17,9 @@
 //
 //     import "some-package"
 //
+
 // import Alpine
 import Alpine from "alpinejs";
-// Add this before your liveSocket call.
 window.Alpine = Alpine;
 Alpine.start();
 
@@ -31,21 +31,105 @@ import { LiveSocket } from "phoenix_live_view";
 import topbar from "../vendor/topbar";
 
 let Hooks = {};
+let csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content");
 
-let csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
-
-//  notifications
-const notification = document.getElementById("notification")
-
+//Notifications
 Hooks.Notifications = {
-  mounted(){
-    if(window.location.pathname == "/en/notifications"){
-      notification.classList.add("hidden")
-      }else{
-        this.el.classList.remove("hidden")
-      }
+  mounted() {
+    this.handleNotificationVisibility();
+    this.el.addEventListener("click", () => {
+      //we hide the notification here
+      this.el.classList.add("hidden");
+      this.pushEvent("mark_notifications_read", {});
+    });
+
+    this.handleEvent("new_notification", () => {
+      this.el.classList.remove("hidden");
+    });
+  },
+  
+  updated() {
+    this.handleNotificationVisibility();
+  },
+  
+  handleNotificationVisibility() {
+    // Check if the user is on the notifications page
+    if (window.location.pathname === "/en/notifications") {
+      this.el.classList.add("hidden");
+    } else {
+    }
   }
-}
+};
+
+//Here is our chat notification hook
+Hooks.ChatNotifications = {
+  mounted() {
+    this.ensureBadgeExists();
+    this.updateBadgeVisibility();
+
+    this.handleEvent("new_chat_message", () => {
+
+      let count = parseInt(this.badgeEl.getAttribute("data-count") || "0");
+      this.badgeEl.setAttribute("data-count", count + 1);
+
+      this.updateBadgeVisibility(true);
+    });
+
+    this.el.addEventListener("click", () => {
+      this.badgeEl.setAttribute("data-count", "0");
+      this.updateBadgeVisibility(false);
+
+      this.pushEvent("mark_chat_messages_read", {});
+    });
+  },
+  
+  ensureBadgeExists() {
+    this.badgeEl = this.el.querySelector(".chat-notification-badge");
+    
+    if (!this.badgeEl) {
+      this.badgeEl = document.createElement("span");
+      this.badgeEl.classList.add("chat-notification-badge");
+      this.badgeEl.setAttribute("data-count", "0");
+      
+      //Here we are Styling the badge
+      this.badgeEl.style.position = "absolute";
+      this.badgeEl.style.top = "-5px";
+      this.badgeEl.style.right = "-5px";
+      this.badgeEl.style.backgroundColor = "red";
+      this.badgeEl.style.borderRadius = "50%";
+      this.badgeEl.style.width = "10px";
+      this.badgeEl.style.height = "10px";
+      this.badgeEl.style.display = "none";
+      this.el.style.position = "relative";
+      this.el.appendChild(this.badgeEl);
+    }
+  },
+  
+  updateBadgeVisibility(forceShow = null) {
+    const count = parseInt(this.badgeEl.getAttribute("data-count") || "0");
+    
+    if (forceShow === true || (forceShow === null && count > 0)) {
+      this.badgeEl.style.display = "block";
+      if (count > 1) {
+        this.badgeEl.textContent = count;
+        // here i adjusted the size to accommodate text
+        this.badgeEl.style.width = "16px";
+        this.badgeEl.style.height = "16px";
+        this.badgeEl.style.display = "flex";
+        this.badgeEl.style.justifyContent = "center";
+        this.badgeEl.style.alignItems = "center";
+        this.badgeEl.style.fontSize = "10px";
+        this.badgeEl.style.color = "white";
+      } else {
+        this.badgeEl.textContent = "";
+        this.badgeEl.style.width = "10px";
+        this.badgeEl.style.height = "10px";
+      }
+    } else {
+      this.badgeEl.style.display = "none";
+    }
+  }
+};
 
 let liveSocket = new LiveSocket("/live", Socket, {
   params: { _csrf_token: csrfToken },
@@ -54,12 +138,7 @@ let liveSocket = new LiveSocket("/live", Socket, {
       if (from._x_dataStack) {
         window.Alpine.clone(from, to);
       }
-
-      if (window.location.pathname == "/en/notifications") {
-        notification.classList.add("hidden")
-      }
     },
-    
   },
   hooks: Hooks,
 });

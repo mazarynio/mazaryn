@@ -5,9 +5,10 @@ defmodule MazarynWeb.HomeLive.Notification do
 
   @impl true
   def mount(_params, %{"user_id" => user_email} = _session, socket) do
-    Process.send_after(self(), :time_diff, 1000)
-    {:ok, user} = Users.one_by_email(user_email)
+  Process.send_after(self(), :time_diff, 1000)
+  {:ok, user} = Users.one_by_email(user_email)
 
+<<<<<<< HEAD
     if connected?(socket) do
       Phoenix.PubSub.subscribe(Mazaryn.PubSub, "user:#{user.id}:notifications")
     end
@@ -19,11 +20,24 @@ defmodule MazarynWeb.HomeLive.Notification do
      |> assign(notifs: get_all_user_notifs(user))
      |> assign(notification_visible: true)
      |> assign(notification_count: NotifEvent.unread_count(user.id))}
+=======
+  {:ok,
+   socket
+   |> assign(target_user: user)
+   |> assign(search: "")
+   |> assign(notifs: get_all_user_notifs(user))
+   |> assign(notification_visible: true)
+   |> assign(hide_notification_icon: true)}
+>>>>>>> b7ea725 (Improve notification handling, auto-hide on /notifications page and click)
   end
 
   @impl true
   def handle_params(_params, url, socket) do
     socket = assign(socket, current_path: URI.parse(url).path)
+<<<<<<< HEAD
+=======
+    IO.inspect("this is this is workin")
+>>>>>>> b7ea725 (Improve notification handling, auto-hide on /notifications page and click)
     MazarynWeb.HomeLive.NavComponent.handle_path(socket)
   end
 
@@ -32,6 +46,7 @@ defmodule MazarynWeb.HomeLive.Notification do
     ~H"""
     <!-- navigation -->
     <.live_component
+<<<<<<< HEAD
       module={MazarynWeb.HomeLive.NavComponent}
       id="navigation"
       user={@target_user}
@@ -39,6 +54,16 @@ defmodule MazarynWeb.HomeLive.Notification do
       locale={@locale}
       notification_count={@notification_count}
     />
+=======
+     module={MazarynWeb.HomeLive.NavComponent}
+     id="navigation"
+     user={@target_user}
+     search={@search}
+     locale={@locale}
+     current_path={@current_path}
+    /> 
+
+>>>>>>> b7ea725 (Improve notification handling, auto-hide on /notifications page and click)
     <!-- Three columns -->
     <div class="bg-[#FAFAFA]">
       <div class="flex flex-wrap w-[90%] max-w-[1440px] mx-auto">
@@ -53,6 +78,7 @@ defmodule MazarynWeb.HomeLive.Notification do
         <div class="w-full lg:w-[54%] py-6 pl-11 pr-8">
           <div class="flex flex-wrap justify-center align-center mb-6">
             <div class="w-full bg-white custom-box-shadow pr-[1.35rem] pl-[1.6rem] pb-2 pt-5 mt-8 rounded-[20px]">
+<<<<<<< HEAD
               <button phx-click="toggle_notification" class="text-right w-full text-xs text-gray-500">
                 <%= if @notification_visible, do: "Hide Notifications", else: "Show Notifications" %>
               </button>
@@ -89,6 +115,40 @@ defmodule MazarynWeb.HomeLive.Notification do
                       </div>
                     </div>
                   <% end %>
+=======
+              <!-- 👇 Click to hide notifications -->
+              <button phx-click="toggle_notification" class="text-right w-full text-xs text-gray-500">Hide Notifications</button>
+              
+              <%= if @notification_visible do %>
+                <%= for {user, message, time_passed, timestamp} <- @notifs do %>
+                  <div class="flex justify-between align-center items-center mb-5">
+                    <div class="flex justify-center items-center">
+                      <img
+                        class="h-11 w-11 rounded-full"
+                        src={user.avatar_url || "/images/default-user.svg"}
+                      />
+                      <div class="ml-3.5 text-sm leading-tight mt-5">
+                        <span class="block text-[#60616D] text-sm">
+                          <a
+                            class="text-blue-500"
+                            href={
+                              Routes.live_path(
+                                @socket,
+                                MazarynWeb.UserLive.Profile,
+                                user.username,
+                                @locale
+                              )
+                            }
+                          >
+                            <%= user.username %>
+                          </a>
+                        </span>
+                        <span class="block text-[#60616D] text-sm"><%= message %></span>
+                        <span class="block text-[#60616D] text-sm"><%= time_passed %></span>
+                      </div>
+                    </div>
+                  </div>
+>>>>>>> b7ea725 (Improve notification handling, auto-hide on /notifications page and click)
                 <% end %>
               <% end %>
             </div>
@@ -112,6 +172,7 @@ defmodule MazarynWeb.HomeLive.Notification do
     {:noreply, assign(socket, :notifs, notifs)}
   end
 
+<<<<<<< HEAD
   @impl true
   def handle_info({:notification_update}, socket) do
     notification_count = NotifEvent.unread_count(socket.assigns.target_user.id)
@@ -154,11 +215,21 @@ defmodule MazarynWeb.HomeLive.Notification do
     else
       {:noreply, assign(socket, :notification_visible, new_visibility)}
     end
+=======
+  # 👇 Handle toggle visibility event
+  @impl true
+  def handle_event("toggle_notification", _params, socket) do
+    {:noreply, assign(socket, :notification_visible, false)}
+>>>>>>> b7ea725 (Improve notification handling, auto-hide on /notifications page and click)
   end
 
   defp get_all_user_notifs(user) do
     user.id
+<<<<<<< HEAD
     |> NotifEvent.get_all_notifs()
+=======
+    |> Core.NotifEvent.get_all_notifs()
+>>>>>>> b7ea725 (Improve notification handling, auto-hide on /notifications page and click)
     |> Enum.map(fn {:notif, notifid, actor_id, target_id, message, time_stamp, _metadata} ->
       {:ok, user} = get_user(actor_id, target_id)
       time_passed = time_passed(time_stamp)
@@ -195,3 +266,4 @@ defmodule MazarynWeb.HomeLive.Notification do
     Users.one_by_id(id)
   end
 end
+
