@@ -30,88 +30,6 @@ defmodule MazarynWeb.HomeLive.Notification do
   end
 
   @impl true
-  def handle_info(:time_diff, socket) do
-    notifs =
-      socket.assigns.notifs
-      |> Enum.map(fn {user, message, _old_time, timestamp} ->
-        time_passed = time_passed(timestamp)
-        {user, message, time_passed, timestamp}
-      end)
-
-    Process.send_after(self(), :time_diff, 1000)
-    {:noreply, assign(socket, :notifs, notifs)}
-  end
-
-  @impl true
-  def handle_info({:notification_update}, socket) do
-    {:noreply,
-     socket
-     |> assign(:notification_count, NotifEvent.unread_count(socket.assigns.target_user.id))}
-  end
-
-  @impl true
-  def handle_event("toggle_notification", _params, socket) do
-    new_visibility = !socket.assigns.notification_visible
-
-    if new_visibility do
-      user_id = socket.assigns.target_user.id
-
-      NotifEvent.mark_all_as_read(user_id)
-      Phoenix.PubSub.broadcast(Mazaryn.PubSub, "user:#{user_id}:notifications", {:notification_update})
-
-      {:noreply,
-       socket
-       |> assign(:notification_visible, true)
-       |> assign(:notification_count, 0)
-       |> assign(:notifs, [])}
-    else
-      {:noreply, assign(socket, :notification_visible, false)}
-    end
-  end
-
-  @impl true
-  def handle_event("mark_notifications_read", _params, socket) do
-    user_id = socket.assigns.target_user.id
-    NotifEvent.mark_all_as_read(user_id)
-
-    {:noreply, assign(socket, :notification_count, 0)}
-  end
-
-  defp get_all_user_notifs(user) do
-    user.id
-    |> NotifEvent.get_all_notifs()
-    |> Enum.map(fn {:notif, _id, actor_id, target_id, message, timestamp, _meta} ->
-      {:ok, user} = get_user(actor_id, target_id)
-      time_passed = time_passed(timestamp)
-      {user, message, time_passed, timestamp}
-    end)
-  end
-
-  defp get_user(actor_id, target_id) do
-    id = if actor_id == :undefined, do: target_id, else: actor_id
-    Users.one_by_id(id)
-  end
-
-  defp time_passed(timestamp) do
-    date_time = Timex.to_datetime(timestamp)
-    time_difference([:years, :months, :weeks, :days, :hours, :minutes, :seconds], date_time)
-  end
-
-  defp time_difference([:seconds], date_time) do
-    case Timex.diff(Timex.now(), date_time, :seconds) do
-      0 -> "Now"
-      diff -> "#{diff} seconds ago"
-    end
-  end
-
-  defp time_difference([unit | rest], date_time) do
-    case Timex.diff(Timex.now(), date_time, unit) do
-      0 -> time_difference(rest, date_time)
-      diff -> "#{diff} #{unit} ago"
-    end
-  end
-
-  @impl true
   def render(assigns) do
     ~H"""
     <!-- Navigation -->
@@ -175,6 +93,108 @@ defmodule MazarynWeb.HomeLive.Notification do
       </div>
     </div>
     """
+  end
+
+  @impl true
+  def handle_info(:time_diff, socket) do
+    notifs =
+      socket.assigns.notifs
+      |> Enum.map(fn {user, message, _old_time_passed, time_stamp} ->
+        time_passed = time_passed(time_stamp)
+        {user, message, time_passed, time_stamp}
+      end)
+
+    Process.send_after(self(), :time_diff, 1000)
+    {:noreply, assign(socket, :notifs, notifs)}
+  end
+
+  @impl true
+  def handle_info({:notification_update}, socket) do
+    notification_count = NotifEvent.unread_count(socket.assigns.target_user.id)
+
+    notifs =
+      if socket.assigns.notification_visible do
+        get_all_user_notifs(socket.assigns.target_user)
+      else
+        socket.assigns.notifs
+      end
+
+    {:noreply,
+     socket
+     |> assign(:notification_count, notification_count)
+     |> assign(:notifs, notifs)}
+  end
+
+  @impl true
+  def handle_event("toggle_notification", _params, socket) do
+    new_visibility = !socket.assigns.notification_visible
+
+   if new_visibility do
+    user_id = socket.assigns.target_user.id
+    NotifEvent.mark_all_as_read(user_id)
+    notification_count = 0
+
+    Phoenix.PubSub.broadcast(
+      Mazaryn.PubSub,
+      "user:#{user_id}:notifications",
+      {:notification_update}
+    )
+
+    {:noreply,
+     socket
+     |> assign(:notification_visible, new_visibility)
+     |> assign(:notification_count, notification_count)
+     |> assign(:notifs, [])}
+   else
+     {:noreply, assign(socket, :notification_visible, new_visibility)}
+    end
+  end
+
+  @impl true
+  def handle_event("mark_notifications_read", _params, socket) do
+    user_id = socket.assigns.target_user.id
+     NotifEvent.mark_all_as_read(user_id)
+    {:noreply, assign(socket, :notification_count, 0)}
+  end
+
+
+  defp get_all_user_notifs(user) do
+    user.id
+    |> NotifEvent.get_all_notifs()
+    |> Enum.map(fn {:notif, notifid, actor_id, target_id, message, time_stamp, _metadata} ->
+      {:ok, user} = get_user(actor_id, target_id)
+      time_passed = time_passed(time_stamp)
+      {user, message, time_passed, time_stamp}
+    end)
+  end
+
+  defp time_passed(time_stamp) do
+    date_time = Timex.to_datetime(time_stamp)
+    time_difference([:years, :months, :weeks, :days, :hours, :minutes, :seconds], date_time)
+  end
+
+  defp time_difference([:seconds], date_time) do
+    case Timex.diff(Timex.now(), date_time, :seconds) do
+      0 -> "Now"
+      diff -> "#{diff} seconds ago"
+    end
+  end
+
+  defp time_difference([h | t], date_time) do
+    case Timex.diff(Timex.now(), date_time, h) do
+      0 -> time_difference(t, date_time)
+      diff -> "#{diff} #{h} ago"
+    end
+  end
+
+  defp get_user(actor_id, target_id) do
+    id =
+      case actor_id do
+        :undefined -> target_id
+        _ -> actor_id
+      end
+
+    Users.one_by_id(id)
   end
 end
 
