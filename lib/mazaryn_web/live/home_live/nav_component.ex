@@ -7,10 +7,7 @@ defmodule MazarynWeb.HomeLive.NavComponent do
   end
 
   def update(%{user: user} = assigns, socket) do
-    notifs_count =
-      user.id
-      |> Core.NotifEvent.get_all_notifs()
-      |> Enum.count()
+    notifs_count = Core.NotifEvent.count_unread(user.id)
 
     {:ok,
      socket |> assign(assigns) |> assign(notifs_count: notifs_count) |> assign(current_path: "")}

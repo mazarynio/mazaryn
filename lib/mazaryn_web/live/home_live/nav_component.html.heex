@@ -49,9 +49,11 @@
             }>
               <%= Heroicons.icon("bell", class: "w-7 h-7 rounded-full fill-[#AAAAAA]") %>
             </.link>
-            <span class="absolute bg-teal-300 text-teal-900 px-2 py-1 text-xs font-bold rounded-full -top-3 -right-3">
-              <%= @notifs_count %>
-            </span>
+            <%= if @notifs_count > 0 do %>
+              <span class="absolute bg-teal-300 text-teal-900 px-2 py-1 text-xs font-bold rounded-full -top-3 -right-3">
+                <%= @notifs_count %>
+              </span>
+            <% end %>
           </span>
         </div>
       </li>

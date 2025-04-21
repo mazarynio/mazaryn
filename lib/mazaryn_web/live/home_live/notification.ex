@@ -2,23 +2,24 @@ defmodule MazarynWeb.HomeLive.Notification do
   use MazarynWeb, :live_view
   alias Account.Users
 
-  # case reload home page
   @impl true
   def mount(_params, %{"user_id" => user_email} = _session, socket) do
     Process.send_after(self(), :time_diff, 1000)
     {:ok, user} = Users.one_by_email(user_email)
+    notifs = get_all_user_notifs(user)
+
+    send_update(MazarynWeb.HomeLive.NavComponent, id: "navigation", user: user)
 
     {:ok,
      socket
      |> assign(target_user: user)
      |> assign(search: "")
-     |> assign(notifs: get_all_user_notifs(user))}
+     |> assign(notifs: notifs)}
   end
 
   @impl true
   def handle_params(_params, url, socket) do
     socket = assign(socket, current_path: URI.parse(url).path)
-
     IO.inspect("this is this is workin")
     MazarynWeb.HomeLive.NavComponent.handle_path(socket)
   end
@@ -103,7 +104,8 @@ defmodule MazarynWeb.HomeLive.Notification do
   defp get_all_user_notifs(user) do
     user.id
     |> Core.NotifEvent.get_all_notifs()
-    |> Enum.map(fn {:notif, _notif_id, actor_id, target_id, message, time_stamp, _read, _metadata} ->
+    |> Enum.map(fn {:notif, notif_id, actor_id, target_id, message, time_stamp, _read, _metadata} ->
+      Core.NotifEvent.mark_notif_as_read(notif_id)
       {:ok, user} = get_user(actor_id, target_id)
       time_passed = time_passed(time_stamp)
       {user, message, time_passed, time_stamp}
