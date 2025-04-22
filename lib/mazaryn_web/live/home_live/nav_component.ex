@@ -16,6 +16,7 @@ defmodule MazarynWeb.HomeLive.NavComponent do
         %{} = notif -> !notif.viewed
       end)
       |> Enum.count()
+    notifs_count = Core.NotifEvent.count_unread(user.id)
 
     {:ok,
      socket

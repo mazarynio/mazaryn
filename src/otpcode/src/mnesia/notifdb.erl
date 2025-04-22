@@ -2,9 +2,8 @@
 -author("Zaryn Technologies").
 -export([insert/2, welcome/2, follow/3, mention/3, chat/3, get_single_notif/1, get_notif_message/1, get_all_notifs/1,
          get_all_notif_ids/1, get_username_by_id/1, delete_notif/1, get_notif_time/1, get_five_latest_notif_ids/1,
-         get_five_latest_notif_messages/1, mark_notif_as_read/1])
-    mark_as_read/2,count_unread/1, mark_all_as_read/1,
-get_all_notif_ids/1,
+         get_five_latest_notif_messages/1, mark_notif_as_read/1,
+    mark_as_read/2, count_unread/1, mark_all_as_read/1, get_all_notif_ids/1,
  get_username_by_id/1, delete_notif/1, get_notif_time/1, get_five_latest_notif_ids/1,
  get_five_latest_notif_messages/1]). 
 
@@ -222,7 +221,8 @@ mark_notif_as_read(NotifID) ->
         {aborted, Reason} ->
             {error, {aborted, Reason}}
     end.
-count_unread(UserID) ->
+
+  count_unread(UserID) ->
     Fun = fun() ->
         Unread = mnesia:match_object(#notif{user_id = UserID, read = false, _ = '_'}),
         length(Unread)
