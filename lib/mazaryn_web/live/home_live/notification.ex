@@ -177,3 +177,4 @@ defmodule MazarynWeb.HomeLive.Notification do
     end
   end
 
+end
