@@ -30,7 +30,20 @@ defmodule MazarynWeb.HomeLive.Notification do
   end
 
   @impl true
-  def render(assigns) do
+  def handle_info(:time_diff, socket) do
+    notifs =
+      socket.assigns.notifs
+      |> Enum.map(fn {user, message, _old_time, timestamp} ->
+        time_passed = time_passed(timestamp)
+        {user, message, time_passed, timestamp}
+      end)
+
+    Process.send_after(self(), :time_diff, 1000)
+    {:noreply, assign(socket, :notifs, notifs)}
+  end
+
+   @impl true
+   def render(assigns) do
     ~H"""
     <!-- Navigation -->
     <.live_component
@@ -176,5 +189,4 @@ defmodule MazarynWeb.HomeLive.Notification do
       diff -> "#{diff} #{unit} ago"
     end
   end
-
 end

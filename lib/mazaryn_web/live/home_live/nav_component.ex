@@ -11,7 +11,7 @@ defmodule MazarynWeb.HomeLive.NavComponent do
     unread_count =
       user.id
       |> Core.NotifEvent.get_all_notifs()
-      |> Enum.filter(fn {:notif, _, _, _, _, _, viewed, _} -> not viewed end)
+      |> Enum.filter(&(!&1.viewed)) # assumes there's a boolean :viewed field
       |> Enum.count()
       
     {:ok,
@@ -51,7 +51,7 @@ defmodule MazarynWeb.HomeLive.NavComponent do
     unread_count =
       user_id
       |> Core.NotifEvent.get_all_notifs()
-      |> Enum.filter(fn {:notif, _, _, _, _, _, viewed, _} -> not viewed end)
+      |> Enum.filter(&(!&1.viewed))
       |> Enum.count()
       
     {:noreply, assign(socket, :notifs_count, unread_count)}
