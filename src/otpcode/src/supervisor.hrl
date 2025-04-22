@@ -150,3 +150,30 @@
     type => worker,
     modules => [ai_ads_server]
 }).
+
+-define(PIN_POST_SERVER, #{
+    id => pin_post_server,
+    start => {pin_post_server, start_link, []},
+    restart => permanent,
+    shutdown => 5000,
+    type => worker,
+    modules => [pin_post]
+}).
+
+-define(STORAGE_QUOTA_SERVER, #{
+    id => storage_quota_server,
+    start => {storage_quota_server, start_link, []},
+    restart => permanent,
+    shutdown => 5000,
+    type => worker,
+    modules => [storage_quota]
+}).
+
+-define(RATE_LIMITER_SERVER, #{
+    id => rate_limiter_server,
+    start => {rate_limiter_server, start_link, []},
+    restart => permanent,
+    shutdown => 5000,
+    type => worker,
+    modules => [rate_limiter]
+}).

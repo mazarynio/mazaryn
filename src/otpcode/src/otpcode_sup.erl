@@ -48,7 +48,10 @@ init([]) ->
         ?AI_CHAT_SERVER,
         ?AI_MEDIA_SERVER,
         ?AI_BUSINESS_SERVER,
-        ?AI_ADS_SERVER
+        ?AI_ADS_SERVER,
+        ?PIN_POST_SERVER,
+        ?STORAGE_QUOTA_SERVER,
+        ?RATE_LIMITER_SERVER
     ],
     {ok, {SupFlags, ChildSpecs}}.
 
