@@ -1,3 +1,8 @@
-elixir 1.17.1-otp-25
-erlang 26.2
+<<<<<<< HEAD
+elixir 1.18.3-otp-27
+erlang 27.3.2
+=======
+elixir 1.18.0-otp-26
+erlang 26.2.2
+>>>>>>> notif-count-fix-branch
 nodejs 22.4.0

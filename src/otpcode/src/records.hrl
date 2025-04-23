@@ -45,6 +45,7 @@
                  message,
                  date_created,
                  read = false,
+                 type,
                  data = #{} }).
 
 -record(post, { id,

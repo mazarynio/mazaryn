@@ -23,6 +23,7 @@ defmodule Mazaryn.Chats.Chat do
     field(:call_end_time, :utc_datetime)
     field(:timeout_ref, :string)
     field(:data, :map)
+    field :status, :string, default: "unread"
   end
 
   @doc false
