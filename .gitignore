@@ -54,6 +54,7 @@ mazaryn-front
 /src/jscode/package-lock.json
 /src/golangcode/*.sum
 /src/golangcode/*.mod 
+/src/rustcode/*.lock
 
 .idea
 .iex.exs
