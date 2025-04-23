@@ -1,0 +1,17 @@
+[package]
+name = "rustcode"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+webrtc = "0.12.0"
+tokio = { version = "1.44.2", features = ["full"] }
+serde = { version = "1.0.219", features = ["derive"] }
+serde_json = "1.0.140"
+log = "0.4.27"
+env_logger = "0.11.8"
+actix-web = "4.10.2"
+actix-web-actors = "4.3.1"
+actix = "0.13.5"
+sdp = "0.7.0"
+
