@@ -92,7 +92,7 @@ defmodule Mazaryn.Chats do
 
   def get_chat_messages(_, _), do: []
   # New function to get unread message count for a user
-def get_unread_count(user_id) do
+  def get_unread_count(user_id) do
   query =
     from c in Chat,
       where: c.user_id == ^user_id and c.status == "unread",
