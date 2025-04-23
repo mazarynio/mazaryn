@@ -20,7 +20,7 @@
     create_chat/2,
     get_chat_by_id/1,
     get_user_chats/1,
-    list_chats/0
+    list_chats/0, start_video_call/2, accept_call/1, end_video_call/1, handle_call_timeout/1
 ]).
 
 %% gen_server callbacks
@@ -71,6 +71,18 @@ get_user_chats(Id) ->
 list_chats() ->
     gen_server:call({global, ?MODULE}, list_chats).
 
+start_video_call(UserID, TargetID) ->
+    gen_server:call({global, ?MODULE}, {start_video_call, UserID, TargetID}).
+
+accept_call(CallID) ->
+    gen_server:call({global, ?MODULE}, {accept_call, CallID}).
+
+end_video_call(CallID) ->
+    gen_server:call({global, ?MODULE}, {end_video_call, CallID}).
+
+handle_call_timeout(CallID) ->
+    gen_server:call({global, ?MODULE}, {handle_call_timeout, CallID}).
+
 init([]) ->
     ?LOG_NOTICE("Chat server has been started - ~p", [self()]),
     {ok, #state{}}.
@@ -112,6 +124,18 @@ handle_call({get_user_chats, Id}, _From, State) ->
 handle_call(list_chats, _From, State) ->
     Chats = chatdb:list_chats(),
     {reply, Chats, State};
+handle_call({start_video_call, UserID, TargetID}, _From, State) ->
+    ID = chatdb:start_video_call(UserID, TargetID),
+    {reply, ID, State};
+handle_call({accept_call, CallID}, _From, State) ->
+    ID = chatdb:accept_call(CallID),
+    {reply, ID, State};
+handle_call({end_video_call, CallID}, _From, State) ->
+    ID = chatdb:end_video_call(CallID),
+    {reply, ID, State};
+handle_call({handle_call_timeout, CallID}, _From, State) ->
+    ID = chatdb:handle_call_timeout(CallID),
+    {reply, ID, State};
 
 handle_call(_Request, _From, State) ->
     {noreply, State}.
