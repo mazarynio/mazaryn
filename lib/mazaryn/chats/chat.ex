@@ -15,6 +15,7 @@ defmodule Mazaryn.Chats.Chat do
     field(:date_created, :utc_datetime)
     field(:date_updated, :utc_datetime)
     field(:data, :map)
+    field :status, :string, default: "unread"
   end
 
   @doc false

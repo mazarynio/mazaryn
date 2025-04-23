@@ -6,6 +6,8 @@ defmodule Mazaryn.Chats do
   alias Account.User
   alias Account.Users
   alias :chat_server, as: ChatDB
+  import Ecto.Query
+  alias Mazaryn.Repo
 
   def create_chat(%User{id: actor_id}, %User{id: recipient_id}, params)
       when actor_id != recipient_id do
@@ -89,4 +91,13 @@ defmodule Mazaryn.Chats do
   end
 
   def get_chat_messages(_, _), do: []
+
+  # New function to get unread message count for a user
+  def get_unread_count(user_id) do
+    query = from c in Chat,
+            where: c.user_id == ^user_id and c.status == "unread",  # Adjust this based on your schema
+            select: count(c.id)
+
+    Repo.one(query)
+  end
 end

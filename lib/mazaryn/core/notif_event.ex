@@ -124,8 +124,23 @@ defmodule Core.NotifEvent do
     :notifdb.mark_notif_as_read(notif_id)
   end
 
-## alias here to maintain compatibility with api
   def unread_count(user_id) do
     count_unread(user_id)
   end
+
+def count_unread_chat(user_id) do
+  all_notifs = get_all_notifs(user_id)
+  chat_count = Enum.count(all_notifs, fn notif ->
+    type = elem(notif, 0)
+    is_unread = elem(notif, 3) == false
+    is_unread && (type == :chat || type == :message)
+  end)  
+  chat_count
+end
+
+def count_unread_regular(user_id) do
+  total_unread = count_unread(user_id)
+  chat_unread = count_unread_chat(user_id) 
+  total_unread - chat_unread
+end
 end

@@ -30,20 +30,7 @@ defmodule MazarynWeb.HomeLive.Notification do
   end
 
   @impl true
-  def handle_info(:time_diff, socket) do
-    notifs =
-      socket.assigns.notifs
-      |> Enum.map(fn {user, message, _old_time, timestamp} ->
-        time_passed = time_passed(timestamp)
-        {user, message, time_passed, timestamp}
-      end)
-
-    Process.send_after(self(), :time_diff, 1000)
-    {:noreply, assign(socket, :notifs, notifs)}
-  end
-
-   @impl true
-   def render(assigns) do
+  def render(assigns) do
     ~H"""
     <!-- Navigation -->
     <.live_component
@@ -80,23 +67,50 @@ defmodule MazarynWeb.HomeLive.Notification do
                     <p class="text-gray-500">No notifications yet</p>
                   </div>
                 <% else %>
-                  <%= for {user, message, time_passed, _timestamp} <- @notifs do %>
-                    <div class="flex justify-between align-center items-center mb-5">
-                      <div class="flex justify-center items-center">
-                        <img class="h-11 w-11 rounded-full" src={user.avatar_url || "/images/default-user.svg"} />
-                        <div class="ml-3.5 text-sm leading-tight mt-5">
-                          <span class="block text-[#60616D] text-sm">
-                            <a class="text-blue-500" href={
-                              Routes.live_path(@socket, MazarynWeb.UserLive.Profile, user.username, @locale)
-                            }>
-                              <%= user.username %>
-                            </a>
-                          </span>
-                          <span class="block text-[#60616D] text-sm"><%= message %></span>
-                          <span class="block text-[#60616D] text-sm"><%= time_passed %></span>
+                  <!-- Displaying chat notifications -->
+                  <h3 class="text-lg font-semibold text-gray-700">Chat Notifications</h3>
+                  <%= for {user, message, time_passed, _timestamp, type} <- @notifs do %>
+                    <%= if type == "chat" do %>
+                      <div class="flex justify-between align-center items-center mb-5">
+                        <div class="flex justify-center items-center">
+                          <img class="h-11 w-11 rounded-full" src={user.avatar_url || "/images/default-user.svg"} />
+                          <div class="ml-3.5 text-sm leading-tight mt-5">
+                            <span class="block text-[#60616D] text-sm">
+                              <a class="text-blue-500" href={
+                                Routes.live_path(@socket, MazarynWeb.UserLive.Profile, user.username, @locale)
+                              }>
+                                <%= user.username %>
+                              </a>
+                            </span>
+                            <span class="block text-[#60616D] text-sm"><%= message %></span>
+                            <span class="block text-[#60616D] text-sm"><%= time_passed %></span>
+                          </div>
                         </div>
                       </div>
-                    </div>
+                    <% end %>
+                  <% end %>
+
+                  <!-- Displaying mention notifications -->
+                  <h3 class="text-lg font-semibold text-gray-700 mt-5">Mention Notifications</h3>
+                  <%= for {user, message, time_passed, _timestamp, type} <- @notifs do %>
+                    <%= if type == "mention" do %>
+                      <div class="flex justify-between align-center items-center mb-5">
+                        <div class="flex justify-center items-center">
+                          <img class="h-11 w-11 rounded-full" src={user.avatar_url || "/images/default-user.svg"} />
+                          <div class="ml-3.5 text-sm leading-tight mt-5">
+                            <span class="block text-[#60616D] text-sm">
+                              <a class="text-blue-500" href={
+                                Routes.live_path(@socket, MazarynWeb.UserLive.Profile, user.username, @locale)
+                              }>
+                                <%= user.username %>
+                              </a>
+                            </span>
+                            <span class="block text-[#60616D] text-sm"><%= message %></span>
+                            <span class="block text-[#60616D] text-sm"><%= time_passed %></span>
+                          </div>
+                        </div>
+                      </div>
+                    <% end %>
                   <% end %>
                 <% end %>
               <% end %>
@@ -106,15 +120,15 @@ defmodule MazarynWeb.HomeLive.Notification do
       </div>
     </div>
     """
-  end
+   end
 
- @impl true
+  @impl true
   def handle_info(:time_diff, socket) do
     notifs =
       socket.assigns.notifs
-      |> Enum.map(fn {user, message, _old_time, timestamp} ->
+      |> Enum.map(fn {user, message, _old_time, timestamp, type} ->
         time_passed = time_passed(timestamp)
-        {user, message, time_passed, timestamp}
+        {user, message, time_passed, timestamp, type}
       end)
 
     Process.send_after(self(), :time_diff, 1000)
@@ -156,13 +170,14 @@ defmodule MazarynWeb.HomeLive.Notification do
     {:noreply, assign(socket, :notification_count, 0)}
   end
 
+  # Get notifications, now including the type (chat, mention, etc.)
   defp get_all_user_notifs(user) do
     user.id
     |> NotifEvent.get_all_notifs()
-    |> Enum.map(fn {:notif, _id, actor_id, target_id, message, timestamp, _meta} ->
+    |> Enum.map(fn {:notif, _id, actor_id, target_id, message, timestamp, type} ->
       {:ok, user} = get_user(actor_id, target_id)
       time_passed = time_passed(timestamp)
-      {user, message, time_passed, timestamp}
+      {user, message, time_passed, timestamp, type}  # Include the type here
     end)
   end
 
@@ -171,6 +186,7 @@ defmodule MazarynWeb.HomeLive.Notification do
     Users.one_by_id(id)
   end
 
+  # Time difference logic for notifications
   defp time_passed(timestamp) do
     date_time = Timex.to_datetime(timestamp)
     time_difference([:years, :months, :weeks, :days, :hours, :minutes, :seconds], date_time)

@@ -28,19 +28,24 @@ subscribe(Pid) ->
     gen_event:call(?MODULE, {subscribe, Pid}).
 
 welcome(UserID, Message) ->
-    wrap_db_call(fun() -> notifdb:welcome(UserID, Message) end).
+    Type = <<"welcome">>,
+    wrap_db_call(fun() -> notifdb:welcome(UserID, Message, Type) end).
 
 follow(FollowerID, UserID, Message) ->
-    wrap_db_call(fun() -> notifdb:follow(FollowerID, UserID, Message) end).
+    Type = <<"follow">>,
+    wrap_db_call(fun() -> notifdb:follow(FollowerID, UserID, Message, Type) end).
 
 mention(MentionerID, UserID, Message) ->
-    wrap_db_call(fun() -> notifdb:mention(MentionerID, UserID, Message) end).
+    Type = <<"mention">>,
+    wrap_db_call(fun() -> notifdb:mention(MentionerID, UserID, Message, Type) end).
 
 chat(SenderID, ReceiverID, Message) ->
-    wrap_db_call(fun() -> notifdb:chat(SenderID, ReceiverID, Message) end).
+    Type = <<"chat">>,
+    wrap_db_call(fun() -> notifdb:chat(SenderID, ReceiverID, Message, Type) end).
 
 notif(UserID, Message) ->
-    wrap_db_call(fun() -> notifdb:insert(UserID, Message) end).
+    Type = <<"general">>,
+    wrap_db_call(fun() -> notifdb:insert(UserID, Message, Type) end).
 
 get_notif(NotifId) ->
     wrap_db_call(fun() -> notifdb:get_single_notif(NotifId) end).
@@ -74,19 +79,24 @@ init([]) ->
     {ok, #state{}}.
 
 handle_event({welcome, UserId, Message}, State) ->
-    handle_db_event(fun() -> notifdb:welcome(UserId, Message) end, State);
+    Type = <<"welcome">>,
+    handle_db_event(fun() -> notifdb:welcome(UserId, Message, Type) end, State);
 
 handle_event({follow, FollowerID, UserId, Message}, State) ->
-    handle_db_event(fun() -> notifdb:follow(FollowerID, UserId, Message) end, State);
+    Type = <<"follow">>,
+    handle_db_event(fun() -> notifdb:follow(FollowerID, UserId, Message, Type) end, State);
 
 handle_event({mention, MentionerID, UserId, Message}, State) ->
-    handle_db_event(fun() -> notifdb:mention(MentionerID, UserId, Message) end, State);
+    Type = <<"mention">>,
+    handle_db_event(fun() -> notifdb:mention(MentionerID, UserId, Message, Type) end, State);
 
 handle_event({chat, SenderID, ReceiverId, Message}, State) ->
-    handle_db_event(fun() -> notifdb:chat(SenderID, ReceiverId, Message) end, State);
+    Type = <<"chat">>,
+    handle_db_event(fun() -> notifdb:chat(SenderID, ReceiverId, Message, Type) end, State);
 
 handle_event({notif, UserId, Message}, State) ->
-    handle_db_event(fun() -> notifdb:insert(UserId, Message) end, State);
+    Type = <<"general">>,
+    handle_db_event(fun() -> notifdb:insert(UserId, Message, Type) end, State);
 
 handle_event({get_notif, NotifId}, State) ->
     handle_db_result(fun() -> notifdb:get_single_notif(NotifId) end, State);

@@ -90,17 +90,22 @@ defmodule MazarynWeb.HomeLive.Home do
   defp get_posts, do: Posts.get_home_posts()
 
   defp do_mount(email, socket) do
-    post_changeset = Post.changeset(%Post{})
-
-    {:ok, user} = Users.one_by_email(email)
-
-    posts = get_posts()
-
-    socket
-    |> assign(post_changeset: post_changeset)
-    |> assign(search: "")
-    |> assign(results: [])
-    |> assign(user: user)
-    |> assign(posts: posts)
-  end
+  post_changeset = Post.changeset(%Post{})
+  {:ok, user} = Users.one_by_email(email)
+  posts = get_posts()
+  
+  # Get notification counts
+  user_id = user.id
+  regular_notifs_count = Core.NotifEvent.count_unread_regular(user_id)
+  chat_notifs_count = Core.NotifEvent.count_unread_chat(user_id)
+  
+  socket
+  |> assign(post_changeset: post_changeset)
+  |> assign(search: "")
+  |> assign(results: [])
+  |> assign(user: user)
+  |> assign(posts: posts)
+  |> assign(notifs_count: regular_notifs_count)  # For notification icon
+  |> assign(chat_notifs_count: chat_notifs_count)  # For chat icon
+end
 end
