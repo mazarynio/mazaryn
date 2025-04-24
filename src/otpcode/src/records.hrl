@@ -218,7 +218,7 @@
                 date_created,
                 data = #{} }).
 
--record(chat, {id, 
+-record(chat, {id,  
                ai_chat_id,
                user_id, 
                recipient_id,
@@ -227,20 +227,18 @@
                bot,
                date_created,
                date_updated,
-               call_id,
-               call_type,
-               call_status,
+               call_id,          
+               call_type,             % video | audio
+               call_status,           % initiated | ringing | connected | ended | failed
                call_link,
-               call_start_time,
-               call_end_time,
-               timeout_ref,
+               call_start_time,      
+               call_end_time, 
+               timeout_ref,           % Timer reference for call timeout        
                data = #{} }).
 
--record(presence, {
-    user_id,  
-    status,  
-    last_updated
-}).
+-record(presence, {user_id,
+                   status = offline,  % Keep the default value from main
+                   last_updated}).
 
 -record(p2p_node, { 
     node_id, 
@@ -249,8 +247,7 @@
     date_created,
     data = #{}
 }).
-
-
+            
 -record(event, {name, date, loc, desc, data = #{} }).
 -record(follower, {id, username, data = #{}}).
 -record(following, {id, username, data = #{} }).
