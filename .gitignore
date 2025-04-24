@@ -55,6 +55,7 @@ mazaryn-front
 /src/golangcode/*.sum
 /src/golangcode/*.mod 
 /src/rustcode/*.lock
+/src/rustcode/target
 
 .idea
 .iex.exs

@@ -98,39 +98,38 @@ defmodule Mazaryn.Chats do
       where: c.user_id == ^user_id and c.status == "unread",
       select: count(c.id)
 
-  Repo.one(query)
-end
-
-@spec start_video_call(User.t(), User.t()) :: {:ok, binary()} | {:error, term()}
-def start_video_call(%User{id: actor_id}, %User{id: recipient_id}) when actor_id != recipient_id do
-  try do
-    call_id = ChatDB.start_video_call(actor_id, recipient_id)
-    {:ok, call_id}
-  catch
-    {:error, reason} -> {:error, reason}
+   Repo.one(query)
   end
-end
 
-def start_video_call(_actor, _recipient), do: {:error, :invalid_call_participants}
-
-@spec accept_call(binary()) :: {:ok, binary()} | {:error, term()}
-def accept_call(call_id) do
-  try do
-    call_id = ChatDB.accept_call(call_id)
-    {:ok, call_id}
-  catch
-    {:error, reason} -> {:error, reason}
+  @spec start_video_call(User.t(), User.t()) :: {:ok, binary()} | {:error, term()}
+  def start_video_call(%User{id: actor_id}, %User{id: recipient_id}) when actor_id != recipient_id do
+    try do
+      call_id = ChatDB.start_video_call(actor_id, recipient_id)
+      {:ok, call_id}
+    catch
+      {:error, reason} -> {:error, reason}
+    end
   end
-end
 
-@spec end_call(binary()) :: {:ok, binary()} | {:error, term()}
-def end_call(call_id) do
-  try do
-    call_id = ChatDB.end_video_call(call_id)
-    {:ok, call_id}
-  catch
-    {:error, reason} -> {:error, reason}
+  def start_video_call(_actor, _recipient), do: {:error, :invalid_call_participants}
+
+  @spec accept_call(binary()) :: {:ok, binary()} | {:error, term()}
+  def accept_call(call_id) do
+    try do
+      call_id = ChatDB.accept_call(call_id)
+      {:ok, call_id}
+    catch
+      {:error, reason} -> {:error, reason}
+    end
   end
-end
 
+  @spec end_call(binary()) :: {:ok, binary()} | {:error, term()}
+  def end_call(call_id) do
+    try do
+      call_id = ChatDB.end_video_call(call_id)
+      {:ok, call_id}
+    catch
+      {:error, reason} -> {:error, reason}
+    end
+  end
 end
