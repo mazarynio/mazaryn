@@ -227,7 +227,20 @@
                bot,
                date_created,
                date_updated,
+               call_id,
+               call_type,
+               call_status,
+               call_link,
+               call_start_time,
+               call_end_time,
+               timeout_ref,
                data = #{} }).
+
+-record(presence, {
+    user_id,  
+    status,  
+    last_updated
+}).
 
 -record(p2p_node, { 
     node_id, 
