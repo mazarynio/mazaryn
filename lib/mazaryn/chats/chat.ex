@@ -52,6 +52,12 @@ defmodule Mazaryn.Chats.Chat do
     |> apply_action(:insert)
   end
 
+  def erl_changeset(:notfound) do
+    {:error, :notfound}
+  end
+
+  def erl_changeset(_), do: {:error, :invalid_chat_record}
+
   defp params(record) when is_tuple(record) do
     record
     |> Tuple.to_list()

@@ -25,7 +25,16 @@
     />
     <!-- chat list -->
     <div class="social-box w-full rounded-[20px] bg-white white:bg-gray-800 flex items-center justify-between px-2 mt-5 mb-5">
-      <.chat recipient={@current_recipient} actor={@user} messages={@messages} />
+      <.chat
+        recipient={@current_recipient}
+        actor={@user}
+        messages={@messages}
+        call_id={@call_id}
+        call_status={@call_status}
+        call_link={@call_link}
+        caller_username={@caller_username}
+        phx-hook="VideoCall"
+      />
     </div>
     <!-- new message component -->
     <div class="bottom-1 w-full bg-white white:bg-gray-800 custom-box-shadow pr-8 pl-7 pb-7 pt-4 rounded-[20px]">
@@ -40,7 +49,7 @@
   </div>
   <!-- end of middle column-->
   <div class=" w-full lg:w-2/6 bg-gray-100 py-10 pr-10">
-    <.chat_list locale={@locale} contacts={@contacts} title="Chats" show_search={false} , />
+    <.chat_list locale={@locale} contacts={@contacts} title="Chats" show_search={false} />
     <.chat_list
       contacts={@recent_chat_recepients}
       title=""

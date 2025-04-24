@@ -20,7 +20,7 @@
     create_chat/2,
     get_chat_by_id/1,
     get_user_chats/1,
-    list_chats/0, start_video_call/2, accept_call/1, end_video_call/1, handle_call_timeout/1
+    list_chats/0, start_video_call/2, accept_call/1, end_video_call/1, get_chat_by_call_id/1, handle_call_timeout/1
 ]).
 
 %% gen_server callbacks
@@ -44,6 +44,9 @@ send_msg_bot(UserID, Body) ->
 get_msg(ChatID) ->
     gen_server:call({global, ?MODULE}, {get_msg, ChatID}).
 
+get_chat_by_id(ChatID) ->
+    gen_server:call({global, ?MODULE}, {get_chat_by_id, ChatID}).
+
 get_msg_bot(ChatID) ->
     gen_server:call({global, ?MODULE}, {get_msg_bot, ChatID}).
 
@@ -62,9 +65,6 @@ delete_msg(ChatID) ->
 create_chat(Peer_Ids, Title) ->
     gen_server:call({global, ?MODULE}, {insert, Peer_Ids, Title}).
 
-get_chat_by_id(Id) ->
-    gen_server:call({global, ?MODULE}, {get_by_id, Id}).
-
 get_user_chats(Id) ->
     gen_server:call({global, ?MODULE}, {get_user_chats, Id}).
 
@@ -79,6 +79,9 @@ accept_call(CallID) ->
 
 end_video_call(CallID) ->
     gen_server:call({global, ?MODULE}, {end_video_call, CallID}).
+
+get_chat_by_call_id(CallID) ->
+    gen_server:call({global, ?MODULE}, {get_chat_by_call_id, CallID}).
 
 handle_call_timeout(CallID) ->
     gen_server:call({global, ?MODULE}, {handle_call_timeout, CallID}).
@@ -115,8 +118,8 @@ handle_call({insert, Peer_Ids, Title}, _From, State) ->
     Id = chatdb:create_chat(Peer_Ids, Title),
     Chat = chatdb:get_chat_by_id(Id),
     {reply, Chat, State};
-handle_call({get_by_id, Id}, _From, State) ->
-    Chat = chatdb:get_chat_by_id(Id),
+handle_call({get_chat_by_id, ChatID}, _From, State) ->
+    Chat = chatdb:get_chat_by_id(ChatID),
     {reply, Chat, State};
 handle_call({get_user_chats, Id}, _From, State) ->
     Chats = chatdb:get_user_chats(Id),
@@ -132,6 +135,9 @@ handle_call({accept_call, CallID}, _From, State) ->
     {reply, ID, State};
 handle_call({end_video_call, CallID}, _From, State) ->
     ID = chatdb:end_video_call(CallID),
+    {reply, ID, State};
+handle_call({get_chat_by_call_id, CallID}, _From, State) ->
+    ID = chatdb:get_chat_by_call_id(CallID),
     {reply, ID, State};
 handle_call({handle_call_timeout, CallID}, _From, State) ->
     ID = chatdb:handle_call_timeout(CallID),

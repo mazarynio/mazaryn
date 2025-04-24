@@ -1,4 +1,29 @@
-<div class="flex-1 p:2 sm:p-6 justify-between flex flex-col h-96">
+<div class="flex-1 p-2 sm:p-6 justify-between flex flex-col h-96">
+  <!-- Incoming Call Modal -->
+  <%= if @call_status == "ringing" && @caller_username do %>
+    <div class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50">
+      <div class="bg-white p-6 rounded-lg shadow-xl">
+        <h2 class="text-lg font-semibold mb-4">Incoming Call from <%= @caller_username %></h2>
+        <div class="flex space-x-4">
+          <button
+            phx-click="accept-video-call"
+            phx-value-call_id={@call_id}
+            class="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600"
+          >
+            Accept
+          </button>
+          <button
+            phx-click="end-video-call"
+            phx-value-call_id={@call_id}
+            class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600"
+          >
+            Decline
+          </button>
+        </div>
+      </div>
+    </div>
+  <% end %>
+
   <div class="flex sm:items-center justify-between py-3 border-b-2 border-green-200">
     <div class="relative flex items-center space-x-4">
       <div class="relative">
@@ -20,78 +45,79 @@
         <span class="text-lg text-gray-600 capitalize"><%= @recipient.country %></span>
       </div>
     </div>
-    <div :if={false} class="flex items-center space-x-2">
-      <button
-        type="button"
-        class="inline-flex items-center justify-center rounded-lg border h-10 w-10 transition duration-500 ease-in-out text-gray-500 hover:bg-gray-300 focus:outline-none"
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-          class="h-6 w-6"
+    <div class="flex items-center space-x-2">
+       <%= if @call_status do %>
+        <span class="text-sm text-gray-500">
+          <%= cond do %>
+            <% @call_status == :ringing -> %>
+              Ringing...
+            <% @call_status == :connected -> %>
+              Call Connected
+            <% true -> %>
+              
+          <% end %>
+        </span>
+      <% end %>
+      <%= if @call_status do %>
+        <button
+          phx-click="end-video-call"
+          phx-value-call_id={@call_id}
+          class="inline-flex items-center justify-center rounded-lg border h-10 w-10 transition duration-500 ease-in-out text-red-500 hover:bg-red-100 focus:outline-none"
         >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            class="h-6 w-6"
           >
-          </path>
-        </svg>
-      </button>
-      <button
-        type="button"
-        class="inline-flex items-center justify-center rounded-lg border h-10 w-10 transition duration-500 ease-in-out text-gray-500 hover:bg-gray-300 focus:outline-none"
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-          class="h-6 w-6"
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M6 18L18 6M6 6l12 12"
+            />
+          </svg>
+        </button>
+      <% else %>
+        <button
+          phx-click="start-video-call"
+          class="inline-flex items-center justify-center rounded-lg border h-10 w-10 transition duration-500 ease-in-out text-gray-500 hover:bg-gray-300 focus:outline-none"
+          disabled={@recipient.id == @actor.id}
         >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            class="h-6 w-6"
           >
-          </path>
-        </svg>
-      </button>
-      <button
-        type="button"
-        class="inline-flex items-center justify-center rounded-lg border h-10 w-10 transition duration-500 ease-in-out text-gray-500 hover:bg-gray-300 focus:outline-none"
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-          class="h-6 w-6"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
-          >
-          </path>
-        </svg>
-      </button>
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
+            />
+          </svg>
+        </button>
+      <% end %>
     </div>
   </div>
+
+  <%= if @call_status do %>
+    <div class="flex flex-col sm:flex-row space-x-4 p-4 bg-gray-100 rounded-lg">
+      <div class="w-full sm:w-1/2">
+        <video id="local-video" autoplay playsinline muted class="w-full rounded-lg"></video>
+        <p class="text-sm text-gray-500">You</p>
+      </div>
+      <div class="w-full sm:w-1/2">
+        <video id="remote-video" autoplay playsinline class="w-full rounded-lg"></video>
+        <p class="text-sm text-gray-500"><%= @recipient.username %></p>
+      </div>
+    </div>
+  <% end %>
+
   <div
-    x-data="{
-      scrollable: null,
-      init: function() {
-        this.scrollable.scrollBottom(0, this.scrollable.scrollHeight);
-      }
-    }"
-    x-init="init()"
-    x-ref="scrollable"
     class="flex flex-col space-y-4 p-3 overflow-y-auto scrollbar-thumb-blue scrollbar-thumb-rounded scrollbar-track-blue-lighter scrollbar-w-2 scrolling-touch"
   >
     <%= for message <- @messages do %>
@@ -103,7 +129,6 @@
                 <span class="px-4 py-2 rounded-lg inline-block rounded-bl-none bg-gray-300 text-gray-600 capitalize">
                   <%= message.body %>
                 </span>
-                <!-- Three-dot menu -->
               </div>
             </div>
             <img
@@ -121,7 +146,6 @@
                 <span class="px-4 py-2 rounded-lg inline-block rounded-br-none bg-green-400 text-black capitalize">
                   <%= message.body %>
                 </span>
-                <!-- Three-dot menu -->
                 <div class="relative">
                   <button
                     @click="openMenu = !openMenu"
@@ -136,7 +160,6 @@
                       <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
                     </svg>
                   </button>
-                  <!-- Dropdown Menu -->
                   <div
                     x-show="openMenu"
                     @click.outside="openMenu = false"

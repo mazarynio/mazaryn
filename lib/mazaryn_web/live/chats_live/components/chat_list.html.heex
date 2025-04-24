@@ -43,16 +43,25 @@
                     <%= user.username %>
                   </span>
                 </div>
-
                 <div class="flex space-x-2 justify-center">
                   <button
                     type="button"
-                    class="flex items-center px-4 py-2.5 border border-gray-400  text-gray-400 font-medium text-xs leading-tight uppercase rounded-lg transition duration-150 ease-in-out hover:bg-gray-100"
+                    class="flex items-center px-4 py-2.5 border border-gray-400 text-gray-400 font-medium text-xs leading-tight uppercase rounded-lg transition duration-150 ease-in-out hover:bg-gray-100"
                   >
                     <i>
                       <%= Heroicons.icon("plus-circle", type: "outline", class: "h-5 w-5 mr-2") %>
                     </i>
                     Start a chat
+                  </button>
+                  <button
+                    phx-click="start-video-call"
+                    phx-value-recipient_id={to_string(user.id)}
+                    class="flex items-center px-4 py-2.5 border border-gray-400 text-gray-400 font-medium text-xs leading-tight uppercase rounded-lg transition duration-150 ease-in-out hover:bg-gray-100"
+                  >
+                    <i>
+                      <%= Heroicons.icon("video-camera", type: "outline", class: "h-5 w-5 mr-2") %>
+                    </i>
+                    Video Call
                   </button>
                 </div>
               </div>

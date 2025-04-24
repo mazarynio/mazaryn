@@ -33,55 +33,48 @@ defmodule MazarynWeb.HomeLive.LeftSidebarComponent do
                     <%= gettext("Home") %>
                   </div>
                 <% end %>
-              </li>      
-           
-           <li class="flex align-center items-center mx-2 mb-7 relative">
-           <.link
-           navigate={~p"/chats"}
-           class="group flex items-start text-base text-gray-500 font-semibold hover:text-blue-500 relative"
-           > 
-           <i class="relative">
-             <svg
-              class="h-5 w-5 mr-3.5 group-hover:fill-[#4385F5]"
-              width="20"
-              height="20"
-              viewBox="0 0 20 20"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-             >
-               <g clip-path="url(#clip0_390_1350)">
-              <path
-                class="fill-[#60616D] group-hover:fill-[#4385F5]"
-                 d="M19.1328 17.2236C18.5592 16.9973 18.0578 16.6081 17.6961 16.1015C19.1126 15.1443 20.0003 13.7723 20.0003 12.2479C20.0003 10.5798 18.9375 9.09385 17.2818 8.13477C17.1069 12.1761 12.8179 15.0539 7.9919 15.0539C7.58572 15.0539 7.1832 15.033 6.78516 14.9936C8.0419 16.4887 10.2939 17.4853 12.8634 17.4853C13.8006 17.4853 14.6955 17.3525 15.5154 17.1115C16.249 17.798 17.2926 18.131 18.3518 17.9139C18.6362 17.8556 18.9041 17.7613 19.1516 17.6366C19.2313 17.5965 19.2801 17.5133 19.276 17.4241C19.2719 17.3348 19.2159 17.2564 19.1328 17.2236Z"
-               />
-               <path
-                  class="fill-[#60616D] group-hover:fill-[#4385F5]"
-                d="M15.9831 7.88507C15.9831 4.64616 12.4052 2.02051 7.99157 2.02051C3.57796 2.02051 0 4.64616 0 7.88507C0 9.59189 0.993913 11.1282 2.57987 12.1999C2.16378 12.7828 1.58261 13.2268 0.918435 13.477C0.835 13.5085 0.777739 13.5858 0.772174 13.6748C0.766609 13.7638 0.813826 13.8478 0.892739 13.8894C1.40926 14.1613 1.98974 14.3032 2.56978 14.3032C3.49617 14.3032 4.36878 13.9423 5.022 13.3311C5.94009 13.6009 6.94213 13.7496 7.99161 13.7496C12.4052 13.7496 15.9831 11.124 15.9831 7.88507Z"
-               />
-               </g>
-                 <defs>
-                <clipPath id="clip0_390_1350">
-                <rect class="fill-white group-hover:fill-[#4385F5]" width="20" height="20" />
-              </clipPath>
-             </defs>
-             </svg>
-      
-             <%= if Map.get(assigns, :chat_notifs_count, 0) > 0 do %>
-              <span class="absolute bg-teal-300 text-teal-900 px-2 py-1 text-xs font-bold rounded-full -top-2 -right-2">
-                <%= @chat_notifs_count %>
-              </span>
-             <% end %>
-            </i>
-            <div class="text-[#60616D] text-base leading-6 group-hover:text-[#4385F5] relative">
-             <%= gettext("Chat") %>
-            </div>
-           </.link>
-          </li>
+              </li>
+              <li class="flex align-center items-center mx-2 mb-7">
+                <.link
+                  navigate={~p(/chats)}
+                  class="group flex items-start text-base text-gray-500 font-semibold hover:text-blue-500 "
+                >
+                  <i>
+                    <svg
+                      class="h-5 w-5 mr-3.5 group-hover:fill-[#4385F5]"
+                      width="20"
+                      height="20"
+                      viewBox="0 0 20 20"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <g clip-path="url(#clip0_390_1350)">
+                        <path
+                          class="fill-[#60616D] group-hover:fill-[#4385F5]"
+                          d="M19.1328 17.2236C18.5592 16.9973 18.0578 16.6081 17.6961 16.1015C19.1126 15.1443 20.0003 13.7723 20.0003 12.2479C20.0003 10.5798 18.9375 9.09385 17.2818 8.13477C17.1069 12.1761 12.8179 15.0539 7.9919 15.0539C7.58572 15.0539 7.1832 15.033 6.78516 14.9936C8.0419 16.4887 10.2939 17.4853 12.8634 17.4853C13.8006 17.4853 14.6955 17.3525 15.5154 17.1115C16.249 17.798 17.2926 18.131 18.3518 17.9139C18.6362 17.8556 18.9041 17.7613 19.1516 17.6366C19.2313 17.5965 19.2801 17.5133 19.276 17.4241C19.2719 17.3348 19.2159 17.2564 19.1328 17.2236Z"
+                        />
+                        <path
+                          class="fill-[#60616D] group-hover:fill-[#4385F5]"
+                          d="M15.9831 7.88507C15.9831 4.64616 12.4052 2.02051 7.99157 2.02051C3.57796 2.02051 0 4.64616 0 7.88507C0 9.59189 0.993913 11.1282 2.57987 12.1999C2.16378 12.7828 1.58261 13.2268 0.918435 13.477C0.835 13.5085 0.777739 13.5858 0.772174 13.6748C0.766609 13.7638 0.813826 13.8478 0.892739 13.8894C1.40926 14.1613 1.98974 14.3032 2.56978 14.3032C3.49617 14.3032 4.36878 13.9423 5.022 13.3311C5.94009 13.6009 6.94213 13.7496 7.99161 13.7496C12.4052 13.7496 15.9831 11.124 15.9831 7.88507Z"
+                        />
+                      </g>
+                      <defs>
+                        <clipPath id="clip0_390_1350">
+                          <rect class="fill-white group-hover:fill-[#4385F5]" width="20" height="20" />
+                        </clipPath>
+                      </defs>
+                    </svg>
+                  </i>
+                  <div class="text-[#60616D] text-base leading-6 group-hover:text-[#4385F5]">
+                    <%= gettext("Chat") %>
+                  </div>
+                </.link>
+              </li>
 
-           <li class="flex align-center items-center mx-2 mb-7">
-              <a
-               href="home"
-                 class="group flex items-start text-base text-gray-500 font-semibold hover:text-blue-500"
+              <li class="flex align-center items-center mx-2 mb-7">
+                <a
+                  href="home"
+                  class="group flex items-start text-base text-gray-500 font-semibold hover:text-blue-500"
                 >
                   <i>
                     <%= Heroicons.icon("users",

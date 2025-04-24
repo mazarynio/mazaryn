@@ -28,7 +28,18 @@ defmodule Mazaryn.Chats do
 
   def create_chat(_actor, _recipient, _params), do: {:error, :invalid_chat_participants}
 
-  def get_by_chat_id(id), do: id |> ChatDB.get_chat_by_id() |> Chat.erl_changeset()
+  def get_by_chat_id(id) do
+    case ChatDB.get_chat_by_call_id(id) do
+      {:chat, id, ai_chat_id, user_id, recipient_id, body, media, bot, date_created, date_updated, call_id, call_type, call_status, call_link, call_start_time, call_end_time, timeout_ref, data} ->
+        Chat.erl_changeset({:chat, id, ai_chat_id, user_id, recipient_id, body, media, bot, date_created, date_updated, call_id, call_type, call_status, call_link, call_start_time, call_end_time, timeout_ref, data})
+      :notfound ->
+        {:error, :notfound}
+      :chat_not_exist ->
+        {:error, :notfound}
+      _ ->
+        {:error, :invalid_chat_record}
+    end
+  end
 
   @spec get_chats(list) :: list
   def get_chats(ids \\ []) do
@@ -40,7 +51,7 @@ defmodule Mazaryn.Chats do
         |> Chat.erl_changeset()
         |> case do
           {:ok, chat} -> {{:ok, chat}, [chat | &2]}
-          any -> {any, &2}
+          {:error, _} -> {{:error, :notfound}, &2}
         end)
     )
     |> elem(1)
@@ -69,7 +80,6 @@ defmodule Mazaryn.Chats do
     |> Enum.map(&(to_charlist(&1.recipient_id) |> Users.one_by_id() |> elem(1)))
   end
 
-  @spec get_latest_recipient(binary | User.t()) :: User.t() | nil
   def get_latest_recipient(id) when is_binary(id),
     do: id |> to_charlist() |> Users.one_by_id() |> elem(1)
 
@@ -82,7 +92,6 @@ defmodule Mazaryn.Chats do
     end
   end
 
-  @spec get_chat_messages(User.t(), User.t()) :: list
   def get_chat_messages(%User{} = actor, %User{} = recipient) do
     actor.chat
     |> Kernel.++(recipient.chat)
@@ -91,7 +100,7 @@ defmodule Mazaryn.Chats do
   end
 
   def get_chat_messages(_, _), do: []
-  # New function to get unread message count for a user
+
   def get_unread_count(user_id) do
     query =
       from c in Chat,
@@ -101,7 +110,6 @@ defmodule Mazaryn.Chats do
     Repo.one(query)
   end
 
-  @spec start_video_call(User.t(), User.t()) :: {:ok, binary()} | {:error, term()}
   def start_video_call(%User{id: actor_id}, %User{id: recipient_id}) when actor_id != recipient_id do
     try do
       call_id = ChatDB.start_video_call(actor_id, recipient_id)

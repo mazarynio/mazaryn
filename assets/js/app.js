@@ -29,11 +29,11 @@ import "phoenix_html";
 import { Socket } from "phoenix";
 import { LiveSocket } from "phoenix_live_view";
 import topbar from "../vendor/topbar";
+import VideoCallHook from "./video_call";
 
 let Hooks = {};
 let csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content");
 
-//Notifications
 Hooks.Notifications = {
   mounted() {
     this.handleNotificationVisibility();
@@ -68,17 +68,14 @@ Hooks.ChatNotifications = {
     this.updateBadgeVisibility();
 
     this.handleEvent("new_chat_message", () => {
-
       let count = parseInt(this.badgeEl.getAttribute("data-count") || "0");
       this.badgeEl.setAttribute("data-count", count + 1);
-
       this.updateBadgeVisibility(true);
     });
 
     this.el.addEventListener("click", () => {
       this.badgeEl.setAttribute("data-count", "0");
       this.updateBadgeVisibility(false);
-
       this.pushEvent("mark_chat_messages_read", {});
     });
   },
@@ -130,6 +127,8 @@ Hooks.ChatNotifications = {
     }
   }
 };
+
+Hooks.VideoCall = VideoCallHook;
 
 let liveSocket = new LiveSocket("/live", Socket, {
   params: { _csrf_token: csrfToken },

@@ -1,7 +1,7 @@
 -module(chatdb).
 -author("Zaryn Technologies").
--export([send_msg/4, get_msg/1, get_all_msg/1, edit_msg/2, delete_msg/1, list_chats/0, update_presence/2, accept_call/1,
- start_video_call/2, end_video_call/1, handle_call_timeout/1]). 
+-export([send_msg/4, get_msg/1, get_chat_by_id/1, get_all_msg/1, edit_msg/2, delete_msg/1, list_chats/0, update_presence/2, accept_call/1,
+ start_video_call/2, end_video_call/1, get_chat_by_call_id/1, handle_call_timeout/1]). 
 
 -include("../records.hrl").
 -include_lib("stdlib/include/qlc.hrl").
@@ -67,6 +67,12 @@ get_msg(ChatID) ->
             throw(chat_not_found); 
         {aborted, Reason} ->
             throw({transaction_failed, Reason}) 
+    end.
+
+get_chat_by_id(ChatId) when is_list(ChatId) ->
+    case mnesia:dirty_read(chat, ChatId) of
+        [Chat] -> Chat;
+        [] -> notfound
     end.
 
 %% Get all the Msssages Sent to User using UserID 
@@ -321,6 +327,17 @@ end_video_call(CallID) ->
             throw({error, Error});
         {aborted, Reason} ->
             throw({error, {transaction_failed, Reason}})
+    end.
+
+get_chat_by_call_id(CallID) ->
+    Res = mnesia:transaction(
+        fun() ->
+            mnesia:match_object(#chat{call_id = CallID, _= '_'})
+        end),
+    case Res of
+      {atomic, []} -> chat_not_exist;
+      {atomic, [Chat]} -> Chat;
+      _ -> error
     end.
 
 % Handle call timeout
