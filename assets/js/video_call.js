@@ -1,409 +1,238 @@
 const VideoCallHook = {
   mounted() {
-    console.log("VideoCallHook mounted with elements:", {
-      el: this.el,
-      dataUsername: this.el.dataset.username,
-      dataCurrentRecipientUsername: this.el.dataset.currentRecipientUsername
-    });
-    
-    this.addDiagnosticElements();
-    
-    this.peerConnection = null;
     this.localStream = null;
-    this.remoteStream = null;
-    this.ws = null;
-    this.isSelfCall = false;
     this.isCalling = false;
+    this.retryCount = 0;
+    this.maxRetries = 3;
+    this.retryDelay = 1000;
+    this.canvasContext = null;
+    this.renderLoopId = null;
 
-    this.handleEvent("start-video-call", ({ call_id, call_link }) => {
-      this.logToPage("Received start-video-call event", { call_id, call_link });
-      if (this.isCalling) {
-        this.logToPage("Call already in progress, ignoring start-video-call");
-        return;
-      }
-      this.startVideoCall(call_id, call_link);
-    });
-
-    this.handleEvent("incoming-call", ({ call_id, call_link, caller_username }) => {
-      this.logToPage("Received incoming-call event", { call_id, call_link, caller_username });
-      if (caller_username === this.el.dataset.username) {
-        this.logToPage("Self call detected in incoming-call handler");
-        this.isSelfCall = true;
-        this.acceptVideoCall(call_id, call_link);
-      } else {
-        this.pushEvent("incoming-call-received", { call_id, call_link, caller_username });
-      }
-    });
-
-    this.handleEvent("accept-video-call", ({ call_id, call_link }) => {
-      this.logToPage("Received accept-video-call event", { call_id, call_link });
-      this.acceptVideoCall(call_id, call_link);
-    });
-
-    this.handleEvent("end-video-call", ({ call_id }) => {
-      this.logToPage("Received end-video-call event", { call_id });
-      this.endVideoCall();
-    });
+    this.setupDiagnosticLogging();
+    this.setupCanvas();
+    this.setupEventListeners();
+    this.initializeCamera();
   },
 
-  addDiagnosticElements() {
-
+  setupDiagnosticLogging() {
     const diagnosticDiv = document.createElement('div');
     diagnosticDiv.id = 'video-call-diagnostic';
-    diagnosticDiv.style.cssText = 'max-height: 200px; overflow-y: auto; background-color: #f8f8f8; border: 1px solid #ddd; padding: 10px; margin: 10px 0; font-family: monospace; font-size: 12px;';
-    
-    const testLocalStreamBtn = document.createElement('button');
-    testLocalStreamBtn.textContent = 'Test Local Stream';
-    testLocalStreamBtn.style.cssText = 'margin-right: 10px; padding: 5px; background: #4CAF50; color: white; border: none;';
-    testLocalStreamBtn.onclick = () => this.testLocalStream();
-    
-    const testRemoteStreamBtn = document.createElement('button');
-    testRemoteStreamBtn.textContent = 'Test Remote Stream';
-    testRemoteStreamBtn.style.cssText = 'margin-right: 10px; padding: 5px; background: #2196F3; color: white; border: none;';
-    testRemoteStreamBtn.onclick = () => this.testRemoteStream();
-    
-    const toggleVideoBtn = document.createElement('button');
-    toggleVideoBtn.textContent = 'Force Play Videos';
-    toggleVideoBtn.style.cssText = 'padding: 5px; background: #FF9800; color: white; border: none;';
-    toggleVideoBtn.onclick = () => this.forcePlayVideos();
-    
-    const buttonContainer = document.createElement('div');
-    buttonContainer.style.cssText = 'margin: 10px 0;';
-    buttonContainer.appendChild(testLocalStreamBtn);
-    buttonContainer.appendChild(testRemoteStreamBtn);
-    buttonContainer.appendChild(toggleVideoBtn);
-    
+    diagnosticDiv.style.cssText = 'max-height: 200px; overflow-y: auto; background: #f8f8f8; border: 1px solid #ddd; padding: 10px; margin: 10px 0; font-family: monospace; font-size: 12px;';
     this.el.insertBefore(diagnosticDiv, this.el.firstChild);
-    this.el.insertBefore(buttonContainer, this.el.firstChild);
-    
     this.diagnosticDiv = diagnosticDiv;
   },
-  
-  logToPage(message, data) {
-    if (!this.diagnosticDiv) return;
-    
+
+  log(message, data = {}) {
     const timestamp = new Date().toLocaleTimeString();
     const logEntry = document.createElement('div');
-    
-    let logText = `[${timestamp}] ${message}`;
-    if (data) {
-      try {
-        logText += ": " + JSON.stringify(data);
-      } catch (e) {
-        logText += ": [Object cannot be stringified]";
-      }
-    }
-    
-    logEntry.textContent = logText;
+    logEntry.textContent = `[${timestamp}] ${message}${data ? ': ' + JSON.stringify(data) : ''}`;
     this.diagnosticDiv.appendChild(logEntry);
     this.diagnosticDiv.scrollTop = this.diagnosticDiv.scrollHeight;
-    
     console.log(message, data);
   },
-  
-  async testLocalStream() {
-    this.logToPage("Testing local stream...");
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-      this.logToPage("Got local stream", {
-        videoTracks: stream.getVideoTracks().length,
-        audioTracks: stream.getAudioTracks().length
-      });
+
+  setupCanvas() {
+    let canvas = document.getElementById('local-canvas');
+    if (!canvas) {
+      canvas = document.createElement('canvas');
+      canvas.id = 'local-canvas';
+      canvas.style.cssText = 'width: 100%; height: 100%; object-fit: cover; display: block;';
       
-      const localVideo = document.getElementById("local-video");
-      if (localVideo) {
-        localVideo.srcObject = stream;
-        localVideo.play().then(() => {
-          this.logToPage("Local video started playing");
-        }).catch(err => {
-          this.logToPage("Error playing local video", err.message);
-        });
+      const localVideo = document.getElementById('local-video');
+      if (localVideo && localVideo.parentElement) {
+        localVideo.parentElement.replaceChild(canvas, localVideo);
       } else {
-        this.logToPage("Local video element not found");
+        this.el.appendChild(canvas);
       }
-      
-      // Stop the stream after testing
-      setTimeout(() => {
-        stream.getTracks().forEach(track => track.stop());
-        if (localVideo) localVideo.srcObject = null;
-        this.logToPage("Test stream stopped");
-      }, 10000);
-    } catch (error) {
-      this.logToPage("Error testing local stream", error.message);
     }
+
+    this.canvas = canvas;
+    this.canvasContext = canvas.getContext('2d');
+
+    this.canvas.width = 1280;
+    this.canvas.height = 720;
   },
-  
-  async testRemoteStream() {
-    this.logToPage("Testing remote stream with local camera as source...");
+
+  setupEventListeners() {
+    this.handleEvent("start-video-call", ({ call_id }) => {
+      this.log("Starting video call", { call_id });
+      if (this.isCalling) return;
+      this.startVideoCall();
+    });
+
+    this.handleEvent("accept-video-call", ({ call_id }) => {
+      this.log("Accepting video call", { call_id });
+      this.startVideoCall();
+    });
+
+    this.handleEvent("end-video-call", () => {
+      this.log("Ending video call");
+      this.endVideoCall();
+    });
+
+    this.el.addEventListener('click', () => this.initializeCamera());
+  },
+
+  async initializeCamera() {
+    this.log("Initializing camera");
+
+    if (this.localStream) {
+      this.localStream.getTracks().forEach(track => track.stop());
+      this.localStream = null;
+    }
+
+    const constraints = {
+      video: {
+        width: { ideal: 1280 },
+        height: { ideal: 720 },
+        facingMode: "user"
+      },
+      audio: false
+    };
+
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
-      this.logToPage("Got test stream", {
-        videoTracks: stream.getVideoTracks().length
+      const stream = await navigator.mediaDevices.getUserMedia(constraints);
+      this.localStream = new MediaStream(stream.getVideoTracks());
+      this.log("Camera access granted", {
+        videoTracks: this.localStream.getVideoTracks().length
       });
-      
-      const remoteVideo = document.getElementById("remote-video");
-      if (remoteVideo) {
-        remoteVideo.srcObject = stream;
-        remoteVideo.play().then(() => {
-          this.logToPage("Remote video started playing");
-        }).catch(err => {
-          this.logToPage("Error playing remote video", err.message);
-        });
+
+      await this.startRendering();
+      this.pushEvent("call-status-updated", { status: "connected" });
+      this.retryCount = 0;
+    } catch (error) {
+      this.handleError(error);
+      this.retryCount++;
+      if (this.retryCount < this.maxRetries) {
+        const delay = this.retryDelay * Math.pow(2, this.retryCount);
+        this.log("Retrying camera initialization", { attempt: this.retryCount, delay });
+        setTimeout(() => this.initializeCamera(), delay);
       } else {
-        this.logToPage("Remote video element not found");
+        this.pushEvent("call-error", { message: "Failed to initialize camera after multiple attempts" });
       }
-      
-      // Stop the stream after testing
-      setTimeout(() => {
-        stream.getTracks().forEach(track => track.stop());
-        if (remoteVideo) remoteVideo.srcObject = null;
-        this.logToPage("Test stream stopped");
-      }, 10000);
-    } catch (error) {
-      this.logToPage("Error testing remote stream", error.message);
-    }
-  },
-  
-  forcePlayVideos() {
-    this.logToPage("Attempting to force play videos...");
-    const localVideo = document.getElementById("local-video");
-    const remoteVideo = document.getElementById("remote-video");
-    
-    if (localVideo && localVideo.srcObject) {
-      localVideo.play().then(() => {
-        this.logToPage("Forced local video to play");
-      }).catch(err => {
-        this.logToPage("Error forcing local video to play", err.message);
-      });
-    } else {
-      this.logToPage("Local video has no source to play");
-    }
-    
-    if (remoteVideo && remoteVideo.srcObject) {
-      remoteVideo.play().then(() => {
-        this.logToPage("Forced remote video to play");
-      }).catch(err => {
-        this.logToPage("Error forcing remote video to play", err.message);
-      });
-    } else {
-      this.logToPage("Remote video has no source to play");
     }
   },
 
-  async startVideoCall(call_id, call_link) {
+  async startRendering() {
+    let video = document.createElement('video');
+    video.id = 'hidden-video';
+    video.style.display = 'none';
+    document.body.appendChild(video);
+
+    video.srcObject = this.localStream;
+    video.muted = true;
+    video.playsInline = true;
+
     try {
-      this.logToPage("Starting video call", { call_id, call_link });
-      this.isCalling = true;
-      this.endVideoCall(); 
-
-      // Check available devices
-      const devices = await navigator.mediaDevices.enumerateDevices();
-      const videoDevices = devices.filter(device => device.kind === "videoinput");
-      this.logToPage("Available devices", {
-        videoDevices: videoDevices.length,
-        audioDevices: devices.filter(device => device.kind === "audioinput").length
+      await video.play();
+      this.log("Hidden video playing", {
+        videoWidth: video.videoWidth,
+        videoHeight: video.videoHeight
       });
-      
-      if (videoDevices.length === 0) {
-        this.logToPage("No video devices found");
-        this.pushEvent("call-error", { message: "No camera detected. Please connect a camera." });
-        this.isCalling = false;
-        return;
+
+      if (video.videoWidth > 0 && video.videoHeight > 0) {
+        this.canvas.width = video.videoWidth;
+        this.canvas.height = video.videoHeight;
       }
 
-      this.logToPage("Requesting media");
-      this.localStream = await navigator.mediaDevices.getUserMedia({ 
-        video: { 
-          width: { ideal: 640 },
-          height: { ideal: 480 }
-        }, 
-        audio: true 
-      });
-      
-      const videoTracks = this.localStream.getVideoTracks();
-      const audioTracks = this.localStream.getAudioTracks();
-      this.logToPage("Local stream acquired", {
-        videoTracks: videoTracks.length,
-        audioTracks: audioTracks.length
-      });
-
-      if (videoTracks.length === 0) {
-        this.logToPage("No video tracks in stream");
-        this.pushEvent("call-error", { message: "Camera stream has no video. Check camera settings." });
-        this.isCalling = false;
-        return;
-      }
-
-      const localVideo = document.getElementById("local-video");
-      const remoteVideo = document.getElementById("remote-video");
-      if (!localVideo || !remoteVideo) {
-        this.logToPage("Video elements not found", { localVideo: !!localVideo, remoteVideo: !!remoteVideo });
-        this.pushEvent("call-error", { message: "Video elements not found" });
-        this.isCalling = false;
-        return;
-      }
-
-      this.logToPage("Setting local video source");
-      localVideo.srcObject = this.localStream;
-      localVideo.play().catch(err => {
-        this.logToPage("Error playing local video", err.message);
-      });
-      
-      this.remoteStream = new MediaStream();
-      this.logToPage("Setting remote video source");
-      remoteVideo.srcObject = this.remoteStream;
-      remoteVideo.play().catch(err => {
-        this.logToPage("Error playing remote video", err.message);
-      });
-
-      const isSelfCall = this.el.dataset.username === this.el.dataset.currentRecipientUsername;
-      this.logToPage("Self-call check", { 
-        isSelfCall,
-        username: this.el.dataset.username,
-        recipientUsername: this.el.dataset.currentRecipientUsername 
-      });
-      
-      if (isSelfCall) {
-        this.logToPage("Self-call detected, mirroring local stream");
-        this.isSelfCall = true;
-        
-        videoTracks.forEach(track => {
-          const clonedTrack = track.clone();
-          this.logToPage("Adding cloned video track to remote stream", {
-            trackId: clonedTrack.id,
-            enabled: clonedTrack.enabled
-          });
-          this.remoteStream.addTrack(clonedTrack);
-        });
-        
-        this.logToPage("Self-call setup complete");
-        this.pushEvent("call-status-updated", { status: "connected" });
-        this.isCalling = false;
-        return;
-      }
-
-      
-      this.isCalling = false;
+      this.renderToCanvas(video);
     } catch (error) {
-      this.logToPage("Error starting video call", { 
-        name: error.name, 
-        message: error.message 
-      });
-      
-      let errorMessage = error.message;
-      if (error.name === "NotAllowedError") {
-        errorMessage = "Camera access denied. Please allow camera access in your browser.";
-      } else if (error.name === "NotFoundError") {
-        errorMessage = "No camera found. Please connect a camera.";
-      } else if (error.name === "NotReadableError") {
-        errorMessage = "Camera is in use by another application.";
+      this.log("Failed to play hidden video", { message: error.message });
+      document.body.removeChild(video);
+      throw error;
+    }
+  },
+
+  renderToCanvas(video) {
+    if (this.renderLoopId) cancelAnimationFrame(this.renderLoopId);
+
+    const renderFrame = () => {
+      if (!this.localStream || !this.canvasContext || !video) {
+        this.log("Rendering stopped: missing stream, context, or video");
+        return;
       }
-      
-      this.pushEvent("call-error", { message: `Failed to start video call: ${errorMessage}` });
+
+      const tracksLive = this.localStream.getVideoTracks().every(track => track.readyState === 'live');
+      const hasDimensions = video.videoWidth > 0 && video.videoHeight > 0;
+
+      if (!tracksLive || !hasDimensions) {
+        this.log("Stream or video invalid", { tracksLive, videoWidth: video.videoWidth });
+        this.initializeCamera(); 
+        return;
+      }
+
+  
+      this.canvasContext.drawImage(video, 0, 0, this.canvas.width, this.canvas.height);
+      this.renderLoopId = requestAnimationFrame(renderFrame);
+    };
+
+    this.renderLoopId = requestAnimationFrame(renderFrame);
+
+    setInterval(() => {
+      if (!this.localStream) return;
+      const tracksLive = this.localStream.getVideoTracks().every(track => track.readyState === 'live');
+      if (!tracksLive) {
+        this.log("Stream unhealthy, reinitializing");
+        this.initializeCamera();
+      }
+    }, 2000);
+  },
+
+  handleError(error) {
+    let message = "Failed to initialize camera";
+    switch (error.name) {
+      case "NotAllowedError":
+        message = "Camera access denied. Please allow camera access.";
+        break;
+      case "NotFoundError":
+        message = "No camera found. Please connect a camera.";
+        break;
+      case "NotReadableError":
+        message = "Camera in use by another application.";
+        break;
+    }
+    this.pushEvent("call-error", { message });
+    this.log("Error", { name: error.name, message: error.message });
+  },
+
+  async startVideoCall() {
+    if (this.isCalling) return;
+    this.isCalling = true;
+
+    this.log("Starting self video call");
+    try {
+      await this.initializeCamera();
+    } finally {
       this.isCalling = false;
     }
-  },
-
-  
-  async acceptVideoCall(call_id, call_link) {
-    try {
-      this.logToPage("Accepting video call", { call_id, call_link });
-      
-      const isSelfCall = this.el.dataset.username === this.el.dataset.currentRecipientUsername;
-      this.logToPage("Self-call check in acceptVideoCall", { 
-        isSelfCall,
-        username: this.el.dataset.username,
-        recipientUsername: this.el.dataset.currentRecipientUsername 
-      });
-      
-      if (isSelfCall) {
-        this.logToPage("Self-call detected in acceptVideoCall");
-        this.localStream = await navigator.mediaDevices.getUserMedia({ 
-          video: { 
-            width: { ideal: 640 },
-            height: { ideal: 480 }
-          }, 
-          audio: true 
-        });
-        
-        this.logToPage("Local stream acquired for self-call", {
-          videoTracks: this.localStream.getVideoTracks().length,
-          audioTracks: this.localStream.getAudioTracks().length
-        });
-
-        const localVideo = document.getElementById("local-video");
-        const remoteVideo = document.getElementById("remote-video");
-        if (!localVideo || !remoteVideo) {
-          this.logToPage("Video elements not found", { localVideo: !!localVideo, remoteVideo: !!remoteVideo });
-          this.pushEvent("call-error", { message: "Video elements not found" });
-          return;
-        }
-
-        localVideo.srcObject = this.localStream;
-        localVideo.play().catch(err => {
-          this.logToPage("Error playing local video", err.message);
-        });
-        
-        this.remoteStream = new MediaStream();
-        
-        this.localStream.getVideoTracks().forEach(track => {
-          const clonedTrack = track.clone();
-          this.logToPage("Adding cloned video track to remote stream", {
-            trackId: clonedTrack.id,
-            enabled: clonedTrack.enabled
-          });
-          this.remoteStream.addTrack(clonedTrack);
-        });
-        
-        remoteVideo.srcObject = this.remoteStream;
-        remoteVideo.play().catch(err => {
-          this.logToPage("Error playing remote video", err.message);
-        });
-        
-        this.logToPage("Self-call accept complete");
-        this.pushEvent("call-status-updated", { status: "connected" });
-        return;
-      }
-
-      
-    } catch (error) {
-      this.logToPage("Error accepting video call", { 
-        name: error.name, 
-        message: error.message 
-      });
-      this.pushEvent("call-error", { message: `Failed to accept video call: ${error.message}` });
-    }
-  },
-
-  async createAnswer() {
-
   },
 
   endVideoCall() {
-    this.logToPage("Ending video call");
+    this.log("Ending video call");
+
     if (this.localStream) {
-      this.localStream.getTracks().forEach(track => {
-        this.logToPage(`Stopping track: ${track.kind}`, { id: track.id });
-        track.stop();
-      });
+      this.localStream.getTracks().forEach(track => track.stop());
+      this.localStream = null;
     }
-    if (this.peerConnection) {
-      this.peerConnection.close();
+
+    const video = document.getElementById('hidden-video');
+    if (video) {
+      video.srcObject = null;
+      document.body.removeChild(video);
     }
-    if (this.ws) {
-      this.ws.close();
+
+    if (this.canvasContext) {
+      this.canvasContext.clearRect(0, 0, this.canvas.width, this.canvas.height);
     }
-    const localVideo = document.getElementById("local-video");
-    const remoteVideo = document.getElementById("remote-video");
-    if (localVideo) localVideo.srcObject = null;
-    if (remoteVideo) remoteVideo.srcObject = null;
-    this.peerConnection = null;
-    this.localStream = null;
-    this.remoteStream = null;
-    this.ws = null;
-    this.isSelfCall = false;
+
+    if (this.renderLoopId) {
+      cancelAnimationFrame(this.renderLoopId);
+      this.renderLoopId = null;
+    }
+
     this.isCalling = false;
-    this.logToPage("Video call ended and resources cleaned up");
+    this.retryCount = 0;
+    this.log("Video call ended");
   }
 };
 
