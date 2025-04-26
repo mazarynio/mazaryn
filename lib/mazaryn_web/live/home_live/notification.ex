@@ -6,21 +6,36 @@ defmodule MazarynWeb.HomeLive.Notification do
   def mount(_params, %{"user_id" => user_email} = _session, socket) do
     Process.send_after(self(), :time_diff, 1000)
     {:ok, user} = Users.one_by_email(user_email)
-    notifs = get_all_user_notifs(user)
-
-    send_update(MazarynWeb.HomeLive.NavComponent, id: "navigation", user: user)
+    
+    all_notifs = Core.NotifEvent.get_all_notifs(user.id)
+    {chat_notifs, general_notifs} = split_notifications(all_notifs)
+    
+    formatted_general_notifs = format_notifications(general_notifs)
+    mark_notifications_as_read(general_notifs)
+   
+    chat_notifs_count = length(chat_notifs)
+    general_notifs_count = length(general_notifs)
+    
+    send_update(MazarynWeb.HomeLive.NavComponent, id: "navigation", 
+      user: user, 
+      general_notifs_count: general_notifs_count)
+      
+    send_update(MazarynWeb.HomeLive.LeftSidebarComponent, id: "leftsidebar", 
+      user: user, 
+      chat_notifs_count: chat_notifs_count)
 
     {:ok,
      socket
      |> assign(target_user: user)
      |> assign(search: "")
-     |> assign(notifs: notifs)}
+     |> assign(notifs: formatted_general_notifs)
+     |> assign(chat_notifs_count: chat_notifs_count)
+     |> assign(general_notifs_count: general_notifs_count)}
   end
 
   @impl true
   def handle_params(_params, url, socket) do
     socket = assign(socket, current_path: URI.parse(url).path)
-    IO.inspect("this is this is workin")
     MazarynWeb.HomeLive.NavComponent.handle_path(socket)
   end
 
@@ -34,6 +49,7 @@ defmodule MazarynWeb.HomeLive.Notification do
       user={@target_user}
       search={@search}
       locale={@locale}
+      general_notifs_count={@general_notifs_count}
     />
     <!-- Three columns -->
     <div class="bg-[#FAFAFA]">
@@ -44,6 +60,7 @@ defmodule MazarynWeb.HomeLive.Notification do
             id="leftsidebar"
             user={@target_user}
             locale={@locale}
+            chat_notifs_count={@chat_notifs_count}
           />
         </div>
 
@@ -100,21 +117,42 @@ defmodule MazarynWeb.HomeLive.Notification do
 
     {:noreply, assign(socket, :notifs, notifs)}
   end
-
-  defp get_all_user_notifs(user) do
-    user.id
-    |> Core.NotifEvent.get_all_notifs()
-    |> Enum.map(fn {:notif, notif_id, actor_id, target_id, message, time_stamp, _read, _metadata, _extra} ->
-      Core.NotifEvent.mark_notif_as_read(notif_id)
+  
+  defp split_notifications(all_notifs) do
+    Enum.split_with(all_notifs, fn notification_tuple -> 
+      {:notif, _notif_id, _actor_id, _target_id, message, _time_stamp, _read, metadata, _extra} = notification_tuple
+      
+      is_chat_notification?(message, metadata)
+    end)
+  end
+  
+  defp is_chat_notification?(message, metadata) do
+    chat_type = if is_map(metadata) || is_list(metadata) do
+      metadata[:type] == "chat_message"
+    else
+     false
+   end
+   message_contains_chat = String.contains?(message, ["sent you a message", "messaged you", "chat"])
+   chat_type || message_contains_chat
+  end
+  
+  defp format_notifications(notifs) do
+    Enum.map(notifs, fn {:notif, _notif_id, actor_id, target_id, message, time_stamp, _read, _metadata, _extra} ->
       {:ok, user} = get_user(actor_id, target_id)
       time_passed = time_passed(time_stamp)
       {user, message, time_passed, time_stamp}
     end)
   end
+  
+  # Mark notifications as read
+  defp mark_notifications_as_read(notifs) do
+    Enum.each(notifs, fn {:notif, notif_id, _actor_id, _target_id, _message, _time_stamp, _read, _metadata, _extra} ->
+      Core.NotifEvent.mark_notif_as_read(notif_id)
+    end)
+  end
 
   defp time_passed(time_stamp) do
     date_time = Timex.to_datetime(time_stamp)
-
     time_difference([:years, :months, :weeks, :days, :hours, :minutes, :seconds], date_time)
   end
 

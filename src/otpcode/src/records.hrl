@@ -231,7 +231,8 @@
                call_type,             % video | audio
                call_status,           % initiated | ringing | connected | ended | failed
                call_link,
-               call_start_time,      
+               call_start_time,
+               read = false,      
                call_end_time, 
                timeout_ref,           % Timer reference for call timeout        
                data = #{} }).
