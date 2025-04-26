@@ -110,7 +110,7 @@ defmodule Mazaryn.Chats do
     Repo.one(query)
   end
 
-  def start_video_call(%User{id: actor_id}, %User{id: recipient_id}) when actor_id != recipient_id do
+  def start_video_call(%User{id: actor_id}, %User{id: recipient_id}) do
     try do
       call_id = ChatDB.start_video_call(actor_id, recipient_id)
       {:ok, call_id}
@@ -118,8 +118,6 @@ defmodule Mazaryn.Chats do
       {:error, reason} -> {:error, reason}
     end
   end
-
-  def start_video_call(_actor, _recipient), do: {:error, :invalid_call_participants}
 
   @spec accept_call(binary()) :: {:ok, binary()} | {:error, term()}
   def accept_call(call_id) do

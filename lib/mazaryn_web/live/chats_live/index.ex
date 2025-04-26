@@ -25,7 +25,8 @@ defmodule MazarynWeb.ChatsLive.Index do
       call_id: nil,
       call_status: nil,
       call_link: nil,
-      caller_username: nil
+      caller_username: nil,
+      show_video_call: false
     ]
 
     if connected?(socket) do
@@ -63,14 +64,32 @@ defmodule MazarynWeb.ChatsLive.Index do
   def handle_event("start-video-call", %{"recipient_id" => recipient_id}, socket) do
     recipient = Users.one_by_id(to_charlist(recipient_id)) |> elem(1)
     socket = assign(socket, current_recipient: recipient, blank_chat?: false)
-    handle_event("start-video-call", %{}, socket)
+    start_video_call(socket, recipient)
   end
 
   def handle_event("start-video-call", _params, socket) do
-    %User{id: actor_id} = socket.assigns.user
-    %User{id: recipient_id} = socket.assigns.current_recipient
+    recipient = socket.assigns.user
+    socket = assign(socket, current_recipient: recipient, blank_chat?: false, show_video_call: true)
+    start_video_call(socket, recipient)
+  end
 
-    case Chats.start_video_call(socket.assigns.user, socket.assigns.current_recipient) do
+  def handle_event("call-status-updated", %{"status" => status}, socket) do
+    {:noreply, assign(socket, call_status: status, show_video_call: status == "connected")}
+  end
+
+  def handle_event("incoming-call-received", %{"call_id" => call_id, "call_link" => call_link, "caller_username" => caller_username}, socket) do
+    socket =
+      socket
+      |> assign(call_id: call_id, call_status: "ringing", call_link: call_link, caller_username: caller_username, show_video_call: true)
+      |> push_event("incoming-call", %{call_id: call_id, call_link: call_link, caller_username: caller_username})
+    {:noreply, socket}
+  end
+
+  defp start_video_call(socket, recipient) do
+    %User{id: actor_id} = socket.assigns.user
+    %User{id: recipient_id} = recipient
+
+    case Chats.start_video_call(socket.assigns.user, recipient) do
       {:ok, call_id} ->
         case Chats.get_by_chat_id(call_id) do
           {:ok, chat} ->
@@ -81,28 +100,16 @@ defmodule MazarynWeb.ChatsLive.Index do
             )
             socket =
               socket
-              |> assign(call_id: call_id, call_status: "ringing", call_link: chat.call_link)
+              |> assign(call_id: call_id, call_status: "ringing", call_link: chat.call_link, show_video_call: true)
               |> push_event("start-video-call", %{call_id: call_id, call_link: chat.call_link})
             {:noreply, socket}
-
-          {:error, :notfound} ->
-            {:noreply, put_flash(socket, :error, "Cannot start video call: Chat not found.")}
-
-          {:error, :invalid_chat_record} ->
-            {:noreply, put_flash(socket, :error, "Cannot start video call: Invalid chat record.")}
 
           {:error, reason} ->
             {:noreply, put_flash(socket, :error, "Cannot start video call: #{inspect(reason)}")}
         end
 
-      {:error, {:rust_service_failed, reason}} ->
-        {:noreply, put_flash(socket, :error, "Cannot start video call: WebRTC service failed (#{inspect(reason)}).")}
-
-      {:error, :invalid_call_participants} ->
-        {:noreply, put_flash(socket, :error, "Cannot start video call: Invalid participants.")}
-
       {:error, reason} ->
-        {:noreply, put_flash(socket, :error, "Failed to start call: #{inspect(reason)}")}
+        {:noreply, put_flash(socket, :error, "Cannot start video call: #{inspect(reason)}")}
     end
   end
 
@@ -113,7 +120,7 @@ defmodule MazarynWeb.ChatsLive.Index do
           {:ok, chat} ->
             socket =
               socket
-              |> assign(call_id: call_id, call_status: "connected", call_link: chat.call_link)
+              |> assign(call_id: call_id, call_status: "connected", call_link: chat.call_link, show_video_call: true)
               |> push_event("accept-video-call", %{call_id: call_id, call_link: chat.call_link})
             {:noreply, socket}
 
@@ -131,7 +138,7 @@ defmodule MazarynWeb.ChatsLive.Index do
       {:ok, call_id} ->
         socket =
           socket
-          |> assign(call_id: nil, call_status: nil, call_link: nil, caller_username: nil)
+          |> assign(call_id: nil, call_status: nil, call_link: nil, caller_username: nil, show_video_call: false)
           |> push_event("end-video-call", %{call_id: call_id})
         {:noreply, socket}
 
@@ -164,7 +171,7 @@ defmodule MazarynWeb.ChatsLive.Index do
     caller = Users.one_by_id(to_charlist(caller_id)) |> elem(1)
     socket =
       socket
-      |> assign(call_id: call_id, call_status: "ringing", call_link: call_link, caller_username: caller.username)
+      |> assign(call_id: call_id, call_status: "ringing", call_link: call_link, caller_username: caller.username, show_video_call: true)
       |> push_event("incoming-call", %{
         call_id: call_id,
         call_link: call_link,
@@ -172,8 +179,6 @@ defmodule MazarynWeb.ChatsLive.Index do
       })
     {:noreply, socket}
   end
-
-  ## Private
 
   defp apply_action(%{assigns: %{user: actor}} = socket, :index, params) do
     previous_contacts = Chats.get_users_with_chats(actor)

@@ -36,6 +36,32 @@
         phx-hook="VideoCall"
       />
     </div>
+    <!-- video call UI -->
+    <%= if @show_video_call do %>
+      <div
+        id="video-call-container"
+        phx-hook="VideoCall"
+        data-username={@user.username}
+        data-current-recipient-username={@current_recipient.username}
+        class="video-call-container"
+      >
+        <video id="local-video" autoplay muted class="local-video"></video>
+        <video id="remote-video" autoplay class="remote-video"></video>
+        <%= if @call_status == "ringing" and @caller_username == @user.username do %>
+          <p>Calling Yourself...</p>
+        <% end %>
+        <%= if @call_status == "ringing" and @caller_username != @user.username do %>
+          <p>Incoming call from <%= @caller_username %></p>
+          <button phx-click="accept-video-call" phx-value-call_id={@call_id} class="btn">Accept Call</button>
+        <% end %>
+        <%= if @call_status == "connected" do %>
+          <button phx-click="end-video-call" phx-value-call_id={@call_id} class="btn">End Call</button>
+        <% end %>
+        <%= if @flash[:error] do %>
+          <p class="error-message"><%= @flash[:error] %></p>
+        <% end %>
+      </div>
+    <% end %>
     <!-- new message component -->
     <div class="bottom-1 w-full bg-white white:bg-gray-800 custom-box-shadow pr-8 pl-7 pb-7 pt-4 rounded-[20px]">
       <.live_component
@@ -48,7 +74,7 @@
     </div>
   </div>
   <!-- end of middle column-->
-  <div class=" w-full lg:w-2/6 bg-gray-100 py-10 pr-10">
+  <div class="w-full lg:w-2/6 bg-gray-100 py-10 pr-10">
     <.chat_list locale={@locale} contacts={@contacts} title="Chats" show_search={false} />
     <.chat_list
       contacts={@recent_chat_recepients}
@@ -57,5 +83,7 @@
       show_search={true}
       search_query={@search_query}
     />
+    <!-- Button to initiate self-call -->
+    <button phx-click="start-video-call" class="btn">Call Myself</button>
   </div>
 </div>
