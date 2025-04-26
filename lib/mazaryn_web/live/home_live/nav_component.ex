@@ -37,10 +37,9 @@ defmodule MazarynWeb.HomeLive.NavComponent do
   end
   
   defp is_chat_notification?(message, metadata) do
-
-    chat_type = metadata[:type] == "chat_message"
-    message_contains_chat = String.contains?(message, ["sent you a message", "messaged you", "chat"])
-    
+     chat_type = is_map(metadata) && Map.get(metadata, :type) == "chat_message"
+     message_contains_chat = String.contains?(message, ["sent you a message", "messaged you", "chat"])
+  
     chat_type || message_contains_chat
   end
 end
