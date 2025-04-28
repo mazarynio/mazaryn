@@ -74,7 +74,24 @@ defmodule MazarynWeb.ChatsLive.Index do
   end
 
   def handle_event("call-status-updated", %{"status" => status}, socket) do
-    {:noreply, assign(socket, call_status: status, show_video_call: status == "connected")}
+    case status do
+      "connected" ->
+        {:noreply, assign(socket, call_status: "connected", show_video_call: true)}
+
+      "disconnected" ->
+        socket = socket
+          |> assign(
+              call_status: nil,
+              call_id: nil,
+              call_link: nil,
+              caller_username: nil,
+              show_video_call: false
+            )
+        {:noreply, socket}
+
+      _ ->
+        {:noreply, assign(socket, call_status: status)}
+    end
   end
 
   def handle_event("incoming-call-received", %{"call_id" => call_id, "call_link" => call_link, "caller_username" => caller_username}, socket) do
@@ -82,6 +99,21 @@ defmodule MazarynWeb.ChatsLive.Index do
       socket
       |> assign(call_id: call_id, call_status: "ringing", call_link: call_link, caller_username: caller_username, show_video_call: true)
       |> push_event("incoming-call", %{call_id: call_id, call_link: call_link, caller_username: caller_username})
+    {:noreply, socket}
+  end
+
+
+  def handle_event("end-video-call", _params, socket) do
+    socket = push_event(socket, "end-video-call", %{})
+
+    socket = assign(socket,
+      call_id: nil,
+      call_status: nil,
+      call_link: nil,
+      caller_username: nil,
+      show_video_call: false
+    )
+
     {:noreply, socket}
   end
 
@@ -130,20 +162,6 @@ defmodule MazarynWeb.ChatsLive.Index do
 
       {:error, reason} ->
         {:noreply, put_flash(socket, :error, "Failed to accept call: #{inspect(reason)}")}
-    end
-  end
-
-  def handle_event("end-video-call", %{"call_id" => call_id}, socket) do
-    case Chats.end_call(call_id) do
-      {:ok, call_id} ->
-        socket =
-          socket
-          |> assign(call_id: nil, call_status: nil, call_link: nil, caller_username: nil, show_video_call: false)
-          |> push_event("end-video-call", %{call_id: call_id})
-        {:noreply, socket}
-
-      {:error, reason} ->
-        {:noreply, put_flash(socket, :error, "Failed to end call: #{inspect(reason)}")}
     end
   end
 

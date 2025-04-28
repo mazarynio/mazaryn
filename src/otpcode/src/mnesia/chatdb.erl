@@ -200,21 +200,21 @@ start_video_call(UserID, TargetID) ->
 
                                 Chat = #chat{
                                     id = nanoid:gen(),
-                                    ai_chat_id = undefined,
+                                    ai_chat_id = "", 
                                     user_id = UserID,
                                     recipient_id = TargetID,
-                                    body = undefined,
+                                    body = "Video call initiated", 
                                     media = [],
-                                    bot = undefined,
+                                    bot = "", 
                                     date_created = Date,
                                     date_updated = Date,
                                     call_id = CallID,
-                                    call_type = video,
+                                    call_type = "video",
                                     call_status = InitialStatus,
                                     call_link = CallLink,
                                     call_start_time = Date,
                                     call_end_time = undefined,
-                                    timeout_ref = TimeoutRef,
+                                    timeout_ref = term_to_binary(TimeoutRef), 
                                     data = #{}
                                 },
                                 mnesia:write(Chat),
@@ -253,7 +253,7 @@ accept_call(CallID) ->
     Fun = fun() ->
         case mnesia:match_object(#chat{call_id = CallID, _ = '_'}) of
             [Chat = #chat{call_status = Status, timeout_ref = TimeoutRef}] when Status == ringing; Status == missed ->
-                erlang:cancel_timer(TimeoutRef),
+                erlang:cancel_timer(binary_to_term(TimeoutRef)),  
                 Url = "http://localhost:2020/call/accept",
                 Body = #{call_id => list_to_binary(CallID)},
                 Headers = [{"Content-Type", "application/json"}],
@@ -286,6 +286,7 @@ accept_call(CallID) ->
         {aborted, Reason} ->
             throw({error, {transaction_failed, Reason}})
     end.
+
 
 end_video_call(CallID) ->
     Fun = fun() ->
