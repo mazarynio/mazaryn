@@ -122,6 +122,24 @@ defmodule Mazaryn.Posts do
     end
   end
 
+  def get_posts_by_user_id(userID) do
+    case PostClient.get_posts_by_user_id(userID) do
+      posts when is_list(posts) ->
+        for post <- posts do
+          {:ok, post} =
+            post
+            |> Post.erl_changeset()
+            |> Post.build()
+
+          post
+        end
+        |> Enum.sort_by(& &1.date_created, &>=/2)
+
+      _ ->
+        Logger.error("handle here")
+    end
+  end
+
   def get_posts_by_hashtag(hashtag) do
     case PostClient.get_posts_by_hashtag(hashtag) do
       posts when is_list(posts) ->

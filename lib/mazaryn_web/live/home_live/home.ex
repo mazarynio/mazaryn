@@ -1,27 +1,23 @@
 defmodule MazarynWeb.HomeLive.Home do
   use MazarynWeb, :live_view
-
   import MazarynWeb.Live.Helper
   alias Mazaryn.Schema.Post
   alias Mazaryn.Posts
   alias Account.Users
   alias Account.User
-  # alias Core.PostClient
-  alias Phoenix.LiveView.JS
-
   require Logger
 
-  # case reload home page
+  # Case reload home page
   @impl true
   def mount(_params, %{"user_id" => user_id} = _session, socket) do
-    Logger.info(user_id: user_id)
-    socket |> assign(results: [])
+    Logger.info("user_id: #{user_id}")
+    socket = assign(socket, results: [])
     {:ok, do_mount(user_id, socket)}
   end
 
-  # case redirect form login, signup
+  # Case redirect from login, signup
   def mount(_params, %{"session_uuid" => session_uuid} = _session, socket) do
-    socket |> assign(results: [])
+    socket = assign(socket, results: [])
     {:ok, do_mount(get_user_id(session_uuid), socket)}
   end
 
@@ -33,14 +29,11 @@ defmodule MazarynWeb.HomeLive.Home do
 
   @impl true
   def handle_event("show-comments", %{"id" => post_id}, socket) do
+    import Phoenix.LiveView.JS
     JS.toggle(to: "#test-toggle", in: "fade-in-scale", out: "fade-out-scale")
 
-    comments =
-      post_id
-      |> to_charlist()
-      |> Mazaryn.Posts.get_comment_by_post_id()
-
-    IO.inspect(comments, label: "this comments are workin")
+    comments = post_id |> to_charlist() |> Mazaryn.Posts.get_comment_by_post_id()
+    Logger.info("Comments for post #{post_id}: #{inspect(comments)}")
 
     {:noreply, socket |> assign(:comments, comments)}
   end
@@ -52,18 +45,13 @@ defmodule MazarynWeb.HomeLive.Home do
   end
 
   def handle_event("do_search", %{"search" => search}, socket) do
-    IO.puts("searching")
+    Logger.info("Searching for: #{search}")
     user = search_user_by_username(search)
     {:noreply, assign(socket, search: search, results: user || [])}
   end
 
   def handle_event("select_emoji", %{"name" => name}, socket) do
-    name |> IO.inspect(label: "ni emoji gani imechaguliwa")
-    # {:noreply, push_redirect(socket, to: Routes.emoji_path(socket, :show, name))}
-    # post_id = post_id |> to_charlist
-    # PostClient.delete_post(post_id)
-    send(self(), :reload_posts)
-
+    Logger.info("Selected emoji: #{name}")
     {:noreply, socket}
   end
 
@@ -74,27 +62,41 @@ defmodule MazarynWeb.HomeLive.Home do
 
       erl_user ->
         [
-          erl_user
-          |> User.erl_changeset()
-          |> User.build()
-          |> elem(1)
+          erl_user |> User.erl_changeset() |> User.build() |> elem(1)
         ]
     end
   end
 
   @impl true
   def handle_info(:reload_posts, socket) do
-    {:noreply, assign(socket, posts: get_posts())}
+    user = socket.assigns.user
+    posts = get_user_and_following_posts(user.id)
+    Logger.info("Loaded #{length(posts)} posts for home feed")
+    {:noreply, assign(socket, posts: posts)}
   end
 
-  defp get_posts, do: Posts.get_home_posts()
+  defp get_user_and_following_posts(user_id) do
+    following_user_ids = Users.get_following(user_id)
+    Logger.info("Following user IDs: #{inspect(following_user_ids)}")
+
+    user_posts = Posts.get_posts_by_user_id(user_id)
+    Logger.info("Current user posts: #{length(user_posts)}")
+
+    following_posts = following_user_ids
+    |> Enum.flat_map(fn following_user_id ->
+      Posts.get_posts_by_user_id(following_user_id)
+    end)
+
+    (user_posts ++ following_posts)
+    |> Enum.sort_by(& &1.date_created, &>=/2)
+  end
 
   defp do_mount(email, socket) do
     post_changeset = Post.changeset(%Post{})
 
     {:ok, user} = Users.one_by_email(email)
 
-    posts = get_posts()
+    posts = get_user_and_following_posts(user.id)
 
     socket
     |> assign(post_changeset: post_changeset)
