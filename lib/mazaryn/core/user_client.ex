@@ -62,7 +62,8 @@ defmodule Core.UserClient do
 
   ## Get User by UserID
   def get_user_by_id(id) do
-    :user_server.get_user_by_id(id)
+    charlist_id = if is_list(id), do: id, else: String.to_charlist(id)
+    :user_server.get_user_by_id(charlist_id)
   end
 
   def get_token_by_id(token_id) do
@@ -88,13 +89,11 @@ defmodule Core.UserClient do
   end
 
   # id = MyID, following = UserID
-  @spec follow(Binary.t(), String.t()) :: :ok | any()
   def follow(id, following) do
     :user_server.follow(id, following)
   end
 
   # id = MyID, following = UserID
-  @spec unfollow(Binary.t(), String.t()) :: :ok | any()
   def unfollow(id, following) do
     :user_server.unfollow(id, following)
   end
