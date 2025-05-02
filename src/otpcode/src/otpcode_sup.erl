@@ -51,7 +51,8 @@ init([]) ->
         ?AI_ADS_SERVER,
         ?PIN_POST_SERVER,
         ?STORAGE_QUOTA_SERVER,
-        ?RATE_LIMITER_SERVER
+        ?RATE_LIMITER_SERVER,
+        ?CONTENT_CACHE
     ],
     {ok, {SupFlags, ChildSpecs}}.
 

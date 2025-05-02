@@ -177,3 +177,12 @@
     type => worker,
     modules => [rate_limiter]
 }).
+
+-define(CONTENT_CACHE, #{
+    id => content_cache,
+    start => {content_cache, start_link, []},
+    restart => permanent,
+    shutdown => 5000,
+    type => worker,
+    modules => [content_cache]
+}).

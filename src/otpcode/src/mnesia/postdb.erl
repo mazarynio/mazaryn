@@ -14,8 +14,6 @@
 -include("../records.hrl").
 -include_lib("stdlib/include/qlc.hrl").
 
-%% if post or comment do not have media,
-%% their value in record are nil
 insert(Author, Content, Media, Hashtag, Link_URL, Emoji, Mention) ->  
     Fun = fun() ->
         Id = nanoid:gen(),
@@ -24,17 +22,31 @@ insert(Author, Content, Media, Hashtag, Link_URL, Emoji, Mention) ->
         UserID = userdb:get_user_id(Author),
         [User] = mnesia:index_read(user, Author, #user.username),
         
-        PlaceholderContent = "uploading...",
-        PlaceholderMedia = "uploading...",
+        ContentToCache = if
+            is_binary(Content) -> binary_to_list(Content);
+            true -> Content
+        end,
+        
+        ok = content_cache:set(Id, ContentToCache),
+        
+        MediaForCache = if 
+            Media =:= undefined -> undefined;
+            Media =:= "" -> "";
+            true -> Media
+        end,
+        ok = content_cache:set({media, Id}, MediaForCache),
+        
+        PlaceholderContent = Id, 
+        PlaceholderMedia = {media, Id}, 
         
         mnesia:write(#post{
             id = Id,
             ai_post_id = AI_Post_ID,
             user_id = UserID,
-            content = PlaceholderContent,
+            content = PlaceholderContent, 
             emoji = Emoji,
             author = Author,
-            media = PlaceholderMedia,
+            media = PlaceholderMedia, 
             hashtag = Hashtag,
             mention = Mention,
             link_url = Link_URL,
@@ -52,27 +64,23 @@ insert(Author, Content, Media, Hashtag, Link_URL, Emoji, Mention) ->
     case mnesia:transaction(Fun) of
         {atomic, {ok, Id}} -> 
             spawn(fun() ->
-                ContentToUse = if
-                    is_binary(Content) -> binary_to_list(Content);
-                    true -> Content
-                end,
+                ContentToUse = content_cache:get(Id),
                 CIDString = case ContentToUse of
                     "" -> ""; 
                     _ -> ipfs_content:upload_text(ContentToUse)
                 end,
                 
-                MediaCID = case Media of
+                MediaToUse = content_cache:get({media, Id}),
+                MediaCID = case MediaToUse of
                     undefined -> undefined;
                     "" -> "";
                     _ -> 
-                        case ipfs_media:upload_media(Media) of
+                        case ipfs_media:upload_media(MediaToUse) of
                             {error, Reason} -> 
                                 error_logger:error_msg("Failed to upload media: ~p", [Reason]),
                                 undefined;
-                            CID when is_list(CID) -> 
-                                CID;
-                            CID when is_binary(CID) -> 
-                                binary_to_list(CID);
+                            CID when is_list(CID) -> CID;
+                            CID when is_binary(CID) -> binary_to_list(CID);
                             Other ->
                                 error_logger:error_msg("Unexpected result from upload_media: ~p", [Other]),
                                 undefined
@@ -86,11 +94,13 @@ insert(Author, Content, Media, Hashtag, Link_URL, Emoji, Mention) ->
                                 media = MediaCID
                             },
                             mnesia:write(UpdatedPost);
-                        [] -> 
-                            ok  
+                        [] -> ok
                     end
                 end,
-                mnesia:transaction(UpdateF)
+                mnesia:transaction(UpdateF),
+                
+                content_cache:delete(Id),
+                content_cache:delete({media, Id})
             end),
             
             Id;
@@ -191,8 +201,11 @@ get_post_content_by_id(PostID) ->
             [Post] -> 
                 Content = Post#post.content,
                 case Content of
-                    "uploading..." -> 
-                        {ok, {uploading, PostID}}; 
+                    ID when ID =:= PostID -> 
+                        case content_cache:get(ID) of
+                            undefined -> {error, content_not_ready};
+                            CachedContent -> {ok, CachedContent}
+                        end;
                     _ ->
                         try
                             ActualContent = ipfs_content:get_text_content(Content),
@@ -204,8 +217,33 @@ get_post_content_by_id(PostID) ->
         end
     end,
     case mnesia:transaction(Fun) of
-        {atomic, {ok, {uploading, ID}}} -> {uploading, ID}; 
         {atomic, {ok, Content}} -> Content;
+        {atomic, {error, Reason}} -> {error, Reason};
+        Error -> Error
+    end.
+
+get_media(PostID) ->
+    Fun = fun() ->
+        case mnesia:read({post, PostID}) of
+            [] -> {error, post_not_found};
+            [Post] -> 
+                Media = Post#post.media,
+                case Media of
+                    {media, ID} when ID =:= PostID -> 
+                        case content_cache:get({media, ID}) of
+                            undefined -> {error, media_not_ready};
+                            "" -> ""; 
+                            CachedMedia -> {ok, CachedMedia}
+                        end;
+                    nil -> nil;
+                    _ -> [Media] 
+                end
+        end
+    end,
+    case mnesia:transaction(Fun) of
+        {atomic, {ok, Media}} -> Media;
+        {atomic, nil} -> nil;
+        {atomic, Media} when is_list(Media) -> Media;
         {atomic, {error, Reason}} -> {error, Reason};
         Error -> Error
     end.
@@ -458,68 +496,80 @@ get_last_50_likes_for_user(UserID) ->
   Res.
 
 %% Content = [{text, Text}, {media, Media}, {mention, Name}, {like, Like}]
-add_comment(Author, PostID, Content) ->
-  Fun = fun() ->
-      UserID = userdb:get_user_id(Author),
-      case mnesia:read({post, PostID}) of
-          [] -> 
-              {error, post_not_found}; 
-          [Post] ->
-              Id = nanoid:gen(),
-              PlaceholderContent = "uploading...",
-              
-              Comment = #comment{
-                  id = Id,
-                  user_id = UserID,
-                  post = PostID,
-                  author = Author,
-                  content = PlaceholderContent,
-                  date_created = calendar:universal_time()
-              },
-              mnesia:write(Comment),
-              CurrentComments = case Post#post.comments of
-                nil -> [];
-                List when is_list(List) -> List;
-                _ -> []
-              end,
+add_comment(Author, PostID, Content) ->  
+    Fun = fun() ->
+        UserID = userdb:get_user_id(Author),
+        case mnesia:read({post, PostID}) of
+            [] -> 
+                {error, post_not_found}; 
+            [Post] ->
+                Id = nanoid:gen(),
+                Date = calendar:universal_time(),
+                
+                ContentToCache = if
+                    is_binary(Content) -> binary_to_list(Content);
+                    true -> Content
+                end,
+                
+                ok = content_cache:set(Id, ContentToCache),
+                PlaceholderContent = Id,
+                
+                Comment = #comment{
+                    id = Id,
+                    user_id = UserID,
+                    post = PostID,
+                    author = Author,
+                    content = PlaceholderContent,
+                    date_created = Date
+                },
+                mnesia:write(Comment),
+                
+                CurrentComments = case Post#post.comments of
+                  nil -> [];
+                  List when is_list(List) -> List;
+                  _ -> []
+                end,
 
-              UpdatedComments = [Id | CurrentComments],
-              UpdatedPost = Post#post{
-                  comments = UpdatedComments
-              },
-              mnesia:write(UpdatedPost),
-              
-              {ok, Id}  
-      end
-  end,
+                UpdatedComments = [Id | CurrentComments],
+                UpdatedPost = Post#post{
+                    comments = UpdatedComments
+                },
+                mnesia:write(UpdatedPost),
+                
+                {ok, Id}  
+        end
+    end,
 
-  case mnesia:transaction(Fun) of
-      {atomic, {ok, Id}} -> 
-          spawn(fun() ->
-              ContentToUse = if
-                  is_binary(Content) -> binary_to_list(Content);
-                  true -> Content
-              end,
-              
-              CIDString = ipfs_content:upload_text(ContentToUse),
-              UpdateF = fun() ->
-                  case mnesia:read({comment, Id}) of
-                      [CommentToUpdate] ->
-                          UpdatedComment = CommentToUpdate#comment{content = CIDString},
-                          mnesia:write(UpdatedComment);
-                      [] -> 
-                          ok
-                  end
-              end,
-              mnesia:transaction(UpdateF)
-          end),
-          
-          Id;  
-      {atomic, {error, Reason}} -> 
-          {error, Reason};  
-      {aborted, Reason} -> 
-          {error, {transaction_failed, Reason}}  
-  end.
+    case mnesia:transaction(Fun) of
+        {atomic, {ok, Id}} -> 
+            spawn(fun() ->
+                ContentToUse = content_cache:get(Id),
+                CIDString = case ContentToUse of
+                    "" -> ""; 
+                    _ -> ipfs_content:upload_text(ContentToUse)
+                end,
+                
+                UpdateF = fun() ->
+                    case mnesia:read({comment, Id}) of
+                        [CommentToUpdate] ->
+                            UpdatedComment = CommentToUpdate#comment{
+                                content = CIDString
+                            },
+                            mnesia:write(UpdatedComment);
+                        [] -> ok
+                    end
+                end,
+                mnesia:transaction(UpdateF),
+                
+                content_cache:delete(Id)
+            end),
+            
+            Id;  
+        {atomic, {error, Reason}} -> 
+            {error, Reason};  
+        {aborted, Reason} -> 
+            {error, {transaction_failed, Reason}}  
+    end.
 
 get_comment_content(CommentID) ->
     Fun = fun() ->
@@ -529,8 +579,11 @@ get_comment_content(CommentID) ->
             [Comment] ->
                 Content = Comment#comment.content,
                 case Content of
-                    "uploading..." -> 
-                        {ok, {uploading, CommentID}};
+                    ID when ID =:= CommentID -> 
+                        case content_cache:get(ID) of
+                            undefined -> {error, content_not_ready};
+                            CachedContent -> {ok, CachedContent}
+                        end;
                     _ ->
                         try
                             ActualContent = ipfs_content:get_text_content(Content),
@@ -542,7 +595,6 @@ get_comment_content(CommentID) ->
         end
     end,
     case mnesia:transaction(Fun) of
-        {atomic, {ok, {uploading, ID}}} -> {uploading, ID}; 
         {atomic, {ok, Content}} -> Content;
         {atomic, {error, Reason}} -> {error, Reason};
         Error -> Error
@@ -915,11 +967,6 @@ get_likes(PostID) ->
   {atomic, Res} = mnesia:transaction(Fun),
   Res.
 
-get_media(Media) ->
-  case Media of
-    nil -> nil;
-    Media -> [Media]  %% media link here
-  end.
 % Report Post
 report_post(MyID, PostID, Type, Description) ->
   Fun = fun() ->
