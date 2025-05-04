@@ -13,9 +13,13 @@
          get_save_posts/1, get_follower/1, get_following/1,
          block/2, unblock/2, get_blocked/1, search_user/1, search_user_pattern/1,
          insert_avatar/2, insert_banner/2, get_avatar/1, get_banner/1, report_user/4, update_last_activity/2,
-         last_activity_status/1, make_private/1, make_public/1, get_token/1, validate_user/1]).
+         last_activity_status/1, make_private/1, make_public/1, get_token/1, validate_user/1, insert_concurrent/3]).
+
 
 -define(LIMIT_SEARCH, 50).
+-define(MAX_RETRIES, 10).
+-define(BACKOFF_TIME, 20). % ms
+
 
 %%% check user credentials
 -spec login(Email :: term(), Password :: term()) -> wrong_email_or_password | logged_in.
@@ -28,8 +32,6 @@ login(Email, Password) ->
     false -> wrong_email_or_password
   end.
 
-%%% Fields: [field_a, field_b, field_c]
-%%% Values: [a,b,c]
 set_user_info(Username, Fields, Values) ->
   List = lists:zip(Fields, Values),
   Fun = fun() ->
@@ -94,6 +96,129 @@ insert(Username, Password, Email) ->
     {atomic, Res} = mnesia:transaction(Fun),
     Res.
 
+insert_concurrent(Username, Password, Email) ->
+    case check_username_email_concurrent(Username, Email) of
+        {ok, both_available} ->
+            IdFuture = spawn_monitor(fun() -> exit({result, nanoid:gen()}) end),
+            AIUserIdFuture = spawn_monitor(fun() -> 
+                Id = nanoid:gen(),
+                exit({result, ai_userdb:insert(Id)}) 
+            end),
+            TokenIdFuture = spawn_monitor(fun() -> exit({result, nanoid:gen()}) end),
+            AddressFuture = spawn_monitor(fun() -> exit({result, key_guardian:gen_address(80)}) end),
+            QuantumIdFuture = spawn_monitor(fun() -> exit({result, key_guardian:gen_address(80)}) end),
+            
+            Id = receive_result(IdFuture),
+            AIUserId = receive_result(AIUserIdFuture),
+            TokenID = receive_result(TokenIdFuture),
+            Address = receive_result(AddressFuture),
+            QuantumID = receive_result(QuantumIdFuture),
+            
+            KNodeFuture = spawn_monitor(fun() -> exit({result, kademlia:insert_node(Id)}) end),
+            P2PNodeFuture = spawn_monitor(fun() -> exit({result, p2pdb:insert(Id)}) end),
+            IPFSKeyFuture = spawn_monitor(fun() -> 
+                {ok, #{id := IPFSKeyBinary}} = ipfs_client_4:key_gen(Id, [{type, "ed25519"}, {'ipns-base', "base36"}]),
+                exit({result, binary_to_list(IPFSKeyBinary)})
+            end),
+            
+            KNode = receive_result(KNodeFuture),
+            P2P_Node = receive_result(P2PNodeFuture),
+            IPFS_KEY = receive_result(IPFSKeyFuture),
+            
+            Now = calendar:universal_time(),
+            User = #user{id = Id,
+                         p2p_node_address = P2P_Node,
+                         ipfs_key = IPFS_KEY,
+                         ai_user_id = AIUserId,
+                         quantum_id = QuantumID,
+                         username = Username,
+                         password = erlpass:hash(Password),
+                         email = Email,
+                         address = Address,
+                         knode = KNode,
+                         date_created = Now,
+                         token_id = TokenID,
+                         level = 1,
+                         last_activity = Now},
+                         
+            case write_user_with_retry(User, ?MAX_RETRIES) of
+                ok -> Id;
+                {error, Reason} -> {error, Reason}
+            end;
+        {error, Reason} ->
+            {error, Reason}
+    end.
+
+% Helper function for concurrent username/email check
+check_username_email_concurrent(Username, Email) ->
+    ParentPid = self(),
+    
+    UsernamePid = spawn_link(fun() -> 
+        Result = case mnesia:dirty_match_object(#user{username = Username, _ = '_'}) of
+            [] -> available;
+            _ -> username_existed
+        end,
+        ParentPid ! {username_check, Result}
+    end),
+    
+    EmailPid = spawn_link(fun() ->
+        Result = case mnesia:dirty_match_object(#user{email = Email, _ = '_'}) of
+            [] -> available;
+            _ -> email_existed
+        end,
+        ParentPid ! {email_check, Result}
+    end),
+    
+    UsernameResult = receive
+        {username_check, Result1} -> Result1
+    after 5000 ->
+        exit(UsernamePid, kill),
+        {error, username_check_timeout}
+    end,
+    
+    EmailResult = receive
+        {email_check, Result2} -> Result2
+    after 5000 ->
+        exit(EmailPid, kill),
+        {error, email_check_timeout}
+    end,
+    
+    case {UsernameResult, EmailResult} of
+        {available, available} -> {ok, both_available};
+        {username_existed, _} -> {error, username_existed};
+        {_, email_existed} -> {error, email_existed};
+        _ -> {error, check_failed}
+    end.
+
+receive_result({Pid, Ref}) ->
+    receive
+        {'DOWN', Ref, process, Pid, {result, Result}} ->
+            Result;
+        {'DOWN', Ref, process, Pid, Reason} ->
+            error_logger:error_msg("Process ~p failed: ~p", [Pid, Reason]),
+            exit({concurrent_operation_failed, Reason})
+    after 10000 ->
+        exit(Pid, kill),
+        exit(timeout)
+    end.
+write_user_with_retry(User, RetriesLeft) when RetriesLeft > 0 ->
+    try
+        ok = mnesia:dirty_write(User),
+        ok
+    catch
+        exit:{aborted, Reason} ->
+            error_logger:warning_msg("User write failed (retries left: ~p): ~p", 
+                                     [RetriesLeft, Reason]),
+            timer:sleep(?BACKOFF_TIME * ((?MAX_RETRIES - RetriesLeft) + 1)),
+            write_user_with_retry(User, RetriesLeft - 1);
+        Error:Reason:Stacktrace ->
+            error_logger:error_msg("Unexpected error writing user: ~p:~p~n~p", 
+                                   [Error, Reason, Stacktrace]),
+            {error, {unexpected_error, Reason}}
+    end;
+write_user_with_retry(_User, 0) ->
+    {error, max_retries_exceeded}.
+
 insert_media(Id, Type, Url) ->
   Fun = fun() ->
           [User] =  mnesia:read(user, Id),
@@ -113,19 +238,19 @@ insert_avatar(Id, AvatarUrl) ->
     Fun = fun() ->
         case mnesia:read(user, Id) of
             [] -> 
-                {error, user_not_found}; % Handle case where user does not exist
+                {error, user_not_found}; 
             [User] ->
                 UpdatedUser = User#user{avatar_url = AvatarUrl,
                                         date_updated = calendar:universal_time()},
                 mnesia:write(UpdatedUser),
-                {ok, UpdatedUser} % Return updated user
+                {ok, UpdatedUser} 
         end
     end,
     case mnesia:transaction(Fun) of
         {atomic, {ok, UpdatedUser}} -> 
-            UpdatedUser; % Return the updated user
+            UpdatedUser; 
         {aborted, Reason} -> 
-            {error, Reason} % Handle transaction failure
+            {error, Reason} 
     end.
 
 
@@ -133,19 +258,19 @@ insert_banner(Id, BannerUrl) ->
     Fun = fun() ->
         case mnesia:read(user, Id) of
             [] -> 
-                {error, user_not_found}; % Handle case where user does not exist
+                {error, user_not_found}; 
             [User] ->
                 UpdatedUser = User#user{banner_url = BannerUrl,
                                         date_updated = calendar:universal_time()},
                 mnesia:write(UpdatedUser),
-                {ok, UpdatedUser} % Return updated user
+                {ok, UpdatedUser} 
         end
     end,
     case mnesia:transaction(Fun) of
         {atomic, {ok, UpdatedUser}} -> 
-            UpdatedUser; % Return the updated user
+            UpdatedUser;
         {aborted, Reason} -> 
-            {error, Reason} % Handle transaction failure
+            {error, Reason} 
     end.
 
 
@@ -255,7 +380,6 @@ get_token_by_id(TokenID) ->
           end),
   case Res of
     {atomic, []} -> token_not_exist;
-    % {atomic, [User]} -> User;
     {atomic, [User]} -> validate_user(User#user.id);
     _ -> error
   end.
