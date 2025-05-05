@@ -70,35 +70,95 @@ ensure_jiffy_loaded() ->
             {error, jiffy_not_found}
     end.
 
-%% Update your create_node function to use Jiffy
 create_node(NodeId) when is_list(NodeId) ->
+    put(node_id, NodeId),
     ensure_inets_started(),
     case ensure_jiffy_loaded() of
         ok ->
-            Url = ?BASE_URL ++ "/nodes?id=" ++ NodeId,
-            case httpc:request(post, {Url, [], "application/json", <<>>}, [], []) of
-                {ok, {{_, 200, _}, _, ResponseBody}} ->
-                    try
-                        NodeInfo = jiffy:decode(list_to_binary(ResponseBody), [return_maps]),
-                        case get_ipfs_singleaddr() of
-                            {ok, IpfsSingleAddr} ->
-                                case connect_to_ipfs_network(NodeId, IpfsSingleAddr) of
-                                    {ok, ConnectionResult} ->
-                                        {ok, #{<<"node_info">> => NodeInfo, <<"connection_result">> => ConnectionResult}};
-                                    {error, ConnectionError} ->
-                                        {ok, #{<<"node_info">> => NodeInfo, <<"connection_error">> => ConnectionError}}
-                                end;
-                            {error, IpfsError} ->
-                                {ok, #{<<"node_info">> => NodeInfo, <<"ipfs_error">> => IpfsError}}
-                        end
-                    catch
-                        error:Reason ->
-                            {error, {invalid_response, json_decode_failed, Reason}}
+            RequestPid = spawn_request_process(NodeId),
+            IpfsPid = spawn_ipfs_process(),
+            
+            receive_results(RequestPid, IpfsPid);
+        {error, Reason} ->
+            {error, Reason}
+    end.
+
+spawn_request_process(NodeId) ->
+    Parent = self(),
+    spawn(fun() -> 
+        Url = ?BASE_URL ++ "/nodes?id=" ++ NodeId,
+        Result = case httpc:request(post, {Url, [], "application/json", <<>>}, [], []) of
+            {ok, {{_, 200, _}, _, ResponseBody}} ->
+                try
+                    NodeInfo = jiffy:decode(list_to_binary(ResponseBody), [return_maps]),
+                    {ok, NodeInfo}
+                catch
+                    error:Reason ->
+                        {error, {invalid_response, json_decode_failed, Reason}}
+                end;
+            {ok, {{_, Status, _}, _, ErrorBody}} ->
+                {error, {http_error, Status, ErrorBody}};
+            {error, Reason} ->
+                {error, {http_request_failed, Reason}}
+        end,
+        Parent ! {http_result, Result}
+    end).
+
+spawn_ipfs_process() ->
+    Parent = self(),
+    spawn(fun() -> 
+        Result = get_ipfs_singleaddr(),
+        Parent ! {ipfs_result, Result}
+    end).
+
+connect_with_node(NodeId, IpfsSingleAddr) ->
+    case connect_to_ipfs_network(NodeId, IpfsSingleAddr) of
+        {ok, ConnectionResult} ->
+            {ok, ConnectionResult};
+        {error, ConnectionError} ->
+            {error, ConnectionError}
+    end.
+
+receive_results(_RequestPid, _IpfsPid) ->
+    receive_and_process_results(undefined, undefined).
+
+receive_and_process_results(HttpResult, IpfsResult) ->
+    case {HttpResult, IpfsResult} of
+        {undefined, undefined} ->
+            receive
+                {http_result, NewHttpResult} ->
+                    receive_and_process_results(NewHttpResult, IpfsResult);
+                {ipfs_result, NewIpfsResult} ->
+                    receive_and_process_results(HttpResult, NewIpfsResult)
+            end;
+        {undefined, _} ->
+            receive
+                {http_result, NewHttpResult} ->
+                    receive_and_process_results(NewHttpResult, IpfsResult)
+            end;
+        {_, undefined} ->
+            receive
+                {ipfs_result, NewIpfsResult} ->
+                    receive_and_process_results(HttpResult, NewIpfsResult)
+            end;
+        {_, _} ->
+            process_final_results(HttpResult, IpfsResult)
+    end.
+
+process_final_results(HttpResult, IpfsResult) ->
+    NodeId = get(node_id),
+    case HttpResult of
+        {ok, NodeInfo} ->
+            case IpfsResult of
+                {ok, IpfsSingleAddr} ->
+                    case connect_with_node(NodeId, IpfsSingleAddr) of
+                        {ok, ConnectionResult} ->
+                            {ok, #{<<"node_info">> => NodeInfo, <<"connection_result">> => ConnectionResult}};
+                        {error, ConnectionError} ->
+                            {ok, #{<<"node_info">> => NodeInfo, <<"connection_error">> => ConnectionError}}
                     end;
-                {ok, {{_, Status, _}, _, ErrorBody}} ->
-                    {error, {http_error, Status, ErrorBody}};
-                {error, Reason} ->
-                    {error, {http_request_failed, Reason}}
+                {error, IpfsError} ->
+                    {ok, #{<<"node_info">> => NodeInfo, <<"ipfs_error">> => IpfsError}}
             end;
         {error, Reason} ->
             {error, Reason}
@@ -217,14 +277,25 @@ get_single_address(NodeId) ->
 %% Get the peer ID of a node
 get_peerid(NodeId) ->
     ensure_inets_started(),
-    Url = ?BASE_URL ++ "/nodes/" ++ uri_string:quote(NodeId) ++ "/peerid",
-    case httpc:request(get, {Url, []}, [], []) of
-        {ok, {{_, 200, _}, _, Body}} ->
-            {ok, Body}; 
-        {ok, {{_, Status, _}, _, ErrorBody}} ->
-            {error, {Status, ErrorBody}};
-        {error, Reason} ->
-            {error, Reason}
+    Parent = self(),
+    RequestPid = spawn(fun() ->
+        Url = ?BASE_URL ++ "/nodes/" ++ uri_string:quote(NodeId) ++ "/peerid",
+        Result = case httpc:request(get, {Url, []}, [], []) of
+            {ok, {{_, 200, _}, _, Body}} ->
+                {ok, Body}; 
+            {ok, {{_, Status, _}, _, ErrorBody}} ->
+                {error, {Status, ErrorBody}};
+            {error, Reason} ->
+                {error, Reason}
+        end,
+        Parent ! {peerid_result, Result}
+    end),
+    receive
+        {peerid_result, Result} ->
+            Result
+    after 5000 ->
+        exit(RequestPid, kill),
+        {error, timeout}
     end.
 
 %% Ping a remote peer
@@ -341,25 +412,36 @@ get_subscriptions(NodeId) ->
 %% Get the single address of the IPFS node
 get_ipfs_singleaddr() ->
     ensure_inets_started(),
-    Url = "http://localhost:5001/api/v0/id",
-    case httpc:request(post, {Url, [], "application/json", <<>>}, [], []) of
-        {ok, {{_, 200, _}, _, ResponseBody}} ->
-            try
-                Decoded = jiffy:decode(list_to_binary(ResponseBody), [return_maps]),
-                case Decoded of
-                    #{<<"Addresses">> := [IpfsMultiaddr | _]} ->
-                        {ok, binary_to_list(IpfsMultiaddr)}; 
-                    _ ->
-                        {error, {invalid_response, no_addresses_found}}
-                end
-            catch
-                _:_ ->
-                    {error, {invalid_response, json_decode_failed}}
-            end;
-        {ok, {{_, Status, _}, _, ErrorBody}} ->
-            {error, {http_error, Status, ErrorBody}};
-        {error, Reason} ->
-            {error, {http_request_failed, Reason}}
+    Parent = self(),
+    RequestPid = spawn(fun() ->
+        Url = "http://localhost:5001/api/v0/id",
+        Result = case httpc:request(post, {Url, [], "application/json", <<>>}, [], []) of
+            {ok, {{_, 200, _}, _, ResponseBody}} ->
+                try
+                    Decoded = jiffy:decode(list_to_binary(ResponseBody), [return_maps]),
+                    case Decoded of
+                        #{<<"Addresses">> := [IpfsMultiaddr | _]} ->
+                            {ok, binary_to_list(IpfsMultiaddr)};
+                        _ ->
+                            {error, {invalid_response, no_addresses_found}}
+                    end
+                catch
+                    _:_ ->
+                        {error, {invalid_response, json_decode_failed}}
+                end;
+            {ok, {{_, Status, _}, _, ErrorBody}} ->
+                {error, {http_error, Status, ErrorBody}};
+            {error, Reason} ->
+                {error, {http_request_failed, Reason}}
+        end,
+        Parent ! {ipfs_addr_result, Result}
+    end),
+    receive
+        {ipfs_addr_result, Result} ->
+            Result
+    after 5000 ->
+        exit(RequestPid, kill),
+        {error, timeout}
     end.
 
 get_ipfs_multiaddr() ->

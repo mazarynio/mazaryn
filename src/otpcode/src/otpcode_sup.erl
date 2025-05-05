@@ -1,6 +1,5 @@
 -module(otpcode_sup).
 
--inlcude("business.hrl").
 -include("records.hrl").
 -include("kademlia/kademlia.hrl").
 -include("supervisor.hrl").
@@ -8,9 +7,11 @@
 -behaviour(supervisor).
 
 -export([start_link/0, init/1]).
+-export([start_distributed/0, add_node/1, add_extra_nodes/1, create_tables_on_nodes/1]).
 
 -define(SERVER, ?MODULE).
 -define(MNESIA_DIR, "Mnesia/").
+-define(CLUSTER_NODES, ['social_net@node1', 'social_net@node2', 'social_net@node3']).
 -define(TABLES, [post, notif, user, blog_post, comment, blog_comment, like, reply, chat, media, report, knode, business, ads, quantum,
  ai_user, ai_post, ai_chat, ai_media, ai_business, ai_ads, p2p_node,
  pin_info, pin_params, pin_history, bulk_operation, scheduled_job, rate_limiter_usage, pin_info_lookup, pin_health, storage_quota, presence]).
@@ -22,6 +23,99 @@ start_link() ->
             supervisor:start_link({local, ?SERVER}, ?MODULE, []);
         {error, Reason} ->
             {error, Reason}
+    end.
+
+start_distributed() ->
+    logger:info("Starting distributed Mnesia with nodes: ~p", [?CLUSTER_NODES]),
+    case net_kernel:start([node_name(), shortnames]) of
+        {ok, _} -> ok;
+        {error, {already_started, _}} -> ok;
+        {error, Reason} -> error({net_kernel_start_failed, Reason})
+    end,
+    
+    [net_kernel:connect_node(Node) || Node <- ?CLUSTER_NODES],
+    
+    case initialize() of
+        ok -> 
+            add_extra_nodes(?CLUSTER_NODES),
+            create_tables_on_nodes(?CLUSTER_NODES),
+            ok;
+        Error -> Error
+    end.
+
+node_name() ->
+    case node() of
+        nonode@nohost ->
+            list_to_atom("social_net_" ++ integer_to_list(erlang:system_time(millisecond)) ++ "@localhost");
+        Name -> Name
+    end.
+
+add_node(Node) ->
+    logger:info("Adding node ~p to Mnesia schema", [Node]),
+    case mnesia:change_config(extra_db_nodes, [Node]) of
+        {ok, [Node]} -> 
+            mnesia:change_table_copy_type(schema, Node, disc_copies),
+            ok;
+        {ok, []} -> 
+            logger:warning("Node ~p could not be added to Mnesia", [Node]),
+            {error, node_not_added};
+        {error, Reason} -> 
+            logger:error("Failed to add node: ~p", [Reason]),
+            {error, Reason}
+    end.
+
+add_extra_nodes(Nodes) ->
+    logger:info("Adding nodes ~p to Mnesia schema", [Nodes]),
+    Results = [add_node(Node) || Node <- Nodes, Node =/= node()],
+    case lists:all(fun(Result) -> Result == ok end, Results) of
+        true -> ok;
+        false -> {error, some_nodes_not_added}
+    end.
+
+% Create the tables on all nodes in the cluster
+create_tables_on_nodes(Nodes) ->
+    logger:info("Creating tables on nodes: ~p", [Nodes]),
+    Results = [create_table_on_nodes(Table, Nodes) || Table <- ?TABLES],
+    case lists:all(fun(Result) -> Result == ok end, Results) of
+        true -> ok;
+        false -> {error, some_tables_not_created}
+    end.
+
+create_table_on_nodes(Table, Nodes) ->
+    Attributes = table_attributes(Table),
+    TableNodes = [node() | [N || N <- Nodes, N =/= node()]],
+    
+    TableInfo = mnesia:table_info(Table, all),
+    case TableInfo of
+        [{aborted, no_exists}] ->
+            case mnesia:create_table(Table, [
+                {attributes, Attributes},
+                {disc_copies, TableNodes},
+                {type, ordered_set}
+            ]) of
+                {atomic, ok} -> 
+                    logger:info("Table ~p created successfully on nodes ~p", [Table, TableNodes]),
+                    ok;
+                {aborted, Reason} -> 
+                    logger:error("Failed to create table ~p: ~p", [Table, Reason]),
+                    {error, {create_table_failed, Table, Reason}}
+            end;
+        _ ->
+            [add_table_copy(Table, Node) || Node <- TableNodes],
+            ok
+    end.
+
+add_table_copy(Table, Node) ->
+    case mnesia:add_table_copy(Table, Node, disc_copies) of
+        {atomic, ok} -> 
+            logger:info("Added table ~p to node ~p", [Table, Node]),
+            ok;
+        {aborted, {already_exists, Table, Node}} -> 
+            logger:info("Table ~p already exists on node ~p", [Table, Node]),
+            ok;
+        {aborted, Reason} -> 
+            logger:error("Failed to add table ~p to node ~p: ~p", [Table, Node, Reason]),
+            {error, {add_table_copy_failed, Table, Node, Reason}}
     end.
 
 %% Supervisor callbacks
@@ -59,7 +153,7 @@ init([]) ->
 %% Internal functions
 initialize() ->
     try
-        logger:info("Initializing otpcode application..."),
+        logger:info("Initializing distributed otpcode application..."),
         ok = set_mnesia_dir(),
         ok = create_mnesia_schema(),
         ok = start_mnesia(),
