@@ -100,13 +100,70 @@ insert(Author, Content, Media, Hashtag, Link_URL, Emoji, Mention) ->
                 mnesia:transaction(UpdateF),
                 
                 content_cache:delete(Id),
-                content_cache:delete({media, Id})
+                content_cache:delete({media, Id}),
+                
+                spawn(fun() ->
+                    timer:sleep(15000),
+                    
+                    PostCID = case CIDString of
+                        "" -> MediaCID; 
+                        _ -> CIDString  
+                    end,  
+                    case PostCID of
+                        undefined -> 
+                            error_logger:info_msg("No content to publish to IPNS for post ~p", [Id]);
+                        "" -> 
+                            error_logger:info_msg("Empty content, skipping IPNS publish for post ~p", [Id]);
+                        _ ->
+                            try
+                                {ok, #{id := _KeyID, name := _BinID}} = ipfs_client_4:key_gen(Id),
+                                
+                                case ipfs_client_5:name_publish(
+                                    "/ipfs/" ++ PostCID, 
+                                    [{key, Id}] 
+                                ) of
+                                    {ok, #{name := IPNSKey}} ->
+                                        update_post_ipns(Id, IPNSKey);
+                                    {error, _Reason} ->
+                                        err 
+                                end
+                            catch
+                                Exception:Error:Stacktrace ->
+                                    error_logger:error_msg(
+                                        "Exception while publishing to IPNS for post ~p: ~p:~p~n~p", 
+                                        [Id, Exception, Error, Stacktrace]
+                                    )
+                            end
+                    end
+                end)
             end),
             
             Id;
         {atomic, {error, Reason}} -> 
             {error, Reason};
         {aborted, Reason} -> 
+            {error, {transaction_failed, Reason}}
+    end.
+
+update_post_ipns(PostId, IPNSKey) ->
+    UpdateF = fun() ->
+        case mnesia:read({post, PostId}) of
+            [Post] ->
+                UpdatedPost = Post#post{ipns = IPNSKey},
+                mnesia:write(UpdatedPost),
+                ok;
+            [] ->
+                {error, not_found}
+        end
+    end,
+    
+    case mnesia:transaction(UpdateF) of
+        {atomic, ok} -> ok;
+        {atomic, {error, Reason}} -> 
+            error_logger:error_msg("Failed to update post ~p with IPNS: ~p", [PostId, Reason]),
+            {error, Reason};
+        {aborted, Reason} ->
+            error_logger:error_msg("Transaction aborted while updating post ~p with IPNS: ~p", [PostId, Reason]),
             {error, {transaction_failed, Reason}}
     end.
 

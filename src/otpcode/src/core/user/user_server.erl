@@ -251,10 +251,6 @@ worker_loop() ->
             ?LOG_WARNING("Worker received unknown message: ~p", [Other]),
             worker_loop()
     end.
-
-get_nearest_user_server() ->
-    {ok, {global, ?SERVER}}.
-
 %%====================================================================
 %% gen_server callback implementations
 %%====================================================================

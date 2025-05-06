@@ -53,6 +53,7 @@
                 user_id,
                 business_id,
                 content,
+                ipns,
                 emoji = [],
                 comments = [],
                 likes = [],

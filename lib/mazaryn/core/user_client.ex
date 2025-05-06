@@ -11,7 +11,7 @@ defmodule Core.UserClient do
   @spec register(String.t(), String.t(), String.t()) :: atom() | charlist()
   def register(username, password, email) do
     :user_server.start_link()
-    :user_server.create_account(username, password, email)
+    :user_server.create_account_concurrent(username, password, email)
   end
 
   def validate(token_id) do

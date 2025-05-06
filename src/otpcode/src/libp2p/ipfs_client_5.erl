@@ -1,26 +1,35 @@
 -module(ipfs_client_5).
 -author("Zaryn Technologies").
--export([name_publish/1, name_publish/2, name_resolve/0, name_resolve/1, pin_add/1, pin_add/2, pin_ls/0, pin_ls/1, pin_remote_add/2, pin_remote_add/3,
-pin_remote_ls/1, pin_remote_rm/1, pin_remote_rm/2, pin_remote_service_add/3, pin_remote_service_ls/0, pin_remote_service_ls/1, pin_remote_service_rm/1,
-pin_rm/1, pin_rm/2, pin_update/2, pin_update/3, pin_verify/0, pin_verify/1, ping/1, ping/2]).
+-export([name_publish/1, name_publish/2, name_resolve/0, name_resolve/1, pin_add/1, pin_add/2, pin_ls/0, pin_ls/1, 
+         pin_remote_add/2, pin_remote_add/3, pin_remote_ls/1, pin_remote_rm/1, pin_remote_rm/2, 
+         pin_remote_service_add/3, pin_remote_service_ls/0, pin_remote_service_ls/1, pin_remote_service_rm/1,
+         pin_rm/1, pin_rm/2, pin_update/2, pin_update/3, pin_verify/0, pin_verify/1, ping/1, ping/2]).
 
 -define(RPC_API, "http://localhost:5001/api").
 
-%% @doc Publish IPNS names
-%% Options can include:
-%%   - key (string): Key to publish with (default: "self")
-%%   - resolve (boolean): Verify path exists (default: true)
-%%   - lifetime (string): Duration record is valid (default: "48h0m0s")
-%%   - ttl (string): Cache duration (default: "5m0s")
-%%   - quieter (boolean): Return only CIDv1
-%%   - v1compat (boolean): Backward-compatible record (default: true)
-%%   - allow_offline (boolean): Allow offline publishing
-%%   - ipns_base (string): Key encoding (default: "base36")
+%% @doc Publish IPNS names concurrently and asynchronously, but return the result synchronously.
+%% Returns {ok, #{name => Binary, value => Binary}} or {error, Reason}.
 %% {ok, #{name := Name}} = ipfs_client_5:name_publish("/ipfs/Qm...").
 name_publish(IPFSPath) ->
     name_publish(IPFSPath, []).
 
-name_publish(IPFSPath, Options) when is_list(IPFSPath) orelse is_binary(IPFSPath), is_list(Options) ->
+name_publish(IPFSPath, Options) when is_list(IPFSPath); is_binary(IPFSPath) ->
+    Parent = self(),
+    Ref = make_ref(),
+    spawn(fun() ->
+        Result = sync_name_publish(IPFSPath, Options),
+        Parent ! {Ref, Result}
+    end),
+    receive
+        {Ref, {ok, Map}} when is_map(Map), is_map_key(name, Map), is_map_key(value, Map) ->
+            {ok, Map};
+        {Ref, {error, Reason}} ->
+            {error, Reason}
+    after 900000 -> 
+        {error, ipns_timeout}
+    end.
+
+sync_name_publish(IPFSPath, Options) ->
     try
         Defaults = [
             {key, "self"},
@@ -59,7 +68,7 @@ name_publish(IPFSPath, Options) when is_list(IPFSPath) orelse is_binary(IPFSPath
             {ok, {{_, 200, _}, _, Body}} ->
                 case jiffy:decode(Body, [return_maps]) of
                     #{<<"Name">> := Name, <<"Value">> := Value} ->
-                        {ok, #{name => Name, value => Value}};
+                        {ok, #{name => binary_to_list(Name), value => binary_to_list(Value)}};
                     Other ->
                         {error, {unexpected_response, Other}}
                 end;
@@ -69,8 +78,36 @@ name_publish(IPFSPath, Options) when is_list(IPFSPath) orelse is_binary(IPFSPath
                 {error, Reason}
         end
     catch
-        error ->
-            error 
+        _:_ -> {error, internal_error}
+    end.
+
+%% @doc Helper function to merge options with defaults.
+merge_options(Provided, Defaults) ->
+    lists:ukeymerge(1, lists:ukeysort(1, Provided), lists:ukeysort(1, Defaults)).
+
+%% @doc Helper function to build query string from parameters.
+build_query_string(Params) ->
+    case Params of
+        [] -> "";
+        _ ->
+            "?" ++
+            string:join(
+                lists:map(
+                    fun({Key, Value}) ->
+                        KeyStr = atom_to_list(Key),
+                        ValueStr = uri_string:quote(
+                            if
+                                is_atom(Value) -> atom_to_list(Value);
+                                is_boolean(Value) -> atom_to_list(Value);
+                                is_integer(Value) -> integer_to_list(Value);
+                                true -> Value
+                            end),
+                        KeyStr ++ "=" ++ ValueStr
+                    end,
+                    Params
+                ),
+                "&"
+            )
     end.
 
 %% @doc Resolve IPNS names
@@ -777,8 +814,6 @@ parse_ping_response(Data) ->
         end,
         Lines).
 
-build_query_string(Options) ->
-    build_query_string(Options, "").
 
 build_query_string([], Acc) ->
     Acc;
@@ -802,8 +837,3 @@ to_string(true) ->
     "true";
 to_string(false) ->
     "false".
-
-merge_options(Defaults, Options) ->
-    lists:ukeymerge(1, 
-        lists:ukeysort(1, Options), 
-        lists:ukeysort(1, Defaults)).

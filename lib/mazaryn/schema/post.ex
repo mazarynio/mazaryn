@@ -18,6 +18,7 @@ defmodule Mazaryn.Schema.Post do
     media
     hashtag
     mention
+    ipns
     emoji
     link_url
     photo_url
@@ -47,6 +48,7 @@ defmodule Mazaryn.Schema.Post do
     field(:media, {:array, :string}, default: [])
     field(:hashtag, :string)
     field(:mention, :string)
+    field(:ipns, :string)
     field(:emoji, :string)
     field(:link_url, :string)
     field(:author, :string)
@@ -66,7 +68,7 @@ defmodule Mazaryn.Schema.Post do
   end
 
   def erl_changeset(
-      {:post, id, ai_post_id, user_id, business_id, content, comments, likes, media, hashtag, mention, emoji,
+      {:post, id, ai_post_id, user_id, business_id, content, comments, likes, media, hashtag, mention, ipns, emoji,
        link_url, author, other, date_created, date_updated, report, device_info, pin_info, data}
     ) do
     new_likes =
@@ -97,6 +99,7 @@ defmodule Mazaryn.Schema.Post do
       media: media,
       hashtag: hashtag,
       mention: mention,
+      ipns: ipns,
       emoji: emoji,
       link_url: link_url,
       author: author,
