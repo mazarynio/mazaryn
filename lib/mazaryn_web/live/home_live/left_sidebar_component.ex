@@ -13,7 +13,7 @@ defmodule MazarynWeb.HomeLive.LeftSidebarComponent do
             <ul>
               <li class="flex align-center items-center mx-2 mb-7">
                 <%= live_redirect to: Routes.live_path(@socket, MazarynWeb.HomeLive.Home, @locale),
-                             replace: false, class: "group flex align-center items-start text-base text-gray-500 font-semibold hover:text-blue-500" do %>
+                  replace: false, class: "group flex align-center items-start text-base text-gray-500 font-semibold hover:text-blue-500" do %>
                   <i>
                     <svg
                       class="h-5 w-5 mr-3.5 group-hover:fill-[#4385F5]"
@@ -34,6 +34,7 @@ defmodule MazarynWeb.HomeLive.LeftSidebarComponent do
                   </div>
                 <% end %>
               </li>
+
               <li class="flex align-center items-center mx-2 mb-7">
                 <.link
                   navigate={~p(/chats)}
@@ -65,13 +66,18 @@ defmodule MazarynWeb.HomeLive.LeftSidebarComponent do
                       </defs>
                     </svg>
                   </i>
-                  <div class="text-[#60616D] text-base leading-6 group-hover:text-[#4385F5]">
+                  <div class="relative text-[#60616D] text-base leading-6 group-hover:text-[#4385F5]">
                     <%= gettext("Chat") %>
-                  </div>
+                    <%= if @chat_notifs_count && @chat_notifs_count > 0 do %>
+                      <span class="absolute -top-2 -right-3 bg-red-500 text-white text-xs font-semibold px-1.5 py-0.5 rounded-full">
+                        <%= @chat_notifs_count %>
+                      </span>
+                    <% end %>
+                  </div> 
                 </.link>
               </li>
-
-              <li class="flex align-center items-center mx-2 mb-7">
+              
+               <li class="flex align-center items-center mx-2 mb-7">
                 <a
                   href="home"
                   class="group flex items-start text-base text-gray-500 font-semibold hover:text-blue-500"
