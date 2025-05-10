@@ -75,6 +75,11 @@ defmodule MazarynWeb.HomeLive.Home do
     {:noreply, assign(socket, posts: posts)}
   end
 
+  @impl true
+  def handle_info({:ipns_result, _post_id, _ipns_id}, socket) do
+    {:noreply, socket}
+  end
+
   defp get_user_and_following_posts(user_id) do
     following_user_ids = Users.get_following(user_id)
     Logger.info("Following user IDs: #{inspect(following_user_ids)}")

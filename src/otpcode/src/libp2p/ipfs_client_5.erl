@@ -61,8 +61,8 @@ sync_name_publish(IPFSPath, Options) ->
         case httpc:request(post, 
                          {Url, [], "application/json", ""},
                          [
-                             {timeout, 30000},
-                             {connect_timeout, 5000}
+                             {timeout, 50000},
+                             {connect_timeout, 10000}
                          ],
                          [{body_format, binary}]) of
             {ok, {{_, 200, _}, _, Body}} ->

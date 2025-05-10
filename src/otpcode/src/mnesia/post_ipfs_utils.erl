@@ -1,2 +1,0 @@
--module(post_ipfs_utils).
--author("Zaryn Technologies").

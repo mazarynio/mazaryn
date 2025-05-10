@@ -30,15 +30,17 @@ defmodule MazarynWeb.HomeLive.PostComponent do
         end)
 
       comments_with_replies =
-    comments_with_like_events
-    |> Enum.map(fn comment ->
-      replies = :postdb.get_comment_replies(comment.id |> to_charlist)
-      list_replies =
-        replies
-        |> Enum.map(&(&1 |> Mazaryn.Schema.Reply.erl_changeset() |> Mazaryn.Schema.Reply.build() |> elem(1)))
+        comments_with_like_events
+        |> Enum.map(fn comment ->
+          replies = :postdb.get_comment_replies(comment.id |> to_charlist)
+          list_replies =
+            replies
+            |> Enum.map(&(&1 |> Mazaryn.Schema.Reply.erl_changeset() |> Mazaryn.Schema.Reply.build() |> elem(1)))
 
-      Map.put(comment, :replies, list_replies)
-    end)
+          Map.put(comment, :replies, list_replies)
+        end)
+
+      ipns_id = get_post_ipns(assigns.post.id)
 
       assigns =
         assigns
@@ -53,6 +55,7 @@ defmodule MazarynWeb.HomeLive.PostComponent do
         |> Map.put(:like_action, false)
         |> Map.put(:is_liked, false)
         |> Map.put(:update_post_changeset, update_post_changeset)
+        |> Map.put(:ipns_id, ipns_id)
 
       assign(socket, assigns)
     end)
@@ -65,8 +68,32 @@ defmodule MazarynWeb.HomeLive.PostComponent do
      |> assign(:uploaded_files, [])
      |> assign(:editing_post, false)
      |> assign(:reply_comment, false)
-    |> assign(:replying_to_comment_id, nil)
+     |> assign(:replying_to_comment_id, nil)
+     |> assign(:ipns_id, nil)
      |> allow_upload(:media, accept: ~w(.png .jpg .jpeg), max_entries: 2)}
+  end
+
+  defp get_post_ipns(post_id) do
+    post_id_charlist = if is_binary(post_id), do: to_charlist(post_id), else: post_id
+
+    try do
+      :post_ipfs_utils.get_ipns_from_post(post_id_charlist)
+    catch
+      :throw, :post_not_found ->
+        nil
+      :throw, {:transaction_failed, reason} ->
+        IO.puts("Failed to get IPNS for post #{inspect(post_id)}: #{inspect(reason)}")
+        nil
+      :throw, :ipns_timeout ->
+        IO.puts("IPNS timeout for post #{inspect(post_id)}")
+        nil
+      :throw, reason ->
+        IO.puts("Error getting IPNS for post #{inspect(post_id)}: #{inspect(reason)}")
+        nil
+      type, reason ->
+        IO.puts("Unexpected error getting IPNS: #{inspect({type, reason})}")
+        nil
+    end
   end
 
   @impl true
@@ -143,18 +170,26 @@ defmodule MazarynWeb.HomeLive.PostComponent do
             try do
               retrieved_post = rebuild_post(post_id)
               IO.inspect(retrieved_post, label: "Retrieved Post After Update")
+
+              ipns_id = get_post_ipns(post_id)
+
+              send(self(), :reload_posts)
+
+              {:noreply,
+               socket
+               |> assign(:editing_post, false)
+               |> assign(:edit_post_id, nil)
+               |> assign(:ipns_id, ipns_id)}
             catch
               _, e ->
                 IO.puts("Error retrieving post after update")
                 IO.inspect(e, label: "Retrieval Error")
+
+                {:noreply,
+                 socket
+                 |> assign(:editing_post, false)
+                 |> assign(:edit_post_id, nil)}
             end
-
-            send(self(), :reload_posts)
-
-            {:noreply,
-             socket
-             |> assign(:editing_post, false)
-             |> assign(:edit_post_id, nil)}
 
           error ->
             IO.puts("Error in updating post")
@@ -174,7 +209,7 @@ defmodule MazarynWeb.HomeLive.PostComponent do
   end
 
   def handle_event("update-comment", %{"comment" => comment_params} = _params, socket) do
-    IO.inspect(comment_params, lable: "COMMENT PARAMS")
+    IO.inspect(comment_params, label: "COMMENT PARAMS")
 
     comment =
       %Comment{}
@@ -216,10 +251,6 @@ defmodule MazarynWeb.HomeLive.PostComponent do
       |> to_charlist
       |> rebuild_post()
 
-    # Enum.map(post.likes, fn p ->
-    #   IO.inspect(p |> Mazaryn.Schema.Comment.build(), label: "comment has been build")
-    # end)
-
     comments = Posts.get_comment_by_post_id(post.id)
 
     {:noreply,
@@ -230,66 +261,66 @@ defmodule MazarynWeb.HomeLive.PostComponent do
   end
 
   def handle_event("reply_comment_content", %{"comment" => comment_params} = _params, socket) do
-  %{
-    "comment_id" => comment_id,
-    "content" => content
-  } = comment_params
+    %{
+      "comment_id" => comment_id,
+      "content" => content
+    } = comment_params
 
-  user_id = socket.assigns.current_user.id
+    user_id = socket.assigns.current_user.id
 
-  PostClient.reply_comment(user_id, to_charlist(comment_id), content)
+    PostClient.reply_comment(user_id, to_charlist(comment_id), content)
 
-  post = rebuild_post(socket.assigns.post.id)
-  comments = Posts.get_comment_by_post_id(post.id)
+    post = rebuild_post(socket.assigns.post.id)
+    comments = Posts.get_comment_by_post_id(post.id)
 
-  replies = :postdb.get_comment_replies(comment_id |> to_charlist)
+    replies = :postdb.get_comment_replies(comment_id |> to_charlist)
 
-  list_replies =
-    replies
-    |> Enum.map(&(&1 |> Mazaryn.Schema.Reply.erl_changeset() |> Mazaryn.Schema.Reply.build() |> elem(1)))
+    list_replies =
+      replies
+      |> Enum.map(&(&1 |> Mazaryn.Schema.Reply.erl_changeset() |> Mazaryn.Schema.Reply.build() |> elem(1)))
 
-  comments_with_replies =
-    Enum.map(comments, fn comment ->
-      if comment.id == comment_id |> to_charlist do
-        Map.put(comment, :replies, list_replies)
-      else
-        comment
-      end
-    end)
+    comments_with_replies =
+      Enum.map(comments, fn comment ->
+        if comment.id == comment_id |> to_charlist do
+          Map.put(comment, :replies, list_replies)
+        else
+          comment
+        end
+      end)
 
-  {:noreply,
-   socket
-   |> assign(:post, post)
-   |> assign(:comments, comments_with_replies)}
-end
-
-def handle_event(
-      "delete-reply",
-      %{"reply-id" => reply_id, "comment-id" => comment_id},
-      socket
-    ) do
-    reply_id = reply_id |> to_charlist
-  comment_id = comment_id |> to_charlist
-
-  :postdb.delete_reply_from_mnesia(reply_id)
-
-  post = rebuild_post(socket.assigns.post.id)
-
-  comments = Posts.get_comment_by_post_id(post.id)
-
-  {:noreply,
-   socket
-   |> assign(:post, post)
-   |> assign(:comments, comments)}
+    {:noreply,
+     socket
+     |> assign(:post, post)
+     |> assign(:comments, comments_with_replies)}
   end
 
-    def handle_event("reply_comment", %{"comment-id" => comment_id}, socket) do
-  {:noreply, socket |> assign(:reply_comment, true) |> assign(:replying_to_comment_id, comment_id |> to_charlist)}
-end
+  def handle_event(
+        "delete-reply",
+        %{"reply-id" => reply_id, "comment-id" => comment_id},
+        socket
+      ) do
+    reply_id = reply_id |> to_charlist
+    comment_id = comment_id |> to_charlist
 
-def handle_event("cancel-comment-reply", _, socket) do
-  {:noreply, socket |> assign(:reply_comment, false) |> assign(:replying_to_comment_id, nil)}
-end
+    :postdb.delete_reply_from_mnesia(reply_id)
+
+    post = rebuild_post(socket.assigns.post.id)
+
+    comments = Posts.get_comment_by_post_id(post.id)
+
+    {:noreply,
+     socket
+     |> assign(:post, post)
+     |> assign(:comments, comments)}
+  end
+
+  def handle_event("reply_comment", %{"comment-id" => comment_id}, socket) do
+    {:noreply, socket |> assign(:reply_comment, true) |> assign(:replying_to_comment_id, comment_id |> to_charlist)}
+  end
+
+  def handle_event("cancel-comment-reply", _, socket) do
+    {:noreply, socket |> assign(:reply_comment, false) |> assign(:replying_to_comment_id, nil)}
+  end
 
   def handle_event("show-comments", %{"id" => post_id}, socket) do
     # get the comments by post_id
@@ -552,7 +583,6 @@ end
     end
   end
 
-
   defp apply_styles(html) do
     html
     |> String.replace("<a", "<a class=\"text-blue-500\"")
@@ -642,19 +672,6 @@ end
       else: "follow_user"
   end
 
-  # TODO: delete the following 2 functions if they are not used - Amos Kibet, 20th Dec, 2023
-  # defp followers(username) do
-  #   username
-  #   |> UserClient.get_follower()
-  #   |> Enum.count()
-  # end
-
-  # defp followings(username) do
-  #   username
-  #   |> UserClient.get_following()
-  #   |> Enum.count()
-  # end
-
   defp one_of_likes?(user_id, post_id) do
     post_id
     |> PostClient.get_likes()
@@ -700,12 +717,8 @@ end
       |> Home.Like.erl_changeset()
       |> Home.Like.build()
       |> elem(1)
-
-      # |> IO.inspect(label: "HERE ARE The LIKE afeter ELEM")
     end)
     |> Enum.any?(&(&1.user_id == user_id))
-
-    # |> IO.inspect(label: "AFTER CHECKING IF USERID IS THERE??")
   end
 
   defp comment_like_color(user_id, comment_id) do

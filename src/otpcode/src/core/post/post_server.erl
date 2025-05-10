@@ -24,6 +24,8 @@
 -export([save_post/2, unsave_post/2,
          save_posts/2, unsave_posts/2,
          get_save_posts/1, report_post/4]).
+-define(TIMEOUT, 40000).
+
 
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2,
@@ -41,25 +43,25 @@ modify_post(PostID, Author, NewContent, NewEmoji, NewMedia, NewHashtag, NewMenti
      {modify_post, PostID, Author, NewContent, NewEmoji, NewMedia, NewHashtag, NewMention, NewLink_URL}).
 
 get_post_by_id(Id) ->
-  gen_server:call({global, ?MODULE}, {get_post_by_id, Id}).
+  gen_server:call({global, ?MODULE}, {get_post_by_id, Id}, ?TIMEOUT).
 
 get_post_content_by_id(Id) ->
-  gen_server:call({global, ?MODULE}, {get_post_content_by_id, Id}).
+  gen_server:call({global, ?MODULE}, {get_post_content_by_id, Id}, ?TIMEOUT).
 
 get_posts_by_author(Author) ->
   gen_server:call({global, ?MODULE}, {get_posts_by_author, Author}).
 
 get_posts_by_user_id(UserID) ->
-  gen_server:call({global, ?MODULE}, {get_posts_by_user_id, UserID}).
+  gen_server:call({global, ?MODULE}, {get_posts_by_user_id, UserID}, ?TIMEOUT).
 
 get_posts_content_by_author(Author) ->
-  gen_server:call({global, ?MODULE}, {get_posts_content_by_author, Author}).
+  gen_server:call({global, ?MODULE}, {get_posts_content_by_author, Author}, ?TIMEOUT).
 
 get_posts_content_by_user_id(UserID) ->
   gen_server:call({global, ?MODULE}, {get_posts_content_by_user_id, UserID}).
 
 get_posts_by_hashtag(Hashtag) ->
-  gen_server:call({global, ?MODULE}, {get_posts_by_hashtag, Hashtag}).
+  gen_server:call({global, ?MODULE}, {get_posts_by_hashtag, Hashtag}, ?TIMEOUT).
 
 get_latest_posts(Author) ->
     gen_server:call({global, ?MODULE}, {get_latest_posts, Author}).
@@ -306,8 +308,10 @@ handle_call({get_all_replies, CommentID}, _From, State) ->
     {reply, IDs, State};
 
 handle_call({get_single_comment, CommentId}, _From, State) ->
-    Comment = postdb:get_single_comment(CommentId),
-    {reply, Comment, State};
+    case postdb:get_single_comment(CommentId) of
+        {ok, Comment} -> {reply, {ok, Comment}, State};
+        {error, Reason} -> {reply, {error, Reason}, State}
+    end;
 
 handle_call({get_comment_content, CommentID}, From, State) ->
     spawn(fun() ->

@@ -140,6 +140,15 @@
       <%= raw(@post |> activate_content_characters(@socket)) %>
       <span class="text-[#4385F5] text-sm"><%= Enum.join(@post.profile_tags, " ") %></span>
     </p>
+    
+    <%= if @ipns_id do %>
+      <div class="mt-2 flex items-center">
+        <span class="text-gray-500 text-sm mr-2">IPNS:</span>
+        <span class="text-[#edaa4c] text-sm font-mono bg-gray-90 px-2 py-1 rounded overflow-auto max-w-full break-all">
+          <%= @ipns_id %>
+        </span>
+      </div>
+    <% end %>
   <% end %>
 
   <div :if={!Enum.empty?(@post.media)} class="w-full grid grid-cols-4 gap-4">

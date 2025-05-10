@@ -37,6 +37,7 @@
   "jiffy": {:git, "https://github.com/davisp/jiffy.git", "9ea1b35b6e60ba21dfd4adbd18e7916a831fd7d4", []},
   "joken": {:hex, :joken, "2.6.0", "b9dd9b6d52e3e6fcb6c65e151ad38bf4bc286382b5b6f97079c47ade6b1bcc6a", [:mix], [{:jose, "~> 1.11.5", [hex: :jose, repo: "hexpm", optional: false]}], "hexpm", "5a95b05a71cd0b54abd35378aeb1d487a23a52c324fa7efdffc512b655b5aaa7"},
   "jose": {:hex, :jose, "1.11.6", "613fda82552128aa6fb804682e3a616f4bc15565a048dabd05b1ebd5827ed965", [:mix, :rebar3], [], "hexpm", "6275cb75504f9c1e60eeacb771adfeee4905a9e182103aa59b53fed651ff9738"},
+  "jsx": {:git, "https://github.com/talentdeficit/jsx.git", "1d3407aa9752430ec0a06111ac1b046ffafdca22", []},
   "key_guardian": {:git, "https://github.com/zaryntech/key-guardian.git", "2939b6a6b3ea324a9e875ae15b8d520b06b9db8b", []},
   "metrics": {:hex, :metrics, "1.0.1", "25f094dea2cda98213cecc3aeff09e940299d950904393b2a29d191c346a8486", [:rebar3], [], "hexpm", "69b09adddc4f74a40716ae54d140f93beb0fb8978d8636eaded0c31b6f099f16"},
   "mime": {:hex, :mime, "2.0.5", "dc34c8efd439abe6ae0343edbb8556f4d63f178594894720607772a041b04b02", [:mix], [], "hexpm", "da0d64a365c45bc9935cc5c8a7fc5e49a0e0f9932a761c55d6c52b142780a05c"},

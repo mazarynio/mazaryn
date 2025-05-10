@@ -64,6 +64,7 @@ defmodule Mazaryn.MixProject do
       {:erlpass, git: "https://github.com/ferd/erlpass.git"},
       {:bcrypt, git: "https://github.com/erlangpack/bcrypt.git", override: true},
       {:jiffy, git: "https://github.com/davisp/jiffy.git"},
+      {:jsx, git: "https://github.com/talentdeficit/jsx.git"},
       {:nanoid, git: "https://github.com/zaryntech/nanoid.git"},
       {:key_guardian, git: "https://github.com/zaryntech/key-guardian.git"},
       {:epgsql, "~> 4.7"},

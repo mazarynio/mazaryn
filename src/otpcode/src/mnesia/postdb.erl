@@ -118,13 +118,23 @@ insert(Author, Content, Media, Hashtag, Link_URL, Emoji, Mention) ->
                             try
                                 {ok, #{id := _KeyID, name := _BinID}} = ipfs_client_4:key_gen(Id),
                                 
+                                PublishOptions = [
+                                    {key, Id},
+                                    {resolve, true},         
+                                    {lifetime, "24h0m0s"},   
+                                    {ttl, "2m0s"},           
+                                    {v1compat, true},        
+                                    {ipns_base, "base36"}    
+                                ],
+                                
                                 case ipfs_client_5:name_publish(
-                                    "/ipfs/" ++ PostCID, 
-                                    [{key, Id}] 
+                                    "/ipfs/" ++ PostCID,
+                                    PublishOptions
                                 ) of
                                     {ok, #{name := IPNSKey}} ->
                                         update_post_ipns(Id, IPNSKey);
                                     {error, _Reason} ->
+                                        error_logger:error_msg("IPNS publish failed for post ~p: ~p", [Id, _Reason]),
                                         err 
                                 end
                             catch
@@ -861,12 +871,10 @@ delete_reply(ReplyID) ->
   end.
 
 get_single_comment(CommentId) ->
-  Fun = fun() ->
-            [Comment] = mnesia:read({comment, CommentId}),
-            Comment
-        end,
-  {atomic, Res} = mnesia:transaction(Fun),
-  Res.
+    case mnesia:dirty_read({comment, CommentId}) of
+        [Comment] -> {ok, Comment};
+        [] -> {error, not_found}
+    end.
 
 get_user_by_single_comment(CommentID) ->
   Fun = fun() ->
