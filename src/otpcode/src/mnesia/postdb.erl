@@ -299,18 +299,23 @@ get_media(PostID) ->
                     {media, ID} when ID =:= PostID -> 
                         case content_cache:get({media, ID}) of
                             undefined -> {error, media_not_ready};
-                            "" -> ""; 
+                            "" -> {ok, ""}; 
                             CachedMedia -> {ok, CachedMedia}
                         end;
-                    nil -> nil;
-                    _ -> [Media] 
+                    nil -> {ok, nil};
+                    "" -> {ok, ""};
+                    _ ->
+                        try
+                            ActualMedia = ipfs_media:get_media(Media),
+                            {ok, ActualMedia}
+                        catch
+                            _:Error -> {error, Error}
+                        end
                 end
         end
     end,
     case mnesia:transaction(Fun) of
         {atomic, {ok, Media}} -> Media;
-        {atomic, nil} -> nil;
-        {atomic, Media} when is_list(Media) -> Media;
         {atomic, {error, Reason}} -> {error, Reason};
         Error -> Error
     end.
@@ -565,22 +570,22 @@ get_last_50_likes_for_user(UserID) ->
 %% Content = [{text, Text}, {media, Media}, {mention, Name}, {like, Like}]
 add_comment(Author, PostID, Content) ->  
     Fun = fun() ->
+        Id = nanoid:gen(),
+        Date = calendar:universal_time(),
         UserID = userdb:get_user_id(Author),
+        
+        ContentToCache = if
+            is_binary(Content) -> binary_to_list(Content);
+            true -> Content
+        end,
+        
+        ok = content_cache:set(Id, ContentToCache),
+        PlaceholderContent = Id,
+        
         case mnesia:read({post, PostID}) of
             [] -> 
                 {error, post_not_found}; 
             [Post] ->
-                Id = nanoid:gen(),
-                Date = calendar:universal_time(),
-                
-                ContentToCache = if
-                    is_binary(Content) -> binary_to_list(Content);
-                    true -> Content
-                end,
-                
-                ok = content_cache:set(Id, ContentToCache),
-                PlaceholderContent = Id,
-                
                 Comment = #comment{
                     id = Id,
                     user_id = UserID,
@@ -592,18 +597,20 @@ add_comment(Author, PostID, Content) ->
                 mnesia:write(Comment),
                 
                 CurrentComments = case Post#post.comments of
-                  nil -> [];
-                  List when is_list(List) -> List;
-                  _ -> []
+                    nil -> [];
+                    List when is_list(List) -> List;
+                    _ -> []
                 end,
-
+                
                 UpdatedComments = [Id | CurrentComments],
                 UpdatedPost = Post#post{
                     comments = UpdatedComments
                 },
                 mnesia:write(UpdatedPost),
                 
-                {ok, Id}  
+                update_activity(Author, Date),
+                
+                {ok, Id}
         end
     end,
 
@@ -628,43 +635,146 @@ add_comment(Author, PostID, Content) ->
                 end,
                 mnesia:transaction(UpdateF),
                 
-                content_cache:delete(Id)
+                content_cache:delete(Id),
+                
+                spawn(fun() ->
+                    timer:sleep(5000),  
+                    
+                    case CIDString of
+                        "" -> 
+                            error_logger:info_msg("Empty content, skipping IPNS publish for comment ~p", [Id]);
+                        _ ->
+                            try
+                                {ok, #{id := _KeyID, name := _BinID}} = ipfs_client_4:key_gen("comment_" ++ Id),
+                                
+                                PublishOptions = [
+                                    {key, "comment_" ++ Id},
+                                    {resolve, true},
+                                    {lifetime, "12h0m0s"},  
+                                    {ttl, "1m0s"},
+                                    {v1compat, true},
+                                    {ipns_base, "base36"}
+                                ],
+                                
+                                case ipfs_client_5:name_publish(
+                                    "/ipfs/" ++ CIDString,
+                                    PublishOptions
+                                ) of
+                                    {ok, #{name := IPNSKey}} ->
+                                        update_comment_ipns(Id, IPNSKey);
+                                    {error, _Reason} ->
+                                        error_logger:error_msg("IPNS publish failed for comment ~p: ~p", [Id, _Reason]),
+                                        err 
+                                end
+                            catch
+                                Exception:Error:Stacktrace ->
+                                    error_logger:error_msg(
+                                        "Exception while publishing to IPNS for comment ~p: ~p:~p~n~p", 
+                                        [Id, Exception, Error, Stacktrace]
+                                    )
+                            end
+                    end
+                end)
             end),
             
-            Id;  
+            Id;
         {atomic, {error, Reason}} -> 
-            {error, Reason};  
+            {error, Reason};
         {aborted, Reason} -> 
-            {error, {transaction_failed, Reason}}  
+            {error, {transaction_failed, Reason}}
+    end.
+
+% Helper function to update IPNS information for comments
+update_comment_ipns(CommentId, IPNSKey) ->
+    UpdateF = fun() ->
+        case mnesia:read({comment, CommentId}) of
+            [Comment] ->
+                UpdatedComment = Comment#comment{ipns = IPNSKey},
+                mnesia:write(UpdatedComment),
+                ok;
+            [] ->
+                {error, not_found}
+        end
+    end,
+    
+    case mnesia:transaction(UpdateF) of
+        {atomic, ok} -> ok;
+        {atomic, {error, Reason}} -> 
+            error_logger:error_msg("Failed to update comment ~p with IPNS: ~p", [CommentId, Reason]),
+            {error, Reason};
+        {aborted, Reason} ->
+            error_logger:error_msg("Transaction aborted while updating comment ~p with IPNS: ~p", [CommentId, Reason]),
+            {error, {transaction_failed, Reason}}
     end.
 
 get_comment_content(CommentID) ->
-    Fun = fun() ->
+    Parent = self(),
+    Ref = make_ref(),
+    spawn(fun() ->
+        Result = read_comment_and_fetch_content(CommentID),
+        Parent ! {Ref, Result}
+    end),
+    receive
+        {Ref, {ok, Content}} -> Content;
+        {Ref, OtherResult} -> OtherResult
+    after 5000 ->
+        {error, timeout}
+    end.
+
+% Function that handles reading the comment and fetching content
+read_comment_and_fetch_content(CommentID) ->
+    ReadFun = fun() ->
         case mnesia:read({comment, CommentID}) of
             [] -> 
                 {error, comment_not_found};
             [Comment] ->
-                Content = Comment#comment.content,
-                case Content of
-                    ID when ID =:= CommentID -> 
-                        case content_cache:get(ID) of
-                            undefined -> {error, content_not_ready};
-                            CachedContent -> {ok, CachedContent}
-                        end;
-                    _ ->
-                        try
-                            ActualContent = ipfs_content:get_text_content(Content),
-                            {ok, ActualContent}
-                        catch
-                            _:Error -> {error, Error}
-                        end
-                end
+                {ok, Comment}
         end
     end,
-    case mnesia:transaction(Fun) of
-        {atomic, {ok, Content}} -> Content;
-        {atomic, {error, Reason}} -> {error, Reason};
-        Error -> Error
+    
+    case mnesia:transaction(ReadFun) of
+        {atomic, {error, Reason}} -> 
+            {error, Reason};
+        {atomic, {ok, Comment}} ->
+            Content = Comment#comment.content,
+            fetch_content(Content, CommentID);
+        Error -> 
+            Error
+    end.
+
+% Function to handle the various ways of fetching content
+fetch_content(Content, CommentID) when Content =:= CommentID ->
+    case content_cache:get(CommentID) of
+        undefined -> {error, content_not_ready};
+        CachedContent -> {ok, CachedContent}
+    end;
+fetch_content(Content, _CommentID) ->
+    IpfsRef = make_ref(),
+    Parent = self(),
+    IpfsWorker = spawn(fun() ->
+        try
+            Result = ipfs_content:get_text_content(Content),
+            Parent ! {IpfsRef, {ok, Result}}
+        catch
+            _:Error -> 
+                Parent ! {IpfsRef, {error, Error}}
+        end
+    end),
+    
+    MonitorRef = monitor(process, IpfsWorker),
+    
+    receive
+        {IpfsRef, Result} ->
+            demonitor(MonitorRef, [flush]),
+            Result;
+        {'DOWN', MonitorRef, process, IpfsWorker, normal} ->
+            {error, ipfs_missing_result};
+        {'DOWN', MonitorRef, process, IpfsWorker, Reason} ->
+            {error, {ipfs_worker_crashed, Reason}}
+    after 10000 ->
+        exit(IpfsWorker, kill),
+        demonitor(MonitorRef, [flush]),
+        {error, ipfs_timeout}
     end.
 
 
@@ -735,55 +845,71 @@ get_comment_replies(CommentID) ->
 
 reply_comment(UserID, CommentID, Content) ->
     Fun = fun() ->
+        Id = nanoid:gen(),
+        Date = calendar:universal_time(),
+        
+        ContentToCache = if
+            is_binary(Content) -> binary_to_list(Content);
+            true -> Content
+        end,
+        
+        ok = content_cache:set(Id, ContentToCache),
+        PlaceholderContent = Id,
+        
         case mnesia:read({comment, CommentID}) of
             [] -> 
                 {error, comment_not_found}; 
             [Comment] ->
-                Id = nanoid:gen(),
-                PlaceholderContent = "uploading...",
-                
                 Reply = #reply{
                     id = Id,
                     comment = CommentID,
                     userID = UserID,
-                    content = PlaceholderContent, 
-                    date_created = calendar:universal_time()
+                    content = PlaceholderContent,
+                    date_created = Date
                 },
                 mnesia:write(Reply),
-
-                UpdatedReplies = [Id | Comment#comment.replies],
+                
+                CurrentReplies = case Comment#comment.replies of
+                    nil -> [];
+                    List when is_list(List) -> List;
+                    _ -> []
+                end,
+                
+                UpdatedReplies = [Id | CurrentReplies],
                 UpdatedComment = Comment#comment{
                     replies = UpdatedReplies
                 },
                 mnesia:write(UpdatedComment),
                 
-                {ok, Id}  
+                {ok, Id}
         end
     end,
 
     case mnesia:transaction(Fun) of
         {atomic, {ok, Id}} -> 
             spawn(fun() ->
-                ContentToUse = if
-                    is_binary(Content) -> binary_to_list(Content);
-                    true -> Content
-                end,
-                
+                ContentToUse = content_cache:get(Id),
                 CIDString = case ContentToUse of
-                    "" -> "";
+                    "" -> ""; 
                     _ -> ipfs_content:upload_text(ContentToUse)
                 end,
                 
                 UpdateF = fun() ->
                     case mnesia:read({reply, Id}) of
                         [ReplyToUpdate] ->
-                            UpdatedReply = ReplyToUpdate#reply{content = CIDString},
+                            UpdatedReply = ReplyToUpdate#reply{
+                                content = CIDString,
+                                data = #{
+                                    cid => CIDString
+                                }
+                            },
                             mnesia:write(UpdatedReply);
-                        [] -> 
-                            ok
+                        [] -> ok
                     end
                 end,
-                mnesia:transaction(UpdateF)
+                mnesia:transaction(UpdateF),
+                
+                content_cache:delete(Id)
             end),
             
             Id;
@@ -794,31 +920,77 @@ reply_comment(UserID, CommentID, Content) ->
     end.
 
 get_reply_content(ReplyID) ->
-    Fun = fun() ->
+    Parent = self(),
+    Ref = make_ref(),
+    spawn(fun() ->
+        Result = read_reply_and_fetch_content(ReplyID),
+        Parent ! {Ref, Result}
+    end),
+    receive
+        {Ref, {ok, Content}} -> Content;
+        {Ref, OtherResult} -> OtherResult
+    after 5000 ->
+        {error, timeout}
+    end.
+
+% Function that handles reading the reply and fetching content
+read_reply_and_fetch_content(ReplyID) ->
+    ReadFun = fun() ->
         case mnesia:read({reply, ReplyID}) of
             [] -> 
                 {error, reply_not_found};
             [Reply] ->
-                try
-                    CIDString = Reply#reply.content,
-                    case CIDString of
-                        "uploading..." ->
-                            {ok, "Content is still being uploaded"};
-                        "" ->
-                            {ok, ""};
-                        _ ->
-                            Content = ipfs_content:get_text_content(CIDString),
-                            {ok, Content}
-                    end
-                catch
-                    _:Error -> {error, Error}
-                end
+                {ok, Reply}
         end
     end,
-    case mnesia:transaction(Fun) of
-        {atomic, {ok, Content}} -> Content;
-        {atomic, {error, Reason}} -> {error, Reason};
-        Error -> Error
+    
+    case mnesia:transaction(ReadFun) of
+        {atomic, {error, Reason}} -> 
+            {error, Reason};
+        {atomic, {ok, Reply}} ->
+            Content = Reply#reply.content,
+            fetch_reply_content(Content, ReplyID);
+        Error -> 
+            Error
+    end.
+
+% Function to handle the various ways of fetching content
+fetch_reply_content("uploading...", _ReplyID) ->
+    {ok, "Content is still being uploaded"};
+fetch_reply_content("", _ReplyID) ->
+    {ok, ""};
+fetch_reply_content(Content, ReplyID) when Content =:= ReplyID ->
+    case content_cache:get(ReplyID) of
+        undefined -> {error, content_not_ready};
+        CachedContent -> {ok, CachedContent}
+    end;
+fetch_reply_content(Content, _ReplyID) ->
+    IpfsRef = make_ref(),
+    Parent = self(),
+    IpfsWorker = spawn(fun() ->
+        try
+            Result = ipfs_content:get_text_content(Content),
+            Parent ! {IpfsRef, {ok, Result}}
+        catch
+            _:Error -> 
+                Parent ! {IpfsRef, {error, Error}}
+        end
+    end),
+    
+    MonitorRef = monitor(process, IpfsWorker),
+    
+    receive
+        {IpfsRef, Result} ->
+            demonitor(MonitorRef, [flush]),
+            Result;
+        {'DOWN', MonitorRef, process, IpfsWorker, normal} ->
+            {error, ipfs_missing_result};
+        {'DOWN', MonitorRef, process, IpfsWorker, Reason} ->
+            {error, {ipfs_worker_crashed, Reason}}
+    after 10000 ->
+        exit(IpfsWorker, kill),
+        demonitor(MonitorRef, [flush]),
+        {error, ipfs_timeout}
     end.
 
 

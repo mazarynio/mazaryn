@@ -13,6 +13,7 @@ defmodule Mazaryn.Schema.Comment do
     date_created
     likes
     replies
+    ipns
     data
   )a
 
@@ -28,12 +29,13 @@ defmodule Mazaryn.Schema.Comment do
     field(:date_created, :date)
     field(:likes, :string)
     field(:replies, :string)
+    field(:ipns, :string)
     field(:author, :string)
     field(:post_id, :string)
     field(:data, :map)
   end
 
-  def erl_changeset({:comment, id, user_id, post, author, content, date_created, likes, replies, data}) do
+  def erl_changeset({:comment, id, user_id, post, author, content, date_created, likes, replies, ipns, data}) do
     %__MODULE__{}
     |> change(%{
       id: id,
@@ -44,6 +46,7 @@ defmodule Mazaryn.Schema.Comment do
       date_created: handle_datetime(date_created),
       likes: likes,
       replies: replies,
+      ipns: ipns,
       data: data
     })
   end

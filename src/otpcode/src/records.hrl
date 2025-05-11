@@ -192,6 +192,7 @@
                   post,
                   author,
                   content,
+                  ipns,
                   date_created,
                   likes = [],
                   replies = [],
