@@ -1,6 +1,6 @@
 # Mazaryn
 
-##### Open Source Social Network Empowering Users to Explore Their Talents
+##### Open Source Social Network Empowering Users to Explore Their Talents Based on https://ipfs.tech/
 
 #### Interested in joining the Core team? Connect via email: admin@mazaryn.io
 
