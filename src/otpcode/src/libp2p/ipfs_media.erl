@@ -140,7 +140,7 @@ get_media(CID, Options) ->
 get_media_binary(CID) ->
     get_media_binary(CID, []).
 
-get_media_binary(CID, _Options) ->
+get_media_binary(CID, _Options) -> 
     NormalizedCID = case is_binary(CID) of
         true -> binary_to_list(CID);
         false -> CID

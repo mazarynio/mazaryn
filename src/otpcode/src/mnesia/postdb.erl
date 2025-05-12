@@ -8,11 +8,14 @@
          like_post/2, unlike_post/2, add_comment/3, update_comment/2, like_comment/2, update_comment_likes/2, get_comment_likes/1, get_comment_replies/1, reply_comment/3,
           get_reply/1, get_all_replies/1, delete_reply/1, get_all_comments/1, delete_comment/2, delete_comment_from_mnesia/1, get_likes/1,
          get_single_comment/1, get_media/1, report_post/4, update_activity/2, get_user_id_by_post_id/1, get_post_ipns_by_id/1, get_post_ipfs_by_ipns/1,
-         pin_post/1, get_comment_content/1, get_reply_content/1]).
+         pin_post/1, get_comment_content/1, get_reply_content/1, display_media/1]).
 -export([get_comments/0]).
 
 -include("../records.hrl").
 -include_lib("stdlib/include/qlc.hrl").
+
+-define(DEFAULT_CONCURRENCY, 5).
+-define(DEFAULT_TIMEOUT, 30000).
 
 insert(Author, Content, Media, Hashtag, Link_URL, Emoji, Mention) ->  
     Fun = fun() ->
@@ -290,6 +293,21 @@ get_post_content_by_id(PostID) ->
     end.
 
 get_media(PostID) ->
+    get_media(PostID, ?DEFAULT_CONCURRENCY).
+
+get_media(PostID, MaxConcurrent) when is_integer(MaxConcurrent), MaxConcurrent > 0 ->
+    case get_media_manifest(PostID) of
+        {error, Reason} -> 
+            {error, Reason};
+        ManifestBinary when is_binary(ManifestBinary) -> 
+            case parse_and_retrieve_media_async(ManifestBinary, MaxConcurrent) of
+                {ok, MediaBinary} -> MediaBinary;
+                Error -> Error
+            end;
+        Other -> 
+            Other
+    end.
+get_media_manifest(PostID) ->
     Fun = fun() ->
         case mnesia:read({post, PostID}) of
             [] -> {error, post_not_found};
@@ -306,7 +324,7 @@ get_media(PostID) ->
                     "" -> {ok, ""};
                     _ ->
                         try
-                            ActualMedia = ipfs_media:get_media(Media),
+                            ActualMedia = ipfs_media:get_media_binary(Media),
                             {ok, ActualMedia}
                         catch
                             _:Error -> {error, Error}
@@ -319,6 +337,169 @@ get_media(PostID) ->
         {atomic, {error, Reason}} -> {error, Reason};
         Error -> Error
     end.
+parse_and_retrieve_media_async(ManifestBinary, MaxConcurrent) ->
+    try
+        Manifest = jsx:decode(ManifestBinary, [return_maps]),
+        case maps:get(<<"chunks">>, Manifest, undefined) of
+            undefined -> 
+                {error, invalid_manifest};
+            [] ->
+                {ok, <<>>};
+            Chunks when is_list(Chunks) ->
+                retrieve_chunks_with_limit(Chunks, MaxConcurrent)
+        end
+    catch
+        _:_ -> 
+            {ok, ManifestBinary}
+    end.
+
+retrieve_chunks_with_limit(Chunks, MaxConcurrent) ->
+    Parent = self(),
+    ChunksWithIndex = lists:zip(Chunks, lists:seq(1, length(Chunks))),
+    
+    WorkerPids = start_chunk_workers(min(MaxConcurrent, length(Chunks)), Parent),
+    
+    Queue = queue:from_list(ChunksWithIndex),
+    
+    {InitialQueue, WorkerState} = assign_initial_work(Queue, WorkerPids, #{}),
+    
+    Result = process_chunk_results(InitialQueue, WorkerState, length(Chunks), #{}, ?DEFAULT_TIMEOUT),
+    
+    lists:foreach(fun(Pid) -> exit(Pid, normal) end, WorkerPids),
+    
+    Result.
+
+start_chunk_workers(Count, Parent) ->
+    [spawn_link(fun() -> chunk_worker_loop(Parent) end) || _ <- lists:seq(1, Count)].
+
+chunk_worker_loop(Parent) ->
+    receive
+        {retrieve_chunk, Ref, ChunkCID, Index} ->
+            Result = retrieve_chunk(ChunkCID, Index),
+            Parent ! {chunk_result, Ref, self(), Result},
+            chunk_worker_loop(Parent);
+        stop ->
+            ok
+    end.
+
+retrieve_chunk(ChunkCID, Index) ->
+    case ipfs_media:get_media_binary(ChunkCID) of
+        {error, Reason} ->
+            {error, {chunk_retrieve_error, ChunkCID, Reason}};
+        ChunkBinary when is_binary(ChunkBinary) ->
+            {ok, {Index, ChunkBinary}}
+    end.
+
+assign_initial_work(Queue, [WorkerPid|Workers], WorkerState) ->
+    case queue:out(Queue) of
+        {{value, {ChunkCID, Index}}, NewQueue} ->
+            Ref = make_ref(),
+            WorkerPid ! {retrieve_chunk, Ref, ChunkCID, Index},
+            assign_initial_work(NewQueue, Workers, maps:put(Ref, {WorkerPid, Index}, WorkerState));
+        {empty, Queue} ->
+            {Queue, WorkerState}
+    end;
+assign_initial_work(Queue, [], WorkerState) ->
+    {Queue, WorkerState}.
+process_chunk_results(_Queue, _WorkerState, TotalChunks, Results, _Timeout) when map_size(Results) =:= TotalChunks ->
+    try
+        SortedChunks = lists:sort(
+            fun({IndexA, _}, {IndexB, _}) -> IndexA =< IndexB end,
+            maps:values(Results)
+        ),
+        
+        CombinedBinary = lists:foldl(
+            fun({_, ChunkBinary}, AccBin) ->
+                <<AccBin/binary, ChunkBinary/binary>>
+            end,
+            <<>>,
+            SortedChunks
+        ),
+        {ok, CombinedBinary}
+    catch
+        _:Error ->
+            {error, {combine_error, Error}}
+    end;
+
+process_chunk_results(Queue, WorkerState, TotalChunks, Results, Timeout) ->
+    receive
+        {chunk_result, Ref, WorkerPid, {ok, {Index, ChunkBinary}}} ->
+            NewResults = maps:put(Index, {Index, ChunkBinary}, Results),
+            
+            case queue:out(Queue) of
+                {{value, {NextChunkCID, NextIndex}}, NewQueue} ->
+                    NextRef = make_ref(),
+                    WorkerPid ! {retrieve_chunk, NextRef, NextChunkCID, NextIndex},
+                    NewWorkerState = maps:remove(Ref, WorkerState),
+                    NewWorkerState2 = maps:put(NextRef, {WorkerPid, NextIndex}, NewWorkerState),
+                    process_chunk_results(NewQueue, NewWorkerState2, TotalChunks, NewResults, Timeout);
+                {empty, NewQueue} ->
+                    NewWorkerState = maps:remove(Ref, WorkerState),
+                    process_chunk_results(NewQueue, NewWorkerState, TotalChunks, NewResults, Timeout)
+            end;
+        
+        {chunk_result, _Ref, _WorkerPid, {error, Reason}} ->
+            {error, Reason}
+    after Timeout ->
+        {error, {chunk_timeout, map_size(WorkerState), TotalChunks - map_size(Results)}}
+    end.
+
+display_media(MediaBinary) when is_binary(MediaBinary) ->
+    FileType = determine_file_type(MediaBinary),
+    TempFilePath = generate_temp_filepath(FileType),
+    ok = file:write_file(TempFilePath, MediaBinary),
+    open_file_with_viewer(TempFilePath),
+    
+    {ok, TempFilePath}.
+
+determine_file_type(<<16#FF, 16#D8, 16#FF, _/binary>>) -> 
+    "jpg";
+determine_file_type(<<16#89, $P, $N, $G, 16#0D, 16#0A, 16#1A, 16#0A, _/binary>>) -> 
+    "png";
+determine_file_type(<<$G, $I, $F, $8, _, $a, _/binary>>) -> 
+    "gif";
+determine_file_type(<<"RIFF", _, _, _, _, "WEBP", _/binary>>) -> 
+    "webp";
+determine_file_type(<<16#25, 16#50, 16#44, 16#46, _/binary>>) -> 
+    "pdf";
+determine_file_type(<<16#49, 16#49, 16#2A, 16#00, _/binary>>) -> 
+    "tiff"; 
+determine_file_type(<<16#4D, 16#4D, 16#00, 16#2A, _/binary>>) -> 
+    "tiff"; 
+determine_file_type(_) -> 
+    "bin".
+
+generate_temp_filepath(Extension) ->
+    TempDir = case os:type() of
+        {unix, _} -> "/tmp";
+        {win32, _} -> 
+            case os:getenv("TEMP") of
+                false -> "C:/Windows/Temp";
+                TempPath -> TempPath
+            end
+    end,
+    
+    {{Y, M, D}, {H, Min, S}} = calendar:local_time(),
+    Timestamp = lists:flatten(io_lib:format("~4..0B~2..0B~2..0B_~2..0B~2..0B~2..0B", 
+                                          [Y, M, D, H, Min, S])),
+    Random = integer_to_list(rand:uniform(1000000)),
+    Filename = "media_" ++ Timestamp ++ "_" ++ Random ++ "." ++ Extension,
+    
+    filename:join(TempDir, Filename).
+
+open_file_with_viewer(FilePath) ->
+    Command = case os:type() of
+        {unix, darwin} -> 
+            "open \"" ++ FilePath ++ "\"";
+        {unix, _} -> 
+            "xdg-open \"" ++ FilePath ++ "\"";
+        {win32, _} -> 
+            "start \"\" \"" ++ FilePath ++ "\""
+    end,
+    
+    os:cmd(Command),
+    ok.
+
 
 get_post_ipfs_by_ipns(IPNS) when is_binary(IPNS); is_list(IPNS) ->
     try
