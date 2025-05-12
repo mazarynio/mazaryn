@@ -2,7 +2,7 @@
 -author("Zaryn Technologies").
 -export([insert/2, welcome/2, follow/3, mention/3, chat/3, get_single_notif/1, get_notif_message/1, get_all_notifs/1,
          get_all_notif_ids/1, get_username_by_id/1, delete_notif/1, get_notif_time/1, get_five_latest_notif_ids/1,
-         get_five_latest_notif_messages/1, mark_notif_as_read/1, count_unread/1]).
+         get_five_latest_notif_messages/1, mark_notif_as_read/1, count_unread/1, get_all_unread/1]).
 
 -include("../records.hrl").
 -include_lib("stdlib/include/qlc.hrl").
@@ -226,6 +226,22 @@ count_unread(UserID) ->
                 length(Objects);
             [] ->
                 0
+        end
+    end,
+    case mnesia:transaction(Fun) of
+        {atomic, Res} ->
+            Res;
+        {aborted, Reason} ->
+            {error, {aborted, Reason}}
+    end.
+
+  get_all_unread(UserID) ->
+    Fun = fun() ->
+        case mnesia:match_object(#notif{user_id = UserID, read = false, _ = '_'}) of
+            Objects when is_list(Objects) ->
+                Objects;
+            [] ->
+                {error, not_found}
         end
     end,
     case mnesia:transaction(Fun) of
