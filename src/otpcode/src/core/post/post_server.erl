@@ -19,7 +19,7 @@
          update_comment/2, like_comment/2, get_comment_likes/1, reply_comment/3, delete_reply/1, get_reply/1, get_all_replies/1,
          get_single_comment/1, get_all_comments/1, delete_comment/2, get_likes/1, get_all_likes_for_user/1, get_last_50_likes_for_user/1,
          get_media/1, get_posts/0, get_all_comments_by_user_id/2, get_all_comments_for_user/1, get_last_50_comments_for_user/1,
-         get_all_posts_from_date/4, get_all_posts_from_month/3, get_comment_content/1, get_reply_content/1, pin_post/1]).
+         get_all_posts_from_date/4, get_all_posts_from_month/3, get_comment_content/1, get_reply_content/1, pin_post/1, display_media/1]).
 
 -export([save_post/2, unsave_post/2,
          save_posts/2, unsave_posts/2,
@@ -141,6 +141,9 @@ get_likes(PostID) ->
 
 get_media(Media) ->
     gen_server:call({global, ?MODULE}, {get_media, Media}).
+
+display_media(MediaBinary) ->
+    gen_server:call({global, ?MODULE}, {display_media, MediaBinary}).
 
 get_posts() ->
     gen_server:call({global, ?MODULE}, {get_posts}).
@@ -341,7 +344,11 @@ handle_call({get_likes, PostID}, _From, State) ->
     {reply, Res, State};
 
 handle_call({get_media, Media}, _From, State) ->
-    postdb:get_media(Media),
+    Bin = postdb:get_media(Media),
+    {reply, Bin, State};
+
+handle_call({display_media, MediaBinary}, _From, State) ->
+    postdb:display_media(MediaBinary),
     {reply, ok, State};
 
 handle_call({get_posts}, _From, State) ->

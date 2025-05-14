@@ -32,6 +32,7 @@
                 level, % Includes 20 Levels based on User Activity
                 last_activity,
                 suspend = [],
+                datasets,
                 data = #{} }). 
 
 -record(ipfs, {

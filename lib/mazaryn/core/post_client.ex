@@ -6,9 +6,9 @@ defmodule Core.PostClient do
     iex> Core.PostClient.create("username", "Hello World", "#world", "@friend", "https://mazaryn.io")
     ~c"zKegB4mWRXP3PDVuntpnA"
   """
-  def create(author, content, emoji, media \\ [], hashtag, mention, link_url) do
+  def create(author, content, media \\ [], hashtag, link_url, emoji, mention) do
     content_erlang = String.to_charlist(content)
-    :post_server.insert(author, content_erlang, emoji, media, hashtag, mention, link_url)
+    :post_server.insert(author, content_erlang, media, hashtag, link_url, emoji, mention)
   end
 
   def modify_post(post_id, author, newContent, newEmoji, newMedia, newHashtag, newMention, newLink_url) do
@@ -190,6 +190,14 @@ defmodule Core.PostClient do
 
   def get_save_posts(username) do
     :user_server.get_save_posts(username)
+  end
+
+  def get_media(post_id) do
+    :post_server.get_media(post_id)
+  end
+
+  def display_media(media_binary) do
+    :post_server.display_media(media_binary)
   end
 
   ## Report specific post using MyID, PostID, Type(Spam, Harassment, Violence ..) and Content

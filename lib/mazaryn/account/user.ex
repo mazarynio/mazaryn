@@ -36,6 +36,7 @@ defmodule Account.User do
     level
     last_activity
     suspend
+    datasets
     data
   )a
 
@@ -83,6 +84,7 @@ defmodule Account.User do
     field(:level, :integer)
     field(:last_activity, :utc_datetime)
     field(:suspend, {:array, :string}, default: [])
+    field(:datasets, {:array, :string}, default: [])
     field(:data, :map)
   end
 
@@ -90,7 +92,7 @@ defmodule Account.User do
         {:user, id, p2p_node_address, ipfs_key, ai_user_id, business_id, ads_id, quantum_id, username, password, email,
          address, knode, media, posts, blog_post, notif, following, follower, blocked,
          saved_posts, other_info, private, date_created, date_updated, avatar_url, banner_url,
-         token_id, chat, verified, report, level, last_activity, suspend, data} = _user
+         token_id, chat, verified, report, level, last_activity, suspend, datasets, data} = _user
       ) do
     avatar_url =
       case avatar_url do
@@ -145,6 +147,7 @@ defmodule Account.User do
       level: level,
       last_activity: last_activity,
       suspend: suspend,
+      datasets: datasets,
       data: data
     })
   end
