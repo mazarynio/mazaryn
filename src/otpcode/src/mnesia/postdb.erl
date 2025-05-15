@@ -122,12 +122,14 @@ insert(Author, Content, Media, Hashtag, Link_URL, Emoji, Mention) ->
                                 {ok, #{id := _KeyID, name := _BinID}} = ipfs_client_4:key_gen(Id),
                                 
                                 PublishOptions = [
-                                    {key, Id},
-                                    {resolve, true},         
-                                    {lifetime, "24h0m0s"},   
-                                    {ttl, "2m0s"},           
-                                    {v1compat, true},        
-                                    {ipns_base, "base36"}    
+                                        {key, Id},
+                                        {resolve, false},     
+                                        {lifetime, "168h0m0s"},  
+                                        {ttl, "15m0s"},         
+                                        {v1compat, true},        
+                                        {ipns_base, "base36"},   
+                                        {quieter, true},        
+                                        {'allow-offline', true}   
                                 ],
                                 
                                 case ipfs_client_5:name_publish(

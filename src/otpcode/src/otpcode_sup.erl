@@ -16,7 +16,7 @@
 -define(TABLES, [post, notif, user, blog_post, comment, blog_comment, like, reply, chat, media, report, knode, business, ads, quantum,
  ai_user, ai_post, ai_chat, ai_media, ai_business, ai_ads, p2p_node,
  pin_info, pin_params, pin_history, bulk_operation, scheduled_job, rate_limiter_usage, pin_info_lookup, pin_health, storage_quota, presence,
- dataset]).
+ dataset, competition]).
 
 %% API
 start_link() ->
@@ -313,4 +313,5 @@ table_attributes(pin_info_lookup) -> record_info(fields, pin_info_lookup);
 table_attributes(pin_health) -> record_info(fields, pin_health);
 table_attributes(storage_quota) -> record_info(fields, storage_quota);
 table_attributes(presence) -> record_info(fields, presence);
-table_attributes(dataset) -> record_info(fields, dataset).
+table_attributes(dataset) -> record_info(fields, dataset);
+table_attributes(competition) -> record_info(fields, competition).

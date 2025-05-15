@@ -7,6 +7,7 @@
     business_id = [],          % Optional sponsor ID
     dataset_id = [],           % List of dataset IDs for the competition
     dataset_cids = [],         % List of IPFS CIDs for associated datasets
+    dataset_ipns = [],
     start_time,                % Competition start timestamp
     end_time,                  % Competition end timestamp
     reward_type,               % Reward type (e.g., token, NFT, reputation)

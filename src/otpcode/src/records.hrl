@@ -33,6 +33,7 @@
                 last_activity,
                 suspend = [],
                 datasets,
+                competitions,
                 data = #{} }). 
 
 -record(ipfs, {

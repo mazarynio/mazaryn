@@ -1,4 +1,4 @@
--module(datasetdb).
+-module(datasetdb). 
 -author("Zaryn Technologies").
 -export([insert/4, get_dataset_by_id/1, get_datasets_by_user_id/1, 
          get_dataset_content_by_id/1, update_dataset/2, delete_dataset/1, 
@@ -8,9 +8,6 @@
 -include("../ml_records.hrl").
 -include("../records.hrl").
 -include_lib("stdlib/include/qlc.hrl").
-
--define(DEFAULT_CONCURRENCY, 5).
--define(DEFAULT_TIMEOUT, 30000).
 
 insert(UserID, FileData, Title, Description) ->  
     Fun = fun() ->
@@ -94,13 +91,15 @@ insert(UserID, FileData, Title, Description) ->
                                 {ok, #{id := _KeyID, name := _BinID}} = ipfs_client_4:key_gen(Id),
                                 
                                 PublishOptions = [
-                                    {key, Id},
-                                    {resolve, true},         
-                                    {lifetime, "24h0m0s"},   
-                                    {ttl, "2m0s"},           
-                                    {v1compat, true},        
-                                    {ipns_base, "base36"}    
-                                ],
+                                        {key, Id},
+                                        {resolve, false},     
+                                        {lifetime, "168h0m0s"},  
+                                        {ttl, "15m0s"},         
+                                        {v1compat, true},        
+                                        {ipns_base, "base36"},   
+                                        {quieter, true},        
+                                        {'allow-offline', true}  
+                                    ],
                                 
                                 case ipfs_client_5:name_publish(
                                     "/ipfs/" ++ CIDString,
@@ -223,14 +222,12 @@ delete_dataset(Id) ->
         case mnesia:read({dataset, Id}) of
             [Dataset] ->
                 UserID = Dataset#dataset.creator_id,
-                % Remove dataset from user's list
                 case mnesia:read({user, UserID}) of
                     [User] ->
                         UpdatedDatasetsList = lists:delete(Id, User#user.datasets),
                         mnesia:write(User#user{datasets = UpdatedDatasetsList});
                     [] -> ok
                 end,
-                % Delete the dataset record
                 mnesia:delete({dataset, Id}),
                 ok;
             [] -> {error, not_found}
@@ -304,7 +301,6 @@ get_dataset_ipfs_by_ipns(IPNS) ->
     try
         case ipfs_client_5:name_resolve(IPNS) of
             {ok, #{path := Path}} ->
-                % Strip off /ipfs/ prefix
                 CID = string:substr(Path, 7),
                 {ok, CID};
             {error, Reason} ->

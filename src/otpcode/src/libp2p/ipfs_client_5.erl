@@ -25,7 +25,7 @@ name_publish(IPFSPath, Options) when is_list(IPFSPath); is_binary(IPFSPath) ->
             {ok, Map};
         {Ref, {error, Reason}} ->
             {error, Reason}
-    after 900000 -> 
+    after 1000000 -> 
         {error, ipns_timeout}
     end.
 
