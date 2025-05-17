@@ -728,4 +728,12 @@ defmodule MazarynWeb.HomeLive.PostComponent do
       # Gray color when unliked
       else: "text-gray-500"
   end
+
+  def get_image_url(post_id) do
+    #   post_id
+    # |>  PostClient.get_media()
+    # |> PostClient.display_media()
+    ""
+  end
+
 end

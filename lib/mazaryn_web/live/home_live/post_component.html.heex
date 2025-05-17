@@ -149,6 +149,12 @@
         </span>
       </div>
     <% end %>
+
+    <img
+    alt="nothing"
+      class=""
+      src={get_image_url(@post.id)}
+  />
   <% end %>
 
   <div :if={!Enum.empty?(@post.media)} class="w-full grid grid-cols-4 gap-4">
