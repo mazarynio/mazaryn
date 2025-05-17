@@ -730,10 +730,8 @@ defmodule MazarynWeb.HomeLive.PostComponent do
   end
 
   def get_image_url(post_id) do
-    #   post_id
-    # |>  PostClient.get_media()
-    # |> PostClient.display_media()
-    ""
+     cid = PostClient.get_media_cid(post_id)
+    "http://127.0.0.1:8080/ipfs/" <> cid
   end
 
 end
