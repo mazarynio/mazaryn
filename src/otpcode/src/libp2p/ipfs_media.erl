@@ -34,8 +34,9 @@
 %%% Enhanced Upload Functions %%%
 
 upload_media(FilePath) ->
-    Filename = filename:basename(FilePath),
-    upload_media(FilePath, Filename).
+    [Path | _Rest] = FilePath,
+    Filename = filename:basename(Path),
+    upload_media(Path, Filename).
 
 upload_media(FilePath, CustomFilename) ->
     case filelib:file_size(FilePath) of
@@ -60,6 +61,7 @@ single_upload(FilePath, CustomFilename) ->
         {ok, MediaData} ->
             case ipfs_add_file(CustomFilename, MediaData, ?DEFAULT_ADD_OPTS) of
                 {ok, CID} -> 
+                        io:format("Debugging the CID: ~p~n", [CID]),
                     case ipfs_cluster:pin_to_cluster(CID) of
                         {ok, _} -> binary_to_list(CID);
                         Error -> Error

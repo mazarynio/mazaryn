@@ -56,7 +56,7 @@ defmodule MazarynWeb.HomeLive.CreatePostComponent do
     |> assign(:uploaded_files, [])
     |> allow_upload(:media,
       accept: ~w(.png .jpg .jpeg .mp4 .gif),
-      max_entries: 2,
+      max_entries: 1,
       max_file_size: 20_000_000,
       chunk_size: 64_000 * 3
     )
@@ -68,6 +68,7 @@ defmodule MazarynWeb.HomeLive.CreatePostComponent do
       |> Users.one_by_id()
 
     urls = consume_upload(socket)
+    dbg(urls)
 
     post_params =
       post_params
@@ -174,7 +175,7 @@ defmodule MazarynWeb.HomeLive.CreatePostComponent do
       dest = Path.join(dir, "#{entry.uuid}.#{ext(entry)}")
       File.mkdir_p!(Path.dirname(dest))
       File.cp!(path, dest)
-      {:ok, Routes.static_path(socket, "/uploads/#{Path.basename(dest)}")}
+      {:ok, dest}
     end)
   end
 end
