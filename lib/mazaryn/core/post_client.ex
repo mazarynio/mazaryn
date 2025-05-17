@@ -209,4 +209,25 @@ defmodule Core.PostClient do
     text =  :postdb.get_post_content_by_id(postID)
     Translator.translate_text(text, "en", target)
   end
+
+  def get_media_cid(post_id) do
+    post_id
+    |> :postdb.get_media_cid()
+    |> List.to_string()
+  end
+
+  def display_real_media(media_binary) do
+    base64_image = Base.encode64(media_binary)
+
+    content_type = detect_content_type(media_binary)
+
+    "data:#{content_type};base64,#{base64_image}"
+  end
+
+  defp detect_content_type(<<0xFF, 0xD8, 0xFF, _::binary>>), do: "image/jpeg"
+  defp detect_content_type(<<0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, _::binary>>), do: "image/png"
+  defp detect_content_type(<<0x47, 0x49, 0x46, 0x38, _::binary>>), do: "image/gif"
+  defp detect_content_type(<<0x42, 0x4D, _::binary>>), do: "image/bmp"
+  defp detect_content_type(<<0x52, 0x49, 0x46, 0x46, _::binary>>), do: "image/webp"
+  defp detect_content_type(_), do: "image/jpeg"
 end
