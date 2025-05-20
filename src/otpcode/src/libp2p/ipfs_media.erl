@@ -47,11 +47,11 @@ upload_media(FilePath, CustomFilename) ->
                 {ok, CID} -> binary_to_list(CID);
                 Error -> Error
             end;
-        Size when Size > ?DEFAULT_CHUNK_SIZE ->
-            case sequential_chunked_upload(FilePath, CustomFilename, Size) of
-                {ok, CID} -> binary_to_list(CID);
-                Error -> Error
-            end;
+        % Size when Size > ?DEFAULT_CHUNK_SIZE ->
+        %     case sequential_chunked_upload(FilePath, CustomFilename, Size) of
+        %         {ok, CID} -> binary_to_list(CID);
+        %         Error -> Error
+        %     end;
         _ ->
             single_upload(FilePath, CustomFilename)
     end.

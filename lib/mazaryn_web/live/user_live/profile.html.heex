@@ -63,7 +63,7 @@
         <%= if @user.banner_url do %>
           <div
             class="w-full h-full bg-center bg-cover rounded-b-3xl"
-            style={"background-image: url('#{@user.banner_url}');"}
+            style={"background-image: url('http://127.0.0.1:8080/ipfs/#{@user.banner_url}');"}
           >
           </div>
         <% else %>

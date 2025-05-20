@@ -74,8 +74,6 @@ defmodule MazarynWeb.UserLive.EditProfileComponent do
       [] ->
         {:noreply, socket}
     end
-
-    {:noreply, socket}
   end
 
   def handle_event("validate-banner", _params, socket) do
@@ -98,10 +96,18 @@ defmodule MazarynWeb.UserLive.EditProfileComponent do
   def handle_event("save-banner-pic", _params, socket) do
     current_user = socket.assigns.current_user
 
-    uploads(:banner_url, socket)
-    |> case do
+    case uploads(:banner_url, socket) do
       [upload_url] ->
-        Account.Users.insert_banner(current_user.id, upload_url)
+
+        banner_cid =
+          upload_url
+          |> PostClient.upload_media()
+          |> List.to_string()
+
+          dbg(banner_cid)
+
+        Account.Users.insert_banner(current_user.id, banner_cid)
+        {:noreply, socket}
 
       [] ->
         {:noreply, socket}
