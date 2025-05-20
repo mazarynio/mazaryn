@@ -92,7 +92,9 @@ config :mazaryn, Mazaryn.Gettext,
     "id"
   ]
 
-config :mazaryn, :media, uploads_dir: Path.join([File.cwd!(), "priv", "static", "uploads"])
+config :mazaryn, :media,
+  uploads_dir: Path.join([File.cwd!(), "priv", "static", "uploads"]),
+  ipfs_gateway: "http://127.0.0.1:8080/ipfs/"
 
 config :mazaryn, MazarynWeb.Endpoint,
   static_paths: ~w(assets fonts images favicon.ico robots.txt uploads)

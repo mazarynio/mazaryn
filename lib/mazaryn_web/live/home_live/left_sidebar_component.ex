@@ -181,8 +181,8 @@ defmodule MazarynWeb.HomeLive.LeftSidebarComponent do
                 <%= live_redirect to: Routes.live_path(@socket, MazarynWeb.UserLive.Profile,@locale,  @user.username), replace: false, class: "group flex items-center text-base text-[#60616D] font-semibold" do %>
                   <%= if @user.avatar_url do %>
                     <img
-                      src={"#{@user.avatar_url}"}
-                      class="h-5 w-5 mr-3.5 rounded-full ring-blue-500 group-hover:ring"
+                      src={Path.join(Mazaryn.config([:media, :ipfs_gateway]), @user.avatar_url)}
+                      class="h-8 w-8 mr-3.5 object-cover rounded-full ring-blue-500 group-hover:ring"
                     />
                   <% else %>
                     <img

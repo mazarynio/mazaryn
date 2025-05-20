@@ -4,6 +4,7 @@ defmodule MazarynWeb.UserLive.EditProfileComponent do
   import MazarynWeb.Live.Helper
 
   alias Phoenix.LiveView.JS
+  alias Core.PostClient
 
   @impl true
   def mount(socket) do
@@ -61,7 +62,13 @@ defmodule MazarynWeb.UserLive.EditProfileComponent do
     # save the file to database
     case uploads(:avatar_url, socket) do
       [upload_url] ->
-        Account.Users.insert_avatar_url(current_user.id, upload_url)
+
+        avatar_cid =
+          upload_url
+          |> PostClient.upload_media()
+          |> List.to_string()
+
+        Account.Users.insert_avatar(current_user.id, avatar_cid)
         {:noreply, socket}
 
       [] ->
@@ -108,13 +115,15 @@ defmodule MazarynWeb.UserLive.EditProfileComponent do
     end)
   end
 
-  defp uploads(upload_url, socket) do
-    consume_uploaded_entries(socket, upload_url, fn %{path: path}, entry ->
-      dest =
-        Path.join(Application.app_dir(:mazaryn, "priv/static/uploads"), Path.basename(path))
+  defp uploads(name, socket) do
+    consume_uploaded_entries(socket, name, fn %{path: path}, entry ->
+      dir = Mazaryn.config([:media, :uploads_dir])
 
+      dest = Path.join(dir, "#{entry.uuid}.#{ext(entry)}")
+      File.mkdir_p!(Path.dirname(dest))
       File.cp!(path, dest)
-      {:ok, ~p"/uploads/#{Path.basename(dest)}"}
+
+      {:ok, dest}
     end)
   end
 

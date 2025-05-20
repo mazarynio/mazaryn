@@ -1,7 +1,6 @@
 defmodule MazarynWeb.HomeLive.PostComponent do
   use MazarynWeb, :live_component
 
-  alias MazarynWeb.Live.Helper
   import MazarynWeb.Live.Helper
   alias Account.Users
   alias Core.UserClient
@@ -498,9 +497,17 @@ defmodule MazarynWeb.HomeLive.PostComponent do
   end
 
   def get_user_avatar(author) do
-    case Users.one_by_username(author) do
-      {:ok, user} -> Helper.handle_avatar(user)
-      _ -> "/images/default-user.svg"
+    case Account.Users.one_by_username(author) do
+      {:ok, user} ->
+        avatar_cid = user.avatar_url
+
+        if avatar_cid do
+          Mazaryn.config([:media, :ipfs_gateway]) <> avatar_cid
+        else
+          ~p"/images/default-user.svg"
+        end
+
+      {:error, _changeset} -> ""
     end
   end
 
@@ -731,7 +738,7 @@ defmodule MazarynWeb.HomeLive.PostComponent do
 
   def get_image_url(post_id) do
      cid = PostClient.get_media_cid(post_id)
-    "http://127.0.0.1:8080/ipfs/" <> cid
+     Mazaryn.config([:media, :ipfs_gateway]) <> cid
   end
 
 end

@@ -16,7 +16,14 @@ defmodule MazarynWeb.Live.Helper do
     """
   end
 
-  def handle_avatar(user), do: user.avatar_url || ~p"/images/default-user.svg"
+  def handle_avatar(user) do
+    avatar_url = user.avatar_url
+    if avatar_url do
+      Mazaryn.config([:media, :ipfs_gateway]) <> avatar_url
+    else
+       ~p"/images/default-user.svg"
+    end
+  end
 
   def is_disabled(changeset) do
     if Ecto.Changeset.get_field(changeset, :form_disabled) == true do
@@ -26,6 +33,7 @@ defmodule MazarynWeb.Live.Helper do
     end
   end
 
+  @spec showing_error(any(), Ecto.Changeset.t(), any()) :: <<_::_*32>>
   def showing_error(f, changeset, name) do
     error = error_visible(f, changeset, name)
     hint = hint_visible(f, changeset, name)

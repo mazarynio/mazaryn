@@ -27,8 +27,6 @@ defmodule MazarynWeb.UserLive.Profile do
     post_changeset = Post.changeset(%Post{})
 
     {:ok, user} = get_user_by_username(username)
-    IO.inspect(user, label: "user--->")
-    # {:ok, user} = get_user_by_username(current_user.username)
 
     user_changeset = User.changeset(user)
 

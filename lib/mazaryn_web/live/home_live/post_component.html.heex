@@ -143,7 +143,7 @@
 
      <div>
       <img
-        alt="Post Image"
+        alt=""
         class="w-[96%] mx-auto mt-6 mb-4"
         src={get_image_url(@post.id)}
         />
@@ -289,7 +289,7 @@
       >
         <div class="flex items-start space-x-3 w-full">
           <img
-            src={get_user_avatar(comment.id |> to_charlist())}
+            src={get_user_avatar(comment.author)}
             class="h-8 w-8 rounded-full shrink-0"
           />
 

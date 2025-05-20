@@ -94,14 +94,16 @@
           <div class="w-full lg:w-2/12 lg:order-1 flex justify-center inline-flex">
             <div class="relative">
               <%= if @user.avatar_url do %>
-                <img
-                  alt="..."
-                  src={"#{@user.avatar_url}"}
-                  class="shadow-xl rounded-full max-w-[90px] h-auto align-middle border-none absolute -m-16 -ml-20 lg:-ml-20 ring-8 ring-gray-100"
-                />
+                <div class="w-[90px] h-[90px] md:w-[120px] md:h-[120px]">
+                  <img
+                    alt="Profile Picture"
+                    src={Path.join(Mazaryn.config([:media, :ipfs_gateway]), @user.avatar_url)}
+                    class="shadow-xl rounded-full object-cover w-full h-full align-middle border-none absolute -m-16 -ml-20 lg:-ml-0 ring-8 ring-gray-100"
+                  />
+                </div>
               <% else %>
                 <img
-                  alt="Default user"
+                  alt="Default User"
                   src={Routes.static_path(@socket, "/images/default-user.svg")}
                   class="rounded-full max-w-[90px] bg-gray-100 h-auto align-middle border-none absolute -m-16 -ml-20 lg:-ml-20 ring-8 ring-gray-100"
                 />

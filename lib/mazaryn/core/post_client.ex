@@ -68,6 +68,9 @@ defmodule Core.PostClient do
     :post_server.update_post(postId, newContent)
   end
 
+  def upload_media(filepath) do
+    :ipfs_media.upload_media([filepath])
+  end
   ## Remove post permanently
   def delete_post(id) do
     :post_server.delete_post(id)
