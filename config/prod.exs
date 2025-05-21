@@ -11,6 +11,10 @@ import Config
 # before starting your production server.
 config :mazaryn, MazarynWeb.Endpoint, cache_static_manifest: "priv/static/cache_manifest.json"
 
+
+config :mazaryn, MazarynWeb.Endpoint,
+  http: [ip: {127, 0, 0, 1}, port: 4000],  # Explicit localhost binding
+  url: [host: "mazaryn.io", port: 443]
 # Configures Swoosh API Client
 
 ##----------------------------------------------------------------------------

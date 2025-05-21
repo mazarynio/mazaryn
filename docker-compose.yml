@@ -1,0 +1,37 @@
+version: '3'
+
+services:
+  db:
+    image: postgres:14-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: mazaryn_prod
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: always
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      - db
+    environment:
+      DATABASE_URL: postgres://postgres:postgres@db/mazaryn_prod
+      SECRET_KEY_BASE: ${SECRET_KEY_BASE}
+      PHX_HOST: ${PHX_HOST:-localhost}
+      PORT: 4000
+      POOL_SIZE: 10
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      MAILJET_API_KEY: ${MAILJET_API_KEY}
+      MAILJET_SECRET_KEY: ${MAILJET_SECRET_KEY}
+    ports:
+      - "4000:4000"
+    restart: always
+    volumes:
+      - uploads:/app/bin/uploads
+
+volumes:
+  postgres_data:
+  uploads:
