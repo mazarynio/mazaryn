@@ -3,13 +3,9 @@
     "deploy": "esbuild js/app.js --bundle --minify --target=es2017 --outdir=../priv/static/assets"
   },
   "dependencies": {
-<<<<<<< HEAD
-    "alpinejs": "^3.12.2",
+    "alpinejs": "^3.14.9",
     "phoenix": "^1.7.21",
     "phoenix_html": "^4.2.1",
     "phoenix_live_view": "^1.0.10"
-=======
-    "alpinejs": "^3.14.9"
->>>>>>> main
   }
 }
