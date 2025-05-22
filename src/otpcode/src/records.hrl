@@ -194,8 +194,8 @@
                   post,
                   author,
                   content,
-                  ipns,
                   date_created,
+                  ipns = [],
                   likes = [],
                   replies = [],
                   data = #{} }).

@@ -239,7 +239,6 @@ defmodule MazarynWeb.HomeLive.PostComponent do
   end
 
   def handle_event("save-comment", %{"comment" => comment_params} = _params, socket) do
-    IO.inspect(comment_params, label: "the comments that is beeing added")
 
     %Comment{}
     |> Comment.changeset(comment_params)
@@ -250,7 +249,7 @@ defmodule MazarynWeb.HomeLive.PostComponent do
       |> to_charlist
       |> rebuild_post()
 
-    comments = Posts.get_comment_by_post_id(post.id)
+      comments = Posts.get_comment_by_post_id(post.id)
 
     {:noreply,
      socket

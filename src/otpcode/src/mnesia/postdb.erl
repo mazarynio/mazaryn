@@ -774,7 +774,6 @@ add_comment(Author, PostID, Content) ->
         end,
         
         ok = content_cache:set(Id, ContentToCache),
-        PlaceholderContent = Id,
         
         case mnesia:read({post, PostID}) of
             [] -> 
@@ -785,7 +784,7 @@ add_comment(Author, PostID, Content) ->
                     user_id = UserID,
                     post = PostID,
                     author = Author,
-                    content = PlaceholderContent,
+                    content = ContentToCache,
                     date_created = Date
                 },
                 mnesia:write(Comment),
@@ -821,7 +820,7 @@ add_comment(Author, PostID, Content) ->
                     case mnesia:read({comment, Id}) of
                         [CommentToUpdate] ->
                             UpdatedComment = CommentToUpdate#comment{
-                                content = CIDString
+                                content = ContentToUse
                             },
                             mnesia:write(UpdatedComment);
                         [] -> ok

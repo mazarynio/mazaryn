@@ -68,7 +68,6 @@ defmodule MazarynWeb.HomeLive.CreatePostComponent do
       |> Users.one_by_id()
 
     urls = consume_upload(socket)
-    dbg(urls)
 
     post_params =
       post_params

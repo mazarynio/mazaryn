@@ -214,8 +214,15 @@ defmodule Core.PostClient do
   end
 
   def get_media_cid(post_id) do
-    post_id
-    |> :postdb.get_media_cid()
+    cid = :postdb.get_media_cid(post_id)
+
+    cid = if is_tuple(cid) do
+      elem(cid, 1)
+    else
+      cid
+    end
+
+    cid
     |> List.to_string()
   end
 
