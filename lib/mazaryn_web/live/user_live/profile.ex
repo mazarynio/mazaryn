@@ -22,36 +22,61 @@ defmodule MazarynWeb.UserLive.Profile do
         %{"session_uuid" => session_uuid} = _session,
         socket
       ) do
-    {:ok, current_user} = Users.get_by_session_uuid(session_uuid)
+    case Users.get_by_session_uuid(session_uuid) do
+      {:ok, current_user} ->
+        post_changeset = Post.changeset(%Post{})
 
-    post_changeset = Post.changeset(%Post{})
+        case get_user_by_username(username) do
+          {:ok, user} ->
+            user_changeset = User.changeset(user)
+            privacy = if user.private, do: "private", else: "public"
 
-    {:ok, user} = get_user_by_username(username)
+            socket =
+              socket
+              |> assign(session_uuid: session_uuid)
+              |> assign(post_changeset: post_changeset)
+              |> assign(user_changeset: user_changeset)
+              |> assign(user: user)
+              |> assign(current_user: current_user)
+              |> handle_assigns(current_user.id, username)
+              |> assign(edit_action: false)
+              |> assign(follower_action: false)
+              |> assign(follows_action: false)
+              |> assign(form: to_form(user_changeset))
+              |> assign(privacy: privacy)
+              |> assign(report_user_action: false)
+              |> assign(verified_action: false)
+              |> assign(admins: ["arvand"])
+              |> assign(results: [])
+              |> assign(followers: [])
 
-    user_changeset = User.changeset(user)
+            {:ok, socket}
 
-    privacy = if user.private, do: "private", else: "public"
+          {:error, _reason} ->
+            {:ok,
+             socket
+             |> put_flash(:error, "User not found")
+             |> push_redirect(to: Routes.page_path(socket, :index, "en"))}
 
-    socket =
-      socket
-      |> assign(session_uuid: session_uuid)
-      |> assign(post_changeset: post_changeset)
-      |> assign(user_changeset: user_changeset)
-      |> assign(user: user)
-      |> assign(current_user: current_user)
-      |> handle_assigns(current_user.id, username)
-      |> assign(edit_action: false)
-      |> assign(follower_action: false)
-      |> assign(follows_action: false)
-      |> assign(form: to_form(user_changeset))
-      |> assign(privacy: privacy)
-      |> assign(report_user_action: false)
-      |> assign(verified_action: false)
-      |> assign(admins: ["arvand"])
-      |> assign(results: [])
-      |> assign(followers: [])
+          :username_not_exist ->
+            {:ok,
+             socket
+             |> put_flash(:error, "User not found")
+             |> push_redirect(to: Routes.page_path(socket, :index, "en"))}
 
-    {:ok, socket}
+          :ok ->
+            {:ok,
+             socket
+             |> put_flash(:error, "User not found")
+             |> push_redirect(to: Routes.page_path(socket, :index, "en"))}
+        end
+
+      {:error, _reason} ->
+        {:ok,
+         socket
+         |> put_flash(:error, "Session not found")
+         |> push_redirect(to: Routes.page_path(socket, :index, "en"))}
+    end
   end
 
   def mount(
@@ -59,21 +84,28 @@ defmodule MazarynWeb.UserLive.Profile do
         %{"session_uuid" => session_uuid} = _session,
         socket
       ) do
-    {:ok, current_user} = Users.get_by_session_uuid(session_uuid)
+    case Users.get_by_session_uuid(session_uuid) do
+      {:ok, current_user} ->
+        post_changeset = Post.changeset(%Post{})
+        user_changeset = User.changeset(%User{})
 
-    post_changeset = Post.changeset(%Post{})
-    user_changeset = User.changeset(%User{})
+        socket =
+          socket
+          |> assign(session_uuid: session_uuid)
+          |> assign(posts: PostClient.get_posts_by_author(current_user.username))
+          |> assign(post_changeset: post_changeset)
+          |> assign(user_changeset: user_changeset)
+          |> assign(current_user: current_user)
+          |> assign(results: [])
 
-    socket =
-      socket
-      |> assign(session_uuid: session_uuid)
-      |> assign(posts: PostClient.get_posts_by_author(current_user.username))
-      |> assign(post_changeset: post_changeset)
-      |> assign(user_changeset: user_changeset)
-      |> assign(current_user: current_user)
-      |> assign(results: [])
+        {:ok, socket}
 
-    {:ok, socket}
+      {:error, _reason} ->
+        {:ok,
+         socket
+         |> put_flash(:error, "Session not found")
+         |> push_redirect(to: Routes.page_path(socket, :index, "en"))}
+    end
   end
 
   @impl true
@@ -92,20 +124,38 @@ defmodule MazarynWeb.UserLive.Profile do
 
     posts = Mazaryn.Posts.get_posts_by_author(username)
 
-    # {:ok, user} = get_user_by_username(current_user.username)
-    {:ok, user} = get_user_by_username(username)
+    case get_user_by_username(username) do
+      {:ok, user} ->
+        socket =
+          socket
+          |> assign(post_changeset: post_changeset)
+          |> assign(user_changeset: user_changeset)
+          |> assign(user: user)
+          |> assign(search: nil)
+          |> assign(current_user: current_user)
+          |> assign(posts: posts)
+          |> handle_assigns(current_user.id, user.id)
 
-    socket =
-      socket
-      |> assign(post_changeset: post_changeset)
-      |> assign(user_changeset: user_changeset)
-      |> assign(user: user)
-      |> assign(search: nil)
-      |> assign(current_user: current_user)
-      |> assign(posts: posts)
-      |> handle_assigns(current_user.id, user.id)
+        {:noreply, socket}
 
-    {:noreply, socket}
+      {:error, _reason} ->
+        {:noreply,
+         socket
+         |> put_flash(:error, "User not found")
+         |> push_redirect(to: Routes.page_path(socket, :index, "en"))}
+
+      :username_not_exist ->
+        {:noreply,
+         socket
+         |> put_flash(:error, "User not found")
+         |> push_redirect(to: Routes.page_path(socket, :index, "en"))}
+
+      :ok ->
+        {:noreply,
+         socket
+         |> put_flash(:error, "User not found")
+         |> push_redirect(to: Routes.page_path(socket, :index, "en"))}
+    end
   end
 
   def handle_params(_params, _uri, socket) do
@@ -242,7 +292,7 @@ defmodule MazarynWeb.UserLive.Profile do
     {:noreply,
      socket
      |> put_flash(:info, "successfully deleted")
-     |> push_redirect(to: Routes.page_path(socket, :index))}
+     |> push_redirect(to: Routes.page_path(socket, :index, "en"))}
   end
 
   def handle_event("privacy", %{"user" => %{"privacy" => privacy}}, socket) do
@@ -252,11 +302,20 @@ defmodule MazarynWeb.UserLive.Profile do
       UserClient.make_public(socket.assigns.current_user.id)
     end
 
-    {:ok, user} = get_user_by_username(socket.assigns.current_user.username)
+    case get_user_by_username(socket.assigns.current_user.username) do
+      {:ok, user} ->
+        user_changeset = User.changeset(user)
+        {:noreply, socket |> assign(form: to_form(user_changeset)) |> assign(privacy: privacy)}
 
-    user_changeset = User.changeset(user)
+      {:error, _reason} ->
+        {:noreply, socket |> put_flash(:error, "Error updating privacy")}
 
-    {:noreply, socket |> assign(form: to_form(user_changeset)) |> assign(privacy: privacy)}
+      :username_not_exist ->
+        {:noreply, socket |> put_flash(:error, "User not found")}
+
+      :ok ->
+        {:noreply, socket |> put_flash(:error, "User not found")}
+    end
   end
 
   def handle_event(
@@ -269,7 +328,7 @@ defmodule MazarynWeb.UserLive.Profile do
     {:noreply,
      socket
      |> put_flash(:info, "Update successful")
-     |> push_redirect(to: Routes.live_path(socket, __MODULE__, socket.assings.locale, username))}
+     |> push_redirect(to: Routes.live_path(socket, __MODULE__, socket.assigns.locale, username))}
   end
 
   def handle_event(
@@ -282,7 +341,7 @@ defmodule MazarynWeb.UserLive.Profile do
     {:noreply,
      socket
      |> put_flash(:info, "Update successful")
-     |> push_redirect(to: Routes.live_path(socket, __MODULE__, socket.assings.locale, username))}
+     |> push_redirect(to: Routes.live_path(socket, __MODULE__, socket.assigns.locale, username))}
   end
 
   defp handle_assigns(socket, user_id, id) do

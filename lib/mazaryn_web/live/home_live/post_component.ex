@@ -12,52 +12,62 @@ defmodule MazarynWeb.HomeLive.PostComponent do
 
   @impl Phoenix.LiveComponent
   def update_many(list_of_assigns) do
-    changeset = Comment.changeset(%Comment{})
-    update_comment_changeset = Comment.changeset(%Comment{})
-    update_post_changeset = Post.changeset(%Post{})
+  changeset = Comment.changeset(%Comment{})
+  update_comment_changeset = Comment.changeset(%Comment{})
+  update_post_changeset = Post.changeset(%Post{})
 
-    Enum.map(list_of_assigns, fn {assigns, socket} ->
-      comments = Posts.get_comment_by_post_id(assigns.post.id)
+  Enum.map(list_of_assigns, fn {assigns, socket} ->
+    comments = Posts.get_comment_by_post_id(assigns.post.id)
 
-      comments_with_like_events =
-        Enum.map(comments, fn comment ->
-          Map.put(
-            comment,
-            :like_comment_event,
-            like_comment_event(assigns.current_user.id, comment.id)
-          )
-        end)
+    likes_count = get_likes_count(assigns.post.id)
 
-      comments_with_replies =
-        comments_with_like_events
-        |> Enum.map(fn comment ->
-          replies = :postdb.get_comment_replies(comment.id |> to_charlist)
-          list_replies =
-            replies
-            |> Enum.map(&(&1 |> Mazaryn.Schema.Reply.erl_changeset() |> Mazaryn.Schema.Reply.build() |> elem(1)))
+    comments_with_like_events =
+      Enum.map(comments, fn comment ->
+        Map.put(
+          comment,
+          :like_comment_event,
+          like_comment_event(assigns.current_user.id, comment.id)
+        )
+      end)
 
-          Map.put(comment, :replies, list_replies)
-        end)
+    comments_with_replies =
+      comments_with_like_events
+      |> Enum.map(fn comment ->
+        replies = :postdb.get_comment_replies(comment.id |> to_charlist)
+        list_replies =
+          replies
+          |> Enum.map(&(&1 |> Mazaryn.Schema.Reply.erl_changeset() |> Mazaryn.Schema.Reply.build() |> elem(1)))
 
-      ipns_id = get_post_ipns(assigns.post.id)
+        Map.put(comment, :replies, list_replies)
+      end)
 
-      assigns =
-        assigns
-        |> Map.put(:follow_event, follow_event(assigns.current_user.id, assigns.post.author))
-        |> Map.put(:follow_text, follow_text(assigns.current_user.id, assigns.post.author))
-        |> Map.put(:like_icon, like_icon(assigns.current_user.id, assigns.post.id))
-        |> Map.put(:like_event, like_event(assigns.current_user.id, assigns.post.id))
-        |> Map.put(:changeset, changeset)
-        |> Map.put(:update_comment_changeset, update_comment_changeset)
-        |> Map.put(:comments, comments_with_replies)
-        |> Map.put(:report_action, false)
-        |> Map.put(:like_action, false)
-        |> Map.put(:is_liked, false)
-        |> Map.put(:update_post_changeset, update_post_changeset)
-        |> Map.put(:ipns_id, ipns_id)
+    ipns_id = get_post_ipns(assigns.post.id)
 
-      assign(socket, assigns)
-    end)
+    assigns =
+      assigns
+      |> Map.put(:follow_event, follow_event(assigns.current_user.id, assigns.post.author))
+      |> Map.put(:follow_text, follow_text(assigns.current_user.id, assigns.post.author))
+      |> Map.put(:like_icon, like_icon(assigns.current_user.id, assigns.post.id))
+      |> Map.put(:like_event, like_event(assigns.current_user.id, assigns.post.id))
+      |> Map.put(:changeset, changeset)
+      |> Map.put(:update_comment_changeset, update_comment_changeset)
+      |> Map.put(:comments, comments_with_replies)
+      |> Map.put(:report_action, false)
+      |> Map.put(:like_action, false)
+      |> Map.put(:is_liked, false)
+      |> Map.put(:update_post_changeset, update_post_changeset)
+      |> Map.put(:ipns_id, ipns_id)
+      |> Map.put(:likes_count, likes_count)
+
+    assign(socket, assigns)
+  end)
+end
+
+  defp get_likes_count(post_id) do
+    post_id
+    |> to_charlist
+    |> PostClient.get_likes()
+    |> Enum.count()
   end
 
   @impl true
@@ -419,44 +429,47 @@ defmodule MazarynWeb.HomeLive.PostComponent do
   end
 
   def handle_event("like_post", %{"post-id" => post_id}, socket) do
-    post_id = post_id |> to_charlist
-    user_id = socket.assigns.current_user.id
-    PostClient.like_post(user_id, post_id)
+  post_id = post_id |> to_charlist
+  user_id = socket.assigns.current_user.id
+  PostClient.like_post(user_id, post_id)
 
-    post = rebuild_post(post_id)
+  post = rebuild_post(post_id)
+  likes_count = get_likes_count(post_id)
 
-    Posts.get_likes_by_post_id(post_id)
+  Posts.get_likes_by_post_id(post_id)
 
-    {:noreply,
-     socket
-     |> assign(:post, post)
-     |> assign(:like_icon, like_icon(user_id, post_id))
-     |> assign(:like_event, like_event(user_id, post_id))
-     |> assign(:is_liked, true)}
-  end
+  {:noreply,
+   socket
+   |> assign(:post, post)
+   |> assign(:like_icon, like_icon(user_id, post_id))
+   |> assign(:like_event, like_event(user_id, post_id))
+   |> assign(:likes_count, likes_count)
+   |> assign(:is_liked, true)}
+end
 
-  def handle_event("unlike_post", %{"post-id" => post_id}, socket) do
-    post_id = post_id |> to_charlist
-    user_id = socket.assigns.current_user.id
+def handle_event("unlike_post", %{"post-id" => post_id}, socket) do
+  post_id = post_id |> to_charlist
+  user_id = socket.assigns.current_user.id
 
-    like =
-      post_id
-      |> PostClient.get_likes()
-      |> Enum.map(&(&1 |> Home.Like.erl_changeset() |> Home.Like.build() |> elem(1)))
-      |> Enum.filter(&(&1.user_id == user_id))
-      |> hd()
+  like =
+    post_id
+    |> PostClient.get_likes()
+    |> Enum.map(&(&1 |> Home.Like.erl_changeset() |> Home.Like.build() |> elem(1)))
+    |> Enum.filter(&(&1.user_id == user_id))
+    |> hd()
 
-    PostClient.unlike_post(like.id, post_id)
+  PostClient.unlike_post(like.id, post_id)
 
-    post =
-      rebuild_post(post_id)
+  post = rebuild_post(post_id)
+  likes_count = get_likes_count(post_id)
 
-    {:noreply,
-     socket
-     |> assign(:post, post)
-     |> assign(:like_icon, like_icon(user_id, post_id))
-     |> assign(:like_event, like_event(user_id, post_id))}
-  end
+  {:noreply,
+   socket
+   |> assign(:post, post)
+   |> assign(:like_icon, like_icon(user_id, post_id))
+   |> assign(:like_event, like_event(user_id, post_id))
+   |> assign(:likes_count, likes_count)}
+end
 
   def handle_event("show_likes", %{"post-id" => post_id}, socket) do
     post_id = post_id |> to_charlist

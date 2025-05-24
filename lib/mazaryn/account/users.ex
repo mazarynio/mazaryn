@@ -52,17 +52,17 @@ defmodule Account.Users do
 
   @spec one_by_username(keyword) :: %User{} | nil
   def one_by_username(username) do
-    case Core.UserClient.get_user(username) do
-      :not_exist ->
-        Logger.error("[Users] Failed to find #{username}")
-        :ok
+  case Core.UserClient.get_user(username) do
+    :not_exist ->
+      Logger.error("[Users] Failed to find #{username}")
+      {:error, :not_found}
 
-      erl_user ->
-        erl_user
-        |> User.erl_changeset()
-        |> User.build()
-    end
+    erl_user ->
+      erl_user
+      |> User.erl_changeset()
+      |> User.build()
   end
+end
 
   def one_by_email(email) do
     case Core.UserClient.get_user_by_email(email) do
