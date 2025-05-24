@@ -25,7 +25,13 @@
    go build -o myapp
    ./myapp
 
-4. **Clone and Setup**:
+4. **Setup Rust Server**:
+   ```bash
+   cd mazaryn/src/rustcode
+   cargo build
+   cargo run 
+
+5. **Clone and Setup**:
    ```bash
    git clone https://github.com/mazarynio/mazaryn
    cd mazaryn
