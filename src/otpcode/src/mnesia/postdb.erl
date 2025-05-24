@@ -17,78 +17,101 @@
 -define(DEFAULT_CONCURRENCY, 5).
 -define(DEFAULT_TIMEOUT, 30000).
 
-insert(Author, Content, Media, Hashtag, Link_URL, Emoji, Mention) ->  
+insert(Author, Content, Media, Hashtag, Link_URL, Emoji, Mention) ->
     Fun = fun() ->
         Id = nanoid:gen(),
         Date = calendar:universal_time(),
         AI_Post_ID = ai_postdb:insert(Id),
         UserID = userdb:get_user_id(Author),
         [User] = mnesia:index_read(user, Author, #user.username),
-        
+
         ContentToCache = if
             is_binary(Content) -> binary_to_list(Content);
             true -> Content
         end,
-        
+
         ok = content_cache:set(Id, ContentToCache),
-        
-        MediaForCache = if 
+
+        MediaForCache = if
             Media =:= undefined -> undefined;
             Media =:= "" -> "";
             true -> Media
         end,
         ok = content_cache:set({media, Id}, MediaForCache),
-        
-        PlaceholderContent = Id, 
-        PlaceholderMedia = {media, Id}, 
-        
+
+        PlaceholderContent = Id,
+        PlaceholderMedia = {media, Id},
+
         mnesia:write(#post{
             id = Id,
             ai_post_id = AI_Post_ID,
             user_id = UserID,
-            content = PlaceholderContent, 
+            content = PlaceholderContent,
             emoji = Emoji,
             author = Author,
-            media = PlaceholderMedia, 
+            media = PlaceholderMedia,
             hashtag = Hashtag,
             mention = Mention,
             link_url = Link_URL,
-            comments = [], 
+            comments = [],
             likes = [],
             date_created = Date
         }),
         Posts = User#user.post,
         mnesia:write(User#user{post = [Id | Posts]}),
         update_activity(Author, Date),
-        
+
         {ok, Id}
     end,
-  
+
     case mnesia:transaction(Fun) of
-        {atomic, {ok, Id}} -> 
+        {atomic, {ok, Id}} ->
             spawn(fun() ->
                 ContentToUse = content_cache:get(Id),
                 CIDString = case ContentToUse of
-                    "" -> ""; 
+                    "" -> "";
                     _ -> ipfs_content:upload_text(ContentToUse)
                 end,
-                
+
                 MediaToUse = content_cache:get({media, Id}),
                 MediaCID = case MediaToUse of
                     undefined -> undefined;
                     "" -> "";
-                    _ -> 
+                    _ ->
                         case ipfs_media:upload_media(MediaToUse) of
-                            {error, Reason} -> 
+                            {error, Reason} ->
                                 error_logger:error_msg("Failed to upload media: ~p", [Reason]),
                                 undefined;
-                            CID when is_list(CID) -> CID;
-                            CID when is_binary(CID) -> binary_to_list(CID);
+                            MediaResult when is_list(MediaResult) -> MediaResult;
+                            MediaResult when is_binary(MediaResult) -> binary_to_list(MediaResult);
                             Other ->
                                 error_logger:error_msg("Unexpected result from upload_media: ~p", [Other]),
                                 undefined
                         end
                 end,
+
+                IPFSGateway = "https://ipfs.io/ipfs/",
+                CompositeObject = [
+                    {<<"content">>, case CIDString of
+                        "" -> <<"">>;
+                        _ when is_list(CIDString) -> list_to_binary(IPFSGateway ++ CIDString);
+                        _ when is_binary(CIDString) -> list_to_binary(IPFSGateway ++ binary_to_list(CIDString));
+                        _ -> error_logger:error_msg("Invalid CIDString for post ~p: ~p", [Id, CIDString]), <<"">>
+                    end},
+                    {<<"media">>, case MediaCID of
+                        undefined -> null;
+                        "" -> <<"">>;
+                        _ when is_list(MediaCID) -> list_to_binary(IPFSGateway ++ MediaCID);
+                        _ when _is_binary(MediaCID) -> list_to_binary(IPFSGateway ++ binary_to_list(MediaCID));
+                        _ -> error_logger:error_msg("Invalid MediaCID for post ~p: ~p", [Id, MediaCID]), null
+                    end}
+                ],
+                JsonData = jsx:encode(CompositeObject),
+                CompositeCID = case JsonData of
+                    <<>> -> "";
+                    _ -> ipfs_content:upload_text(binary_to_list(JsonData))
+                end,
+
                 UpdateF = fun() ->
                     case mnesia:read({post, Id}) of
                         [Post] ->
@@ -101,62 +124,58 @@ insert(Author, Content, Media, Hashtag, Link_URL, Emoji, Mention) ->
                     end
                 end,
                 mnesia:transaction(UpdateF),
-                
+
                 content_cache:delete(Id),
                 content_cache:delete({media, Id}),
-                
+
                 spawn(fun() ->
                     timer:sleep(15000),
-                    
-                    PostCID = case CIDString of
-                        "" -> MediaCID; 
-                        _ -> CIDString  
-                    end,  
-                    case PostCID of
-                        undefined -> 
-                            error_logger:info_msg("No content to publish to IPNS for post ~p", [Id]);
-                        "" -> 
-                            error_logger:info_msg("Empty content, skipping IPNS publish for post ~p", [Id]);
+
+                    case CompositeCID of
+                        undefined ->
+                            error_logger:info_msg("No composite content to publish to IPNS for post ~p", [Id]);
+                        "" ->
+                            error_logger:info_msg("Empty composite content, skipping IPNS publish for post ~p", [Id]);
                         _ ->
                             try
                                 {ok, #{id := _KeyID, name := _BinID}} = ipfs_client_4:key_gen(Id),
-                                
+
                                 PublishOptions = [
-                                        {key, Id},
-                                        {resolve, false},     
-                                        {lifetime, "168h0m0s"},  
-                                        {ttl, "15m0s"},         
-                                        {v1compat, true},        
-                                        {ipns_base, "base36"},   
-                                        {quieter, true},        
-                                        {'allow-offline', true}   
+                                    {key, Id},
+                                    {resolve, false},
+                                    {lifetime, "168h0m0s"},
+                                    {ttl, "15m0s"},
+                                    {v1compat, true},
+                                    {ipns_base, "base36"},
+                                    {quieter, true},
+                                    {'allow-offline', true}
                                 ],
-                                
+
                                 case ipfs_client_5:name_publish(
-                                    "/ipfs/" ++ PostCID,
+                                    "/ipfs/" ++ CompositeCID,
                                     PublishOptions
                                 ) of
                                     {ok, #{name := IPNSKey}} ->
                                         update_post_ipns(Id, IPNSKey);
                                     {error, _Reason} ->
                                         error_logger:error_msg("IPNS publish failed for post ~p: ~p", [Id, _Reason]),
-                                        err 
+                                        err
                                 end
                             catch
                                 Exception:Error:Stacktrace ->
                                     error_logger:error_msg(
-                                        "Exception while publishing to IPNS for post ~p: ~p:~p~n~p", 
+                                        "Exception while publishing to IPNS for post ~p: ~p:~p~n~p",
                                         [Id, Exception, Error, Stacktrace]
                                     )
                             end
                     end
                 end)
             end),
-            
+
             Id;
-        {atomic, {error, Reason}} -> 
+        {atomic, {error, Reason}} ->
             {error, Reason};
-        {aborted, Reason} -> 
+        {aborted, Reason} ->
             {error, {transaction_failed, Reason}}
     end.
 

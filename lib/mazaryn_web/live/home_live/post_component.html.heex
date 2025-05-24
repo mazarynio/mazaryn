@@ -150,13 +150,18 @@
     </div>
     
     <%= if @ipns_id do %>
-      <div class="mt-2 flex items-center">
-        <span class="text-gray-500 text-sm mr-2">IPNS:</span>
-        <span class="text-[#edaa4c] text-sm font-mono bg-gray-90 px-2 py-1 rounded overflow-auto max-w-full break-all">
-          <%= @ipns_id %>
-        </span>
-      </div>
-    <% end %>
+    <div class="mt-2 flex items-center">
+      <span class="text-gray-500 text-sm mr-2">IPNS:</span>
+      <a 
+        href={"https://ipfs.io/ipns/#{@ipns_id}"} 
+        target="_blank" 
+        rel="noopener noreferrer"
+        class="text-purple-600 text-sm font-mono bg-gray-90 px-2 py-1 rounded overflow-auto max-w-full break-all hover:underline"
+      >
+        https://ipfs.io/ipns/<%= @ipns_id %>
+      </a>
+    </div>
+  <% end %>
 
   <% end %>
 
