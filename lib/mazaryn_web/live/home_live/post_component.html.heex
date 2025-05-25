@@ -150,7 +150,7 @@
       </.form>
     </div>
   <% else %>
-    <p class="text-black block text-base mt-3">
+    <p class="text-black block text-base mt-2">
       <%= raw(@post |> activate_content_characters(@socket)) %>
       <span class="text-[#4385F5] text-sm"><%= Enum.join(@post.profile_tags, " ") %></span>
     </p>
@@ -158,7 +158,7 @@
      <div>
       <img
         alt=""
-        class="w-[96%] mx-auto mt-6 mb-4"
+        class="w-[96%] mx-auto mt-3 mb-2"
         src={get_image_url(@post.id)}
         />
     </div>
@@ -174,7 +174,7 @@
     <%!-- <% end %> --%>
   </div>
 
-  <div class="text-gray-500 flex mt-3 pt-10 pb-5">
+  <div class="text-gray-500 flex mt-4 pt-4 pb-5">
     <div class="flex items-start mr-3">
   <%= Heroicons.icon(@like_icon,
     type: "solid",
@@ -234,7 +234,7 @@
       View <%= @comments |> Enum.count() %> comments
     </span>
   </div>
-  <div class="border-[#E5E5E5] border border-b-0 mt-7 mb-3.5"></div>
+  <div class="border-[#E5E5E5] border border-b-0 mt-4 mb-3.5"></div>
   <div class="flex justify-between align-center items-center py-5">
     <.form
       :let={f}

@@ -91,61 +91,69 @@
 
       <div class="relative flex flex-col w-full my-8 custom-box-shadow rounded-[20px]">
         <div class="relative flex flex-wrap justify-center columns-3">
-          <div class="w-full lg:w-2/12 lg:order-1 flex justify-center inline-flex">
-            <div class="relative">
+          <div class="w-full lg:w-2/12 lg:order-1 flex justify-start inline-flex">
+            <div class="relative flex items-start">
               <%= if @user.avatar_url do %>
-                <div class="w-[90px] h-[90px] md:w-[120px] md:h-[120px]">
+                <div class="w-[120px] h-[120px] md:w-[140px] md:h-[140px] flex-shrink-0 -ml-4">
                   <img
                     alt="Profile Picture"
                     src={Path.join(Mazaryn.config([:media, :ipfs_gateway]), @user.avatar_url)}
-                    class="shadow-xl rounded-full object-cover w-full h-full align-middle border-none absolute -m-16 -ml-20 lg:-ml-0 ring-8 ring-gray-100"
+                    class="shadow-xl rounded-full object-cover w-full h-full align-middle border-none -mt-16 ring-8 ring-gray-100"
                   />
                 </div>
               <% else %>
-                <img
-                  alt="Default User"
-                  src={Routes.static_path(@socket, "/images/default-user.svg")}
-                  class="rounded-full max-w-[90px] bg-gray-100 h-auto align-middle border-none absolute -m-16 -ml-20 lg:-ml-20 ring-8 ring-gray-100"
-                />
+                <div class="w-[120px] h-[120px] md:w-[140px] md:h-[140px] flex-shrink-0 -ml-4">
+                  <img
+                    alt="Default User"
+                    src={Routes.static_path(@socket, "/images/default-user.svg")}
+                    class="rounded-full w-full h-full bg-gray-100 align-middle border-none -mt-16 ring-8 ring-gray-100 object-cover"
+                  />
+                </div>
               <% end %>
-            </div>
 
-            <div class="ml-24 mb-2 text-left">
-              <div class="block mb-0.5">
-                <div class="grid grid-flow-col auto-cols-max">
-                  <div class="relative">
-                    <span class="text-xl leading-5 text-black font-semibold tracking-wide align-baseline">
-                      <%= @user.username %>
-                    </span>
-                  </div>
-                  <%= if @user.verified  do %>
+              <div class="ml-6 mt-0 text-left flex-1 min-w-0">
+                <div class="block mb-0.5">
+                  <div class="flex items-center gap-2">
                     <div class="relative">
-                      <span>
-                        <img
-                          alt="verified user"
-                          src={Routes.static_path(@socket, "/images/verified.png")}
-                          class="rounded-full align-middle border-none max-h-6 max-w-6"
-                        />
+                      <span class="text-xl leading-5 text-black font-semibold tracking-wide align-baseline">
+                        <%= @user.username %>
                       </span>
                     </div>
-                  <% end %>
+                    <%= if @user.verified do %>
+                      <div class="relative flex-shrink-0">
+                        <span>
+                          <img
+                            alt="verified user"
+                            src={Routes.static_path(@socket, "/images/verified.png")}
+                            class="rounded-full align-middle border-none max-h-6 max-w-6"
+                          />
+                        </span>
+                      </div>
+                    <% end %>
+                  </div>
+                  <a class="text-base text-black align-text-bottom">
+                    @<%= @user.username %>
+                  </a>
                 </div>
 
-                <a class="ml-1.5 text-base text-black align-text-bottom">
-                  @<%= @user.username %>
-                </a>
+                <div class="ml-0 mt-2 w-full max-w-md lg:max-w-lg">
+                 <div class="p-4">
+                  <p class="text-base text-gray-700 leading-relaxed">
+                    <%= @user.other_info["biography"] || "N/A" %>
+                  </p>
+                 </div>
+                </div>
               </div>
             </div>
           </div>
 
-          <div class="w-full lg:w-6/12 pl-80 lg:order-2 lg:text-right lg:self-center px-40 ">
+          <div class="w-full lg:w-6/12 pl-80 lg:order-2 lg:text-right lg:self-center px-40">
             <div class="inline-flex mt-4">
               <%= if @user.username == @current_user.username do %>
                 <button
                   phx-click={JS.push("open_modal") |> open_modal()}
                   phx-value-action="edit"
-                  )
-                  class="py-2.5 px-5	text-base text-black focus:outline-none bg-[#FAFAFA] rounded-[10px] hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200"
+                  class="py-2.5 px-5 text-base text-black focus:outline-none bg-[#FAFAFA] rounded-[10px] hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200"
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -255,14 +263,7 @@
               <% end %>
             </div>
           </div>
-
           <div class="relative w-full lg:w-6/12 lg:order-2 pr-0 mt-3.5"></div>
-        </div>
-
-        <div class="ml-44 w-96">
-          <a class="ml-1.5 text-base text-black align-text-bottom">
-            <%= @user.other_info["biography"] || "N/A" %>
-          </a>
         </div>
 
         <div class="flex mt-3 ml-16 mr-8 mb-5">
@@ -287,7 +288,6 @@
                 class="text-black cursor-pointer"
                 phx-click={JS.push("open_modal") |> open_modal()}
                 phx-value-action="follows"
-                )
               >
                 Follows
               </a>
@@ -303,7 +303,6 @@
                 class="text-black cursor-pointer"
                 phx-click={JS.push("open_modal") |> open_modal()}
                 phx-value-action="follower"
-                )
               >
                 Followers
               </a>
