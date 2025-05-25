@@ -36,8 +36,8 @@ start_link() ->
   ?LOG_NOTICE("Post server has been started - ~p", [self()]),
   gen_server:start_link({global, ?MODULE}, ?MODULE, [], []).
 
-insert(Author, Content, Emoji, Media, Hashtag, Mention, Link_URL) ->
-  gen_server:call({global, ?MODULE}, {insert, Author, Content, Emoji, Media, Hashtag, Mention, Link_URL}).
+insert(Author, Content, Media, Hashtag, Link_URL, Emoji, Mention) ->
+  gen_server:call({global, ?MODULE}, {insert, Author, Content, Media, Hashtag, Link_URL, Emoji, Mention}).
 
 modify_post(PostID, Author, NewContent, NewEmoji, NewMedia, NewHashtag, NewMention, NewLink_URL) ->
   gen_server:call({global, ?MODULE},
@@ -103,7 +103,6 @@ get_all_comments_for_user(UserID) ->
 get_last_50_comments_for_user(UserID) ->
     gen_server:call({global, ?MODULE}, {get_last_50_comments_for_user, UserID}).
     
-
 reply_comment(UserID, CommentID, Content) ->
     gen_server:call({global, ?MODULE}, {reply_comment, UserID, CommentID, Content}).
 
@@ -184,9 +183,9 @@ init([]) ->
     {ok, []}.
 
 
-handle_call({insert, Author, Content, Emoji, Media, Hashtag, Mention, Link_URL}, From, State) ->
+handle_call({insert, Author, Content, Media, Hashtag, Link_URL, Emoji, Mention}, From, State) ->
     spawn(fun() ->
-        Id = postdb:insert(Author, Content, Emoji, Media, Hashtag, Mention, Link_URL),
+        Id = postdb:insert(Author, Content, Media, Hashtag, Link_URL, Emoji, Mention),
         gen_server:reply(From, Id)
     end),
     {noreply, State};

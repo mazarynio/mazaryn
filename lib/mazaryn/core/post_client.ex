@@ -93,17 +93,34 @@ defmodule Core.PostClient do
 
   ## Add comment to post using My Username, PostID and Comment's Content
   def add_comment(author, postID, content) do
-    :post_server.add_comment(author, postID, content)
-  end
+  postID_charlist =
+    case postID do
+      id when is_binary(id) -> String.to_charlist(id)
+      id when is_list(id) -> id
+    end
 
-  ## Update comment using CommentID and New Content
+  case :post_server.add_comment(author, postID_charlist, content) do
+    comment_id when is_list(comment_id) -> List.to_string(comment_id)
+    error -> error
+  end
+end
+
   def update_comment(commentID, newContent) do
     :post_server.update_comment(commentID, newContent)
   end
 
   def get_comment_content(comment_id) do
-    :post_server.get_comment_content(comment_id)
+  comment_id_charlist =
+    case comment_id do
+      id when is_binary(id) -> String.to_charlist(id)
+      id when is_list(id) -> id
+    end
+
+  case :post_server.get_comment_content(comment_id_charlist) do
+    content when is_list(content) -> List.to_string(content)
+    error -> error
   end
+end
 
   def like_comment(userID, commentID) do
     :post_server.like_comment(userID, commentID)
@@ -121,8 +138,25 @@ defmodule Core.PostClient do
     :post_server.get_reply(replyID)
   end
 
-  def get_reply_content(reply_id) do
+  def get_reply_content(reply_id) when is_binary(reply_id) do
+    reply_id
+    |> String.to_charlist()
+    |> :post_server.get_reply_content()
+    |> handle_reply_content()
+  end
+
+  def get_reply_content(reply_id) when is_list(reply_id) do
     :post_server.get_reply_content(reply_id)
+    |> handle_reply_content()
+  end
+
+  defp handle_reply_content(result) do
+    case result do
+      {:error, reason} -> {:error, reason}
+      charlist when is_list(charlist) -> List.to_string(charlist)
+      string when is_binary(string) -> string
+      other -> other
+    end
   end
 
   def delete_reply(replyID) do

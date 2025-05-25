@@ -248,7 +248,7 @@
       <div class="relative top-2.5 w-full ml-4 text-sm leading-tight flex items-center">
         <%= hidden_input(f, :post_id, value: @post.id, id: "comment[post-#{@post.id}]") %>
         <%= hidden_input(f, :author,
-          value: @current_user.username,
+          value: @current_user.id,
           id: "comment[author-#{Ecto.UUID.generate()}]"
         ) %>
         <div class="flex-grow mr-2">
@@ -302,10 +302,10 @@
             <div class="flex items-center space-x-2 mb-1">
               <div class="grid grid-flow-col auto-cols-max items-center">
                 <p class="text-sm font-semibold mr-2">
-                  <%= comment.author %>
+                  <%= Account.Users.get_user_by_id(comment.author).username %>
                 </p>
 
-                <%= if verified?(comment.author) do %>
+                <%= if Account.Users.get_user_by_id(comment.author).verified do %>
                   <img
                     alt="verified user"
                     src={Routes.static_path(@socket, "/images/verified.png")}

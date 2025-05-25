@@ -31,6 +31,7 @@ defmodule Mazaryn.Posts do
           _changeset
       ) do
 
+    author = author |> to_charlist
     post_id = post_id |> to_charlist
 
     case Core.PostClient.add_comment(author, post_id, content) do
@@ -81,7 +82,7 @@ defmodule Mazaryn.Posts do
   # comments
   def build_comments_structure(id) do
     case Core.PostClient.get_single_comment(id) do
-      {:ok, erl_comment} ->
+      erl_comment ->
         erl_comment
         |> Comment.erl_changeset()
         |> Comment.build()
@@ -91,11 +92,14 @@ defmodule Mazaryn.Posts do
   # fetch comments by post id
   def get_comment_by_post_id(post_id) do
     case :postdb.get_comments() do
-      comment_ids when is_list(comment_ids) ->
-        comment_ids
-        |> Enum.map(fn comment_id ->
-           {:ok, comment} = build_comments_structure(comment_id)
-           comment
+      comments when is_list(comments) ->
+        comments
+        |> Enum.map(fn comment ->
+          {:ok, comment} =
+            comment
+            |> build_comments_structure()
+
+          comment
         end)
         |> Enum.filter(&(&1.post_id == post_id))
     end

@@ -12,56 +12,71 @@ defmodule MazarynWeb.HomeLive.PostComponent do
 
   @impl Phoenix.LiveComponent
   def update_many(list_of_assigns) do
-  changeset = Comment.changeset(%Comment{})
-  update_comment_changeset = Comment.changeset(%Comment{})
-  update_post_changeset = Post.changeset(%Post{})
+    changeset = Comment.changeset(%Comment{})
+    update_comment_changeset = Comment.changeset(%Comment{})
+    update_post_changeset = Post.changeset(%Post{})
 
-  Enum.map(list_of_assigns, fn {assigns, socket} ->
-    comments = Posts.get_comment_by_post_id(assigns.post.id)
+    Enum.map(list_of_assigns, fn {assigns, socket} ->
+      comments = Posts.get_comment_by_post_id(assigns.post.id)
 
-    likes_count = get_likes_count(assigns.post.id)
+      likes_count = get_likes_count(assigns.post.id)
 
-    comments_with_like_events =
-      Enum.map(comments, fn comment ->
-        Map.put(
-          comment,
-          :like_comment_event,
-          like_comment_event(assigns.current_user.id, comment.id)
-        )
-      end)
+      comments_with_ipfs_content =
+        Enum.map(comments, fn comment ->
+          actual_content = fetch_comment_content_from_ipfs(comment.id)
+          Map.put(comment, :content, actual_content)
+        end)
 
-    comments_with_replies =
-      comments_with_like_events
-      |> Enum.map(fn comment ->
-        replies = :postdb.get_comment_replies(comment.id |> to_charlist)
-        list_replies =
-          replies
-          |> Enum.map(&(&1 |> Mazaryn.Schema.Reply.erl_changeset() |> Mazaryn.Schema.Reply.build() |> elem(1)))
+      comments_with_like_events =
+        Enum.map(comments_with_ipfs_content, fn comment ->
+          Map.put(
+            comment,
+            :like_comment_event,
+            like_comment_event(assigns.current_user.id, comment.id)
+          )
+        end)
 
-        Map.put(comment, :replies, list_replies)
-      end)
+      comments_with_replies =
+        comments_with_like_events
+        |> Enum.map(fn comment ->
+          replies = :postdb.get_comment_replies(comment.id |> to_charlist)
 
-    ipns_id = get_post_ipns(assigns.post.id)
+          list_replies =
+            replies
+            |> Enum.map(fn reply ->
+              {:ok, built_reply} = reply
+              |> Mazaryn.Schema.Reply.erl_changeset()
+              |> Mazaryn.Schema.Reply.build()
 
-    assigns =
-      assigns
-      |> Map.put(:follow_event, follow_event(assigns.current_user.id, assigns.post.author))
-      |> Map.put(:follow_text, follow_text(assigns.current_user.id, assigns.post.author))
-      |> Map.put(:like_icon, like_icon(assigns.current_user.id, assigns.post.id))
-      |> Map.put(:like_event, like_event(assigns.current_user.id, assigns.post.id))
-      |> Map.put(:changeset, changeset)
-      |> Map.put(:update_comment_changeset, update_comment_changeset)
-      |> Map.put(:comments, comments_with_replies)
-      |> Map.put(:report_action, false)
-      |> Map.put(:like_action, false)
-      |> Map.put(:is_liked, false)
-      |> Map.put(:update_post_changeset, update_post_changeset)
-      |> Map.put(:ipns_id, ipns_id)
-      |> Map.put(:likes_count, likes_count)
+              actual_content = fetch_reply_content_from_ipfs(built_reply.id)
 
-    assign(socket, assigns)
-  end)
-end
+              Map.put(built_reply, :content, actual_content)
+            end)
+
+          Map.put(comment, :replies, list_replies)
+        end)
+
+      ipns_id = get_post_ipns(assigns.post.id)
+
+      assigns =
+        assigns
+        |> Map.put(:follow_event, follow_event(assigns.current_user.id, assigns.post.author))
+        |> Map.put(:follow_text, follow_text(assigns.current_user.id, assigns.post.author))
+        |> Map.put(:like_icon, like_icon(assigns.current_user.id, assigns.post.id))
+        |> Map.put(:like_event, like_event(assigns.current_user.id, assigns.post.id))
+        |> Map.put(:changeset, changeset)
+        |> Map.put(:update_comment_changeset, update_comment_changeset)
+        |> Map.put(:comments, comments_with_replies)
+        |> Map.put(:report_action, false)
+        |> Map.put(:like_action, false)
+        |> Map.put(:is_liked, false)
+        |> Map.put(:update_post_changeset, update_post_changeset)
+        |> Map.put(:ipns_id, ipns_id)
+        |> Map.put(:likes_count, likes_count)
+
+      assign(socket, assigns)
+    end)
+  end
 
   defp get_likes_count(post_id) do
     post_id
@@ -105,6 +120,42 @@ end
     end
   end
 
+  defp fetch_comment_content_from_ipfs(comment_id) do
+    try do
+      case Core.PostClient.get_comment_content(comment_id) do
+        content when is_binary(content) and content != "" -> content
+        content when is_list(content) ->
+          case List.to_string(content) do
+            "" -> "Content unavailable"
+            str -> str
+          end
+        _ -> "Content unavailable"
+      end
+    catch
+      type, reason ->
+        IO.puts("Error fetching comment content for #{inspect(comment_id)}: #{inspect({type, reason})}")
+        "Content unavailable"
+    end
+  end
+
+  defp fetch_reply_content_from_ipfs(reply_id) do
+    try do
+      case Core.PostClient.get_reply_content(reply_id) do
+        content when is_binary(content) and content != "" -> content
+        content when is_list(content) ->
+          case List.to_string(content) do
+            "" -> "Content unavailable"
+            str -> str
+          end
+        _ -> "Content unavailable"
+      end
+    catch
+      type, reason ->
+        IO.puts("Error fetching reply content for #{inspect(reply_id)}: #{inspect({type, reason})}")
+        "Content unavailable"
+    end
+  end
+
   @impl true
   def handle_event(
         "delete-post",
@@ -136,10 +187,16 @@ end
 
     comments = Posts.get_comment_by_post_id(post.id)
 
+    comments_with_ipfs_content =
+      Enum.map(comments, fn comment ->
+        actual_content = fetch_comment_content_from_ipfs(comment.id)
+        Map.put(comment, :content, actual_content)
+      end)
+
     {:noreply,
      socket
      |> assign(:post, post)
-     |> assign(:comments, comments)}
+     |> assign(:comments, comments_with_ipfs_content)}
   end
 
   def handle_event("validate-update-comment", %{"comment" => comment_params} = _params, socket) do
@@ -232,10 +289,16 @@ end
     IO.inspect(post, label: "post-->")
     comments = Posts.get_comment_by_post_id(post.id)
 
+    comments_with_ipfs_content =
+      Enum.map(comments, fn comment ->
+        actual_content = fetch_comment_content_from_ipfs(comment.id)
+        Map.put(comment, :content, actual_content)
+      end)
+
     {:noreply,
      socket
      |> assign(:post, post)
-     |> assign(:comments, comments)
+     |> assign(:comments, comments_with_ipfs_content)
      |> assign(:update_comment_changeset, Comment.changeset(%Comment{}))}
   end
 
@@ -249,24 +312,59 @@ end
   end
 
   def handle_event("save-comment", %{"comment" => comment_params} = _params, socket) do
+  # Create the comment
+  %Comment{}
+  |> Comment.changeset(comment_params)
+  |> Posts.create_comment()
 
-    %Comment{}
-    |> Comment.changeset(comment_params)
-    |> Posts.create_comment()
+  post =
+    comment_params["post_id"]
+    |> to_charlist
+    |> rebuild_post()
 
-    post =
-      comment_params["post_id"]
-      |> to_charlist
-      |> rebuild_post()
+  comments = Posts.get_comment_by_post_id(post.id)
 
-      comments = Posts.get_comment_by_post_id(post.id)
+  comments_with_ipfs_content =
+    Enum.map(comments, fn comment ->
+      actual_content = fetch_comment_content_from_ipfs(comment.id)
+      Map.put(comment, :content, actual_content)
+    end)
 
-    {:noreply,
-     socket
-     |> assign(:post, post)
-     |> assign(:comments, comments)
-     |> assign(:changeset, Comment.changeset(%Comment{}))}
-  end
+  comments_with_like_events =
+    Enum.map(comments_with_ipfs_content, fn comment ->
+      Map.put(
+        comment,
+        :like_comment_event,
+        like_comment_event(socket.assigns.current_user.id, comment.id)
+      )
+    end)
+
+  comments_with_replies =
+    comments_with_like_events
+    |> Enum.map(fn comment ->
+      replies = :postdb.get_comment_replies(comment.id |> to_charlist)
+
+      list_replies =
+        replies
+        |> Enum.map(fn reply ->
+          {:ok, built_reply} = reply
+          |> Mazaryn.Schema.Reply.erl_changeset()
+          |> Mazaryn.Schema.Reply.build()
+
+          actual_content = fetch_reply_content_from_ipfs(built_reply.id)
+
+          Map.put(built_reply, :content, actual_content)
+        end)
+
+      Map.put(comment, :replies, list_replies)
+    end)
+
+  {:noreply,
+   socket
+   |> assign(:post, post)
+   |> assign(:comments, comments_with_replies)
+   |> assign(:changeset, Comment.changeset(%Comment{}))}
+end
 
   def handle_event("reply_comment_content", %{"comment" => comment_params} = _params, socket) do
     %{
@@ -285,21 +383,32 @@ end
 
     list_replies =
       replies
-      |> Enum.map(&(&1 |> Mazaryn.Schema.Reply.erl_changeset() |> Mazaryn.Schema.Reply.build() |> elem(1)))
+      |> Enum.map(fn reply ->
+        {:ok, built_reply} = reply
+        |> Mazaryn.Schema.Reply.erl_changeset()
+        |> Mazaryn.Schema.Reply.build()
 
-    comments_with_replies =
+        actual_content = fetch_reply_content_from_ipfs(built_reply.id)
+
+        Map.put(built_reply, :content, actual_content)
+      end)
+
+    comments_with_ipfs_content =
       Enum.map(comments, fn comment ->
+        actual_content = fetch_comment_content_from_ipfs(comment.id)
+        updated_comment = Map.put(comment, :content, actual_content)
+
         if comment.id == comment_id |> to_charlist do
-          Map.put(comment, :replies, list_replies)
+          Map.put(updated_comment, :replies, list_replies)
         else
-          comment
+          updated_comment
         end
       end)
 
     {:noreply,
      socket
      |> assign(:post, post)
-     |> assign(:comments, comments_with_replies)}
+     |> assign(:comments, comments_with_ipfs_content)}
   end
 
   def handle_event(
@@ -316,10 +425,16 @@ end
 
     comments = Posts.get_comment_by_post_id(post.id)
 
+    comments_with_ipfs_content =
+      Enum.map(comments, fn comment ->
+        actual_content = fetch_comment_content_from_ipfs(comment.id)
+        Map.put(comment, :content, actual_content)
+      end)
+
     {:noreply,
      socket
      |> assign(:post, post)
-     |> assign(:comments, comments)}
+     |> assign(:comments, comments_with_ipfs_content)}
   end
 
   def handle_event("reply_comment", %{"comment-id" => comment_id}, socket) do
@@ -331,16 +446,21 @@ end
   end
 
   def handle_event("show-comments", %{"id" => post_id}, socket) do
-    # get the comments by post_id
     Phoenix.LiveView.JS.toggle(to: "test")
 
     comments =
       Posts.get_comment_by_post_id(post_id)
       |> IO.inspect()
 
+    comments_with_ipfs_content =
+      Enum.map(comments, fn comment ->
+        actual_content = fetch_comment_content_from_ipfs(comment.id)
+        Map.put(comment, :content, actual_content)
+      end)
+
     {:noreply,
      socket
-     |> assign(:comments, comments)}
+     |> assign(:comments, comments_with_ipfs_content)}
   end
 
   def handle_event("like-comment", %{"comment-id" => comment_id}, socket) do
@@ -353,13 +473,12 @@ end
 
     updated_comments = Posts.get_comment_by_post_id(post_id)
 
-    comments_with_like_events =
+    comments_with_ipfs_and_likes =
       Enum.map(updated_comments, fn comment ->
-        Map.put(
-          comment,
-          :like_comment_event,
-          like_comment_event(user_id, comment.id)
-        )
+        actual_content = fetch_comment_content_from_ipfs(comment.id)
+        comment
+        |> Map.put(:content, actual_content)
+        |> Map.put(:like_comment_event, like_comment_event(user_id, comment.id))
       end)
 
     post = rebuild_post(post_id)
@@ -367,7 +486,7 @@ end
     {:noreply,
      socket
      |> assign(:post, post)
-     |> assign(:comments, comments_with_like_events)}
+     |> assign(:comments, comments_with_ipfs_and_likes)}
   end
 
   def handle_event("unlike-comment", %{"comment-id" => comment_id}, socket) do
@@ -401,19 +520,22 @@ end
 
     updated_comments = Posts.get_comment_by_post_id(post_id)
 
-    comments_with_like_events =
+    comments_with_ipfs_and_likes =
       Enum.map(updated_comments, fn comment ->
+        actual_content = fetch_comment_content_from_ipfs(comment.id)
+        updated_comment = Map.put(comment, :content, actual_content)
+
         if comment.id == comment_id |> to_charlist do
-          Map.put(comment, :like_comment_event, "like-comment")
+          Map.put(updated_comment, :like_comment_event, "like-comment")
         else
-          comment
+          updated_comment
         end
       end)
 
     {:noreply,
      socket
      |> assign(:post, post)
-     |> assign(:comments, comments_with_like_events)}
+     |> assign(:comments, comments_with_ipfs_and_likes)}
   end
 
   def handle_event("follow_user", %{"username" => username}, socket) do
@@ -429,47 +551,47 @@ end
   end
 
   def handle_event("like_post", %{"post-id" => post_id}, socket) do
-  post_id = post_id |> to_charlist
-  user_id = socket.assigns.current_user.id
-  PostClient.like_post(user_id, post_id)
+    post_id = post_id |> to_charlist
+    user_id = socket.assigns.current_user.id
+    PostClient.like_post(user_id, post_id)
 
-  post = rebuild_post(post_id)
-  likes_count = get_likes_count(post_id)
+    post = rebuild_post(post_id)
+    likes_count = get_likes_count(post_id)
 
-  Posts.get_likes_by_post_id(post_id)
+    Posts.get_likes_by_post_id(post_id)
 
-  {:noreply,
-   socket
-   |> assign(:post, post)
-   |> assign(:like_icon, like_icon(user_id, post_id))
-   |> assign(:like_event, like_event(user_id, post_id))
-   |> assign(:likes_count, likes_count)
-   |> assign(:is_liked, true)}
-end
+    {:noreply,
+     socket
+     |> assign(:post, post)
+     |> assign(:like_icon, like_icon(user_id, post_id))
+     |> assign(:like_event, like_event(user_id, post_id))
+     |> assign(:likes_count, likes_count)
+     |> assign(:is_liked, true)}
+  end
 
-def handle_event("unlike_post", %{"post-id" => post_id}, socket) do
-  post_id = post_id |> to_charlist
-  user_id = socket.assigns.current_user.id
+  def handle_event("unlike_post", %{"post-id" => post_id}, socket) do
+    post_id = post_id |> to_charlist
+    user_id = socket.assigns.current_user.id
 
-  like =
-    post_id
-    |> PostClient.get_likes()
-    |> Enum.map(&(&1 |> Home.Like.erl_changeset() |> Home.Like.build() |> elem(1)))
-    |> Enum.filter(&(&1.user_id == user_id))
-    |> hd()
+    like =
+      post_id
+      |> PostClient.get_likes()
+      |> Enum.map(&(&1 |> Home.Like.erl_changeset() |> Home.Like.build() |> elem(1)))
+      |> Enum.filter(&(&1.user_id == user_id))
+      |> hd()
 
-  PostClient.unlike_post(like.id, post_id)
+    PostClient.unlike_post(like.id, post_id)
 
-  post = rebuild_post(post_id)
-  likes_count = get_likes_count(post_id)
+    post = rebuild_post(post_id)
+    likes_count = get_likes_count(post_id)
 
-  {:noreply,
-   socket
-   |> assign(:post, post)
-   |> assign(:like_icon, like_icon(user_id, post_id))
-   |> assign(:like_event, like_event(user_id, post_id))
-   |> assign(:likes_count, likes_count)}
-end
+    {:noreply,
+     socket
+     |> assign(:post, post)
+     |> assign(:like_icon, like_icon(user_id, post_id))
+     |> assign(:like_event, like_event(user_id, post_id))
+     |> assign(:likes_count, likes_count)}
+  end
 
   def handle_event("show_likes", %{"post-id" => post_id}, socket) do
     post_id = post_id |> to_charlist

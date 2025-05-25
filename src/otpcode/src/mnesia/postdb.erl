@@ -793,6 +793,7 @@ add_comment(Author, PostID, Content) ->
         end,
         
         ok = content_cache:set(Id, ContentToCache),
+        PlaceholderContent = Id,
         
         case mnesia:read({post, PostID}) of
             [] -> 
@@ -803,7 +804,7 @@ add_comment(Author, PostID, Content) ->
                     user_id = UserID,
                     post = PostID,
                     author = Author,
-                    content = ContentToCache,
+                    content = PlaceholderContent,
                     date_created = Date
                 },
                 mnesia:write(Comment),
@@ -839,7 +840,7 @@ add_comment(Author, PostID, Content) ->
                     case mnesia:read({comment, Id}) of
                         [CommentToUpdate] ->
                             UpdatedComment = CommentToUpdate#comment{
-                                content = ContentToUse
+                                content = CIDString
                             },
                             mnesia:write(UpdatedComment);
                         [] -> ok
@@ -875,7 +876,6 @@ add_comment(Author, PostID, Content) ->
                                     {ok, #{name := IPNSKey}} ->
                                         update_comment_ipns(Id, IPNSKey);
                                     {error, _Reason} ->
-                                        error_logger:error_msg("IPNS publish failed for comment ~p: ~p", [Id, _Reason]),
                                         err 
                                 end
                             catch
@@ -1131,7 +1131,7 @@ reply_comment(UserID, CommentID, Content) ->
             {error, {transaction_failed, Reason}}
     end.
 
-get_reply_content(ReplyID) ->
+get_reply_content(ReplyID) -> 
     Parent = self(),
     Ref = make_ref(),
     spawn(fun() ->
