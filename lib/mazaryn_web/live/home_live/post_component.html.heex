@@ -50,7 +50,7 @@
           x-transition:leave="transition ease-in duration-200"
           x-transition:leave-start="opacity-100"
           x-transition:leave-end="opacity-0"
-          class="absolute top-4 right-4 bg-white rounded-md text-blue-900 border p-3 border-blue space-y-2 w-32"
+          class="absolute top-4 right-4 bg-white rounded-md text-blue-900 border p-3 border-blue space-y-2 w-40"
         >
           <%= if @post.author != @current_user.username  do %>
             <li class="">
@@ -97,6 +97,20 @@
               >
                 Delete
               </p>
+            </li>
+          <% end %>
+          
+          <%= if @ipns_id do %>
+            <li class="border-t pt-2">
+              <a 
+                href={"https://ipfs.io/ipns/#{@ipns_id}"} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                class="text-purple-600 m-2 cursor-pointer hover:text-purple-800 block text-sm break-all"
+                @click="open = false"
+              >
+                View on IPFS
+              </a>
             </li>
           <% end %>
         </ul>
@@ -148,20 +162,6 @@
         src={get_image_url(@post.id)}
         />
     </div>
-    
-    <%= if @ipns_id do %>
-    <div class="mt-2 flex items-center">
-      <span class="text-gray-500 text-sm mr-2">IPNS:</span>
-      <a 
-        href={"https://ipfs.io/ipns/#{@ipns_id}"} 
-        target="_blank" 
-        rel="noopener noreferrer"
-        class="text-purple-600 text-sm font-mono bg-gray-90 px-2 py-1 rounded overflow-auto max-w-full break-all hover:underline"
-      >
-        https://ipfs.io/ipns/<%= @ipns_id %>
-      </a>
-    </div>
-  <% end %>
 
   <% end %>
 

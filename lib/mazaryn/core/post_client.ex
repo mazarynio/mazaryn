@@ -240,4 +240,18 @@ defmodule Core.PostClient do
   defp detect_content_type(<<0x42, 0x4D, _::binary>>), do: "image/bmp"
   defp detect_content_type(<<0x52, 0x49, 0x46, 0x46, _::binary>>), do: "image/webp"
   defp detect_content_type(_), do: "image/jpeg"
+
+  def get_ipns_from_post(post_id) when is_list(post_id) do
+    post_id
+    |> :post_server.get_ipns_from_post()
+    |> List.to_string()
+  end
+
+  def get_ipns_from_post(post_id) when is_binary(post_id) do
+    post_id
+    |> String.to_charlist()
+    |> :post_server.get_ipns_from_post()
+    |> List.to_string()
+  end
+
 end

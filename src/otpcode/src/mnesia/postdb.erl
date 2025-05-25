@@ -102,7 +102,7 @@ insert(Author, Content, Media, Hashtag, Link_URL, Emoji, Mention) ->
                         undefined -> null;
                         "" -> <<"">>;
                         _ when is_list(MediaCID) -> list_to_binary(IPFSGateway ++ MediaCID);
-                        _ when _is_binary(MediaCID) -> list_to_binary(IPFSGateway ++ binary_to_list(MediaCID));
+                        _ when is_binary(MediaCID) -> list_to_binary(IPFSGateway ++ binary_to_list(MediaCID));
                         _ -> error_logger:error_msg("Invalid MediaCID for post ~p: ~p", [Id, MediaCID]), null
                     end}
                 ],

@@ -40,20 +40,33 @@ get_ipns(PostID) ->
     end.
 
 get_ipns_from_post(PostID) ->
-    Fun = fun() ->
-              case mnesia:read({post, PostID}) of
-                [Post] ->
-                  try
-                    IPNSString = Post#post.ipns,
-                    {ok, IPNSString}
-                  catch
-                    _:Error -> {error, Error}
-                  end;
-                [] -> {error, post_not_found}
-              end
-          end,
-    case mnesia:transaction(Fun) of
-      {atomic, {ok, IPNSString}} -> IPNSString;
-      {atomic, {error, Reason}} -> {error, Reason};
-      Error -> Error
+    Parent = self(),
+    Ref = make_ref(),
+    spawn(fun() ->
+        Fun = fun() ->
+                  case mnesia:read({post, PostID}) of
+                    [Post] ->
+                      try
+                        IPNSString = Post#post.ipns,
+                        {ok, IPNSString}
+                      catch
+                        _:Error -> {error, Error}
+                      end;
+                    [] -> {error, post_not_found}
+                  end
+              end,
+        Result = case mnesia:transaction(Fun) of
+                   {atomic, {ok, IPNSString}} -> {ok, IPNSString};
+                   {atomic, {error, Reason}} -> {error, Reason};
+                   {aborted, Reason} -> {error, {transaction_failed, Reason}}
+                 end,
+        Parent ! {Ref, Result}
+    end),
+    receive
+        {Ref, {ok, IPNSString}} ->
+            IPNSString;
+        {Ref, {error, Reason}} ->
+            {error, Reason}
+    after 30000 -> 
+        {error, timeout}
     end.

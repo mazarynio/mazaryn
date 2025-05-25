@@ -86,7 +86,7 @@ end
     post_id_charlist = if is_binary(post_id), do: to_charlist(post_id), else: post_id
 
     try do
-      :post_ipfs_utils.get_ipns_from_post(post_id_charlist)
+      Core.PostClient.get_ipns_from_post(post_id_charlist)
     catch
       :throw, :post_not_found ->
         nil
