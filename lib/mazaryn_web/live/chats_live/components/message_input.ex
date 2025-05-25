@@ -28,9 +28,6 @@ defmodule MazarynWeb.ChatsLive.Components.MessageInput do
     socket.assigns.user
     |> Chats.create_chat(socket.assigns.recipient, params)
     |> case do
-      {:error, :invalid_chat_participants} ->
-        put_flash(socket, :error, "Can not chat with your self...")
-
       {:error, changeset} ->
         assign(socket, :changeset, changeset)
 

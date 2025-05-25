@@ -9,8 +9,7 @@ defmodule Mazaryn.Chats do
   import Ecto.Query
   alias Mazaryn.Repo
 
-  def create_chat(%User{id: actor_id}, %User{id: recipient_id}, params)
-      when actor_id != recipient_id do
+  def create_chat(%User{id: actor_id}, %User{id: recipient_id}, params) do
     %Chat{}
     |> Chat.changeset(params)
     |> Ecto.Changeset.apply_action(:validate)
