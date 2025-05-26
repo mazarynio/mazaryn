@@ -12,11 +12,16 @@ defmodule MazarynWeb.HomeLive.PostComponent do
 
   @impl Phoenix.LiveComponent
   def update_many(list_of_assigns) do
+    IO.puts("=== UPDATE_MANY called ===")
+    IO.inspect(length(list_of_assigns), label: "Number of assigns")
     changeset = Comment.changeset(%Comment{})
     update_comment_changeset = Comment.changeset(%Comment{})
     update_post_changeset = Post.changeset(%Post{})
 
     Enum.map(list_of_assigns, fn {assigns, socket} ->
+      IO.puts("--- Processing post ---")
+      IO.inspect(assigns.post, label: "Post object")
+      IO.inspect(assigns.post.id, label: "Post ID")
       comments = Posts.get_comment_by_post_id(assigns.post.id)
 
       likes_count = get_likes_count(assigns.post.id)
@@ -55,6 +60,9 @@ defmodule MazarynWeb.HomeLive.PostComponent do
 
           Map.put(comment, :replies, list_replies)
         end)
+         IO.puts("About to call get_post_ipns...")
+        ipns_id = get_post_ipns(assigns.post.id)
+        IO.inspect(ipns_id, label: "IPNS ID result")
 
       ipns_id = get_post_ipns(assigns.post.id)
 
@@ -97,28 +105,131 @@ defmodule MazarynWeb.HomeLive.PostComponent do
      |> allow_upload(:media, accept: ~w(.png .jpg .jpeg), max_entries: 2)}
   end
 
-  defp get_post_ipns(post_id) do
-    post_id_charlist = if is_binary(post_id), do: to_charlist(post_id), else: post_id
+  def get_ipns_from_post(post_id) when is_list(post_id) do
+    IO.puts("=== get_ipns_from_post called with LIST ===")
+    IO.inspect(post_id, label: "post_id (list)", limit: :infinity)
+    IO.inspect(length(post_id), label: "List length")
 
-    try do
-      Core.PostClient.get_ipns_from_post(post_id_charlist)
-    catch
-      :throw, :post_not_found ->
-        nil
-      :throw, {:transaction_failed, reason} ->
-        IO.puts("Failed to get IPNS for post #{inspect(post_id)}: #{inspect(reason)}")
-        nil
-      :throw, :ipns_timeout ->
-        IO.puts("IPNS timeout for post #{inspect(post_id)}")
-        nil
-      :throw, reason ->
-        IO.puts("Error getting IPNS for post #{inspect(post_id)}: #{inspect(reason)}")
-        nil
-      type, reason ->
-        IO.puts("Unexpected error getting IPNS: #{inspect({type, reason})}")
-        nil
+  try do
+    result = Core.PostClient.get_ipns_from_post(post_id)
+    IO.inspect(result, label: "post_server result")
+
+    case result do
+      ipns when is_list(ipns) ->
+        IO.puts("Converting list to string")
+        List.to_string(ipns)
+      {:error, reason} ->
+        IO.puts("Got error tuple")
+        throw({:ipns_error, reason})
+      other ->
+        IO.inspect(other, label: "Unexpected result type")
+        throw({:ipns_error, {:unexpected_result, other}})
     end
+  catch
+    error_type, reason ->
+      IO.puts("Exception in get_ipns_from_post (list)")
+      IO.inspect({error_type, reason}, label: "Exception details")
+      reraise "IPNS Error", __STACKTRACE__
   end
+end
+
+def get_ipns_from_post(post_id) when is_binary(post_id) do
+  IO.puts("=== get_ipns_from_post called with BINARY ===")
+  IO.inspect(post_id, label: "post_id (binary)")
+  IO.inspect(String.length(post_id), label: "String length")
+
+  charlist = String.to_charlist(post_id)
+  IO.inspect(charlist, label: "Converted to charlist", limit: :infinity)
+
+  try do
+    result = Core.PostClient.get_ipns_from_post(charlist)
+    IO.inspect(result, label: "post_server result")
+
+    case result do
+      ipns when is_list(ipns) ->
+        IO.puts("Converting list to string")
+        List.to_string(ipns)
+      {:error, reason} ->
+        IO.puts("Got error tuple")
+        throw({:ipns_error, reason})
+      other ->
+        IO.inspect(other, label: "Unexpected result type")
+        throw({:ipns_error, {:unexpected_result, other}})
+    end
+  catch
+    error_type, reason ->
+      IO.puts("Exception in get_ipns_from_post (binary)")
+      IO.inspect({error_type, reason}, label: "Exception details")
+      reraise "IPNS Error", __STACKTRACE__
+  end
+end
+
+def get_ipns_from_post(invalid_post_id) do
+  IO.puts("=== get_ipns_from_post called with INVALID TYPE ===")
+  IO.inspect(invalid_post_id, label: "Invalid post_id")
+  throw({:ipns_error, {:invalid_post_id_type, invalid_post_id}})
+end
+
+
+defp get_post_ipns(post_id) do
+  IO.puts("=== get_post_ipns called ===")
+  IO.inspect(post_id, label: "post_id input")
+
+  # Add nil/empty checks
+  case post_id do
+    nil ->
+      IO.puts("post_id is nil")
+      nil
+    "" ->
+      IO.puts("post_id is empty string")
+      nil
+    [] ->
+      IO.puts("post_id is empty list")
+      nil
+    _ ->
+      post_id_charlist = if is_binary(post_id), do: to_charlist(post_id), else: post_id
+      IO.inspect(post_id_charlist, label: "Converted to charlist")
+
+      try do
+        IO.puts("About to call Core.PostClient.get_ipns_from_post")
+        result = Core.PostClient.get_ipns_from_post(post_id_charlist)
+        IO.inspect(result, label: "Final IPNS result")
+        result
+      catch
+        :throw, :post_not_found ->
+          IO.puts("CATCH: post_not_found")
+          nil
+        :throw, {:transaction_failed, reason} ->
+          IO.puts("CATCH: transaction_failed")
+          IO.inspect(reason, label: "Transaction failed reason")
+          nil
+        :throw, :ipns_timeout ->
+          IO.puts("CATCH: ipns_timeout")
+          nil
+        :throw, {:ipns_error, reason} ->
+          IO.puts("CATCH: ipns_error")
+          IO.inspect(reason, label: "IPNS error reason")
+          nil
+        :throw, reason ->
+          IO.puts("CATCH: generic throw")
+          IO.inspect(reason, label: "Generic throw reason")
+          nil
+        type, reason ->
+          IO.puts("CATCH: unexpected error in get_post_ipns")
+          IO.inspect({type, reason}, label: "Unexpected error details")
+          IO.puts("Stack trace:")
+          IO.inspect(__STACKTRACE__, label: "Stack trace", limit: :infinity)
+          nil
+      rescue
+        error ->
+          IO.puts("RESCUE: Exception in get_post_ipns")
+          IO.inspect(error, label: "Exception")
+          IO.puts("Stack trace:")
+          IO.inspect(__STACKTRACE__, label: "Stack trace", limit: :infinity)
+          nil
+      end
+  end
+end
 
   defp fetch_comment_content_from_ipfs(comment_id) do
     try do
