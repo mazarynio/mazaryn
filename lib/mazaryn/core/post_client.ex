@@ -123,6 +123,8 @@ end
 end
 
   def like_comment(userID, commentID) do
+    userID = if is_binary(userID), do: String.to_charlist(userID), else: userID
+    commentID = if is_binary(commentID), do: String.to_charlist(commentID), else: commentID
     :post_server.like_comment(userID, commentID)
   end
 
