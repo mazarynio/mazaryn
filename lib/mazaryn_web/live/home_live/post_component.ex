@@ -386,89 +386,150 @@ end
   end
 
   def handle_event("update-comment", %{"comment" => comment_params} = _params, socket) do
-    IO.inspect(comment_params, label: "COMMENT PARAMS")
+  IO.puts("📝 UPDATE-COMMENT EVENT TRIGGERED")
+  IO.puts("=" <> String.duplicate("=", 60))
+  IO.inspect(comment_params, label: "📋 Comment params for update")
 
-    comment =
-      %Comment{}
-      |> Comment.update_changeset(comment_params)
-      |> Posts.update_comment()
+  # Log comment update
+  IO.puts("🔄 Updating comment...")
+  comment =
+    %Comment{}
+    |> Comment.update_changeset(comment_params)
+    |> Posts.update_comment()
 
-    post =
-      comment.changes.post_id
-      |> rebuild_post()
+  IO.inspect(comment, label: "📋 Updated comment result")
 
-    IO.inspect(post, label: "post-->")
-    comments = Posts.get_comment_by_post_id(post.id)
+  # Log post rebuilding
+  IO.puts("🔄 Rebuilding post after comment update...")
+  post = comment.changes.post_id |> rebuild_post()
+  IO.inspect(post.id, label: "📄 Rebuilt post ID")
 
-    comments_with_ipfs_content =
-      Enum.map(comments, fn comment ->
-        actual_content = fetch_comment_content_from_ipfs(comment.id)
-        Map.put(comment, :content, actual_content)
-      end)
+  # Log comments retrieval
+  IO.puts("📥 Retrieving comments after update...")
+  comments = Posts.get_comment_by_post_id(post.id)
+  IO.inspect(length(comments), label: "📊 Comments count after update")
 
-    {:noreply,
-     socket
-     |> assign(:post, post)
-     |> assign(:comments, comments_with_ipfs_content)
-     |> assign(:update_comment_changeset, Comment.changeset(%Comment{}))}
-  end
+  # Log IPFS content fetching
+  IO.puts("🌐 Fetching IPFS content after update...")
+  comments_with_ipfs_content =
+    Enum.map(comments, fn comment ->
+      IO.puts("  Processing comment ID: #{inspect(comment.id)}")
+      actual_content = fetch_comment_content_from_ipfs(comment.id)
+      IO.puts("  Updated content: #{String.slice(actual_content, 0, 50)}...")
+      Map.put(comment, :content, actual_content)
+    end)
+
+  IO.puts("✅ UPDATE-COMMENT EVENT COMPLETED")
+  IO.puts("=" <> String.duplicate("=", 60))
+
+  {:noreply,
+   socket
+   |> assign(:post, post)
+   |> assign(:comments, comments_with_ipfs_content)
+   |> assign(:update_comment_changeset, Comment.changeset(%Comment{}))}
+end
 
   def handle_event("validate-comment", %{"comment" => comment_params} = _params, socket) do
+    IO.puts("🔍 VALIDATE-COMMENT EVENT TRIGGERED")
+    IO.puts("=" <> String.duplicate("=", 60))
+    IO.inspect(comment_params, label: "📋 Comment params received")
+    IO.inspect(socket.assigns.current_user.id, label: "👤 Current user ID")
+    IO.inspect(socket.assigns.post.id, label: "📝 Post ID")
+
     changeset =
       %Comment{}
       |> Comment.changeset(comment_params)
       |> Map.put(:action, :validate)
 
+    IO.inspect(changeset.valid?, label: "✅ Changeset valid?")
+    IO.inspect(changeset.errors, label: "❌ Changeset errors")
+    IO.puts("=" <> String.duplicate("=", 60))
+
     {:noreply, assign(socket, :changeset, changeset)}
   end
 
   def handle_event("save-comment", %{"comment" => comment_params} = _params, socket) do
-  # Create the comment
-  %Comment{}
-  |> Comment.changeset(comment_params)
-  |> Posts.create_comment()
+  IO.puts("💾 SAVE-COMMENT EVENT TRIGGERED")
+  IO.puts("=" <> String.duplicate("=", 60))
 
-  post =
-    comment_params["post_id"]
-    |> to_charlist
-    |> rebuild_post()
+  # Log initial state
+  IO.inspect(comment_params, label: "📥 INCOMING COMMENT PARAMS")
+  IO.inspect(socket.assigns.current_user.id, label: "👤 Current user ID")
+  IO.inspect(socket.assigns.post.id, label: "📝 Current post ID")
+  IO.inspect(socket.assigns.post.author, label: "👨‍💼 Post author")
 
+  # Log changeset creation
+  IO.puts("🔨 Creating changeset...")
+  changeset = %Comment{} |> Comment.changeset(comment_params)
+  IO.inspect(changeset.valid?, label: "✅ Changeset valid?")
+  IO.inspect(changeset.errors, label: "❌ Changeset errors")
+  IO.inspect(changeset.changes, label: "🔄 Changeset changes")
+
+  # Log comment creation
+  IO.puts("💬 Attempting to create comment...")
+  comment_result = Posts.create_comment(changeset)
+  IO.inspect(comment_result, label: "📋 Comment creation result")
+
+  # Log post rebuilding
+  IO.puts("🔄 Rebuilding post...")
+  post_id_charlist = comment_params["post_id"] |> to_charlist
+  IO.inspect(post_id_charlist, label: "📝 Post ID as charlist")
+
+  post = rebuild_post(post_id_charlist)
+  IO.inspect(post.id, label: "📄 Rebuilt post ID")
+
+  # Log comments retrieval
+  IO.puts("📥 Retrieving comments...")
   comments = Posts.get_comment_by_post_id(post.id)
+  IO.inspect(length(comments), label: "📊 Number of comments retrieved")
 
+  # Log IPFS content fetching
+  IO.puts("🌐 Fetching IPFS content for comments...")
   comments_with_ipfs_content =
     Enum.map(comments, fn comment ->
+      IO.puts("  Processing comment ID: #{inspect(comment.id)}")
       actual_content = fetch_comment_content_from_ipfs(comment.id)
+      IO.puts("  Content fetched: #{String.slice(actual_content, 0, 50)}...")
       Map.put(comment, :content, actual_content)
     end)
 
+  # Log like events processing
+  IO.puts("👍 Processing like events...")
   comments_with_like_events =
     Enum.map(comments_with_ipfs_content, fn comment ->
-      Map.put(
-        comment,
-        :like_comment_event,
-        like_comment_event(socket.assigns.current_user.id, comment.id)
-      )
+      like_event = like_comment_event(socket.assigns.current_user.id, comment.id)
+      IO.puts("  Comment #{inspect(comment.id)} like event: #{like_event}")
+      Map.put(comment, :like_comment_event, like_event)
     end)
 
+  # Log replies processing
+  IO.puts("💬 Processing replies...")
   comments_with_replies =
     comments_with_like_events
     |> Enum.map(fn comment ->
+      IO.puts("  Getting replies for comment: #{inspect(comment.id)}")
       replies = :postdb.get_comment_replies(comment.id |> to_charlist)
+      IO.inspect(length(replies), label: "  Number of replies")
 
       list_replies =
         replies
         |> Enum.map(fn reply ->
+          IO.puts("    Processing reply...")
           {:ok, built_reply} = reply
           |> Mazaryn.Schema.Reply.erl_changeset()
           |> Mazaryn.Schema.Reply.build()
 
           actual_content = fetch_reply_content_from_ipfs(built_reply.id)
-
+          IO.puts("    Reply content fetched: #{String.slice(actual_content, 0, 30)}...")
           Map.put(built_reply, :content, actual_content)
         end)
 
       Map.put(comment, :replies, list_replies)
     end)
+
+  IO.inspect(length(comments_with_replies), label: "📊 Final comments count")
+  IO.puts("✅ SAVE-COMMENT EVENT COMPLETED")
+  IO.puts("=" <> String.duplicate("=", 60))
 
   {:noreply,
    socket
@@ -557,6 +618,9 @@ end
   end
 
   def handle_event("show-comments", %{"id" => post_id}, socket) do
+    IO.puts("👁️ SHOW COMMENTS EVENT")
+    IO.inspect(post_id, label: "Post ID")
+
     Phoenix.LiveView.JS.toggle(to: "test")
 
     comments =

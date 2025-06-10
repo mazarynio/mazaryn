@@ -63,7 +63,11 @@ defmodule Core.UserClient do
   ## Get User by UserID
   def get_user_by_id(id) do
     charlist_id = if is_list(id), do: id, else: String.to_charlist(id)
-    :user_server.get_user_by_id(charlist_id)
+
+    case :user_server.get_user_by_id(charlist_id) do
+      {:error, reason} = error -> error
+      user_tuple -> user_tuple
+    end
   end
 
   def get_token_by_id(token_id) do

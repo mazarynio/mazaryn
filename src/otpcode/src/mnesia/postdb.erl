@@ -8,7 +8,7 @@
          like_post/2, unlike_post/2, add_comment/3, update_comment/2, like_comment/2, update_comment_likes/2, get_comment_likes/1, get_comment_replies/1, reply_comment/3,
           get_reply/1, get_all_replies/1, delete_reply/1, get_all_comments/1, delete_comment/2, delete_comment_from_mnesia/1, get_likes/1,
          get_single_comment/1, get_media/1, report_post/4, update_activity/2, get_user_id_by_post_id/1, get_post_ipns_by_id/1, get_post_ipfs_by_ipns/1,
-         pin_post/1, get_comment_content/1, get_reply_content/1, display_media/1, get_media_cid/1]).
+         pin_post/1, get_comment_content/1, get_reply_content/1, display_media/1, get_media_cid/1, get_all_comment_ids/1]).
 -export([get_comments/0]).
 
 -include("../records.hrl").
@@ -821,7 +821,13 @@ add_comment(Author, PostID, Content) ->
                 },
                 mnesia:write(UpdatedPost),
                 
-                update_activity(Author, Date),
+                case update_activity(Author, Date) of
+                    {error, Reason} ->
+                        error_logger:warning_msg("Failed to update activity for user ~p: ~p", [Author, Reason]),
+                        ok;
+                    _ ->
+                        ok
+                end,
                 
                 {ok, Id}
         end
@@ -1291,6 +1297,14 @@ get_all_comments(PostId) ->
   {atomic, Res} = mnesia:transaction(Fun),
   Res.
 
+get_all_comment_ids(PostId) ->
+  Fun = fun() ->
+            [Post] = mnesia:read({post, PostId}),
+            Post#post.comments
+        end,
+  {atomic, Res} = mnesia:transaction(Fun),
+  Res.
+
 get_all_comments_for_user(UserID) ->
   Fun = fun() ->
             Comments = mnesia:match_object(#comment{user_id = UserID, _ = '_'}),
@@ -1435,9 +1449,19 @@ report_post(MyID, PostID, Type, Description) ->
   Res.
 
 update_activity(Author, Date) ->
-  User = userdb:get_user(Author),
-  UserID = User#user.id,
-  LastActivity = userdb:update_last_activity(UserID, Date),
-  LastActivity.
+    case userdb:get_user(Author) of
+        undefined -> 
+            error_logger:error_msg("User not found: ~p", [Author]),
+            {error, user_not_found};
+        [] -> 
+            error_logger:error_msg("User not found: ~p", [Author]),
+            {error, user_not_found};
+        User when is_record(User, user) ->
+            UserID = User#user.id,
+            userdb:update_last_activity(UserID, Date);
+        Other ->
+            error_logger:error_msg("Unexpected user data for ~p: ~p", [Author, Other]),
+            {error, invalid_user_data}
+    end.
 
 

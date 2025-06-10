@@ -170,8 +170,16 @@ end
   end
 
   ## Get specific comment using CommentID
-  def get_single_comment(commentId) do
-    :post_server.get_single_comment(commentId)
+  def get_single_comment(comment_id) when is_binary(comment_id) do
+    :post_server.get_single_comment(String.to_charlist(comment_id))
+  end
+
+  def get_single_comment(comment_id) when is_list(comment_id) do
+    :post_server.get_single_comment(comment_id)
+  end
+
+  def get_single_comment(comment_id) when is_integer(comment_id) do
+    :post_server.get_single_comment(Integer.to_charlist(comment_id))
   end
 
   def get_user_by_single_comment(commentID) do

@@ -80,29 +80,35 @@ defmodule Mazaryn.Posts do
   end
 
   # comments
-  def build_comments_structure(id) do
-    case Core.PostClient.get_single_comment(id) do
-      erl_comment ->
-        erl_comment
-        |> Comment.erl_changeset()
-        |> Comment.build()
+  def build_comments_structure(comment_id) do
+    case Core.PostClient.get_single_comment(comment_id) do
+      {:ok, comment_tuple} ->
+        case comment_tuple
+             |> Mazaryn.Schema.Comment.erl_changeset()
+             |> Mazaryn.Schema.Comment.build() do
+          {:ok, comment_struct} -> comment_struct
+          {:error, _reason} -> %{}
+        end
+
+      {:error, _reason} ->
+        %{}
     end
   end
 
   # fetch comments by post id
-  def get_comment_by_post_id(post_id) do
-    case :postdb.get_comments() do
-      comments when is_list(comments) ->
-        comments
-        |> Enum.map(fn comment ->
-          {:ok, comment} =
-            comment
-            |> build_comments_structure()
+  def get_comment_by_post_id(post_id) when is_binary(post_id) do
+    post_id
+    |> String.to_charlist()
+    |> :postdb.get_all_comment_ids()
+    |> Enum.map(&build_comments_structure/1)
+    |> Enum.reject(&(&1 == %{}))
+  end
 
-          comment
-        end)
-        |> Enum.filter(&(&1.post_id == post_id))
-    end
+  def get_comment_by_post_id(post_id) when is_list(post_id) do
+    post_id
+    |> :postdb.get_all_comment_ids()
+    |> Enum.map(&build_comments_structure/1)
+    |> Enum.reject(&(&1 == %{}))
   end
 
   def get_posts_by_author(author) do
