@@ -639,30 +639,67 @@ end
   end
 
   def handle_event("like-comment", %{"comment-id" => comment_id}, socket) do
-    comment_id = comment_id |> to_charlist
-    user_id = socket.assigns.current_user.id
+  comment_id = comment_id |> to_charlist
+  user_id = socket.assigns.current_user.id
 
-    PostClient.like_comment(user_id, comment_id)
+  PostClient.like_comment(user_id, comment_id)
 
-    post_id = socket.assigns.post.id |> to_charlist
+  post_id = socket.assigns.post.id |> to_charlist
 
-    updated_comments = Posts.get_comment_by_post_id(post_id)
+  updated_comments = Posts.get_comment_by_post_id(List.to_string(post_id))
 
-    comments_with_ipfs_and_likes =
-      Enum.map(updated_comments, fn comment ->
-        actual_content = fetch_comment_content_from_ipfs(comment.id)
-        comment
-        |> Map.put(:content, actual_content)
-        |> Map.put(:like_comment_event, like_comment_event(user_id, comment.id))
-      end)
+  comments_with_ipfs_and_likes =
+    Enum.map(updated_comments, fn comment ->
+      actual_content = fetch_comment_content_from_ipfs(comment.id)
+      comment
+      |> Map.put(:content, actual_content)
+      |> Map.put(:like_comment_event, like_comment_event(user_id, comment.id))
+    end)
 
-    post = rebuild_post(post_id)
+  post = rebuild_post(post_id)
 
-    {:noreply,
-     socket
-     |> assign(:post, post)
-     |> assign(:comments, comments_with_ipfs_and_likes)}
+  {:noreply,
+   socket
+   |> assign(:post, post)
+   |> assign(:comments, comments_with_ipfs_and_likes)}
+end
+
+defp one_of_comment_likes?(user_id, comment_id) do
+  try do
+    comment_id
+    |> PostClient.get_comment_likes()
+    |> Enum.map(fn like ->
+      case like |> Home.Like.erl_changeset() |> Home.Like.build() do
+        {:ok, built_like} -> built_like
+        {:error, _} -> nil
+      end
+    end)
+    |> Enum.filter(&(&1 != nil))
+    |> Enum.any?(&(&1.user_id == user_id))
+  catch
+    _, _ -> false
   end
+end
+
+defp like_comment_event(user_id, comment_id) do
+  try do
+    if one_of_comment_likes?(user_id, comment_id),
+      do: "unlike-comment",
+      else: "like-comment"
+  catch
+    _, _ -> "like-comment"
+  end
+end
+
+defp comment_like_color(user_id, comment_id) do
+  try do
+    if one_of_comment_likes?(user_id, comment_id),
+      do: "text-blue-500",
+      else: "text-gray-500"
+  catch
+    _, _ -> "text-gray-500"
+  end
+end
 
   def handle_event("unlike-comment", %{"comment-id" => comment_id}, socket) do
     comment_id = comment_id |> to_charlist

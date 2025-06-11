@@ -15,6 +15,7 @@ defmodule Mazaryn.Schema.Comment do
     replies
     ipns
     data
+    like_comment_event
   )a
 
   @required_fields ~w(
@@ -33,6 +34,7 @@ defmodule Mazaryn.Schema.Comment do
     field(:author, :string)
     field(:post_id, :string)
     field(:data, :map)
+    field(:like_comment_event, :string)  # Add this field
   end
 
   def erl_changeset({:comment, id, user_id, post, author, content, date_created, likes, replies, ipns, data}) do
@@ -47,7 +49,8 @@ defmodule Mazaryn.Schema.Comment do
       likes: likes,
       replies: replies,
       ipns: ipns,
-      data: data
+      data: data,
+      like_comment_event: nil
     })
   end
 
@@ -64,7 +67,7 @@ defmodule Mazaryn.Schema.Comment do
 
   def update_changeset(%__MODULE__{} = struct, attrs \\ %{}) do
     struct
-    |> cast(attrs, [:id, :content])
+    |> cast(attrs, [:id, :content, :like_comment_event])
     |> validate_required([:id, :content])
   end
 

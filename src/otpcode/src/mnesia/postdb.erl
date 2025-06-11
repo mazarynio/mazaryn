@@ -1045,21 +1045,23 @@ get_comment_likes(CommentID) ->
   {atomic, Res} = mnesia:transaction(Fun),
   Res.
 
-get_comment_replies(CommentID) -> 
-  Fun = fun() ->
+get_comment_replies(CommentID) ->
+    Fun = fun() ->
             case mnesia:read({comment, CommentID}) of
-                [] -> 
-                    []; 
+                [] ->
+                    [];
                 [Comment] ->
-                    lists:foldl(fun(ID, Acc) ->
-                                    [Reply] = mnesia:read({reply, ID}),
-                                    [Reply|Acc]
+                    lists:foldl(fun(ReplyID, Acc) ->
+                                    case mnesia:read({reply, ReplyID}) of
+                                        [Reply] -> [Reply|Acc];
+                                        [] -> Acc
+                                    end
                                 end,
                                 [], Comment#comment.replies)
             end
         end,
-  {atomic, Res} = mnesia:transaction(Fun),
-  Res.
+    {atomic, Res} = mnesia:transaction(Fun),
+    Res.
 
 reply_comment(UserID, CommentID, Content) ->
     Fun = fun() ->
@@ -1227,18 +1229,22 @@ get_reply(ReplyID) ->
   Res.
 
 get_all_replies(CommentID) ->
-  Fun = fun() ->
-            mnesia:match_object(#reply{comment = CommentID,
-                                         _ = '_'}),
-            [Comment] = mnesia:read({comment, CommentID}),
-            lists:foldl(fun(Id, Acc) ->
-                            [Reply] = mnesia:read({reply, Id}),
-                            [Reply|Acc]
-                        end,
-                        [], Comment#comment.replies)
+    Fun = fun() ->
+            case mnesia:read({comment, CommentID}) of
+                [] ->
+                    []; 
+                [Comment] ->
+                    lists:foldl(fun(ReplyId, Acc) ->
+                                    case mnesia:read({reply, ReplyId}) of
+                                        [Reply] -> [Reply|Acc];
+                                        [] -> Acc 
+                                    end
+                                end,
+                                [], Comment#comment.replies)
+            end
         end,
-  {atomic, Res} = mnesia:transaction(Fun),
-  Res.
+    {atomic, Res} = mnesia:transaction(Fun),
+    Res.
 
 delete_reply(ReplyID) ->
   F = fun() ->
