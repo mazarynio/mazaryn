@@ -11,11 +11,30 @@ defmodule MazarynWeb.HomeLive.PostComponent do
   alias Phoenix.LiveView.JS
 
   @content_cache :post_content_cache
+  @batch_size 3
+  @max_concurrent_tasks 4
+
+  defp log_performance(operation, func) do
+    start_time = :erlang.system_time(:millisecond)
+    result = func.()
+    end_time = :erlang.system_time(:millisecond)
+    duration = end_time - start_time
+
+    IO.puts("🕐 PERFORMANCE: #{operation} took #{duration}ms")
+
+    if duration > 500 do
+      IO.puts("⚠️  SLOW OPERATION DETECTED: #{operation} took #{duration}ms - INVESTIGATE!")
+    end
+
+    result
+  end
 
   @impl Phoenix.LiveComponent
   def update_many(list_of_assigns) do
     IO.puts("=== UPDATE_MANY called ===")
     IO.inspect(length(list_of_assigns), label: "Number of assigns")
+
+    total_start = :erlang.system_time(:millisecond)
 
     unless :ets.whereis(@content_cache) != :undefined do
       :ets.new(@content_cache, [:set, :public, :named_table])
@@ -25,96 +44,403 @@ defmodule MazarynWeb.HomeLive.PostComponent do
     update_comment_changeset = Comment.changeset(%Comment{})
     update_post_changeset = Post.changeset(%Post{})
 
-    Enum.map(list_of_assigns, fn {assigns, socket} ->
+    result = list_of_assigns
+    |> Enum.chunk_every(@batch_size)
+    |> Enum.flat_map(fn batch ->
+      IO.puts("Processing batch of #{length(batch)} posts")
+
+      batch
+      |> Task.async_stream(
+        fn {assigns, socket} -> process_single_post(assigns, socket, changeset, update_comment_changeset, update_post_changeset) end,
+        max_concurrency: @max_concurrent_tasks,
+        timeout: 8000,
+        on_timeout: :kill_task
+      )
+      |> Enum.map(fn
+        {:ok, result} -> result
+        {:exit, reason} ->
+          IO.puts("❌ Task failed with reason: #{inspect(reason)}")
+          {assigns, socket} = hd(batch)
+          assign(socket, basic_assigns(assigns))
+      end)
+    end)
+
+    total_end = :erlang.system_time(:millisecond)
+    total_duration = total_end - total_start
+    IO.puts("🏁 TOTAL UPDATE_MANY completed in #{total_duration}ms")
+
+    if total_duration > 5000 do
+      IO.puts("🚨 CRITICAL: UPDATE_MANY took #{total_duration}ms - THIS IS THE BOTTLENECK!")
+    end
+
+    result
+  end
+
+  defp process_single_post(assigns, socket, changeset, update_comment_changeset, update_post_changeset) do
+    try do
+      post_start = :erlang.system_time(:millisecond)
+      IO.puts("--- Processing post #{assigns.post.id} ---")
+
+      tasks = %{
+        comments: Task.async(fn -> get_comments_lightweight(assigns.post.id) end),
+        ipns: Task.async(fn -> get_post_ipns_fast(assigns.post.id) end),
+        likes: Task.async(fn -> get_likes_count_fast(assigns.post.id) end),
+        content: Task.async(fn -> get_post_content_fast(assigns.post.id) end)
+      }
+
+      results = await_tasks_with_fallbacks(tasks, assigns.post.id)
+
+      final_assigns = assigns
+      |> Map.merge(%{
+        follow_event: follow_event(assigns.current_user.id, assigns.post.author),
+        follow_text: follow_text(assigns.current_user.id, assigns.post.author),
+        like_icon: like_icon(assigns.current_user.id, assigns.post.id),
+        like_event: like_event(assigns.current_user.id, assigns.post.id),
+        changeset: changeset,
+        update_comment_changeset: update_comment_changeset,
+        update_post_changeset: update_post_changeset,
+        report_action: false,
+        like_action: false,
+        is_liked: false
+      })
+      |> Map.merge(results)
+
+      post_end = :erlang.system_time(:millisecond)
+      IO.puts("✅ Post #{assigns.post.id} completed in #{post_end - post_start}ms")
+
+      assign(socket, final_assigns)
+    rescue
+      e ->
+        IO.puts("❌ Error processing post #{assigns.post.id}: #{inspect(e)}")
+        assign(socket, basic_assigns(assigns))
+    end
+  end
+
+  defp await_tasks_with_fallbacks(tasks, post_id) do
+    %{
+      comments: await_with_fallback(tasks.comments, 1500, [], "comments", post_id),
+      ipns_id: await_with_fallback(tasks.ipns, 500, nil, "ipns", post_id),
+      likes_count: await_with_fallback(tasks.likes, 300, 0, "likes", post_id),
+      post_content_cached: await_with_fallback(tasks.content, 1000, "Content loading...", "content", post_id)
+    }
+  end
+
+  defp await_with_fallback(task, timeout, fallback, task_name, post_id) do
+    case Task.yield(task, timeout) || Task.shutdown(task, :brutal_kill) do
+      {:ok, result} ->
+        IO.puts("✅ #{task_name} task completed for post #{post_id}")
+        result
+      nil ->
+        IO.puts("⚠️ #{task_name} task timeout (#{timeout}ms) for post #{post_id} - using fallback")
+        fallback
+    end
+  end
+
+  defp basic_assigns(assigns) do
+    %{
+      follow_event: follow_event(assigns.current_user.id, assigns.post.author),
+      follow_text: follow_text(assigns.current_user.id, assigns.post.author),
+      like_icon: like_icon(assigns.current_user.id, assigns.post.id),
+      like_event: like_event(assigns.current_user.id, assigns.post.id),
+      changeset: Comment.changeset(%Comment{}),
+      update_comment_changeset: Comment.changeset(%Comment{}),
+      update_post_changeset: Post.changeset(%Post{}),
+      comments: [],
+      report_action: false,
+      like_action: false,
+      is_liked: false,
+      ipns_id: nil,
+      likes_count: 0,
+      post_content_cached: "Content loading..."
+    }
+  end
+
+  defp get_comments_lightweight(post_id) do
+    try do
+      IO.puts("🔍 Fetching lightweight comments for post #{post_id}")
+
+      comments = Posts.get_comment_by_post_id(post_id)
+      |> Enum.take(3)
+      |> Enum.map(fn comment ->
+        content = get_cached_content(:comment, comment.id) || "Loading..."
+
+        comment
+        |> Map.put(:content, content)
+        |> Map.put(:like_comment_event, "like-comment")
+        |> Map.put(:replies, [])
+      end)
+
+      IO.puts("✅ #{length(comments)} lightweight comments loaded")
+      comments
+    rescue
+      e ->
+        IO.puts("❌ Error getting lightweight comments: #{inspect(e)}")
+        []
+    end
+  end
+
+  defp get_post_ipns_fast(post_id) do
+    cache_key = {:ipns, post_id}
+    case :ets.lookup(@content_cache, cache_key) do
+      [{^cache_key, ipns, timestamp}] ->
+        age = :erlang.system_time(:second) - timestamp
+        if age < 300 do
+          IO.puts("📦 IPNS Cache HIT for post #{post_id}")
+          ipns
+        else
+          :ets.delete(@content_cache, cache_key)
+          get_post_ipns_with_timeout(post_id, 400)
+        end
+      [] ->
+        get_post_ipns_with_timeout(post_id, 400)
+    end
+  end
+
+  defp get_likes_count_fast(post_id) do
+    cache_key = {:likes_count, post_id}
+    case :ets.lookup(@content_cache, cache_key) do
+      [{^cache_key, count, timestamp}] ->
+        age = :erlang.system_time(:second) - timestamp
+        if age < 60 do
+          IO.puts("📦 Likes Cache HIT for post #{post_id}")
+          count
+        else
+          :ets.delete(@content_cache, cache_key)
+          get_likes_count_with_timeout(post_id, 200)
+        end
+      [] ->
+        get_likes_count_with_timeout(post_id, 200)
+    end
+  end
+
+  defp get_post_content_fast(post_id) do
+    cache_key = {:post_content, post_id}
+    case :ets.lookup(@content_cache, cache_key) do
+      [{^cache_key, content, timestamp}] ->
+        age = :erlang.system_time(:second) - timestamp
+        if age < 300 do
+          IO.puts("📦 Content Cache HIT for post #{post_id}")
+          content
+        else
+          :ets.delete(@content_cache, cache_key)
+          fetch_content_fast(post_id)
+        end
+      [] ->
+        fetch_content_fast(post_id)
+    end
+  end
+
+  defp fetch_content_fast(post_id) do
+    case get_post_content_with_timeout(post_id, 800) do
+      {:ok, content} ->
+        cache_key = {:post_content, post_id}
+        timestamp = :erlang.system_time(:second)
+        :ets.insert(@content_cache, {cache_key, content, timestamp})
+        content
+      _ ->
+        fallback = get_fallback_content(post_id)
+        cache_key = {:post_content, post_id}
+        timestamp = :erlang.system_time(:second)
+        :ets.insert(@content_cache, {cache_key, fallback, timestamp})
+        fallback
+    end
+  end
+
+  defp get_post_content_cached(post_id) do
+    IO.puts("📄 Getting content for post #{post_id}")
+    cache_key = {:post_content, post_id}
+
+    case :ets.lookup(@content_cache, cache_key) do
+      [{^cache_key, content, timestamp}] ->
+        age = :erlang.system_time(:second) - timestamp
+        if age < 120 do
+          IO.puts("📦 Content Cache HIT for post #{post_id} (age: #{age}s)")
+          content
+        else
+          IO.puts("⏰ Content Cache EXPIRED for post #{post_id} (age: #{age}s)")
+          :ets.delete(@content_cache, cache_key)
+          get_post_content_fresh(post_id)
+        end
+      [] ->
+        IO.puts("❌ Content Cache MISS for post #{post_id}")
+        get_post_content_fresh(post_id)
+    end
+  end
+
+  defp get_post_content_fresh(post_id) do
+    IO.puts("🔄 Fetching fresh content for post #{post_id}")
+    content_start = :erlang.system_time(:millisecond)
+
+    result = case get_post_content_with_timeout(post_id, 1500) do
+      {:ok, content} ->
+        cache_key = {:post_content, post_id}
+        timestamp = :erlang.system_time(:second)
+        :ets.insert(@content_cache, {cache_key, content, timestamp})
+        IO.puts("✅ Fresh content cached for post #{post_id}")
+        content
+      {:timeout, _} ->
+        IO.puts("⚠️ Content fetch timeout for post #{post_id}")
+        fallback_content = get_fallback_content(post_id)
+        cache_key = {:post_content, post_id}
+        timestamp = :erlang.system_time(:second)
+        :ets.insert(@content_cache, {cache_key, fallback_content, timestamp})
+        fallback_content
+      {:error, _} ->
+        "Content unavailable"
+    end
+
+    content_end = :erlang.system_time(:millisecond)
+    duration = content_end - content_start
+    IO.puts("⏱️  Content fetch for post #{post_id} took #{duration}ms")
+
+    if duration > 1000 do
+      IO.puts("🚨 SLOW CONTENT FETCH DETECTED: #{duration}ms for post #{post_id}")
+    end
+
+    result
+  end
+
+  defp get_post_content_with_timeout(post_id, timeout \\ 1500) do
+    task = Task.async(fn ->
       try do
-        IO.puts("--- Processing post ---")
-        IO.inspect(assigns.post.id, label: "Post ID")
-
-        comments_task = Task.async(fn ->
-          get_comments_with_content(assigns.post.id)
-        end)
-
-        ipns_task = Task.async(fn ->
-          get_post_ipns_cached(assigns.post.id)
-        end)
-
-        likes_task = Task.async(fn ->
-          get_likes_count_cached(assigns.post.id)
-        end)
-
-        comments_with_replies = Task.await(comments_task, 50000)
-        ipns_id = Task.await(ipns_task, 3000)
-        likes_count = Task.await(likes_task, 2000)
-
-        assigns =
-          assigns
-          |> Map.put(:follow_event, follow_event(assigns.current_user.id, assigns.post.author))
-          |> Map.put(:follow_text, follow_text(assigns.current_user.id, assigns.post.author))
-          |> Map.put(:like_icon, like_icon(assigns.current_user.id, assigns.post.id))
-          |> Map.put(:like_event, like_event(assigns.current_user.id, assigns.post.id))
-          |> Map.put(:changeset, changeset)
-          |> Map.put(:update_comment_changeset, update_comment_changeset)
-          |> Map.put(:comments, comments_with_replies)
-          |> Map.put(:report_action, false)
-          |> Map.put(:like_action, false)
-          |> Map.put(:is_liked, false)
-          |> Map.put(:update_post_changeset, update_post_changeset)
-          |> Map.put(:ipns_id, ipns_id)
-          |> Map.put(:likes_count, likes_count)
-
-        assign(socket, assigns)
-      rescue
-        e ->
-          IO.puts("Error in update_many: #{inspect(e)}")
-          assign(socket, assigns |> Map.put(:comments, []) |> Map.put(:likes_count, 0))
+        case Core.PostClient.get_post_content_by_id(post_id) do
+          content when is_binary(content) and content != "" ->
+            {:ok, content}
+          content when is_list(content) ->
+            case List.to_string(content) do
+              "" -> {:ok, "No content available"}
+              str -> {:ok, str}
+            end
+          _ ->
+            {:ok, "No content available"}
+        end
+      catch
+        type, reason ->
+          IO.puts("❌ Error fetching post content: #{inspect({type, reason})}")
+          {:error, {type, reason}}
       end
     end)
+
+    case Task.yield(task, timeout) || Task.shutdown(task) do
+      {:ok, result} -> result
+      nil -> {:timeout, "Timeout after #{timeout}ms"}
+    end
+  end
+
+  defp get_fallback_content(post_id) do
+    try do
+      case PostClient.get_by_id(post_id) do
+        post_data when is_tuple(post_data) ->
+          case Mazaryn.Schema.Post.erl_changeset(post_data) |> Mazaryn.Schema.Post.build() do
+            {:ok, post} ->
+              case post.content do
+                content when is_binary(content) and content != "" -> content
+                content when is_list(content) -> List.to_string(content)
+                _ -> "Content loading..."
+              end
+            _ -> "Content loading..."
+          end
+        _ -> "Content loading..."
+      end
+    catch
+      _, _ -> "Content loading..."
+    end
   end
 
   defp get_comments_with_content(post_id) do
     try do
-      comments = Posts.get_comment_by_post_id(post_id)
+      IO.puts("🔍 Fetching comments for post #{post_id}")
+      comments_start = :erlang.system_time(:millisecond)
 
-      comments
-      |> Enum.map(fn comment ->
-        content = get_cached_content(:comment, comment.id) ||
-                  fetch_comment_content_from_ipfs(comment.id)
-
-        comment
-        |> Map.put(:content, content)
-        |> Map.put(:like_comment_event, like_comment_event_cached(comment.id))
-        |> add_replies_optimized()
+      comments = log_performance("Posts.get_comment_by_post_id", fn ->
+        Posts.get_comment_by_post_id(post_id)
       end)
+
+      IO.inspect(length(comments), label: "Number of comments found")
+
+      processed_comments = comments
+      |> Enum.take(5)
+      |> Enum.with_index()
+      |> Enum.map(fn {comment, index} ->
+        comment_start = :erlang.system_time(:millisecond)
+        IO.puts("Processing comment #{index + 1}/#{min(length(comments), 5)} (ID: #{comment.id})")
+
+        content = log_performance("get comment content for #{comment.id}", fn ->
+          get_cached_content(:comment, comment.id) ||
+          fetch_comment_content_from_ipfs(comment.id)
+        end)
+
+        like_event = log_performance("like_comment_event_cached for #{comment.id}", fn ->
+          like_comment_event_cached(comment.id)
+        end)
+
+        result = comment
+        |> Map.put(:content, content)
+        |> Map.put(:like_comment_event, like_event)
+        |> then(fn c ->
+          log_performance("add_replies_optimized for comment #{comment.id}", fn ->
+            add_replies_optimized(c)
+          end)
+        end)
+
+        comment_end = :erlang.system_time(:millisecond)
+        IO.puts("✅ Comment #{comment.id} processed in #{comment_end - comment_start}ms")
+
+        result
+      end)
+
+      comments_end = :erlang.system_time(:millisecond)
+      IO.puts("✅ All comments processed in #{comments_end - comments_start}ms")
+
+      processed_comments
     rescue
       e ->
-        IO.puts("Error getting comments: #{inspect(e)}")
+        IO.puts("❌ Error getting comments: #{inspect(e)}")
+        IO.puts("📍 Error stacktrace: #{inspect(__STACKTRACE__)}")
         []
     end
   end
 
   defp add_replies_optimized(comment) do
     try do
-      replies = :postdb.get_comment_replies(comment.id |> to_charlist)
+      IO.puts("🔄 Processing replies for comment #{comment.id}")
+      replies_start = :erlang.system_time(:millisecond)
+
+      replies = log_performance("postdb.get_comment_replies for #{comment.id}", fn ->
+        :postdb.get_comment_replies(comment.id |> to_charlist)
+      end)
+
+      IO.inspect(length(replies), label: "Number of replies found")
 
       list_replies =
         replies
-        |> Enum.take(10)
-        |> Enum.map(fn reply ->
+        |> Enum.take(5)
+        |> Enum.with_index()
+        |> Enum.map(fn {reply, index} ->
+          IO.puts("Processing reply #{index + 1}/#{min(length(replies), 5)}")
+
           case reply |> Mazaryn.Schema.Reply.erl_changeset() |> Mazaryn.Schema.Reply.build() do
             {:ok, built_reply} ->
-              content = get_cached_content(:reply, built_reply.id) ||
-                       fetch_reply_content_from_ipfs(built_reply.id)
+              content = log_performance("get reply content for #{built_reply.id}", fn ->
+                get_cached_content(:reply, built_reply.id) ||
+                fetch_reply_content_from_ipfs(built_reply.id)
+              end)
               Map.put(built_reply, :content, content)
-            {:error, _} ->
+            {:error, error} ->
+              IO.puts("❌ Error building reply: #{inspect(error)}")
               nil
           end
         end)
         |> Enum.filter(&(&1 != nil))
 
+      replies_end = :erlang.system_time(:millisecond)
+      IO.puts("✅ Replies processed in #{replies_end - replies_start}ms")
+
       Map.put(comment, :replies, list_replies)
     rescue
       e ->
-        IO.puts("Error processing replies: #{inspect(e)}")
+        IO.puts("❌ Error processing replies: #{inspect(e)}")
+        IO.puts("📍 Error stacktrace: #{inspect(__STACKTRACE__)}")
         Map.put(comment, :replies, [])
     end
   end
@@ -123,13 +449,18 @@ defmodule MazarynWeb.HomeLive.PostComponent do
     cache_key = {type, id}
     case :ets.lookup(@content_cache, cache_key) do
       [{^cache_key, content, timestamp}] ->
-        if :erlang.system_time(:second) - timestamp < 300 do
+        age = :erlang.system_time(:second) - timestamp
+        if age < 300 do
+          IO.puts("📦 Cache HIT for #{type}:#{id} (age: #{age}s)")
           content
         else
+          IO.puts("⏰ Cache EXPIRED for #{type}:#{id} (age: #{age}s)")
           :ets.delete(@content_cache, cache_key)
           nil
         end
-      [] -> nil
+      [] ->
+        IO.puts("❌ Cache MISS for #{type}:#{id}")
+        nil
     end
   end
 
@@ -137,56 +468,115 @@ defmodule MazarynWeb.HomeLive.PostComponent do
     cache_key = {type, id}
     timestamp = :erlang.system_time(:second)
     :ets.insert(@content_cache, {cache_key, content, timestamp})
+    IO.puts("💾 Cached content for #{type}:#{id}")
     content
   end
 
   defp get_post_ipns_cached(post_id) do
+    IO.puts("🔗 Getting IPNS for post #{post_id}")
     cache_key = {:ipns, post_id}
     case :ets.lookup(@content_cache, cache_key) do
       [{^cache_key, ipns, timestamp}] ->
-        if :erlang.system_time(:second) - timestamp < 60 do
+        age = :erlang.system_time(:second) - timestamp
+        if age < 60 do
+          IO.puts("📦 IPNS Cache HIT for post #{post_id} (age: #{age}s)")
           ipns
         else
+          IO.puts("⏰ IPNS Cache EXPIRED for post #{post_id} (age: #{age}s)")
           :ets.delete(@content_cache, cache_key)
           get_post_ipns_fresh(post_id)
         end
       [] ->
+        IO.puts("❌ IPNS Cache MISS for post #{post_id}")
         get_post_ipns_fresh(post_id)
     end
   end
 
   defp get_post_ipns_fresh(post_id) do
-    case get_post_ipns(post_id) do
-      nil -> nil
+    IO.puts("🔄 Fetching fresh IPNS for post #{post_id}")
+    ipns_start = :erlang.system_time(:millisecond)
+
+    result = case get_post_ipns_with_timeout(post_id, 800) do
+      nil ->
+        IO.puts("❌ No IPNS found for post #{post_id}")
+        nil
       ipns ->
         cache_key = {:ipns, post_id}
         timestamp = :erlang.system_time(:second)
         :ets.insert(@content_cache, {cache_key, ipns, timestamp})
+        IO.puts("✅ Fresh IPNS cached for post #{post_id}")
         ipns
+    end
+
+    ipns_end = :erlang.system_time(:millisecond)
+    duration = ipns_end - ipns_start
+    IO.puts("⏱️  IPNS fetch for post #{post_id} took #{duration}ms")
+
+    if duration > 600 do
+      IO.puts("🚨 SLOW IPNS FETCH DETECTED: #{duration}ms for post #{post_id}")
+    end
+
+    result
+  end
+
+  defp get_post_ipns_with_timeout(post_id, timeout \\ 800) do
+    task = Task.async(fn -> get_post_ipns(post_id) end)
+    case Task.yield(task, timeout) || Task.shutdown(task) do
+      {:ok, result} -> result
+      nil ->
+        IO.puts("⚠️ IPNS timeout (#{timeout}ms) for post #{post_id}")
+        nil
     end
   end
 
   defp get_likes_count_cached(post_id) do
+    IO.puts("👍 Getting likes count for post #{post_id}")
     cache_key = {:likes_count, post_id}
     case :ets.lookup(@content_cache, cache_key) do
       [{^cache_key, count, timestamp}] ->
-        if :erlang.system_time(:second) - timestamp < 30 do
+        age = :erlang.system_time(:second) - timestamp
+        if age < 30 do
+          IO.puts("📦 Likes Cache HIT for post #{post_id} (age: #{age}s, count: #{count})")
           count
         else
+          IO.puts("⏰ Likes Cache EXPIRED for post #{post_id} (age: #{age}s)")
           :ets.delete(@content_cache, cache_key)
           get_likes_count_fresh(post_id)
         end
       [] ->
+        IO.puts("❌ Likes Cache MISS for post #{post_id}")
         get_likes_count_fresh(post_id)
     end
   end
 
   defp get_likes_count_fresh(post_id) do
-    count = get_likes_count(post_id)
+    IO.puts("🔄 Fetching fresh likes count for post #{post_id}")
+    likes_start = :erlang.system_time(:millisecond)
+
+    count = get_likes_count_with_timeout(post_id, 600)
     cache_key = {:likes_count, post_id}
     timestamp = :erlang.system_time(:second)
     :ets.insert(@content_cache, {cache_key, count, timestamp})
+
+    likes_end = :erlang.system_time(:millisecond)
+    duration = likes_end - likes_start
+    IO.puts("✅ Fresh likes count (#{count}) cached for post #{post_id} in #{duration}ms")
+
+    if duration > 400 do
+      IO.puts("🚨 SLOW LIKES FETCH DETECTED: #{duration}ms for post #{post_id}")
+    end
+
     count
+  end
+
+  defp get_likes_count_with_timeout(post_id, timeout \\ 600) do
+    task = Task.async(fn -> get_likes_count(post_id) end)
+    case Task.yield(task, timeout) || Task.shutdown(task) do
+      {:ok, result} -> result
+      nil ->
+        IO.puts("⚠️ Likes count timeout (#{timeout}ms) for post #{post_id}")
+        0
+    end
   end
 
   defp like_comment_event_cached(comment_id) do
@@ -195,12 +585,22 @@ defmodule MazarynWeb.HomeLive.PostComponent do
 
   defp get_likes_count(post_id) do
     try do
-      post_id
+      likes_start = :erlang.system_time(:millisecond)
+
+      count = post_id
       |> to_charlist
       |> PostClient.get_likes()
       |> Enum.count()
+
+      likes_end = :erlang.system_time(:millisecond)
+      duration = likes_end - likes_start
+      IO.puts("📊 PostClient.get_likes() for #{post_id} took #{duration}ms, found #{count} likes")
+
+      count
     rescue
-      _ -> 0
+      e ->
+        IO.puts("❌ Error getting likes count: #{inspect(e)}")
+        0
     end
   end
 
@@ -223,12 +623,28 @@ defmodule MazarynWeb.HomeLive.PostComponent do
       [] -> nil
       _ ->
         try do
+          ipns_start = :erlang.system_time(:millisecond)
           post_id_charlist = if is_binary(post_id), do: to_charlist(post_id), else: post_id
-          Core.PostClient.get_ipns_from_post(post_id_charlist)
+
+          result = Core.PostClient.get_ipns_from_post(post_id_charlist)
+
+          ipns_end = :erlang.system_time(:millisecond)
+          duration = ipns_end - ipns_start
+          IO.puts("🔗 Core.PostClient.get_ipns_from_post() for #{post_id} took #{duration}ms")
+
+          if duration > 500 do
+            IO.puts("🚨 VERY SLOW IPNS CALL: #{duration}ms for post #{post_id}")
+          end
+
+          result
         catch
-          _, _ -> nil
+          type, reason ->
+            IO.puts("❌ Error in get_post_ipns: #{inspect({type, reason})}")
+            nil
         rescue
-          _ -> nil
+          e ->
+            IO.puts("❌ Rescue in get_post_ipns: #{inspect(e)}")
+            nil
         end
     end
   end
@@ -238,19 +654,13 @@ defmodule MazarynWeb.HomeLive.PostComponent do
     if cached_content do
       cached_content
     else
-      try do
-        content = case Core.PostClient.get_comment_content(comment_id) do
-          content when is_binary(content) and content != "" -> content
-          content when is_list(content) ->
-            case List.to_string(content) do
-              "" -> "Content unavailable"
-              str -> str
-            end
-          _ -> "Content unavailable"
-        end
-        cache_content(:comment, comment_id, content)
-      catch
-        _, _ ->
+      case fetch_content_with_timeout(:comment, comment_id, 1000) do
+        {:ok, content} ->
+          cache_content(:comment, comment_id, content)
+        {:timeout, _} ->
+          IO.puts("⚠️ Comment content fetch timeout for #{comment_id}")
+          cache_content(:comment, comment_id, "Content loading...")
+        {:error, _} ->
           cache_content(:comment, comment_id, "Content unavailable")
       end
     end
@@ -261,8 +671,29 @@ defmodule MazarynWeb.HomeLive.PostComponent do
     if cached_content do
       cached_content
     else
+      case fetch_content_with_timeout(:reply, reply_id, 1000) do
+        {:ok, content} ->
+          cache_content(:reply, reply_id, content)
+        {:timeout, _} ->
+          IO.puts("⚠️ Reply content fetch timeout for #{reply_id}")
+          cache_content(:reply, reply_id, "Content loading...")
+        {:error, _} ->
+          cache_content(:reply, reply_id, "Content unavailable")
+      end
+    end
+  end
+
+  defp fetch_content_with_timeout(type, id, timeout) do
+    task = Task.async(fn ->
       try do
-        content = case Core.PostClient.get_reply_content(reply_id) do
+        ipfs_start = :erlang.system_time(:millisecond)
+
+        content = case type do
+          :comment -> Core.PostClient.get_comment_content(id)
+          :reply -> Core.PostClient.get_reply_content(id)
+        end
+
+        result = case content do
           content when is_binary(content) and content != "" -> content
           content when is_list(content) ->
             case List.to_string(content) do
@@ -271,11 +702,26 @@ defmodule MazarynWeb.HomeLive.PostComponent do
             end
           _ -> "Content unavailable"
         end
-        cache_content(:reply, reply_id, content)
+
+        ipfs_end = :erlang.system_time(:millisecond)
+        duration = ipfs_end - ipfs_start
+        IO.puts("📡 IPFS #{type} content fetch for #{id} took #{duration}ms")
+
+        if duration > 800 do
+          IO.puts("🚨 SLOW IPFS #{String.upcase(to_string(type))} FETCH: #{duration}ms for #{type} #{id}")
+        end
+
+        {:ok, result}
       catch
-        _, _ ->
-          cache_content(:reply, reply_id, "Content unavailable")
+        _, e ->
+          IO.puts("❌ Error fetching #{type} content from IPFS: #{inspect(e)}")
+          {:error, e}
       end
+    end)
+
+    case Task.yield(task, timeout) || Task.shutdown(task) do
+      {:ok, result} -> result
+      nil -> {:timeout, "Timeout after #{timeout}ms"}
     end
   end
 
@@ -292,6 +738,7 @@ defmodule MazarynWeb.HomeLive.PostComponent do
     clear_content_cache(:post, post_id)
     clear_content_cache(:ipns, post_id)
     clear_content_cache(:likes_count, post_id)
+    clear_content_cache(:post_content, post_id)
 
     send(self(), :reload_posts)
     {:noreply, socket}
@@ -811,9 +1258,7 @@ defmodule MazarynWeb.HomeLive.PostComponent do
 
   defp comment_like_color(user_id, comment_id) do
     if one_of_comment_likes?(user_id, comment_id),
-      # Blue color when liked
       do: "text-blue-500",
-      # Gray color when unliked
       else: "text-gray-500"
   end
 
