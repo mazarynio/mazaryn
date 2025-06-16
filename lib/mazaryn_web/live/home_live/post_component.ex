@@ -10,87 +10,198 @@ defmodule MazarynWeb.HomeLive.PostComponent do
   alias Mazaryn.Schema.Post
   alias Phoenix.LiveView.JS
 
+  @content_cache :post_content_cache
+
   @impl Phoenix.LiveComponent
   def update_many(list_of_assigns) do
     IO.puts("=== UPDATE_MANY called ===")
     IO.inspect(length(list_of_assigns), label: "Number of assigns")
+
+    unless :ets.whereis(@content_cache) != :undefined do
+      :ets.new(@content_cache, [:set, :public, :named_table])
+    end
+
     changeset = Comment.changeset(%Comment{})
     update_comment_changeset = Comment.changeset(%Comment{})
     update_post_changeset = Post.changeset(%Post{})
 
     Enum.map(list_of_assigns, fn {assigns, socket} ->
-      IO.puts("--- Processing post ---")
-      IO.inspect(assigns.post, label: "Post object")
-      IO.inspect(assigns.post.id, label: "Post ID")
-      comments = Posts.get_comment_by_post_id(assigns.post.id)
+      try do
+        IO.puts("--- Processing post ---")
+        IO.inspect(assigns.post.id, label: "Post ID")
 
-      likes_count = get_likes_count(assigns.post.id)
-
-      comments_with_ipfs_content =
-        Enum.map(comments, fn comment ->
-          actual_content = fetch_comment_content_from_ipfs(comment.id)
-          Map.put(comment, :content, actual_content)
+        comments_task = Task.async(fn ->
+          get_comments_with_content(assigns.post.id)
         end)
 
-      comments_with_like_events =
-        Enum.map(comments_with_ipfs_content, fn comment ->
-          Map.put(
-            comment,
-            :like_comment_event,
-            like_comment_event(assigns.current_user.id, comment.id)
-          )
+        ipns_task = Task.async(fn ->
+          get_post_ipns_cached(assigns.post.id)
         end)
 
-      comments_with_replies =
-        comments_with_like_events
-        |> Enum.map(fn comment ->
-          replies = :postdb.get_comment_replies(comment.id |> to_charlist)
-
-          list_replies =
-            replies
-            |> Enum.map(fn reply ->
-              {:ok, built_reply} = reply
-              |> Mazaryn.Schema.Reply.erl_changeset()
-              |> Mazaryn.Schema.Reply.build()
-
-              actual_content = fetch_reply_content_from_ipfs(built_reply.id)
-
-              Map.put(built_reply, :content, actual_content)
-            end)
-
-          Map.put(comment, :replies, list_replies)
+        likes_task = Task.async(fn ->
+          get_likes_count_cached(assigns.post.id)
         end)
-         IO.puts("About to call get_post_ipns...")
-        ipns_id = get_post_ipns(assigns.post.id)
-        IO.inspect(ipns_id, label: "IPNS ID result")
 
-      ipns_id = get_post_ipns(assigns.post.id)
+        comments_with_replies = Task.await(comments_task, 50000)
+        ipns_id = Task.await(ipns_task, 3000)
+        likes_count = Task.await(likes_task, 2000)
 
-      assigns =
-        assigns
-        |> Map.put(:follow_event, follow_event(assigns.current_user.id, assigns.post.author))
-        |> Map.put(:follow_text, follow_text(assigns.current_user.id, assigns.post.author))
-        |> Map.put(:like_icon, like_icon(assigns.current_user.id, assigns.post.id))
-        |> Map.put(:like_event, like_event(assigns.current_user.id, assigns.post.id))
-        |> Map.put(:changeset, changeset)
-        |> Map.put(:update_comment_changeset, update_comment_changeset)
-        |> Map.put(:comments, comments_with_replies)
-        |> Map.put(:report_action, false)
-        |> Map.put(:like_action, false)
-        |> Map.put(:is_liked, false)
-        |> Map.put(:update_post_changeset, update_post_changeset)
-        |> Map.put(:ipns_id, ipns_id)
-        |> Map.put(:likes_count, likes_count)
+        assigns =
+          assigns
+          |> Map.put(:follow_event, follow_event(assigns.current_user.id, assigns.post.author))
+          |> Map.put(:follow_text, follow_text(assigns.current_user.id, assigns.post.author))
+          |> Map.put(:like_icon, like_icon(assigns.current_user.id, assigns.post.id))
+          |> Map.put(:like_event, like_event(assigns.current_user.id, assigns.post.id))
+          |> Map.put(:changeset, changeset)
+          |> Map.put(:update_comment_changeset, update_comment_changeset)
+          |> Map.put(:comments, comments_with_replies)
+          |> Map.put(:report_action, false)
+          |> Map.put(:like_action, false)
+          |> Map.put(:is_liked, false)
+          |> Map.put(:update_post_changeset, update_post_changeset)
+          |> Map.put(:ipns_id, ipns_id)
+          |> Map.put(:likes_count, likes_count)
 
-      assign(socket, assigns)
+        assign(socket, assigns)
+      rescue
+        e ->
+          IO.puts("Error in update_many: #{inspect(e)}")
+          assign(socket, assigns |> Map.put(:comments, []) |> Map.put(:likes_count, 0))
+      end
     end)
   end
 
+  defp get_comments_with_content(post_id) do
+    try do
+      comments = Posts.get_comment_by_post_id(post_id)
+
+      comments
+      |> Enum.map(fn comment ->
+        content = get_cached_content(:comment, comment.id) ||
+                  fetch_comment_content_from_ipfs(comment.id)
+
+        comment
+        |> Map.put(:content, content)
+        |> Map.put(:like_comment_event, like_comment_event_cached(comment.id))
+        |> add_replies_optimized()
+      end)
+    rescue
+      e ->
+        IO.puts("Error getting comments: #{inspect(e)}")
+        []
+    end
+  end
+
+  defp add_replies_optimized(comment) do
+    try do
+      replies = :postdb.get_comment_replies(comment.id |> to_charlist)
+
+      list_replies =
+        replies
+        |> Enum.take(10)
+        |> Enum.map(fn reply ->
+          case reply |> Mazaryn.Schema.Reply.erl_changeset() |> Mazaryn.Schema.Reply.build() do
+            {:ok, built_reply} ->
+              content = get_cached_content(:reply, built_reply.id) ||
+                       fetch_reply_content_from_ipfs(built_reply.id)
+              Map.put(built_reply, :content, content)
+            {:error, _} ->
+              nil
+          end
+        end)
+        |> Enum.filter(&(&1 != nil))
+
+      Map.put(comment, :replies, list_replies)
+    rescue
+      e ->
+        IO.puts("Error processing replies: #{inspect(e)}")
+        Map.put(comment, :replies, [])
+    end
+  end
+
+  defp get_cached_content(type, id) do
+    cache_key = {type, id}
+    case :ets.lookup(@content_cache, cache_key) do
+      [{^cache_key, content, timestamp}] ->
+        if :erlang.system_time(:second) - timestamp < 300 do
+          content
+        else
+          :ets.delete(@content_cache, cache_key)
+          nil
+        end
+      [] -> nil
+    end
+  end
+
+  defp cache_content(type, id, content) do
+    cache_key = {type, id}
+    timestamp = :erlang.system_time(:second)
+    :ets.insert(@content_cache, {cache_key, content, timestamp})
+    content
+  end
+
+  defp get_post_ipns_cached(post_id) do
+    cache_key = {:ipns, post_id}
+    case :ets.lookup(@content_cache, cache_key) do
+      [{^cache_key, ipns, timestamp}] ->
+        if :erlang.system_time(:second) - timestamp < 60 do
+          ipns
+        else
+          :ets.delete(@content_cache, cache_key)
+          get_post_ipns_fresh(post_id)
+        end
+      [] ->
+        get_post_ipns_fresh(post_id)
+    end
+  end
+
+  defp get_post_ipns_fresh(post_id) do
+    case get_post_ipns(post_id) do
+      nil -> nil
+      ipns ->
+        cache_key = {:ipns, post_id}
+        timestamp = :erlang.system_time(:second)
+        :ets.insert(@content_cache, {cache_key, ipns, timestamp})
+        ipns
+    end
+  end
+
+  defp get_likes_count_cached(post_id) do
+    cache_key = {:likes_count, post_id}
+    case :ets.lookup(@content_cache, cache_key) do
+      [{^cache_key, count, timestamp}] ->
+        if :erlang.system_time(:second) - timestamp < 30 do
+          count
+        else
+          :ets.delete(@content_cache, cache_key)
+          get_likes_count_fresh(post_id)
+        end
+      [] ->
+        get_likes_count_fresh(post_id)
+    end
+  end
+
+  defp get_likes_count_fresh(post_id) do
+    count = get_likes_count(post_id)
+    cache_key = {:likes_count, post_id}
+    timestamp = :erlang.system_time(:second)
+    :ets.insert(@content_cache, {cache_key, count, timestamp})
+    count
+  end
+
+  defp like_comment_event_cached(comment_id) do
+    "like-comment"
+  end
+
   defp get_likes_count(post_id) do
-    post_id
-    |> to_charlist
-    |> PostClient.get_likes()
-    |> Enum.count()
+    try do
+      post_id
+      |> to_charlist
+      |> PostClient.get_likes()
+      |> Enum.count()
+    rescue
+      _ -> 0
+    end
   end
 
   @impl true
@@ -105,209 +216,102 @@ defmodule MazarynWeb.HomeLive.PostComponent do
      |> allow_upload(:media, accept: ~w(.png .jpg .jpeg), max_entries: 2)}
   end
 
-  def get_ipns_from_post(post_id) when is_list(post_id) do
-    IO.puts("=== get_ipns_from_post called with LIST ===")
-    IO.inspect(post_id, label: "post_id (list)", limit: :infinity)
-    IO.inspect(length(post_id), label: "List length")
-
-  try do
-    result = Core.PostClient.get_ipns_from_post(post_id)
-    IO.inspect(result, label: "post_server result")
-
-    case result do
-      ipns when is_list(ipns) ->
-        IO.puts("Converting list to string")
-        List.to_string(ipns)
-      {:error, reason} ->
-        IO.puts("Got error tuple")
-        throw({:ipns_error, reason})
-      other ->
-        IO.inspect(other, label: "Unexpected result type")
-        throw({:ipns_error, {:unexpected_result, other}})
+  defp get_post_ipns(post_id) do
+    case post_id do
+      nil -> nil
+      "" -> nil
+      [] -> nil
+      _ ->
+        try do
+          post_id_charlist = if is_binary(post_id), do: to_charlist(post_id), else: post_id
+          Core.PostClient.get_ipns_from_post(post_id_charlist)
+        catch
+          _, _ -> nil
+        rescue
+          _ -> nil
+        end
     end
-  catch
-    error_type, reason ->
-      IO.puts("Exception in get_ipns_from_post (list)")
-      IO.inspect({error_type, reason}, label: "Exception details")
-      reraise "IPNS Error", __STACKTRACE__
   end
-end
-
-def get_ipns_from_post(post_id) when is_binary(post_id) do
-  IO.puts("=== get_ipns_from_post called with BINARY ===")
-  IO.inspect(post_id, label: "post_id (binary)")
-  IO.inspect(String.length(post_id), label: "String length")
-
-  charlist = String.to_charlist(post_id)
-  IO.inspect(charlist, label: "Converted to charlist", limit: :infinity)
-
-  try do
-    result = Core.PostClient.get_ipns_from_post(charlist)
-    IO.inspect(result, label: "post_server result")
-
-    case result do
-      ipns when is_list(ipns) ->
-        IO.puts("Converting list to string")
-        List.to_string(ipns)
-      {:error, reason} ->
-        IO.puts("Got error tuple")
-        throw({:ipns_error, reason})
-      other ->
-        IO.inspect(other, label: "Unexpected result type")
-        throw({:ipns_error, {:unexpected_result, other}})
-    end
-  catch
-    error_type, reason ->
-      IO.puts("Exception in get_ipns_from_post (binary)")
-      IO.inspect({error_type, reason}, label: "Exception details")
-      reraise "IPNS Error", __STACKTRACE__
-  end
-end
-
-def get_ipns_from_post(invalid_post_id) do
-  IO.puts("=== get_ipns_from_post called with INVALID TYPE ===")
-  IO.inspect(invalid_post_id, label: "Invalid post_id")
-  throw({:ipns_error, {:invalid_post_id_type, invalid_post_id}})
-end
-
-
-defp get_post_ipns(post_id) do
-  IO.puts("=== get_post_ipns called ===")
-  IO.inspect(post_id, label: "post_id input")
-
-  # Add nil/empty checks
-  case post_id do
-    nil ->
-      IO.puts("post_id is nil")
-      nil
-    "" ->
-      IO.puts("post_id is empty string")
-      nil
-    [] ->
-      IO.puts("post_id is empty list")
-      nil
-    _ ->
-      post_id_charlist = if is_binary(post_id), do: to_charlist(post_id), else: post_id
-      IO.inspect(post_id_charlist, label: "Converted to charlist")
-
-      try do
-        IO.puts("About to call Core.PostClient.get_ipns_from_post")
-        result = Core.PostClient.get_ipns_from_post(post_id_charlist)
-        IO.inspect(result, label: "Final IPNS result")
-        result
-      catch
-        :throw, :post_not_found ->
-          IO.puts("CATCH: post_not_found")
-          nil
-        :throw, {:transaction_failed, reason} ->
-          IO.puts("CATCH: transaction_failed")
-          IO.inspect(reason, label: "Transaction failed reason")
-          nil
-        :throw, :ipns_timeout ->
-          IO.puts("CATCH: ipns_timeout")
-          nil
-        :throw, {:ipns_error, reason} ->
-          IO.puts("CATCH: ipns_error")
-          IO.inspect(reason, label: "IPNS error reason")
-          nil
-        :throw, reason ->
-          IO.puts("CATCH: generic throw")
-          IO.inspect(reason, label: "Generic throw reason")
-          nil
-        type, reason ->
-          IO.puts("CATCH: unexpected error in get_post_ipns")
-          IO.inspect({type, reason}, label: "Unexpected error details")
-          IO.puts("Stack trace:")
-          IO.inspect(__STACKTRACE__, label: "Stack trace", limit: :infinity)
-          nil
-      rescue
-        error ->
-          IO.puts("RESCUE: Exception in get_post_ipns")
-          IO.inspect(error, label: "Exception")
-          IO.puts("Stack trace:")
-          IO.inspect(__STACKTRACE__, label: "Stack trace", limit: :infinity)
-          nil
-      end
-  end
-end
 
   defp fetch_comment_content_from_ipfs(comment_id) do
-    try do
-      case Core.PostClient.get_comment_content(comment_id) do
-        content when is_binary(content) and content != "" -> content
-        content when is_list(content) ->
-          case List.to_string(content) do
-            "" -> "Content unavailable"
-            str -> str
-          end
-        _ -> "Content unavailable"
+    cached_content = get_cached_content(:comment, comment_id)
+    if cached_content do
+      cached_content
+    else
+      try do
+        content = case Core.PostClient.get_comment_content(comment_id) do
+          content when is_binary(content) and content != "" -> content
+          content when is_list(content) ->
+            case List.to_string(content) do
+              "" -> "Content unavailable"
+              str -> str
+            end
+          _ -> "Content unavailable"
+        end
+        cache_content(:comment, comment_id, content)
+      catch
+        _, _ ->
+          cache_content(:comment, comment_id, "Content unavailable")
       end
-    catch
-      type, reason ->
-        IO.puts("Error fetching comment content for #{inspect(comment_id)}: #{inspect({type, reason})}")
-        "Content unavailable"
     end
   end
 
   defp fetch_reply_content_from_ipfs(reply_id) do
-    try do
-      case Core.PostClient.get_reply_content(reply_id) do
-        content when is_binary(content) and content != "" -> content
-        content when is_list(content) ->
-          case List.to_string(content) do
-            "" -> "Content unavailable"
-            str -> str
-          end
-        _ -> "Content unavailable"
+    cached_content = get_cached_content(:reply, reply_id)
+    if cached_content do
+      cached_content
+    else
+      try do
+        content = case Core.PostClient.get_reply_content(reply_id) do
+          content when is_binary(content) and content != "" -> content
+          content when is_list(content) ->
+            case List.to_string(content) do
+              "" -> "Content unavailable"
+              str -> str
+            end
+          _ -> "Content unavailable"
+        end
+        cache_content(:reply, reply_id, content)
+      catch
+        _, _ ->
+          cache_content(:reply, reply_id, "Content unavailable")
       end
-    catch
-      type, reason ->
-        IO.puts("Error fetching reply content for #{inspect(reply_id)}: #{inspect({type, reason})}")
-        "Content unavailable"
     end
   end
 
+  defp clear_content_cache(type, id) do
+    cache_key = {type, id}
+    :ets.delete(@content_cache, cache_key)
+  end
+
   @impl true
-  def handle_event(
-        "delete-post",
-        %{"post-id" => post_id} = _params,
-        socket
-      ) do
+  def handle_event("delete-post", %{"post-id" => post_id} = _params, socket) do
     post_id = post_id |> to_charlist
     PostClient.delete_post(post_id)
-    send(self(), :reload_posts)
 
+    clear_content_cache(:post, post_id)
+    clear_content_cache(:ipns, post_id)
+    clear_content_cache(:likes_count, post_id)
+
+    send(self(), :reload_posts)
     {:noreply, socket}
   end
 
-  def handle_event(
-        "delete-comment",
-        %{"comment-id" => comment_id, "post-id" => post_id} = _params,
-        socket
-      ) do
+  def handle_event("delete-comment", %{"comment-id" => comment_id, "post-id" => post_id} = _params, socket) do
     post_id = post_id |> to_charlist
     comment_id = comment_id |> to_charlist
-    IO.inspect(comment_id, label: "comment id")
-    IO.inspect(post_id, label: "post id")
 
     :postdb.delete_comment_from_mnesia(comment_id)
 
-    post =
-      post_id
-      |> rebuild_post()
+    clear_content_cache(:comment, comment_id)
 
-    comments = Posts.get_comment_by_post_id(post.id)
-
-    comments_with_ipfs_content =
-      Enum.map(comments, fn comment ->
-        actual_content = fetch_comment_content_from_ipfs(comment.id)
-        Map.put(comment, :content, actual_content)
-      end)
+    post = rebuild_post(post_id)
+    comments = get_comments_with_content(post.id)
 
     {:noreply,
      socket
      |> assign(:post, post)
-     |> assign(:comments, comments_with_ipfs_content)}
+     |> assign(:comments, comments)}
   end
 
   def handle_event("validate-update-comment", %{"comment" => comment_params} = _params, socket) do
@@ -327,29 +331,22 @@ end
 
   def handle_event("update-post", %{"post" => post_params}, socket) do
     post_id = socket.assigns.edit_post_id
-
     post_id = if is_binary(post_id), do: :erlang.binary_to_list(post_id), else: post_id
 
-    changeset =
-      %Post{}
-      |> Post.changeset(post_params)
+    changeset = %Post{} |> Post.changeset(post_params)
 
     case changeset.valid? do
       true ->
         new_content = post_params["content"]
 
-        IO.puts("Attempting to update post")
-        IO.inspect(post_id, label: "Post ID")
-        IO.inspect(new_content, label: "New Content")
-
         case PostClient.update_post(post_id, new_content) do
           :ok ->
+            clear_content_cache(:post, post_id)
+            clear_content_cache(:ipns, post_id)
+
             try do
               retrieved_post = rebuild_post(post_id)
-              IO.inspect(retrieved_post, label: "Retrieved Post After Update")
-
               ipns_id = get_post_ipns(post_id)
-
               send(self(), :reload_posts)
 
               {:noreply,
@@ -359,9 +356,7 @@ end
                |> assign(:ipns_id, ipns_id)}
             catch
               _, e ->
-                IO.puts("Error retrieving post after update")
-                IO.inspect(e, label: "Retrieval Error")
-
+                IO.puts("Error retrieving post after update: #{inspect(e)}")
                 {:noreply,
                  socket
                  |> assign(:editing_post, false)
@@ -369,8 +364,7 @@ end
             end
 
           error ->
-            IO.puts("Error in updating post")
-            IO.inspect(error, label: "Update Error")
+            IO.puts("Error updating post: #{inspect(error)}")
             {:noreply,
              socket
              |> put_flash(:error, "Failed to update post: #{inspect(error)}")}
@@ -386,227 +380,84 @@ end
   end
 
   def handle_event("update-comment", %{"comment" => comment_params} = _params, socket) do
-  IO.puts("📝 UPDATE-COMMENT EVENT TRIGGERED")
-  IO.puts("=" <> String.duplicate("=", 60))
-  IO.inspect(comment_params, label: "📋 Comment params for update")
+    IO.puts("📝 UPDATE-COMMENT EVENT TRIGGERED")
 
-  # Log comment update
-  IO.puts("🔄 Updating comment...")
-  comment =
-    %Comment{}
-    |> Comment.update_changeset(comment_params)
-    |> Posts.update_comment()
+    comment =
+      %Comment{}
+      |> Comment.update_changeset(comment_params)
+      |> Posts.update_comment()
 
-  IO.inspect(comment, label: "📋 Updated comment result")
+    post = comment.changes.post_id |> rebuild_post()
 
-  # Log post rebuilding
-  IO.puts("🔄 Rebuilding post after comment update...")
-  post = comment.changes.post_id |> rebuild_post()
-  IO.inspect(post.id, label: "📄 Rebuilt post ID")
+    clear_content_cache(:comment, comment.changes.id)
 
-  # Log comments retrieval
-  IO.puts("📥 Retrieving comments after update...")
-  comments = Posts.get_comment_by_post_id(post.id)
-  IO.inspect(length(comments), label: "📊 Comments count after update")
+    comments = get_comments_with_content(post.id)
 
-  # Log IPFS content fetching
-  IO.puts("🌐 Fetching IPFS content after update...")
-  comments_with_ipfs_content =
-    Enum.map(comments, fn comment ->
-      IO.puts("  Processing comment ID: #{inspect(comment.id)}")
-      actual_content = fetch_comment_content_from_ipfs(comment.id)
-      IO.puts("  Updated content: #{String.slice(actual_content, 0, 50)}...")
-      Map.put(comment, :content, actual_content)
-    end)
-
-  IO.puts("✅ UPDATE-COMMENT EVENT COMPLETED")
-  IO.puts("=" <> String.duplicate("=", 60))
-
-  {:noreply,
-   socket
-   |> assign(:post, post)
-   |> assign(:comments, comments_with_ipfs_content)
-   |> assign(:update_comment_changeset, Comment.changeset(%Comment{}))}
-end
+    {:noreply,
+     socket
+     |> assign(:post, post)
+     |> assign(:comments, comments)
+     |> assign(:update_comment_changeset, Comment.changeset(%Comment{}))}
+  end
 
   def handle_event("validate-comment", %{"comment" => comment_params} = _params, socket) do
-    IO.puts("🔍 VALIDATE-COMMENT EVENT TRIGGERED")
-    IO.puts("=" <> String.duplicate("=", 60))
-    IO.inspect(comment_params, label: "📋 Comment params received")
-    IO.inspect(socket.assigns.current_user.id, label: "👤 Current user ID")
-    IO.inspect(socket.assigns.post.id, label: "📝 Post ID")
-
     changeset =
       %Comment{}
       |> Comment.changeset(comment_params)
       |> Map.put(:action, :validate)
 
-    IO.inspect(changeset.valid?, label: "✅ Changeset valid?")
-    IO.inspect(changeset.errors, label: "❌ Changeset errors")
-    IO.puts("=" <> String.duplicate("=", 60))
-
     {:noreply, assign(socket, :changeset, changeset)}
   end
 
   def handle_event("save-comment", %{"comment" => comment_params} = _params, socket) do
-  IO.puts("💾 SAVE-COMMENT EVENT TRIGGERED")
-  IO.puts("=" <> String.duplicate("=", 60))
+    IO.puts("💾 SAVE-COMMENT EVENT TRIGGERED")
 
-  # Log initial state
-  IO.inspect(comment_params, label: "📥 INCOMING COMMENT PARAMS")
-  IO.inspect(socket.assigns.current_user.id, label: "👤 Current user ID")
-  IO.inspect(socket.assigns.post.id, label: "📝 Current post ID")
-  IO.inspect(socket.assigns.post.author, label: "👨‍💼 Post author")
+    changeset = %Comment{} |> Comment.changeset(comment_params)
+    comment_result = Posts.create_comment(changeset)
 
-  # Log changeset creation
-  IO.puts("🔨 Creating changeset...")
-  changeset = %Comment{} |> Comment.changeset(comment_params)
-  IO.inspect(changeset.valid?, label: "✅ Changeset valid?")
-  IO.inspect(changeset.errors, label: "❌ Changeset errors")
-  IO.inspect(changeset.changes, label: "🔄 Changeset changes")
+    post_id_charlist = comment_params["post_id"] |> to_charlist
+    post = rebuild_post(post_id_charlist)
 
-  # Log comment creation
-  IO.puts("💬 Attempting to create comment...")
-  comment_result = Posts.create_comment(changeset)
-  IO.inspect(comment_result, label: "📋 Comment creation result")
+    comments = get_comments_with_content(post.id)
 
-  # Log post rebuilding
-  IO.puts("🔄 Rebuilding post...")
-  post_id_charlist = comment_params["post_id"] |> to_charlist
-  IO.inspect(post_id_charlist, label: "📝 Post ID as charlist")
-
-  post = rebuild_post(post_id_charlist)
-  IO.inspect(post.id, label: "📄 Rebuilt post ID")
-
-  # Log comments retrieval
-  IO.puts("📥 Retrieving comments...")
-  comments = Posts.get_comment_by_post_id(post.id)
-  IO.inspect(length(comments), label: "📊 Number of comments retrieved")
-
-  # Log IPFS content fetching
-  IO.puts("🌐 Fetching IPFS content for comments...")
-  comments_with_ipfs_content =
-    Enum.map(comments, fn comment ->
-      IO.puts("  Processing comment ID: #{inspect(comment.id)}")
-      actual_content = fetch_comment_content_from_ipfs(comment.id)
-      IO.puts("  Content fetched: #{String.slice(actual_content, 0, 50)}...")
-      Map.put(comment, :content, actual_content)
-    end)
-
-  # Log like events processing
-  IO.puts("👍 Processing like events...")
-  comments_with_like_events =
-    Enum.map(comments_with_ipfs_content, fn comment ->
-      like_event = like_comment_event(socket.assigns.current_user.id, comment.id)
-      IO.puts("  Comment #{inspect(comment.id)} like event: #{like_event}")
-      Map.put(comment, :like_comment_event, like_event)
-    end)
-
-  # Log replies processing
-  IO.puts("💬 Processing replies...")
-  comments_with_replies =
-    comments_with_like_events
-    |> Enum.map(fn comment ->
-      IO.puts("  Getting replies for comment: #{inspect(comment.id)}")
-      replies = :postdb.get_comment_replies(comment.id |> to_charlist)
-      IO.inspect(length(replies), label: "  Number of replies")
-
-      list_replies =
-        replies
-        |> Enum.map(fn reply ->
-          IO.puts("    Processing reply...")
-          {:ok, built_reply} = reply
-          |> Mazaryn.Schema.Reply.erl_changeset()
-          |> Mazaryn.Schema.Reply.build()
-
-          actual_content = fetch_reply_content_from_ipfs(built_reply.id)
-          IO.puts("    Reply content fetched: #{String.slice(actual_content, 0, 30)}...")
-          Map.put(built_reply, :content, actual_content)
-        end)
-
-      Map.put(comment, :replies, list_replies)
-    end)
-
-  IO.inspect(length(comments_with_replies), label: "📊 Final comments count")
-  IO.puts("✅ SAVE-COMMENT EVENT COMPLETED")
-  IO.puts("=" <> String.duplicate("=", 60))
-
-  {:noreply,
-   socket
-   |> assign(:post, post)
-   |> assign(:comments, comments_with_replies)
-   |> assign(:changeset, Comment.changeset(%Comment{}))}
-end
+    {:noreply,
+     socket
+     |> assign(:post, post)
+     |> assign(:comments, comments)
+     |> assign(:changeset, Comment.changeset(%Comment{}))}
+  end
 
   def handle_event("reply_comment_content", %{"comment" => comment_params} = _params, socket) do
-    %{
-      "comment_id" => comment_id,
-      "content" => content
-    } = comment_params
-
+    %{"comment_id" => comment_id, "content" => content} = comment_params
     user_id = socket.assigns.current_user.id
 
     PostClient.reply_comment(user_id, to_charlist(comment_id), content)
 
     post = rebuild_post(socket.assigns.post.id)
-    comments = Posts.get_comment_by_post_id(post.id)
-
-    replies = :postdb.get_comment_replies(comment_id |> to_charlist)
-
-    list_replies =
-      replies
-      |> Enum.map(fn reply ->
-        {:ok, built_reply} = reply
-        |> Mazaryn.Schema.Reply.erl_changeset()
-        |> Mazaryn.Schema.Reply.build()
-
-        actual_content = fetch_reply_content_from_ipfs(built_reply.id)
-
-        Map.put(built_reply, :content, actual_content)
-      end)
-
-    comments_with_ipfs_content =
-      Enum.map(comments, fn comment ->
-        actual_content = fetch_comment_content_from_ipfs(comment.id)
-        updated_comment = Map.put(comment, :content, actual_content)
-
-        if comment.id == comment_id |> to_charlist do
-          Map.put(updated_comment, :replies, list_replies)
-        else
-          updated_comment
-        end
-      end)
+    comments = get_comments_with_content(post.id)
 
     {:noreply,
      socket
      |> assign(:post, post)
-     |> assign(:comments, comments_with_ipfs_content)}
+     |> assign(:comments, comments)}
   end
 
-  def handle_event(
-        "delete-reply",
-        %{"reply-id" => reply_id, "comment-id" => comment_id},
-        socket
-      ) do
+  def handle_event("delete-reply", %{"reply-id" => reply_id, "comment-id" => comment_id}, socket) do
     reply_id = reply_id |> to_charlist
     comment_id = comment_id |> to_charlist
 
     :postdb.delete_reply_from_mnesia(reply_id)
 
+    # Clear reply cache
+    clear_content_cache(:reply, reply_id)
+
     post = rebuild_post(socket.assigns.post.id)
-
-    comments = Posts.get_comment_by_post_id(post.id)
-
-    comments_with_ipfs_content =
-      Enum.map(comments, fn comment ->
-        actual_content = fetch_comment_content_from_ipfs(comment.id)
-        Map.put(comment, :content, actual_content)
-      end)
+    comments = get_comments_with_content(post.id)
 
     {:noreply,
      socket
      |> assign(:post, post)
-     |> assign(:comments, comments_with_ipfs_content)}
+     |> assign(:comments, comments)}
   end
 
   def handle_event("reply_comment", %{"comment-id" => comment_id}, socket) do
@@ -618,96 +469,32 @@ end
   end
 
   def handle_event("show-comments", %{"id" => post_id}, socket) do
-    IO.puts("👁️ SHOW COMMENTS EVENT")
-    IO.inspect(post_id, label: "Post ID")
-
-    Phoenix.LiveView.JS.toggle(to: "test")
-
-    comments =
-      Posts.get_comment_by_post_id(post_id)
-      |> IO.inspect()
-
-    comments_with_ipfs_content =
-      Enum.map(comments, fn comment ->
-        actual_content = fetch_comment_content_from_ipfs(comment.id)
-        Map.put(comment, :content, actual_content)
-      end)
-
-    {:noreply,
-     socket
-     |> assign(:comments, comments_with_ipfs_content)}
+    comments = get_comments_with_content(post_id)
+    {:noreply, socket |> assign(:comments, comments)}
   end
 
   def handle_event("like-comment", %{"comment-id" => comment_id}, socket) do
-  comment_id = comment_id |> to_charlist
-  user_id = socket.assigns.current_user.id
+    comment_id = comment_id |> to_charlist
+    user_id = socket.assigns.current_user.id
 
-  PostClient.like_comment(user_id, comment_id)
+    PostClient.like_comment(user_id, comment_id)
 
-  post_id = socket.assigns.post.id |> to_charlist
+    post_id = socket.assigns.post.id |> to_charlist
+    post = rebuild_post(post_id)
+    comments = get_comments_with_content(List.to_string(post_id))
 
-  updated_comments = Posts.get_comment_by_post_id(List.to_string(post_id))
-
-  comments_with_ipfs_and_likes =
-    Enum.map(updated_comments, fn comment ->
-      actual_content = fetch_comment_content_from_ipfs(comment.id)
-      comment
-      |> Map.put(:content, actual_content)
-      |> Map.put(:like_comment_event, like_comment_event(user_id, comment.id))
-    end)
-
-  post = rebuild_post(post_id)
-
-  {:noreply,
-   socket
-   |> assign(:post, post)
-   |> assign(:comments, comments_with_ipfs_and_likes)}
-end
-
-defp one_of_comment_likes?(user_id, comment_id) do
-  try do
-    comment_id
-    |> PostClient.get_comment_likes()
-    |> Enum.map(fn like ->
-      case like |> Home.Like.erl_changeset() |> Home.Like.build() do
-        {:ok, built_like} -> built_like
-        {:error, _} -> nil
-      end
-    end)
-    |> Enum.filter(&(&1 != nil))
-    |> Enum.any?(&(&1.user_id == user_id))
-  catch
-    _, _ -> false
+    {:noreply,
+     socket
+     |> assign(:post, post)
+     |> assign(:comments, comments)}
   end
-end
-
-defp like_comment_event(user_id, comment_id) do
-  try do
-    if one_of_comment_likes?(user_id, comment_id),
-      do: "unlike-comment",
-      else: "like-comment"
-  catch
-    _, _ -> "like-comment"
-  end
-end
-
-defp comment_like_color(user_id, comment_id) do
-  try do
-    if one_of_comment_likes?(user_id, comment_id),
-      do: "text-blue-500",
-      else: "text-gray-500"
-  catch
-    _, _ -> "text-gray-500"
-  end
-end
 
   def handle_event("unlike-comment", %{"comment-id" => comment_id}, socket) do
     comment_id = comment_id |> to_charlist
     user_id = socket.assigns.current_user.id |> to_charlist
     comments = socket.assigns.comments
 
-    comment =
-      Enum.find(comments, fn comment -> comment.id == comment_id |> to_charlist end)
+    comment = Enum.find(comments, fn comment -> comment.id == comment_id |> to_charlist end)
 
     like =
       comment_id
@@ -716,38 +503,17 @@ end
       |> Enum.filter(&(&1.user_id == user_id))
       |> hd()
 
-    like_id = like.id
-
-    updated_likes =
-      Enum.filter(comment.likes, fn like ->
-        like != like_id
-      end)
-
-    new_updated_likes = %{comment | likes: updated_likes}
-
+    updated_likes = Enum.filter(comment.likes, fn like_item -> like_item != like.id end)
     :postdb.update_comment_likes(comment_id, updated_likes)
 
     post_id = socket.assigns.post.id |> to_charlist
     post = rebuild_post(post_id)
-
-    updated_comments = Posts.get_comment_by_post_id(post_id)
-
-    comments_with_ipfs_and_likes =
-      Enum.map(updated_comments, fn comment ->
-        actual_content = fetch_comment_content_from_ipfs(comment.id)
-        updated_comment = Map.put(comment, :content, actual_content)
-
-        if comment.id == comment_id |> to_charlist do
-          Map.put(updated_comment, :like_comment_event, "like-comment")
-        else
-          updated_comment
-        end
-      end)
+    comments = get_comments_with_content(post_id)
 
     {:noreply,
      socket
      |> assign(:post, post)
-     |> assign(:comments, comments_with_ipfs_and_likes)}
+     |> assign(:comments, comments)}
   end
 
   def handle_event("follow_user", %{"username" => username}, socket) do
@@ -767,10 +533,10 @@ end
     user_id = socket.assigns.current_user.id
     PostClient.like_post(user_id, post_id)
 
+    clear_content_cache(:likes_count, post_id)
+
     post = rebuild_post(post_id)
     likes_count = get_likes_count(post_id)
-
-    Posts.get_likes_by_post_id(post_id)
 
     {:noreply,
      socket
@@ -793,6 +559,8 @@ end
       |> hd()
 
     PostClient.unlike_post(like.id, post_id)
+
+    clear_content_cache(:likes_count, post_id)
 
     post = rebuild_post(post_id)
     likes_count = get_likes_count(post_id)
@@ -846,13 +614,11 @@ end
     case Account.Users.one_by_username(author) do
       {:ok, user} ->
         avatar_cid = user.avatar_url
-
         if avatar_cid do
           Mazaryn.config([:media, :ipfs_gateway]) <> avatar_cid
         else
           ~p"/images/default-user.svg"
         end
-
       {:error, _changeset} -> ""
     end
   end
@@ -862,7 +628,6 @@ end
       PostClient.get_by_id(post_id)
       |> Mazaryn.Schema.Post.erl_changeset()
       |> Mazaryn.Schema.Post.build()
-
     post
   end
 
@@ -877,19 +642,14 @@ end
               case post.content do
                 content when is_binary(content) -> content
                 content when is_list(content) -> List.to_string(content)
-                _ ->
-                  IO.puts("Failed to retrieve post content")
-                  "No content available"
+                _ -> "No content available"
               end
           end
-
         true ->
           case post.content do
             content when is_binary(content) -> content
             content when is_list(content) -> List.to_string(content)
-            _ ->
-              IO.puts("Failed to retrieve post content")
-              "No content available"
+            _ -> "No content available"
           end
       end
 
@@ -905,18 +665,14 @@ end
                 check_regex(con, link_regex)} do
             {[[mention]], [], []} ->
               activate_mention_only(mention, socket)
-
             {[], [[hashtag]], []} ->
               activate_hashtag_only(hashtag, socket)
-
             {[], [], [[url | _rest]]} ->
               activate_url_only(url)
-
             {[[mention]], [[hashtag]], [[url | _rest]]} ->
               activate_mention_only(mention, socket)
               activate_hashtag_only(hashtag, socket)
               activate_url_only(url)
-
             _ ->
               escape_char(con)
           end
@@ -927,12 +683,8 @@ end
       end
     catch
       type, reason ->
-        IO.puts("Unexpected error in content processing")
-        IO.inspect({type, reason}, label: "Error Details")
-
-        "Error processing content"
-        |> Earmark.as_html!(compact_output: true)
-        |> apply_styles()
+        IO.puts("Unexpected error in content processing: #{inspect({type, reason})}")
+        ("Error processing content" |> Earmark.as_html!(compact_output: true) |> apply_styles())
     end
   end
 
@@ -946,7 +698,6 @@ end
     locale = Gettext.get_locale(MazarynWeb.Gettext)
     path = Routes.live_path(socket, MazarynWeb.HashtagLive.Index, locale, hashtag)
     markdown = "[\ #{hashtag}](#{path})"
-
     String.replace(hashtag, hashtag, markdown)
   end
 
@@ -955,46 +706,30 @@ end
       mention
       |> String.replace("@", "")
       |> create_user_path(socket)
-
     markdown = "[\ #{mention}](#{path})"
-
     String.replace(mention, mention, markdown)
   end
 
-  defp activate_url_only("http" <> _rest = url) do
-    url
-  end
-
+  defp activate_url_only("http" <> _rest = url), do: url
   defp activate_url_only(url) do
     path = "https" <> ":" <> "//" <> "#{url}"
     "[\ #{url}](#{path})"
   end
 
-  defp escape_char(con) do
-    case con do
-      "#" -> "\\#"
-      _ -> con
-    end
-  end
+  defp escape_char("#"), do: "\\#"
+  defp escape_char(con), do: con
 
   defp check_regex(con, regex) do
     cond do
-      con == "#" ->
-        "#"
-
-      con == "@" ->
-        "@"
-
-      true ->
-        regex |> Regex.scan(con)
+      con == "#" -> "#"
+      con == "@" -> "@"
+      true -> regex |> Regex.scan(con)
     end
   end
 
   defp create_user_path(username, socket) do
     case Users.one_by_username(username) do
-      :ok ->
-        "#"
-
+      :ok -> "#"
       {:ok, _user} ->
         locale = Gettext.get_locale(MazarynWeb.Gettext)
         Routes.live_path(socket, MazarynWeb.UserLive.Profile, locale, username)

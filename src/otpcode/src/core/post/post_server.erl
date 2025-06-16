@@ -113,7 +113,7 @@ get_reply(ReplyID) ->
     gen_server:call({global, ?MODULE}, {get_reply, ReplyID}).
 
 get_reply_content(ReplyID) ->
-    gen_server:call({global, ?MODULE}, {get_reply_content, ReplyID}).
+    gen_server:call({global, ?MODULE}, {get_reply_content, ReplyID}, ?TIMEOUT).
 
 get_all_replies(CommentID) ->
     gen_server:call({global, ?MODULE}, {get_all_replies, CommentID}).
@@ -122,7 +122,7 @@ get_single_comment(CommentId) ->
     gen_server:call({global, ?MODULE}, {get_single_comment, CommentId}).
 
 get_comment_content(CommentID) ->
-    gen_server:call({global, ?MODULE}, {get_comment_content, CommentID}).
+    gen_server:call({global, ?MODULE}, {get_comment_content, CommentID}, ?TIMEOUT).
 
 get_user_by_single_comment(CommentID) ->
     gen_server:call({global, ?MODULE}, {get_user_by_single_comment, CommentID}).
