@@ -886,7 +886,9 @@ defmodule MazarynWeb.HomeLive.PostComponent do
     {:noreply,
      socket
      |> assign(:post, post)
-     |> assign(:comments, comments)}
+     |> assign(:comments, comments)
+     |> assign(:reply_comment, false)
+     |> assign(:replying_to_comment_id, nil)}
   end
 
   def handle_event("delete-reply", %{"reply-id" => reply_id, "comment-id" => comment_id}, socket) do
@@ -911,8 +913,12 @@ defmodule MazarynWeb.HomeLive.PostComponent do
     {:noreply, socket |> assign(:reply_comment, true) |> assign(:replying_to_comment_id, comment_id |> to_charlist)}
   end
 
-  def handle_event("cancel-comment-reply", _, socket) do
-    {:noreply, socket |> assign(:reply_comment, false) |> assign(:replying_to_comment_id, nil)}
+  def handle_event("cancel-comment-reply", _params, socket) do
+    IO.puts("Cancelling comment reply - resetting state")
+    {:noreply,
+     socket
+     |> assign(:reply_comment, false)
+     |> assign(:replying_to_comment_id, nil)}
   end
 
   def handle_event("show-comments", %{"id" => post_id}, socket) do

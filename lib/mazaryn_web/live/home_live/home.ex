@@ -39,6 +39,12 @@ defmodule MazarynWeb.HomeLive.Home do
   end
 
   @impl true
+  def handle_event("cancel-comment-reply", %{"value" => _value}, socket) do
+    Logger.info("Cancelling comment reply")
+    {:noreply, socket}
+  end
+
+  @impl true
   def handle_event("messages", _param, socket) do
     random_id = "/messages/" <> "1"
     {:noreply, push_redirect(socket, to: random_id)}
