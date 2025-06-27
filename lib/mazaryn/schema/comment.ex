@@ -10,6 +10,7 @@ defmodule Mazaryn.Schema.Comment do
   @optional_fields ~w(
     id
     user_id
+    content_status
     date_created
     likes
     replies
@@ -27,6 +28,7 @@ defmodule Mazaryn.Schema.Comment do
   embedded_schema do
     field(:user_id, :string)
     field(:content, :string)
+    field(:content_status, :string)
     field(:date_created, :date)
     field(:likes, :string)
     field(:replies, :string)
@@ -37,7 +39,7 @@ defmodule Mazaryn.Schema.Comment do
     field(:like_comment_event, :string)  # Add this field
   end
 
-  def erl_changeset({:comment, id, user_id, post, author, content, date_created, likes, replies, ipns, data}) do
+  def erl_changeset({:comment, id, user_id, post, author, content, content_status, date_created, likes, replies, ipns, data}) do
     %__MODULE__{}
     |> change(%{
       id: id,
@@ -45,6 +47,7 @@ defmodule Mazaryn.Schema.Comment do
       post_id: post,
       author: author,
       content: content,
+      content_status: content_status,
       date_created: handle_datetime(date_created),
       likes: likes,
       replies: replies,

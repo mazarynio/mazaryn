@@ -194,6 +194,7 @@
                   post,
                   author,
                   content,
+                  content_status,
                   date_created,
                   ipns,
                   likes = [],

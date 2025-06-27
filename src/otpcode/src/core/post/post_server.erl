@@ -20,7 +20,7 @@
          get_single_comment/1, get_all_comments/1, delete_comment/2, get_likes/1, get_all_likes_for_user/1, get_last_50_likes_for_user/1,
          get_media/1, get_posts/0, get_all_comments_by_user_id/2, get_all_comments_for_user/1, get_last_50_comments_for_user/1,
          get_all_posts_from_date/4, get_all_posts_from_month/3, get_comment_content/1, get_reply_content/1, pin_post/1, display_media/1,
-         get_ipns_from_post/1]).
+         get_ipns_from_post/1, get_comment_status/1]).
 
 -export([save_post/2, unsave_post/2,
          save_posts/2, unsave_posts/2,
@@ -123,6 +123,9 @@ get_single_comment(CommentId) ->
 
 get_comment_content(CommentID) ->
     gen_server:call({global, ?MODULE}, {get_comment_content, CommentID}, ?TIMEOUT).
+
+get_comment_status(CommentID) ->
+    gen_server:call({global, ?MODULE}, {get_comment_status, CommentID}, ?TIMEOUT).
 
 get_user_by_single_comment(CommentID) ->
     gen_server:call({global, ?MODULE}, {get_user_by_single_comment, CommentID}).
@@ -322,6 +325,13 @@ handle_call({get_single_comment, CommentId}, _From, State) ->
 handle_call({get_comment_content, CommentID}, From, State) ->
     spawn(fun() ->
         Result = postdb:get_comment_content(CommentID), 
+        gen_server:reply(From, Result)
+    end),
+    {noreply, State};
+
+handle_call({get_comment_status, CommentID}, From, State) ->
+    spawn(fun() ->
+        Result = postdb:get_comment_status(CommentID), 
         gen_server:reply(From, Result)
     end),
     {noreply, State};

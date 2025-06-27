@@ -298,4 +298,7 @@ end
     |> List.to_string()
   end
 
+  def get_comment_status(comment_id) do
+    :post_server.get_comment_status(comment_id)
+  end
 end
