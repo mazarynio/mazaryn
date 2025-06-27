@@ -443,38 +443,22 @@
   <% end %>
 </div>
           
-            </div>
-            <div :if={@reply_comment && @replying_to_comment_id == comment.id} class="mt-2">
-              <.form
-                :let={f}
-                for={@changeset}
-                phx-submit="reply_comment_content"
-                phx-target={@myself}
-                class="flex space-x-2"
-              >
-                <%= hidden_input(f, :comment_id, value: comment.id) %>
-                <div class="flex-grow">
-                  <%= text_input(f, :content,
-                    class:
-                      "w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500",
-                    placeholder: "Write a reply..."
-                  ) %>
-                </div>
-                <button
-                  type="submit"
-                  class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition-colors"
-                >
-                  Reply
-                </button>
-                <button
-                  type="button"
-                  phx-click="cancel-comment-reply"
-                  class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition-colors"
-                >
-                  Cancel
-                </button>
-              </.form>
-            </div>
+          </div>
+            <%= if @reply_comment and @replying_to_comment_id == comment.id do %>
+              <.form :let={f} for={@changeset} phx-submit="reply_comment_content" phx-target={@myself} class="flex space-x-2">
+              <%= hidden_input(f, :comment_id, value: comment.id) %>
+              <%= text_input(f, :content, 
+                class: "w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500",
+                placeholder: "Write a reply...") %>
+                  <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600">
+                    Reply
+                  </button>
+                  <button type="button" phx-click="cancel-comment-reply" phx-target={@myself} 
+                    class="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600">
+                    Cancel
+                  </button>
+                </.form>
+            <% end %>
           </div>
         </div>
         <!-- Dropdown Menu -->

@@ -123,15 +123,6 @@ defmodule MazarynWeb.HomeLive.PostComponent do
     }
   end
 
-  defp await_tasks_with_fallbacks(tasks, post_id) do
-    %{
-      comments: await_with_fallback(tasks.comments, 1500, [], "comments", post_id),
-      ipns_id: await_with_fallback(tasks.ipns, 500, nil, "ipns", post_id),
-      likes_count: await_with_fallback(tasks.likes, 300, 0, "likes", post_id),
-      post_content_cached: await_with_fallback(tasks.content, 1000, "Content loading...", "content", post_id)
-    }
-  end
-
   defp await_with_fallback(task, timeout, fallback, task_name, post_id) do
     case Task.yield(task, timeout) || Task.shutdown(task, :brutal_kill) do
       {:ok, result} ->
@@ -160,30 +151,6 @@ defmodule MazarynWeb.HomeLive.PostComponent do
       likes_count: 0,
       post_content_cached: "Content loading..."
     }
-  end
-
-  defp get_comments_lightweight(post_id) do
-    try do
-      IO.puts("🔍 Fetching lightweight comments for post #{post_id}")
-
-      comments = Posts.get_comment_by_post_id(post_id)
-      |> Enum.take(3)
-      |> Enum.map(fn comment ->
-        content = get_comment_content_reliable(comment.id)
-
-        comment
-        |> Map.put(:content, content)
-        |> Map.put(:like_comment_event, "like-comment")
-        |> Map.put(:replies, [])
-      end)
-
-      IO.puts("✅ #{length(comments)} lightweight comments loaded")
-      comments
-    rescue
-      e ->
-        IO.puts("❌ Error getting lightweight comments: #{inspect(e)}")
-        []
-    end
   end
 
   defp get_comment_content_reliable(comment_id) do
@@ -297,60 +264,6 @@ defmodule MazarynWeb.HomeLive.PostComponent do
         :ets.insert(@content_cache, {cache_key, fallback, timestamp})
         fallback
     end
-  end
-
-  defp get_post_content_cached(post_id) do
-    IO.puts("📄 Getting content for post #{post_id}")
-    cache_key = {:post_content, post_id}
-
-    case :ets.lookup(@content_cache, cache_key) do
-      [{^cache_key, content, timestamp}] ->
-        age = :erlang.system_time(:second) - timestamp
-        if age < 120 do
-          IO.puts("📦 Content Cache HIT for post #{post_id} (age: #{age}s)")
-          content
-        else
-          IO.puts("⏰ Content Cache EXPIRED for post #{post_id} (age: #{age}s)")
-          :ets.delete(@content_cache, cache_key)
-          get_post_content_fresh(post_id)
-        end
-      [] ->
-        IO.puts("❌ Content Cache MISS for post #{post_id}")
-        get_post_content_fresh(post_id)
-    end
-  end
-
-  defp get_post_content_fresh(post_id) do
-    IO.puts("🔄 Fetching fresh content for post #{post_id}")
-    content_start = :erlang.system_time(:millisecond)
-
-    result = case get_post_content_with_timeout(post_id, 1500) do
-      {:ok, content} ->
-        cache_key = {:post_content, post_id}
-        timestamp = :erlang.system_time(:second)
-        :ets.insert(@content_cache, {cache_key, content, timestamp})
-        IO.puts("✅ Fresh content cached for post #{post_id}")
-        content
-      {:timeout, _} ->
-        IO.puts("⚠️ Content fetch timeout for post #{post_id}")
-        fallback_content = get_fallback_content(post_id)
-        cache_key = {:post_content, post_id}
-        timestamp = :erlang.system_time(:second)
-        :ets.insert(@content_cache, {cache_key, fallback_content, timestamp})
-        fallback_content
-      {:error, _} ->
-        "Content unavailable"
-    end
-
-    content_end = :erlang.system_time(:millisecond)
-    duration = content_end - content_start
-    IO.puts("⏱️  Content fetch for post #{post_id} took #{duration}ms")
-
-    if duration > 1000 do
-      IO.puts("🚨 SLOW CONTENT FETCH DETECTED: #{duration}ms for post #{post_id}")
-    end
-
-    result
   end
 
   defp get_post_content_with_timeout(post_id, timeout \\ 1500) do
@@ -525,53 +438,6 @@ defmodule MazarynWeb.HomeLive.PostComponent do
     content
   end
 
-  defp get_post_ipns_cached(post_id) do
-    IO.puts("🔗 Getting IPNS for post #{post_id}")
-    cache_key = {:ipns, post_id}
-    case :ets.lookup(@content_cache, cache_key) do
-      [{^cache_key, ipns, timestamp}] ->
-        age = :erlang.system_time(:second) - timestamp
-        if age < 60 do
-          IO.puts("📦 IPNS Cache HIT for post #{post_id} (age: #{age}s)")
-          ipns
-        else
-          IO.puts("⏰ IPNS Cache EXPIRED for post #{post_id} (age: #{age}s)")
-          :ets.delete(@content_cache, cache_key)
-          get_post_ipns_fresh(post_id)
-        end
-      [] ->
-        IO.puts("❌ IPNS Cache MISS for post #{post_id}")
-        get_post_ipns_fresh(post_id)
-    end
-  end
-
-  defp get_post_ipns_fresh(post_id) do
-    IO.puts("🔄 Fetching fresh IPNS for post #{post_id}")
-    ipns_start = :erlang.system_time(:millisecond)
-
-    result = case get_post_ipns_with_timeout(post_id, 800) do
-      nil ->
-        IO.puts("❌ No IPNS found for post #{post_id}")
-        nil
-      ipns ->
-        cache_key = {:ipns, post_id}
-        timestamp = :erlang.system_time(:second)
-        :ets.insert(@content_cache, {cache_key, ipns, timestamp})
-        IO.puts("✅ Fresh IPNS cached for post #{post_id}")
-        ipns
-    end
-
-    ipns_end = :erlang.system_time(:millisecond)
-    duration = ipns_end - ipns_start
-    IO.puts("⏱️  IPNS fetch for post #{post_id} took #{duration}ms")
-
-    if duration > 600 do
-      IO.puts("🚨 SLOW IPNS FETCH DETECTED: #{duration}ms for post #{post_id}")
-    end
-
-    result
-  end
-
   defp get_post_ipns_with_timeout(post_id, timeout \\ 800) do
     task = Task.async(fn -> get_post_ipns(post_id) end)
     case Task.yield(task, timeout) || Task.shutdown(task) do
@@ -580,46 +446,6 @@ defmodule MazarynWeb.HomeLive.PostComponent do
         IO.puts("⚠️ IPNS timeout (#{timeout}ms) for post #{post_id}")
         nil
     end
-  end
-
-  defp get_likes_count_cached(post_id) do
-    IO.puts("👍 Getting likes count for post #{post_id}")
-    cache_key = {:likes_count, post_id}
-    case :ets.lookup(@content_cache, cache_key) do
-      [{^cache_key, count, timestamp}] ->
-        age = :erlang.system_time(:second) - timestamp
-        if age < 30 do
-          IO.puts("📦 Likes Cache HIT for post #{post_id} (age: #{age}s, count: #{count})")
-          count
-        else
-          IO.puts("⏰ Likes Cache EXPIRED for post #{post_id} (age: #{age}s)")
-          :ets.delete(@content_cache, cache_key)
-          get_likes_count_fresh(post_id)
-        end
-      [] ->
-        IO.puts("❌ Likes Cache MISS for post #{post_id}")
-        get_likes_count_fresh(post_id)
-    end
-  end
-
-  defp get_likes_count_fresh(post_id) do
-    IO.puts("🔄 Fetching fresh likes count for post #{post_id}")
-    likes_start = :erlang.system_time(:millisecond)
-
-    count = get_likes_count_with_timeout(post_id, 600)
-    cache_key = {:likes_count, post_id}
-    timestamp = :erlang.system_time(:second)
-    :ets.insert(@content_cache, {cache_key, count, timestamp})
-
-    likes_end = :erlang.system_time(:millisecond)
-    duration = likes_end - likes_start
-    IO.puts("✅ Fresh likes count (#{count}) cached for post #{post_id} in #{duration}ms")
-
-    if duration > 400 do
-      IO.puts("🚨 SLOW LIKES FETCH DETECTED: #{duration}ms for post #{post_id}")
-    end
-
-    count
   end
 
   defp get_likes_count_with_timeout(post_id, timeout \\ 600) do
@@ -958,22 +784,40 @@ defmodule MazarynWeb.HomeLive.PostComponent do
   def handle_event("update-comment", %{"comment" => comment_params} = _params, socket) do
     IO.puts("📝 UPDATE-COMMENT EVENT TRIGGERED")
 
+    comment_id = comment_params["id"]
+    new_content = comment_params["content"]
+
     comment =
       %Comment{}
       |> Comment.update_changeset(comment_params)
       |> Posts.update_comment()
 
+    if comment_id && new_content do
+      cache_content(:comment, comment_id, new_content)
+      IO.puts("💾 Immediately cached new content for comment #{comment_id}")
+    end
+
+    updated_comments = update_comment_content_optimistically(socket.assigns.comments, comment_id, new_content)
+
     post = comment.changes.post_id |> rebuild_post()
-
-    clear_content_cache(:comment, comment.changes.id)
-
-    comments = get_comments_with_content(post.id)
 
     {:noreply,
      socket
      |> assign(:post, post)
-     |> assign(:comments, comments)
+     |> assign(:comments, updated_comments)
      |> assign(:update_comment_changeset, Comment.changeset(%Comment{}))}
+  end
+
+
+  defp update_comment_content_optimistically(comments, comment_id, new_content) do
+    Enum.map(comments, fn comment ->
+      if to_string(comment.id) == to_string(comment_id) do
+        IO.puts("✅ Optimistically updating comment #{comment_id} with new content")
+        Map.put(comment, :content, new_content)
+      else
+        comment
+      end
+    end)
   end
 
   def handle_event("validate-comment", %{"comment" => comment_params} = _params, socket) do
@@ -1058,26 +902,138 @@ defmodule MazarynWeb.HomeLive.PostComponent do
     %{"comment_id" => comment_id, "content" => content} = comment_params
     user_id = socket.assigns.current_user.id
 
-    case PostClient.reply_comment(user_id, to_charlist(comment_id), content) do
-      {:ok, reply} ->
-        if reply && reply.id do
-          cache_content(:reply, reply.id, content)
-        end
+    IO.puts("🚀 Creating reply for comment #{comment_id} with content: #{content}")
 
-        post = rebuild_post(socket.assigns.post.id)
-        comments = get_comments_with_content_reliable(post.id)
+    temp_reply = create_temp_reply(user_id, comment_id, content)
 
-        {:noreply,
-         socket
-         |> assign(:post, post)
-         |> assign(:comments, comments)
-         |> assign(:reply_comment, false)
-         |> assign(:replying_to_comment_id, nil)}
+    updated_comments = add_reply_to_comment(socket.assigns.comments, comment_id, temp_reply)
 
-      error ->
-        IO.puts("❌ Error creating reply: #{inspect(error)}")
-        {:noreply, put_flash(socket, :error, "Failed to create reply")}
-    end
+    Task.start(fn ->
+      case PostClient.reply_comment(user_id, to_charlist(comment_id), content) do
+        {:ok, reply} ->
+          IO.puts("✅ Reply saved successfully: #{inspect(reply.id)}")
+          if reply && reply.id do
+            cache_content(:reply, reply.id, content)
+          end
+          send(self(), {:reply_saved, comment_id, reply, temp_reply.id})
+
+        error ->
+          IO.puts("❌ Error saving reply: #{inspect(error)}")
+          send(self(), {:reply_failed, comment_id, temp_reply.id})
+      end
+    end)
+
+    {:noreply,
+     socket
+     |> assign(:comments, updated_comments)
+     |> assign(:reply_comment, false)
+     |> assign(:replying_to_comment_id, nil)}
+  end
+
+
+  def handle_info({:reply_saved, comment_id, real_reply, temp_id}, socket) do
+    IO.puts("🔄 Updating temporary reply #{temp_id} with real reply #{real_reply.id}")
+
+    updated_comments = replace_temp_reply_with_real(socket.assigns.comments, comment_id, temp_id, real_reply)
+
+    {:noreply, assign(socket, :comments, updated_comments)}
+  end
+
+  def handle_info({:reply_failed, comment_id, temp_id}, socket) do
+    IO.puts("❌ Removing failed reply #{temp_id}")
+
+    updated_comments = remove_temp_reply(socket.assigns.comments, comment_id, temp_id)
+
+    {:noreply,
+     socket
+     |> assign(:comments, updated_comments)
+     |> put_flash(:error, "Failed to save reply. Please try again.")}
+  end
+
+  defp create_temp_reply(user_id, comment_id, content) do
+    temp_id = "temp_" <> (:crypto.strong_rand_bytes(8) |> Base.encode16(case: :lower))
+
+    %{
+      id: temp_id,
+      content: content,
+      user_id: user_id,
+      comment_id: comment_id,
+      inserted_at: DateTime.utc_now(),
+      updated_at: DateTime.utc_now(),
+      is_temp: true
+    }
+  end
+
+  defp add_reply_to_comment(comments, comment_id, new_reply) do
+    Enum.map(comments, fn comment ->
+      if to_string(comment.id) == to_string(comment_id) do
+        existing_replies = comment.replies || []
+        updated_replies = existing_replies ++ [new_reply]
+
+        IO.puts("📝 Added reply to comment #{comment_id}. Total replies: #{length(updated_replies)}")
+        Map.put(comment, :replies, updated_replies)
+      else
+        comment
+      end
+    end)
+  end
+
+  defp replace_temp_reply_with_real(comments, comment_id, temp_id, real_reply) do
+    Enum.map(comments, fn comment ->
+      if to_string(comment.id) == to_string(comment_id) do
+        updated_replies = Enum.map(comment.replies || [], fn reply ->
+          if reply.id == temp_id do
+            %{
+              id: real_reply.id,
+              content: reply.content,
+              user_id: real_reply.user_id,
+              comment_id: comment_id,
+              inserted_at: real_reply.inserted_at || reply.inserted_at,
+              updated_at: real_reply.updated_at || reply.updated_at,
+              is_temp: false
+            }
+          else
+            reply
+          end
+        end)
+
+        Map.put(comment, :replies, updated_replies)
+      else
+        comment
+      end
+    end)
+  end
+
+  defp remove_temp_reply(comments, comment_id, temp_id) do
+    Enum.map(comments, fn comment ->
+      if to_string(comment.id) == to_string(comment_id) do
+        updated_replies = Enum.reject(comment.replies || [], fn reply ->
+          reply.id == temp_id
+        end)
+
+        Map.put(comment, :replies, updated_replies)
+      else
+        comment
+      end
+    end)
+  end
+
+  def handle_event("reply_comment", %{"comment-id" => comment_id}, socket) do
+    comment_id_charlist = comment_id |> to_charlist()
+    IO.puts("📨 Setting reply state for comment: #{comment_id}")
+
+    {:noreply,
+     socket
+     |> assign(:reply_comment, true)
+     |> assign(:replying_to_comment_id, comment_id_charlist)}
+  end
+
+  def handle_event("cancel-comment-reply", _params, socket) do
+    IO.puts("❌ Cancelling comment reply - resetting state")
+    {:noreply,
+     socket
+     |> assign(:reply_comment, false)
+     |> assign(:replying_to_comment_id, nil)}
   end
 
   def handle_info({:refresh_comment_content, comment_id}, socket) do
@@ -1109,7 +1065,13 @@ defmodule MazarynWeb.HomeLive.PostComponent do
   end
 
   def handle_event("reply_comment", %{"comment-id" => comment_id}, socket) do
-    {:noreply, socket |> assign(:reply_comment, true) |> assign(:replying_to_comment_id, comment_id |> to_charlist)}
+    comment_id_charlist = comment_id |> to_charlist()
+    IO.puts("Setting reply state for comment: #{comment_id}")
+
+    {:noreply,
+     socket
+     |> assign(:reply_comment, true)
+     |> assign(:replying_to_comment_id, comment_id_charlist)}
   end
 
   def handle_event("cancel-comment-reply", _params, socket) do
@@ -1441,12 +1403,6 @@ defmodule MazarynWeb.HomeLive.PostComponent do
       {:ok, user} -> user.verified
       _ -> false
     end
-  end
-
-  defp like_comment_event(user_id, comment_id) do
-    if one_of_comment_likes?(user_id, comment_id),
-      do: "unlike-comment",
-      else: "like-comment"
   end
 
   defp one_of_comment_likes?(user_id, comment_id) do

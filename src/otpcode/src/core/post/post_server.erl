@@ -74,10 +74,10 @@ delete_post(Id) ->
   gen_server:call({global, ?MODULE}, {delete_post, Id}).
 
 like_post(UserID, PostId) ->
-    gen_server:call({global, ?MODULE}, {like_post, UserID, PostId}).
+    gen_server:call({global, ?MODULE}, {like_post, UserID, PostId}, ?TIMEOUT).
 
 unlike_post(LikeID, PostId) ->
-    gen_server:call({global, ?MODULE}, {unlike_post, LikeID, PostId}).
+    gen_server:call({global, ?MODULE}, {unlike_post, LikeID, PostId}, ?TIMEOUT).
 
 add_comment(Author, PostID, Content) ->
   gen_server:call({global, ?MODULE}, {add_comment, Author, PostID, Content}).
