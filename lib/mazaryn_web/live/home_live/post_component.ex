@@ -829,20 +829,32 @@ defmodule MazarynWeb.HomeLive.PostComponent do
     {:noreply, assign(socket, :changeset, changeset)}
   end
 
-  def handle_event("save-comment", %{"comment" => comment_params} = _params, socket) do
+  def handle_event("save-comment", %{"comment" => comment_params}, socket) do
     IO.puts("💾 SAVE-COMMENT EVENT TRIGGERED")
+    IO.inspect(comment_params, label: "Comment params received")
 
-    changeset = %Comment{} |> Comment.changeset(comment_params)
+    comment_params = Map.new(comment_params, fn {k, v} -> {String.to_atom(k), v} end)
+
+    handle_save_comment(comment_params, socket)
+  end
+
+  def handle_event("save-comment", params, socket) do
+    IO.puts("❌ Unexpected params format for save-comment: #{inspect(params)}")
+    {:noreply, socket |> put_flash(:error, "Invalid comment data format")}
+  end
+
+  defp handle_save_comment(%{post_id: post_id, author: author, content: content} = comment_params, socket) do
+    changeset = %Comment{}
+      |> Comment.changeset(%{
+        post_id: post_id,
+        author: author,
+        content: content
+      })
 
     case Posts.create_comment(changeset) do
       {:ok, comment} ->
-        if comment_params["content"] do
-          cache_content(:comment, comment.id, comment_params["content"])
-        end
-
-        post_id_charlist = comment_params["post_id"] |> to_charlist
-        post = rebuild_post(post_id_charlist)
-
+        cache_content(:comment, comment.id, content)
+        post = rebuild_post(post_id)
         comments = get_comments_with_content_reliable(post.id)
 
         {:noreply,
@@ -852,8 +864,14 @@ defmodule MazarynWeb.HomeLive.PostComponent do
          |> assign(:changeset, Comment.changeset(%Comment{}))}
 
       {:error, changeset} ->
+        IO.puts("❌ Error creating comment: #{inspect(changeset.errors)}")
         {:noreply, assign(socket, :changeset, changeset)}
     end
+  end
+
+  defp handle_save_comment(comment_params, socket) do
+    IO.puts("❌ Missing required comment parameters in: #{inspect(comment_params)}")
+    {:noreply, socket |> put_flash(:error, "Missing required fields")}
   end
 
   defp get_comments_with_content_reliable(post_id) do
