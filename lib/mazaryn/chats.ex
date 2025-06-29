@@ -10,18 +10,22 @@ defmodule Mazaryn.Chats do
   alias Mazaryn.Repo
 
   def create_chat(%User{id: actor_id}, %User{id: recipient_id}, params) do
-    %Chat{}
-    |> Chat.changeset(params)
-    |> Ecto.Changeset.apply_action(:validate)
-    |> case do
-      {:ok, %{body: body, media: media}} ->
-        actor_id
-        |> ChatDB.send_msg(recipient_id, body, media)
-        |> ChatDB.get_msg()
-        |> Chat.erl_changeset()
+    if actor_id == recipient_id do
+      {:error, :self_chat_not_allowed}
+    else
+      %Chat{}
+      |> Chat.changeset(params)
+      |> Ecto.Changeset.apply_action(:validate)
+      |> case do
+        {:ok, %{body: body, media: media}} ->
+          actor_id
+          |> ChatDB.send_msg(recipient_id, body, media)
+          |> ChatDB.get_msg()
+          |> Chat.erl_changeset()
 
-      any ->
-        any
+        any ->
+          any
+      end
     end
   end
 
@@ -92,10 +96,14 @@ defmodule Mazaryn.Chats do
   end
 
   def get_chat_messages(%User{} = actor, %User{} = recipient) do
-    actor.chat
-    |> Kernel.++(recipient.chat)
-    |> get_chats()
-    |> Enum.filter(&(to_charlist(&1.recipient_id) in [recipient.id, actor.id]))
+    if actor.id == recipient.id do
+      []
+    else
+      actor.chat
+      |> Kernel.++(recipient.chat)
+      |> get_chats()
+      |> Enum.filter(&(to_charlist(&1.recipient_id) in [recipient.id, actor.id]))
+    end
   end
 
   def get_chat_messages(_, _), do: []
@@ -110,11 +118,15 @@ defmodule Mazaryn.Chats do
   end
 
   def start_video_call(%User{id: actor_id}, %User{id: recipient_id}) do
-    try do
-      call_id = ChatDB.start_video_call(actor_id, recipient_id)
-      {:ok, call_id}
-    catch
-      {:error, reason} -> {:error, reason}
+    if actor_id == recipient_id do
+      {:error, :self_call_not_allowed}
+    else
+      try do
+        call_id = ChatDB.start_video_call(actor_id, recipient_id)
+        {:ok, call_id}
+      catch
+        {:error, reason} -> {:error, reason}
+      end
     end
   end
 

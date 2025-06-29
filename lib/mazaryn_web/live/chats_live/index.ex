@@ -226,4 +226,17 @@ defmodule MazarynWeb.ChatsLive.Index do
         [erl_user |> User.erl_changeset() |> User.build() |> elem(1)]
     end
   end
+
+  def handle_info({:message_edited, message_id, new_body}, socket) do
+    updated_messages =
+      Enum.map(socket.assigns.messages, fn msg ->
+        if msg.id == message_id do
+          %{msg | body: new_body, date_updated: DateTime.utc_now()}
+        else
+          msg
+        end
+      end)
+
+    {:noreply, assign(socket, :messages, updated_messages)}
+  end
 end

@@ -11,8 +11,8 @@ defmodule MazarynWeb.HomeLive.PostComponent do
   alias Phoenix.LiveView.JS
 
   @content_cache :post_content_cache
-  @batch_size 3
-  @max_concurrent_tasks 4
+  @batch_size 5
+  @max_concurrent_tasks 8
 
   defp log_performance(operation, func) do
     start_time = :erlang.system_time(:millisecond)
@@ -81,7 +81,7 @@ defmodule MazarynWeb.HomeLive.PostComponent do
 
       tasks = %{
         comments: Task.async(fn -> get_comments_with_content_reliable(assigns.post.id) end),
-        ipns: Task.async(fn -> get_post_ipns_fast(assigns.post.id) end),
+        ipns: Task.async(fn -> get_post_ipns_async(assigns.post.id) end),
         likes: Task.async(fn -> get_likes_count_fast(assigns.post.id) end),
         content: Task.async(fn -> get_post_content_fast(assigns.post.id) end)
       }
@@ -112,6 +112,133 @@ defmodule MazarynWeb.HomeLive.PostComponent do
         IO.puts("❌ Error processing post #{assigns.post.id}: #{inspect(e)}")
         assign(socket, basic_assigns(assigns))
     end
+  end
+
+  defp get_post_ipns_async(post_id) do
+    cache_key = {:ipns, post_id}
+
+    case :ets.lookup(@content_cache, cache_key) do
+      [{^cache_key, ipns, timestamp}] ->
+        age = :erlang.system_time(:second) - timestamp
+        if age < 300 do # 5 minutes cache
+          IO.puts("📦 IPNS Cache HIT for post #{post_id}")
+          ipns
+        else
+          :ets.delete(@content_cache, cache_key)
+          fetch_ipns_with_background_refresh(post_id)
+        end
+      [] ->
+        fetch_ipns_with_background_refresh(post_id)
+    end
+  end
+
+  defp fetch_ipns_with_background_refresh(post_id) do
+    parent_pid = self()
+
+    Task.start(fn ->
+      case get_post_ipns_with_timeout(post_id, 2000) do
+        ipns when not is_nil(ipns) ->
+          cache_key = {:ipns, post_id}
+          timestamp = :erlang.system_time(:second)
+          :ets.insert(@content_cache, {cache_key, ipns, timestamp})
+
+          send(parent_pid, {:ipns_fetched, post_id, ipns})
+
+        nil ->
+          IO.puts("⚠️ Background IPNS fetch failed for #{post_id}")
+      end
+    end)
+
+    get_cached_ipns_or_nil(post_id)
+  end
+
+  defp get_cached_ipns_or_nil(post_id) do
+    cache_key = {:ipns, post_id}
+    case :ets.lookup(@content_cache, cache_key) do
+      [{^cache_key, ipns, _timestamp}] -> ipns
+      [] -> nil
+    end
+  end
+
+  defp get_post_ipns_with_timeout(post_id, timeout \\ 1000) do
+    case post_id do
+      nil -> nil
+      "" -> nil
+      [] -> nil
+      _ ->
+        task = Task.async(fn ->
+          try do
+            ipns_start = :erlang.system_time(:millisecond)
+            post_id_charlist = if is_binary(post_id), do: to_charlist(post_id), else: post_id
+
+            result = Core.PostClient.get_ipns_from_post(post_id_charlist)
+
+            ipns_end = :erlang.system_time(:millisecond)
+            duration = ipns_end - ipns_start
+            IO.puts("🔗 IPNS fetch for #{post_id} took #{duration}ms")
+
+            if duration > 1000 do
+              IO.puts("🚨 SLOW IPNS CALL: #{duration}ms for post #{post_id}")
+            end
+
+            result
+          rescue
+            e ->
+              IO.puts("❌ Rescue in IPNS fetch: #{inspect(e)}")
+              nil
+          catch
+            type, reason ->
+              IO.puts("❌ Error in IPNS fetch: #{inspect({type, reason})}")
+              nil
+          end
+        end)
+
+        case Task.yield(task, timeout) || Task.shutdown(task, :brutal_kill) do
+          {:ok, result} -> result
+          nil ->
+            IO.puts("⚠️ IPNS timeout (#{timeout}ms) for post #{post_id}")
+            nil
+        end
+    end
+  end
+
+  def handle_info({:ipns_fetched, post_id, ipns}, socket) do
+    if socket.assigns[:post] && to_string(socket.assigns.post.id) == to_string(post_id) do
+      IO.puts("🔄 Updating IPNS for displayed post #{post_id}")
+      {:noreply, assign(socket, :ipns_id, ipns)}
+    else
+
+      {:noreply, socket}
+    end
+  end
+
+  defp await_tasks_with_fallbacks_improved(tasks, post_id) do
+    %{
+      comments: await_with_fallback(tasks.comments, 3000, [], "comments", post_id),
+      ipns_id: await_with_fallback(tasks.ipns, 300, nil, "ipns", post_id),
+      likes_count: await_with_fallback(tasks.likes, 300, 0, "likes", post_id),
+      post_content_cached: await_with_fallback(tasks.content, 1000, "Content loading...", "content", post_id)
+    }
+  end
+
+  def warm_ipns_cache(recent_post_ids) do
+    Task.start(fn ->
+      IO.puts("🔥 Warming IPNS cache for #{length(recent_post_ids)} posts")
+
+      recent_post_ids
+      |> Enum.chunk_every(5)
+      |> Enum.each(fn batch ->
+        batch
+        |> Enum.map(fn post_id ->
+          Task.async(fn -> get_post_ipns_async(post_id) end)
+        end)
+        |> Task.await_many(2000)
+
+        Process.sleep(500)
+      end)
+
+      IO.puts("✅ IPNS cache warming completed")
+    end)
   end
 
   defp await_tasks_with_fallbacks_improved(tasks, post_id) do
@@ -197,23 +324,6 @@ defmodule MazarynWeb.HomeLive.PostComponent do
 
   defp retry_or_fallback(comment_id, 0) do
     cache_content(:comment, comment_id, "Content loading failed")
-  end
-
-  defp get_post_ipns_fast(post_id) do
-    cache_key = {:ipns, post_id}
-    case :ets.lookup(@content_cache, cache_key) do
-      [{^cache_key, ipns, timestamp}] ->
-        age = :erlang.system_time(:second) - timestamp
-        if age < 300 do
-          IO.puts("📦 IPNS Cache HIT for post #{post_id}")
-          ipns
-        else
-          :ets.delete(@content_cache, cache_key)
-          get_post_ipns_with_timeout(post_id, 400)
-        end
-      [] ->
-        get_post_ipns_with_timeout(post_id, 400)
-    end
   end
 
   defp get_likes_count_fast(post_id) do
@@ -438,15 +548,7 @@ defmodule MazarynWeb.HomeLive.PostComponent do
     content
   end
 
-  defp get_post_ipns_with_timeout(post_id, timeout \\ 800) do
-    task = Task.async(fn -> get_post_ipns(post_id) end)
-    case Task.yield(task, timeout) || Task.shutdown(task) do
-      {:ok, result} -> result
-      nil ->
-        IO.puts("⚠️ IPNS timeout (#{timeout}ms) for post #{post_id}")
-        nil
-    end
-  end
+
 
   defp get_likes_count_with_timeout(post_id, timeout \\ 600) do
     task = Task.async(fn -> get_likes_count(post_id) end)
