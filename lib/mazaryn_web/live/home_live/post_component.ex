@@ -122,42 +122,40 @@ defmodule MazarynWeb.HomeLive.PostComponent do
         age = :erlang.system_time(:second) - timestamp
         if age < 300 do # 5 minutes cache
           IO.puts("📦 IPNS Cache HIT for post #{post_id}")
+          spawn_background_ipns_refresh(post_id)
           ipns
         else
           :ets.delete(@content_cache, cache_key)
-          fetch_ipns_with_background_refresh(post_id)
+          fetch_ipns_async_with_fallback(post_id)
         end
       [] ->
-        fetch_ipns_with_background_refresh(post_id)
+        fetch_ipns_async_with_fallback(post_id)
     end
   end
 
-  defp fetch_ipns_with_background_refresh(post_id) do
+  defp fetch_ipns_async_with_fallback(post_id) do
+    spawn_background_ipns_refresh(post_id)
+
+    get_cached_ipns_or_nil(post_id)
+  end
+
+  defp spawn_background_ipns_refresh(post_id) do
     parent_pid = self()
 
     Task.start(fn ->
-      case get_post_ipns_with_timeout(post_id, 2000) do
+      case get_post_ipns_with_timeout(post_id, 1500) do
         ipns when not is_nil(ipns) ->
           cache_key = {:ipns, post_id}
           timestamp = :erlang.system_time(:second)
           :ets.insert(@content_cache, {cache_key, ipns, timestamp})
 
-          send(parent_pid, {:ipns_fetched, post_id, ipns})
+          send(parent_pid, {:ipns_updated, post_id, ipns})
+          IO.puts("✅ Background IPNS refresh completed for #{post_id}")
 
         nil ->
           IO.puts("⚠️ Background IPNS fetch failed for #{post_id}")
       end
     end)
-
-    get_cached_ipns_or_nil(post_id)
-  end
-
-  defp get_cached_ipns_or_nil(post_id) do
-    cache_key = {:ipns, post_id}
-    case :ets.lookup(@content_cache, cache_key) do
-      [{^cache_key, ipns, _timestamp}] -> ipns
-      [] -> nil
-    end
   end
 
   defp get_post_ipns_with_timeout(post_id, timeout \\ 1000) do
@@ -177,7 +175,7 @@ defmodule MazarynWeb.HomeLive.PostComponent do
             duration = ipns_end - ipns_start
             IO.puts("🔗 IPNS fetch for #{post_id} took #{duration}ms")
 
-            if duration > 1000 do
+            if duration > 800 do
               IO.puts("🚨 SLOW IPNS CALL: #{duration}ms for post #{post_id}")
             end
 
@@ -201,6 +199,68 @@ defmodule MazarynWeb.HomeLive.PostComponent do
         end
     end
   end
+
+  def handle_info({:ipns_updated, post_id, ipns}, socket) do
+    if socket.assigns[:post] && to_string(socket.assigns.post.id) == to_string(post_id) do
+      IO.puts("🔄 Updating IPNS for displayed post #{post_id}")
+      {:noreply, assign(socket, :ipns_id, ipns)}
+    else
+      {:noreply, socket}
+    end
+  end
+
+  def warm_ipns_cache_async(recent_post_ids) when is_list(recent_post_ids) do
+    Task.start(fn ->
+      IO.puts("🔥 Starting async IPNS cache warming for #{length(recent_post_ids)} posts")
+
+      recent_post_ids
+      |> Enum.chunk_every(3)
+      |> Enum.each(fn batch ->
+        tasks = Enum.map(batch, fn post_id ->
+          Task.async(fn ->
+            spawn_background_ipns_refresh(post_id)
+            :timer.sleep(100)
+          end)
+        end)
+
+        Task.yield_many(tasks, 50)
+
+        :timer.sleep(200)
+      end)
+
+      IO.puts("✅ IPNS cache warming initiated for all posts")
+    end)
+  end
+
+    defp await_tasks_with_fallbacks_improved(tasks, post_id) do
+      %{
+        comments: await_with_fallback(tasks.comments, 3000, [], "comments", post_id),
+        ipns_id: await_with_fallback_async(tasks.ipns, 150, nil, "ipns", post_id),
+        likes_count: await_with_fallback(tasks.likes, 300, 0, "likes", post_id),
+        post_content_cached: await_with_fallback(tasks.content, 1000, "Content loading...", "content", post_id)
+      }
+    end
+
+    defp await_with_fallback_async(task, timeout, fallback, task_name, post_id) do
+      case Task.yield(task, timeout) do
+        {:ok, result} ->
+          IO.puts("✅ #{task_name} task completed quickly for post #{post_id}")
+          result
+        nil ->
+          IO.puts("⚡ #{task_name} continuing in background for post #{post_id} - using fallback")
+          fallback
+      end
+    end
+
+  defp get_cached_ipns_or_nil(post_id) do
+    cache_key = {:ipns, post_id}
+    case :ets.lookup(@content_cache, cache_key) do
+      [{^cache_key, ipns, _timestamp}] -> ipns
+      [] -> nil
+    end
+  end
+
+
 
   def handle_info({:ipns_fetched, post_id, ipns}, socket) do
     if socket.assigns[:post] && to_string(socket.assigns.post.id) == to_string(post_id) do
