@@ -164,15 +164,14 @@
     </div>
 
   <% end %>
-
-  <div :if={!Enum.empty?(@post.media)} class="w-full grid grid-cols-4 gap-4">
-    <%!-- <%= for _media_url <- @post.media do %> --%>
-    <img
-      class="align-middle border border-gray-100 max-h-6 max-w-6 mt-2 rounded-2xl"
-      src={Routes.static_path(@socket, "/images/hand-thumb-up.svg")}
-    />
-    <%!-- <% end %> --%>
-  </div>
+  <!--
+    <div :if={!Enum.empty?(@post.media)} class="w-full grid grid-cols-4 gap-4">
+      <img
+        class="align-middle border border-gray-100 max-h-6 max-w-6 mt-2 rounded-2xl"
+        src={Routes.static_path(@socket, "/images/hand-thumb-up.svg")}
+      />
+    </div>
+  -->
 
   <div class="text-gray-500 flex mt-4 pt-4 pb-5">
     <div class="flex items-start mr-3">
@@ -267,63 +266,43 @@
     </.form>
   </div>
 
-  <div id={"view-comments-#{@post.id}"} class="w-full flex flex-col justify-start items-center">
-    <%= for comment <- @comments do %>
-      <div
-        x-data="{
-          open: false, 
-          isEditing: false, 
-          editedContent: 'new content', 
-          toggleMenu() { 
-            this.open = !this.open; 
-            this.isEditing = false; 
-          },
-          startEditing() {
-            this.isEditing = true;
-            this.open = false;
-          },
-          cancelEditing() {
-            this.isEditing = false;
-            this.editedContent = '{{ comment.content }}';
-          }
-        }"
-        x-on:click.outside="open = false; isEditing = false"
-        class="w-full flex flex-row justify-between items-start py-3 relative"
-      >
-        <div class="flex items-start space-x-3 w-full">
-          <img
-            src={get_user_avatar(comment.author)}
-            class="h-8 w-8 rounded-full shrink-0"
-          />
+ <div id={"view-comments-#{@post.id}"} class="w-full flex flex-col justify-start items-center">
+  <%= for comment <- @comments do %>
+    <div
+      x-data="{ open: false }"
+      x-on:click.outside="open = false"
+      class="w-full flex flex-row justify-between items-start py-3 relative"
+    >
+      <div class="flex items-start space-x-3 w-full">
+        <img
+          src={get_user_avatar(comment.author)}
+          class="h-8 w-8 rounded-full shrink-0"
+        />
 
-          <div class="flex-grow">
-            <div class="flex items-center space-x-2 mb-1">
-              <div class="grid grid-flow-col auto-cols-max items-center">
-                <p class="text-sm font-semibold mr-2">
-                  <%= Account.Users.get_user_by_id(comment.author).username %>
-                </p>
+        <div class="flex-grow">
+          <div class="flex items-center space-x-2 mb-1">
+            <div class="grid grid-flow-col auto-cols-max items-center">
+              <p class="text-sm font-semibold mr-2">
+                <%= Account.Users.get_user_by_id(comment.author).username %>
+              </p>
 
-                <%= if Account.Users.get_user_by_id(comment.author).verified do %>
-                  <img
-                    alt="verified user"
-                    src={Routes.static_path(@socket, "/images/verified.png")}
-                    class="rounded-full h-4 w-4"
-                  />
-                <% end %>
-              </div>
-
-              <span class="text-xs text-gray-400">
-                <%= Timex.from_now(comment.date_created) %>
-              </span>
+              <%= if Account.Users.get_user_by_id(comment.author).verified do %>
+                <img
+                  alt="verified user"
+                  src={Routes.static_path(@socket, "/images/verified.png")}
+                  class="rounded-full h-4 w-4"
+                />
+              <% end %>
             </div>
-            
-            <!-- View Mode -->
-            <div x-show="!isEditing" class="text-sm text-gray-700">
-              <%= comment.content %>
-            </div>
-            
+
+            <span class="text-xs text-gray-400">
+              <%= Timex.from_now(comment.date_created) %>
+            </span>
+          </div>
+          
+          <%= if @editing_comment && @editing_comment_id == to_string(comment.id) do %>
             <!-- Edit Mode -->
-            <div x-show="isEditing" class="mt-1">
+            <div class="mt-1">
               <.form
                 :let={f}
                 for={@update_comment_changeset}
@@ -336,7 +315,7 @@
                 <%= hidden_input(f, :id, value: comment.id) %>
                 <%= text_input(f, :content,
                   value: comment.content,
-                  class: "w-full px-2 py-1 text-sm",
+                  class: "w-full px-2 py-1 text-sm border rounded",
                   placeholder: "Edit your comment",
                   required: true
                 ) %>
@@ -349,7 +328,8 @@
                   </button>
                   <button
                     type="button"
-                    @click="cancelEditing()"
+                    phx-click="cancel-comment-edit"
+                    phx-target={@myself}
                     class="bg-gray-200 text-gray-700 px-2 py-1 rounded text-xs hover:bg-gray-300 transition"
                   >
                     Cancel
@@ -357,166 +337,176 @@
                 </div>
               </.form>
             </div>
-            
-            <div class="flex flex-col">
-              <div class="flex items-center space-x-2 mt-2">
-                <button
-                  phx-click={comment.like_comment_event}
-                  phx-value-comment-id={comment.id}
-                  phx-target={@myself}
-                  class="flex items-center space-x-1 px-1 py-1 rounded-full bg-gray-100 hover:bg-blue-100 transition shadow-sm hover:shadow-md group"
+          <% else %>
+            <!-- View Mode -->
+            <div class="text-sm text-gray-700">
+              <%= comment.content %>
+            </div>
+          <% end %>
+          
+          <div class="flex flex-col">
+            <div class="flex items-center space-x-2 mt-2">
+              <button
+                phx-click={comment.like_comment_event}
+                phx-value-comment-id={comment.id}
+                phx-target={@myself}
+                class="flex items-center space-x-1 px-1 py-1 rounded-full bg-gray-100 hover:bg-blue-100 transition shadow-sm hover:shadow-md group"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class={"h-4 w-4 #{comment_like_color(@current_user.id, comment.id)} transition"}
+                  viewBox="0 0 24 24"
+                  fill={
+                    if comment.like_comment_event == "unlike-comment",
+                      do: "currentColor",
+                      else: "none"
+                  }
+                  stroke="currentColor"
                 >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    class={"h-4 w-4 #{comment_like_color(@current_user.id, comment.id)} transition"}
-                    viewBox="0 0 24 24"
-                    fill={
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d={
                       if comment.like_comment_event == "unlike-comment",
-                        do: "currentColor",
-                        else: "none"
+                        do: "M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z",
+                        else: "M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
                     }
-                    stroke="currentColor"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d={
-                        if comment.like_comment_event == "unlike-comment",
-                          do: "M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z",
-                          else: "M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
-                      }
-                    />
-                  </svg>
-                  <span class={"text-xs font-semibold #{comment_like_color(@current_user.id, comment.id)} group-hover:text-blue-600"}>
-                    Like
-                  </span>
-                </button>
+                  />
+                </svg>
+                <span class={"text-xs font-semibold #{comment_like_color(@current_user.id, comment.id)} group-hover:text-blue-600"}>
+                  Like
+                </span>
+              </button>
 
-                <button
-                  phx-click="reply_comment"
-                  phx-value-comment-id={comment.id}
-                  phx-target={@myself}
-                  class="flex items-center space-x-1 px-1 py-1 rounded-full bg-gray-100 hover:bg-green-100 transition shadow-sm hover:shadow-md group"
+              <button
+                phx-click="reply_comment"
+                phx-value-comment-id={comment.id}
+                phx-target={@myself}
+                class="flex items-center space-x-1 px-1 py-1 rounded-full bg-gray-100 hover:bg-green-100 transition shadow-sm hover:shadow-md group"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-3 w-3 group-hover:fill-green-600 fill-gray-500 transition"
+                  viewBox="0 0 24 24"
                 >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    class="h-3 w-3 group-hover:fill-green-600 fill-gray-500 transition"
-                    viewBox="0 0 24 24"
-                  >
-                    <path d="M10 9V5l-7 7 7 7v-4.1c5 0 8.5 1.6 11 5.1-1-5-4-10-11-11z" />
-                  </svg>
-                  <span class="text-xs font-semibold text-gray-700 group-hover:text-green-600">
-                    Reply
-                  </span>
-                </button>
-              </div>
-              
-              <div>
-                <%= for reply <- comment.replies do %>
-                  <div class="ml-8 mt-2">
-                    <div class="flex items-center space-x-2">
-                      <img
-                        src={get_user_avatar(reply.user_id |> to_charlist())}
-                        class="h-6 w-6 rounded-full"
-                      />
-                      <p class="text-sm font-semibold">
-                        <%= Account.Users.get_user_by_id(reply.user_id).username %>
-                      </p>
-                      <%= if reply.user_id == @current_user.id do %>
-                        <button
-                          phx-click="delete-reply"
-                          phx-value-reply-id={reply.id}
-                          phx-value-comment-id={comment.id}
-                          phx-target={@myself}
-                          class="text-red-500 hover:text-red-700"
-                        >
-                          <i><%= Heroicons.icon("trash", class: "h-4 w-4 mr-3") %></i>
-                        </button>
-                      <% end %>
-                    </div>
-                    <p class="text-sm text-gray-700 ml-8">
-                      <%= reply.content %>
-                    </p>
-                  </div>
-                <% end %>
-              </div>
+                  <path d="M10 9V5l-7 7 7 7v-4.1c5 0 8.5 1.6 11 5.1-1-5-4-10-11-11z" />
+                </svg>
+                <span class="text-xs font-semibold text-gray-700 group-hover:text-green-600">
+                  Reply
+                </span>
+              </button>
             </div>
             
-            <%= if @reply_comment and @replying_to_comment_id == comment.id do %>
-              <.form 
-                :let={f} 
-                for={@changeset} 
-                phx-submit="reply_comment_content" 
-                phx-target={@myself}
-                as={:comment}
-                class="flex space-x-2 mt-2"
-              >
-                <%= hidden_input(f, :comment_id, value: comment.id) %>
-                <%= text_input(f, :content, 
-                  class: "w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500",
-                  placeholder: "Write a reply...",
-                  required: true) %>
-                <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600">
-                  Reply
-                </button>
-                <button type="button" phx-click="cancel-comment-reply" phx-target={@myself} 
-                  class="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600">
-                  Cancel
-                </button>
-              </.form>
-            <% end %>
+            <div>
+              <%= for reply <- comment.replies do %>
+                <div class="ml-8 mt-2">
+                  <div class="flex items-center space-x-2">
+                    <img
+                      src={get_user_avatar(reply.user_id |> to_charlist())}
+                      class="h-6 w-6 rounded-full"
+                    />
+                    <p class="text-sm font-semibold">
+                      <%= Account.Users.get_user_by_id(reply.user_id).username %>
+                    </p>
+                    <%= if reply.user_id == @current_user.id do %>
+                      <button
+                        phx-click="delete-reply"
+                        phx-value-reply-id={reply.id}
+                        phx-value-comment-id={comment.id}
+                        phx-target={@myself}
+                        class="text-red-500 hover:text-red-700"
+                      >
+                        <i><%= Heroicons.icon("trash", class: "h-4 w-4 mr-3") %></i>
+                      </button>
+                    <% end %>
+                  </div>
+                  <p class="text-sm text-gray-700 ml-8">
+                    <%= reply.content %>
+                  </p>
+                </div>
+              <% end %>
+            </div>
           </div>
-        </div>
-        
-        <!-- Dropdown Menu -->
-        <div class="relative">
-          <button
-            @click="toggleMenu()"
-            class="text-gray-500 hover:text-gray-700 p-1 rounded-full transition"
-          >
-            <%= Heroicons.icon("ellipsis-vertical",
-              type: "solid",
-              class: "h-5 w-5"
-            ) %>
-          </button>
-
-          <div
-            x-show="open"
-            x-transition
-            class="absolute top-full right-0 mt-1 w-32 bg-white border rounded-md shadow-lg z-10"
-          >
-            <%= if comment.author != @current_user.id do %>
-              <button
-                @click="open = false"
-                phx-click="report-comment"
-                phx-value-comment-id={comment.id}
-                class="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 transition"
-              >
-                Report
+          
+          <%= if @reply_comment and @replying_to_comment_id == comment.id do %>
+            <.form 
+              :let={f} 
+              for={@changeset} 
+              phx-submit="reply_comment_content" 
+              phx-target={@myself}
+              as={:comment}
+              class="flex space-x-2 mt-2"
+            >
+              <%= hidden_input(f, :comment_id, value: comment.id) %>
+              <%= text_input(f, :content, 
+                class: "w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500",
+                placeholder: "Write a reply...",
+                required: true) %>
+              <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600">
+                Reply
               </button>
-            <% else %>
-              <button
-                @click="startEditing()"
-                class="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 transition"
-              >
-                Edit
+              <button type="button" phx-click="cancel-comment-reply" phx-target={@myself} 
+                class="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600">
+                Cancel
               </button>
-              <button
-                phx-click="delete-comment"
-                phx-value-comment-id={comment.id}
-                phx-value-post-id={comment.post_id}
-                phx-target={@myself}
-                class="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50 transition"
-              >
-                Delete
-              </button>
-            <% end %>
-          </div>
+            </.form>
+          <% end %>
         </div>
       </div>
-    <% end %>
-  </div>
+      
+      <!-- Dropdown Menu -->
+      <div class="relative">
+        <button
+          @click="open = !open"
+          class="text-gray-500 hover:text-gray-700 p-1 rounded-full transition"
+        >
+          <%= Heroicons.icon("ellipsis-vertical",
+            type: "solid",
+            class: "h-5 w-5"
+          ) %>
+        </button>
+
+        <div
+          x-show="open"
+          x-transition
+          class="absolute top-full right-0 mt-1 w-32 bg-white border rounded-md shadow-lg z-10"
+        >
+          <%= if comment.author != @current_user.id do %>
+            <button
+              @click="open = false"
+              phx-click="report-comment"
+              phx-value-comment-id={comment.id}
+              class="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 transition"
+            >
+              Report
+            </button>
+          <% else %>
+            <button
+              phx-click="edit-comment"
+              phx-value-comment-id={comment.id}
+              phx-target={@myself}
+              @click="open = false"
+              class="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 transition"
+            >
+              Edit
+            </button>
+            <button
+              phx-click="delete-comment"
+              phx-value-comment-id={comment.id}
+              phx-value-post-id={comment.post_id}
+              phx-target={@myself}
+              @click="open = false"
+              class="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50 transition"
+            >
+              Delete
+            </button>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  <% end %>
+</div>
   
   <%= if @report_action do %>
     <.modal>

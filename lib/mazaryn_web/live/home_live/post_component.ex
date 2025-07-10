@@ -1043,8 +1043,6 @@ end
     end
   end
 
-
-
   def handle_info({:ipns_fetched, post_id, ipns}, socket) do
     if socket.assigns[:post] && to_string(socket.assigns.post.id) == to_string(post_id) do
       IO.puts("🔄 Updating IPNS for displayed post #{post_id}")
@@ -1374,10 +1372,30 @@ end
      socket
      |> assign(:uploaded_files, [])
      |> assign(:editing_post, false)
+     |> assign(:editing_comment, false)
+     |> assign(:editing_comment_id, nil)
      |> assign(:reply_comment, false)
      |> assign(:replying_to_comment_id, nil)
      |> assign(:ipns_id, nil)
      |> allow_upload(:media, accept: ~w(.png .jpg .jpeg), max_entries: 2)}
+  end
+
+  def handle_event("edit-comment", %{"comment-id" => comment_id}, socket) do
+    IO.puts("📝 Starting to edit comment #{comment_id}")
+
+    {:noreply,
+     socket
+     |> assign(:editing_comment, true)
+     |> assign(:editing_comment_id, comment_id)}
+  end
+
+  def handle_event("cancel-comment-edit", _params, socket) do
+    IO.puts("❌ Cancelling comment edit")
+
+    {:noreply,
+     socket
+     |> assign(:editing_comment, false)
+     |> assign(:editing_comment_id, nil)}
   end
 
   defp get_post_ipns(post_id) do
@@ -1677,22 +1695,29 @@ end
       |> Comment.update_changeset(comment_params)
       |> Posts.update_comment()
 
-    if comment_id && new_content do
-      cache_content(:comment, comment_id, new_content)
-      IO.puts("💾 Immediately cached new content for comment #{comment_id}")
+    case comment do
+      {:ok, updated_comment} ->
+        if comment_id && new_content do
+          cache_content(:comment, comment_id, new_content)
+          IO.puts("💾 Immediately cached new content for comment #{comment_id}")
+        end
+
+        updated_comments = update_comment_content_optimistically(socket.assigns.comments, comment_id, new_content)
+        post = updated_comment.post_id |> rebuild_post()
+
+        {:noreply,
+         socket
+         |> assign(:post, post)
+         |> assign(:comments, updated_comments)
+         |> assign(:update_comment_changeset, Comment.changeset(%Comment{}))
+         |> assign(:editing_comment, false)
+         |> assign(:editing_comment_id, nil)}
+
+      {:error, changeset} ->
+        IO.puts("❌ Error updating comment: #{inspect(changeset.errors)}")
+        {:noreply, assign(socket, :update_comment_changeset, changeset)}
     end
-
-    updated_comments = update_comment_content_optimistically(socket.assigns.comments, comment_id, new_content)
-
-    post = comment.changes.post_id |> rebuild_post()
-
-    {:noreply,
-     socket
-     |> assign(:post, post)
-     |> assign(:comments, updated_comments)
-     |> assign(:update_comment_changeset, Comment.changeset(%Comment{}))}
   end
-
 
   defp update_comment_content_optimistically(comments, comment_id, new_content) do
     Enum.map(comments, fn comment ->
