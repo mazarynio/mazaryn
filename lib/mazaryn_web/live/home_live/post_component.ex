@@ -43,7 +43,7 @@ defmodule MazarynWeb.HomeLive.PostComponent do
     update_post_changeset = Post.changeset(%Post{})
 
     result = list_of_assigns
-    |> Enum.chunk_every(3) # Smaller batches
+    |> Enum.chunk_every(3)
     |> Enum.flat_map(fn batch ->
       IO.puts("Processing batch of #{length(batch)} posts")
 
@@ -93,6 +93,33 @@ defmodule MazarynWeb.HomeLive.PostComponent do
       likes_count: await_with_fallback(tasks.likes, 500, 0, "likes", post_id),
       post_content_cached: await_with_fallback(tasks.content, 1500, "Content loading...", "content", post_id)
     }
+  end
+
+  defp fetch_comment_content_direct(comment_id) do
+    task = Task.async(fn ->
+      try do
+        case Core.PostClient.get_comment_content(comment_id) do
+          content when is_binary(content) and content != "" ->
+            {:ok, content}
+          content when is_list(content) ->
+            string_content = List.to_string(content)
+            if string_content != "" do
+              {:ok, string_content}
+            else
+              {:error, :empty_content}
+            end
+          _ ->
+            {:error, :no_content}
+        end
+      rescue
+        e -> {:error, e}
+      end
+    end)
+
+    case Task.yield(task, 2000) || Task.shutdown(task, :brutal_kill) do
+      {:ok, result} -> result
+      nil -> {:error, :timeout}
+    end
   end
 
   defp process_single_post(assigns, socket, changeset, update_comment_changeset, update_post_changeset) do
@@ -259,27 +286,76 @@ defmodule MazarynWeb.HomeLive.PostComponent do
 
   defp get_comment_content_with_fallbacks(comment_id) do
     case get_cached_content(:comment, comment_id) do
-      content when is_binary(content) and content != "" and content != "Loading..." ->
+      content when is_binary(content) and content != "" and
+                content not in ["Loading...", "Loading content...", "Content loading...", "Content temporarily unavailable"] ->
         IO.puts("📦 Using cached content for comment #{comment_id}")
         content
 
       _ ->
-        case fetch_comment_content_direct(comment_id) do
+        case attempt_synchronous_fetch(comment_id) do
           {:ok, content} when is_binary(content) and content != "" ->
             cache_content(:comment, comment_id, content)
             content
-
           _ ->
-            case fetch_comment_content_alternative(comment_id) do
+            case fetch_comment_content_final_attempt(comment_id) do
               {:ok, content} ->
                 cache_content(:comment, comment_id, content)
                 content
-
               _ ->
                 spawn_comment_content_fetch_improved(comment_id)
                 "Loading content..."
             end
         end
+    end
+  end
+
+  defp attempt_synchronous_fetch(comment_id) do
+    attempts = [
+      fn -> fetch_comment_content_direct(comment_id) end,
+      fn -> fetch_comment_content_alternative(comment_id) end,
+      fn -> fetch_from_ipfs_alternative(comment_id) end
+    ]
+
+    Enum.reduce_while(attempts, {:error, :all_failed}, fn attempt, _acc ->
+      case attempt.() do
+        {:ok, content} when is_binary(content) and content != "" ->
+          {:halt, {:ok, content}}
+        _ ->
+          Process.sleep(200)
+          {:cont, {:error, :failed}}
+      end
+    end)
+  end
+
+  defp fetch_comment_content_final_attempt(comment_id) do
+    task = Task.async(fn ->
+      try do
+        case Core.PostClient.get_comment_content(comment_id) do
+          content when is_binary(content) and content != "" ->
+            {:ok, content}
+          content when is_list(content) ->
+            string_content = List.to_string(content)
+            if string_content != "" do
+              {:ok, string_content}
+            else
+              case Posts.get_comment_by_id(comment_id) do
+                %{content: db_content} when is_binary(db_content) and db_content != "" ->
+                  {:ok, db_content}
+                _ ->
+                  {:error, :no_content}
+              end
+            end
+          _ ->
+            {:error, :no_content}
+        end
+      rescue
+        e -> {:error, e}
+      end
+    end)
+
+    case Task.yield(task, 3000) || Task.shutdown(task, :brutal_kill) do
+      {:ok, result} -> result
+      nil -> {:error, :timeout}
     end
   end
 
@@ -711,7 +787,8 @@ end
         if age < 600 do
           case content do
             content when is_binary(content) and content != "" and
-                         content not in ["Loading...", "Loading content...", "Content loading..."] ->
+                         content not in ["Loading...", "Loading content...", "Content loading...",
+                                       "Content temporarily unavailable", "Content loading failed"] ->
               IO.puts("📦 Valid cache HIT for #{type}:#{id} (age: #{age}s)")
               content
             _ ->
@@ -1333,10 +1410,15 @@ end
   end
 
   defp cache_content(type, id, content) do
-    cache_key = {type, id}
-    timestamp = :erlang.system_time(:second)
-    :ets.insert(@content_cache, {cache_key, content, timestamp})
-    IO.puts("💾 Cached content for #{type}:#{id}")
+    if content not in ["Loading...", "Loading content...", "Content loading...",
+                    "Content temporarily unavailable", "Content loading failed"] do
+      cache_key = {type, id}
+      timestamp = :erlang.system_time(:second)
+      :ets.insert(@content_cache, {cache_key, content, timestamp})
+      IO.puts("💾 Cached content for #{type}:#{id}")
+    else
+      IO.puts("⚠️ Skipping cache for loading state: #{content}")
+    end
     content
   end
 

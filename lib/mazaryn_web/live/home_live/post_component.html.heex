@@ -245,7 +245,7 @@
       as={:comment}
       class="relative flex justify-center items-center w-full"
     >
-      <img class="h-8 w-8 rounded-full" src={get_user_avatar(@post.author)} />
+      <img class="h-8 w-8 rounded-full" src={get_user_avatar(@current_user.username)} />
       <div class="relative top-2.5 w-full ml-4 text-sm leading-tight flex items-center">
         <%= hidden_input(f, :post_id, value: @post.id) %>
         <%= hidden_input(f, :author, value: @current_user.id) %>
@@ -274,8 +274,9 @@
       class="w-full flex flex-row justify-between items-start py-3 relative"
     >
       <div class="flex items-start space-x-3 w-full">
+        <% comment_user = Account.Users.get_user_by_id(comment.author) %>
         <img
-          src={get_user_avatar(comment.author)}
+          src={get_user_avatar(comment_user.username)}
           class="h-8 w-8 rounded-full shrink-0"
         />
 
@@ -283,10 +284,10 @@
           <div class="flex items-center space-x-2 mb-1">
             <div class="grid grid-flow-col auto-cols-max items-center">
               <p class="text-sm font-semibold mr-2">
-                <%= Account.Users.get_user_by_id(comment.author).username %>
+                <%= comment_user.username %>
               </p>
 
-              <%= if Account.Users.get_user_by_id(comment.author).verified do %>
+              <%= if comment_user.verified do %>
                 <img
                   alt="verified user"
                   src={Routes.static_path(@socket, "/images/verified.png")}
@@ -402,13 +403,22 @@
               <%= for reply <- comment.replies do %>
                 <div class="ml-8 mt-2">
                   <div class="flex items-center space-x-2">
+                    <!-- Fixed: Get reply user data and use proper avatar -->
+                    <% reply_user = Account.Users.get_user_by_id(reply.user_id) %>
                     <img
-                      src={get_user_avatar(reply.user_id |> to_charlist())}
+                      src={get_user_avatar(reply_user.username)}
                       class="h-6 w-6 rounded-full"
                     />
                     <p class="text-sm font-semibold">
-                      <%= Account.Users.get_user_by_id(reply.user_id).username %>
+                      <%= reply_user.username %>
                     </p>
+                    <%= if reply_user.verified do %>
+                      <img
+                        alt="verified user"
+                        src={Routes.static_path(@socket, "/images/verified.png")}
+                        class="rounded-full h-3 w-3"
+                      />
+                    <% end %>
                     <%= if reply.user_id == @current_user.id do %>
                       <button
                         phx-click="delete-reply"
@@ -430,27 +440,31 @@
           </div>
           
           <%= if @reply_comment and @replying_to_comment_id == comment.id do %>
-            <.form 
-              :let={f} 
-              for={@changeset} 
-              phx-submit="reply_comment_content" 
-              phx-target={@myself}
-              as={:comment}
-              class="flex space-x-2 mt-2"
-            >
-              <%= hidden_input(f, :comment_id, value: comment.id) %>
-              <%= text_input(f, :content, 
-                class: "w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500",
-                placeholder: "Write a reply...",
-                required: true) %>
-              <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600">
-                Reply
-              </button>
-              <button type="button" phx-click="cancel-comment-reply" phx-target={@myself} 
-                class="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600">
-                Cancel
-              </button>
-            </.form>
+            <div class="mt-3 flex items-start space-x-2">
+              <!-- Fixed: Show current user's avatar in reply input -->
+              <img class="h-6 w-6 rounded-full shrink-0" src={get_user_avatar(@current_user.username)} />
+              <.form 
+                :let={f} 
+                for={@changeset} 
+                phx-submit="reply_comment_content" 
+                phx-target={@myself}
+                as={:comment}
+                class="flex space-x-2 flex-grow"
+              >
+                <%= hidden_input(f, :comment_id, value: comment.id) %>
+                <%= text_input(f, :content, 
+                  class: "flex-grow border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500",
+                  placeholder: "Write a reply...",
+                  required: true) %>
+                <button type="submit" class="bg-blue-500 text-white px-3 py-2 rounded-md hover:bg-blue-600 text-sm">
+                  Reply
+                </button>
+                <button type="button" phx-click="cancel-comment-reply" phx-target={@myself} 
+                  class="bg-gray-500 text-white px-3 py-2 rounded-md hover:bg-gray-600 text-sm">
+                  Cancel
+                </button>
+              </.form>
+            </div>
           <% end %>
         </div>
       </div>
