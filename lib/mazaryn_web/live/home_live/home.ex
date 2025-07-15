@@ -7,7 +7,6 @@ defmodule MazarynWeb.HomeLive.Home do
   alias Account.User
   require Logger
 
-  # Case reload home page
   @impl true
   def mount(_params, %{"user_id" => user_id} = _session, socket) do
     Logger.info("user_id: #{user_id}")
@@ -15,7 +14,6 @@ defmodule MazarynWeb.HomeLive.Home do
     {:ok, do_mount(user_id, socket)}
   end
 
-  # Case redirect from login, signup
   def mount(_params, %{"session_uuid" => session_uuid} = _session, socket) do
     socket = assign(socket, results: [])
     {:ok, do_mount(get_user_id(session_uuid), socket)}
@@ -115,5 +113,40 @@ defmodule MazarynWeb.HomeLive.Home do
     |> assign(results: [])
     |> assign(user: user)
     |> assign(posts: posts)
+  end
+
+  def handle_info({:comment_deleted_success, comment_id}, socket) do
+    IO.puts("✅ Comment #{comment_id} deletion confirmed at Home level")
+    {:noreply, socket}
+  end
+
+  def handle_info({:comment_deletion_failed, comment_id, comment_to_delete}, socket) do
+    IO.puts("❌ Comment #{comment_id} deletion failed at Home level")
+    {:noreply, socket |> put_flash(:error, "Failed to delete comment")}
+  end
+
+  def handle_info({:reply_deleted_success, reply_id, comment_id}, socket) do
+    IO.puts("✅ Reply #{reply_id} deletion confirmed at Home level")
+    {:noreply, socket}
+  end
+
+  def handle_info({:reply_deletion_failed, reply_id, comment_id, reply_to_delete}, socket) do
+    IO.puts("❌ Reply #{reply_id} deletion failed at Home level")
+    {:noreply, socket |> put_flash(:error, "Failed to delete reply")}
+  end
+
+  def handle_info({:comment_content_updated, comment_id, content}, socket) do
+    IO.puts("🔄 Comment content updated: #{comment_id}")
+    {:noreply, socket}
+  end
+
+  def handle_info({:reply_content_updated, reply_id, content}, socket) do
+    IO.puts("🔄 Reply content updated: #{reply_id}")
+    {:noreply, socket}
+  end
+
+  def handle_info(msg, socket) do
+    IO.puts("⚠️ Unhandled message in Home LiveView: #{inspect(msg)}")
+    {:noreply, socket}
   end
 end
