@@ -16,6 +16,7 @@ defmodule MazarynWeb.HomeLive.PostComponent do
   @batch_size 5
   @max_concurrent_tasks 8
 
+
   @impl Phoenix.LiveComponent
   def update_many(list_of_assigns) do
     IO.puts("=== OPTIMIZED UPDATE_MANY called ===")
@@ -1312,18 +1313,18 @@ defmodule MazarynWeb.HomeLive.PostComponent do
 
   defp post_has_media?(post_id) do
     try do
-      cid = PostClient.get_media_cid(post_id)
-      case cid do
-        nil -> false
-        "" -> false
-        {:error, _} -> false
-        cid when is_binary(cid) and byte_size(cid) > 0 -> true
+      case PostClient.get_media_cid(post_id) do
+        cid when is_binary(cid) and byte_size(cid) > 0 ->
+          String.starts_with?(cid, "Qm") and String.length(cid) == 46
         cid when is_list(cid) ->
           case List.to_string(cid) do
-            "" -> false
-            _str -> true
+            str when byte_size(str) > 0 ->
+              String.starts_with?(str, "Qm") and String.length(str) == 46
+            _ ->
+              false
           end
-        _ -> false
+        _ ->
+          false
       end
     rescue
       _ -> false
