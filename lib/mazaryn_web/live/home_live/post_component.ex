@@ -16,6 +16,150 @@ defmodule MazarynWeb.HomeLive.PostComponent do
   @batch_size 5
   @max_concurrent_tasks 8
 
+  defp get_post_content_optimized(post_id) do
+    cache_key = {:post_content, post_id}
+    fetch_start = :erlang.system_time(:millisecond)
+    IO.puts("📄 Starting content fetch for post #{post_id}")
+
+    result = case :ets.lookup(@content_cache, cache_key) do
+      [{^cache_key, content, timestamp}] ->
+        age = :erlang.system_time(:second) - timestamp
+        if age < 600 do
+          IO.puts("📦 Content Cache HIT for post #{post_id} (age: #{age}s)")
+          content
+        else
+          IO.puts("⏰ Content Cache EXPIRED for post #{post_id} (age: #{age}s)")
+          spawn_content_refresh(post_id)
+          content
+        end
+      [] ->
+        IO.puts("❌ Content Cache MISS for post #{post_id}")
+        case get_post_content_with_timeout(post_id, 800) do
+          {:ok, content} ->
+            cache_key = {:post_content, post_id}
+            timestamp = :erlang.system_time(:second)
+            :ets.insert(@content_cache, {cache_key, content, timestamp})
+            IO.puts("💾 Cached content for post #{post_id}")
+            content
+          {:timeout, msg} ->
+            IO.puts("⏰ Timeout fetching content for post #{post_id}: #{msg}")
+            "Content loading..."
+          {:error, reason} ->
+            IO.puts("❌ Error fetching content for post #{post_id}: #{inspect(reason)}")
+            "Content loading..."
+        end
+    end
+
+    fetch_end = :erlang.system_time(:millisecond)
+    IO.puts("📄 Content fetch for post #{post_id} completed in #{fetch_end - fetch_start}ms")
+    result
+  end
+
+  defp get_post_content_with_timeout(post_id, timeout) do
+    fetch_start = :erlang.system_time(:millisecond)
+    IO.puts("📡 Starting IPFS content fetch for post #{post_id} with timeout #{timeout}ms")
+
+    task = Task.async(fn ->
+      try do
+        case Core.PostClient.get_post_content_by_id(post_id) do
+          content when is_binary(content) and content != "" ->
+            {:ok, content}
+          content when is_list(content) ->
+            case List.to_string(content) do
+              "" -> {:ok, "No content available"}
+              str -> {:ok, str}
+            end
+          _ ->
+            {:ok, "No content available"}
+        end
+      catch
+        type, reason ->
+          IO.puts("❌ Error fetching post content for post #{post_id}: #{inspect({type, reason})}")
+          {:error, {type, reason}}
+      end
+    end)
+
+    result = case Task.yield(task, timeout) || Task.shutdown(task, :brutal_kill) do
+      {:ok, result} ->
+        IO.puts("✅ Successfully fetched content for post #{post_id}")
+        result
+      nil ->
+        IO.puts("⏰ Timeout after #{timeout}ms fetching content for post #{post_id}")
+        {:timeout, "Timeout after #{timeout}ms"}
+    end
+
+    fetch_end = :erlang.system_time(:millisecond)
+    IO.puts("📡 IPFS content fetch for post #{post_id} took #{fetch_end - fetch_start}ms")
+    result
+  end
+
+  def handle_event("save-comment", params, socket) do
+    save_start = :erlang.system_time(:millisecond)
+    IO.puts("💾 Starting save-comment event for post #{socket.assigns.post.id}")
+
+    result = case CommentHandler.handle_save_comment(params) do
+      {:ok, %{post: post, comments: comments, changeset: changeset, flash: {flash_type, message}}} ->
+        IO.puts("✅ Comment saved successfully for post #{socket.assigns.post.id}")
+        {:noreply,
+         socket
+         |> assign(:post, post)
+         |> assign(:comments, comments)
+         |> assign(:changeset, changeset)
+         |> put_flash(flash_type, message)}
+
+      {:error, :missing_post_id} ->
+        IO.puts("❌ Missing post ID in save-comment")
+        {:noreply, socket |> put_flash(:error, "Missing post ID")}
+
+      {:error, :missing_author} ->
+        IO.puts("❌ Missing author in save-comment")
+        {:noreply, socket |> put_flash(:error, "Missing author")}
+
+      {:error, {:validation, changeset}} ->
+        IO.puts("❌ Validation error in save-comment: #{inspect(changeset.errors)}")
+        {:noreply, assign(socket, :changeset, changeset)}
+
+      {:error, {:changeset, changeset}} ->
+        IO.puts("❌ Changeset error in save-comment: #{inspect(changeset.errors)}")
+        {:noreply, assign(socket, :changeset, changeset)}
+
+      {:error, :invalid_params} ->
+        IO.puts("❌ Invalid params in save-comment")
+        {:noreply, socket |> put_flash(:error, "Invalid form data")}
+
+      {:error, reason} ->
+        IO.puts("❌ Failed to save comment: #{inspect(reason)}")
+        {:noreply, socket |> put_flash(:error, "Failed to save comment")}
+    end
+
+    save_end = :erlang.system_time(:millisecond)
+    IO.puts("💾 Save-comment event for post #{socket.assigns.post.id} completed in #{save_end - save_start}ms")
+    result
+  end
+
+  def handle_info(:refresh_processing_content, socket) do
+    refresh_start = :erlang.system_time(:millisecond)
+    IO.puts("🔄 Starting refresh_processing_content for post #{socket.assigns.post.id}")
+
+    comments = CommentHandler.get_comments_with_content(socket.assigns.post.id)
+
+    processing_content = Enum.any?(comments, fn comment ->
+      comment.content in ["Content is being processed...", "Content loading..."]
+    end)
+
+    if processing_content do
+      IO.puts("🔄 Scheduling next refresh for post #{socket.assigns.post.id} in 2000ms")
+      Process.send_after(self(), :refresh_processing_content, 2000)
+    else
+      IO.puts("✅ No processing content found for post #{socket.assigns.post.id}, stopping refresh")
+    end
+
+    refresh_end = :erlang.system_time(:millisecond)
+    IO.puts("🔄 refresh_processing_content for post #{socket.assigns.post.id} completed in #{refresh_end - refresh_start}ms")
+
+    {:noreply, assign(socket, :comments, comments)}
+  end
+
 
   @impl Phoenix.LiveComponent
   def update_many(list_of_assigns) do
@@ -89,10 +233,34 @@ defmodule MazarynWeb.HomeLive.PostComponent do
       IO.puts("--- Processing post #{assigns.post.id} ---")
 
       tasks = %{
-        comments: Task.async(fn -> CommentHandler.get_comments_with_content_optimized(assigns.post.id) end),
-        ipns: Task.async(fn -> get_post_ipns_fast(assigns.post.id) end),
-        likes: Task.async(fn -> get_likes_count_cached(assigns.post.id) end),
-        content: Task.async(fn -> get_post_content_optimized(assigns.post.id) end)
+        comments: Task.async(fn ->
+          comment_start = :erlang.system_time(:millisecond)
+          result = CommentHandler.get_comments_with_content_optimized(assigns.post.id)
+          comment_end = :erlang.system_time(:millisecond)
+          IO.puts("📝 Comments fetch for post #{assigns.post.id} took #{comment_end - comment_start}ms")
+          result
+        end),
+        ipns: Task.async(fn ->
+          ipns_start = :erlang.system_time(:millisecond)
+          result = get_post_ipns_fast(assigns.post.id)
+          ipns_end = :erlang.system_time(:millisecond)
+          IO.puts("🔗 IPNS fetch for post #{assigns.post.id} took #{ipns_end - ipns_start}ms")
+          result
+        end),
+        likes: Task.async(fn ->
+          likes_start = :erlang.system_time(:millisecond)
+          result = get_likes_count_cached(assigns.post.id)
+          likes_end = :erlang.system_time(:millisecond)
+          IO.puts("📊 Likes count fetch for post #{assigns.post.id} took #{likes_end - likes_start}ms")
+          result
+        end),
+        content: Task.async(fn ->
+          content_start = :erlang.system_time(:millisecond)
+          result = get_post_content_optimized(assigns.post.id)
+          content_end = :erlang.system_time(:millisecond)
+          IO.puts("📄 Post content fetch for post #{assigns.post.id} took #{content_end - content_start}ms")
+          result
+        end)
       }
 
       results = await_tasks_with_fallbacks_improved(tasks, assigns.post.id)
@@ -1134,61 +1302,79 @@ defmodule MazarynWeb.HomeLive.PostComponent do
   end
 
   defp activate_content_characters(post, socket) do
-    try do
-      content_str = cond do
-        ipfs_content = Core.PostClient.get_post_content_by_id(post.id) ->
-          cond do
-            is_binary(ipfs_content) -> ipfs_content
-            is_list(ipfs_content) -> List.to_string(ipfs_content)
-            true ->
-              case post.content do
-                content when is_binary(content) -> content
-                content when is_list(content) -> List.to_string(content)
-                _ -> "No content available"
-              end
-          end
-        true ->
-          case post.content do
-            content when is_binary(content) -> content
-            content when is_list(content) -> List.to_string(content)
-            _ -> "No content available"
-          end
-      end
+  process_start = :erlang.system_time(:millisecond)
+  IO.puts("📝 Starting content processing for post #{post.id}")
 
-      if content_str == "" do
-        "No content available"
-      else
-        link_regex = ~r/([\w+]+\:\/\/)?([\w\d-]+\.)*[\w-]+[\.\:]\w+([\/\?\=\&\#\.]?[\w-]+)*\/?/
-
-        content_str
-        |> String.split()
-        |> Enum.map(fn con ->
-          case {check_regex(con, ~r/@\S[a-zA-Z]*/), check_regex(con, ~r/#\S[a-zA-Z]*/),
-                check_regex(con, link_regex)} do
-            {[[mention]], [], []} ->
-              activate_mention_only(mention, socket)
-            {[], [[hashtag]], []} ->
-              activate_hashtag_only(hashtag, socket)
-            {[], [], [[url | _rest]]} ->
-              activate_url_only(url)
-            {[[mention]], [[hashtag]], [[url | _rest]]} ->
-              activate_mention_only(mention, socket)
-              activate_hashtag_only(hashtag, socket)
-              activate_url_only(url)
-            _ ->
-              escape_char(con)
-          end
-        end)
-        |> Enum.join(" ")
-        |> Earmark.as_html!(compact_output: true)
-        |> apply_styles()
-      end
-    catch
-      type, reason ->
-        IO.puts("Unexpected error in content processing: #{inspect({type, reason})}")
-        ("Error processing content" |> Earmark.as_html!(compact_output: true) |> apply_styles())
+  result = try do
+    content_str = cond do
+      ipfs_content = Core.PostClient.get_post_content_by_id(post.id) ->
+        fetch_start = :erlang.system_time(:millisecond)
+        content = cond do
+          is_binary(ipfs_content) ->
+            IO.puts("✅ IPFS content fetched for post #{post.id}")
+            ipfs_content
+          is_list(ipfs_content) ->
+            IO.puts("🔄 Converting IPFS content list to string for post #{post.id}")
+            List.to_string(ipfs_content)
+          true ->
+            IO.puts("⚠️ Falling back to post content for post #{post.id}")
+            case post.content do
+              content when is_binary(content) -> content
+              content when is_list(content) -> List.to_string(content)
+              _ -> "No content available"
+            end
+        end
+        fetch_end = :erlang.system_time(:millisecond)
+        IO.puts("📡 IPFS content fetch in activate_content_characters for post #{post.id} took #{fetch_end - fetch_start}ms")
+        content
+      true ->
+        IO.puts("⚠️ No IPFS content, using post content for post #{post.id}")
+        case post.content do
+          content when is_binary(content) -> content
+          content when is_list(content) -> List.to_string(content)
+          _ -> "No content available"
+        end
     end
+
+    if content_str == "" do
+      IO.puts("⚠️ Empty content for post #{post.id}")
+      "No content available"
+    else
+      link_regex = ~r/([\w+]+\:\/\/)?([\w\d-]+\.)*[\w-]+[\.\:]\w+([\/\?\=\&\#\.]?[\w-]+)*\/?/
+
+      content_str
+      |> String.split()
+      |> Enum.map(fn con ->
+        case {check_regex(con, ~r/@\S[a-zA-Z]*/), check_regex(con, ~r/#\S[a-zA-Z]*/),
+              check_regex(con, link_regex)} do
+          {[[mention]], [], []} ->
+            activate_mention_only(mention, socket)
+          {[], [[hashtag]], []} ->
+            activate_hashtag_only(hashtag, socket)
+          {[], [], [[url | _rest]]} ->
+            activate_url_only(url)
+          {[[mention]], [[hashtag]], [[url | _rest]]} ->
+            activate_mention_only(mention, socket)
+            activate_hashtag_only(hashtag, socket)
+            activate_url_only(url)
+          _ ->
+            escape_char(con)
+        end
+      end)
+      |> Enum.join(" ")
+      |> Earmark.as_html!(compact_output: true)
+      |> apply_styles()
+    end
+  catch
+    type, reason ->
+      IO.puts("❌ Unexpected error in content processing for post #{post.id}: #{inspect({type, reason})}")
+      ("Error processing content" |> Earmark.as_html!(compact_output: true) |> apply_styles())
   end
+
+  process_end = :erlang.system_time(:millisecond)
+  IO.puts("📝 Content processing for post #{post.id} completed in #{process_end - process_start}ms")
+  result
+end
 
   defp apply_styles(html) do
     html

@@ -9,6 +9,196 @@ defmodule MazarynWeb.HomeLive.CommentHandler do
   @content_cache :post_content_cache
 
   def handle_save_comment(%{"comment" => comment_params} = _params) do
+    save_start = :erlang.system_time(:millisecond)
+    IO.puts("💾 Starting handle_save_comment with params: #{inspect(comment_params)}")
+
+    post_id = comment_params["post_id"] || ""
+    author = comment_params["author"] || ""
+    content = comment_params["content"] || ""
+
+    result = case {String.trim(post_id), String.trim(author), String.trim(content)} do
+      {"", _, _} ->
+        IO.puts("❌ Missing post_id in handle_save_comment")
+        {:error, :missing_post_id}
+
+      {_, "", _} ->
+        IO.puts("❌ Missing author in handle_save_comment")
+        {:error, :missing_author}
+
+      {_, _, ""} ->
+        IO.puts("❌ Empty content in handle_save_comment")
+        changeset = Comment.changeset(%Comment{}, comment_params)
+        |> Map.put(:action, :validate)
+        |> Ecto.Changeset.add_error(:content, "can't be blank")
+        {:error, {:validation, changeset}}
+
+      {valid_post_id, valid_author, valid_content} ->
+        changeset = %Comment{}
+        |> Comment.changeset(%{
+          post_id: valid_post_id,
+          author: valid_author,
+          content: valid_content
+        })
+
+        case Posts.create_comment(changeset) do
+          {:ok, _comment} ->
+            IO.puts("✅ Comment saved successfully for post #{valid_post_id}")
+            post = rebuild_post(valid_post_id)
+            comments = case function_exported?(__MODULE__, :get_comments_with_content, 1) do
+              true -> get_comments_with_content(valid_post_id)
+              false -> Posts.get_comment_by_post_id(valid_post_id) || []
+            end
+            {:ok, %{
+              post: post,
+              comments: comments,
+              changeset: Comment.changeset(%Comment{}),
+              flash: {:info, "Comment saved!"}
+            }}
+
+          {:error, changeset} ->
+            IO.puts("❌ Error saving comment for post #{valid_post_id}: #{inspect(changeset.errors)}")
+            {:error, {:changeset, changeset}}
+        end
+    end
+
+    save_end = :erlang.system_time(:millisecond)
+    IO.puts("💾 handle_save_comment completed in #{save_end - save_start}ms")
+    result
+  end
+
+  def get_comments_with_content_optimized(post_id) do
+    fetch_start = :erlang.system_time(:millisecond)
+    IO.puts("🔍 Starting get_comments_with_content_optimized for post #{post_id}")
+
+    result = try do
+      cache_key = {:comments_processed, post_id}
+      case :ets.lookup(@content_cache, cache_key) do
+        [{^cache_key, comments, timestamp}] ->
+          age = :erlang.system_time(:second) - timestamp
+          if age < 180 do
+            IO.puts("📦 Comments Cache HIT for post #{post_id} (age: #{age}s)")
+            verify_and_fix_comment_content(comments, post_id)
+          else
+            IO.puts("⏰ Comments Cache EXPIRED for post #{post_id} (age: #{age}s)")
+            fetch_and_process_comments_improved(post_id, cache_key)
+          end
+        [] ->
+          IO.puts("❌ Comments Cache MISS for post #{post_id}")
+          fetch_and_process_comments_improved(post_id, cache_key)
+      end
+    rescue
+      e ->
+        IO.puts("❌ Error getting comments for post #{post_id}: #{inspect(e)}")
+        []
+    end
+
+    fetch_end = :erlang.system_time(:millisecond)
+    IO.puts("🔍 get_comments_with_content_optimized for post #{post_id} completed in #{fetch_end - fetch_start}ms")
+    result
+  end
+
+  def fetch_and_process_comments_improved(post_id, cache_key) do
+    comments_start = :erlang.system_time(:millisecond)
+    IO.puts("🔄 Starting fetch_and_process_comments_improved for post #{post_id}")
+
+    task = Task.async(fn ->
+      fetch_start = :erlang.system_time(:millisecond)
+      result = Posts.get_comment_by_post_id(post_id)
+      fetch_end = :erlang.system_time(:millisecond)
+      IO.puts("📚 Posts.get_comment_by_post_id for post #{post_id} took #{fetch_end - fetch_start}ms")
+      result
+    end)
+
+    comments = case Task.yield(task, 2000) || Task.shutdown(task, :brutal_kill) do
+      {:ok, result} ->
+        IO.puts("✅ Fetched #{length(result || [])} comments for post #{post_id}")
+        result || []
+      nil ->
+        IO.puts("⏰ Timeout fetching comments for post #{post_id}")
+        []
+    end
+
+    IO.inspect(length(comments), label: "Number of comments found")
+
+    processed_comments = comments
+    |> Enum.take(5)
+    |> Enum.map(fn comment ->
+      comment_start = :erlang.system_time(:millisecond)
+      result = process_single_comment_with_content(comment)
+      comment_end = :erlang.system_time(:millisecond)
+      IO.puts("📝 Processed comment #{comment.id} in #{comment_end - comment_start}ms")
+      result
+    end)
+    |> Enum.filter(&(&1 != nil))
+
+    :ets.insert(@content_cache, {cache_key, processed_comments, :erlang.system_time(:second)})
+    IO.puts("💾 Cached processed comments for post #{post_id}")
+
+    comments_end = :erlang.system_time(:millisecond)
+    IO.puts("✅ fetch_and_process_comments_improved for post #{post_id} completed in #{comments_end - comments_start}ms")
+    processed_comments
+  end
+
+  def process_single_comment_with_content(comment) do
+    comment_start = :erlang.system_time(:millisecond)
+    IO.puts("📝 Starting process_single_comment_with_content for comment #{comment.id}")
+
+    result = try do
+      content = get_comment_content_with_fallbacks(comment.id)
+
+      comment
+      |> Map.put(:content, content)
+      |> Map.put(:like_comment_event, like_comment_event_cached(comment.id))
+      |> Map.put(:replies, get_comment_replies_optimized(comment.id))
+    rescue
+      e ->
+        IO.puts("❌ Error processing comment #{comment.id}: #{inspect(e)}")
+        nil
+    end
+
+    comment_end = :erlang.system_time(:millisecond)
+    IO.puts("📝 process_single_comment_with_content for comment #{comment.id} completed in #{comment_end - comment_start}ms")
+    result
+  end
+
+  def get_comment_content_with_fallbacks(comment_id) do
+    fetch_start = :erlang.system_time(:millisecond)
+    IO.puts("📄 Starting get_comment_content_with_fallbacks for comment #{comment_id}")
+
+    result = case get_cached_content(:comment, comment_id) do
+      content when is_binary(content) and content != "" and
+                content not in ["Loading...", "Loading content...", "Content loading...", "Content temporarily unavailable"] ->
+        IO.puts("📦 Using cached content for comment #{comment_id}")
+        content
+
+      _ ->
+        IO.puts("❌ Cache miss or invalid content for comment #{comment_id}, attempting synchronous fetch")
+        case attempt_synchronous_fetch(comment_id) do
+          {:ok, content} when is_binary(content) and content != "" ->
+            IO.puts("✅ Synchronous fetch succeeded for comment #{comment_id}")
+            cache_content(:comment, comment_id, content)
+            content
+          _ ->
+            IO.puts("⚠️ Synchronous fetch failed, attempting final fetch for comment #{comment_id}")
+            case fetch_comment_content_final_attempt(comment_id) do
+              {:ok, content} ->
+                IO.puts("✅ Final fetch succeeded for comment #{comment_id}")
+                cache_content(:comment, comment_id, content)
+                content
+              _ ->
+                IO.puts("⚠️ Final fetch failed, spawning background fetch for comment #{comment_id}")
+                spawn_comment_content_fetch_improved(comment_id)
+                "Loading content..."
+            end
+        end
+    end
+
+    fetch_end = :erlang.system_time(:millisecond)
+    IO.puts("📄 get_comment_content_with_fallbacks for comment #{comment_id} completed in #{fetch_end - fetch_start}ms")
+    result
+  end
+
+  def handle_save_comment(%{"comment" => comment_params} = _params) do
     IO.puts("💾 SAVE-COMMENT EVENT TRIGGERED")
     IO.inspect(comment_params, label: "Comment params received")
 
@@ -432,36 +622,49 @@ defmodule MazarynWeb.HomeLive.CommentHandler do
   end
 
   def fetch_comment_content_final_attempt(comment_id) do
-    task = Task.async(fn ->
-      try do
-        case Core.PostClient.get_comment_content(comment_id) do
-          content when is_binary(content) and content != "" ->
-            {:ok, content}
-          content when is_list(content) ->
-            string_content = List.to_string(content)
-            if string_content != "" do
-              {:ok, string_content}
-            else
-              case Posts.get_comment_by_id(comment_id) do
-                %{content: db_content} when is_binary(db_content) and db_content != "" ->
-                  {:ok, db_content}
-                _ ->
-                  {:error, :no_content}
-              end
-            end
-          _ ->
-            {:error, :no_content}
-        end
-      rescue
-        e -> {:error, e}
-      end
-    end)
+  fetch_start = :erlang.system_time(:millisecond)
+  IO.puts("📡 Starting final attempt to fetch comment content for #{comment_id}")
 
-    case Task.yield(task, 3000) || Task.shutdown(task, :brutal_kill) do
-      {:ok, result} -> result
-      nil -> {:error, :timeout}
+  task = Task.async(fn ->
+    try do
+      case Core.PostClient.get_comment_content(comment_id) do
+        content when is_binary(content) and content != "" ->
+          {:ok, content}
+        content when is_list(content) ->
+          string_content = List.to_string(content)
+          if string_content != "" do
+            {:ok, string_content}
+          else
+            case Posts.get_comment_by_id(comment_id) do
+              %{content: db_content} when is_binary(db_content) and db_content != "" ->
+                {:ok, db_content}
+              _ ->
+                {:error, :no_content}
+            end
+          end
+        _ ->
+          {:error, :no_content}
+      end
+    rescue
+      e ->
+        IO.puts("❌ Error in final fetch for comment #{comment_id}: #{inspect(e)}")
+        {:error, e}
     end
+  end)
+
+  result = case Task.yield(task, 1500) || Task.shutdown(task, :brutal_kill) do
+    {:ok, result} ->
+      IO.puts("✅ Final fetch completed for comment #{comment_id}")
+      result
+    nil ->
+      IO.puts("⏰ Timeout after 1500ms in final fetch for comment #{comment_id}")
+      {:error, :timeout}
   end
+
+  fetch_end = :erlang.system_time(:millisecond)
+  IO.puts("📡 Final fetch for comment #{comment_id} took #{fetch_end - fetch_start}ms")
+  result
+end
 
   def fetch_comment_content_direct(comment_id) do
     task = Task.async(fn ->
