@@ -15,6 +15,9 @@ defmodule MazarynWeb.UserLive.Profile do
   alias Phoenix.LiveView.JS
   alias MazarynWeb.Router.Helpers, as: Routes
 
+  @user_cache_ttl 30_000
+  @follow_cache_ttl 10_000
+
   @impl true
   def mount(%{"username" => username} = _params, %{"session_uuid" => session_uuid} = _session, socket) do
     mount_start = :erlang.system_time(:millisecond)
@@ -22,18 +25,13 @@ defmodule MazarynWeb.UserLive.Profile do
 
     result = case Users.get_by_session_uuid(session_uuid) do
       {:ok, current_user} ->
-        user_start = :erlang.system_time(:millisecond)
-        user_result = get_user_by_username(username)
-        user_end = :erlang.system_time(:millisecond)
-        Logger.info("📋 get_user_by_username for #{username} took #{user_end - user_start}ms")
 
-        case user_result do
+        case get_user_by_username_cached(username) do
           {:ok, user} ->
             post_changeset = Post.changeset(%Post{})
             user_changeset = User.changeset(user)
             privacy = if user.private, do: "private", else: "public"
 
-            assigns_start = :erlang.system_time(:millisecond)
             socket =
               socket
               |> assign(session_uuid: session_uuid)
@@ -41,7 +39,6 @@ defmodule MazarynWeb.UserLive.Profile do
               |> assign(user_changeset: user_changeset)
               |> assign(user: user)
               |> assign(current_user: current_user)
-              |> handle_assigns(current_user.id, username)
               |> assign(edit_action: false)
               |> assign(follower_action: false)
               |> assign(follows_action: false)
@@ -52,8 +49,11 @@ defmodule MazarynWeb.UserLive.Profile do
               |> assign(admins: ["arvand"])
               |> assign(results: [])
               |> assign(followers: [])
-            assigns_end = :erlang.system_time(:millisecond)
-            Logger.info("📋 handle_assigns for user #{username} took #{assigns_end - assigns_start}ms")
+              |> assign(posts: [])
+              |> assign(posts_loading: true)
+              |> assign_follow_data_async(current_user.id, user.id)
+
+            send(self(), {:load_posts, username})
 
             {:ok, socket}
 
@@ -89,29 +89,17 @@ defmodule MazarynWeb.UserLive.Profile do
         post_changeset = Post.changeset(%Post{})
         user_changeset = User.changeset(%User{})
 
-        posts_task = Task.async(fn ->
-          fetch_start = :erlang.system_time(:millisecond)
-          posts = Posts.get_posts_by_author(current_user.username)
-          fetch_end = :erlang.system_time(:millisecond)
-          Logger.info("📚 Posts.get_posts_by_author for #{current_user.username} took #{fetch_end - fetch_start}ms")
-          posts
-        end)
-
-        posts = case Task.yield(posts_task, 1000) || Task.shutdown(posts_task, :brutal_kill) do
-          {:ok, posts} -> posts
-          nil ->
-            Logger.warn("⏰ Timeout fetching posts for #{current_user.username}, using empty list")
-            []
-        end
-
         socket =
           socket
           |> assign(session_uuid: session_uuid)
-          |> assign(posts: posts)
+          |> assign(posts: [])
+          |> assign(posts_loading: true)
           |> assign(post_changeset: post_changeset)
           |> assign(user_changeset: user_changeset)
           |> assign(current_user: current_user)
           |> assign(results: [])
+
+        send(self(), {:load_posts, current_user.username})
 
         {:ok, socket}
 
@@ -134,24 +122,8 @@ defmodule MazarynWeb.UserLive.Profile do
     post_changeset = Post.changeset(%Post{})
     user_changeset = User.changeset(%User{})
 
-    posts_task = Task.async(fn ->
-      fetch_start = :erlang.system_time(:millisecond)
-      posts = Mazaryn.Posts.get_posts_by_author(username)
-      fetch_end = :erlang.system_time(:millisecond)
-      Logger.info("📚 Posts.get_posts_by_author for #{username} took #{fetch_end - fetch_start}ms")
-      posts
-    end)
-
-    posts = case Task.yield(posts_task, 1000) || Task.shutdown(posts_task, :brutal_kill) do
-      {:ok, posts} -> posts
-      nil ->
-        Logger.warn("⏰ Timeout fetching posts for #{username}, using empty list")
-        []
-    end
-
-    result = case get_user_by_username(username) do
+    result = case get_user_by_username_cached(username) do
       {:ok, user} ->
-        assigns_start = :erlang.system_time(:millisecond)
         socket =
           socket
           |> assign(post_changeset: post_changeset)
@@ -159,10 +131,11 @@ defmodule MazarynWeb.UserLive.Profile do
           |> assign(user: user)
           |> assign(search: nil)
           |> assign(current_user: current_user)
-          |> assign(posts: posts)
-          |> handle_assigns(current_user.id, user.id)
-        assigns_end = :erlang.system_time(:millisecond)
-        Logger.info("📋 handle_assigns for user #{username} took #{assigns_end - assigns_start}ms")
+          |> assign(posts: [])
+          |> assign(posts_loading: true)
+          |> assign_follow_data_async(current_user.id, user.id)
+
+        send(self(), {:load_posts, username})
         {:noreply, socket}
 
       {:error, reason} ->
@@ -205,29 +178,52 @@ defmodule MazarynWeb.UserLive.Profile do
   end
 
   @impl true
-  def handle_info(:reload_posts, socket) do
-    reload_start = :erlang.system_time(:millisecond)
-    Logger.info("🔄 Starting handle_info :reload_posts for user #{socket.assigns.current_user.username}")
+  def handle_info({:load_posts, username}, socket) do
+    load_start = :erlang.system_time(:millisecond)
+    Logger.info("📚 Starting async load_posts for #{username}")
 
-    current_user = socket.assigns.current_user
     posts_task = Task.async(fn ->
-      fetch_start = :erlang.system_time(:millisecond)
-      posts = Posts.get_posts_by_author(current_user.username)
-      fetch_end = :erlang.system_time(:millisecond)
-      Logger.info("📚 Posts.get_posts_by_author for #{current_user.username} took #{fetch_end - fetch_start}ms")
-      posts
+      Posts.get_posts_by_author(username)
     end)
 
-    posts = case Task.yield(posts_task, 1000) || Task.shutdown(posts_task, :brutal_kill) do
-      {:ok, posts} -> posts
+    posts = case Task.yield(posts_task, 5000) || Task.shutdown(posts_task, :brutal_kill) do
+      {:ok, posts} ->
+        Logger.info("📚 Successfully loaded #{length(posts)} posts for #{username}")
+        posts
       nil ->
-        Logger.warn("⏰ Timeout fetching posts for #{current_user.username}, using empty list")
+        Logger.warn("⏰ Timeout loading posts for #{username}, using empty list")
         []
     end
 
-    reload_end = :erlang.system_time(:millisecond)
-    Logger.info("🔄 handle_info :reload_posts completed in #{reload_end - reload_start}ms")
-    {:noreply, assign(socket, posts: posts)}
+    load_end = :erlang.system_time(:millisecond)
+    Logger.info("📚 Async load_posts completed in #{load_end - load_start}ms")
+
+    {:noreply, assign(socket, posts: posts, posts_loading: false)}
+  end
+
+  def handle_info(:reload_posts, socket) do
+    current_user = socket.assigns.current_user
+    send(self(), {:load_posts, current_user.username})
+    {:noreply, socket}
+  end
+
+  def handle_info({:load_follow_data, user_id, target_id}, socket) do
+    follow_start = :erlang.system_time(:millisecond)
+    Logger.info("👥 Starting async load_follow_data for user_id #{user_id}")
+
+    {followers_count, followings_count, follow_event, follow_text} =
+      get_follow_data_with_timeout(user_id, target_id)
+
+    socket = socket
+    |> assign(:follow_event, follow_event)
+    |> assign(:follow_text, follow_text)
+    |> assign(:followers, followers_count)
+    |> assign(:followings, followings_count)
+
+    follow_end = :erlang.system_time(:millisecond)
+    Logger.info("👥 Async load_follow_data completed in #{follow_end - follow_start}ms")
+
+    {:noreply, socket}
   end
 
   @impl true
@@ -247,10 +243,13 @@ defmodule MazarynWeb.UserLive.Profile do
 
     id = to_charlist(id)
     user_id = socket.assigns.current_user.id
+
     UserClient.follow(user_id, id)
     Core.NotifEvent.follow(user_id, id)
 
-    socket = handle_assigns(socket, user_id, id)
+    clear_follow_cache(user_id)
+    send(self(), {:load_follow_data, user_id, id})
+
     follow_end = :erlang.system_time(:millisecond)
     Logger.info("👥 handle_event follow_user completed in #{follow_end - follow_start}ms")
     {:noreply, socket}
@@ -262,9 +261,12 @@ defmodule MazarynWeb.UserLive.Profile do
 
     id = to_charlist(id)
     user_id = socket.assigns.current_user.id
+
     UserClient.unfollow(user_id, id)
 
-    socket = handle_assigns(socket, user_id, id)
+    clear_follow_cache(user_id)
+    send(self(), {:load_follow_data, user_id, id})
+
     unfollow_end = :erlang.system_time(:millisecond)
     Logger.info("👥 handle_event unfollow_user completed in #{unfollow_end - unfollow_start}ms")
     {:noreply, socket}
@@ -274,17 +276,14 @@ defmodule MazarynWeb.UserLive.Profile do
     modal_start = :erlang.system_time(:millisecond)
     Logger.info("📋 Starting handle_event open_modal follower")
 
+
     followers = socket.assigns.user.follower
-    |> Enum.map(fn user ->
-      fetch_start = :erlang.system_time(:millisecond)
-      result = Account.Users.one_by_id(user)
-      fetch_end = :erlang.system_time(:millisecond)
-      Logger.info("📋 Account.Users.one_by_id for follower #{user} took #{fetch_end - fetch_start}ms")
-      result
-    end)
-    |> Enum.filter(&match?({:ok, _}, &1))
-    |> Enum.map(&elem(&1, 1))
-    |> IO.inspect(label: "followerss --<>")
+    |> Enum.take(50)
+    |> Task.async_stream(fn user ->
+      Account.Users.one_by_id(user)
+    end, max_concurrency: 10, timeout: 1000)
+    |> Enum.filter(&match?({:ok, {:ok, _}}, &1))
+    |> Enum.map(&elem(elem(&1, 1), 1))
 
     socket = socket
     |> assign(follower_action: true, followers: followers, edit_action: false, follows_action: false)
@@ -334,7 +333,7 @@ defmodule MazarynWeb.UserLive.Profile do
       UserClient.make_public(socket.assigns.current_user.id)
     end
 
-    result = case get_user_by_username(socket.assigns.current_user.username) do
+    result = case get_user_by_username_cached(socket.assigns.current_user.username) do
       {:ok, user} ->
         user_changeset = User.changeset(user)
         socket = socket |> assign(form: to_form(user_changeset)) |> assign(privacy: privacy)
@@ -380,112 +379,184 @@ defmodule MazarynWeb.UserLive.Profile do
     {:noreply, socket}
   end
 
-  defp handle_assigns(socket, user_id, id) do
-    assigns_start = :erlang.system_time(:millisecond)
-    Logger.info("📋 Starting handle_assigns for user_id #{user_id} and id #{id}")
 
-    followers_task = Task.async(fn ->
-      fetch_start = :erlang.system_time(:millisecond)
-      count = followers(user_id)
-      fetch_end = :erlang.system_time(:millisecond)
-      Logger.info("📋 followers count for user_id #{user_id} took #{fetch_end - fetch_start}ms")
-      count
-    end)
+  defp assign_follow_data_async(socket, user_id, target_id) do
 
-    followings_task = Task.async(fn ->
-      fetch_start = :erlang.system_time(:millisecond)
-      count = followings(user_id)
-      fetch_end = :erlang.system_time(:millisecond)
-      Logger.info("📋 followings count for user_id #{user_id} took #{fetch_end - fetch_start}ms")
-      count
-    end)
+    socket = socket
+    |> assign(:follow_event, "follow_user")
+    |> assign(:follow_text, "Follow")
+    |> assign(:followers, 0)
+    |> assign(:followings, 0)
 
-    followers_count = case Task.yield(followers_task, 500) || Task.shutdown(followers_task, :brutal_kill) do
-      {:ok, count} -> count
-      nil ->
-        Logger.warn("⏰ Timeout fetching followers for user_id #{user_id}, using 0")
-        0
-    end
 
-    followings_count = case Task.yield(followings_task, 500) || Task.shutdown(followings_task, :brutal_kill) do
-      {:ok, count} -> count
-      nil ->
-        Logger.warn("⏰ Timeout fetching followings for user_id #{user_id}, using 0")
-        0
-    end
-
-    socket =
-      socket
-      |> assign(:follow_event, follow_event(user_id, id))
-      |> assign(:follow_text, follow_text(user_id, id))
-      |> assign(:followers, followers_count)
-      |> assign(:followings, followings_count)
-
-    assigns_end = :erlang.system_time(:millisecond)
-    Logger.info("📋 handle_assigns completed in #{assigns_end - assigns_start}ms")
+    send(self(), {:load_follow_data, user_id, target_id})
     socket
   end
 
-  defp get_user_by_username(username) do
-    fetch_start = :erlang.system_time(:millisecond)
-    Logger.info("📋 Starting get_user_by_username for #{username}")
-    result = Users.one_by_username(username)
-    fetch_end = :erlang.system_time(:millisecond)
-    Logger.info("📋 get_user_by_username for #{username} completed in #{fetch_end - fetch_start}ms")
-    result
+  defp get_follow_data_with_timeout(user_id, target_id) do
+
+    tasks = [
+      Task.async(fn -> followers_cached(user_id) end),
+      Task.async(fn -> followings_cached(user_id) end),
+      Task.async(fn -> follow_event_cached(user_id, target_id) end),
+      Task.async(fn -> follow_text_cached(user_id, target_id) end)
+    ]
+
+    results = tasks
+    |> Enum.map(fn task ->
+      case Task.yield(task, 1000) || Task.shutdown(task, :brutal_kill) do
+        {:ok, result} -> result
+        nil -> nil
+      end
+    end)
+
+    case results do
+      [followers, followings, follow_event, follow_text] when not is_nil(followers) ->
+        {followers, followings || 0, follow_event || "follow_user", follow_text || "Follow"}
+      _ ->
+        Logger.warn("⏰ Timeout loading follow data, using defaults")
+        {0, 0, "follow_user", "Follow"}
+    end
   end
 
-  defp one_of_following?(id, username) do
-    fetch_start = :erlang.system_time(:millisecond)
-    Logger.info("👥 Starting one_of_following? for id #{id} and username #{username}")
+  defp get_user_by_username_cached(username) do
+    cache_key = {:user, username}
+    current_time = :erlang.system_time(:millisecond)
 
-    result = id
-    |> UserClient.get_following()
-    |> Enum.any?(&(&1 == username))
-
-    fetch_end = :erlang.system_time(:millisecond)
-    Logger.info("👥 one_of_following? completed in #{fetch_end - fetch_start}ms")
-    result
+    case :ets.lookup(:user_cache, cache_key) do
+      [{_, user, timestamp}] ->
+        if current_time - timestamp < @user_cache_ttl do
+          Logger.info("📦 User Cache HIT for #{username}")
+          {:ok, user}
+        else
+          Logger.info("📦 User Cache EXPIRED for #{username}")
+          fetch_and_cache_user(username, cache_key, current_time)
+        end
+      _ ->
+        Logger.info("📦 User Cache MISS for #{username}")
+        fetch_and_cache_user(username, cache_key, current_time)
+    end
+  rescue
+    ArgumentError ->
+      :ets.new(:user_cache, [:set, :public, :named_table])
+      get_user_by_username_cached(username)
   end
 
-  defp follow_text(id, username) do
-    fetch_start = :erlang.system_time(:millisecond)
-    Logger.info("📋 Starting follow_text for id #{id} and username #{username}")
-
-    result = if one_of_following?(id, username), do: "Unfollow", else: "Follow"
-    fetch_end = :erlang.system_time(:millisecond)
-    Logger.info("📋 follow_text completed in #{fetch_end - fetch_start}ms")
-    result
+  defp fetch_and_cache_user(username, cache_key, current_time) do
+    case Users.one_by_username(username) do
+      {:ok, user} = result ->
+        :ets.insert(:user_cache, {cache_key, user, current_time})
+        result
+      other -> other
+    end
   end
 
-  defp follow_event(id, username) do
-    fetch_start = :erlang.system_time(:millisecond)
-    Logger.info("📋 Starting follow_event for id #{id} and username #{username}")
+  defp followers_cached(user_id) do
+    cache_key = {:followers, user_id}
+    current_time = :erlang.system_time(:millisecond)
 
-    result = if one_of_following?(id, username), do: "unfollow_user", else: "follow_user"
-    fetch_end = :erlang.system_time(:millisecond)
-    Logger.info("📋 follow_event completed in #{fetch_end - fetch_start}ms")
-    result
+    case :ets.lookup(:follow_cache, cache_key) do
+      [{_, count, timestamp}] ->
+        if current_time - timestamp < @follow_cache_ttl do
+          Logger.info("📦 Followers Cache HIT for #{user_id}")
+          count
+        else
+          Logger.info("📦 Followers Cache EXPIRED for #{user_id}")
+          fetch_and_cache_followers(user_id, cache_key, current_time)
+        end
+      _ ->
+        Logger.info("📦 Followers Cache MISS for #{user_id}")
+        fetch_and_cache_followers(user_id, cache_key, current_time)
+    end
+  rescue
+    ArgumentError ->
+      :ets.new(:follow_cache, [:set, :public, :named_table])
+      followers_cached(user_id)
   end
 
-  defp followers(user_id) do
-    fetch_start = :erlang.system_time(:millisecond)
-    Logger.info("📋 Starting followers for user_id #{user_id}")
-
+  defp fetch_and_cache_followers(user_id, cache_key, current_time) do
     count = user_id |> UserClient.get_follower() |> Enum.count()
-    fetch_end = :erlang.system_time(:millisecond)
-    Logger.info("📋 followers completed in #{fetch_end - fetch_start}ms")
+    :ets.insert(:follow_cache, {cache_key, count, current_time})
     count
   end
 
-  defp followings(user_id) do
-    fetch_start = :erlang.system_time(:millisecond)
-    Logger.info("📋 Starting followings for user_id #{user_id}")
+  defp followings_cached(user_id) do
+    cache_key = {:followings, user_id}
+    current_time = :erlang.system_time(:millisecond)
 
+    case :ets.lookup(:follow_cache, cache_key) do
+      [{_, count, timestamp}] ->
+        if current_time - timestamp < @follow_cache_ttl do
+          Logger.info("📦 Followings Cache HIT for #{user_id}")
+          count
+        else
+          Logger.info("📦 Followings Cache EXPIRED for #{user_id}")
+          fetch_and_cache_followings(user_id, cache_key, current_time)
+        end
+      _ ->
+        Logger.info("📦 Followings Cache MISS for #{user_id}")
+        fetch_and_cache_followings(user_id, cache_key, current_time)
+    end
+  rescue
+    ArgumentError ->
+      :ets.new(:follow_cache, [:set, :public, :named_table])
+      followings_cached(user_id)
+  end
+
+  defp fetch_and_cache_followings(user_id, cache_key, current_time) do
     count = user_id |> UserClient.get_following() |> Enum.count()
-    fetch_end = :erlang.system_time(:millisecond)
-    Logger.info("📋 followings completed in #{fetch_end - fetch_start}ms")
+    :ets.insert(:follow_cache, {cache_key, count, current_time})
     count
+  end
+
+  defp follow_event_cached(user_id, target_id) do
+    if one_of_following_cached?(user_id, target_id), do: "unfollow_user", else: "follow_user"
+  end
+
+  defp follow_text_cached(user_id, target_id) do
+    if one_of_following_cached?(user_id, target_id), do: "Unfollow", else: "Follow"
+  end
+
+  defp one_of_following_cached?(user_id, target_id) do
+    cache_key = {:following_check, user_id, target_id}
+    current_time = :erlang.system_time(:millisecond)
+
+    case :ets.lookup(:follow_cache, cache_key) do
+      [{_, result, timestamp}] ->
+        if current_time - timestamp < @follow_cache_ttl do
+          Logger.info("📦 Following Check Cache HIT for #{user_id} -> #{target_id}")
+          result
+        else
+          Logger.info("📦 Following Check Cache EXPIRED for #{user_id} -> #{target_id}")
+          fetch_and_cache_following_check(user_id, target_id, cache_key, current_time)
+        end
+      _ ->
+        Logger.info("📦 Following Check Cache MISS for #{user_id} -> #{target_id}")
+        fetch_and_cache_following_check(user_id, target_id, cache_key, current_time)
+    end
+  rescue
+    ArgumentError ->
+      :ets.new(:follow_cache, [:set, :public, :named_table])
+      one_of_following_cached?(user_id, target_id)
+  end
+
+  defp fetch_and_cache_following_check(user_id, target_id, cache_key, current_time) do
+    result = user_id
+    |> UserClient.get_following()
+    |> Enum.any?(&(&1 == target_id))
+    :ets.insert(:follow_cache, {cache_key, result, current_time})
+    result
+  end
+
+  defp clear_follow_cache(user_id) do
+    try do
+      :ets.match_delete(:follow_cache, {{:followers, user_id}, :_, :_})
+      :ets.match_delete(:follow_cache, {{:followings, user_id}, :_, :_})
+      :ets.match_delete(:follow_cache, {{:following_check, user_id, :_}, :_, :_})
+      :ets.match_delete(:follow_cache, {{:following_check, :_, user_id}, :_, :_})
+    rescue
+      ArgumentError -> :ok
+    end
   end
 
   defp search_user_by_username(username) do

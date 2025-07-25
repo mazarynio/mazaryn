@@ -75,8 +75,11 @@ defmodule Mazaryn.Chats do
   end
 
   def get_users_chatted_to(actor, limit \\ 5) do
+    ten_hours_ago = DateTime.utc_now() |> DateTime.add(-10, :hour)
+
     get_chats()
     |> Enum.filter(&(to_charlist(&1.user_id) == actor.id))
+    |> Enum.filter(&(DateTime.compare(&1.date_created, ten_hours_ago) == :gt))
     |> Enum.sort_by(& &1.date_created, {:desc, DateTime})
     |> Enum.uniq_by(& &1.recipient_id)
     |> Enum.take(limit)

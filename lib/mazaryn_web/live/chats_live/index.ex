@@ -198,24 +198,21 @@ defmodule MazarynWeb.ChatsLive.Index do
     {:noreply, socket}
   end
 
+
   defp apply_action(%{assigns: %{user: actor}} = socket, :index, params) do
-    previous_contacts = Chats.get_users_with_chats(actor)
     current_recipient = Chats.get_latest_recipient(params["recipient_id"] || actor)
     messages = Chats.get_chat_messages(actor, current_recipient)
 
-    recent_chat_recepients = Chats.get_users_chatted_to(actor)
+
+    recent_chat_recipients = Chats.get_users_chatted_to(actor)
 
     assign(socket,
       current_recipient: current_recipient || struct(%User{}, chat: []),
       blank_chat?: is_nil(current_recipient),
       messages: messages,
-      contacts: previous_contacts,
-      recent_chat_recepients: recent_chat_recepients,
-      other_users:
-        Users.list()
-        |> Enum.map(&(&1 |> Users.one_by_id() |> elem(1)))
-        |> Kernel.--(previous_contacts)
-        |> Kernel.--([actor])
+      contacts: recent_chat_recipients,
+      recent_chat_recepients: recent_chat_recipients,
+      other_users: []
     )
   end
 
