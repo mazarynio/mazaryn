@@ -35,7 +35,7 @@
         caller_username={@caller_username}
       />
     </div>
-    <!-- video call UI -->
+   
     <%= if @show_video_call do %>
       <div
         id="video-call-container"
@@ -46,25 +46,26 @@
         class="fixed inset-0 bg-gradient-to-br from-gray-900 to-gray-800 bg-opacity-95 z-[1000] flex items-center justify-center p-4"
         style="display: flex !important; visibility: visible !important; opacity: 1 !important;"
       >
-        <div class="relative w-full max-w-5xl bg-gray-900 rounded-2xl overflow-hidden shadow-2xl border border-gray-700">
+        <div class="relative w-full max-w-5xl bg-gray-900 rounded-3xl overflow-hidden shadow-2xl border border-gray-700 backdrop-blur-sm">
+          
           <button
             phx-click="end-video-call"
             phx-value-call_id={@call_id}
-            class="absolute top-4 right-4 z-10 bg-gray-800 hover:bg-gray-700 text-white rounded-full p-2.5 transition-all duration-300 hover:scale-110"
+            class="absolute top-6 right-6 z-10 group bg-gray-800/80 hover:bg-red-500/90 text-white rounded-full p-3 transition-all duration-300 hover:scale-110 hover:rotate-90 backdrop-blur-sm border border-gray-600/50 hover:border-red-400/50 shadow-lg"
             aria-label="Close video call"
             type="button"
             onclick="event.preventDefault()"
           >
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            <svg class="w-5 h-5 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path>
             </svg>
           </button>
-          <!-- Video container -->
+          
           <div class="p-6">
             <% is_self_call = @user.username == @current_recipient.username %>
             <% local_video_class = if is_self_call, do: "w-full max-w-3xl mx-auto", else: "lg:w-1/2 w-full inline-block p-2" %>
             <!-- Local video -->
-            <div class={"relative aspect-video bg-gray-800 rounded-lg overflow-hidden shadow-lg border border-gray-700 #{local_video_class}"} style="display: block !important; visibility: visible !important;">
+            <div class={"relative aspect-video bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl overflow-hidden shadow-xl border border-gray-700/50 #{local_video_class}"} style="display: block !important; visibility: visible !important;">
               <video
                 id="local-video"
                 autoplay
@@ -74,12 +75,15 @@
                 class="w-full h-full object-cover"
                 style="display: block !important; visibility: visible !important; opacity: 1 !important;"
               ></video>
-              <div class="absolute bottom-3 left-3 bg-gray-900 bg-opacity-80 text-white px-3 py-1.5 rounded-lg text-sm font-medium">
-                You
+              <div class="absolute bottom-4 left-4 bg-gray-900/90 text-white px-4 py-2 rounded-xl text-sm font-semibold backdrop-blur-md border border-gray-700/50 shadow-lg">
+                <div class="flex items-center gap-2">
+                  <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                  You
+                </div>
               </div>
             </div>
             <%= unless is_self_call do %>
-              <div class="relative aspect-video bg-gray-800 rounded-lg overflow-hidden shadow-lg border border-gray-700 lg:w-1/2 w-full inline-block p-2">
+              <div class="relative aspect-video bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl overflow-hidden shadow-xl border border-gray-700/50 lg:w-1/2 w-full inline-block p-2">
                 <video
                   id="remote-video"
                   autoplay
@@ -87,108 +91,150 @@
                   webkit-playsinline
                   class="w-full h-full object-cover"
                 ></video>
-                <div class="absolute bottom-3 left-3 bg-gray-900 bg-opacity-80 text-white px-3 py-1.5 rounded-lg text-sm font-medium">
-                  <%= @current_recipient.username %>
+                <div class="absolute bottom-4 left-4 bg-gray-900/90 text-white px-4 py-2 rounded-xl text-sm font-semibold backdrop-blur-md border border-gray-700/50 shadow-lg">
+                  <div class="flex items-center gap-2">
+                    <div class="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
+                    <%= @current_recipient.username %>
+                  </div>
                 </div>
               </div>
             <% end %>
           </div>
-          <!-- Control bar -->
-          <div class="bg-gray-800 bg-opacity-90 p-6 flex flex-col items-center gap-4 border-t border-gray-700">
-            <!-- Error message -->
+         
+          <div class="bg-gradient-to-r from-gray-800/95 to-gray-900/95 backdrop-blur-md p-8 flex flex-col items-center gap-6 border-t border-gray-700/50">
+            
             <%= if @flash[:error] do %>
-              <div class="bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-medium mb-4">
-                <%= @flash[:error] %>
+              <div class="bg-gradient-to-r from-red-500 to-red-600 text-white px-6 py-3 rounded-2xl text-sm font-medium shadow-lg border border-red-400/30 backdrop-blur-sm animate-pulse">
+                <div class="flex items-center gap-3">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                  </svg>
+                  <%= @flash[:error] %>
+                </div>
               </div>
             <% end %>
-            <!-- Ringing (outgoing call) -->
+            
             <%= if @call_status == "ringing" and @caller_username == @user.username do %>
-              <p class="text-white text-lg font-semibold animate-pulse tracking-wide">
-                Calling <%= @current_recipient.username %>...
-              </p>
-              <div class="flex gap-4">
+              <div class="text-center space-y-4">
+                <div class="relative">
+                  <div class="w-16 h-16 bg-blue-500/20 rounded-full animate-ping absolute"></div>
+                  <div class="w-16 h-16 bg-blue-500/40 rounded-full animate-pulse relative flex items-center justify-center">
+                    <svg class="w-8 h-8 text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path>
+                    </svg>
+                  </div>
+                </div>
+                <p class="text-white text-xl font-semibold tracking-wide">
+                  Calling <%= @current_recipient.username %>...
+                </p>
+                <div class="w-12 h-1 bg-gradient-to-r from-blue-400 to-purple-500 rounded-full animate-pulse mx-auto"></div>
+              </div>
+              <div class="flex gap-4 mt-6">
                 <button
                   phx-click="end-video-call"
                   phx-value-call_id={@call_id}
-                  class="flex items-center gap-2 px-6 py-2.5 bg-gray-600 text-white rounded-full hover:bg-gray-700 transition-all duration-300 font-medium shadow-md hover:shadow-lg"
+                  class="group flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-gray-600 to-gray-700 text-white rounded-2xl hover:from-gray-700 hover:to-gray-800 transition-all duration-300 font-semibold shadow-xl hover:shadow-2xl transform hover:scale-105 border border-gray-500/30"
                   type="button"
                   onclick="event.preventDefault()"
                 >
-                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                  <svg class="w-5 h-5 transition-transform group-hover:rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path>
                   </svg>
-                  Cancel
+                  Cancel Call
                 </button>
               </div>
             <% end %>
-            <!-- Ringing (incoming call) -->
+            
             <%= if @call_status == "ringing" and @caller_username != @user.username do %>
-              <p class="text-white text-lg font-semibold tracking-wide">
-                Incoming call from <%= @caller_username %>
-              </p>
-              <div class="flex gap-4">
+              <div class="text-center space-y-4">
+                <div class="relative">
+                  <div class="w-20 h-20 bg-green-500/20 rounded-full animate-ping absolute"></div>
+                  <div class="w-20 h-20 bg-gradient-to-r from-green-400 to-blue-500 rounded-full animate-pulse relative flex items-center justify-center shadow-2xl">
+                    <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path>
+                    </svg>
+                  </div>
+                </div>
+                <p class="text-white text-xl font-semibold tracking-wide">
+                  Incoming call from <%= @caller_username %>
+                </p>
+                <div class="w-16 h-1 bg-gradient-to-r from-green-400 to-blue-500 rounded-full animate-pulse mx-auto"></div>
+              </div>
+              <div class="flex gap-6 mt-8">
                 <button
                   phx-click="accept-video-call"
                   phx-value-call_id={@call_id}
-                  class="flex items-center gap-2 px-6 py-2.5 bg-green-600 text-white rounded-full hover:bg-green-700 transition-all duration-300 font-medium shadow-md hover:shadow-lg"
+                  class="group relative flex items-center gap-3 px-10 py-4 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-2xl hover:from-green-600 hover:to-emerald-700 transition-all duration-300 font-semibold shadow-xl hover:shadow-2xl transform hover:scale-105 border border-green-400/30 overflow-hidden"
                   type="button"
                   onclick="event.preventDefault()"
                 >
-                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                  <div class="absolute inset-0 bg-gradient-to-r from-green-400/20 to-emerald-500/20 transform -skew-x-12 group-hover:skew-x-12 transition-transform duration-500"></div>
+                  <svg class="w-6 h-6 relative z-10 transition-transform group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path>
                   </svg>
-                  Accept
+                  <span class="relative z-10">Accept</span>
                 </button>
                 <button
                   phx-click="end-video-call"
                   phx-value-call_id={@call_id}
-                  class="flex items-center gap-2 px-6 py-2.5 bg-red-600 text-white rounded-full hover:bg-red-700 transition-all duration-300 font-medium shadow-md hover:shadow-lg"
+                  class="group relative flex items-center gap-3 px-10 py-4 bg-gradient-to-r from-red-500 to-rose-600 text-white rounded-2xl hover:from-red-600 hover:to-rose-700 transition-all duration-300 font-semibold shadow-xl hover:shadow-2xl transform hover:scale-105 border border-red-400/30 overflow-hidden"
                   type="button"
                   onclick="event.preventDefault()"
                 >
-                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                  <div class="absolute inset-0 bg-gradient-to-r from-red-400/20 to-rose-500/20 transform skew-x-12 group-hover:-skew-x-12 transition-transform duration-500"></div>
+                  <svg class="w-6 h-6 relative z-10 transition-transform group-hover:rotate-45" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path>
                   </svg>
-                  Decline
+                  <span class="relative z-10">Decline</span>
                 </button>
               </div>
             <% end %>
-            <!-- Connected -->
+            
             <%= if @call_status == "connected" do %>
+              <div class="text-center space-y-4 mb-4">
+                <div class="flex items-center justify-center gap-3">
+                  <div class="w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
+                  <p class="text-green-400 text-lg font-semibold">Connected</p>
+                  <div class="w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
+                </div>
+              </div>
               <div class="flex gap-4">
                 <button
                   phx-click="end-video-call"
                   phx-value-call_id={@call_id}
-                  class="flex items-center gap-2 px-6 py-2.5 bg-red-600 text-white rounded-full hover:bg-red-700 transition-all duration-300 font-medium shadow-md hover:shadow-lg"
+                  class="group relative flex items-center gap-3 px-10 py-4 bg-gradient-to-r from-red-500 to-rose-600 text-white rounded-2xl hover:from-red-600 hover:to-rose-700 transition-all duration-300 font-semibold shadow-xl hover:shadow-2xl transform hover:scale-105 border border-red-400/30 overflow-hidden"
                   type="button"
                   onclick="event.preventDefault()"
                 >
-                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                  <div class="absolute inset-0 bg-gradient-to-r from-red-400/20 to-rose-500/20 transform skew-x-12 group-hover:-skew-x-12 transition-transform duration-500"></div>
+                  <svg class="w-6 h-6 relative z-10 transition-transform group-hover:rotate-45" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M16 8l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2M3 12h16m-7-4v8"></path>
                   </svg>
-                  End Call
+                  <span class="relative z-10">End Call</span>
                 </button>
               </div>
             <% end %>
+            
             <%= if @call_status != "connected" do %>
               <button
                 phx-click="start-camera"
                 type="button"
-                class="flex items-center gap-2 px-6 py-2.5 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-all duration-300 font-medium shadow-md hover:shadow-lg"
+                class="group relative flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-2xl hover:from-blue-600 hover:to-indigo-700 transition-all duration-300 font-semibold shadow-xl hover:shadow-2xl transform hover:scale-105 border border-blue-400/30 overflow-hidden"
                 onclick="event.preventDefault(); event.stopPropagation();"
               >
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                <div class="absolute inset-0 bg-gradient-to-r from-blue-400/20 to-indigo-500/20 transform -skew-x-12 group-hover:skew-x-12 transition-transform duration-500"></div>
+                <svg class="w-6 h-6 relative z-10 transition-transform group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                 </svg>
-                Start Camera
+                <span class="relative z-10">Start Camera</span>
               </button>
             <% end %>
           </div>
         </div>
       </div>
     <% end %>
-    <!-- new message component -->
+    
     <div class="bottom-1 w-full bg-white white:bg-gray-800 custom-box-shadow pr-8 pl-7 pb-7 pt-4 rounded-[20px]">
       <.live_component
         module={MazarynWeb.ChatsLive.Components.MessageInput}
@@ -199,7 +245,7 @@
       />
     </div>
   </div>
-  <!-- end of middle column-->
+  
   <div class="w-full lg:w-2/6 bg-gray-100 py-10 pr-10">
     <.chat_list locale={@locale} contacts={@contacts} title="Chats" show_search={false} />
     <.chat_list
@@ -209,14 +255,25 @@
       show_search={true}
       search_query={@search_query}
     />
-    <!-- Button to initiate self-call -->
-    <button
-      phx-click="start-video-call"
-      class="px-4 py-2 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition-colors duration-200"
-      type="button"
-      onclick="event.preventDefault()"
-    >
-      Call Myself
-    </button>
+    
+    <div class="mt-8 flex justify-center">
+      <button
+        phx-click="start-video-call"
+        class="group relative flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-purple-500 to-pink-600 text-white rounded-2xl hover:from-purple-600 hover:to-pink-700 transition-all duration-300 font-semibold shadow-xl hover:shadow-2xl transform hover:scale-105 border border-purple-400/30 overflow-hidden"
+        type="button"
+        onclick="event.preventDefault()"
+      >
+        <div class="absolute inset-0 bg-gradient-to-r from-purple-400/20 to-pink-500/20 transform -skew-x-12 group-hover:skew-x-12 transition-transform duration-500"></div>
+        <div class="relative z-10 flex items-center gap-3">
+          <div class="relative">
+            <svg class="w-6 h-6 transition-transform group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path>
+            </svg>
+            <div class="absolute -top-1 -right-1 w-3 h-3 bg-yellow-400 rounded-full animate-bounce"></div>
+          </div>
+          <span>Call Myself</span>
+        </div>
+      </button>
+    </div>
   </div>
 </div>

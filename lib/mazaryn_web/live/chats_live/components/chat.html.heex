@@ -1,59 +1,58 @@
-<div class="flex-1 p-2 sm:p-6 justify-between flex flex-col h-96">
+<div class="flex-1 p-4 sm:p-8 flex flex-col h-96 bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 rounded-2xl shadow-lg">
   <!-- Incoming Call Modal -->
   <%= if @call_status == "ringing" && @caller_username do %>
-    <div class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50">
-      <div class="bg-white p-6 rounded-lg shadow-xl">
-        <h2 class="text-lg font-semibold mb-4">Incoming Call from <%= @caller_username %></h2>
+    <div class="fixed inset-0 bg-gray-600 bg-opacity-50 backdrop-bl Doctypelur-md flex items-center justify-center z-50">
+      <div class="bg-gradient-to-br from-gray-50 to-white dark:from-gray-700 dark:to-gray-800 p-8 rounded-xl shadow-xl animate-in duration-300 scale-95">
+        <h2 class="text-xl font-bold text-gray-800 dark:text-gray-100 mb-6 capitalize">Incoming Call from <%= @caller_username %></h2>
         <div class="flex space-x-4">
           <button
             phx-click="accept-video-call"
             phx-value-call_id={@call_id}
-            class="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600"
+            class="relative px-6 py-3 bg-gradient-to-r from-green-400 to-emerald-600 hover:from-green-500 hover:to-emerald-700 text-white font-semibold rounded-full shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300"
           >
-            Accept
+            <div class="absolute inset-0 bg-gradient-to-r from-green-300/20 to-emerald-500/20 transform -skew-x-12 group-hover:skew-x-12 transition-transform duration-500"></div>
+            <span class="relative z-10">Accept</span>
           </button>
           <button
             phx-click="end-video-call"
             phx-value-call_id={@call_id}
-            class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600"
+            class="relative px-6 py-3 bg-gradient-to-r from-red-400 to-red-600 hover:from-red-500 hover:to-red-700 text-white font-semibold rounded-full shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300"
           >
-            Decline
+            <div class="absolute inset-0 bg-gradient-to-r from-red-300/20 to-red-500/20 transform -skew-x-12 group-hover:skew-x-12 transition-transform duration-500"></div>
+            <span class="relative z-10">Decline</span>
           </button>
         </div>
       </div>
     </div>
   <% end %>
 
-  <div class="flex sm:items-center justify-between py-3 border-b-2 border-green-200">
-    <div class="relative flex items-center space-x-4">
+  <!-- Header Section -->
+  <div class="flex items-center justify-between py-4 border-b border-gray-200 dark:border-gray-700">
+    <div class="flex items-center space-x-4 group">
       <div class="relative">
-        <span class="absolute text-green-500 right-0 bottom-0">
-          <svg width="20" height="20">
-            <circle cx="7" cy="7" r="7" fill="currentColor"></circle>
-          </svg>
-        </span>
         <img
-          src={handle_avatar(@recipient)}
-          alt=""
-          class="w-10 sm:w-16 h-10 sm:h-16 rounded-full"
+          src={handle_avatar(@recipient) || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='url(%23grad)'%3E%3Cpath d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/%3E%3Cdefs%3E%3ClinearGradient id='grad' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%2360a5fa;stop-opacity:1'/%3E%3Cstop offset='100%25' style='stop-color:%23226ce3;stop-opacity:1'/%3E%3C/linearGradient%3E%3C/defs%3E%3C/svg%3E"}
+          alt="Recipient avatar"
+          class="w-12 h-12 sm:w-14 sm:h-14 rounded-full object-cover ring-2 ring-gradient-to-r from-blue-400 to-purple-500 dark:from-blue-500 dark:to-purple-600 shadow-[0_0_6px_rgba(59,130,246,0.5)] dark:shadow-[0_0_6px_rgba(59,130,246,0.3)] group-hover:ring-blue-500 dark:group-hover:ring-blue-600 group-hover:rotate-3 transition-all duration-300"
         />
       </div>
       <div class="flex flex-col leading-tight">
-        <div class="text-2xl mt-1 flex items-center">
-          <span class="text-gray-700 mr-3 capitalize"><%= @recipient.username %></span>
-          <!-- Self-message warning indicator -->
+        <div class="text-xl font-bold mt-1 flex items-center">
+          <span class="bg-gradient-to-r from-blue-500 to-indigo-600 dark:from-blue-400 dark:to-indigo-500 bg-clip-text text-transparent capitalize group-hover:scale-105 transition-all duration-300">
+            <%= @recipient.username %>
+          </span>
           <%= if @recipient.id == @actor.id do %>
-            <span class="text-sm bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full ml-2">
+            <span class="text-sm bg-gradient-to-r from-yellow-300 to-yellow-500 text-white px-3 py-1 rounded-full ml-2 shadow-sm">
               You
             </span>
           <% end %>
         </div>
-        <span class="text-lg text-gray-600 capitalize"><%= @recipient.country %></span>
+        <span class="text-base text-gray-500 dark:text-gray-400 capitalize"><%= @recipient.country %></span>
       </div>
     </div>
-    <div class="flex items-center space-x-2">
-       <%= if @call_status do %>
-        <span class="text-sm text-gray-500">
+    <div class="flex items-center space-x-3">
+      <%= if @call_status do %>
+        <span class="text-sm font-medium text-gray-500 dark:text-gray-400">
           <%= cond do %>
             <% @call_status == :ringing -> %>
               Ringing...
@@ -68,14 +67,15 @@
         <button
           phx-click="end-video-call"
           phx-value-call_id={@call_id}
-          class="inline-flex items-center justify-center rounded-lg border h-10 w-10 transition duration-500 ease-in-out text-red-500 hover:bg-red-100 focus:outline-none"
+          class="relative inline-flex items-center justify-center h-10 w-10 bg-gradient-to-r from-red-400 to-red-600 hover:from-red-500 hover:to-red-700 text-white rounded-full shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300"
         >
+          <div class="absolute inset-0 bg-gradient-to-r from-red-300/20 to-red-500/20 transform -skew-x-12 group-hover:skew-x-12 transition-transform duration-500"></div>
           <svg
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
-            class="h-6 w-6"
+            class="h-6 w-6 relative z-10"
           >
             <path
               stroke-linecap="round"
@@ -88,15 +88,16 @@
       <% else %>
         <button
           phx-click="start-video-call"
-          class="inline-flex items-center justify-center rounded-lg border h-10 w-10 transition duration-500 ease-in-out text-gray-500 hover:bg-gray-300 focus:outline-none"
+          class="relative inline-flex items-center justify-center h-10 w-10 bg-gradient-to-r from-blue-300 to-blue-700 hover:from-blue-400 hover:to-blue-800 text-white rounded-full shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300"
           disabled={@recipient.id == @actor.id}
         >
+          <div class="absolute inset-0 bg-gradient-to-r from-blue-200/20 to-blue-600/20 transform -skew-x-12 group-hover:skew-x-12 transition-transform duration-500"></div>
           <svg
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
-            class="h-6 w-6"
+            class="h-6 w-6 relative z-10"
           >
             <path
               stroke-linecap="round"
@@ -110,82 +111,82 @@
     </div>
   </div>
 
-  <!-- Self-message warning banner -->
+  <!-- Self-Messaging Warning -->
   <%= if @recipient.id == @actor.id do %>
-    <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-4">
-      <div class="flex">
+    <div class="flex items-center justify-center p-6 bg-gradient-to-br from-yellow-50 to-yellow-100 dark:from-yellow-800 dark:to-yellow-700 rounded-xl shadow-md animate-slide-in">
+      <div class="flex items-center space-x-4">
         <div class="flex-shrink-0">
-          <svg class="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
-            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+          <svg class="h-10 w-10 text-yellow-400 dark:text-yellow-300 animate-pulse" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-3.582 8-8 8a8.959 8.959 0 01-4.906-1.478l-3.094.492.492-3.094A8.959 8.959 0 013 12C3 7.582 6.582 4 12 4s8 3.582 8 8z" />
           </svg>
         </div>
-        <div class="ml-3">
-          <p class="text-sm text-yellow-700">
-            <strong>Self-messaging isn't allowed.</strong> You cannot send messages to yourself. Please select a different contact to start a conversation.
-          </p>
+        <div class="text-center animate-bounce-slow">
+          <p class="text-xl font-semibold text-yellow-700 dark:text-yellow-200">Cannot Message Yourself</p>
+          <p class="text-sm text-yellow-600 dark:text-yellow-300">Select a different contact to start a conversation.</p>
         </div>
       </div>
     </div>
   <% end %>
 
+  <!-- Video Call Section -->
   <%= if @call_status do %>
-    <div class="flex flex-col sm:flex-row space-x-4 p-4 bg-gray-100 rounded-lg">
-      <div class="w-full sm:w-1/2">
-        <video id="local-video" autoplay playsinline muted class="w-full rounded-lg"></video>
-        <p class="text-sm text-gray-500">You</p>
+    <div class="flex flex-col sm:flex-row space-x-0 sm:space-x-4 p-4 bg-gray-100 dark:bg-gray-700 rounded-xl border border-gradient-to-r from-gray-200 to-gray-300 dark:from-gray-600 dark:to-gray-700">
+      <div class="w-full sm:w-1/2 mb-4 sm:mb-0">
+        <video id="local-video" autoplay playsinline muted class="w-full rounded-xl shadow-md"></video>
+        <p class="text-sm font-medium text-gray-500 dark:text-gray-400 mt-2 text-center">You</p>
       </div>
       <div class="w-full sm:w-1/2">
-        <video id="remote-video" autoplay playsinline class="w-full rounded-lg"></video>
-        <p class="text-sm text-gray-500"><%= @recipient.username %></p>
+        <video id="remote-video" autoplay playsinline class="w-full rounded-xl shadow-md"></video>
+        <p class="text-sm font-medium text-gray-500 dark:text-gray-400 mt-2 text-center capitalize"><%= @recipient.username %></p>
       </div>
     </div>
   <% end %>
 
   <div
-    class="flex flex-col space-y-4 p-3 overflow-y-auto scrollbar-thumb-blue scrollbar-thumb-rounded scrollbar-track-blue-lighter scrollbar-w-2 scrolling-touch"
+    class="flex flex-col space-y-4 p-3 overflow-y-auto scrollbar-thumb-blue-500 scrollbar-thumb-rounded scrollbar-track-gray-100 dark:scrollbar-track-gray-700 scrollbar-w-2"
   >
     <%= if @recipient.id == @actor.id do %>
-      <!-- Placeholder message for self-chat -->
-      <div class="flex items-center justify-center p-8 text-gray-500">
+      <div class="flex items-center justify-center p-8 text-gray-500 dark:text-gray-400">
         <div class="text-center">
-          <svg class="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg class="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-3.582 8-8 8a8.959 8.959 0 01-4.906-1.478l-3.094.492.492-3.094A8.959 8.959 0 013 12C3 7.582 6.582 4 12 4s8 3.582 8 8z" />
           </svg>
-          <p class="text-lg font-medium text-gray-900 mb-2">No messages to display</p>
-          <p class="text-gray-500">Select a contact to start a conversation</p>
+          <p class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">No Messages to Display</p>
+          <p class="text-gray-500 dark:text-gray-400">Select a contact to start a conversation</p>
         </div>
       </div>
     <% else %>
-      <%= for message <- @messages do %>
-        <div x-data="{ openMenu: false }" class="relative group">
+      <%= for {message, index} <- Enum.with_index(@messages) do %>
+        <% x_data = %{"openMenu" => false, "isTopMessage" => index < 3} %>
+        <div x-data={Jason.encode!(x_data)} class="relative group">
           <div :if={message.user_id === "#{@recipient.id}"} class="chat-message">
             <div class="flex items-end">
-              <div class="flex flex-col space-y-2 text-xs max-w-xs mx-2 order-2 items-start">
+              <div class="flex flex-col space-y-2 text-sm max-w-xs mx-2 order-2 items-start">
                 <div class="flex items-center space-x-2">
-                  <span class="px-4 py-2 rounded-lg inline-block rounded-bl-none bg-gray-300 text-gray-600 capitalize">
+                  <span class="px-4 py-2 rounded-lg bg-gradient-to-r from-gray-200 to-gray-300 dark:from-gray-600 dark:to-gray-700 text-gray-800 dark:text-gray-200 capitalize">
                     <%= message.body %>
                   </span>
                 </div>
               </div>
               <img
-                src={handle_avatar(@recipient)}
-                alt="My profile"
-                class="w-6 h-6 rounded-full order-1"
+                src={handle_avatar(@recipient) || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='url(%23grad)'%3E%3Cpath d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/%3E%3Cdefs%3E%3ClinearGradient id='grad' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%2360a5fa;stop-opacity:1'/%3E%3Cstop offset='100%25' style='stop-color:%23226ce3;stop-opacity:1'/%3E%3C/linearGradient%3E%3C/defs%3E%3C/svg%3E"}
+                alt="Recipient avatar"
+                class="w-6 h-6 rounded-full order-1 ring-2 ring-gradient-to-r from-blue-400 to-purple-500 dark:from-blue-500 dark:to-purple-600 shadow-[0_0_4px_rgba(59,130,246,0.5)] dark:shadow-[0_0_4px_rgba(59,130,246,0.3)] group-hover:ring-blue-500 dark:group-hover:ring-blue-600 transition-all duration-300"
               />
             </div>
           </div>
 
           <div :if={message.user_id == "#{@actor.id}"} class="chat-message">
             <div class="flex items-end justify-end">
-              <div class="flex flex-col space-y-2 text-xs max-w-xs mx-2 order-1 items-end">
+              <div class="flex flex-col space-y-2 text-sm max-w-xs mx-2 order-1 items-end">
                 <div class="flex items-center space-x-2">
-                  <span class="px-4 py-2 rounded-lg inline-block rounded-br-none bg-green-400 text-black capitalize">
+                  <span class="px-4 py-2 rounded-lg bg-gradient-to-r from-green-300 to-green-500 dark:from-green-400 dark:to-green-600 text-white capitalize">
                     <%= message.body %>
                   </span>
                   <div class="relative">
                     <button
                       @click="openMenu = !openMenu"
-                      class="text-gray-500 hover:text-gray-700 focus:outline-none transition-colors duration-200"
+                      class="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 focus:outline-none transition-colors duration-200"
                     >
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
@@ -205,12 +206,13 @@
                       x-transition:leave="transition ease-in duration-200"
                       x-transition:leave-start="opacity-100 scale-100"
                       x-transition:leave-end="opacity-0 scale-90"
-                      class="absolute z-20 right-0 mt-2 w-48 bg-white rounded-lg shadow-xl border border-gray-200"
+                      x-bind:class="isTopMessage ? 'top-full mt-2' : 'bottom-full mb-2'"
+                      class="absolute z-20 right-0 w-48 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gradient-to-r from-blue-400 to-purple-500 dark:from-blue-500 dark:to-purple-600"
                     >
                       <button
                         phx-click="edit-message"
                         phx-value-message-id={message.id}
-                        class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 transition-colors duration-200 flex items-center space-x-2"
+                        class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-gray-100 transition-colors duration-200 flex items-center space-x-2"
                       >
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
@@ -230,7 +232,7 @@
                       <button
                         phx-click="delete-message"
                         phx-value-message-id={message.id}
-                        class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 hover:text-red-800 transition-colors duration-200 flex items-center space-x-2"
+                        class="w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/50 hover:text-red-800 dark:hover:text-red-300 transition-colors duration-200 flex items-center space-x-2"
                       >
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
@@ -251,9 +253,9 @@
                 </div>
               </div>
               <img
-                src={handle_avatar(@actor)}
-                alt="My profile"
-                class="w-6 h-6 rounded-full order-2"
+                src={handle_avatar(@actor) || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='url(%23grad)'%3E%3Cpath d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/%3E%3Cdefs%3E%3ClinearGradient id='grad' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%2360a5fa;stop-opacity:1'/%3E%3Cstop offset='100%25' style='stop-color:%23226ce3;stop-opacity:1'/%3E%3C/linearGradient%3E%3C/defs%3E%3C/svg%3E"}
+                alt="Actor avatar"
+                class="w-6 h-6 rounded-full order-2 ring-2 ring-gradient-to-r from-blue-400 to-purple-500 dark:from-blue-500 dark:to-purple-600 shadow-[0_0_4px_rgba(59,130,246,0.5)] dark:shadow-[0_0_4px_rgba(59,130,246,0.3)] group-hover:ring-blue-500 dark:group-hover:ring-blue-600 transition-all duration-300"
               />
             </div>
           </div>
@@ -269,19 +271,65 @@
     height: 0.25rem;
   }
 
-  .scrollbar-track-blue-lighter::-webkit-scrollbar-track {
-    --bg-opacity: 1;
+  .scrollbar-track-gray-100::-webkit-scrollbar-track {
     background-color: #f7fafc;
-    background-color: rgba(247, 250, 252, var(--bg-opacity));
+    background-color: rgba(247, 250, 252, 1);
   }
 
-  .scrollbar-thumb-blue::-webkit-scrollbar-thumb {
-    --bg-opacity: 1;
-    background-color: #edf2f7;
-    background-color: rgba(237, 242, 247, var(--bg-opacity));
+  .dark .scrollbar-track-gray-700::-webkit-scrollbar-track {
+    background-color: #374151;
+    background-color: rgba(55, 65, 81, 1);
+  }
+
+  .scrollbar-thumb-blue-500::-webkit-scrollbar-thumb {
+    background: linear-gradient(to bottom, #3b82f6, #1e40af);
+    border-radius: 0.25rem;
   }
 
   .scrollbar-thumb-rounded::-webkit-scrollbar-thumb {
     border-radius: 0.25rem;
+  }
+
+  .animate-in {
+    animation: slideIn 0.3s ease-out;
+  }
+
+  @keyframes slideIn {
+    from {
+      transform: scale(0.95);
+      opacity: 0;
+    }
+    to {
+      transform: scale(1);
+      opacity: 1;
+    }
+  }
+
+  .animate-slide-in {
+    animation: slideInFromTop 0.5s ease-out;
+  }
+
+  @keyframes slideInFromTop {
+    from {
+      transform: translateY(-20px);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+
+  .animate-bounce-slow {
+    animation: bounceSlow 2s ease-in-out infinite;
+  }
+
+  @keyframes bounceSlow {
+    0%, 100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-5px);
+    }
   }
 </style>
