@@ -19,17 +19,15 @@ defmodule MazarynWeb.HomeLive.PostComponent do
   def schedule_ipns_fetch_after_post(post_id, delay_ms \\ 30_000) do
     IO.puts("⏰ Scheduling IPNS fetch for post #{post_id} in #{delay_ms}ms")
 
-
     post_id_str = if is_list(post_id), do: List.to_string(post_id), else: to_string(post_id)
 
     Task.start(fn ->
       Process.sleep(delay_ms)
       IO.puts("🚀 Starting scheduled IPNS fetch for post #{post_id}")
 
-
       clear_ipns_cache_and_failures(post_id)
 
-      case fetch_ipns_with_retries(post_id, 3) do
+      case fetch_ipns_with_exponential_backoff(post_id, 1) do
         ipns when not is_nil(ipns) ->
           cache_key = {:ipns, post_id}
           timestamp = :erlang.system_time(:second)
@@ -44,11 +42,187 @@ defmodule MazarynWeb.HomeLive.PostComponent do
           IO.puts("✅ Scheduled IPNS fetch completed for post #{post_id}: #{inspect(ipns)}")
 
         nil ->
-          IO.puts("❌ Scheduled IPNS fetch failed for post #{post_id}")
-          Process.sleep(10_000)
-          schedule_ipns_fetch_after_post(post_id, 0)
+          IO.puts("❌ All IPNS fetch attempts failed for post #{post_id}")
+          record_persistent_ipns_failure(post_id)
       end
     end)
+  end
+
+  defp fetch_ipns_with_exponential_backoff(post_id, attempt_number) when attempt_number <= 10 do
+    IO.puts("🔄 IPNS fetch attempt #{attempt_number}/10 for post #{post_id}")
+
+    case get_post_ipns_with_timeout(post_id, 8000, true) do
+      ipns when not is_nil(ipns) ->
+        IO.puts("✅ IPNS fetch successful on attempt #{attempt_number}: #{inspect(ipns)}")
+        :ets.delete(@content_cache, {:ipns_persistent_failures, post_id})
+        ipns
+      nil ->
+        backoff_delay = calculate_backoff_delay(attempt_number)
+        IO.puts("⚠️ IPNS fetch failed on attempt #{attempt_number}, retrying in #{backoff_delay}ms...")
+        Process.sleep(backoff_delay)
+        fetch_ipns_with_exponential_backoff(post_id, attempt_number + 1)
+    end
+  end
+
+  defp fetch_ipns_with_exponential_backoff(post_id, attempt_number) when attempt_number > 10 do
+    IO.puts("❌ All 10 IPNS fetch attempts exhausted for post #{post_id}")
+    schedule_long_term_ipns_retry(post_id)
+    nil
+  end
+
+  defp calculate_backoff_delay(attempt) do
+    base_delay = :math.pow(2, attempt - 1) * 1000
+    max_delay = 30_000
+    jitter = :rand.uniform(1000)
+
+    min(base_delay + jitter, max_delay) |> round()
+  end
+
+  defp schedule_long_term_ipns_retry(post_id) do
+    Task.start(fn ->
+      Process.sleep(300_000)
+      IO.puts("🔄 Starting long-term retry for post #{post_id}")
+
+      case fetch_ipns_with_exponential_backoff(post_id, 1) do
+        ipns when not is_nil(ipns) ->
+          cache_key = {:ipns, post_id}
+          timestamp = :erlang.system_time(:second)
+          :ets.insert(@content_cache, {cache_key, ipns, timestamp})
+
+          Phoenix.PubSub.broadcast(
+            Mazaryn.PubSub,
+            "home_feed_updates",
+            {:ipns_ready, post_id, ipns}
+          )
+
+          IO.puts("✅ Long-term retry successful for post #{post_id}")
+        nil ->
+          IO.puts("❌ Long-term retry failed for post #{post_id}, scheduling another attempt")
+          schedule_very_long_term_retry(post_id)
+      end
+    end)
+  end
+
+  defp schedule_very_long_term_retry(post_id) do
+    Task.start(fn ->
+      case :ets.lookup(@content_cache, {:ipns_persistent_failures, post_id}) do
+        [{_, failure_count, _}] when failure_count >= 24 ->
+          IO.puts("🛑 Giving up on post #{post_id} after 24 hours of failures")
+        _ ->
+          Process.sleep(3_600_000)
+          IO.puts("🔄 Starting hourly retry for post #{post_id}")
+
+          case fetch_ipns_with_exponential_backoff(post_id, 1) do
+            ipns when not is_nil(ipns) ->
+              cache_key = {:ipns, post_id}
+              timestamp = :erlang.system_time(:second)
+              :ets.insert(@content_cache, {cache_key, ipns, timestamp})
+
+              Phoenix.PubSub.broadcast(
+                Mazaryn.PubSub,
+                "home_feed_updates",
+                {:ipns_ready, post_id, ipns}
+              )
+
+              IO.puts("✅ Hourly retry successful for post #{post_id}")
+            nil ->
+              record_persistent_ipns_failure(post_id)
+              schedule_very_long_term_retry(post_id)
+          end
+      end
+    end)
+  end
+
+  defp record_persistent_ipns_failure(post_id) do
+    failure_key = {:ipns_persistent_failures, post_id}
+    case :ets.lookup(@content_cache, failure_key) do
+      [{_, count, _}] ->
+        :ets.insert(@content_cache, {failure_key, count + 1, :erlang.system_time(:second)})
+      [] ->
+        :ets.insert(@content_cache, {failure_key, 1, :erlang.system_time(:second)})
+    end
+  end
+
+  defp spawn_background_ipns_refresh(post_id) do
+    parent_pid = self()
+
+    Task.start(fn ->
+      case fetch_ipns_with_limited_retries(post_id, 3) do
+        ipns when not is_nil(ipns) ->
+          cache_key = {:ipns, post_id}
+          timestamp = :erlang.system_time(:second)
+          :ets.insert(@content_cache, {cache_key, ipns, timestamp})
+
+          send(parent_pid, {:ipns_updated, post_id, ipns})
+
+          Phoenix.PubSub.broadcast(
+            Mazaryn.PubSub,
+            "home_feed_updates",
+            {:ipns_ready, post_id, ipns}
+          )
+
+          IO.puts("✅ Background IPNS refresh completed for #{post_id}")
+
+        nil ->
+          IO.puts("⚠️ Background IPNS fetch failed for #{post_id}")
+      end
+    end)
+  end
+
+  defp fetch_ipns_with_limited_retries(post_id, retries_left) when retries_left > 0 do
+    case get_post_ipns_with_timeout(post_id, 5000, true) do
+      ipns when not is_nil(ipns) ->
+        ipns
+      nil ->
+        if retries_left > 1 do
+          Process.sleep(2000)
+          fetch_ipns_with_limited_retries(post_id, retries_left - 1)
+        else
+          nil
+        end
+    end
+  end
+
+  defp fetch_ipns_with_limited_retries(_post_id, 0), do: nil
+
+  defp get_post_ipns_with_timeout(post_id, timeout, ignore_circuit_breaker \\ false) do
+    case post_id do
+      nil -> nil
+      "" -> nil
+      [] -> nil
+      _ ->
+        failure_key = {:ipns_failures, post_id}
+        persistent_failure_key = {:ipns_persistent_failures, post_id}
+
+        should_fetch = if ignore_circuit_breaker do
+          true
+        else
+          case :ets.lookup(@content_cache, persistent_failure_key) do
+            [{_, persistent_count, _}] when persistent_count >= 24 ->
+              IO.puts("🛑 Permanent circuit breaker: post #{post_id} has failed too many times")
+              false
+            _ ->
+              case :ets.lookup(@content_cache, failure_key) do
+                [{_, failure_count, last_failure}] ->
+                  age = :erlang.system_time(:second) - last_failure
+                  if failure_count > 3 and age < 60 do
+                    IO.puts("🚫 Circuit breaker: skipping IPNS for #{post_id}")
+                    false
+                  else
+                    true
+                  end
+                [] ->
+                  true
+              end
+          end
+        end
+
+        if should_fetch do
+          fetch_ipns_with_task(post_id, timeout)
+        else
+          nil
+        end
+    end
   end
 
   defp spawn_background_ipns_refresh(post_id) do
@@ -129,39 +303,6 @@ defmodule MazarynWeb.HomeLive.PostComponent do
   defp fetch_ipns_with_retries(_post_id, 0) do
     IO.puts("❌ All IPNS fetch retries exhausted")
     nil
-  end
-
-  defp get_post_ipns_with_timeout(post_id, timeout, ignore_circuit_breaker \\ false) do
-    case post_id do
-      nil -> nil
-      "" -> nil
-      [] -> nil
-      _ ->
-        failure_key = {:ipns_failures, post_id}
-
-        should_fetch = if ignore_circuit_breaker do
-          true
-        else
-          case :ets.lookup(@content_cache, failure_key) do
-            [{_, failure_count, last_failure}] ->
-              age = :erlang.system_time(:second) - last_failure
-              if failure_count > 3 and age < 60 do
-                IO.puts("🚫 Circuit breaker: skipping IPNS for #{post_id}")
-                false
-              else
-                true
-              end
-            [] ->
-              true
-          end
-        end
-
-        if should_fetch do
-          fetch_ipns_with_task(post_id, timeout)
-        else
-          nil
-        end
-    end
   end
 
   def handle_info({:ipns_ready, post_id, ipns}, socket) do
