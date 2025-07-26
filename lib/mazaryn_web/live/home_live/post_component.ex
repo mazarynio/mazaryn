@@ -16,6 +16,235 @@ defmodule MazarynWeb.HomeLive.PostComponent do
   @batch_size 5
   @max_concurrent_tasks 8
 
+  def schedule_ipns_fetch_after_post(post_id, delay_ms \\ 30_000) do
+    IO.puts("⏰ Scheduling IPNS fetch for post #{post_id} in #{delay_ms}ms")
+
+
+    post_id_str = if is_list(post_id), do: List.to_string(post_id), else: to_string(post_id)
+
+    Task.start(fn ->
+      Process.sleep(delay_ms)
+      IO.puts("🚀 Starting scheduled IPNS fetch for post #{post_id}")
+
+
+      clear_ipns_cache_and_failures(post_id)
+
+      case fetch_ipns_with_retries(post_id, 3) do
+        ipns when not is_nil(ipns) ->
+          cache_key = {:ipns, post_id}
+          timestamp = :erlang.system_time(:second)
+          :ets.insert(@content_cache, {cache_key, ipns, timestamp})
+
+          Phoenix.PubSub.broadcast(
+            Mazaryn.PubSub,
+            "home_feed_updates",
+            {:ipns_ready, post_id, ipns}
+          )
+
+          IO.puts("✅ Scheduled IPNS fetch completed for post #{post_id}: #{inspect(ipns)}")
+
+        nil ->
+          IO.puts("❌ Scheduled IPNS fetch failed for post #{post_id}")
+          Process.sleep(10_000)
+          schedule_ipns_fetch_after_post(post_id, 0)
+      end
+    end)
+  end
+
+  defp spawn_background_ipns_refresh(post_id) do
+    parent_pid = self()
+
+    Task.start(fn ->
+      case get_post_ipns_with_timeout(post_id, 3000, true) do
+        ipns when not is_nil(ipns) ->
+          cache_key = {:ipns, post_id}
+          timestamp = :erlang.system_time(:second)
+          :ets.insert(@content_cache, {cache_key, ipns, timestamp})
+
+          send(parent_pid, {:ipns_updated, post_id, ipns})
+
+          Phoenix.PubSub.broadcast(
+            Mazaryn.PubSub,
+            "home_feed_updates",
+            {:ipns_ready, post_id, ipns}
+          )
+
+          IO.puts("✅ Background IPNS refresh completed for #{post_id}")
+
+        nil ->
+          IO.puts("⚠️ Background IPNS fetch failed for #{post_id}")
+      end
+    end)
+  end
+
+  def update(%{ipns_id: ipns_id} = assigns, socket) when not is_nil(ipns_id) do
+    IO.puts("🔄 PostComponent received IPNS update: #{inspect(ipns_id)}")
+
+    updated_assigns = Map.delete(assigns, :ipns_id)
+
+    socket = socket
+    |> assign(:ipns_id, ipns_id)
+    |> assign(updated_assigns)
+
+    {:ok, socket}
+  end
+
+  def update(assigns, socket) do
+    {:ok, assign(socket, assigns)}
+  end
+
+  def handle_info({:ipns_updated, post_id, ipns}, socket) do
+    if socket.assigns[:post] && to_string(socket.assigns.post.id) == to_string(post_id) do
+      IO.puts("🔄 PostComponent direct IPNS update for post #{post_id}")
+      {:noreply, assign(socket, :ipns_id, ipns)}
+    else
+      {:noreply, socket}
+    end
+  end
+
+  defp clear_ipns_cache_and_failures(post_id) do
+    cache_key = {:ipns, post_id}
+    failure_key = {:ipns_failures, post_id}
+
+    :ets.delete(@content_cache, cache_key)
+    :ets.delete(@content_cache, failure_key)
+
+    IO.puts("🧹 Cleared IPNS cache and failures for post #{post_id}")
+  end
+
+  defp fetch_ipns_with_retries(post_id, retries_left) when retries_left > 0 do
+    IO.puts("🔄 Attempting IPNS fetch for post #{post_id} (#{retries_left} retries left)")
+
+    case get_post_ipns_with_timeout(post_id, 5000) do
+      ipns when not is_nil(ipns) ->
+        IO.puts("✅ IPNS fetch successful: #{inspect(ipns)}")
+        ipns
+      nil ->
+        IO.puts("⚠️ IPNS fetch failed, retrying in 5 seconds...")
+        Process.sleep(5000)
+        fetch_ipns_with_retries(post_id, retries_left - 1)
+    end
+  end
+
+  defp fetch_ipns_with_retries(_post_id, 0) do
+    IO.puts("❌ All IPNS fetch retries exhausted")
+    nil
+  end
+
+  defp get_post_ipns_with_timeout(post_id, timeout, ignore_circuit_breaker \\ false) do
+    case post_id do
+      nil -> nil
+      "" -> nil
+      [] -> nil
+      _ ->
+        failure_key = {:ipns_failures, post_id}
+
+        should_fetch = if ignore_circuit_breaker do
+          true
+        else
+          case :ets.lookup(@content_cache, failure_key) do
+            [{_, failure_count, last_failure}] ->
+              age = :erlang.system_time(:second) - last_failure
+              if failure_count > 3 and age < 60 do
+                IO.puts("🚫 Circuit breaker: skipping IPNS for #{post_id}")
+                false
+              else
+                true
+              end
+            [] ->
+              true
+          end
+        end
+
+        if should_fetch do
+          fetch_ipns_with_task(post_id, timeout)
+        else
+          nil
+        end
+    end
+  end
+
+  def handle_info({:ipns_ready, post_id, ipns}, socket) do
+    if socket.assigns[:post] && to_string(socket.assigns.post.id) == to_string(post_id) do
+      IO.puts("🎉 Received scheduled IPNS update for displayed post #{post_id}")
+      {:noreply, assign(socket, :ipns_id, ipns)}
+    else
+      {:noreply, socket}
+    end
+  end
+
+  @impl true
+  def mount(socket) do
+    Phoenix.PubSub.subscribe(Mazaryn.PubSub, "post_updates")
+
+    {:ok,
+     socket
+     |> assign(:uploaded_files, [])
+     |> assign(:editing_post, false)
+     |> assign(:editing_comment, false)
+     |> assign(:editing_comment_id, nil)
+     |> assign(:reply_comment, false)
+     |> assign(:replying_to_comment_id, nil)
+     |> assign(:ipns_id, nil)
+     |> assign(:show_likes_modal, false)
+     |> assign(:liked_users, [])
+     |> assign(:likes_loading, false)
+     |> allow_upload(:media, accept: ~w(.png .jpg .jpeg), max_entries: 2)}
+  end
+
+  defp get_post_ipns_fast(post_id) do
+    cache_key = {:ipns, post_id}
+    current_time = :erlang.system_time(:second)
+
+    case :ets.lookup(@content_cache, cache_key) do
+      [{^cache_key, ipns, timestamp}] ->
+        age = current_time - timestamp
+
+        if age < 60 do
+          IO.puts("🔄 Post #{post_id} is fresh (#{age}s old), forcing IPNS refresh")
+          spawn_background_ipns_refresh(post_id)
+          ipns
+        else
+          if age < 600 do
+            IO.puts("📦 IPNS Cache HIT for post #{post_id}")
+            ipns
+          else
+            spawn_background_ipns_refresh(post_id)
+            ipns
+          end
+        end
+      [] ->
+        spawn_background_ipns_refresh(post_id)
+        nil
+    end
+  end
+
+  defp spawn_background_ipns_refresh(post_id) do
+    parent_pid = self()
+
+    Task.start(fn ->
+      case get_post_ipns_with_timeout(post_id, 3000, true) do
+        ipns when not is_nil(ipns) ->
+          cache_key = {:ipns, post_id}
+          timestamp = :erlang.system_time(:second)
+          :ets.insert(@content_cache, {cache_key, ipns, timestamp})
+
+          send(parent_pid, {:ipns_updated, post_id, ipns})
+
+          Phoenix.PubSub.broadcast(
+            Mazaryn.PubSub,
+            "post_updates",
+            {:ipns_ready, post_id, ipns}
+          )
+
+          IO.puts("✅ Background IPNS refresh completed for #{post_id}")
+
+        nil ->
+          IO.puts("⚠️ Background IPNS fetch failed for #{post_id}")
+      end
+    end)
+  end
+
   defp get_post_content_optimized(post_id) do
     cache_key = {:post_content, post_id}
     fetch_start = :erlang.system_time(:millisecond)
@@ -661,27 +890,7 @@ defmodule MazarynWeb.HomeLive.PostComponent do
     end)
   end
 
-  defp get_post_ipns_with_timeout(post_id, timeout) do
-    case post_id do
-      nil -> nil
-      "" -> nil
-      [] -> nil
-      _ ->
-        failure_key = {:ipns_failures, post_id}
-        case :ets.lookup(@content_cache, failure_key) do
-          [{_, failure_count, last_failure}] ->
-            age = :erlang.system_time(:second) - last_failure
-            if failure_count > 3 and age < 60 do
-              IO.puts("🚫 Circuit breaker: skipping IPNS for #{post_id}")
-              nil
-            else
-              fetch_ipns_with_task(post_id, timeout)
-            end
-          [] ->
-            fetch_ipns_with_task(post_id, timeout)
-        end
-    end
-  end
+
 
   defp fetch_ipns_with_task(post_id, timeout) do
     task = Task.async(fn ->
