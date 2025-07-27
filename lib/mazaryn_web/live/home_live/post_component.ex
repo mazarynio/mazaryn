@@ -16,6 +16,75 @@ defmodule MazarynWeb.HomeLive.PostComponent do
   @batch_size 5
   @max_concurrent_tasks 8
 
+
+  def handle_info({:temp_comment_saved, temp_id, real_comment}, socket) do
+    IO.puts("🔄 Replacing temp comment #{temp_id} with real comment #{real_comment.id}")
+
+    updated_comments = replace_temp_comment_with_real(socket.assigns.comments, temp_id, real_comment)
+
+    {:noreply, assign(socket, comments: updated_comments)}
+  end
+
+  def handle_info({:temp_comment_save_failed, temp_id, reason}, socket) do
+    IO.puts("❌ Temp comment #{temp_id} save failed: #{inspect(reason)}")
+    {:noreply, socket}
+  end
+
+  def handle_info({:comments_synced, post_id, fresh_comments}, socket) do
+    IO.puts("🔄 Syncing comments for post #{post_id}")
+
+    if socket.assigns.post && socket.assigns.post.id == post_id do
+      {:noreply, assign(socket, comments: fresh_comments)}
+    else
+      {:noreply, socket}
+    end
+  end
+
+
+  def handle_info({:temp_comment_saved, temp_id, real_comment}, socket) do
+    IO.puts("🔄 Replacing temp comment #{temp_id} with real comment #{real_comment.id}")
+
+    updated_comments = replace_temp_comment_with_real(socket.assigns.comments, temp_id, real_comment)
+
+    {:noreply, assign(socket, comments: updated_comments)}
+  end
+
+  def handle_info({:temp_comment_save_failed, temp_id, reason}, socket) do
+    IO.puts("❌ Temp comment #{temp_id} save failed: #{inspect(reason)}")
+    {:noreply, socket}
+  end
+
+  def handle_info({:comments_synced, post_id, fresh_comments}, socket) do
+    IO.puts("🔄 Syncing comments for post #{post_id}")
+
+    if socket.assigns.post && socket.assigns.post.id == post_id do
+      {:noreply, assign(socket, comments: fresh_comments)}
+    else
+      {:noreply, socket}
+    end
+  end
+
+  defp replace_temp_comment_with_real(comments, temp_id, real_comment) do
+    Enum.map(comments, fn comment ->
+      if comment.id == temp_id do
+        %{
+          id: real_comment.id,
+          post_id: real_comment.post_id || comment.post_id,
+          author: real_comment.author || comment.author,
+          content: comment.content, # Keep the content that was displayed
+          inserted_at: real_comment.inserted_at || comment.inserted_at,
+          updated_at: real_comment.updated_at || comment.updated_at,
+          likes: real_comment.likes || [],
+          replies: [],
+          like_comment_event: "like-comment",
+          is_temp: false
+        }
+      else
+        comment
+      end
+    end)
+  end
+
   def schedule_ipns_fetch_after_post(post_id, delay_ms \\ 30_000) do
     IO.puts("⏰ Scheduling IPNS fetch for post #{post_id} in #{delay_ms}ms")
 

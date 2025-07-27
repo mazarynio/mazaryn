@@ -8,128 +8,300 @@ defmodule MazarynWeb.HomeLive.CommentHandler do
 
   @content_cache :post_content_cache
 
-  def handle_save_comment(%{"comment" => comment_params} = params) do
-  save_start = :erlang.system_time(:millisecond)
-  IO.puts("🚀 === COMMENT SAVE DEBUG START ===")
-  IO.puts("💾 Starting handle_save_comment")
-  IO.puts("📋 Full params received: #{inspect(params)}")
-  IO.puts("📝 Comment params: #{inspect(comment_params)}")
-  IO.puts("📊 Comment params keys: #{inspect(Map.keys(comment_params))}")
+  def handle_save_comment(%{"comment" => comment_params} = _params) do
+    save_start = :erlang.system_time(:millisecond)
+    IO.puts("🚀 === COMMENT SAVE DEBUG START ===")
+    IO.puts("💾 Starting handle_save_comment")
+    IO.puts("📋 Full params received")
+    IO.puts("📝 Comment params: #{inspect(comment_params)}")
 
-  post_id = comment_params["post_id"] || ""
-  author = comment_params["author"] || ""
-  content = comment_params["content"] || ""
+    post_id = comment_params["post_id"] || ""
+    author = comment_params["author"] || ""
+    content = comment_params["content"] || ""
 
-  IO.puts("🔍 Extracted values:")
-  IO.puts("   📌 post_id: '#{post_id}' (type: #{get_type(post_id)})")
-  IO.puts("   👤 author: '#{author}' (type: #{get_type(author)})")
-  IO.puts("   📄 content: '#{content}' (type: #{get_type(content)})")
-  IO.puts("   📏 content length: #{String.length(content || "")}")
+    IO.puts("🔍 Extracted values:")
+    IO.puts("   📌 post_id: '#{post_id}'")
+    IO.puts("   👤 author: '#{author}'")
+    IO.puts("   📄 content: '#{content}'")
 
-  # Check trimmed values
-  trimmed_post_id = String.trim(post_id)
-  trimmed_author = String.trim(author)
-  trimmed_content = String.trim(content)
+    trimmed_post_id = String.trim(post_id)
+    trimmed_author = String.trim(author)
+    trimmed_content = String.trim(content)
 
-  IO.puts("✂️ After trimming:")
-  IO.puts("   📌 post_id: '#{trimmed_post_id}' (empty: #{trimmed_post_id == ""})")
-  IO.puts("   👤 author: '#{trimmed_author}' (empty: #{trimmed_author == ""})")
-  IO.puts("   📄 content: '#{trimmed_content}' (empty: #{trimmed_content == ""})")
+    result = case {trimmed_post_id, trimmed_author, trimmed_content} do
+      {"", _, _} ->
+        IO.puts("❌ VALIDATION FAILED: Missing post_id")
+        {:error, :missing_post_id}
 
-  result = case {trimmed_post_id, trimmed_author, trimmed_content} do
-    {"", _, _} ->
-      IO.puts("❌ VALIDATION FAILED: Missing post_id")
-      {:error, :missing_post_id}
+      {_, "", _} ->
+        IO.puts("❌ VALIDATION FAILED: Missing author")
+        {:error, :missing_author}
 
-    {_, "", _} ->
-      IO.puts("❌ VALIDATION FAILED: Missing author")
-      {:error, :missing_author}
+      {_, _, ""} ->
+        IO.puts("❌ VALIDATION FAILED: Empty content")
+        changeset = Comment.changeset(%Comment{}, comment_params)
+        |> Map.put(:action, :validate)
+        |> Ecto.Changeset.add_error(:content, "can't be blank")
+        {:error, {:validation, changeset}}
 
-    {_, _, ""} ->
-      IO.puts("❌ VALIDATION FAILED: Empty content")
-      IO.puts("🔧 Creating validation changeset...")
+      {valid_post_id, valid_author, valid_content} ->
+        IO.puts("✅ VALIDATION PASSED - Creating comment...")
 
-      changeset = Comment.changeset(%Comment{}, comment_params)
-      |> Map.put(:action, :validate)
-      |> Ecto.Changeset.add_error(:content, "can't be blank")
+        temp_comment = create_optimistic_comment(valid_post_id, valid_author, valid_content)
 
-      IO.puts("📋 Validation changeset: #{inspect(changeset)}")
-      IO.puts("❌ Changeset errors: #{inspect(changeset.errors)}")
-      {:error, {:validation, changeset}}
+        changeset_data = %{
+          post_id: valid_post_id,
+          author: valid_author,
+          content: valid_content
+        }
 
-    {valid_post_id, valid_author, valid_content} ->
-      IO.puts("✅ VALIDATION PASSED - Creating comment...")
-      IO.puts("📝 Valid data:")
-      IO.puts("   📌 post_id: #{valid_post_id}")
-      IO.puts("   👤 author: #{valid_author}")
-      IO.puts("   📄 content: #{valid_content}")
+        changeset = %Comment{}
+        |> Comment.changeset(changeset_data)
 
-      changeset_data = %{
-        post_id: valid_post_id,
-        author: valid_author,
-        content: valid_content
-      }
+        if not changeset.valid? do
+          IO.puts("❌ CHANGESET INVALID - Cannot proceed with save")
+          {:error, {:changeset, changeset}}
+        else
+          IO.puts("💾 Attempting to save comment via Posts.create_comment...")
 
-      IO.puts("🔧 Creating changeset with data: #{inspect(changeset_data)}")
+          current_comments = get_comments_with_content_optimized(valid_post_id)
 
-      changeset = %Comment{}
-      |> Comment.changeset(changeset_data)
+          try do
+            save_result = Posts.create_comment(changeset)
+            IO.puts("📤 Posts.create_comment returned: #{inspect(save_result)}")
 
-      IO.puts("📋 Created changeset:")
-      IO.puts("   ✅ Valid: #{changeset.valid?}")
-      IO.puts("   ❌ Errors: #{inspect(changeset.errors)}")
-      IO.puts("   📊 Changes: #{inspect(changeset.changes)}")
+            case save_result do
+              {:ok, comment} ->
+                IO.puts("✅ Comment saved successfully!")
+                handle_successful_comment_save_with_immediate_update(valid_post_id, valid_content, comment, current_comments)
 
-      if not changeset.valid? do
-        IO.puts("❌ CHANGESET INVALID - Cannot proceed with save")
-        {:error, {:changeset, changeset}}
-      else
-        IO.puts("💾 Attempting to save comment via Posts.create_comment...")
+              {:error, changeset} ->
+                IO.puts("❌ Error from Posts.create_comment")
+                {:error, {:changeset, changeset}}
 
-        try do
-          save_result = Posts.create_comment(changeset)
-          IO.puts("📤 Posts.create_comment returned: #{inspect(save_result)}")
+              %{} ->
+                IO.puts("⚠️ Posts.create_comment returned empty map, trying alternative approach...")
+                handle_alternative_save_with_immediate_update(valid_post_id, valid_author, valid_content, current_comments, temp_comment)
 
-          case save_result do
-            {:ok, comment} ->
-              IO.puts("✅ Comment saved successfully!")
-              IO.puts("📝 Saved comment: #{inspect(comment)}")
-              handle_successful_comment_save(valid_post_id, valid_content, comment)
+              other ->
+                IO.puts("⚠️ Unexpected result from Posts.create_comment: #{inspect(other)}")
+                handle_alternative_save_with_immediate_update(valid_post_id, valid_author, valid_content, current_comments, temp_comment)
+            end
 
-            {:error, changeset} ->
-              IO.puts("❌ Error from Posts.create_comment")
-              IO.puts("📋 Error changeset: #{inspect(changeset)}")
-              IO.puts("❌ Changeset errors: #{inspect(changeset.errors)}")
-              {:error, {:changeset, changeset}}
-
-            %{} ->
-              IO.puts("⚠️ Posts.create_comment returned empty map, trying alternative approach...")
-              try_alternative_comment_save(valid_post_id, valid_author, valid_content)
-
-            other ->
-              IO.puts("⚠️ Unexpected result from Posts.create_comment: #{inspect(other)}")
-              IO.puts("🔄 Trying alternative comment save approach...")
-              try_alternative_comment_save(valid_post_id, valid_author, valid_content)
+          rescue
+            exception ->
+              IO.puts("💥 EXCEPTION in Posts.create_comment: #{inspect(exception)}")
+              handle_alternative_save_with_immediate_update(valid_post_id, valid_author, valid_content, current_comments, temp_comment)
           end
-
-        rescue
-          exception ->
-            IO.puts("💥 EXCEPTION in Posts.create_comment: #{inspect(exception)}")
-            IO.puts("📍 Exception stacktrace: #{inspect(__STACKTRACE__)}")
-            IO.puts("🔄 Trying alternative comment save approach...")
-            try_alternative_comment_save(valid_post_id, valid_author, valid_content)
         end
-      end
+    end
+
+    save_end = :erlang.system_time(:millisecond)
+    total_time = save_end - save_start
+    IO.puts("⏱️ handle_save_comment completed in #{total_time}ms")
+    IO.puts("📊 Final result: #{inspect(result)}")
+    IO.puts("🏁 === COMMENT SAVE DEBUG END ===")
+
+    result
   end
 
-  save_end = :erlang.system_time(:millisecond)
-  total_time = save_end - save_start
-  IO.puts("⏱️ handle_save_comment completed in #{total_time}ms")
-  IO.puts("📊 Final result: #{inspect(result)}")
-  IO.puts("🏁 === COMMENT SAVE DEBUG END ===")
+  defp create_optimistic_comment(post_id, author, content) do
+    temp_id = "temp_" <> (:crypto.strong_rand_bytes(8) |> Base.encode16(case: :lower))
 
-  result
-end
+    %{
+      id: temp_id,
+      post_id: post_id,
+      author: author,
+      content: content,
+      inserted_at: DateTime.utc_now(),
+      updated_at: DateTime.utc_now(),
+      likes: [],
+      replies: [],
+      like_comment_event: "like-comment",
+      is_temp: true
+    }
+  end
+
+  defp handle_successful_comment_save_with_immediate_update(post_id, content, comment, current_comments) do
+    IO.puts("🔄 Handling successful save with immediate update...")
+
+    if comment && comment.id do
+      cache_content(:comment, comment.id, content)
+      IO.puts("💾 Cached content for new comment #{comment.id}")
+    end
+
+    new_comment = %{
+      id: comment.id,
+      post_id: post_id,
+      author: comment.author || comment[:author],
+      content: content,
+      inserted_at: comment.inserted_at || DateTime.utc_now(),
+      updated_at: comment.updated_at || DateTime.utc_now(),
+      likes: comment.likes || [],
+      replies: [],
+      like_comment_event: "like-comment",
+      is_temp: false
+    }
+
+    updated_comments = current_comments ++ [new_comment]
+
+    :ets.delete(@content_cache, {:comments_processed, post_id})
+
+    post_rebuild_start = :erlang.system_time(:millisecond)
+    post = rebuild_post(post_id)
+    post_rebuild_end = :erlang.system_time(:millisecond)
+    IO.puts("🏗️ Post rebuild took #{post_rebuild_end - post_rebuild_start}ms")
+
+    spawn_comment_sync_task(post_id, comment.id)
+
+    success_result = {:ok, %{
+      post: post,
+      comments: updated_comments,
+      changeset: Comment.changeset(%Comment{}),
+      flash: {:info, "Comment saved!"}
+    }}
+
+    IO.puts("✅ SUCCESS - Returning result with immediate update")
+    success_result
+  end
+
+  defp handle_alternative_save_with_immediate_update(post_id, author, content, current_comments, temp_comment) do
+    IO.puts("🔄 Handling alternative save with immediate update...")
+
+    updated_comments = current_comments ++ [temp_comment]
+
+    cache_content(:comment, temp_comment.id, content)
+
+    spawn_async_comment_save_with_sync(temp_comment.id, post_id, author, content)
+
+    {:ok, %{
+      post: rebuild_post(post_id),
+      comments: updated_comments,
+      changeset: Comment.changeset(%Comment{}),
+      flash: {:info, "Comment saved!"}
+    }}
+  end
+
+  defp spawn_comment_sync_task(post_id, comment_id) do
+    parent_pid = self()
+
+    Task.start(fn ->
+      Process.sleep(1000)
+
+      IO.puts("🔄 Background sync started for comment #{comment_id}")
+
+      fresh_comments = try do
+        fetch_and_process_comments_improved(post_id, {:comments_processed, post_id})
+      rescue
+        _ -> []
+      end
+
+      if length(fresh_comments) > 0 do
+        send(parent_pid, {:comments_synced, post_id, fresh_comments})
+        IO.puts("✅ Background sync completed for post #{post_id}")
+      end
+    end)
+  end
+
+  defp spawn_async_comment_save_with_sync(temp_id, post_id, author, content) do
+    parent_pid = self()
+
+    Task.start(fn ->
+      IO.puts("🔄 Background comment save started for temp #{temp_id}")
+
+      case save_comment_directly(temp_id, post_id, author, content) do
+        {:ok, real_comment} ->
+          IO.puts("✅ Background comment save succeeded for #{temp_id} -> #{real_comment.id}")
+
+          cache_content(:comment, real_comment.id, content)
+
+          send(parent_pid, {:temp_comment_saved, temp_id, real_comment})
+
+        {:error, reason} ->
+          IO.puts("❌ Background comment save failed for #{temp_id}: #{inspect(reason)}")
+          send(parent_pid, {:temp_comment_save_failed, temp_id, reason})
+      end
+    end)
+  end
+
+  def save_comment(%{post_id: post_id, author: author, content: content} = params) do
+    IO.puts("🚀 === SAVE_COMMENT DEBUG START ===")
+    IO.puts("📋 Input params: #{inspect(params)}")
+
+    current_comments = get_comments_with_content_optimized(post_id)
+
+    changeset_data = %{
+      post_id: post_id,
+      author: author,
+      content: content
+    }
+
+    changeset = %Comment{}
+      |> Comment.changeset(changeset_data)
+
+    case Posts.create_comment(changeset) do
+      {:ok, comment} ->
+        IO.puts("✅ Comment created successfully: #{inspect(comment)}")
+
+        cache_content(:comment, comment.id, content)
+
+        new_comment = %{
+          id: comment.id,
+          post_id: post_id,
+          author: author,
+          content: content,
+          inserted_at: comment.inserted_at || DateTime.utc_now(),
+          updated_at: comment.updated_at || DateTime.utc_now(),
+          likes: [],
+          replies: [],
+          like_comment_event: "like-comment"
+        }
+
+        updated_comments = current_comments ++ [new_comment]
+
+        :ets.delete(@content_cache, {:comments_processed, post_id})
+
+        post = rebuild_post(post_id)
+
+        success_result = {:ok, %{
+          post: post,
+          comments: updated_comments,
+          changeset: Comment.changeset(%Comment{})
+        }}
+
+        IO.puts("✅ save_comment SUCCESS with immediate update")
+        IO.puts("🏁 === SAVE_COMMENT DEBUG END ===")
+        success_result
+
+      {:error, changeset} ->
+        IO.puts("❌ Error creating comment: #{inspect(changeset.errors)}")
+        IO.puts("❌ save_comment FAILED")
+        IO.puts("🏁 === SAVE_COMMENT DEBUG END ===")
+        {:error, changeset}
+    end
+  end
+
+  defp replace_temp_comment_with_real(comments, temp_id, real_comment) do
+    Enum.map(comments, fn comment ->
+      if comment.id == temp_id do
+        %{
+          id: real_comment.id,
+          post_id: real_comment.post_id || comment.post_id,
+          author: real_comment.author || comment.author,
+          content: comment.content,
+          inserted_at: real_comment.inserted_at || comment.inserted_at,
+          updated_at: real_comment.updated_at || comment.updated_at,
+          likes: real_comment.likes || [],
+          replies: [],
+          like_comment_event: "like-comment",
+          is_temp: false
+        }
+      else
+        comment
+      end
+    end)
+  end
+
 
 defp get_type(value) do
   cond do
