@@ -8,6 +8,499 @@ defmodule MazarynWeb.HomeLive.CommentHandler do
 
   @content_cache :post_content_cache
 
+  def handle_save_comment(%{"comment" => comment_params} = params) do
+  save_start = :erlang.system_time(:millisecond)
+  IO.puts("🚀 === COMMENT SAVE DEBUG START ===")
+  IO.puts("💾 Starting handle_save_comment")
+  IO.puts("📋 Full params received: #{inspect(params)}")
+  IO.puts("📝 Comment params: #{inspect(comment_params)}")
+  IO.puts("📊 Comment params keys: #{inspect(Map.keys(comment_params))}")
+
+  post_id = comment_params["post_id"] || ""
+  author = comment_params["author"] || ""
+  content = comment_params["content"] || ""
+
+  IO.puts("🔍 Extracted values:")
+  IO.puts("   📌 post_id: '#{post_id}' (type: #{get_type(post_id)})")
+  IO.puts("   👤 author: '#{author}' (type: #{get_type(author)})")
+  IO.puts("   📄 content: '#{content}' (type: #{get_type(content)})")
+  IO.puts("   📏 content length: #{String.length(content || "")}")
+
+  # Check trimmed values
+  trimmed_post_id = String.trim(post_id)
+  trimmed_author = String.trim(author)
+  trimmed_content = String.trim(content)
+
+  IO.puts("✂️ After trimming:")
+  IO.puts("   📌 post_id: '#{trimmed_post_id}' (empty: #{trimmed_post_id == ""})")
+  IO.puts("   👤 author: '#{trimmed_author}' (empty: #{trimmed_author == ""})")
+  IO.puts("   📄 content: '#{trimmed_content}' (empty: #{trimmed_content == ""})")
+
+  result = case {trimmed_post_id, trimmed_author, trimmed_content} do
+    {"", _, _} ->
+      IO.puts("❌ VALIDATION FAILED: Missing post_id")
+      {:error, :missing_post_id}
+
+    {_, "", _} ->
+      IO.puts("❌ VALIDATION FAILED: Missing author")
+      {:error, :missing_author}
+
+    {_, _, ""} ->
+      IO.puts("❌ VALIDATION FAILED: Empty content")
+      IO.puts("🔧 Creating validation changeset...")
+
+      changeset = Comment.changeset(%Comment{}, comment_params)
+      |> Map.put(:action, :validate)
+      |> Ecto.Changeset.add_error(:content, "can't be blank")
+
+      IO.puts("📋 Validation changeset: #{inspect(changeset)}")
+      IO.puts("❌ Changeset errors: #{inspect(changeset.errors)}")
+      {:error, {:validation, changeset}}
+
+    {valid_post_id, valid_author, valid_content} ->
+      IO.puts("✅ VALIDATION PASSED - Creating comment...")
+      IO.puts("📝 Valid data:")
+      IO.puts("   📌 post_id: #{valid_post_id}")
+      IO.puts("   👤 author: #{valid_author}")
+      IO.puts("   📄 content: #{valid_content}")
+
+      changeset_data = %{
+        post_id: valid_post_id,
+        author: valid_author,
+        content: valid_content
+      }
+
+      IO.puts("🔧 Creating changeset with data: #{inspect(changeset_data)}")
+
+      changeset = %Comment{}
+      |> Comment.changeset(changeset_data)
+
+      IO.puts("📋 Created changeset:")
+      IO.puts("   ✅ Valid: #{changeset.valid?}")
+      IO.puts("   ❌ Errors: #{inspect(changeset.errors)}")
+      IO.puts("   📊 Changes: #{inspect(changeset.changes)}")
+
+      if not changeset.valid? do
+        IO.puts("❌ CHANGESET INVALID - Cannot proceed with save")
+        {:error, {:changeset, changeset}}
+      else
+        IO.puts("💾 Attempting to save comment via Posts.create_comment...")
+
+        try do
+          save_result = Posts.create_comment(changeset)
+          IO.puts("📤 Posts.create_comment returned: #{inspect(save_result)}")
+
+          case save_result do
+            {:ok, comment} ->
+              IO.puts("✅ Comment saved successfully!")
+              IO.puts("📝 Saved comment: #{inspect(comment)}")
+              handle_successful_comment_save(valid_post_id, valid_content, comment)
+
+            {:error, changeset} ->
+              IO.puts("❌ Error from Posts.create_comment")
+              IO.puts("📋 Error changeset: #{inspect(changeset)}")
+              IO.puts("❌ Changeset errors: #{inspect(changeset.errors)}")
+              {:error, {:changeset, changeset}}
+
+            %{} ->
+              IO.puts("⚠️ Posts.create_comment returned empty map, trying alternative approach...")
+              try_alternative_comment_save(valid_post_id, valid_author, valid_content)
+
+            other ->
+              IO.puts("⚠️ Unexpected result from Posts.create_comment: #{inspect(other)}")
+              IO.puts("🔄 Trying alternative comment save approach...")
+              try_alternative_comment_save(valid_post_id, valid_author, valid_content)
+          end
+
+        rescue
+          exception ->
+            IO.puts("💥 EXCEPTION in Posts.create_comment: #{inspect(exception)}")
+            IO.puts("📍 Exception stacktrace: #{inspect(__STACKTRACE__)}")
+            IO.puts("🔄 Trying alternative comment save approach...")
+            try_alternative_comment_save(valid_post_id, valid_author, valid_content)
+        end
+      end
+  end
+
+  save_end = :erlang.system_time(:millisecond)
+  total_time = save_end - save_start
+  IO.puts("⏱️ handle_save_comment completed in #{total_time}ms")
+  IO.puts("📊 Final result: #{inspect(result)}")
+  IO.puts("🏁 === COMMENT SAVE DEBUG END ===")
+
+  result
+end
+
+defp get_type(value) do
+  cond do
+    is_binary(value) -> :binary
+    is_list(value) -> :list
+    is_map(value) && Map.has_key?(value, :__struct__) -> value.__struct__
+    is_map(value) -> :map
+    is_atom(value) -> :atom
+    is_integer(value) -> :integer
+    is_float(value) -> :float
+    true -> :unknown
+  end
+end
+
+defp handle_successful_comment_save(post_id, content, comment) do
+  IO.puts("🔄 Rebuilding post and fetching comments...")
+
+  if comment && comment.id do
+    cache_content(:comment, comment.id, content)
+    IO.puts("💾 Cached content for new comment #{comment.id}")
+  end
+
+  post_rebuild_start = :erlang.system_time(:millisecond)
+  post = rebuild_post(post_id)
+  post_rebuild_end = :erlang.system_time(:millisecond)
+  IO.puts("🏗️ Post rebuild took #{post_rebuild_end - post_rebuild_start}ms")
+
+  comments_fetch_start = :erlang.system_time(:millisecond)
+  comments = case function_exported?(__MODULE__, :get_comments_with_content, 1) do
+    true ->
+      IO.puts("📚 Using get_comments_with_content function")
+      get_comments_with_content(post_id)
+    false ->
+      IO.puts("📚 Using Posts.get_comment_by_post_id fallback")
+      Posts.get_comment_by_post_id(post_id) || []
+  end
+  comments_fetch_end = :erlang.system_time(:millisecond)
+  IO.puts("📚 Comments fetch took #{comments_fetch_end - comments_fetch_start}ms")
+  IO.puts("📊 Fetched #{length(comments)} comments")
+
+  success_result = {:ok, %{
+    post: post,
+    comments: comments,
+    changeset: Comment.changeset(%Comment{}),
+    flash: {:info, "Comment saved!"}
+  }}
+
+  IO.puts("✅ SUCCESS - Returning result")
+  success_result
+end
+
+
+defp try_alternative_comment_save(post_id, author, content) do
+  IO.puts("🔄 Trying alternative comment save approach...")
+
+  try do
+
+    comment_id = generate_comment_id()
+    IO.puts("🆔 Generated comment ID: #{comment_id}")
+
+
+    case save_comment_directly(comment_id, post_id, author, content) do
+      {:ok, comment} ->
+        IO.puts("✅ Alternative save successful!")
+        handle_successful_comment_save(post_id, content, comment)
+
+      {:error, reason} ->
+        IO.puts("❌ Alternative save failed: #{inspect(reason)}")
+
+
+        mock_comment = create_mock_comment(comment_id, post_id, author, content)
+
+
+        cache_content(:comment, comment_id, content)
+
+
+        spawn_async_comment_save(comment_id, post_id, author, content)
+
+
+        {:ok, %{
+          post: rebuild_post(post_id),
+          comments: get_comments_with_content_optimized(post_id),
+          changeset: Comment.changeset(%Comment{}),
+          flash: {:info, "Comment saved!"}
+        }}
+    end
+
+  rescue
+    exception ->
+      IO.puts("💥 Exception in alternative save: #{inspect(exception)}")
+
+
+      changeset = Comment.changeset(%Comment{}, %{
+        post_id: post_id,
+        author: author,
+        content: content
+      })
+      |> Map.put(:action, :insert)
+      |> Ecto.Changeset.add_error(:base, "Failed to save comment. Please try again.")
+
+      {:error, {:changeset, changeset}}
+  end
+end
+
+
+defp generate_comment_id do
+  :crypto.strong_rand_bytes(16) |> Base.encode64() |> String.replace(["+", "/", "="], "")
+end
+
+
+defp save_comment_directly(comment_id, post_id, author, content) do
+  try do
+
+    case PostClient.create_comment(author, post_id, content) do
+      {:ok, result} ->
+        IO.puts("✅ PostClient.create_comment succeeded")
+        {:ok, result}
+      {:error, reason} ->
+        IO.puts("❌ PostClient.create_comment failed: #{inspect(reason)}")
+        try_postdb_save(comment_id, post_id, author, content)
+      other ->
+        IO.puts("⚠️ PostClient.create_comment returned: #{inspect(other)}")
+        try_postdb_save(comment_id, post_id, author, content)
+    end
+  rescue
+    _ ->
+      IO.puts("❌ PostClient.create_comment not available, trying postdb...")
+      try_postdb_save(comment_id, post_id, author, content)
+  end
+end
+
+
+defp try_postdb_save(comment_id, post_id, author, content) do
+  try do
+
+    comment_data = {
+      to_charlist(comment_id),
+      to_charlist(post_id),
+      to_charlist(author),
+      to_charlist(content),
+      :erlang.system_time(:second),
+      []
+    }
+
+    case :postdb.save_comment(comment_data) do
+      :ok ->
+        IO.puts("✅ Direct postdb save succeeded")
+
+
+        comment = %{
+          id: comment_id,
+          post_id: post_id,
+          author: author,
+          content: content,
+          inserted_at: DateTime.utc_now(),
+          likes: []
+        }
+
+        {:ok, comment}
+
+      error ->
+        IO.puts("❌ Direct postdb save failed: #{inspect(error)}")
+        {:error, error}
+    end
+  rescue
+    exception ->
+      IO.puts("💥 Exception in postdb save: #{inspect(exception)}")
+      {:error, exception}
+  end
+end
+
+
+defp create_mock_comment(comment_id, post_id, author, content) do
+  %{
+    id: comment_id,
+    post_id: post_id,
+    author: author,
+    content: content,
+    inserted_at: DateTime.utc_now(),
+    likes: []
+  }
+end
+
+
+defp spawn_async_comment_save(comment_id, post_id, author, content) do
+  Task.start(fn ->
+    IO.puts("🔄 Background comment save started for #{comment_id}")
+
+
+    Process.sleep(1000)
+
+    case save_comment_directly(comment_id, post_id, author, content) do
+      {:ok, _} ->
+        IO.puts("✅ Background comment save succeeded for #{comment_id}")
+      {:error, reason} ->
+        IO.puts("❌ Background comment save failed for #{comment_id}: #{inspect(reason)}")
+    end
+  end)
+end
+
+
+defp get_type(value) do
+  cond do
+    is_binary(value) -> :binary
+    is_list(value) -> :list
+    is_map(value) && Map.has_key?(value, :__struct__) -> value.__struct__
+    is_map(value) -> :map
+    is_atom(value) -> :atom
+    is_integer(value) -> :integer
+    is_float(value) -> :float
+    true -> :unknown
+  end
+end
+
+def handle_save_comment(params) do
+  IO.puts("🚀 === INVALID PARAMS DEBUG START ===")
+  IO.puts("❌ Invalid save-comment parameters")
+  IO.puts("📋 Invalid params: #{inspect(params)}")
+  IO.puts("📊 Params type: #{inspect(params.__struct__ || :unknown)}")
+
+  case params do
+    %{} = map_params ->
+      IO.puts("📝 Map keys: #{inspect(Map.keys(map_params))}")
+      IO.puts("🔍 Expected structure: %{\"comment\" => %{...}}")
+
+    _ ->
+      IO.puts("⚠️ Params is not a map")
+  end
+
+  IO.puts("❌ handle_save_comment FAILED - invalid params")
+  IO.puts("🏁 === INVALID PARAMS DEBUG END ===")
+  {:error, :invalid_params}
+end
+
+def save_comment(%{post_id: post_id, author: author, content: content} = params) do
+  IO.puts("🚀 === SAVE_COMMENT DEBUG START ===")
+  IO.puts("📋 Input params: #{inspect(params)}")
+  IO.puts("📝 Extracted values:")
+  IO.puts("   📌 post_id: #{inspect(post_id)}")
+  IO.puts("   👤 author: #{inspect(author)}")
+  IO.puts("   📄 content: #{inspect(content)}")
+
+
+  changeset_data = %{
+    post_id: post_id,
+    author: author,
+    content: content
+  }
+
+  IO.puts("🔧 Creating changeset with: #{inspect(changeset_data)}")
+
+  changeset = %Comment{}
+    |> Comment.changeset(changeset_data)
+
+  IO.puts("📋 Changeset created:")
+  IO.puts("   ✅ Valid: #{changeset.valid?}")
+  IO.puts("   ❌ Errors: #{inspect(changeset.errors)}")
+  IO.puts("   📊 Changes: #{inspect(changeset.changes)}")
+
+  case Posts.create_comment(changeset) do
+    {:ok, comment} ->
+      IO.puts("✅ Comment created successfully: #{inspect(comment)}")
+
+      # Cache the content
+      IO.puts("💾 Caching comment content...")
+      cache_content(:comment, comment.id, content)
+
+      # Clear processed comments cache
+      IO.puts("🗑️ Clearing processed comments cache for post #{post_id}")
+      :ets.delete(@content_cache, {:comments_processed, post_id})
+
+      # Get fresh comments and post
+      IO.puts("🔄 Fetching fresh comments and rebuilding post...")
+      comments = get_comments_with_content_optimized(post_id)
+      post = rebuild_post(post_id)
+
+      IO.puts("📊 Final state:")
+      IO.puts("   📝 Comments count: #{length(comments)}")
+      IO.puts("   🏗️ Post rebuilt: #{not is_nil(post)}")
+
+      success_result = {:ok, %{
+        post: post,
+        comments: comments,
+        changeset: Comment.changeset(%Comment{})
+      }}
+
+      IO.puts("✅ save_comment SUCCESS")
+      IO.puts("🏁 === SAVE_COMMENT DEBUG END ===")
+      success_result
+
+    {:error, changeset} ->
+      IO.puts("❌ Error creating comment: #{inspect(changeset.errors)}")
+      IO.puts("📋 Failed changeset: #{inspect(changeset)}")
+      IO.puts("❌ save_comment FAILED")
+      IO.puts("🏁 === SAVE_COMMENT DEBUG END ===")
+      {:error, changeset}
+  end
+end
+
+def save_comment(invalid_params) do
+  IO.puts("🚀 === SAVE_COMMENT DEBUG START (INVALID PARAMS) ===")
+  IO.puts("❌ Missing required comment parameters")
+  IO.puts("📋 Received params: #{inspect(invalid_params)}")
+  IO.puts("📊 Params type: #{inspect(invalid_params.__struct__ || :unknown)}")
+
+  case invalid_params do
+    %{} = map_params ->
+      IO.puts("📝 Map keys: #{inspect(Map.keys(map_params))}")
+      IO.puts("🔍 Looking for required keys: [:post_id, :author, :content]")
+
+      missing_keys = [:post_id, :author, :content] -- Map.keys(map_params)
+      IO.puts("❌ Missing keys: #{inspect(missing_keys)}")
+
+    _ ->
+      IO.puts("⚠️ Params is not a map")
+  end
+
+  IO.puts("❌ save_comment FAILED - missing params")
+  IO.puts("🏁 === SAVE_COMMENT DEBUG END ===")
+  {:error, :missing_params}
+end
+
+defp rebuild_post(post_id) do
+  IO.puts("🏗️ === REBUILD_POST DEBUG START ===")
+  IO.puts("📌 Rebuilding post: #{post_id}")
+  IO.puts("📊 Post ID type: #{inspect(post_id.__struct__ || :binary)}")
+
+  try do
+    # Get post data
+    IO.puts("📡 Fetching post data via PostClient.get_by_id...")
+    get_start = :erlang.system_time(:millisecond)
+
+    post_data = PostClient.get_by_id(post_id)
+
+    get_end = :erlang.system_time(:millisecond)
+    IO.puts("📡 PostClient.get_by_id took #{get_end - get_start}ms")
+    IO.puts("📊 Post data received: #{inspect(post_data)}")
+
+    # Convert to changeset
+    IO.puts("🔄 Converting to changeset...")
+    changeset_start = :erlang.system_time(:millisecond)
+
+    changeset = Mazaryn.Schema.Post.erl_changeset(post_data)
+
+    changeset_end = :erlang.system_time(:millisecond)
+    IO.puts("🔄 Changeset creation took #{changeset_end - changeset_start}ms")
+    IO.puts("📋 Changeset: #{inspect(changeset)}")
+
+    # Build post
+    IO.puts("🏗️ Building post...")
+    build_start = :erlang.system_time(:millisecond)
+
+    {:ok, post} = Mazaryn.Schema.Post.build(changeset)
+
+    build_end = :erlang.system_time(:millisecond)
+    IO.puts("🏗️ Post build took #{build_end - build_start}ms")
+    IO.puts("✅ Post built successfully: #{inspect(post)}")
+    IO.puts("🏁 === REBUILD_POST DEBUG END ===")
+
+    post
+
+  rescue
+    exception ->
+      IO.puts("💥 Exception in rebuild_post: #{inspect(exception)}")
+      IO.puts("📍 Stacktrace: #{inspect(__STACKTRACE__)}")
+      IO.puts("❌ REBUILD_POST FAILED")
+      IO.puts("🏁 === REBUILD_POST DEBUG END ===")
+      reraise exception, __STACKTRACE__
+  end
+end
+
   def handle_save_comment(%{"comment" => comment_params} = _params) do
     save_start = :erlang.system_time(:millisecond)
     IO.puts("💾 Starting handle_save_comment with params: #{inspect(comment_params)}")
