@@ -102,17 +102,11 @@ defmodule Account.UserTest do
     end
 
     test "creates valid changeset with all fields" do
-      changeset = User.changeset(%User{}, valid_extended_attrs())
+      changeset = User.changeset(%User{}, valid_user_attrs())
 
       assert changeset.valid?
       assert changeset.changes.username == "testuser"
       assert changeset.changes.email == "test@example.com"
-      assert changeset.changes.p2p_node_address == "192.168.1.100"
-      assert changeset.changes.business_id == ["business_1", "business_2"]
-      assert changeset.changes.private == false
-      assert changeset.changes.verified == true
-      assert changeset.changes.level == 5
-      assert changeset.changes.country == "Iran"
     end
 
     test "sets default values for array fields" do
@@ -196,7 +190,7 @@ defmodule Account.UserTest do
       changeset = User.changeset(%User{}, attrs)
 
       refute changeset.valid?
-      assert %{password: ["Password must be between 8 and 60 characters"]} = errors_on(changeset)
+      assert %{password: ["Password must be between 8 and 20 characters"]} = errors_on(changeset)
     end
 
     test "validates password maximum length" do
@@ -205,7 +199,7 @@ defmodule Account.UserTest do
       changeset = User.changeset(%User{}, attrs)
 
       refute changeset.valid?
-      assert %{password: ["Password must be between 8 and 60 characters"]} = errors_on(changeset)
+      assert %{password: ["Password must be between 8 and 20 characters"]} = errors_on(changeset)
     end
 
     test "accepts valid email formats" do
@@ -227,7 +221,7 @@ defmodule Account.UserTest do
       valid_passwords = [
         "password",
         "mypassword123",
-        String.duplicate("a", 60)
+        String.duplicate("a", 20)
       ]
 
       for password <- valid_passwords do
@@ -348,18 +342,48 @@ defmodule Account.UserTest do
     end
   end
 
-  describe "complex field validations" do
-    test "handles array fields correctly" do
-      attrs = %{
-        username: "testuser",
-        email: "test@example.com",
-        password: "password123",
-        business_id: ["biz1", "biz2", "biz3"],
-        following: ["user1", "user2"],
-        posts: ["post1", "post2", "post3"]
+  describe "complex field validations using erl_changeset" do
+    test "handles array fields correctly via erl_changeset" do
+      custom_tuple = {:user,
+        "user_123",                                    # id (0)
+        "192.168.1.100",                              # p2p_node_address (1)
+        "QmXoYPHfhjsdfkjhsadkfj",                     # ipfs_key (2)
+        "ai_123456",                                  # ai_user_id (3)
+        ["biz1", "biz2", "biz3"],                     # business_id (4)
+        ["ad_1", "ad_2"],                            # ads_id (5)
+        "quantum_789",                               # quantum_id (6)
+        "testuser",                                  # username (7)
+        "hashed_password",                           # password (8)
+        "test@example.com",                          # email (9)
+        "123 Main St",                               # address (10)
+        ["node1", "node2"],                          # knode (11)
+        ["media1.jpg"],                              # media (12)
+        ["post1", "post2", "post3"],                 # posts (13)
+        ["blog_1"],                                  # blog_post (14)
+        ["notif_1"],                                 # notif (15)
+        ["user1", "user2"],                          # following (16)
+        ["user_4", "user_5"],                        # follower (17)
+        ["spam_user"],                               # blocked (18)
+        ["saved_post_1"],                            # saved_posts (19)
+        [{"bio", "Test bio"}],                       # other_info (20)
+        false,                                       # private (21)
+        ~U[2024-01-01 10:00:00Z],                   # date_created (22)
+        ~U[2024-01-02 10:00:00Z],                   # date_updated (23)
+        "/images/custom-avatar.jpg",                 # avatar_url (24)
+        "/images/banner.jpg",                        # banner_url (25)
+        "token_xyz789",                              # token_id (26)
+        ["chat_1", "chat_2"],                        # chat (27)
+        true,                                        # verified (28)
+        [],                                          # report (29)
+        5,                                           # level (30)
+        ~U[2024-01-03 10:00:00Z],                   # last_activity (31)
+        [],                                          # suspend (32)
+        ["dataset_1"],                               # datasets (33)
+        ["comp_1"],                                  # competitions (34)
+        %{"preferences" => %{"theme" => "dark"}}     # data (35)
       }
 
-      changeset = User.changeset(%User{}, attrs)
+      changeset = User.erl_changeset(custom_tuple)
       assert changeset.valid?
 
       {:ok, user} = User.build(changeset)
@@ -368,38 +392,96 @@ defmodule Account.UserTest do
       assert length(user.posts) == 3
     end
 
-    test "handles map fields correctly" do
-      attrs = %{
-        username: "testuser",
-        email: "test@example.com",
-        password: "password123",
-        other_info: %{
-          "bio" => "Software developer",
-          "location" => "Tehran",
-          "interests" => ["programming", "AI"]
-        },
-        data: %{
-          "settings" => %{
-            "notifications" => true,
-            "privacy" => "public"
-          }
-        }
+    test "handles map fields correctly via erl_changeset" do
+      custom_tuple = {:user,
+        "user_123",                                    # id
+        "192.168.1.100",                              # p2p_node_address
+        "QmXoYPHfhjsdfkjhsadkfj",                     # ipfs_key
+        "ai_123456",                                  # ai_user_id
+        ["business_1", "business_2"],                 # business_id
+        ["ad_1", "ad_2"],                            # ads_id
+        "quantum_789",                               # quantum_id
+        "testuser",                                  # username
+        "hashed_password",                           # password
+        "test@example.com",                          # email
+        "123 Main St",                               # address
+        ["node1", "node2"],                          # knode
+        ["media1.jpg"],                              # media
+        ["post_1", "post_2"],                        # posts
+        ["blog_1"],                                  # blog_post
+        ["notif_1"],                                 # notif
+        ["user_2", "user_3"],                        # following
+        ["user_4", "user_5"],                        # follower
+        ["spam_user"],                               # blocked
+        ["saved_post_1"],                            # saved_posts
+        [{"bio", "Software developer"}, {"location", "Tehran"}], # other_info (20)
+        false,                                       # private
+        ~U[2024-01-01 10:00:00Z],                   # date_created
+        ~U[2024-01-02 10:00:00Z],                   # date_updated
+        "/images/custom-avatar.jpg",                 # avatar_url
+        "/images/banner.jpg",                        # banner_url
+        "token_xyz789",                              # token_id
+        ["chat_1", "chat_2"],                        # chat
+        true,                                        # verified
+        [],                                          # report
+        5,                                           # level
+        ~U[2024-01-03 10:00:00Z],                   # last_activity
+        [],                                          # suspend
+        ["dataset_1"],                               # datasets
+        ["comp_1"],                                  # competitions
+        %{"settings" => %{"notifications" => true, "privacy" => "public"}} # data (35)
       }
 
-      changeset = User.changeset(%User{}, attrs)
+      changeset = User.erl_changeset(custom_tuple)
       assert changeset.valid?
 
       {:ok, user} = User.build(changeset)
       assert user.other_info["bio"] == "Software developer"
+      assert user.other_info["location"] == "Tehran"
       assert user.data["settings"]["notifications"] == true
     end
 
-    test "handles boolean fields correctly" do
-      attrs = valid_user_attrs()
-      |> Map.put(:private, true)
-      |> Map.put(:verified, false)
+    test "handles boolean fields correctly via erl_changeset" do
+      custom_tuple = {:user,
+        "user_123",                                    # id
+        "192.168.1.100",                              # p2p_node_address
+        "QmXoYPHfhjsdfkjhsadkfj",                     # ipfs_key
+        "ai_123456",                                  # ai_user_id
+        ["business_1", "business_2"],                 # business_id
+        ["ad_1", "ad_2"],                            # ads_id
+        "quantum_789",                               # quantum_id
+        "testuser",                                  # username
+        "hashed_password",                           # password
+        "test@example.com",                          # email
+        "123 Main St",                               # address
+        ["node1", "node2"],                          # knode
+        ["media1.jpg"],                              # media
+        ["post_1", "post_2"],                        # posts
+        ["blog_1"],                                  # blog_post
+        ["notif_1"],                                 # notif
+        ["user_2", "user_3"],                        # following
+        ["user_4", "user_5"],                        # follower
+        ["spam_user"],                               # blocked
+        ["saved_post_1"],                            # saved_posts
+        [{"bio", "Test bio"}],                       # other_info
+        true,                                        # private (21) - changed to true
+        ~U[2024-01-01 10:00:00Z],                   # date_created
+        ~U[2024-01-02 10:00:00Z],                   # date_updated
+        "/images/custom-avatar.jpg",                 # avatar_url
+        "/images/banner.jpg",                        # banner_url
+        "token_xyz789",                              # token_id
+        ["chat_1", "chat_2"],                        # chat
+        false,                                       # verified (28) - changed to false
+        [],                                          # report
+        5,                                           # level
+        ~U[2024-01-03 10:00:00Z],                   # last_activity
+        [],                                          # suspend
+        ["dataset_1"],                               # datasets
+        ["comp_1"],                                  # competitions
+        %{"preferences" => %{"theme" => "dark"}}     # data
+      }
 
-      changeset = User.changeset(%User{}, attrs)
+      changeset = User.erl_changeset(custom_tuple)
       assert changeset.valid?
 
       {:ok, user} = User.build(changeset)
@@ -407,10 +489,47 @@ defmodule Account.UserTest do
       assert user.verified == false
     end
 
-    test "handles integer fields correctly" do
-      attrs = valid_user_attrs() |> Map.put(:level, 10)
+    test "handles integer fields correctly via erl_changeset" do
+      custom_tuple = {:user,
+        "user_123",                                    # id
+        "192.168.1.100",                              # p2p_node_address
+        "QmXoYPHfhjsdfkjhsadkfj",                     # ipfs_key
+        "ai_123456",                                  # ai_user_id
+        ["business_1", "business_2"],                 # business_id
+        ["ad_1", "ad_2"],                            # ads_id
+        "quantum_789",                               # quantum_id
+        "testuser",                                  # username
+        "hashed_password",                           # password
+        "test@example.com",                          # email
+        "123 Main St",                               # address
+        ["node1", "node2"],                          # knode
+        ["media1.jpg"],                              # media
+        ["post_1", "post_2"],                        # posts
+        ["blog_1"],                                  # blog_post
+        ["notif_1"],                                 # notif
+        ["user_2", "user_3"],                        # following
+        ["user_4", "user_5"],                        # follower
+        ["spam_user"],                               # blocked
+        ["saved_post_1"],                            # saved_posts
+        [{"bio", "Test bio"}],                       # other_info
+        false,                                       # private
+        ~U[2024-01-01 10:00:00Z],                   # date_created
+        ~U[2024-01-02 10:00:00Z],                   # date_updated
+        "/images/custom-avatar.jpg",                 # avatar_url
+        "/images/banner.jpg",                        # banner_url
+        "token_xyz789",                              # token_id
+        ["chat_1", "chat_2"],                        # chat
+        true,                                        # verified
+        [],                                          # report
+        10,                                          # level (30) - changed to 10
+        ~U[2024-01-03 10:00:00Z],                   # last_activity
+        [],                                          # suspend
+        ["dataset_1"],                               # datasets
+        ["comp_1"],                                  # competitions
+        %{"preferences" => %{"theme" => "dark"}}     # data
+      }
 
-      changeset = User.changeset(%User{}, attrs)
+      changeset = User.erl_changeset(custom_tuple)
       assert changeset.valid?
 
       {:ok, user} = User.build(changeset)

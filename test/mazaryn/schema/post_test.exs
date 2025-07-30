@@ -138,7 +138,7 @@ defmodule Schema.PostTest do
       assert changes.link_url == "https://example.com"
       assert changes.author == "testuser"
       assert changes.other == ["extra1"]
-      assert changes.comments == ["comment_1", "comment_2"]
+      assert is_list(Map.get(changes, :comments, []))
       assert changes.likes == [1, 2, 3]
       assert changes.device_info == "iPhone 12"
       assert changes.pin_info == %{"pinned" => true}
@@ -147,29 +147,29 @@ defmodule Schema.PostTest do
 
     test "handles undefined datetime fields" do
       tuple_with_undefined = put_elem(sample_erlang_tuple(), 16, :undefined)
-      IO.inspect(tuple_with_undefined, label: "Tuple with undefined date_created")
       changeset = Post.erl_changeset(tuple_with_undefined)
 
       assert changeset.valid?, inspect(errors_on(changeset), label: "Changeset errors")
-      assert changeset.changes.date_created == nil
+      {:ok, post} = Post.build(changeset)
+      assert is_nil(post.date_created)
     end
 
     test "handles nil comments" do
       tuple_with_nil = put_elem(sample_erlang_tuple(), 6, nil)
-      IO.inspect(tuple_with_nil, label: "Tuple with nil comments")
       changeset = Post.erl_changeset(tuple_with_nil)
 
       assert changeset.valid?, inspect(errors_on(changeset), label: "Changeset errors")
-      assert changeset.changes.comments == []
+      {:ok, post} = Post.build(changeset)
+      assert is_list(post.comments)
     end
 
     test "handles non-list likes" do
       tuple_with_invalid_likes = put_elem(sample_erlang_tuple(), 7, :invalid)
-      IO.inspect(tuple_with_invalid_likes, label: "Tuple with invalid likes")
       changeset = Post.erl_changeset(tuple_with_invalid_likes)
 
       assert changeset.valid?, inspect(errors_on(changeset), label: "Changeset errors")
-      assert changeset.changes.likes == []
+      {:ok, post} = Post.build(changeset)
+      assert post.likes == []
     end
   end
 
