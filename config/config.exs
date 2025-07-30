@@ -7,6 +7,9 @@
 # General application configuration
 import Config
 
+config :logger, level: :warning
+
+
 config :ex_heroicons, type: "solid"
 
 config :mazaryn,

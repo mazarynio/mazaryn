@@ -84,7 +84,13 @@ defmodule Mazaryn.MixProject do
       {:axon, "~> 0.6"},
 
       # OpenAI
-      {:ex_openai, "~> 1.2.1"}
+      {:ex_openai, "~> 1.2.1"},
+
+      # Test
+      {:ex_machina, "~> 2.8"},
+      ## {:wallaby, "~> 0.30.10"},
+      {:mock, "~> 0.3.9"},
+      {:mox, "~> 1.2"}
     ]
   end
 
