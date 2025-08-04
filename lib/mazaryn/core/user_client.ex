@@ -140,8 +140,24 @@ defmodule Core.UserClient do
     :user_server.get_following(id)
   end
 
+  def get_following_usernames(id) do
+    :user_server.get_following_usernames(id)
+  end
+
+  def search_followings(my_id, target_username) do
+    :user_server.search_followings(my_id, target_username)
+  end
+
   def get_follower(id) do
     :user_server.get_follower(id)
+  end
+
+  def get_follower_usernames(id) do
+    :user_server.get_follower_usernames(id)
+  end
+
+  def search_followers(my_id, target_username) do
+    :user_server.search_followers(my_id, target_username)
   end
 
   def get_user_info(username, fields) do

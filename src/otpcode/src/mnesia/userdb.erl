@@ -13,7 +13,8 @@
          get_save_posts/1, get_follower/1, get_following/1,
          block/2, unblock/2, get_blocked/1, search_user/1, search_user_pattern/1,
          insert_avatar/2, insert_banner/2, get_avatar/1, get_banner/1, report_user/4, update_last_activity/2,
-         last_activity_status/1, make_private/1, make_public/1, get_token/1, validate_user/1, insert_concurrent/3]).
+         last_activity_status/1, make_private/1, make_public/1, get_token/1, validate_user/1, insert_concurrent/3, get_following_usernames/1,
+         search_followings/2, get_follower_usernames/1, search_followers/2]).
 
 
 -define(LIMIT_SEARCH, 50).
@@ -531,6 +532,53 @@ get_following(Id) ->
     _ -> error
   end.
 
+get_following_usernames(Id) ->
+  case get_following(Id) of
+    user_not_exist -> user_not_exist;
+    error -> error;
+    FollowingIds when is_list(FollowingIds) ->
+      Res = mnesia:transaction(
+              fun() ->
+                  lists:foldl(
+                    fun(FollowingId, Acc) ->
+                        case mnesia:match_object(#user{id = FollowingId, _= '_'}) of
+                          [User] -> [User#user.username | Acc];
+                          [] -> Acc
+                        end
+                    end,
+                    [],
+                    FollowingIds)
+              end),
+      case Res of
+        {atomic, Usernames} -> lists:reverse(Usernames);
+        _ -> error
+      end
+  end.
+
+search_followings(MyUserId, TargetUsername) ->
+  case get_following(MyUserId) of
+    user_not_exist -> user_not_exist;
+    error -> error;
+    FollowingIds when is_list(FollowingIds) ->
+      Res = mnesia:transaction(
+              fun() ->
+                  lists:foldl(
+                    fun(FollowingId, Acc) ->
+                        case mnesia:match_object(#user{id = FollowingId, username = TargetUsername, _= '_'}) of
+                          [User] -> User;
+                          [] -> Acc
+                        end
+                    end,
+                    user_not_exist,
+                    FollowingIds)
+              end),
+      case Res of
+        {atomic, User} when is_record(User, user) -> User;
+        {atomic, user_not_exist} -> user_not_exist;
+        _ -> error
+      end
+  end.
+
 get_follower(Id) ->
   Res = mnesia:transaction(fun() ->
                                mnesia:match_object(#user{id = Id, _= '_'})
@@ -539,6 +587,53 @@ get_follower(Id) ->
     {atomic, []} -> user_not_exist;
     {atomic, [User]} -> User#user.follower;
     _ -> error
+  end.
+
+get_follower_usernames(Id) ->
+  case get_follower(Id) of
+    user_not_exist -> user_not_exist;
+    error -> error;
+    FollowerIds when is_list(FollowerIds) ->
+      Res = mnesia:transaction(
+              fun() ->
+                  lists:foldl(
+                    fun(FollowerId, Acc) ->
+                        case mnesia:match_object(#user{id = FollowerId, _= '_'}) of
+                          [User] -> [User#user.username | Acc];
+                          [] -> Acc
+                        end
+                    end,
+                    [],
+                    FollowerIds)
+              end),
+      case Res of
+        {atomic, Usernames} -> lists:reverse(Usernames);
+        _ -> error
+      end
+  end.
+
+search_followers(MyUserId, TargetUsername) ->
+  case get_follower(MyUserId) of
+    user_not_exist -> user_not_exist;
+    error -> error;
+    FollowerIds when is_list(FollowerIds) ->
+      Res = mnesia:transaction(
+              fun() ->
+                  lists:foldl(
+                    fun(FollowerId, Acc) ->
+                        case mnesia:match_object(#user{id = FollowerId, username = TargetUsername, _= '_'}) of
+                          [User] -> User;
+                          [] -> Acc
+                        end
+                    end,
+                    user_not_exist,
+                    FollowerIds)
+              end),
+      case Res of
+        {atomic, User} when is_record(User, user) -> User;
+        {atomic, user_not_exist} -> user_not_exist;
+        _ -> error
+      end
   end.
 
 get_user_info(Id, Fields) ->

@@ -71,7 +71,7 @@ defmodule MazarynWeb.HomeLive.PostComponent do
           id: real_comment.id,
           post_id: real_comment.post_id || comment.post_id,
           author: real_comment.author || comment.author,
-          content: comment.content, # Keep the content that was displayed
+          content: comment.content,
           inserted_at: real_comment.inserted_at || comment.inserted_at,
           updated_at: real_comment.updated_at || comment.updated_at,
           likes: real_comment.likes || [],

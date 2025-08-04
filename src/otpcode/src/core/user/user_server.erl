@@ -17,7 +17,8 @@
          get_following/1, get_follower/1,
          block/2, unblock/2, get_blocked/1, add_media/3, get_media/2,
          search_user/1, search_user_pattern/1, insert_avatar/2,
-         insert_banner/2, report_user/4, make_private/1, make_public/1, validate_user/1]).
+         insert_banner/2, report_user/4, make_private/1, make_public/1, validate_user/1, get_following_usernames/1, search_followings/2,
+         get_follower_usernames/1, search_followers/2]).
 
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2,
@@ -172,9 +173,21 @@ get_save_posts(Id) ->
 get_following(Id) ->
     gen_server:call({global, ?MODULE}, {get_following, Id}).
 
+get_following_usernames(Id) ->
+    gen_server:call({global, ?MODULE}, {get_following_usernames, Id}).
+
+search_followings(MyUserId, TargetUsername) ->
+    gen_server:call({global, ?MODULE}, {search_followings, MyUserId, TargetUsername}).
+
 %% @doc Get users following the user
 get_follower(Id) ->
     gen_server:call({global, ?MODULE}, {get_follower, Id}).
+
+get_follower_usernames(Id) ->
+    gen_server:call({global, ?MODULE}, {get_follower_usernames, Id}).
+
+search_followers(MyUserId, TargetUsername) ->
+    gen_server:call({global, ?MODULE}, {search_followers, MyUserId, TargetUsername}).
 
 %% @doc Get user information for specific fields
 get_user_info(Username, Fields) ->
@@ -383,8 +396,24 @@ handle_call({get_following, Id}, _From, State) ->
     Res = userdb:get_following(Id),
     {reply, Res, State};
 
+handle_call({get_following_usernames, Id}, _From, State) ->
+    Res = userdb:get_following_usernames(Id),
+    {reply, Res, State};
+
+handle_call({search_followings, MyUserId, TargetUsername}, _From, State) ->
+    Res = userdb:search_followings(MyUserId, TargetUsername),
+    {reply, Res, State};
+
 handle_call({get_follower, Id}, _From, State) ->
     Res = userdb:get_follower(Id),
+    {reply, Res, State};
+
+handle_call({get_follower_usernames, Id}, _From, State) ->
+    Res = userdb:get_follower_usernames(Id),
+    {reply, Res, State};
+
+handle_call({search_followers, MyUserId, TargetUsername}, _From, State) ->
+    Res = userdb:search_followers(MyUserId, TargetUsername),
     {reply, Res, State};
 
 handle_call({get_user_info, Username, Fields}, _From, State) ->
