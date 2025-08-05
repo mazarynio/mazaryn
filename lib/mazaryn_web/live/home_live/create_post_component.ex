@@ -2,7 +2,6 @@ defmodule MazarynWeb.HomeLive.CreatePostComponent do
   use MazarynWeb, :live_component
 
   alias MazarynWeb.Live.Helper
-  # alias MazarynWeb.Component.CustomComponents
   alias MazarynWeb.Component.SelectLive
   alias Mazaryn.Schema.Post
   alias Mazaryn.Posts
@@ -14,20 +13,113 @@ defmodule MazarynWeb.HomeLive.CreatePostComponent do
       %{:grinning_face => "\u{1F600}"},
       %{:beaming_face => "\u{1F601}"},
       %{:joy => "\u{1F602}"},
-      %{:cowboy_hat_face => "\u{1F920}"},
+      %{:heart_eyes => "\u{1F60D}"},
       %{:winking_face => "\u{1F609}"},
-      %{:relieved_face => "\u{1F60C}"}
+      %{:relieved_face => "\u{1F60C}"},
+      %{:thinking_face => "\u{1F914}"},
+      %{:smiling_face_with_sunglasses => "\u{1F60E}"},
+      %{:fire => "\u{1F525}"},
+      %{:red_heart => "\u{2764}\u{FE0F}"},
+      %{:thumbs_up => "\u{1F44D}"},
+      %{:clapping_hands => "\u{1F44F}"},
+      %{:party_popper => "\u{1F389}"},
+      %{:star_struck => "\u{1F929}"},
+      %{:crying_with_laughter => "\u{1F923}"},
+      %{:smiling_face_with_hearts => "\u{1F970}"},
+      %{:hundred_points => "\u{1F4AF}"},
+      %{:rocket => "\u{1F680}"},
+      %{:rainbow => "\u{1F308}"},
+      %{:smiling_face => "\u{1F60A}"},
+      %{:raising_hands => "\u{1F64C}"},
+      %{:partying_face => "\u{1F973}"},
+      %{:crying_face => "\u{1F622}"},
+      %{:flushed_face => "\u{1F633}"},
+      %{:folded_hands => "\u{1F64F}"},
+      %{:glowing_star => "\u{1F31F}"},
+      %{:kissing_face => "\u{1F618}"},
+      %{:winking_face_with_tongue => "\u{1F61C}"},
+      %{:hugging_face => "\u{1F917}"},
+      %{:sleeping_face => "\u{1F634}"},
+      %{:sweating_smiling_face => "\u{1F605}"},
+      %{:smiling_face_with_halo => "\u{1F607}"},
+      %{:pouting_face => "\u{1F623}"},
+      %{:nerd_face => "\u{1F913}"},
+      %{:yum_face => "\u{1F60B}"},
+      %{:tongue_out_face => "\u{1F61B}"},
+      %{:smiling_face_with_three_hearts => "\u{1F970}"},
+      %{:grimacing_face => "\u{1F62C}"},
+      %{:squinting_face_with_tongue => "\u{1F61D}"},
+      %{:face_with_steam => "\u{1F624}"},
+      %{:expressionless_face => "\u{1F611}"},
+      %{:grinning_squinting_face => "\u{1F606}"},
+      %{:open_mouth_face => "\u{1F62E}"},
+      %{:smiling_cat_with_heart_eyes => "\u{1F63B}"},
+      %{:smiling_face_with_open_mouth => "\u{1F603}"},
+      %{:grinning_face_with_big_eyes => "\u{1F604}"},
+      %{:sad_face => "\u{1F61E}"},
+      %{:angry_face => "\u{1F621}"},
+      %{:confused_face => "\u{1F615}"},
+      %{:surprised_face => "\u{1F62F}"},
+      %{:smiling_devil => "\u{1F608}"},
+      %{:crying_sad_face => "\u{1F625}"},
+      %{:face_with_medical_mask => "\u{1F637}"},
+      %{:pained_face => "\u{1F616}"},
+      %{:worried_face => "\u{1F61F}"},
+      %{:anxious_face => "\u{1F630}"},
+      %{:raised_hand => "\u{270B}"},
+      %{:ok_hand => "\u{1F44C}"},
+      %{:point_left => "\u{1F448}"},
+      %{:point_right => "\u{1F449}"},
+      %{:point_up => "\u{1F446}"},
+      %{:point_down => "\u{1F447}"},
+      %{:sign_of_the_horns => "\u{1F918}"},
+      %{:vulcan_salute => "\u{1F596}"},
+      %{:raising_hand => "\u{1F64B}"},
+      %{:balloon => "\u{1F388}"},
+      %{:gift => "\u{1F381}"},
+      %{:birthday_cake => "\u{1F382}"},
+      %{:camera => "\u{1F4F8}"},
+      %{:laptop => "\u{1F4BB}"},
+      %{:smartphone => "\u{1F4F1}"},
+      %{:money_with_wings => "\u{1F4B8}"},
+      %{:lock => "\u{1F512}"},
+      %{:bell => "\u{1F514}"},
+      %{:cat => "\u{1F431}"},
+      %{:dog => "\u{1F436}"},
+      %{:bear => "\u{1F43B}"},
+      %{:lion => "\u{1F981}"},
+      %{:panda => "\u{1F43C}"},
+      %{:frog => "\u{1F438}"},
+      %{:monkey => "\u{1F435}"},
+      %{:unicorn => "\u{1F984}"},
+      %{:sparkling_heart => "\u{1F496}"},
+      %{:collision => "\u{1F4A5}"},
+      %{:rainbow_symbol => "\u{1F308}"},
+      %{:sun => "\u{2600}\u{FE0F}"},
+      %{:star => "\u{2B50}"},
+      %{:apple => "\u{1F34E}"},
+      %{:pizza => "\u{1F355}"},
+      %{:hamburger => "\u{1F354}"},
+      %{:coffee => "\u{2615}"},
+      %{:ice_cream => "\u{1F366}"},
+      %{:wine_glass => "\u{1F377}"},
+      %{:rocket_ship => "\u{1F680}"},
+      %{:airplane => "\u{2708}\u{FE0F}"},
+      %{:globe => "\u{1F30D}"},
+      %{:trophy => "\u{1F3C6}"}
     ]
 
     socket =
       socket
       |> assign(:emojis, emojis)
+      |> assign(:show_emoji_panel, false)
+      |> assign(:changeset, Post.changeset(%Post{}))
 
     {:ok, handle_assign(socket)}
   end
 
   @impl true
-  def handle_event("cancel-entry", %{"ref" => ref} = _params, socket) do
+  def handle_event("cancel-entry", %{"ref" => ref}, socket) do
     {:noreply, cancel_upload(socket, :media, ref)}
   end
 
@@ -39,16 +131,19 @@ defmodule MazarynWeb.HomeLive.CreatePostComponent do
     {:noreply, handle_save_post(socket, params)}
   end
 
-  def handle_event("select_emoji", params, socket) do
-    params |> IO.inspect(label: "ni emoji gani imechaguliwa xxxx")
-    # post_id |> IO.inspect(label: "ni post_id gani imechaguliwa")
-    # {:noreply, push_redirect(socket, to: Routes.emoji_path(socket, :show, name))}
-    # post_id = post_id |> to_charlist
-    # PostClient.delete_post(post_id)
-    # send(self(), :reload_posts)
-    {:noreply, handle_validate_post(socket, params)}
+  def handle_event("select_emoji", %{"emoji" => emoji_character}, socket) do
+    {:noreply,
+     socket
+     |> assign(:show_emoji_panel, false)
+     |> push_event("insert_emoji", %{emoji: emoji_character, component_id: to_string(socket.assigns.myself)})}
+  end
 
-    # {:noreply, socket}
+  def handle_event("toggle_emoji_panel", _params, socket) do
+    {:noreply, assign(socket, :show_emoji_panel, !socket.assigns.show_emoji_panel)}
+  end
+
+  def handle_event("close_emoji_panel", _params, socket) do
+    {:noreply, assign(socket, :show_emoji_panel, false)}
   end
 
   defp handle_assign(socket) do
@@ -62,13 +157,10 @@ defmodule MazarynWeb.HomeLive.CreatePostComponent do
     )
   end
 
-  defp handle_save_post(socket, %{"post" => post_params} = _params) do
-    {:ok, user} =
-      socket.assigns.user.id
-      |> Users.one_by_id()
+  defp handle_save_post(socket, %{"post" => post_params}) do
+    {:ok, user} = Users.one_by_id(socket.assigns.user.id)
 
     urls = consume_upload(socket)
-    dbg(urls)
 
     post_params =
       post_params
@@ -76,14 +168,8 @@ defmodule MazarynWeb.HomeLive.CreatePostComponent do
       |> Map.put("media", urls)
 
     hashtags = fetch_from_content(~r/#\S[a-zA-Z]*/, post_params)
-
-    mentions =
-      ~r/@\S[a-zA-Z]*/
-      |> fetch_from_content(post_params)
-
-    link_urls =
-      ~r/([\w+]+\:\/\/)?([\w\d-]+\.)*[\w-]+[\.\:]\w+([\/\?\=\&\#\.]?[\w-]+)*\/?/
-      |> fetch_link_urls_from_content(post_params)
+    mentions = fetch_from_content(~r/@\S[a-zA-Z]*/, post_params)
+    link_urls = fetch_link_urls_from_content(~r/([\w+]+\:\/\/)?([\w\d-]+\.)*[\w-]+[\.\:]\w+([\/\?\=\&\#\.]?[\w-]+)*\/?/, post_params)
 
     post_params =
       case {hashtags, mentions, link_urls} do
@@ -112,20 +198,17 @@ defmodule MazarynWeb.HomeLive.CreatePostComponent do
     |> case do
       {:ok, %Post{}} ->
         add_mention_to_notif(mentions, socket.assigns.user.id)
-        # send event to parent live-view
         send(self(), :reload_posts)
-
         socket
         |> assign(:changeset, Post.changeset(%Post{}))
+        |> assign(:show_emoji_panel, false)
 
       _other ->
         socket
     end
   end
 
-  defp add_mention_to_notif("", _user_id) do
-    :ok
-  end
+  defp add_mention_to_notif("", _user_id), do: :ok
 
   defp add_mention_to_notif(mention, user_id) do
     mention = String.replace(mention, "@", "")
@@ -152,8 +235,8 @@ defmodule MazarynWeb.HomeLive.CreatePostComponent do
     |> Enum.join(", ")
   end
 
-  defp handle_validate_post(socket, %{"post" => post_params} = _params) do
-    post_params = Map.put(post_params, "author", "thewestdevop")
+  defp handle_validate_post(socket, %{"post" => post_params}) do
+    post_params = Map.put(post_params, "author", socket.assigns.user.username)
 
     changeset =
       %Post{}
@@ -171,7 +254,6 @@ defmodule MazarynWeb.HomeLive.CreatePostComponent do
   defp consume_upload(socket) do
     consume_uploaded_entries(socket, :media, fn %{path: path}, entry ->
       dir = Mazaryn.config([:media, :uploads_dir])
-
       dest = Path.join(dir, "#{entry.uuid}.#{ext(entry)}")
       File.mkdir_p!(Path.dirname(dest))
       File.cp!(path, dest)
