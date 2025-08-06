@@ -32,6 +32,73 @@ import VideoCallHook from "./video_call";
 let Hooks = {};
 let csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content");
 
+Hooks.EmojiPicker = {
+  mounted() {
+    console.log("EmojiPicker hook mounted");
+    this.el.addEventListener("emoji-click", (event) => {
+      console.log("Emoji clicked:", event.detail.unicode);
+      const emoji = event.detail.unicode;
+      
+      const textarea = document.getElementById("message-input");
+      if (textarea) {
+        const start = textarea.selectionStart;
+        const end = textarea.selectionEnd;
+        const currentValue = textarea.value;
+        
+        const newValue = currentValue.substring(0, start) + emoji + currentValue.substring(end);
+        textarea.value = newValue;
+        
+        const newCursorPos = start + emoji.length;
+        textarea.setSelectionRange(newCursorPos, newCursorPos);
+        
+        textarea.focus();
+        
+        textarea.dispatchEvent(new Event('input', { bubbles: true }));
+        
+        this.pushEventTo(this.el, "insert-emoji", { emoji: emoji });
+      } else {
+        this.pushEventTo(this.el, "insert-emoji", { emoji: emoji });
+      }
+    });
+  },
+
+  updated() {
+    console.log("EmojiPicker hook updated");
+    if (!this._listenerAttached) {
+      this.el.addEventListener("emoji-click", (event) => {
+        console.log("Emoji clicked:", event.detail.unicode);
+        const emoji = event.detail.unicode;
+        
+        const textarea = document.getElementById("message-input");
+        if (textarea) {
+          const start = textarea.selectionStart;
+          const end = textarea.selectionEnd;
+          const currentValue = textarea.value;
+          
+          const newValue = currentValue.substring(0, start) + emoji + currentValue.substring(end);
+          textarea.value = newValue;
+          
+          const newCursorPos = start + emoji.length;
+          textarea.setSelectionRange(newCursorPos, newCursorPos);
+          
+          textarea.focus();
+          
+          textarea.dispatchEvent(new Event('input', { bubbles: true }));
+          
+          this.pushEventTo(this.el, "insert-emoji", { emoji: emoji });
+        } else {
+          this.pushEventTo(this.el, "insert-emoji", { emoji: emoji });
+        }
+      });
+      this._listenerAttached = true;
+    }
+  },
+
+  destroyed() {
+    this._listenerAttached = false;
+  }
+}
+
 Hooks.EmojiHandler = {
   mounted() {
     this.initializeEmojiHandler()
@@ -331,7 +398,3 @@ let liveSocket = new LiveSocket("/live", Socket, {
 topbar.config({barColors: {0: "#29d"}, shadowColor: "rgba(0, 0, 0, .3)"})
 window.addEventListener("phx:page-loading-start", _info => topbar.show(300))
 window.addEventListener("phx:page-loading-stop", _info => topbar.hide())
-
-liveSocket.connect();
-
-window.liveSocket = liveSocket;
