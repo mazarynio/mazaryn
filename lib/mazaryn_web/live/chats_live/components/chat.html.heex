@@ -1,7 +1,7 @@
 <div class="flex-1 p-4 sm:p-8 flex flex-col h-96 bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 rounded-2xl shadow-lg">
   <!-- Incoming Call Modal -->
   <%= if @call_status == "ringing" && @caller_username do %>
-    <div class="fixed inset-0 bg-gray-600 bg-opacity-50 backdrop-bl Doctypelur-md flex items-center justify-center z-50">
+    <div class="fixed inset-0 bg-gray-600 bg-opacity-50 backdrop-blur-md flex items-center justify-center z-50">
       <div class="bg-gradient-to-br from-gray-50 to-white dark:from-gray-700 dark:to-gray-800 p-8 rounded-xl shadow-xl animate-in duration-300 scale-95">
         <h2 class="text-xl font-bold text-gray-800 dark:text-gray-100 mb-6 capitalize">Incoming Call from <%= @caller_username %></h2>
         <div class="flex space-x-4">
@@ -163,9 +163,15 @@
             <div class="flex items-end">
               <div class="flex flex-col space-y-2 text-sm max-w-xs mx-2 order-2 items-start">
                 <div class="flex items-center space-x-2">
-                  <span class="px-4 py-2 rounded-lg bg-gradient-to-r from-gray-200 to-gray-300 dark:from-gray-600 dark:to-gray-700 text-gray-800 dark:text-gray-200 capitalize">
-                    <%= message.body %>
-                  </span>
+                  <%# Parse message body for stickers %>
+                  <%= case Regex.run(~r/!\[sticker\]\((data:image\/svg\+xml;base64,[^)]+)\)/, message.body) do %>
+                    <% [_, sticker_url] -> %>
+                      <img src={sticker_url} alt="Sticker" class="max-w-[100px] h-auto rounded-lg" />
+                    <% nil -> %>
+                      <span class="px-4 py-2 rounded-lg bg-gradient-to-r from-gray-200 to-gray-300 dark:from-gray-600 dark:to-gray-700 text-gray-800 dark:text-gray-200 capitalize">
+                        <%= message.body %>
+                      </span>
+                  <% end %>
                 </div>
               </div>
               <img
@@ -180,9 +186,15 @@
             <div class="flex items-end justify-end">
               <div class="flex flex-col space-y-2 text-sm max-w-xs mx-2 order-1 items-end">
                 <div class="flex items-center space-x-2">
-                  <span class="px-4 py-2 rounded-lg bg-gradient-to-r from-green-300 to-green-500 dark:from-green-400 dark:to-green-600 text-white capitalize">
-                    <%= message.body %>
-                  </span>
+                  <%# Parse message body for stickers %>
+                  <%= case Regex.run(~r/!\[sticker\]\((data:image\/svg\+xml;base64,[^)]+)\)/, message.body) do %>
+                    <% [_, sticker_url] -> %>
+                      <img src={sticker_url} alt="Sticker" class="max-w-[100px] h-auto rounded-lg" />
+                    <% nil -> %>
+                      <span class="px-4 py-2 rounded-lg bg-gradient-to-r from-green-300 to-green-500 dark:from-green-400 dark:to-green-600 text-white capitalize">
+                        <%= message.body %>
+                      </span>
+                  <% end %>
                   <div class="relative">
                     <button
                       @click="openMenu = !openMenu"

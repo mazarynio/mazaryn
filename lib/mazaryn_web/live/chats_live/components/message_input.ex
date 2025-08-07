@@ -107,6 +107,23 @@ defmodule MazarynWeb.ChatsLive.Components.MessageInput do
       %{:trophy => "\u{1F3C6}"}
     ]
 
+    star_svg = "data:image/svg+xml;base64," <> Base.encode64("""
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+      <path d="M50 5L61 39H97L68 61L79 95L50 74L21 95L32 61L3 39H39L50 5Z" fill="#FFD700" stroke="#FFA500" stroke-width="3"/>
+    </svg>
+    """)
+
+    heart_svg = "data:image/svg+xml;base64," <> Base.encode64("""
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+      <path d="M50 88C50 88 10 65 10 40C10 20 30 10 50 30C70 10 90 20 90 40C90 65 50 88 50 88Z" fill="#FF4444" stroke="#CC0000" stroke-width="3"/>
+    </svg>
+    """)
+
+    stickers = [
+      %{:golden_star => star_svg},
+      %{:red_heart => heart_svg}
+    ]
+
     {:ok,
      socket
      |> assign(
@@ -114,7 +131,9 @@ defmodule MazarynWeb.ChatsLive.Components.MessageInput do
        changeset: Chat.changeset(%Chat{}, %{"body" => ""}),
        message: %Chat{},
        show_emoji_panel: false,
-       emojis: emojis
+       show_sticker_panel: false,
+       emojis: emojis,
+       stickers: stickers
      )
      |> allow_upload(:media, accept: ~w(.png .jpg .jpeg), max_entries: 2)}
   end
@@ -234,7 +253,20 @@ defmodule MazarynWeb.ChatsLive.Components.MessageInput do
 
   @impl true
   def handle_event("toggle_emoji_panel", _params, socket) do
-    {:noreply, assign(socket, :show_emoji_panel, !socket.assigns.show_emoji_panel)}
+    {:noreply,
+     assign(socket,
+       show_emoji_panel: !socket.assigns.show_emoji_panel,
+       show_sticker_panel: false
+     )}
+  end
+
+  @impl true
+  def handle_event("toggle_sticker_panel", _params, socket) do
+    {:noreply,
+     assign(socket,
+       show_sticker_panel: !socket.assigns.show_sticker_panel,
+       show_emoji_panel: false
+     )}
   end
 
   @impl true
@@ -243,6 +275,14 @@ defmodule MazarynWeb.ChatsLive.Components.MessageInput do
      socket
      |> assign(:show_emoji_panel, false)
      |> push_event("insert_emoji", %{emoji: emoji_character, component_id: to_string(socket.assigns.myself)})}
+  end
+
+  @impl true
+  def handle_event("select_sticker", %{"sticker" => sticker_url}, socket) do
+    {:noreply,
+     socket
+     |> assign(:show_sticker_panel, false)
+     |> push_event("insert_sticker", %{sticker: sticker_url, component_id: to_string(socket.assigns.myself)})}
   end
 
   @impl true
