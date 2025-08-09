@@ -10,17 +10,20 @@ defmodule MazarynWeb.HomeLive.PostComponent do
   alias MazarynWeb.HomeLive.{CommentHandler, IpnsManager}
   alias Home.Like
 
+  # Configuration constants
   @content_cache :post_content_cache
   @batch_size 5
+  @cache_ttl %{content: 600, likes: 300, ipns: 300}
+  @timeouts %{content: 800, likes: 300, ipns: 200, comment: 2000, post_update: 1500}
+
+  # =============================================================================
+  # LIFECYCLE CALLBACKS
+  # =============================================================================
 
   @impl true
   def mount(socket) do
     Phoenix.PubSub.subscribe(Mazaryn.PubSub, "post_updates")
-
-    {:ok,
-     socket
-     |> assign_default_state()
-     |> allow_upload(:media, accept: ~w(.png .jpg .jpeg), max_entries: 2)}
+    {:ok, socket |> assign_default_state() |> setup_uploads()}
   end
 
   @impl Phoenix.LiveComponent
@@ -29,60 +32,46 @@ defmodule MazarynWeb.HomeLive.PostComponent do
 
     total_start = :erlang.system_time(:millisecond)
     ensure_cache_table()
+    changesets = prepare_changesets()
 
-    {changeset, update_comment_changeset, update_post_changeset} = prepare_changesets()
-
-    result = list_of_assigns
-    |> process_posts_in_batches(changeset, update_comment_changeset, update_post_changeset)
+    result = list_of_assigns |> process_posts_optimized(changesets)
 
     total_duration = :erlang.system_time(:millisecond) - total_start
     IO.puts("🏁 TOTAL UPDATE_MANY completed in #{total_duration}ms")
-
     result
   end
 
   def update(%{ipns_id: ipns_id} = assigns, socket) when not is_nil(ipns_id) do
     IO.puts("🔄 PostComponent received IPNS update: #{inspect(ipns_id)}")
-
     updated_assigns = Map.delete(assigns, :ipns_id)
-
-    socket = socket
-    |> assign(:ipns_id, ipns_id)
-    |> assign(updated_assigns)
-
+    socket = socket |> assign(:ipns_id, ipns_id) |> assign(updated_assigns)
     {:ok, socket}
   end
 
-  def update(assigns, socket) do
-    {:ok, assign(socket, assigns)}
-  end
+  def update(assigns, socket), do: {:ok, assign(socket, assigns)}
+
+  # =============================================================================
+  # EVENT HANDLERS - COMMENTS
+  # =============================================================================
 
   def handle_event("save-comment", params, socket) do
     case CommentHandler.handle_save_comment(params) do
-      {:ok, %{post: post, comments: comments, changeset: changeset, flash: {flash_type, message}}} ->
-        {:noreply, socket |> assign_comment_success(post, comments, changeset) |> put_flash(flash_type, message)}
-
+      {:ok, %{post: post, comments: comments, changeset: changeset, flash: {type, msg}}} ->
+        {:noreply, socket |> assign_comment_success(post, comments, changeset) |> put_flash(type, msg)}
       {:error, reason} ->
-        {:noreply, socket |> handle_comment_error(reason)}
+        {:noreply, handle_comment_error(socket, reason)}
     end
   end
 
   def handle_event("update-comment", params, socket) do
-    post_id = socket.assigns.post.id
-
-    case CommentHandler.handle_update_comment(params, post_id) do
-      {:ok, result} ->
-        {:noreply, socket |> assign_comment_update_success(result)}
-
-      {:error, result} ->
-        {:noreply, socket |> assign_comment_update_error(result)}
-    end
+    handle_comment_operation(socket, fn ->
+      CommentHandler.handle_update_comment(params, socket.assigns.post.id)
+    end, &assign_comment_update_result/2)
   end
 
   def handle_event("validate-comment", params, socket) do
     case CommentHandler.handle_validate_comment(params) do
-      {:ok, %{changeset: changeset}} ->
-        {:noreply, assign(socket, :changeset, changeset)}
+      {:ok, %{changeset: changeset}} -> {:noreply, assign(socket, :changeset, changeset)}
     end
   end
 
@@ -93,31 +82,10 @@ defmodule MazarynWeb.HomeLive.PostComponent do
     end
   end
 
-  def handle_event("edit-comment", params, socket) do
-    case CommentHandler.handle_edit_comment(params) do
-      {:ok, %{editing_comment: editing_comment, editing_comment_id: editing_comment_id}} ->
-        {:noreply, socket |> assign(:editing_comment, editing_comment) |> assign(:editing_comment_id, editing_comment_id)}
-    end
-  end
-
-  def handle_event("cancel-comment-edit", params, socket) do
-    case CommentHandler.handle_cancel_comment_edit(params) do
-      {:ok, %{editing_comment: editing_comment, editing_comment_id: editing_comment_id}} ->
-        {:noreply, socket |> assign(:editing_comment, editing_comment) |> assign(:editing_comment_id, editing_comment_id)}
-    end
-  end
-
-  def handle_event("reply_comment", params, socket) do
-    case CommentHandler.handle_reply_comment(params) do
-      {:ok, %{reply_comment: reply_comment, replying_to_comment_id: replying_to_comment_id}} ->
-        {:noreply, socket |> assign(:reply_comment, reply_comment) |> assign(:replying_to_comment_id, replying_to_comment_id)}
-    end
-  end
-
-  def handle_event("cancel-comment-reply", params, socket) do
-    case CommentHandler.handle_cancel_comment_reply(params) do
-      {:ok, %{reply_comment: reply_comment, replying_to_comment_id: replying_to_comment_id}} ->
-        {:noreply, socket |> assign(:reply_comment, reply_comment) |> assign(:replying_to_comment_id, replying_to_comment_id)}
+  # Batch comment event handlers
+  for action <- ~w(edit-comment cancel-comment-edit reply_comment cancel-comment-reply)a do
+    def handle_event(unquote(to_string(action)), params, socket) do
+      handle_simple_comment_action(socket, unquote(action), params)
     end
   end
 
@@ -126,153 +94,65 @@ defmodule MazarynWeb.HomeLive.PostComponent do
     comments = socket.assigns.comments
 
     case CommentHandler.handle_reply_comment_content(params, user_id, comments) do
-      {:ok, %{comments: updated_comments, reply_comment: reply_comment, replying_to_comment_id: replying_to_comment_id}} ->
-        {:noreply, socket |> assign(:comments, updated_comments) |> assign(:reply_comment, reply_comment) |> assign(:replying_to_comment_id, replying_to_comment_id)}
-
-      {:error, %{flash: {flash_type, message}}} ->
-        {:noreply, socket |> put_flash(flash_type, message)}
+      {:ok, result} ->
+        {:noreply, socket |> assign(:comments, result.comments)
+                          |> assign(:reply_comment, result.reply_comment)
+                          |> assign(:replying_to_comment_id, result.replying_to_comment_id)}
+      {:error, %{flash: {type, msg}}} ->
+        {:noreply, put_flash(socket, type, msg)}
     end
   end
 
-  def handle_event("delete-comment", params, socket) do
-    case CommentHandler.handle_delete_comment(params, socket.assigns.comments) do
-      {:ok, %{comments: updated_comments}} ->
-        {:noreply, assign(socket, :comments, updated_comments)}
+  # Batch comment CRUD handlers
+  for action <- ~w(delete-comment delete-reply show-comments)a do
+    def handle_event(unquote(to_string(action)), params, socket) do
+      handle_comment_crud(socket, unquote(action), params)
     end
   end
 
-  def handle_event("delete-reply", params, socket) do
-    case CommentHandler.handle_delete_reply(params, socket.assigns.comments) do
-      {:ok, %{comments: updated_comments}} ->
-        {:noreply, assign(socket, :comments, updated_comments)}
-    end
-  end
-
-  def handle_event("show-comments", params, socket) do
-    case CommentHandler.handle_show_comments(params) do
-      {:ok, %{comments: comments}} ->
-        {:noreply, assign(socket, :comments, comments)}
-    end
-  end
-
+  # Comment like handlers
   def handle_event("like-comment", params, socket) do
-    post_id = socket.assigns.post.id
-    user_id = socket.assigns.current_user.id
-
-    case CommentHandler.handle_like_comment(params, post_id, user_id) do
-      {:ok, %{post: post, comments: comments}} ->
-        {:noreply, socket |> assign(:post, post) |> assign(:comments, comments)}
-    end
+    handle_comment_like_action(socket, :like, params)
   end
 
   def handle_event("unlike-comment", params, socket) do
-    post_id = socket.assigns.post.id
-    user_id = socket.assigns.current_user.id
-    comments = socket.assigns.comments
-
-    case CommentHandler.handle_unlike_comment(params, post_id, user_id, comments) do
-      {:ok, %{post: post, comments: comments}} ->
-        {:noreply, socket |> assign(:post, post) |> assign(:comments, comments)}
-    end
+    handle_comment_like_action(socket, :unlike, params)
   end
 
+  # =============================================================================
+  # EVENT HANDLERS - POSTS & USERS
+  # =============================================================================
+
   def handle_event("follow_user", %{"username" => username}, socket) do
-    user_id = socket.assigns.current_user.id
-    UserClient.follow(user_id, username)
-    {:noreply, update_follow_assigns(socket, user_id, username)}
+    handle_user_follow_action(socket, :follow, username)
   end
 
   def handle_event("unfollow_user", %{"username" => username}, socket) do
-    user_id = socket.assigns.current_user.id
-    UserClient.unfollow(user_id, username)
-    {:noreply, update_follow_assigns(socket, user_id, username)}
+    handle_user_follow_action(socket, :unfollow, username)
   end
 
   def handle_event("like_post", %{"post-id" => post_id}, socket) do
-    post_id = to_charlist(post_id)
-    user_id = socket.assigns.current_user.id
-
-    PostClient.like_post(user_id, post_id)
-    clear_content_cache(:likes_count, post_id)
-
-    post = rebuild_post(post_id)
-    likes_count = get_likes_count(post_id)
-
-    {:noreply,
-     socket
-     |> assign(:post, post)
-     |> assign(:like_icon, like_icon(user_id, post_id))
-     |> assign(:like_event, like_event(user_id, post_id))
-     |> assign(:likes_count, likes_count)
-     |> assign(:is_liked, true)}
+    handle_post_like_action(socket, :like, post_id)
   end
 
   def handle_event("unlike_post", %{"post-id" => post_id}, socket) do
-    post_id = to_charlist(post_id)
-    user_id = socket.assigns.current_user.id
-
-    like = find_user_like(post_id, user_id)
-    PostClient.unlike_post(like.id, post_id)
-    clear_content_cache(:likes_count, post_id)
-
-    post = rebuild_post(post_id)
-    likes_count = get_likes_count(post_id)
-
-    {:noreply,
-     socket
-     |> assign(:post, post)
-     |> assign(:like_icon, like_icon(user_id, post_id))
-     |> assign(:like_event, like_event(user_id, post_id))
-     |> assign(:likes_count, likes_count)}
+    handle_post_like_action(socket, :unlike, post_id)
   end
 
-  def handle_event("open_likes_modal", %{"post-id" => post_id}, socket) do
-    IO.puts("🔍 Opening likes modal for post #{post_id}")
-
-    socket = socket
-    |> assign(:show_likes_modal, true)
-    |> assign(:likes_loading, true)
-    |> assign(:liked_users, [])
-
-    load_liked_users_async(post_id, self())
-
-    {:noreply, socket}
-  end
-
-  def handle_event("close_likes_modal", _params, socket) do
-    {:noreply, socket |> assign(:show_likes_modal, false) |> assign(:liked_users, []) |> assign(:likes_loading, false)}
-  end
-
-  def handle_event("view_profile", %{"username" => username}, socket) do
-    locale = socket.assigns[:locale] || "en"
-    profile_path = Routes.live_path(socket, MazarynWeb.UserLive.Profile, locale, username)
-
-    socket = if socket.assigns[:show_likes_modal] do
-      socket |> assign(:show_likes_modal, false) |> assign(:liked_users, []) |> assign(:likes_loading, false)
-    else
-      socket
-    end
-
-    {:noreply, socket |> push_navigate(to: profile_path)}
-  end
-
+  # Post editing handlers
   def handle_event("edit_post", %{"post-id" => post_id}, socket) do
-    post_id = to_charlist(post_id)
-    post = PostClient.get_post_content_by_id(post_id)
-    {:noreply, socket |> assign(:editing_post, post) |> assign(:edit_post_id, post_id)}
+    post = PostClient.get_post_content_by_id(to_charlist(post_id))
+    {:noreply, socket |> assign(:editing_post, post) |> assign(:edit_post_id, to_charlist(post_id))}
   end
 
   def handle_event("update-post", %{"post" => post_params}, socket) do
-    post_id = socket.assigns.edit_post_id
-    post_id = if is_binary(post_id), do: :erlang.binary_to_list(post_id), else: post_id
+    post_id = normalize_post_id(socket.assigns.edit_post_id)
+    changeset = Post.changeset(%Post{}, post_params)
 
-    changeset = %Post{} |> Post.changeset(post_params)
-
-    case changeset.valid? do
-      true ->
-        handle_valid_post_update(socket, post_id, post_params["content"])
-      false ->
-        {:noreply, assign(socket, :update_post_changeset, %{changeset | action: :validate})}
+    if changeset.valid? do
+      handle_valid_post_update(socket, post_id, post_params["content"])
+    else
+      {:noreply, assign(socket, :update_post_changeset, %{changeset | action: :validate})}
     end
   end
 
@@ -283,22 +163,52 @@ defmodule MazarynWeb.HomeLive.PostComponent do
   def handle_event("delete-post", %{"post-id" => post_id}, socket) do
     post_id = to_charlist(post_id)
     PostClient.delete_post(post_id)
-
     clear_all_cache_for_post(post_id)
     send(self(), :reload_posts)
-
     {:noreply, socket}
   end
 
+  # =============================================================================
+  # EVENT HANDLERS - MODALS & UI
+  # =============================================================================
+
+  def handle_event("open_likes_modal", %{"post-id" => post_id}, socket) do
+    IO.puts("🔍 Opening likes modal for post #{post_id}")
+
+    socket = socket
+    |> assign(:show_likes_modal, true)
+    |> assign(:likes_loading, true)
+    |> assign(:liked_users, [])
+
+    load_liked_users_async(post_id, self())
+    {:noreply, socket}
+  end
+
+  def handle_event("close_likes_modal", _params, socket) do
+    {:noreply, assign(socket, %{show_likes_modal: false, liked_users: [], likes_loading: false})}
+  end
+
+  def handle_event("view_profile", %{"username" => username}, socket) do
+    locale = socket.assigns[:locale] || "en"
+    profile_path = Routes.live_path(socket, MazarynWeb.UserLive.Profile, locale, username)
+
+    socket = maybe_close_likes_modal(socket)
+    {:noreply, push_navigate(socket, to: profile_path)}
+  end
+
   def handle_event("open_modal", %{"action" => action}, socket) do
-    modal_assigns = get_modal_assigns(action)
-    {:noreply, assign(socket, modal_assigns)}
+    {:noreply, assign(socket, get_modal_assigns(action))}
   end
 
   def handle_event("close_modal", _params, socket) do
     {:noreply, assign(socket, :users, [])}
   end
 
+  # =============================================================================
+  # INFO HANDLERS
+  # =============================================================================
+
+  # Temp comment handlers
   def handle_info({:temp_comment_saved, temp_id, real_comment}, socket) do
     IO.puts("🔄 Replacing temp comment #{temp_id} with real comment #{real_comment.id}")
     updated_comments = replace_temp_comment_with_real(socket.assigns.comments, temp_id, real_comment)
@@ -310,6 +220,7 @@ defmodule MazarynWeb.HomeLive.PostComponent do
     {:noreply, socket}
   end
 
+  # Content sync handlers
   def handle_info({:comments_synced, post_id, fresh_comments}, socket) do
     if socket.assigns.post && socket.assigns.post.id == post_id do
       {:noreply, assign(socket, comments: fresh_comments)}
@@ -318,37 +229,29 @@ defmodule MazarynWeb.HomeLive.PostComponent do
     end
   end
 
+  # IPNS handlers
   def handle_info({:ipns_ready, post_id, ipns}, socket) do
-    if socket.assigns[:post] && to_string(socket.assigns.post.id) == to_string(post_id) do
-      IO.puts("🎉 Received scheduled IPNS update for displayed post #{post_id}")
-      {:noreply, assign(socket, :ipns_id, ipns)}
-    else
-      {:noreply, socket}
-    end
+    handle_ipns_update(socket, post_id, ipns, "scheduled")
   end
 
   def handle_info({:ipns_updated, post_id, ipns}, socket) do
-    if socket.assigns[:post] && to_string(socket.assigns.post.id) == to_string(post_id) do
-      {:noreply, assign(socket, :ipns_id, ipns)}
-    else
-      {:noreply, socket}
-    end
+    handle_ipns_update(socket, post_id, ipns, "updated")
   end
 
+  # Likes handlers
   def handle_info({:likes_fetched, users}, socket) do
-    {:noreply, socket |> assign(:liked_users, users) |> assign(:likes_loading, false)}
+    {:noreply, assign(socket, %{liked_users: users, likes_loading: false})}
   end
 
   def handle_info({:likes_fetch_error, _error}, socket) do
-    {:noreply, socket |> assign(:liked_users, []) |> assign(:likes_loading, false) |> put_flash(:error, "Failed to load likes")}
+    {:noreply, assign(socket, %{liked_users: [], likes_loading: false})
+              |> put_flash(:error, "Failed to load likes")}
   end
 
+  # Content refresh handlers
   def handle_info(:refresh_processing_content, socket) do
     comments = CommentHandler.get_comments_with_content(socket.assigns.post.id)
-
-    processing_content = Enum.any?(comments, fn comment ->
-      comment.content in ["Content is being processed...", "Content loading..."]
-    end)
+    processing_content = Enum.any?(comments, &(&1.content in ["Content is being processed...", "Content loading..."]))
 
     if processing_content do
       Process.send_after(self(), :refresh_processing_content, 3000)
@@ -357,26 +260,16 @@ defmodule MazarynWeb.HomeLive.PostComponent do
     {:noreply, assign(socket, :comments, comments)}
   end
 
+  # Content update handlers
   def handle_info({:comment_content_updated, comment_id, content}, socket) do
-    updated_comments = CommentHandler.update_comment_content_in_list(socket.assigns[:comments] || [], comment_id, content)
-
-    if updated_comments != socket.assigns[:comments] do
-      {:noreply, assign(socket, :comments, updated_comments)}
-    else
-      {:noreply, socket}
-    end
+    handle_content_update(socket, :comment, comment_id, content)
   end
 
   def handle_info({:reply_content_updated, reply_id, content}, socket) do
-    updated_comments = CommentHandler.update_reply_content_in_comments(socket.assigns[:comments] || [], reply_id, content)
-
-    if updated_comments != socket.assigns[:comments] do
-      {:noreply, assign(socket, :comments, updated_comments)}
-    else
-      {:noreply, socket}
-    end
+    handle_content_update(socket, :reply, reply_id, content)
   end
 
+  # Reply handlers
   def handle_info({:reply_saved, comment_id, real_reply, temp_id}, socket) do
     updated_comments = CommentHandler.replace_temp_reply_with_real(socket.assigns.comments, comment_id, temp_id, real_reply)
     {:noreply, assign(socket, :comments, updated_comments)}
@@ -384,10 +277,14 @@ defmodule MazarynWeb.HomeLive.PostComponent do
 
   def handle_info({:reply_failed, comment_id, temp_id}, socket) do
     updated_comments = CommentHandler.remove_temp_reply(socket.assigns.comments, comment_id, temp_id)
-    {:noreply, socket |> assign(:comments, updated_comments) |> put_flash(:error, "Failed to save reply. Please try again.")}
+    {:noreply, assign(socket, :comments, updated_comments) |> put_flash(:error, "Failed to save reply. Please try again.")}
   end
 
   def handle_info(_msg, socket), do: {:noreply, socket}
+
+  # =============================================================================
+  # PUBLIC FUNCTIONS
+  # =============================================================================
 
   def warm_cache_for_recent_posts(recent_post_ids) when is_list(recent_post_ids) do
     IpnsManager.warm_cache_async(recent_post_ids)
@@ -397,71 +294,95 @@ defmodule MazarynWeb.HomeLive.PostComponent do
   def get_user_avatar(author) do
     case Account.Users.one_by_username(author) do
       {:ok, user} ->
-        avatar_cid = user.avatar_url
-        if avatar_cid do
-          Mazaryn.config([:media, :ipfs_gateway]) <> avatar_cid
+        if user.avatar_url do
+          Mazaryn.config([:media, :ipfs_gateway]) <> user.avatar_url
         else
           ~p"/images/default-user.svg"
         end
-      {:error, _changeset} -> ""
+      {:error, _} -> ""
     end
   end
 
+  def activate_content_characters(post, socket) do
+    process_start = :erlang.system_time(:millisecond)
+    IO.puts("📝 Starting content processing for post #{post.id}")
+
+    result = try do
+      content_str = get_processed_content(post)
+      process_content_string(content_str, socket)
+    catch
+      type, reason ->
+        IO.puts("❌ Unexpected error in content processing: #{inspect({type, reason})}")
+        "Error processing content" |> Earmark.as_html!(compact_output: true) |> apply_styles()
+    end
+
+    process_end = :erlang.system_time(:millisecond)
+    IO.puts("📝 Content processing completed in #{process_end - process_start}ms")
+    result
+  end
+
+  def get_image_url(post_id) do
+    cid = PostClient.get_media_cid(post_id)
+    Mazaryn.config([:media, :ipfs_gateway]) <> cid
+  end
+
+  # =============================================================================
+  # PRIVATE HELPER FUNCTIONS
+  # =============================================================================
+
+  # Initial setup helpers
   defp assign_default_state(socket) do
-    socket
-    |> assign(:uploaded_files, [])
-    |> assign(:editing_post, false)
-    |> assign(:editing_comment, false)
-    |> assign(:editing_comment_id, nil)
-    |> assign(:reply_comment, false)
-    |> assign(:replying_to_comment_id, nil)
-    |> assign(:ipns_id, nil)
-    |> assign(:show_likes_modal, false)
-    |> assign(:liked_users, [])
-    |> assign(:likes_loading, false)
+    default_assigns = %{
+      uploaded_files: [], editing_post: false, editing_comment: false,
+      editing_comment_id: nil, reply_comment: false, replying_to_comment_id: nil,
+      ipns_id: nil, show_likes_modal: false, liked_users: [], likes_loading: false
+    }
+    assign(socket, default_assigns)
+  end
+
+  defp setup_uploads(socket) do
+    allow_upload(socket, :media, accept: ~w(.png .jpg .jpeg), max_entries: 2)
   end
 
   defp prepare_changesets do
-    changeset = Comment.changeset(%Comment{})
-    update_comment_changeset = Comment.changeset(%Comment{})
-    update_post_changeset = Post.changeset(%Post{})
-    {changeset, update_comment_changeset, update_post_changeset}
+    %{
+      changeset: Comment.changeset(%Comment{}),
+      update_comment_changeset: Comment.changeset(%Comment{}),
+      update_post_changeset: Post.changeset(%Post{})
+    }
   end
 
-  defp process_posts_in_batches(list_of_assigns, changeset, update_comment_changeset, update_post_changeset) do
+  # Post processing helpers
+  defp process_posts_optimized(list_of_assigns, changesets) do
     list_of_assigns
-    |> Enum.chunk_every(3)
-    |> Enum.flat_map(fn batch ->
-      IO.puts("Processing batch of #{length(batch)} posts")
-
-      batch
-      |> Task.async_stream(
-        fn {assigns, socket} ->
-          process_single_post(assigns, socket, changeset, update_comment_changeset, update_post_changeset)
-        end,
-        max_concurrency: 4,
-        timeout: 5000,
-        on_timeout: :kill_task
-      )
-      |> Enum.map(fn
-        {:ok, result} -> result
-        {:exit, reason} ->
-          IO.puts("❌ Task failed with reason: #{inspect(reason)}")
-          {assigns, socket} = hd(batch)
-          assign(socket, basic_assigns(assigns))
-      end)
-    end)
+    |> Enum.chunk_every(@batch_size)
+    |> Enum.flat_map(&process_batch(&1, changesets))
   end
 
-  defp process_single_post(assigns, socket, changeset, update_comment_changeset, update_post_changeset) do
+  defp process_batch(batch, changesets) do
+    IO.puts("Processing batch of #{length(batch)} posts")
+
+    batch
+    |> Task.async_stream(&process_single_post(&1, changesets),
+                        max_concurrency: 4, timeout: 5000, on_timeout: :kill_task)
+    |> Enum.map(&handle_task_result(&1, batch))
+  end
+
+  defp handle_task_result({:ok, result}, _batch), do: result
+  defp handle_task_result({:exit, reason}, batch) do
+    IO.puts("❌ Task failed with reason: #{inspect(reason)}")
+    {assigns, socket} = hd(batch)
+    assign(socket, basic_assigns(assigns))
+  end
+
+  defp process_single_post({assigns, socket}, changesets) do
     try do
       post_start = :erlang.system_time(:millisecond)
       IO.puts("--- Processing post #{assigns.post.id} ---")
 
       tasks = create_async_tasks(assigns.post.id)
       results = await_tasks_with_fallbacks(tasks, assigns.post.id)
-
-      final_assigns = build_final_assigns(assigns, results, changeset, update_comment_changeset, update_post_changeset)
+      final_assigns = build_final_assigns(assigns, results, changesets)
 
       post_end = :erlang.system_time(:millisecond)
       IO.puts("✅ Post #{assigns.post.id} completed in #{post_end - post_start}ms")
@@ -474,63 +395,56 @@ defmodule MazarynWeb.HomeLive.PostComponent do
     end
   end
 
+  # Async task management
   defp create_async_tasks(post_id) do
-    %{
-      comments: Task.async(fn ->
-        comment_start = :erlang.system_time(:millisecond)
-        result = CommentHandler.get_comments_with_content_optimized(post_id)
-        comment_end = :erlang.system_time(:millisecond)
-        IO.puts("📝 Comments fetch for post #{post_id} took #{comment_end - comment_start}ms")
+    task_definitions = [
+      {:comments, fn -> CommentHandler.get_comments_with_content_optimized(post_id) end},
+      {:ipns, fn -> IpnsManager.get_ipns_fast(post_id) end},
+      {:likes, fn -> get_likes_count_cached(post_id) end},
+      {:content, fn -> get_post_content_optimized(post_id) end}
+    ]
+
+    Enum.into(task_definitions, %{}, fn {name, func} ->
+      {name, Task.async(fn ->
+        start = :erlang.system_time(:millisecond)
+        result = func.()
+        duration = :erlang.system_time(:millisecond) - start
+        IO.puts("#{task_emoji(name)} #{String.capitalize(to_string(name))} fetch for post #{post_id} took #{duration}ms")
         result
-      end),
-      ipns: Task.async(fn ->
-        ipns_start = :erlang.system_time(:millisecond)
-        result = IpnsManager.get_ipns_fast(post_id)
-        ipns_end = :erlang.system_time(:millisecond)
-        IO.puts("🔗 IPNS fetch for post #{post_id} took #{ipns_end - ipns_start}ms")
-        result
-      end),
-      likes: Task.async(fn ->
-        likes_start = :erlang.system_time(:millisecond)
-        result = get_likes_count_cached(post_id)
-        likes_end = :erlang.system_time(:millisecond)
-        IO.puts("📊 Likes count fetch for post #{post_id} took #{likes_end - likes_start}ms")
-        result
-      end),
-      content: Task.async(fn ->
-        content_start = :erlang.system_time(:millisecond)
-        result = get_post_content_optimized(post_id)
-        content_end = :erlang.system_time(:millisecond)
-        IO.puts("📄 Post content fetch for post #{post_id} took #{content_end - content_start}ms")
-        result
-      end)
-    }
+      end)}
+    end)
   end
+
+  defp task_emoji(:comments), do: "📝"
+  defp task_emoji(:ipns), do: "🔗"
+  defp task_emoji(:likes), do: "📊"
+  defp task_emoji(:content), do: "📄"
 
   defp await_tasks_with_fallbacks(tasks, post_id) do
-    %{
-      comments: await_with_fallback(tasks.comments, 2000, [], "comments", post_id),
-      ipns_id: await_with_fallback_async(tasks.ipns, 200, nil, "ipns", post_id),
-      likes_count: await_with_fallback(tasks.likes, 500, 0, "likes", post_id),
-      post_content_cached: await_with_fallback(tasks.content, 1500, "Content loading...", "content", post_id)
-    }
+    fallbacks = %{comments: [], ipns_id: nil, likes_count: 0, post_content_cached: "Content loading..."}
+    timeouts = %{comments: 2000, ipns_id: 200, likes_count: 500, post_content_cached: 1500}
+
+    Enum.into(tasks, %{}, fn {key, task} ->
+      timeout = Map.get(timeouts, key, 1000)
+      fallback = Map.get(fallbacks, key, nil)
+      result_key = if key == :ipns, do: :ipns_id, else: key
+      result_key = if key == :likes, do: :likes_count, else: result_key
+      result_key = if key == :content, do: :post_content_cached, else: result_key
+
+      {result_key, await_with_fallback(task, timeout, fallback, to_string(key), post_id)}
+    end)
   end
 
-  defp build_final_assigns(assigns, results, changeset, update_comment_changeset, update_post_changeset) do
-    assigns
-    |> Map.merge(%{
+  defp build_final_assigns(assigns, results, changesets) do
+    base_assigns = %{
       follow_event: follow_event(assigns.current_user.id, assigns.post.author),
       follow_text: follow_text(assigns.current_user.id, assigns.post.author),
       like_icon: like_icon(assigns.current_user.id, assigns.post.id),
       like_event: like_event(assigns.current_user.id, assigns.post.id),
-      changeset: changeset,
-      update_comment_changeset: update_comment_changeset,
-      update_post_changeset: update_post_changeset,
-      report_action: false,
-      like_action: false,
-      is_liked: false
-    })
-    |> Map.merge(results)
+      report_action: false, like_action: false, is_liked: false
+    }
+
+    assigns |> Map.merge(base_assigns) |> Map.merge(results) |> Map.merge(changesets)
   end
 
   defp basic_assigns(assigns) do
@@ -542,41 +456,131 @@ defmodule MazarynWeb.HomeLive.PostComponent do
       changeset: Comment.changeset(%Comment{}),
       update_comment_changeset: Comment.changeset(%Comment{}),
       update_post_changeset: Post.changeset(%Post{}),
-      comments: [],
-      report_action: false,
-      like_action: false,
-      is_liked: false,
-      ipns_id: nil,
-      likes_count: 0,
-      post_content_cached: "Content loading..."
+      comments: [], report_action: false, like_action: false, is_liked: false,
+      ipns_id: nil, likes_count: 0, post_content_cached: "Content loading..."
     }
   end
 
-  defp assign_comment_success(socket, post, comments, changeset) do
-    socket
-    |> assign(:post, post)
-    |> assign(:comments, comments)
-    |> assign(:changeset, changeset)
-  end
-
-  defp handle_comment_error(socket, reason) do
-    case reason do
-      :missing_post_id -> socket |> put_flash(:error, "Missing post ID")
-      :missing_author -> socket |> put_flash(:error, "Missing author")
-      {:validation, changeset} -> assign(socket, :changeset, changeset)
-      {:changeset, changeset} -> assign(socket, :changeset, changeset)
-      :invalid_params -> socket |> put_flash(:error, "Invalid form data")
-      _ -> socket |> put_flash(:error, "Failed to save comment")
+  # Event handler helpers
+  defp handle_comment_operation(socket, operation_func, result_handler) do
+    case operation_func.() do
+      {:ok, result} -> {:noreply, result_handler.(socket, result)}
+      {:error, result} -> {:noreply, assign_comment_update_error(socket, result)}
     end
   end
 
-  defp assign_comment_update_success(socket, result) do
+  defp handle_simple_comment_action(socket, action, params) do
+    action_map = %{
+      "edit-comment": :handle_edit_comment,
+      "cancel-comment-edit": :handle_cancel_comment_edit,
+      "reply_comment": :handle_reply_comment,
+      "cancel-comment-reply": :handle_cancel_comment_reply
+    }
+
+    handler = Map.get(action_map, action)
+    case apply(CommentHandler, handler, [params]) do
+      {:ok, result} -> {:noreply, assign_comment_action_result(socket, result)}
+    end
+  end
+
+  defp handle_comment_crud(socket, action, params) do
+    comments = socket.assigns.comments
+
+    case action do
+      "delete-comment" ->
+        {:ok, %{comments: updated}} = CommentHandler.handle_delete_comment(params, comments)
+        {:noreply, assign(socket, :comments, updated)}
+      "delete-reply" ->
+        {:ok, %{comments: updated}} = CommentHandler.handle_delete_reply(params, comments)
+        {:noreply, assign(socket, :comments, updated)}
+      "show-comments" ->
+        {:ok, %{comments: updated}} = CommentHandler.handle_show_comments(params)
+        {:noreply, assign(socket, :comments, updated)}
+    end
+  end
+
+  defp handle_comment_like_action(socket, action, params) do
+    post_id = socket.assigns.post.id
+    user_id = socket.assigns.current_user.id
+    comments = socket.assigns.comments
+
+    result = case action do
+      :like -> CommentHandler.handle_like_comment(params, post_id, user_id)
+      :unlike -> CommentHandler.handle_unlike_comment(params, post_id, user_id, comments)
+    end
+
+    case result do
+      {:ok, %{post: post, comments: comments}} ->
+        {:noreply, assign(socket, %{post: post, comments: comments})}
+    end
+  end
+
+  defp handle_user_follow_action(socket, action, username) do
+    user_id = socket.assigns.current_user.id
+
+    case action do
+      :follow -> UserClient.follow(user_id, username)
+      :unfollow -> UserClient.unfollow(user_id, username)
+    end
+
+    {:noreply, update_follow_assigns(socket, user_id, username)}
+  end
+
+  defp handle_post_like_action(socket, action, post_id) do
+    post_id = to_charlist(post_id)
+    user_id = socket.assigns.current_user.id
+
+    case action do
+      :like -> PostClient.like_post(user_id, post_id)
+      :unlike ->
+        like = find_user_like(post_id, user_id)
+        PostClient.unlike_post(like.id, post_id)
+    end
+
+    clear_content_cache(:likes_count, post_id)
+    post = rebuild_post(post_id)
+    likes_count = get_likes_count(post_id)
+
+    assigns = %{
+      post: post,
+      like_icon: like_icon(user_id, post_id),
+      like_event: like_event(user_id, post_id),
+      likes_count: likes_count
+    }
+
+    assigns = if action == :like, do: Map.put(assigns, :is_liked, true), else: assigns
+    {:noreply, assign(socket, assigns)}
+  end
+
+  # Assignment helpers
+  defp assign_comment_success(socket, post, comments, changeset) do
+    assign(socket, %{post: post, comments: comments, changeset: changeset})
+  end
+
+  defp assign_comment_update_result(socket, result) do
     socket
     |> assign(:comments, result.comments)
     |> assign(:editing_comment, result.editing_comment)
     |> assign(:editing_comment_id, result.editing_comment_id)
     |> assign(:update_comment_changeset, result.update_comment_changeset)
     |> put_flash(elem(result.flash, 0), elem(result.flash, 1))
+  end
+
+  defp assign_comment_action_result(socket, result) do
+    Enum.reduce(result, socket, fn {key, value}, acc ->
+      assign(acc, key, value)
+    end)
+  end
+
+  defp handle_comment_error(socket, reason) do
+    case reason do
+      :missing_post_id -> put_flash(socket, :error, "Missing post ID")
+      :missing_author -> put_flash(socket, :error, "Missing author")
+      {:validation, changeset} -> assign(socket, :changeset, changeset)
+      {:changeset, changeset} -> assign(socket, :changeset, changeset)
+      :invalid_params -> put_flash(socket, :error, "Invalid form data")
+      _ -> put_flash(socket, :error, "Failed to save comment")
+    end
   end
 
   defp assign_comment_update_error(socket, result) do
@@ -587,13 +591,150 @@ defmodule MazarynWeb.HomeLive.PostComponent do
 
     socket = case Map.get(result, :editing_comment) do
       nil -> socket
-      editing_comment -> socket |> assign(:editing_comment, editing_comment) |> assign(:editing_comment_id, result.editing_comment_id)
+      editing_comment -> assign(socket, %{editing_comment: editing_comment, editing_comment_id: result.editing_comment_id})
     end
 
     {flash_type, message} = result.flash
     put_flash(socket, flash_type, message)
   end
 
+  # Content processing helpers
+  defp process_content_string(content_str, socket) do
+    if content_str == "" do
+      "No content available"
+    else
+      content_str
+      |> String.split()
+      |> Enum.map(&process_content_token(&1, socket))
+      |> Enum.join(" ")
+      |> Earmark.as_html!(compact_output: true)
+      |> apply_styles()
+    end
+  end
+
+  defp get_processed_content(post) do
+    case Core.PostClient.get_post_content_by_id(post.id) do
+      nil -> process_post_content(post.content)
+      ipfs_content -> process_ipfs_content(ipfs_content)
+    end
+  end
+
+  defp process_ipfs_content(ipfs_content) do
+    cond do
+      is_binary(ipfs_content) -> ipfs_content
+      is_list(ipfs_content) -> List.to_string(ipfs_content)
+      true -> "No content available"
+    end
+  end
+
+  defp process_post_content(content) do
+    case content do
+      content when is_binary(content) -> content
+      content when is_list(content) -> List.to_string(content)
+      _ -> "No content available"
+    end
+  end
+
+  defp process_content_token(token, socket) do
+    patterns = %{
+      mention: ~r/@\S[a-zA-Z]*/,
+      hashtag: ~r/#\S[a-zA-Z]*/,
+      url: ~r/([\w+]+\:\/\/)?([\w\d-]+\.)*[\w-]+[\.\:]\w+([\/\?\=\&\#\.]?[\w-]+)*\/?/
+    }
+
+    matches = Enum.into(patterns, %{}, fn {type, regex} ->
+      {type, check_regex(token, regex)}
+    end)
+
+    case matches do
+      %{mention: [[mention]], hashtag: [], url: []} -> activate_mention_only(mention, socket)
+      %{mention: [], hashtag: [[hashtag]], url: []} -> activate_hashtag_only(hashtag, socket)
+      %{mention: [], hashtag: [], url: [[url | _]]} -> activate_url_only(url)
+      _ -> escape_char(token)
+    end
+  end
+
+  defp apply_styles(html) do
+    html
+    |> String.replace("<a", "<a class=\"text-blue-500\"")
+    |> String.replace("</a>", "</a>")
+  end
+
+  defp activate_hashtag_only(hashtag, socket) do
+    locale = Gettext.get_locale(MazarynWeb.Gettext)
+    path = Routes.live_path(socket, MazarynWeb.HashtagLive.Index, locale, hashtag)
+    markdown = "[\ #{hashtag}](#{path})"
+    String.replace(hashtag, hashtag, markdown)
+  end
+
+  defp activate_mention_only(mention, socket) do
+    path = mention |> String.replace("@", "") |> create_user_path(socket)
+    markdown = "[\ #{mention}](#{path})"
+    String.replace(mention, mention, markdown)
+  end
+
+  defp activate_url_only("http" <> _rest = url), do: url
+  defp activate_url_only(url) do
+    path = "https://#{url}"
+    "[\ #{url}](#{path})"
+  end
+
+  defp escape_char("#"), do: "\\#"
+  defp escape_char(con), do: con
+
+  defp check_regex(con, regex) do
+    cond do
+      con == "#" -> "#"
+      con == "@" -> "@"
+      true -> Regex.scan(regex, con)
+    end
+  end
+
+  defp create_user_path(username, socket) do
+    case Users.one_by_username(username) do
+      :ok -> "#"
+      {:ok, _user} ->
+        locale = Gettext.get_locale(MazarynWeb.Gettext)
+        Routes.live_path(socket, MazarynWeb.UserLive.Profile, locale, username)
+    end
+  end
+
+  # Info handler helpers
+  defp handle_ipns_update(socket, post_id, ipns, type) do
+    if socket.assigns[:post] && to_string(socket.assigns.post.id) == to_string(post_id) do
+      if type == "scheduled" do
+        IO.puts("🎉 Received scheduled IPNS update for displayed post #{post_id}")
+      end
+      {:noreply, assign(socket, :ipns_id, ipns)}
+    else
+      {:noreply, socket}
+    end
+  end
+
+  defp handle_content_update(socket, type, id, content) do
+    comments = socket.assigns[:comments] || []
+
+    updated_comments = case type do
+      :comment -> CommentHandler.update_comment_content_in_list(comments, id, content)
+      :reply -> CommentHandler.update_reply_content_in_comments(comments, id, content)
+    end
+
+    if updated_comments != comments do
+      {:noreply, assign(socket, :comments, updated_comments)}
+    else
+      {:noreply, socket}
+    end
+  end
+
+  defp maybe_close_likes_modal(socket) do
+    if socket.assigns[:show_likes_modal] do
+      assign(socket, %{show_likes_modal: false, liked_users: [], likes_loading: false})
+    else
+      socket
+    end
+  end
+
+  # Post update helpers
   defp handle_valid_post_update(socket, post_id, new_content) do
     case PostClient.update_post(post_id, new_content) do
       :ok ->
@@ -604,39 +745,50 @@ defmodule MazarynWeb.HomeLive.PostComponent do
           ipns_id = IpnsManager.get_ipns_fast(post_id)
           send(self(), :reload_posts)
 
-          {:noreply,
-           socket
-           |> assign(:editing_post, false)
-           |> assign(:edit_post_id, nil)
-           |> assign(:ipns_id, ipns_id)}
+          {:noreply, assign(socket, %{editing_post: false, edit_post_id: nil, ipns_id: ipns_id})}
         catch
           _, e ->
             IO.puts("Error retrieving post after update: #{inspect(e)}")
-            {:noreply, socket |> assign(:editing_post, false) |> assign(:edit_post_id, nil)}
+            {:noreply, assign(socket, %{editing_post: false, edit_post_id: nil})}
         end
 
       error ->
         IO.puts("Error updating post: #{inspect(error)}")
-        {:noreply, socket |> put_flash(:error, "Failed to update post: #{inspect(error)}")}
+        {:noreply, put_flash(socket, :error, "Failed to update post: #{inspect(error)}")}
     end
   end
 
+  defp normalize_post_id(post_id) do
+    if is_binary(post_id), do: :erlang.binary_to_list(post_id), else: post_id
+  end
+
   defp update_follow_assigns(socket, user_id, username) do
-    socket
-    |> assign(:follow_event, follow_event(user_id, username))
-    |> assign(:follow_text, follow_text(user_id, username))
+    assign(socket, %{
+      follow_event: follow_event(user_id, username),
+      follow_text: follow_text(user_id, username)
+    })
   end
 
-  defp get_modal_assigns("report-post") do
-    %{like_action: false, report_action: true, edit_action: false, follower_action: false, follows_action: false}
+  # Modal helpers
+  defp get_modal_assigns(action) do
+    base_assigns = %{like_action: false, report_action: false, edit_action: false,
+                     follower_action: false, follows_action: false}
+
+    case action do
+      "report-post" -> %{base_assigns | report_action: true}
+      "like-post" -> %{base_assigns | like_action: true}
+      _ -> base_assigns
+    end
   end
 
-  defp get_modal_assigns("like-post") do
-    %{like_action: true, report_action: false, edit_action: false, follower_action: false, follows_action: false}
-  end
+  # =============================================================================
+  # CACHE MANAGEMENT
+  # =============================================================================
 
-  defp get_modal_assigns(_) do
-    %{like_action: false, report_action: false, edit_action: false, follower_action: false, follows_action: false}
+  defp ensure_cache_table do
+    unless :ets.whereis(@content_cache) != :undefined do
+      :ets.new(@content_cache, [:set, :public, :named_table, {:read_concurrency, true}])
+    end
   end
 
   defp get_post_content_optimized(post_id) do
@@ -644,8 +796,7 @@ defmodule MazarynWeb.HomeLive.PostComponent do
 
     case :ets.lookup(@content_cache, cache_key) do
       [{^cache_key, content, timestamp}] ->
-        age = :erlang.system_time(:second) - timestamp
-        if age < 600 do
+        if cache_valid?(timestamp, @cache_ttl.content) do
           IO.puts("📦 Content Cache HIT for post #{post_id}")
           content
         else
@@ -653,11 +804,9 @@ defmodule MazarynWeb.HomeLive.PostComponent do
           content
         end
       [] ->
-        case get_post_content_with_timeout(post_id, 800) do
+        case get_post_content_with_timeout(post_id, @timeouts.content) do
           {:ok, content} ->
-            cache_key = {:post_content, post_id}
-            timestamp = :erlang.system_time(:second)
-            :ets.insert(@content_cache, {cache_key, content, timestamp})
+            cache_content(cache_key, content)
             content
           _ ->
             "Content loading..."
@@ -665,19 +814,100 @@ defmodule MazarynWeb.HomeLive.PostComponent do
     end
   end
 
+  defp get_likes_count_cached(post_id) do
+    cache_key = {:likes_count, post_id}
+
+    case :ets.lookup(@content_cache, cache_key) do
+      [{^cache_key, count, timestamp}] ->
+        if cache_valid?(timestamp, @cache_ttl.likes) do
+          IO.puts("📦 Likes Cache HIT for post #{post_id}")
+          count
+        else
+          spawn_likes_refresh(post_id)
+          count
+        end
+      [] ->
+        case get_likes_count_with_timeout(post_id, @timeouts.likes) do
+          count when is_integer(count) ->
+            cache_likes_count(cache_key, count)
+            count
+          _ -> 0
+        end
+    end
+  end
+
+  defp cache_valid?(timestamp, ttl_seconds) do
+    age = :erlang.system_time(:second) - timestamp
+    age < ttl_seconds
+  end
+
+  defp cache_content(cache_key, content) do
+    timestamp = :erlang.system_time(:second)
+    :ets.insert(@content_cache, {cache_key, content, timestamp})
+  end
+
+  defp cache_likes_count(cache_key, count) do
+    timestamp = :erlang.system_time(:second)
+    :ets.insert(@content_cache, {cache_key, count, timestamp})
+  end
+
+  defp spawn_content_refresh(post_id) do
+    Task.start(fn ->
+      case get_post_content_with_timeout(post_id, @timeouts.post_update) do
+        {:ok, content} -> cache_content({:post_content, post_id}, content)
+        _ -> :ok
+      end
+    end)
+  end
+
+  defp spawn_likes_refresh(post_id) do
+    Task.start(fn ->
+      try do
+        count = get_likes_count(post_id)
+        cache_likes_count({:likes_count, post_id}, count)
+      rescue
+        _ -> :ok
+      end
+    end)
+  end
+
+  defp warm_likes_cache(recent_post_ids) do
+    Task.start(fn ->
+      recent_post_ids
+      |> Enum.take(10)
+      |> Enum.each(fn post_id ->
+        spawn_likes_refresh(post_id)
+        Process.sleep(100)
+      end)
+    end)
+  end
+
+  defp clear_content_cache(type, id) do
+    cache_key = {type, id}
+    :ets.delete(@content_cache, cache_key)
+  end
+
+  defp clear_all_cache_for_post(post_id) do
+    [:post, :ipns, :likes_count, :post_content]
+    |> Enum.each(&clear_content_cache(&1, post_id))
+    IpnsManager.clear_cache(post_id)
+  end
+
+  # =============================================================================
+  # DATA FETCHING WITH TIMEOUTS
+  # =============================================================================
+
   defp get_post_content_with_timeout(post_id, timeout) do
     task = Task.async(fn ->
       try do
         case Core.PostClient.get_post_content_by_id(post_id) do
-          content when is_binary(content) and content != "" ->
-            {:ok, content}
+          content when is_binary(content) and content != "" -> {:ok, content}
           content when is_list(content) ->
             case List.to_string(content) do
               "" -> {:ok, "No content available"}
               str -> {:ok, str}
             end
-          _ ->
-            {:ok, "No content available"}
+          _ -> {:ok, "No content available"}
         end
       catch
         type, reason ->
@@ -689,41 +919,6 @@ defmodule MazarynWeb.HomeLive.PostComponent do
     case Task.yield(task, timeout) || Task.shutdown(task) do
       {:ok, result} -> result
       nil -> {:timeout, "Timeout after #{timeout}ms"}
-    end
-  end
-
-  defp spawn_content_refresh(post_id) do
-    Task.start(fn ->
-      case get_post_content_with_timeout(post_id, 2000) do
-        {:ok, content} ->
-          cache_key = {:post_content, post_id}
-          timestamp = :erlang.system_time(:second)
-          :ets.insert(@content_cache, {cache_key, content, timestamp})
-        _ -> :ok
-      end
-    end)
-  end
-
-  defp get_likes_count_cached(post_id) do
-    cache_key = {:likes_count, post_id}
-
-    case :ets.lookup(@content_cache, cache_key) do
-      [{^cache_key, count, timestamp}] ->
-        age = :erlang.system_time(:second) - timestamp
-        if age < 300 do
-          IO.puts("📦 Likes Cache HIT for post #{post_id}")
-          count
-        else
-          spawn_likes_refresh(post_id)
-          count
-        end
-      [] ->
-        case get_likes_count_with_timeout(post_id, 300) do
-          count when is_integer(count) ->
-            :ets.insert(@content_cache, {cache_key, count, :erlang.system_time(:second)})
-            count
-          _ -> 0
-        end
     end
   end
 
@@ -748,28 +943,20 @@ defmodule MazarynWeb.HomeLive.PostComponent do
     end
   end
 
-  defp spawn_likes_refresh(post_id) do
-    Task.start(fn ->
-      try do
-        count = get_likes_count(post_id)
-        cache_key = {:likes_count, post_id}
-        :ets.insert(@content_cache, {cache_key, count, :erlang.system_time(:second)})
-      rescue
-        _ -> :ok
-      end
-    end)
+  defp await_with_fallback(task, timeout, fallback, task_name, post_id) do
+    case Task.yield(task, timeout) || Task.shutdown(task, :brutal_kill) do
+      {:ok, result} ->
+        IO.puts("✅ #{task_name} task completed for post #{post_id}")
+        result
+      nil ->
+        IO.puts("⚠️ #{task_name} task timeout (#{timeout}ms) for post #{post_id} - using fallback")
+        fallback
+    end
   end
 
-  defp warm_likes_cache(recent_post_ids) do
-    Task.start(fn ->
-      recent_post_ids
-      |> Enum.take(10)
-      |> Enum.each(fn post_id ->
-        spawn_likes_refresh(post_id)
-        Process.sleep(100)
-      end)
-    end)
-  end
+  # =============================================================================
+  # ASYNC OPERATIONS
+  # =============================================================================
 
   defp load_liked_users_async(post_id, parent_pid) do
     Task.start(fn ->
@@ -778,31 +965,9 @@ defmodule MazarynWeb.HomeLive.PostComponent do
 
         users = post_id_charlist
         |> PostClient.get_likes()
-        |> Enum.map(fn like ->
-          case Like.erl_changeset(like) |> Like.build() do
-            {:ok, like_struct} -> like_struct.user_id
-            _ -> nil
-          end
-        end)
+        |> Enum.map(&extract_user_from_like/1)
         |> Enum.filter(&(&1 != nil))
-        |> Enum.map(fn user_id ->
-          try do
-            user_tuple = Core.UserClient.get_user_by_id(user_id)
-            if tuple_size(user_tuple) >= 9 do
-              username = elem(user_tuple, 8)
-              username_str = if is_list(username), do: List.to_string(username), else: username
-
-              case Users.one_by_username(username_str) do
-                {:ok, user} -> user
-                _ -> nil
-              end
-            else
-              nil
-            end
-          rescue
-            _ -> nil
-          end
-        end)
+        |> Enum.map(&get_user_details/1)
         |> Enum.filter(&(&1 != nil))
 
         send(parent_pid, {:likes_fetched, users})
@@ -812,6 +977,36 @@ defmodule MazarynWeb.HomeLive.PostComponent do
     end)
   end
 
+  defp extract_user_from_like(like) do
+    case Like.erl_changeset(like) |> Like.build() do
+      {:ok, like_struct} -> like_struct.user_id
+      _ -> nil
+    end
+  end
+
+  defp get_user_details(user_id) do
+    try do
+      user_tuple = Core.UserClient.get_user_by_id(user_id)
+      if tuple_size(user_tuple) >= 9 do
+        username = elem(user_tuple, 8)
+        username_str = if is_list(username), do: List.to_string(username), else: username
+
+        case Users.one_by_username(username_str) do
+          {:ok, user} -> user
+          _ -> nil
+        end
+      else
+        nil
+      end
+    rescue
+      _ -> nil
+    end
+  end
+
+  # =============================================================================
+  # UTILITY FUNCTIONS
+  # =============================================================================
+
   defp find_user_like(post_id, user_id) do
     post_id
     |> PostClient.get_likes()
@@ -820,10 +1015,9 @@ defmodule MazarynWeb.HomeLive.PostComponent do
   end
 
   defp rebuild_post(post_id) do
-    {:ok, post} =
-      PostClient.get_by_id(post_id)
-      |> Mazaryn.Schema.Post.erl_changeset()
-      |> Mazaryn.Schema.Post.build()
+    {:ok, post} = PostClient.get_by_id(post_id)
+                  |> Mazaryn.Schema.Post.erl_changeset()
+                  |> Mazaryn.Schema.Post.build()
     post
   end
 
@@ -848,46 +1042,9 @@ defmodule MazarynWeb.HomeLive.PostComponent do
     end)
   end
 
-  defp await_with_fallback(task, timeout, fallback, task_name, post_id) do
-    case Task.yield(task, timeout) || Task.shutdown(task, :brutal_kill) do
-      {:ok, result} ->
-        IO.puts("✅ #{task_name} task completed for post #{post_id}")
-        result
-      nil ->
-        IO.puts("⚠️ #{task_name} task timeout (#{timeout}ms) for post #{post_id} - using fallback")
-        fallback
-    end
-  end
-
-  defp await_with_fallback_async(task, timeout, fallback, task_name, post_id) do
-    case Task.yield(task, timeout) do
-      {:ok, result} ->
-        IO.puts("✅ #{task_name} task completed quickly for post #{post_id}")
-        result
-      nil ->
-        IO.puts("⚡ #{task_name} continuing in background for post #{post_id} - using fallback")
-        fallback
-    end
-  end
-
-  defp clear_content_cache(type, id) do
-    cache_key = {type, id}
-    :ets.delete(@content_cache, cache_key)
-  end
-
-  defp clear_all_cache_for_post(post_id) do
-    clear_content_cache(:post, post_id)
-    clear_content_cache(:ipns, post_id)
-    clear_content_cache(:likes_count, post_id)
-    clear_content_cache(:post_content, post_id)
-    IpnsManager.clear_cache(post_id)
-  end
-
-  defp ensure_cache_table do
-    unless :ets.whereis(@content_cache) != :undefined do
-      :ets.new(@content_cache, [:set, :public, :named_table, {:read_concurrency, true}])
-    end
-  end
+  # =============================================================================
+  # USER INTERACTION HELPERS
+  # =============================================================================
 
   defp one_of_following?(id, username) do
     id
@@ -957,124 +1114,6 @@ defmodule MazarynWeb.HomeLive.PostComponent do
       _ -> false
     catch
       _, _ -> false
-    end
-  end
-
-  def get_image_url(post_id) do
-    cid = PostClient.get_media_cid(post_id)
-    Mazaryn.config([:media, :ipfs_gateway]) <> cid
-  end
-
-  def activate_content_characters(post, socket) do
-    process_start = :erlang.system_time(:millisecond)
-    IO.puts("📝 Starting content processing for post #{post.id}")
-
-    result = try do
-      content_str = get_processed_content(post)
-
-      if content_str == "" do
-        "No content available"
-      else
-        content_str
-        |> String.split()
-        |> Enum.map(&process_content_token(&1, socket))
-        |> Enum.join(" ")
-        |> Earmark.as_html!(compact_output: true)
-        |> apply_styles()
-      end
-    catch
-      type, reason ->
-        IO.puts("❌ Unexpected error in content processing: #{inspect({type, reason})}")
-        "Error processing content" |> Earmark.as_html!(compact_output: true) |> apply_styles()
-    end
-
-    process_end = :erlang.system_time(:millisecond)
-    IO.puts("📝 Content processing completed in #{process_end - process_start}ms")
-    result
-  end
-
-  defp get_processed_content(post) do
-    cond do
-      ipfs_content = Core.PostClient.get_post_content_by_id(post.id) ->
-        process_ipfs_content(ipfs_content)
-      true ->
-        process_post_content(post.content)
-    end
-  end
-
-  defp process_ipfs_content(ipfs_content) do
-    cond do
-      is_binary(ipfs_content) -> ipfs_content
-      is_list(ipfs_content) -> List.to_string(ipfs_content)
-      true -> "No content available"
-    end
-  end
-
-  defp process_post_content(content) do
-    case content do
-      content when is_binary(content) -> content
-      content when is_list(content) -> List.to_string(content)
-      _ -> "No content available"
-    end
-  end
-
-  defp process_content_token(token, socket) do
-    link_regex = ~r/([\w+]+\:\/\/)?([\w\d-]+\.)*[\w-]+[\.\:]\w+([\/\?\=\&\#\.]?[\w-]+)*\/?/
-
-    case {check_regex(token, ~r/@\S[a-zA-Z]*/), check_regex(token, ~r/#\S[a-zA-Z]*/), check_regex(token, link_regex)} do
-      {[[mention]], [], []} -> activate_mention_only(mention, socket)
-      {[], [[hashtag]], []} -> activate_hashtag_only(hashtag, socket)
-      {[], [], [[url | _rest]]} -> activate_url_only(url)
-      {[[mention]], [[hashtag]], [[url | _rest]]} ->
-        activate_mention_only(mention, socket)
-        activate_hashtag_only(hashtag, socket)
-        activate_url_only(url)
-      _ -> escape_char(token)
-    end
-  end
-
-  defp apply_styles(html) do
-    html
-    |> String.replace("<a", "<a class=\"text-blue-500\"")
-    |> String.replace("</a>", "</a>")
-  end
-
-  defp activate_hashtag_only(hashtag, socket) do
-    locale = Gettext.get_locale(MazarynWeb.Gettext)
-    path = Routes.live_path(socket, MazarynWeb.HashtagLive.Index, locale, hashtag)
-    markdown = "[\ #{hashtag}](#{path})"
-    String.replace(hashtag, hashtag, markdown)
-  end
-
-  defp activate_mention_only(mention, socket) do
-    path = mention |> String.replace("@", "") |> create_user_path(socket)
-    markdown = "[\ #{mention}](#{path})"
-    String.replace(mention, mention, markdown)
-  end
-
-  defp activate_url_only("http" <> _rest = url), do: url
-  defp activate_url_only(url) do
-    path = "https://#{url}"
-    "[\ #{url}](#{path})"
-  end
-
-  defp escape_char("#"), do: "\\#"
-  defp escape_char(con), do: con
-
-  defp check_regex(con, regex) do
-    cond do
-      con == "#" -> "#"
-      con == "@" -> "@"
-      true -> Regex.scan(regex, con)
-    end
-  end
-
-  defp create_user_path(username, socket) do
-    case Users.one_by_username(username) do
-      :ok -> "#"
-      {:ok, _user} ->
-        locale = Gettext.get_locale(MazarynWeb.Gettext)
-        Routes.live_path(socket, MazarynWeb.UserLive.Profile, locale, username)
     end
   end
 end
