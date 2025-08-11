@@ -20,6 +20,16 @@ defmodule MazarynWeb.Schema.User do
     field(:username, non_null(:string))
     field(:email, non_null(:string))
     field(:password, non_null(:string))
+    field(:password_confirmation, :string)
+    field(:accepts_conditions, :boolean, default_value: true)
+  end
+
+  input_object :signup_input do
+    field(:username, non_null(:string))
+    field(:email, non_null(:string))
+    field(:password, non_null(:string))
+    field(:password_confirmation, non_null(:string))
+    field(:accepts_conditions, :boolean, default_value: true)
   end
 
   input_object :login_input do

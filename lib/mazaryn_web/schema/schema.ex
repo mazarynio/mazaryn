@@ -7,15 +7,19 @@ defmodule MazarynWeb.Schema do
   alias Resolvers.PostResolver
   alias Resolvers.UserResolver
 
-
   mutation do
-    @desc "Create a user"
+    @desc "Create a user (simple)"
     field :create_user, :user do
       arg(:username, non_null(:string))
       arg(:password, non_null(:string))
       arg(:email, non_null(:string))
-
       resolve(&UserResolver.create_user/3)
+    end
+
+    @desc "Sign up a user (with validation)"
+    field :signup_user, :user do
+      arg(:input, non_null(:signup_input))
+      resolve(&UserResolver.signup_user/3)
     end
 
     @desc "Create a post"
@@ -26,10 +30,8 @@ defmodule MazarynWeb.Schema do
       arg(:hashtag, non_null(:string))
       arg(:mention, non_null(:string))
       arg(:link_url, non_null(:string))
-
       resolve(&PostResolver.create/3)
     end
-
   end
 
   query do
@@ -68,6 +70,5 @@ defmodule MazarynWeb.Schema do
     field :posts, list_of(:post) do
       resolve(&PostResolver.all/3)
     end
-
   end
 end

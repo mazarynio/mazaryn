@@ -47,30 +47,74 @@ defmodule Resolvers.UserResolver do
     password = args[:password]
     email = args[:email]
 
-    case Users.create_user(username, password, email) do
-      {:ok, user} -> {:ok, format_user(user)}
-      {:error, changeset} -> {:error, format_errors(changeset)}
+    changeset = Mazaryn.Signup.Form.changeset(%Mazaryn.Signup.Form{}, %{
+      username: username,
+      email: email,
+      password: password,
+      password_confirmation: password,
+      accepts_conditions: true
+    })
+
+    case Mazaryn.Signup.Form.create_user(changeset) do
+      {:ok, user} ->
+        {:ok, format_user(user)}
+
+      :username_and_email_existed ->
+        {:error, "Username or email already exists"}
+
+      {:error, changeset} ->
+        {:error, format_errors(changeset)}
+
+      %Ecto.Changeset{valid?: false} = invalid_changeset ->
+        {:error, format_errors(invalid_changeset)}
+    end
+  end
+
+  def signup_user(_parent, %{input: input}, _resolution) do
+    changeset = Mazaryn.Signup.Form.changeset(%Mazaryn.Signup.Form{}, %{
+      username: input.username,
+      email: input.email,
+      password: input.password,
+      password_confirmation: input.password_confirmation,
+      accepts_conditions: Map.get(input, :accepts_conditions, true)
+    })
+
+    case Mazaryn.Signup.Form.create_user(changeset) do
+      {:ok, user} ->
+        {:ok, format_user(user)}
+
+      :username_and_email_existed ->
+        {:error, "Username or email already exists"}
+
+      {:error, changeset} ->
+        {:error, format_errors(changeset)}
+
+      %Ecto.Changeset{valid?: false} = invalid_changeset ->
+        {:error, format_errors(invalid_changeset)}
     end
   end
 
   def find_user_by_id(_parent, %{id: id}, _resolution) do
     case Users.one_by_id(id) do
+      {:ok, user} -> {:ok, format_user(user)}
+      {:error, _reason} -> {:error, "User not found"}
       nil -> {:error, "User not found"}
-      user -> {:ok, format_user(user)}
     end
   end
 
   def find_user_by_username(_parent, %{username: username}, _resolution) do
     case Users.one_by_username(username) do
+      {:ok, user} -> {:ok, format_user(user)}
+      {:error, _reason} -> {:error, "User not found"}
       nil -> {:error, "User not found"}
-      user -> {:ok, format_user(user)}
     end
   end
 
   def find_user_by_email(_parent, %{email: email}, _resolution) do
     case Users.one_by_email(email) do
+      {:ok, user} -> {:ok, format_user(user)}
+      {:error, _reason} -> {:error, "User not found"}
       nil -> {:error, "User not found"}
-      user -> {:ok, format_user(user)}
     end
   end
 
@@ -79,11 +123,27 @@ defmodule Resolvers.UserResolver do
     username = args[:username]
     password = args[:password]
 
-    identifier = email || username
+    identifier = if email do
+      email
+    else
+      case Users.one_by_username(username) do
+        {:ok, user} -> user.email
+        _ -> username
+      end
+    end
 
-    case Users.authenticate_user(identifier, password) do
-      {:ok, user} -> {:ok, [format_user(user)]}
-      {:error, _reason} -> {:error, "Invalid credentials"}
+    case Core.UserClient.login(identifier, password) do
+      :logged_in ->
+        case Users.one_by_email(identifier) do
+          {:ok, user} -> {:ok, [format_user(user)]}
+          _ -> {:error, "User found but data retrieval failed"}
+        end
+
+      :wrong_username_or_password ->
+        {:error, "Invalid credentials"}
+
+      _other_error ->
+        {:error, "Login failed"}
     end
   end
 
