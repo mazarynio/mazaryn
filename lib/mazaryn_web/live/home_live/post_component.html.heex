@@ -1,7 +1,7 @@
 <div class="relative w-full bg-white dark:bg-gray-900 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100 dark:border-gray-700 pr-6 pl-6 pb-6 pt-6 mt-6 rounded-2xl">
   <div
-    x-data="{ open: false }"
-    x-on:click.outside="open = false"
+    x-data="{ open: false, tOpen: false }"
+    x-on:click.outside="open = false; tOpen = false"
     class="flex justify-between items-center"
   >
     <!-- User Info Section -->
@@ -55,9 +55,10 @@
       </div>
     </div>
 
+    <!-- 3-dots menu -->
     <div class="relative">
       <button 
-        @click="open = !open"
+        @click="open = !open; if (!open) tOpen = false"
         class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200 group"
       >
         <%= Heroicons.icon("ellipsis-vertical",
@@ -74,7 +75,7 @@
         x-transition:leave="transition ease-in duration-150"
         x-transition:leave-start="opacity-100 scale-100"
         x-transition:leave-end="opacity-0 scale-95"
-        class="absolute top-full right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 py-2 z-50"
+        class="absolute top-full right-0 mt-2 w-56 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 py-2 z-50"
         style="display: none;"
       >
         <%= if @post.author != @current_user.username  do %>
@@ -110,6 +111,54 @@
             </svg>
             <span>Report</span>
           </button>
+
+          <div class="border-t border-gray-200 dark:border-gray-700 my-2"></div>
+
+          <div class="px-3 pb-2">
+            <button
+              type="button"
+              @click="tOpen = !tOpen"
+              class="w-full flex items-center justify-between px-2 py-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+            >
+              <span class="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center space-x-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5h12M9 3v2m-6 6h6m2 0h8m-8 6h8m-8 0H5m14-6v10" />
+                </svg>
+                <span>Translate</span>
+              </span>
+              <svg x-show="!tOpen" class="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+              </svg>
+              <svg x-show="tOpen" class="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="display:none">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
+              </svg>
+            </button>
+            <div x-show="tOpen" x-transition class="mt-2 grid grid-cols-4 gap-2">
+              <%= for lang <- (assigns[:supported_translation_langs] || ["ru","it","es","az"]) do %>
+                <button
+                  class={"px-2 py-1.5 rounded-lg text-xs font-medium border transition-all #{if @translated_lang == lang, do: "bg-blue-600 text-white border-blue-600 shadow", else: "text-gray-700 dark:text-gray-200 border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700"}"}
+                  phx-click="translate-post"
+                  phx-value-post-id={@post.id}
+                  phx-value-target={lang}
+                  phx-target={@myself}
+                  @click="open = false; tOpen = false"
+                >
+                  <%= String.upcase(lang) %>
+                </button>
+              <% end %>
+            </div>
+
+            <%= if @translated_text do %>
+              <button
+                class="mt-2 w-full text-left px-2 py-2 text-xs text-gray-600 dark:text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                phx-click="clear-translation"
+                phx-target={@myself}
+                @click="open = false; tOpen = false"
+              >
+                Clear translation
+              </button>
+            <% end %>
+          </div>
         <% else %>
           <button
             class="w-full text-left px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-green-50 dark:hover:bg-green-900/20 hover:text-green-600 dark:hover:text-green-400 transition-colors duration-200 flex items-center space-x-3"
@@ -136,8 +185,57 @@
             </svg>
             <span>Delete</span>
           </button>
+
+          <div class="border-t border-gray-200 dark:border-gray-700 my-2"></div>
+
+          <div class="px-3 pb-2">
+            <button
+              type="button"
+              @click="tOpen = !tOpen"
+              class="w-full flex items-center justify-between px-2 py-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+            >
+              <span class="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center space-x-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5h12M9 3v2m-6 6h6m2 0h8m-8 6h8m-8 0H5m14-6v10" />
+                </svg>
+                <span>Translate</span>
+              </span>
+              <svg x-show="!tOpen" class="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+              </svg>
+              <svg x-show="tOpen" class="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="display:none">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
+              </svg>
+            </button>
+
+            <div x-show="tOpen" x-transition class="mt-2 grid grid-cols-4 gap-2">
+              <%= for lang <- (assigns[:supported_translation_langs] || ["ru","it","es","az"]) do %>
+                <button
+                  class={"px-2 py-1.5 rounded-lg text-xs font-medium border transition-all #{if @translated_lang == lang, do: "bg-blue-600 text-white border-blue-600 shadow", else: "text-gray-700 dark:text-gray-200 border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700"}"}
+                  phx-click="translate-post"
+                  phx-value-post-id={@post.id}
+                  phx-value-target={lang}
+                  phx-target={@myself}
+                  @click="open = false; tOpen = false"
+                >
+                  <%= String.upcase(lang) %>
+                </button>
+              <% end %>
+            </div>
+
+            <%= if @translated_text do %>
+              <button
+                class="mt-2 w-full text-left px-2 py-2 text-xs text-gray-600 dark:text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                phx-click="clear-translation"
+                phx-target={@myself}
+                @click="open = false; tOpen = false"
+              >
+                Clear translation
+              </button>
+            <% end %>
+          </div>
         <% end %>
-        
+
         <%= if @ipns_id do %>
           <div class="border-t border-gray-200 dark:border-gray-600 my-2"></div>
           <a 
@@ -145,7 +243,7 @@
             target="_blank" 
             rel="noopener noreferrer"
             class="w-full text-left px-4 py-3 text-sm text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors duration-200 flex items-center space-x-3"
-            @click="open = false"
+            @click="open = false; tOpen = false"
           >
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
@@ -191,6 +289,51 @@
     </div>
   <% else %>
     <div class="mt-4">
+
+      <%= if @translated_text do %>
+        <div class="mb-4 rounded-2xl border border-blue-200 dark:border-blue-900/40 bg-blue-50/60 dark:bg-blue-900/10 p-4 shadow-sm">
+          <div class="flex items-start justify-between">
+            <div class="flex items-center space-x-2">
+              <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-200">
+                <%= String.upcase(@translated_lang || "EN") %>
+              </span>
+              <span class="text-xs text-blue-700/80 dark:text-blue-200/80">
+                Translated from EN → <%= String.upcase(@translated_lang || "") %>
+              </span>
+            </div>
+            <div class="flex items-center space-x-2">
+              <div class="hidden sm:flex items-center space-x-1">
+                <%= for lang <- (assigns[:supported_translation_langs] || ["ru","it","es","az"]) do %>
+                  <button
+                    class={"px-2 py-1 rounded-md text-[10px] font-medium border transition-all #{if @translated_lang == lang, do: "bg-white dark:bg-blue-900/30 text-blue-700 dark:text-blue-200 border-blue-300 dark:border-blue-800 shadow", else: "text-blue-700/80 dark:text-blue-200/80 border-blue-200 dark:border-blue-800 hover:bg-white hover:shadow"}"}
+                    phx-click="translate-post"
+                    phx-value-post-id={@post.id}
+                    phx-value-target={lang}
+                    phx-target={@myself}
+                    title={"Translate to #{String.upcase(lang)}"}
+                  >
+                    <%= String.upcase(lang) %>
+                  </button>
+                <% end %>
+              </div>
+              <button
+                class="ml-2 inline-flex items-center px-2.5 py-1.5 rounded-md text-xs font-medium bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition"
+                phx-click="clear-translation"
+                phx-target={@myself}
+                title="Clear translation"
+              >
+                Clear
+              </button>
+            </div>
+          </div>
+          <div class="mt-3">
+            <p class="text-gray-900 dark:text-gray-100 leading-relaxed">
+              <%= @translated_text %>
+            </p>
+          </div>
+        </div>
+      <% end %>
+
       <p class="text-gray-900 dark:text-white text-base leading-relaxed">
         <%= raw(@post |> activate_content_characters(@socket)) %>
         <span class="text-blue-600 dark:text-blue-400 text-sm font-medium ml-2"><%= Enum.join(@post.profile_tags, " ") %></span>

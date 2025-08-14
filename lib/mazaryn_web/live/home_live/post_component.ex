@@ -9,8 +9,12 @@ defmodule MazarynWeb.HomeLive.PostComponent do
   alias Phoenix.LiveView.JS
   alias MazarynWeb.HomeLive.{CommentHandler, IpnsManager}
   alias Home.Like
+  alias Mazaryn.Translator
+  alias Mazaryn.Translator.Cache, as: TranslatorCache
 
-  # Configuration constants
+  @supported_translation_langs Translator.supported_targets()
+  @default_src_lang Translator.default_src()
+
   @content_cache :post_content_cache
   @batch_size 5
   @cache_ttl %{content: 600, likes: 300, ipns: 300}
@@ -19,6 +23,248 @@ defmodule MazarynWeb.HomeLive.PostComponent do
   # =============================================================================
   # LIFECYCLE CALLBACKS
   # =============================================================================
+
+  def handle_event("translate-post", %{"post-id" => post_id, "target" => target}, socket) do
+    post = socket.assigns.post
+    post_id = normalize_post_id(post_id)
+
+  with true <- target in @supported_translation_langs,
+       {:ok, content} <- select_post_plaintext(socket, post_id, post),
+       {:ok, translated} <- translate_with_cache(post_id, content, target) do
+    {:noreply, assign(socket, translated_text: translated, translated_lang: target)}
+  else
+    false ->
+      {:noreply, put_flash(socket, :error, "Unsupported language")}
+    {:error, :no_content} ->
+      {:noreply, put_flash(socket, :error, "Nothing to translate")}
+    {:error, :translator_failed} ->
+      {:noreply, put_flash(socket, :error, "Translation failed")}
+    {:error, reason} ->
+      {:noreply, put_flash(socket, :error, "Translation error: #{inspect(reason)}")}
+  end
+end
+
+def handle_event("clear-translation", _params, socket) do
+  {:noreply, assign(socket, translated_text: nil, translated_lang: nil)}
+end
+
+defp select_post_plaintext(socket, post_id, post) do
+  case Map.get(socket.assigns, :post_content_cached) do
+    bin when is_binary(bin) ->
+      trimmed = String.trim(bin)
+      if trimmed != "", do: {:ok, trimmed}, else: try_all_backends(post_id, post)
+    _ ->
+      try_all_backends(post_id, post)
+  end
+end
+
+defp try_all_backends(post_id, post) do
+  case get_post_content_with_timeout(post_id, 800) do
+    {:ok, content} when is_binary(content) ->
+      trimmed = String.trim(content)
+      if trimmed != "", do: {:ok, trimmed}, else: do_fallbacks(post)
+    {:ok, list} when is_list(list) ->
+      trimmed = list |> List.to_string() |> String.trim()
+      if trimmed != "", do: {:ok, trimmed}, else: do_fallbacks(post)
+    _ ->
+      do_fallbacks(post)
+  end
+end
+
+defp do_fallbacks(post) do
+  content_from_author =
+    if function_exported?(Core.PostClient, :get_post_content_by_author, 1) do
+      safe_to_bin(Core.PostClient.get_post_content_by_author(to_charlist(post.author)))
+    else
+      nil
+    end
+
+  cond do
+    is_present?(content_from_author) ->
+      {:ok, content_from_author}
+
+    function_exported?(:post_server, :get_posts_content_by_author, 1) ->
+      case :post_server.get_posts_content_by_author(String.to_charlist(post.author)) do
+        bin when is_binary(bin) ->
+          trim_non_empty(bin)
+        list when is_list(list) ->
+          list
+          |> Enum.map(&safe_to_bin/1)
+          |> Enum.find(&is_present?/1)
+          |> case do
+            nil -> {:error, :no_content}
+            good -> {:ok, good}
+          end
+        other ->
+          trim_non_empty(other)
+      end
+
+    function_exported?(:post_server, :get_posts_content_by_user_id, 1) and Map.get(post, :author_id) ->
+      case :post_server.get_posts_content_by_user_id(post.author_id) do
+        bin when is_binary(bin) -> trim_non_empty(bin)
+        list when is_list(list) ->
+          list
+          |> Enum.map(&safe_to_bin/1)
+          |> Enum.find(&is_present?/1)
+          |> case do
+            nil -> {:error, :no_content}
+            good -> {:ok, good}
+          end
+        other -> trim_non_empty(other)
+      end
+
+    true ->
+      {:error, :no_content}
+  end
+end
+
+defp trim_non_empty(val) do
+  val = safe_to_bin(val) |> String.trim()
+  if val == "", do: {:error, :no_content}, else: {:ok, val}
+end
+
+defp safe_to_bin(nil), do: ""
+defp safe_to_bin(bin) when is_binary(bin), do: bin
+defp safe_to_bin(list) when is_list(list), do: List.to_string(list)
+defp safe_to_bin(other), do: to_string(other)
+
+defp is_present?(str) when is_binary(str), do: String.trim(str) != ""
+defp is_present?(_), do: false
+
+defp translate_with_cache(post_id, text, target) do
+  key_id =
+    case post_id do
+      b when is_binary(b) -> b
+      l when is_list(l) -> List.to_string(l)
+      other -> to_string(other)
+    end
+
+  case TranslatorCache.get(key_id, target) do
+    {:hit, cached} when is_binary(cached) and cached != "" ->
+      {:ok, cached}
+
+    _miss ->
+      case Translator.translate(text, @default_src_lang, target) do
+        {:ok, translated} ->
+          final = String.trim(translated)
+          if final != "" do
+            :ok = TranslatorCache.put(key_id, target, final)
+            {:ok, final}
+          else
+            {:error, :translator_failed}
+          end
+
+        {:error, reason} ->
+          {:error, reason}
+      end
+  end
+end
+
+
+defp fetch_post_plaintext(post_id) do
+  case get_post_content_with_timeout(post_id, 800) do
+    {:ok, content} when is_binary(content) ->
+      trimmed = String.trim(content)
+      if trimmed != "" do
+        {:ok, trimmed}
+      else
+        {:error, :no_content}
+      end
+
+    {:ok, _other} ->
+      {:error, :no_content}
+
+    {:timeout, _} ->
+      {:error, :timeout}
+
+    {:error, _} ->
+      {:error, :fetch_failed}
+  end
+end
+
+  def handle_event("translate-post", %{"post-id" => post_id, "target" => target}, socket) do
+    post_id = normalize_post_id(post_id)
+
+    with true <- target in @supported_translation_langs,
+         {:ok, content} <- fetch_post_plaintext(post_id),
+         {:ok, translated} <- translate_with_cache(post_id, content, target) do
+      {:noreply, assign(socket, translated_text: translated, translated_lang: target)}
+    else
+      false ->
+        {:noreply, socket |> put_flash(:error, "Unsupported language")}
+      {:error, :no_content} ->
+        {:noreply, socket |> put_flash(:error, "Nothing to translate")}
+      {:error, :translator_failed} ->
+        {:noreply, socket |> put_flash(:error, "Translation failed")}
+      _ ->
+        {:noreply, socket |> put_flash(:error, "Translation error")}
+    end
+  end
+
+  def handle_event("clear-translation", _params, socket) do
+    {:noreply, assign(socket, translated_text: nil, translated_lang: nil)}
+  end
+
+  defp translate_with_cache(post_id, text, target) do
+    case TranslatorCache.get(post_id, target) do
+      {:hit, cached} when is_binary(cached) and cached != "" ->
+        {:ok, cached}
+
+      _miss ->
+        case Translator.translate(text, @default_src_lang, target) do
+          {:ok, translated} ->
+            final = translated |> to_string() |> String.trim()
+            if final != "" do
+              :ok = TranslatorCache.put(post_id, target, final)
+              {:ok, final}
+            else
+              {:error, :translator_failed}
+            end
+
+          {:error, _} ->
+            {:error, :translator_failed}
+        end
+    end
+  end
+
+
+    defp assign_default_state(socket) do
+    default_assigns = %{
+      uploaded_files: [],
+      editing_post: false,
+      editing_comment: false,
+      editing_comment_id: nil,
+      reply_comment: false,
+      replying_to_comment_id: nil,
+      ipns_id: nil,
+      show_likes_modal: false,
+      liked_users: [],
+      likes_loading: false,
+      translated_text: nil,
+      translated_lang: nil,
+      supported_translation_langs: @supported_translation_langs
+    }
+
+    assign(socket, default_assigns)
+  end
+
+      defp build_final_assigns(assigns, results, changesets) do
+    base_assigns = %{
+      follow_event: follow_event(assigns.current_user.id, assigns.post.author),
+      follow_text: follow_text(assigns.current_user.id, assigns.post.author),
+      like_icon: like_icon(assigns.current_user.id, assigns.post.id),
+      like_event: like_event(assigns.current_user.id, assigns.post.id),
+      report_action: false,
+      like_action: false,
+      is_liked: false,
+      supported_translation_langs: @supported_translation_langs
+    }
+
+    assigns
+    |> Map.merge(base_assigns)
+    |> Map.merge(results)
+    |> Map.merge(changesets)
+  end
 
   @impl true
   def mount(socket) do
