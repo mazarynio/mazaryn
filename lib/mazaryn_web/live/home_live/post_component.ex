@@ -478,6 +478,23 @@ defmodule MazarynWeb.HomeLive.PostComponent do
     end
   end
 
+  def handle_event("reply_comment_content", params, socket) do
+    user_id = socket.assigns.current_user.id
+    comments = socket.assigns.comments || []
+
+    case CommentHandler.handle_reply_comment_content(params, user_id, comments) do
+      {:ok, result} ->
+        {:noreply,
+         socket
+         |> assign(:comments, result.comments)
+         |> assign(:reply_comment, result.reply_comment)
+         |> assign(:replying_to_comment_id, result.replying_to_comment_id)}
+
+      {:error, %{flash: {type, msg}}} ->
+        {:noreply, put_flash(socket, type, msg)}
+    end
+  end
+
   for action <- ~w(delete-comment delete-reply show-comments) do
     def handle_event(unquote(action), params, socket) do
       handle_comment_crud(socket, unquote(action), params)
