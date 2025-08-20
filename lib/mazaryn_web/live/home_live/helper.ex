@@ -54,9 +54,7 @@ defmodule MazarynWeb.HomeLive.PostComponent.Helper do
     username =
       try do
         case Core.UserClient.get_user_by_id(String.to_charlist(user_id)) do
-          tuple when is_tuple(tuple) and tuple_size(tuple) >= 9 ->
-            elem(tuple, 8) |> to_string()
-
+          tuple when is_tuple(tuple) and tuple_size(tuple) >= 9 -> elem(tuple, 8) |> to_string()
           other ->
             IO.puts("⚠️ get_user_by_id unexpected shape for #{user_id}: #{inspect(other)}")
             user_id
@@ -68,18 +66,10 @@ defmodule MazarynWeb.HomeLive.PostComponent.Helper do
       end
 
     case Users.one_by_username(username) do
-      {:ok, user} ->
-        user
-
+      {:ok, user} -> user
       miss ->
         IO.puts("ℹ️ No DB record for #{username} (#{inspect(miss)}), using lightweight map")
-        %{
-          username: username,
-          verified: false,
-          level: nil,
-          country: nil,
-          bio: nil
-        }
+        %{username: username, verified: false, level: nil, country: nil, bio: nil}
     end
   end
 
@@ -253,20 +243,27 @@ defmodule MazarynWeb.HomeLive.PostComponent.Helper do
   end
 
   defp activate_hashtag_only(hashtag, socket) do
+    tag =
+      hashtag
+      |> String.trim_leading("#")
+      |> String.downcase()
+
     locale = Gettext.get_locale(MazarynWeb.Gettext)
-    path = Routes.live_path(socket, MazarynWeb.HashtagLive.Index, locale, hashtag)
-    "[\\ #{hashtag}](#{path})"
+    path = Routes.live_path(socket, MazarynWeb.HashtagLive.Index, locale, tag)
+
+    "[##{tag}](#{path})"
   end
 
   defp activate_mention_only(mention, socket) do
-    path = mention |> String.replace("@", "") |> create_user_path(socket)
-    "[\\ #{mention}](#{path})"
+    username = String.trim_leading(mention, "@")
+    path = create_user_path(username, socket)
+    "[@#{username}](#{path})"
   end
 
-  defp activate_url_only("http" <> _rest = url), do: url
-  defp activate_url_only(url), do: "[\\ #{url}](https://#{url})"
+  defp activate_url_only("http" <> _ = url), do: "[#{url}](#{url})"
+  defp activate_url_only(url), do: "[#{url}](https://#{url})"
 
-  defp escape_char("#"), do: "\\#"
+  defp escape_char("#"), do: "#"
   defp escape_char(con), do: con
 
   defp check_regex(con, regex) do
@@ -299,13 +296,10 @@ defmodule MazarynWeb.HomeLive.PostComponent.Helper do
           case List.to_string(cid) do
             str when byte_size(str) > 0 ->
               String.starts_with?(str, "Qm") and String.length(str) == 46
-
-            _ ->
-              false
+            _ -> false
           end
 
-        _ ->
-          false
+        _ -> false
       end
     rescue
       _ -> false
@@ -520,7 +514,7 @@ defmodule MazarynWeb.HomeLive.PostComponent.Helper do
   defp cache_valid?(timestamp, ttl_seconds) do
     age = :erlang.system_time(:second) - timestamp
     age < ttl_seconds
-  end
+ end
 
   defp cache_content(cache_key, content) do
     timestamp = :erlang.system_time(:second)

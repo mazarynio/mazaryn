@@ -2,6 +2,7 @@ defmodule MazarynWeb.HomeLive.PostComponent do
   use MazarynWeb, :live_component
 
   import MazarynWeb.Live.Helper
+  alias MazarynWeb.Router.Helpers, as: Routes
 
   alias Account.Users
   alias Core.{UserClient, PostClient}
@@ -395,23 +396,12 @@ defmodule MazarynWeb.HomeLive.PostComponent do
 
   defp handle_comment_error(socket, reason) do
     case reason do
-      :missing_post_id ->
-        put_flash(socket, :error, "Missing post ID")
-
-      :missing_author ->
-        put_flash(socket, :error, "Missing author")
-
-      {:validation, changeset} ->
-        assign(socket, :changeset, changeset)
-
-      {:changeset, changeset} ->
-        assign(socket, :changeset, changeset)
-
-      :invalid_params ->
-        put_flash(socket, :error, "Invalid form data")
-
-      other ->
-        put_flash(socket, :error, "Failed to save comment: #{inspect(other)}")
+      :missing_post_id -> put_flash(socket, :error, "Missing post ID")
+      :missing_author -> put_flash(socket, :error, "Missing author")
+      {:validation, changeset} -> assign(socket, :changeset, changeset)
+      {:changeset, changeset} -> assign(socket, :changeset, changeset)
+      :invalid_params -> put_flash(socket, :error, "Invalid form data")
+      other -> put_flash(socket, :error, "Failed to save comment: #{inspect(other)}")
     end
   end
 
