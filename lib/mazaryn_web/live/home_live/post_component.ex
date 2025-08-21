@@ -154,14 +154,14 @@ defmodule MazarynWeb.HomeLive.PostComponent do
     {:noreply, assign(socket, translated_text: nil, translated_lang: nil)}
   end
 
-  defp select_post_plaintext(socket, post_id, post) do
+  defp select_post_plaintext(socket, _post_id, post) do
     case Map.get(socket.assigns, :post_content_cached) do
       bin when is_binary(bin) ->
         trimmed = String.trim(bin)
-        if trimmed != "", do: {:ok, trimmed}, else: try_all_backends(post_id, post)
+        if trimmed != "", do: {:ok, trimmed}, else: try_all_backends(post.id, post)
 
       _ ->
-        try_all_backends(post_id, post)
+        try_all_backends(post.id, post)
     end
   end
 
@@ -326,7 +326,11 @@ defmodule MazarynWeb.HomeLive.PostComponent do
       case PostClient.update_post(post_id, post_params["content"]) do
         :ok ->
           clear_all_cache_for_post(post_id)
+
           ipns_id = IpnsManager.get_ipns_fast(post_id)
+
+          IpnsManager.ensure_ipns(post_id)
+
           send(self(), :reload_posts)
           {:noreply, assign(socket, %{editing_post: false, edit_post_id: nil, ipns_id: ipns_id})}
 
