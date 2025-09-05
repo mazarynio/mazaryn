@@ -17,13 +17,15 @@ defmodule MazarynWeb.UserLive.Profile do
 
   @user_cache_ttl 60_000
   @follow_cache_ttl 30_000
-  @posts_cache_ttl 45_000
+  @posts_cache_ttl 15_000
   @search_cache_ttl 120_000
 
   @max_posts_per_page 20
   @max_concurrent_tasks 10
-  @task_timeout 5_000
+  @task_timeout 3_000
   @search_debounce_ms 300
+
+  @fallback_posts_timeout 2_000
 
   @spec init_cache_tables() :: :ok
   defp init_cache_tables do
@@ -54,10 +56,10 @@ defmodule MazarynWeb.UserLive.Profile do
       socket =
         socket
         |> assign_base_data(session_uuid, current_user, user, post_changeset, user_changeset, privacy)
-        |> assign_loading_states()
+        |> assign_optimistic_states()
         |> assign_follow_data_optimistic(current_user.id, user.id)
 
-      schedule_async_operations(username, current_user.id, user.id)
+      load_posts_with_fallback(username, current_user.id, user.id)
 
       {:ok, socket}
     else
@@ -89,7 +91,7 @@ defmodule MazarynWeb.UserLive.Profile do
           socket
           |> assign(session_uuid: session_uuid)
           |> assign(posts: [])
-          |> assign(posts_loading: true)
+          |> assign(posts_loading: false)
           |> assign(post_changeset: post_changeset)
           |> assign(user_changeset: user_changeset)
           |> assign(current_user: current_user)
@@ -97,7 +99,7 @@ defmodule MazarynWeb.UserLive.Profile do
           |> assign(page: 1)
           |> assign(has_more_posts: true)
 
-        schedule_async_operations(current_user.username, current_user.id, current_user.id)
+        load_posts_with_fallback(current_user.username, current_user.id, current_user.id)
         {:ok, socket}
 
       {:error, reason} ->
@@ -129,12 +131,13 @@ defmodule MazarynWeb.UserLive.Profile do
           |> assign(search: nil)
           |> assign(current_user: current_user)
           |> assign(posts: [])
-          |> assign(posts_loading: true)
+          |> assign(posts_loading: false)
           |> assign(page: 1)
           |> assign(has_more_posts: true)
           |> assign_follow_data_optimistic(current_user.id, user.id)
 
-        schedule_async_operations(username, current_user.id, user.id)
+
+        load_posts_with_fallback(username, current_user.id, user.id)
         {:noreply, socket}
 
       {:error, _} = error ->
@@ -169,7 +172,86 @@ defmodule MazarynWeb.UserLive.Profile do
     {:noreply, socket}
   end
 
+  defp load_posts_with_fallback(username, current_user_id, target_user_id) do
+    send(self(), {:load_cached_posts, username, 1})
+
+    Process.send_after(self(), {:load_fresh_posts, username, 1}, 10)
+
+    Process.send_after(self(), {:load_follow_data, current_user_id, target_user_id}, 15)
+
+    Process.send_after(self(), {:posts_fallback_timeout, username}, @fallback_posts_timeout)
+  end
+
   @impl true
+  def handle_info({:load_cached_posts, username, page}, socket) do
+    Logger.info("📚 Loading cached posts for #{username}, page #{page}")
+
+    case get_posts_cached_only(username, page, @max_posts_per_page) do
+      {posts, has_more} when length(posts) > 0 ->
+        Logger.info("📦 Found #{length(posts)} cached posts")
+        {:noreply, assign(socket, posts: posts, has_more_posts: has_more, page: page)}
+      _ ->
+        Logger.info("📦 No cached posts found, will wait for fresh load")
+        {:noreply, socket}
+    end
+  end
+
+  def handle_info({:load_fresh_posts, username, page}, socket) do
+    load_start = :erlang.system_time(:millisecond)
+    Logger.info("📚 Starting fresh load_posts for #{username}, page #{page}")
+
+    task = Task.async(fn ->
+      try do
+        get_posts_fresh(username, page, @max_posts_per_page)
+      rescue
+        error ->
+          Logger.error("Error in load_fresh_posts task: #{inspect(error)}")
+          case get_posts_cached_only(username, page, @max_posts_per_page) do
+            {cached_posts, cached_has_more} when length(cached_posts) > 0 ->
+              {cached_posts, cached_has_more}
+            _ ->
+              {[], false}
+          end
+      end
+    end)
+
+    {posts, has_more} = case Task.yield(task, @task_timeout) do
+      {:ok, result} ->
+        Logger.info("📚 Successfully loaded fresh posts for #{username}")
+        result
+      nil ->
+        Logger.warn("⏰ Timeout loading fresh posts for #{username}, using cached data")
+        Task.shutdown(task, :brutal_kill)
+        case get_posts_cached_only(username, page, @max_posts_per_page) do
+          {cached_posts, cached_has_more} when length(cached_posts) > 0 ->
+            {cached_posts, cached_has_more}
+          _ ->
+            {[], false}
+        end
+    end
+
+    all_posts = if page == 1 do
+      posts
+    else
+      current_posts = socket.assigns.posts || []
+      current_posts ++ posts
+    end
+
+    load_end = :erlang.system_time(:millisecond)
+    Logger.info("📚 Fresh load_posts completed in #{load_end - load_start}ms with #{length(all_posts)} total posts")
+
+    {:noreply, assign(socket, posts: all_posts, posts_loading: false, has_more_posts: has_more, page: page)}
+  end
+
+  def handle_info({:posts_fallback_timeout, username}, socket) do
+    if socket.assigns.posts_loading do
+      Logger.info("⏰ Posts fallback timeout for #{username}, showing empty state")
+      {:noreply, assign(socket, posts: [], posts_loading: false, has_more_posts: true)}
+    else
+      {:noreply, socket}
+    end
+  end
+
   def handle_info({:load_posts, username, page}, socket) do
     load_start = :erlang.system_time(:millisecond)
     Logger.info("📚 Starting async load_posts for #{username}, page #{page}")
@@ -212,7 +294,7 @@ defmodule MazarynWeb.UserLive.Profile do
     next_page = socket.assigns.page + 1
 
     socket = assign(socket, posts_loading: true)
-    Process.send_after(self(), {:load_posts, current_user.username, next_page}, 50)
+    send(self(), {:load_posts, current_user.username, next_page})
     {:noreply, socket}
   end
 
@@ -223,8 +305,21 @@ defmodule MazarynWeb.UserLive.Profile do
     end
 
     clear_posts_cache(username)
-    socket = assign(socket, posts: [], posts_loading: true, page: 1, has_more_posts: true)
-    Process.send_after(self(), {:load_posts, username, 1}, 50)
+    socket = assign(socket, posts: [], posts_loading: false, page: 1, has_more_posts: true)
+
+    load_posts_with_fallback(username, socket.assigns.current_user.id,
+                            (socket.assigns[:user] || socket.assigns.current_user).id)
+    {:noreply, socket}
+  end
+
+  def handle_info({:refresh_posts_cache, username}, socket) do
+    Logger.info("🔄 Refreshing posts cache for #{username}")
+    clear_posts_cache(username)
+
+    current_user_id = socket.assigns.current_user.id
+    target_user_id = (socket.assigns[:user] || socket.assigns.current_user).id
+
+    load_posts_with_fallback(username, current_user_id, target_user_id)
     {:noreply, socket}
   end
 
@@ -357,6 +452,32 @@ defmodule MazarynWeb.UserLive.Profile do
     end
   end
 
+  defp get_posts_cached_only(username, page, limit) do
+    cache_key = {:posts, username, page}
+    current_time = :erlang.system_time(:millisecond)
+
+    case safe_ets_lookup(:posts_cache, cache_key) do
+      [{_, {posts, has_more}, timestamp}] when current_time - timestamp < @posts_cache_ttl * 3 ->
+        Logger.info("📦 Posts Cache (only) HIT for #{username} page #{page}")
+        {posts, has_more}
+      _ ->
+        Logger.info("📦 No cached posts for #{username} page #{page}")
+        {[], false}
+    end
+  end
+
+  defp get_posts_fresh(username, page, limit) do
+    cache_key = {:posts, username, page}
+    current_time = :erlang.system_time(:millisecond)
+
+    result = fetch_posts_from_source(username, page, limit)
+
+    safe_ets_insert(:posts_cache, {cache_key, result, current_time})
+    Logger.info("📦 Cached fresh posts for #{username} page #{page}")
+
+    result
+  end
+
   defp get_follow_data_cached(user_id, target_id) do
     followers_count = followers_cached(user_id)
     followings_count = followings_cached(user_id)
@@ -407,6 +528,12 @@ defmodule MazarynWeb.UserLive.Profile do
   end
 
   defp fetch_and_cache_posts(username, page, limit, cache_key, current_time) do
+    result = fetch_posts_from_source(username, page, limit)
+    safe_ets_insert(:posts_cache, {cache_key, result, current_time})
+    result
+  end
+
+  defp fetch_posts_from_source(username, page, limit) do
     try do
       all_posts = Posts.get_posts_by_author(username)
 
@@ -419,9 +546,7 @@ defmodule MazarynWeb.UserLive.Profile do
 
       has_more = offset + limit < total_posts
 
-      result = {posts, has_more}
-      safe_ets_insert(:posts_cache, {cache_key, result, current_time})
-      result
+      {posts, has_more}
     rescue
       error ->
         Logger.error("Error fetching posts for #{username}: #{inspect(error)}")
@@ -582,14 +707,19 @@ defmodule MazarynWeb.UserLive.Profile do
   defp clear_posts_cache(username) do
     try do
       :ets.match_delete(:posts_cache, {{:posts, username, :_}, :_, :_})
+      Logger.info("🗑️ Cleared posts cache for #{username}")
     rescue
       ArgumentError -> :ok
     end
   end
 
-  defp schedule_async_operations(username, current_user_id, target_user_id) do
-    Process.send_after(self(), {:load_posts, username, 1}, 10)
-    Process.send_after(self(), {:load_follow_data, current_user_id, target_user_id}, 20)
+  defp clear_all_posts_cache do
+    try do
+      :ets.match_delete(:posts_cache, {{:posts, :_, :_}, :_, :_})
+      Logger.info("🗑️ Cleared all posts cache")
+    rescue
+      ArgumentError -> :ok
+    end
   end
 
   defp assign_base_data(socket, session_uuid, current_user, user, post_changeset, user_changeset, privacy) do
@@ -613,10 +743,10 @@ defmodule MazarynWeb.UserLive.Profile do
     |> assign(has_more_posts: true)
   end
 
-  defp assign_loading_states(socket) do
+  defp assign_optimistic_states(socket) do
     socket
     |> assign(posts: [])
-    |> assign(posts_loading: true)
+    |> assign(posts_loading: false)
   end
 
   defp assign_follow_data_optimistic(socket, user_id, target_id) do
@@ -653,7 +783,7 @@ defmodule MazarynWeb.UserLive.Profile do
 
   def handle_event("load_more_posts", _params, socket) do
     if socket.assigns.has_more_posts and not socket.assigns.posts_loading do
-      Process.send_after(self(), {:load_more_posts}, 10)
+      send(self(), {:load_more_posts})
     end
     {:noreply, socket}
   end
@@ -764,6 +894,7 @@ defmodule MazarynWeb.UserLive.Profile do
         UserClient.delete_user(username)
         session_id = socket.assigns.session_uuid
         :ets.delete(:mazaryn_auth_table, :"#{session_id}")
+        clear_all_posts_cache()
       rescue
         error -> Logger.error("Error in delete_user task: #{inspect(error)}")
       end
@@ -835,6 +966,19 @@ defmodule MazarynWeb.UserLive.Profile do
     socket = socket |> put_flash(:info, "Unverification initiated") |> push_redirect(to: Routes.live_path(socket, __MODULE__, socket.assigns.locale, username))
     unverify_end = :erlang.system_time(:millisecond)
     Logger.info("✅ handle_event unverify_user completed in #{unverify_end - unverify_start}ms")
+    {:noreply, socket}
+  end
+
+  def handle_event("post_created", %{"username" => username}, socket) do
+    Logger.info("🆕 Post created for #{username}, refreshing cache immediately")
+
+    clear_posts_cache(username)
+
+    current_user_id = socket.assigns.current_user.id
+    target_user_id = (socket.assigns[:user] || socket.assigns.current_user).id
+
+    load_posts_with_fallback(username, current_user_id, target_user_id)
+
     {:noreply, socket}
   end
 
@@ -950,6 +1094,10 @@ defmodule MazarynWeb.UserLive.Profile do
       d when d > 500 -> Logger.info("⏰ Operation: #{operation} took #{d}ms")
       _ -> Logger.debug("✅ Operation: #{operation} completed quickly")
     end
+  end
+
+  def clear_user_posts_cache(username) do
+    clear_posts_cache(username)
   end
 
 end
