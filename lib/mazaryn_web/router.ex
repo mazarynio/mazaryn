@@ -20,20 +20,23 @@ defmodule MazarynWeb.Router do
     do: Enum.any?(@skip_prefixes, &String.starts_with?(path, &1))
 
   defp maybe_redirect_locale(conn, _opts) do
-    path = conn.request_path
+  path = conn.request_path
 
-    cond do
-      should_skip_redirect?(path) ->
-        conn
+  cond do
+    should_skip_redirect?(path) ->
+      conn
 
-      localized_path?(path) ->
-        conn
+    localized_path?(path) ->
+      conn
 
-      true ->
-        target = "/en" <> path
-        Phoenix.Controller.redirect(conn, to: target) |> Plug.Conn.halt()
-    end
+    conn.status in [301, 302] ->
+      conn
+
+    true ->
+      target = "/en" <> path
+      Phoenix.Controller.redirect(conn, to: target) |> Plug.Conn.halt()
   end
+end
 
   pipeline :browser do
     plug :accepts, ["html"]
