@@ -16,35 +16,37 @@ defmodule MazarynWeb.Router do
     end
   end
 
-  defp should_skip_redirect?(path),
-    do: Enum.any?(@skip_prefixes, &String.starts_with?(path, &1))
+  defp should_skip_redirect?(path) do
+    Enum.any?(@skip_prefixes, &String.starts_with?(path, &1))
+  end
 
   defp maybe_redirect_locale(conn, _opts) do
-  path = conn.request_path
+    path = conn.request_path
 
-  cond do
-    should_skip_redirect?(path) ->
-      conn
+    cond do
+      should_skip_redirect?(path) ->
+        conn
 
-    localized_path?(path) ->
-      conn
+      localized_path?(path) ->
+        conn
 
-    conn.status in [301, 302] ->
-      conn
+      conn.status in [301, 302] ->
+        conn
 
-    true ->
-      target = "/en" <> path
-      Phoenix.Controller.redirect(conn, to: target) |> Plug.Conn.halt()
+      conn.method == "GET" ->
+        target = "/en" <> path
+        Phoenix.Controller.redirect(conn, to: target) |> Plug.Conn.halt()
+
+      true ->
+        conn
+    end
   end
-end
 
   pipeline :browser do
     plug :accepts, ["html"]
     plug :fetch_session
     plug :fetch_live_flash
-
     plug :maybe_redirect_locale
-
     plug :put_root_layout, {MazarynWeb.LayoutView, :root}
     plug :protect_from_forgery
     plug :put_secure_browser_headers
@@ -74,6 +76,11 @@ end
       interface: :simple
 
     forward "/", Absinthe.Plug, schema: MazarynWeb.Schema
+  end
+
+  scope "/" do
+    pipe_through :browser
+    get "/", MazarynWeb.PageController, :add_locale
   end
 
   scope "/:locale", MazarynWeb do
