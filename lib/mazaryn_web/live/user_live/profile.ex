@@ -25,7 +25,8 @@ defmodule MazarynWeb.UserLive.Profile do
   @task_timeout 3_000
   @search_debounce_ms 300
 
-  @fallback_posts_timeout 2_000
+  @fallback_posts_timeout 5_000
+  @fresh_posts_delay 50
 
   @spec init_cache_tables() :: :ok
   defp init_cache_tables do
@@ -59,7 +60,7 @@ defmodule MazarynWeb.UserLive.Profile do
         |> assign_optimistic_states()
         |> assign_follow_data_optimistic(current_user.id, user.id)
 
-      load_posts_with_fallback(username, current_user.id, user.id)
+      load_posts_with_improved_fallback(username, current_user.id, user.id)
 
       {:ok, socket}
     else
@@ -99,7 +100,7 @@ defmodule MazarynWeb.UserLive.Profile do
           |> assign(page: 1)
           |> assign(has_more_posts: true)
 
-        load_posts_with_fallback(current_user.username, current_user.id, current_user.id)
+        load_posts_with_improved_fallback(current_user.username, current_user.id, current_user.id)
         {:ok, socket}
 
       {:error, reason} ->
@@ -136,8 +137,7 @@ defmodule MazarynWeb.UserLive.Profile do
           |> assign(has_more_posts: true)
           |> assign_follow_data_optimistic(current_user.id, user.id)
 
-
-        load_posts_with_fallback(username, current_user.id, user.id)
+        load_posts_with_improved_fallback(username, current_user.id, user.id)
         {:noreply, socket}
 
       {:error, _} = error ->
@@ -172,27 +172,44 @@ defmodule MazarynWeb.UserLive.Profile do
     {:noreply, socket}
   end
 
-  defp load_posts_with_fallback(username, current_user_id, target_user_id) do
-    send(self(), {:load_cached_posts, username, 1})
+  defp load_posts_with_improved_fallback(username, current_user_id, target_user_id) do
+    send(self(), {:load_cached_posts_immediate, username, 1})
 
-    Process.send_after(self(), {:load_fresh_posts, username, 1}, 10)
+    Process.send_after(self(), {:load_fresh_posts, username, 1}, @fresh_posts_delay)
 
     Process.send_after(self(), {:load_follow_data, current_user_id, target_user_id}, 15)
 
     Process.send_after(self(), {:posts_fallback_timeout, username}, @fallback_posts_timeout)
   end
 
+  defp load_posts_with_fallback(username, current_user_id, target_user_id) do
+    load_posts_with_improved_fallback(username, current_user_id, target_user_id)
+  end
+
   @impl true
+  def handle_info({:load_cached_posts_immediate, username, page}, socket) do
+    Logger.info("📚 Loading cached posts IMMEDIATELY for #{username}, page #{page}")
+
+    case get_posts_cached_with_extended_ttl(username, page, @max_posts_per_page) do
+      {posts, has_more} when length(posts) > 0 ->
+        Logger.info("📦 Found #{length(posts)} cached posts (immediate)")
+        {:noreply, assign(socket, posts: posts, has_more_posts: has_more, page: page, posts_loading: false)}
+      _ ->
+        Logger.info("📦 No immediate cached posts found for #{username}")
+        {:noreply, assign(socket, posts_loading: true)}
+    end
+  end
+
   def handle_info({:load_cached_posts, username, page}, socket) do
     Logger.info("📚 Loading cached posts for #{username}, page #{page}")
 
     case get_posts_cached_only(username, page, @max_posts_per_page) do
       {posts, has_more} when length(posts) > 0 ->
         Logger.info("📦 Found #{length(posts)} cached posts")
-        {:noreply, assign(socket, posts: posts, has_more_posts: has_more, page: page)}
+        {:noreply, assign(socket, posts: posts, has_more_posts: has_more, page: page, posts_loading: false)}
       _ ->
         Logger.info("📦 No cached posts found, will wait for fresh load")
-        {:noreply, socket}
+        {:noreply, assign(socket, posts_loading: true)}
     end
   end
 
@@ -200,13 +217,22 @@ defmodule MazarynWeb.UserLive.Profile do
     load_start = :erlang.system_time(:millisecond)
     Logger.info("📚 Starting fresh load_posts for #{username}, page #{page}")
 
+    current_posts = socket.assigns.posts || []
+    should_show_loading = length(current_posts) == 0
+
+    socket = if should_show_loading do
+      assign(socket, posts_loading: true)
+    else
+      socket
+    end
+
     task = Task.async(fn ->
       try do
         get_posts_fresh(username, page, @max_posts_per_page)
       rescue
         error ->
           Logger.error("Error in load_fresh_posts task: #{inspect(error)}")
-          case get_posts_cached_only(username, page, @max_posts_per_page) do
+          case get_posts_cached_with_extended_ttl(username, page, @max_posts_per_page) do
             {cached_posts, cached_has_more} when length(cached_posts) > 0 ->
               {cached_posts, cached_has_more}
             _ ->
@@ -222,7 +248,7 @@ defmodule MazarynWeb.UserLive.Profile do
       nil ->
         Logger.warn("⏰ Timeout loading fresh posts for #{username}, using cached data")
         Task.shutdown(task, :brutal_kill)
-        case get_posts_cached_only(username, page, @max_posts_per_page) do
+        case get_posts_cached_with_extended_ttl(username, page, @max_posts_per_page) do
           {cached_posts, cached_has_more} when length(cached_posts) > 0 ->
             {cached_posts, cached_has_more}
           _ ->
@@ -233,7 +259,6 @@ defmodule MazarynWeb.UserLive.Profile do
     all_posts = if page == 1 do
       posts
     else
-      current_posts = socket.assigns.posts || []
       current_posts ++ posts
     end
 
@@ -244,10 +269,13 @@ defmodule MazarynWeb.UserLive.Profile do
   end
 
   def handle_info({:posts_fallback_timeout, username}, socket) do
-    if socket.assigns.posts_loading do
+    current_posts = socket.assigns.posts || []
+
+    if socket.assigns.posts_loading and length(current_posts) == 0 do
       Logger.info("⏰ Posts fallback timeout for #{username}, showing empty state")
       {:noreply, assign(socket, posts: [], posts_loading: false, has_more_posts: true)}
     else
+      Logger.info("⏰ Posts fallback timeout for #{username}, but posts already loaded or loading completed")
       {:noreply, socket}
     end
   end
@@ -307,19 +335,26 @@ defmodule MazarynWeb.UserLive.Profile do
     clear_posts_cache(username)
     socket = assign(socket, posts: [], posts_loading: false, page: 1, has_more_posts: true)
 
-    load_posts_with_fallback(username, socket.assigns.current_user.id,
+    load_posts_with_improved_fallback(username, socket.assigns.current_user.id,
                             (socket.assigns[:user] || socket.assigns.current_user).id)
     {:noreply, socket}
   end
 
   def handle_info({:refresh_posts_cache, username}, socket) do
     Logger.info("🔄 Refreshing posts cache for #{username}")
-    clear_posts_cache(username)
 
     current_user_id = socket.assigns.current_user.id
     target_user_id = (socket.assigns[:user] || socket.assigns.current_user).id
 
-    load_posts_with_fallback(username, current_user_id, target_user_id)
+    send(self(), {:load_fresh_posts, username, 1})
+    Process.send_after(self(), {:clear_old_cache, username}, 1000)
+
+    {:noreply, socket}
+  end
+
+  def handle_info({:clear_old_cache, username}, socket) do
+    Logger.info("🗑️ Clearing old cache for #{username}")
+    clear_posts_cache(username)
     {:noreply, socket}
   end
 
@@ -462,6 +497,20 @@ defmodule MazarynWeb.UserLive.Profile do
         {posts, has_more}
       _ ->
         Logger.info("📦 No cached posts for #{username} page #{page}")
+        {[], false}
+    end
+  end
+
+  defp get_posts_cached_with_extended_ttl(username, page, limit) do
+    cache_key = {:posts, username, page}
+    current_time = :erlang.system_time(:millisecond)
+
+    case safe_ets_lookup(:posts_cache, cache_key) do
+      [{_, {posts, has_more}, timestamp}] when current_time - timestamp < @posts_cache_ttl * 5 ->
+        Logger.info("📦 Posts Cache (extended TTL) HIT for #{username} page #{page}")
+        {posts, has_more}
+      _ ->
+        Logger.info("📦 No extended cached posts for #{username} page #{page}")
         {[], false}
     end
   end
@@ -970,14 +1019,23 @@ defmodule MazarynWeb.UserLive.Profile do
   end
 
   def handle_event("post_created", %{"username" => username}, socket) do
-    Logger.info("🆕 Post created for #{username}, refreshing cache immediately")
-
-    clear_posts_cache(username)
+    Logger.info("🆕 Post created for #{username}, refreshing cache with improved strategy")
 
     current_user_id = socket.assigns.current_user.id
     target_user_id = (socket.assigns[:user] || socket.assigns.current_user).id
 
-    load_posts_with_fallback(username, current_user_id, target_user_id)
+    send(self(), {:refresh_posts_cache, username})
+
+    {:noreply, socket}
+  end
+
+  def handle_event("comment_added", %{"username" => username}, socket) do
+    Logger.info("💬 Comment added for #{username}, refreshing posts")
+
+    current_user_id = socket.assigns.current_user.id
+    target_user_id = (socket.assigns[:user] || socket.assigns.current_user).id
+
+    send(self(), {:refresh_posts_cache, username})
 
     {:noreply, socket}
   end
