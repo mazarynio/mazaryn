@@ -6,6 +6,7 @@ defmodule MazarynWeb.Router do
 
   import MazarynWeb.Plug.CheckAllowedUser
 
+
   @supported_locales ~w(en fa ru zh az ar es vi hi de fr it pt fil id)
   @skip_prefixes ["/assets", "/uploads", "/images", "/fonts", "/favicon.ico", "/robots.txt", "/live", "/phoenix"]
 
@@ -21,26 +22,28 @@ defmodule MazarynWeb.Router do
   end
 
   defp maybe_redirect_locale(conn, _opts) do
-    path = conn.request_path
+  path = conn.request_path
 
-    cond do
-      should_skip_redirect?(path) ->
-        conn
+  cond do
 
-      localized_path?(path) ->
-        conn
+    should_skip_redirect?(path) ->
+      conn
 
-      conn.status in [301, 302] ->
-        conn
 
-      conn.method == "GET" ->
-        target = "/en" <> path
-        Phoenix.Controller.redirect(conn, to: target) |> Plug.Conn.halt()
+    localized_path?(path) ->
+      conn
 
-      true ->
-        conn
-    end
+
+    conn.method == "GET" ->
+      target = "/en" <> path
+      Phoenix.Controller.redirect(conn, to: target) |> Plug.Conn.halt()
+
+
+    true ->
+      conn
   end
+end
+
 
   pipeline :browser do
     plug :accepts, ["html"]
@@ -68,6 +71,7 @@ defmodule MazarynWeb.Router do
     plug :accepts, ["json"]
   end
 
+
   scope "/en/api" do
     pipe_through :api
 
@@ -78,10 +82,12 @@ defmodule MazarynWeb.Router do
     forward "/", Absinthe.Plug, schema: MazarynWeb.Schema
   end
 
+
   scope "/" do
     pipe_through :browser
     get "/", MazarynWeb.PageController, :add_locale
   end
+
 
   scope "/:locale", MazarynWeb do
     pipe_through :browser
@@ -115,6 +121,7 @@ defmodule MazarynWeb.Router do
     get "/careers", PageController, :careers
     get "/865853.txt", PageController, :empty_page
   end
+
 
   scope "/:locale", MazarynWeb do
     pipe_through :restricted
@@ -150,6 +157,7 @@ defmodule MazarynWeb.Router do
       live "/:username/:locale", UserLive.Profile
     end
   end
+
 
   if Application.get_env(:mazaryn, :env) in [:dev, :test] do
     import Phoenix.LiveDashboard.Router
