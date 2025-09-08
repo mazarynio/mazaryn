@@ -57,10 +57,10 @@ defmodule MazarynWeb.AuthLive.Signup do
 
   @impl true
   def handle_event(
-        "toggle",
-        %{"value" => _value},
-        %{assigns: %{:changeset => changeset}} = socket
-      ) do
+    "toggle",
+    %{"value" => _value},
+    %{assigns: %{:changeset => changeset}} = socket
+  ) do
     changeset =
       changeset
       |> Ecto.Changeset.put_change(:accepts_conditions, true)
@@ -88,45 +88,6 @@ defmodule MazarynWeb.AuthLive.Signup do
     {:noreply, assign(socket, changeset: changeset)}
   end
 
-  #@impl true
-  ##def handle_info({:disable_form, changeset}, %{assigns: %{key: key, locale: locale}} = socket) do
-    ##case Signup.Form.create_user(changeset) do
-      ##{:ok, %Account.User{email: email, id: user_id, token_id: token_id} = user} ->
-        ##verification_url =
-          ##MazarynWeb.Router.Helpers.url(socket) <>
-            ##Routes.confirm_account_path(socket, :index, locale, List.to_string(token_id))
-
-        ##case UserNotifier.deliver_confirmation_instructions(user, verification_url) do
-          ##{:ok, _} ->
-            ##insert_session_token(key, email)
-            ##NotifEvent.welcome(user_id)
-            ##{:noreply, push_redirect(socket, to: "/approve")}
-
-          ##{:error, reason} ->
-            ##Logger.error("Failed to send confirmation email: #{inspect(reason)}")
-            ##changeset =
-              ##changeset
-              ##|> Ecto.Changeset.add_error(:email, "Failed to send confirmation email. Please try again.")
-              ##|> Ecto.Changeset.put_change(:form_disabled, false)
-
-            ##{:noreply, assign(socket, changeset: changeset)}
-        ##end
-
-      ##:username_and_email_existed ->
-        ##changeset =
-          ##changeset
-          ##|> Ecto.Changeset.add_error(:password, "This account has been created before.")
-          ##|> Ecto.Changeset.put_change(:form_disabled, false)
-
-        ##{:noreply, assign(socket, changeset: changeset)}
-
-      ##{:error, changeset} ->
-        ##changeset = Ecto.Changeset.put_change(changeset, :form_disabled, false)
-        ##Logger.error("Failed to create user: #{inspect(changeset.errors)}")
-        ##{:noreply, assign(socket, changeset: changeset)}
-    ##end
-  ##end
-
   @impl true
   def handle_info({:disable_form, changeset}, %{assigns: %{key: key}} = socket) do
     case Signup.Form.create_user(changeset) do
@@ -134,7 +95,7 @@ defmodule MazarynWeb.AuthLive.Signup do
         # Skip email verification and directly log the user in
         insert_session_token(key, email)
         NotifEvent.welcome(user_id)
-        {:noreply, push_redirect(socket, to: "/approve")}
+        {:noreply, push_navigate(socket, to: ~p"/#{socket.assigns.locale}/approve")}
 
       :username_and_email_existed ->
         changeset =
