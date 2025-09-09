@@ -26,7 +26,7 @@ defmodule MazarynWeb.AuthLive.Signup do
         |> Ecto.Changeset.put_change(:form_disabled, true)
         |> Map.put(:action, :insert)
 
-      send(self(), {:disable_form, changeset})
+      send(self(), {:create_user, changeset})
 
       {:noreply, assign(socket, changeset: changeset)}
     else
@@ -57,10 +57,10 @@ defmodule MazarynWeb.AuthLive.Signup do
 
   @impl true
   def handle_event(
-    "toggle",
-    %{"value" => _value},
-    %{assigns: %{:changeset => changeset}} = socket
-  ) do
+        "toggle",
+        %{"value" => _value},
+        %{assigns: %{:changeset => changeset}} = socket
+      ) do
     changeset =
       changeset
       |> Ecto.Changeset.put_change(:accepts_conditions, true)
@@ -89,26 +89,96 @@ defmodule MazarynWeb.AuthLive.Signup do
   end
 
   @impl true
-  def handle_info({:disable_form, changeset}, %{assigns: %{key: key}} = socket) do
+  def handle_info({:create_user, changeset}, %{assigns: %{key: key, locale: locale}} = socket) do
     case Signup.Form.create_user(changeset) do
       {:ok, %Account.User{email: email, id: user_id}} ->
-        # Skip email verification and directly log the user in
-        insert_session_token(key, email)
-        NotifEvent.welcome(user_id)
-        {:noreply, push_navigate(socket, to: ~p"/#{socket.assigns.locale}/approve")}
+        Logger.info("User created successfully: #{email}")
+
+        case create_user_session(key, email) do
+          {:ok, _session} ->
+            Logger.info("Session created successfully for user: #{email}")
+
+            try do
+              NotifEvent.welcome(user_id)
+            rescue
+              error ->
+                Logger.warn("Failed to send welcome notification: #{inspect(error)}")
+            end
+
+            Process.send_after(self(), {:redirect_to_approve, locale}, 200)
+
+            {:noreply,
+             socket
+             |> put_flash(:info, "Welcome! Your account has been created successfully.")
+             |> assign(:user_created, true)}
+
+          {:error, reason} ->
+            Logger.error("Failed to create session for #{email}: #{inspect(reason)}")
+
+            changeset =
+              changeset
+              |> Ecto.Changeset.add_error(:email, "Account created but login failed. Please try logging in.")
+              |> Ecto.Changeset.put_change(:form_disabled, false)
+
+            {:noreply, assign(socket, changeset: changeset)}
+        end
 
       :username_and_email_existed ->
+        Logger.info("Attempted to create existing user account")
+
         changeset =
           changeset
-          |> Ecto.Changeset.add_error(:password, "This account has been created before.")
+          |> Ecto.Changeset.add_error(:email, "This account already exists. Please login instead.")
           |> Ecto.Changeset.put_change(:form_disabled, false)
 
         {:noreply, assign(socket, changeset: changeset)}
 
       {:error, changeset} ->
         Logger.error("Failed to create user: #{inspect(changeset.errors)}")
-        changeset = Ecto.Changeset.put_change(changeset, :form_disabled, false)
+
+        changeset =
+          changeset
+          |> Ecto.Changeset.put_change(:form_disabled, false)
+          |> add_generic_error_if_needed()
+
         {:noreply, assign(socket, changeset: changeset)}
+    end
+  end
+
+  @impl true
+  def handle_info({:redirect_to_approve, locale}, socket) do
+    Logger.info("Redirecting to approve page for locale: #{locale}")
+
+    if Map.get(socket.assigns, :user_created, false) do
+      {:noreply, push_navigate(socket, to: ~p"/#{locale}/approve")}
+    else
+      Logger.warn("Attempted redirect without user creation confirmation")
+      {:noreply, push_navigate(socket, to: ~p"/#{locale}/login")}
+    end
+  end
+
+  defp create_user_session(session_key, email) do
+    try do
+      result = insert_session_token(session_key, email)
+
+      case result do
+        {:ok, _} = success -> success
+        {:error, _} = error -> error
+        other when not is_nil(other) -> {:ok, other}
+        _ -> {:error, :session_creation_failed}
+      end
+    rescue
+      error ->
+        Logger.error("Session creation exception: #{inspect(error)}")
+        {:error, :session_creation_exception}
+    end
+  end
+
+  defp add_generic_error_if_needed(changeset) do
+    if Enum.empty?(changeset.errors) do
+      Ecto.Changeset.add_error(changeset, :email, "Unable to create account. Please try again.")
+    else
+      changeset
     end
   end
 end
