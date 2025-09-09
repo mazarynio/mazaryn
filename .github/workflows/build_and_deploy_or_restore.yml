@@ -12,17 +12,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-    - name: Set up Elixir
-      uses: erlef/setup-elixir@v1
-      with:
-        otp-version: '26.2'
-        elixir-version: '1.17.0'
-
-    - name: Install Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '20'
-
       - name: Set up Elixir
         uses: erlef/setup-elixir@v1
         with:
@@ -33,7 +22,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "23"
-
 
       - name: Install dependencies
         run: |
