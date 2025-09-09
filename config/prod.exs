@@ -14,7 +14,8 @@ config :mazaryn, MazarynWeb.Endpoint, cache_static_manifest: "priv/static/cache_
 
 config :mazaryn, MazarynWeb.Endpoint,
   http: [ip: {127, 0, 0, 1}, port: 4000],  # Explicit localhost binding
-  url: [host: "mazaryn.io", port: 443]
+  url: [host: "mazaryn.io", port: 443],
+  force_ssl: false
 # Configures Swoosh API Client
 
 ##----------------------------------------------------------------------------
