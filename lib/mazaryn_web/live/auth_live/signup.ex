@@ -19,6 +19,7 @@ defmodule MazarynWeb.AuthLive.Signup do
 
   @impl true
   def handle_event("save", %{"form" => params}, socket) do
+    Logger.info("Signup form submitted with params: #{inspect(params)}")
     if Map.get(params, "form_disabled", nil) != "true" do
       changeset =
         Signup.Form.changeset(%Signup.Form{}, params)
