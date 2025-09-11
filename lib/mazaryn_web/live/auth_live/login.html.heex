@@ -32,7 +32,17 @@
       <div class="form-container min-w-[540px]">
         <div class="form-header"><%= gettext("Login") %></div>
 
-        <%= form_for @changeset, "#", [id: "form-login", phx_change: :validate, phx_submit: "save", class: "form-body w-[100%]", autocomplete: "off", autocorrect: "off", autocapitalize: "off", spellcheck: "false"], fn f -> %>
+        <.form
+          :let={f}
+          for={@changeset}
+          id="form-login"
+          phx-submit="save"
+          phx-change="validate"
+          class="form-body w-[100%]"
+          autocomplete="off"
+          autocapitalize="off"
+          spellcheck="false"
+        >
           <div class="form-input-container">
             <div>
               <label class="form-input-label"><%= gettext("Email*") %></label>
@@ -86,11 +96,13 @@
           </div>
 
           <div class="btn-group flex items-center pt-2 pb-2">
-            <a>
-              <%= submit(submit_value(@changeset, "Login"),
-                class: "bg-blue-500 hover:bg-blue-700 text-white py-3 px-14 rounded-md"
-              ) %>
-            </a>
+            <button
+              type="submit"
+              phx-disable-with="Logging in..."
+              class="bg-blue-500 hover:bg-blue-700 text-white py-3 px-14 rounded-md"
+            >
+              Login
+            </button>
             <a>
               <.link navigate={~p"/#{@locale}/signup"} class="text-blue-600 pl-6">
                 Sign Up
@@ -102,7 +114,7 @@
           <%= hidden_input(f, :password_touched) %>
           <%= hidden_input(f, :form_submitted) %>
           <%= hidden_input(f, :form_disabled) %>
-        <% end %>
+        </.form>
       </div>
     </div>
   </div>

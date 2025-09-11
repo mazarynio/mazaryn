@@ -1,37 +1,58 @@
 <div class="signup h-full md:h-screen flex-col md:flex-row">
   <div class="split left">
     <div class="welcome-left-title">
-      <img class="logo mb-5 mr-auto md:mr-0 brightness-150" src={Routes.static_path(@socket, "/images/logo.png")} alt="" title="" />
+      <img
+        class="logo mb-5 mr-auto md:mr-0 brightness-150"
+        src={Routes.static_path(@socket, "/images/logo.png")}
+        alt=""
+        title=""
+      />
     </div>
     <div class="welcome-left-text hidden md:block h-[25vh] md:h-full top-[100%] md:top-[82%]">
       <p class="relative md:static left-0 font-[600] bottom-[-40px] max-w-[310px] md:max-w-[420px] leading-[2.4rem] text-color-[#E5E5E5] md:full mx-auto md:mx-0">
-        Hey <span class="font-[400] text-[#FFF]">Noble</span> 👋
-        <br />
+        Hey <span class="font-[400] text-[#FFF]">Noble</span>
+        👋 <br />
         <span>
-          Join <span class="font-[400] text-[#FFF]">us</span> to level <span class="font-[400] text-[#FFF]">up!</span>
+          Join <span class="font-[400] text-[#FFF]">us</span>
+          to level <span class="font-[400] text-[#FFF]">up!</span>
         </span>
       </p>
     </div>
     <div class="welcome-layer-style"></div>
     <div class="welcome-left-logo"></div>
   </div>
-  
+
   <div class="split right h-[60vh] md:h-full">
     <div class="centered">
       <div class="form-container md:w-[540px]">
         <div class="form-header">
           <%= gettext("Sign Up") %>
         </div>
-        
+
         <div class="form-body w-[100%]">
-          <%= form_for @changeset, "#", [phx_change: :validate, phx_submit: :save, class: "form-body w-[100%]", autocomplete: "off", autocorrect: "off", autocapitalize: "off", spellcheck: "false"], fn f -> %>
-                
+          <.form
+            :let={f}
+            for={@changeset}
+            phx-change="validate"
+            phx-submit="save"
+            class="form-body w-[100%]"
+            autocomplete="off"
+            autocapitalize="off"
+            spellcheck="false"
+          >
             <div class="form-input-container">
               <div>
                 <label class="form-input-label"><%= gettext("Username*") %></label>
               </div>
               <div class="w-[100%]">
-                <%= text_input(f, :username, class: "form-input", placeholder: "Your username", aria_describedby: "form_username_detail", aria_required: "true", autofocus: "1", phx_blur: :blur_username ) %>
+                <%= text_input(f, :username,
+                  class: "form-input",
+                  placeholder: "Your username",
+                  aria_describedby: "form_username_detail",
+                  aria_required: "true",
+                  autofocus: "1",
+                  phx_blur: :blur_username
+                ) %>
               </div>
 
               <div
@@ -42,7 +63,6 @@
                 <span class="text-sm"><%= error_tag(f, :username) %></span>
               </div>
             </div>
-
             <div class="form-input-container">
               <div>
                 <label class="form-input-label"><%= gettext("Email*") %></label>
@@ -133,17 +153,17 @@
             </div>
 
             <div class="btn-group flex items-center pt-2 pb-2">
-              <a>
-                <%= submit(submit_value(@changeset, "Sign Up"),
-                  class: "bg-blue-500 hover:bg-blue-700 text-white py-3 px-14 rounded-md"
-                ) %>
-              </a>
-              <a>
-                <%= live_patch("Login",
-                  to: ~p"/#{@locale}/login",
-                  class: "text-blue-600 pl-6"
-                ) %>
-              </a>
+              <button
+                type="submit"
+                phx-disable-with="Submitting..."
+                class="bg-blue-500 hover:bg-blue-700 text-white py-3 px-14 rounded-md"
+              >
+                Sign Up
+              </button>
+
+              <.link navigate={~p"/#{@locale}/login"} class="text-blue-600 pl-6">
+                Login
+              </.link>
             </div>
 
             <%= hidden_input(f, :username_touched) %>
@@ -151,18 +171,19 @@
             <%= hidden_input(f, :password_touched) %>
             <%= hidden_input(f, :form_submitted) %>
             <%= hidden_input(f, :form_disabled) %>
-          <% end %>
+          </.form>
         </div>
       </div>
     </div>
   </div>
-  
+
   <div class="welcome-left-text mobile md:hidden">
     <p class="absolute md:static left-[10%] font-[600] max-w-[310px] md:max-w-[420px] leading-[2.4rem] text-color-[#E5E5E5] md:full mx-auto md:mx-0">
-      Hey <span class="font-[400] text-[#FFF]">Noble</span> 👋
-      <br />
+      Hey <span class="font-[400] text-[#FFF]">Noble</span>
+      👋 <br />
       <span>
-        Join <span class="font-[400] text-[#FFF]">us</span> to level <span class="font-[400] text-[#FFF]">up!</span>
+        Join <span class="font-[400] text-[#FFF]">us</span>
+        to level <span class="font-[400] text-[#FFF]">up!</span>
       </span>
     </p>
   </div>
