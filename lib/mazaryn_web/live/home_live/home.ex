@@ -212,7 +212,10 @@ defmodule MazarynWeb.HomeLive.Home do
     search_start = :erlang.system_time(:millisecond)
     Logger.info("🔍 Starting handle_event do_search for query #{search}")
 
-    socket = assign(socket, search: search, last_search: search)
+    socket = socket
+    |> assign(:search, search)
+    |> assign(:last_search, search)
+    |> assign(:search_loading, true)
 
     if socket.assigns[:search_timer] do
       Process.cancel_timer(socket.assigns.search_timer)
@@ -223,6 +226,16 @@ defmodule MazarynWeb.HomeLive.Home do
 
     search_end = :erlang.system_time(:millisecond)
     Logger.info("🔍 handle_event do_search completed in #{search_end - search_start}ms")
+    {:noreply, socket}
+  end
+
+  def handle_event("clear_search_results", _params, socket) do
+    Logger.info("🔍 Clearing search results")
+    socket = socket
+    |> assign(:search, "")
+    |> assign(:results, [])
+    |> assign(:search_loading, false)
+
     {:noreply, socket}
   end
 
@@ -512,7 +525,12 @@ defmodule MazarynWeb.HomeLive.Home do
     end)
 
     case Task.yield(task, timeout) || Task.shutdown(task, :brutal_kill) do
-      {:ok, result} -> {:ok, result}
+      {:ok, result} ->
+        if result do
+          {:ok, [result]}
+        else
+          {:ok, []}
+        end
       nil -> {:error, :timeout}
     end
   end
@@ -668,16 +686,14 @@ defmodule MazarynWeb.HomeLive.Home do
     try do
       fetch_start = :erlang.system_time(:millisecond)
 
-      result = case username |> Core.UserClient.search_user() do
+      result = case username |> String.downcase() |> Core.UserClient.search_user() do
         :username_not_exist ->
           nil
         erl_user ->
-          [
-            erl_user
-            |> User.erl_changeset()
-            |> User.build()
-            |> elem(1)
-          ]
+          case User.erl_changeset(erl_user) |> User.build() do
+            {:ok, user} -> user
+            {:error, _} -> nil
+          end
       end
 
       safe_ets_insert(:search_cache, {cache_key, result, current_time})

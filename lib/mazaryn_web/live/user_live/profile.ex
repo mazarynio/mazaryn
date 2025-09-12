@@ -59,6 +59,7 @@ defmodule MazarynWeb.UserLive.Profile do
         |> assign_base_data(session_uuid, current_user, user, post_changeset, user_changeset, privacy)
         |> assign_optimistic_states()
         |> assign_follow_data_optimistic(current_user.id, user.id)
+        |> assign_search_states()
 
       load_posts_with_improved_fallback(username, current_user.id, user.id)
 
@@ -99,6 +100,7 @@ defmodule MazarynWeb.UserLive.Profile do
           |> assign(results: [])
           |> assign(page: 1)
           |> assign(has_more_posts: true)
+          |> assign_search_states()
 
         load_posts_with_improved_fallback(current_user.username, current_user.id, current_user.id)
         {:ok, socket}
@@ -136,6 +138,7 @@ defmodule MazarynWeb.UserLive.Profile do
           |> assign(page: 1)
           |> assign(has_more_posts: true)
           |> assign_follow_data_optimistic(current_user.id, user.id)
+          |> assign_search_states()
 
         load_posts_with_improved_fallback(username, current_user.id, user.id)
         {:noreply, socket}
@@ -166,27 +169,295 @@ defmodule MazarynWeb.UserLive.Profile do
       |> assign(current_user: current_user)
       |> assign(page: 1)
       |> assign(has_more_posts: true)
+      |> assign_search_states()
 
     params_end = :erlang.system_time(:millisecond)
     Logger.info("🔍 HANDLE PARAMS MazarynWeb.UserLive.Profile (no username) completed in #{params_end - params_start}ms")
     {:noreply, socket}
   end
 
-  defp load_posts_with_improved_fallback(username, current_user_id, target_user_id) do
-    send(self(), {:load_cached_posts_immediate, username, 1})
+  @impl true
+  def handle_event("do_search", %{"search" => search}, socket) do
+    search_start = :erlang.system_time(:millisecond)
+    Logger.info("🔍 Starting handle_event do_search for query #{search}")
 
-    Process.send_after(self(), {:load_fresh_posts, username, 1}, @fresh_posts_delay)
+    socket = socket
+    |> assign(:search, search)
+    |> assign(:last_search, search)
+    |> assign(:search_loading, true)
 
-    Process.send_after(self(), {:load_follow_data, current_user_id, target_user_id}, 15)
+    if socket.assigns[:search_timer] do
+      Process.cancel_timer(socket.assigns.search_timer)
+    end
 
-    Process.send_after(self(), {:posts_fallback_timeout, username}, @fallback_posts_timeout)
+    timer = Process.send_after(self(), {:search_debounce, search}, @search_debounce_ms)
+    socket = assign(socket, search_timer: timer)
+
+    search_end = :erlang.system_time(:millisecond)
+    Logger.info("🔍 handle_event do_search completed in #{search_end - search_start}ms")
+    {:noreply, socket}
   end
 
-  defp load_posts_with_fallback(username, current_user_id, target_user_id) do
-    load_posts_with_improved_fallback(username, current_user_id, target_user_id)
+  def handle_event("clear_search_results", _params, socket) do
+    Logger.info("🔍 Clearing search results")
+    socket = socket
+    |> assign(:search, "")
+    |> assign(:results, [])
+    |> assign(:search_loading, false)
+
+    {:noreply, socket}
+  end
+
+  def handle_event("load_more_posts", _params, socket) do
+    if socket.assigns.has_more_posts and not socket.assigns.posts_loading do
+      send(self(), {:load_more_posts})
+    end
+    {:noreply, socket}
+  end
+
+  def handle_event("follow_user", %{"userid" => id}, socket) do
+    follow_start = :erlang.system_time(:millisecond)
+    Logger.info("👥 Starting handle_event follow_user for userid #{id}")
+
+    id = to_charlist(id)
+    user_id = socket.assigns.current_user.id
+
+    socket = socket
+    |> assign(:follow_event, "unfollow_user")
+    |> assign(:follow_text, "Unfollow")
+    |> assign(:followers, socket.assigns.followers + 1)
+
+    Task.start(fn ->
+      try do
+        UserClient.follow(user_id, id)
+        Core.NotifEvent.follow(user_id, id)
+        clear_follow_cache(user_id)
+      rescue
+        error -> Logger.error("Error in follow_user task: #{inspect(error)}")
+      end
+    end)
+
+    Process.send_after(self(), {:load_follow_data, user_id, id}, 100)
+
+    follow_end = :erlang.system_time(:millisecond)
+    Logger.info("👥 handle_event follow_user completed in #{follow_end - follow_start}ms")
+    {:noreply, socket}
+  end
+
+  def handle_event("unfollow_user", %{"userid" => id}, socket) do
+    unfollow_start = :erlang.system_time(:millisecond)
+    Logger.info("👥 Starting handle_event unfollow_user for userid #{id}")
+
+    id = to_charlist(id)
+    user_id = socket.assigns.current_user.id
+
+    socket = socket
+    |> assign(:follow_event, "follow_user")
+    |> assign(:follow_text, "Follow")
+    |> assign(:followers, max(0, socket.assigns.followers - 1))
+
+    Task.start(fn ->
+      try do
+        UserClient.unfollow(user_id, id)
+        clear_follow_cache(user_id)
+      rescue
+        error -> Logger.error("Error in unfollow_user task: #{inspect(error)}")
+      end
+    end)
+
+    Process.send_after(self(), {:load_follow_data, user_id, id}, 100)
+
+    unfollow_end = :erlang.system_time(:millisecond)
+    Logger.info("👥 handle_event unfollow_user completed in #{unfollow_end - unfollow_start}ms")
+    {:noreply, socket}
+  end
+
+  def handle_event("open_modal", %{"action" => "follower"}, socket) do
+    modal_start = :erlang.system_time(:millisecond)
+    Logger.info("📋 Starting handle_event open_modal follower")
+
+    Task.start(fn ->
+      try do
+        followers = get_followers_with_details(socket.assigns.user.follower)
+        send(self(), {:followers_loaded, followers})
+      rescue
+        error ->
+          Logger.error("Error loading followers: #{inspect(error)}")
+          send(self(), {:followers_loaded, []})
+      end
+    end)
+
+    socket = socket
+    |> assign(follower_action: true, followers: [], edit_action: false, follows_action: false)
+
+    modal_end = :erlang.system_time(:millisecond)
+    Logger.info("📋 handle_event open_modal follower completed in #{modal_end - modal_start}ms")
+    {:noreply, socket}
+  end
+
+  def handle_event("open_modal", %{"action" => action}, socket) do
+    modal_start = :erlang.system_time(:millisecond)
+    Logger.info("📋 Starting handle_event open_modal #{action}")
+
+    socket = case action do
+      "edit" -> socket |> assign(edit_action: true, follower_action: false, follows_action: false)
+      "follows" -> socket |> assign(follows_action: true, edit_action: false, follower_action: false)
+      "report-user" -> socket |> assign(report_user_action: true, follows_action: false, edit_action: false, follower_action: false)
+      "verify-user" -> socket |> assign(report_user_action: false, follows_action: false, edit_action: false, follower_action: false, verified_action: true)
+      "unverify-user" -> socket |> assign(report_user_action: false, follows_action: false, edit_action: false, follower_action: false, verified_action: true)
+    end
+
+    modal_end = :erlang.system_time(:millisecond)
+    Logger.info("📋 handle_event open_modal #{action} completed in #{modal_end - modal_start}ms")
+    {:noreply, socket}
+  end
+
+  def handle_event("delete_user", %{"username" => username}, socket) do
+    delete_start = :erlang.system_time(:millisecond)
+    Logger.info("🗑 Starting handle_event delete_user for username #{username}")
+
+    Task.start(fn ->
+      try do
+        UserClient.delete_user(username)
+        session_id = socket.assigns.session_uuid
+        :ets.delete(:mazaryn_auth_table, :"#{session_id}")
+        clear_all_posts_cache()
+      rescue
+        error -> Logger.error("Error in delete_user task: #{inspect(error)}")
+      end
+    end)
+
+    socket = socket |> put_flash(:info, "User deletion initiated") |> push_redirect(to: Routes.page_path(socket, :index, "en"))
+    delete_end = :erlang.system_time(:millisecond)
+    Logger.info("🗑 handle_event delete_user completed in #{delete_end - delete_start}ms")
+    {:noreply, socket}
+  end
+
+  def handle_event("privacy", %{"user" => %{"privacy" => privacy}}, socket) do
+    privacy_start = :erlang.system_time(:millisecond)
+    Logger.info("🔒 Starting handle_event privacy with value #{privacy}")
+
+    socket = assign(socket, privacy: privacy)
+
+    Task.start(fn ->
+      try do
+        if privacy == "private" do
+          UserClient.make_private(socket.assigns.current_user.id)
+        else
+          UserClient.make_public(socket.assigns.current_user.id)
+        end
+
+        clear_user_cache(socket.assigns.current_user.username)
+      rescue
+        error -> Logger.error("Error in privacy task: #{inspect(error)}")
+      end
+    end)
+
+    privacy_end = :erlang.system_time(:millisecond)
+    Logger.info("🔒 handle_event privacy completed in #{privacy_end - privacy_start}ms")
+    {:noreply, socket}
+  end
+
+  def handle_event("verify_user", %{"username" => username, "admin_username" => admin_username}, socket) do
+    verify_start = :erlang.system_time(:millisecond)
+    Logger.info("✅ Starting handle_event verify_user for username #{username}")
+
+    Task.start(fn ->
+      try do
+        ManageUser.verify_user(username, admin_username)
+        clear_user_cache(username)
+      rescue
+        error -> Logger.error("Error in verify_user task: #{inspect(error)}")
+      end
+    end)
+
+    socket = socket |> put_flash(:info, "Verification initiated") |> push_redirect(to: Routes.live_path(socket, __MODULE__, socket.assigns.locale, username))
+    verify_end = :erlang.system_time(:millisecond)
+    Logger.info("✅ handle_event verify_user completed in #{verify_end - verify_start}ms")
+    {:noreply, socket}
+  end
+
+  def handle_event("unverify_user", %{"username" => username, "admin_username" => admin_username}, socket) do
+    unverify_start = :erlang.system_time(:millisecond)
+    Logger.info("✅ Starting handle_event unverify_user for username #{username}")
+
+    Task.start(fn ->
+      try do
+        ManageUser.unverify_user(username, admin_username)
+        clear_user_cache(username)
+      rescue
+        error -> Logger.error("Error in unverify_user task: #{inspect(error)}")
+      end
+    end)
+
+    socket = socket |> put_flash(:info, "Unverification initiated") |> push_redirect(to: Routes.live_path(socket, __MODULE__, socket.assigns.locale, username))
+    unverify_end = :erlang.system_time(:millisecond)
+    Logger.info("✅ handle_event unverify_user completed in #{unverify_end - unverify_start}ms")
+    {:noreply, socket}
+  end
+
+  def handle_event("post_created", %{"username" => username}, socket) do
+    Logger.info("🆕 Post created for #{username}, refreshing cache with improved strategy")
+
+    current_user_id = socket.assigns.current_user.id
+    target_user_id = (socket.assigns[:user] || socket.assigns.current_user).id
+
+    send(self(), {:refresh_posts_cache, username})
+
+    {:noreply, socket}
+  end
+
+  def handle_event("comment_added", %{"username" => username}, socket) do
+    Logger.info("💬 Comment added for #{username}, refreshing posts")
+
+    current_user_id = socket.assigns.current_user.id
+    target_user_id = (socket.assigns[:user] || socket.assigns.current_user).id
+
+    send(self(), {:refresh_posts_cache, username})
+
+    {:noreply, socket}
   end
 
   @impl true
+  def handle_info({:search_debounce, search_term}, socket) do
+    case socket.assigns[:last_search] do
+      ^search_term ->
+        search_start = :erlang.system_time(:millisecond)
+        Logger.info("🔍 Executing debounced search for #{search_term}")
+
+        task = Task.async(fn ->
+          try do
+            search_user_by_username_cached(search_term)
+          rescue
+            error ->
+              Logger.error("Error in search task: #{inspect(error)}")
+              nil
+          end
+        end)
+
+        results = case Task.yield(task, @task_timeout) do
+          {:ok, result} ->
+            if result do
+              [result] |> List.flatten() |> Enum.reject(&is_nil/1)
+            else
+              []
+            end
+          nil ->
+            Logger.warn("⏰ Search timeout")
+            Task.shutdown(task, :brutal_kill)
+            []
+        end
+
+        search_end = :erlang.system_time(:millisecond)
+        Logger.info("🔍 Debounced search completed in #{search_end - search_start}ms with #{length(results)} results")
+
+        {:noreply, assign(socket, results: results, search_loading: false)}
+
+      _ ->
+        {:noreply, socket}
+    end
+  end
+
   def handle_info({:load_cached_posts_immediate, username, page}, socket) do
     Logger.info("📚 Loading cached posts IMMEDIATELY for #{username}, page #{page}")
 
@@ -393,40 +664,6 @@ defmodule MazarynWeb.UserLive.Profile do
     {:noreply, socket}
   end
 
-  def handle_info({:search_debounce, search_term}, socket) do
-    case socket.assigns[:last_search] do
-      ^search_term ->
-        search_start = :erlang.system_time(:millisecond)
-        Logger.info("🔍 Executing debounced search for #{search_term}")
-
-        task = Task.async(fn ->
-          try do
-            search_user_by_username_cached(search_term)
-          rescue
-            error ->
-              Logger.error("Error in search task: #{inspect(error)}")
-              []
-          end
-        end)
-
-        results = case Task.yield(task, @task_timeout) do
-          {:ok, result} -> result || []
-          nil ->
-            Logger.warn("⏰ Search timeout")
-            Task.shutdown(task, :brutal_kill)
-            []
-        end
-
-        search_end = :erlang.system_time(:millisecond)
-        Logger.info("🔍 Debounced search completed in #{search_end - search_start}ms")
-
-        {:noreply, assign(socket, results: results)}
-
-      _ ->
-        {:noreply, socket}
-    end
-  end
-
   def handle_info({:EXIT, pid, reason}, socket) do
     case reason do
       :normal ->
@@ -440,9 +677,27 @@ defmodule MazarynWeb.UserLive.Profile do
     {:noreply, socket}
   end
 
+  def handle_info({:followers_loaded, followers}, socket) do
+    {:noreply, assign(socket, followers: followers)}
+  end
+
   def handle_info(message, socket) do
     Logger.debug("Received unexpected message: #{inspect(message)}")
     {:noreply, socket}
+  end
+
+  defp load_posts_with_improved_fallback(username, current_user_id, target_user_id) do
+    send(self(), {:load_cached_posts_immediate, username, 1})
+
+    Process.send_after(self(), {:load_fresh_posts, username, 1}, @fresh_posts_delay)
+
+    Process.send_after(self(), {:load_follow_data, current_user_id, target_user_id}, 15)
+
+    Process.send_after(self(), {:posts_fallback_timeout, username}, @fallback_posts_timeout)
+  end
+
+  defp load_posts_with_fallback(username, current_user_id, target_user_id) do
+    load_posts_with_improved_fallback(username, current_user_id, target_user_id)
   end
 
   defp get_current_user_cached(session_uuid) do
@@ -710,16 +965,14 @@ defmodule MazarynWeb.UserLive.Profile do
       fetch_start = :erlang.system_time(:millisecond)
       Logger.info("🔍 Starting search_user_by_username for #{username}")
 
-      result = case username |> Core.UserClient.search_user() do
+      result = case username |> String.downcase() |> Core.UserClient.search_user() do
         :username_not_exist ->
           nil
         erl_user ->
-          [
-            erl_user
-            |> User.erl_changeset()
-            |> User.build()
-            |> elem(1)
-          ]
+          case User.erl_changeset(erl_user) |> User.build() do
+            {:ok, user} -> user
+            {:error, _} -> nil
+          end
       end
 
       safe_ets_insert(:search_cache, {cache_key, result, current_time})
@@ -806,242 +1059,17 @@ defmodule MazarynWeb.UserLive.Profile do
     |> assign(:followings, 0)
   end
 
+  defp assign_search_states(socket) do
+    socket
+    |> assign(:search, "")
+    |> assign(:last_search, "")
+    |> assign(:search_loading, false)
+    |> assign(:search_timer, nil)
+  end
+
   defp handle_user_not_found_error(socket, username) do
     Logger.error("❌ User not found for username #{username}")
     {:noreply, socket |> put_flash(:error, "User not found") |> push_redirect(to: Routes.page_path(socket, :index, "en"))}
-  end
-
-  @impl true
-  def handle_event("do_search", %{"search" => search}, socket) do
-    search_start = :erlang.system_time(:millisecond)
-    Logger.info("🔍 Starting handle_event do_search for query #{search}")
-
-    socket = assign(socket, search: search, last_search: search)
-
-    if socket.assigns[:search_timer] do
-      Process.cancel_timer(socket.assigns.search_timer)
-    end
-
-    timer = Process.send_after(self(), {:search_debounce, search}, @search_debounce_ms)
-    socket = assign(socket, search_timer: timer)
-
-    search_end = :erlang.system_time(:millisecond)
-    Logger.info("🔍 handle_event do_search completed in #{search_end - search_start}ms")
-    {:noreply, socket}
-  end
-
-  def handle_event("load_more_posts", _params, socket) do
-    if socket.assigns.has_more_posts and not socket.assigns.posts_loading do
-      send(self(), {:load_more_posts})
-    end
-    {:noreply, socket}
-  end
-
-  def handle_event("follow_user", %{"userid" => id}, socket) do
-    follow_start = :erlang.system_time(:millisecond)
-    Logger.info("👥 Starting handle_event follow_user for userid #{id}")
-
-    id = to_charlist(id)
-    user_id = socket.assigns.current_user.id
-
-    socket = socket
-    |> assign(:follow_event, "unfollow_user")
-    |> assign(:follow_text, "Unfollow")
-    |> assign(:followers, socket.assigns.followers + 1)
-
-    Task.start(fn ->
-      try do
-        UserClient.follow(user_id, id)
-        Core.NotifEvent.follow(user_id, id)
-        clear_follow_cache(user_id)
-      rescue
-        error -> Logger.error("Error in follow_user task: #{inspect(error)}")
-      end
-    end)
-
-    Process.send_after(self(), {:load_follow_data, user_id, id}, 100)
-
-    follow_end = :erlang.system_time(:millisecond)
-    Logger.info("👥 handle_event follow_user completed in #{follow_end - follow_start}ms")
-    {:noreply, socket}
-  end
-
-  def handle_event("unfollow_user", %{"userid" => id}, socket) do
-    unfollow_start = :erlang.system_time(:millisecond)
-    Logger.info("👥 Starting handle_event unfollow_user for userid #{id}")
-
-    id = to_charlist(id)
-    user_id = socket.assigns.current_user.id
-
-    socket = socket
-    |> assign(:follow_event, "follow_user")
-    |> assign(:follow_text, "Follow")
-    |> assign(:followers, max(0, socket.assigns.followers - 1))
-
-    Task.start(fn ->
-      try do
-        UserClient.unfollow(user_id, id)
-        clear_follow_cache(user_id)
-      rescue
-        error -> Logger.error("Error in unfollow_user task: #{inspect(error)}")
-      end
-    end)
-
-    Process.send_after(self(), {:load_follow_data, user_id, id}, 100)
-
-    unfollow_end = :erlang.system_time(:millisecond)
-    Logger.info("👥 handle_event unfollow_user completed in #{unfollow_end - unfollow_start}ms")
-    {:noreply, socket}
-  end
-
-  def handle_event("open_modal", %{"action" => "follower"}, socket) do
-    modal_start = :erlang.system_time(:millisecond)
-    Logger.info("📋 Starting handle_event open_modal follower")
-
-    Task.start(fn ->
-      try do
-        followers = get_followers_with_details(socket.assigns.user.follower)
-        send(self(), {:followers_loaded, followers})
-      rescue
-        error ->
-          Logger.error("Error loading followers: #{inspect(error)}")
-          send(self(), {:followers_loaded, []})
-      end
-    end)
-
-    socket = socket
-    |> assign(follower_action: true, followers: [], edit_action: false, follows_action: false)
-
-    modal_end = :erlang.system_time(:millisecond)
-    Logger.info("📋 handle_event open_modal follower completed in #{modal_end - modal_start}ms")
-    {:noreply, socket}
-  end
-
-  def handle_event("open_modal", %{"action" => action}, socket) do
-    modal_start = :erlang.system_time(:millisecond)
-    Logger.info("📋 Starting handle_event open_modal #{action}")
-
-    socket = case action do
-      "edit" -> socket |> assign(edit_action: true, follower_action: false, follows_action: false)
-      "follows" -> socket |> assign(follows_action: true, edit_action: false, follower_action: false)
-      "report-user" -> socket |> assign(report_user_action: true, follows_action: false, edit_action: false, follower_action: false)
-      "verify-user" -> socket |> assign(report_user_action: false, follows_action: false, edit_action: false, follower_action: false, verified_action: true)
-      "unverify-user" -> socket |> assign(report_user_action: false, follows_action: false, edit_action: false, follower_action: false, verified_action: true)
-    end
-
-    modal_end = :erlang.system_time(:millisecond)
-    Logger.info("📋 handle_event open_modal #{action} completed in #{modal_end - modal_start}ms")
-    {:noreply, socket}
-  end
-
-  def handle_event("delete_user", %{"username" => username}, socket) do
-    delete_start = :erlang.system_time(:millisecond)
-    Logger.info("🗑 Starting handle_event delete_user for username #{username}")
-
-    Task.start(fn ->
-      try do
-        UserClient.delete_user(username)
-        session_id = socket.assigns.session_uuid
-        :ets.delete(:mazaryn_auth_table, :"#{session_id}")
-        clear_all_posts_cache()
-      rescue
-        error -> Logger.error("Error in delete_user task: #{inspect(error)}")
-      end
-    end)
-
-    socket = socket |> put_flash(:info, "User deletion initiated") |> push_redirect(to: Routes.page_path(socket, :index, "en"))
-    delete_end = :erlang.system_time(:millisecond)
-    Logger.info("🗑 handle_event delete_user completed in #{delete_end - delete_start}ms")
-    {:noreply, socket}
-  end
-
-  def handle_event("privacy", %{"user" => %{"privacy" => privacy}}, socket) do
-    privacy_start = :erlang.system_time(:millisecond)
-    Logger.info("🔒 Starting handle_event privacy with value #{privacy}")
-
-    socket = assign(socket, privacy: privacy)
-
-    Task.start(fn ->
-      try do
-        if privacy == "private" do
-          UserClient.make_private(socket.assigns.current_user.id)
-        else
-          UserClient.make_public(socket.assigns.current_user.id)
-        end
-
-        clear_user_cache(socket.assigns.current_user.username)
-      rescue
-        error -> Logger.error("Error in privacy task: #{inspect(error)}")
-      end
-    end)
-
-    privacy_end = :erlang.system_time(:millisecond)
-    Logger.info("🔒 handle_event privacy completed in #{privacy_end - privacy_start}ms")
-    {:noreply, socket}
-  end
-
-  def handle_event("verify_user", %{"username" => username, "admin_username" => admin_username}, socket) do
-    verify_start = :erlang.system_time(:millisecond)
-    Logger.info("✅ Starting handle_event verify_user for username #{username}")
-
-    Task.start(fn ->
-      try do
-        ManageUser.verify_user(username, admin_username)
-        clear_user_cache(username)
-      rescue
-        error -> Logger.error("Error in verify_user task: #{inspect(error)}")
-      end
-    end)
-
-    socket = socket |> put_flash(:info, "Verification initiated") |> push_redirect(to: Routes.live_path(socket, __MODULE__, socket.assigns.locale, username))
-    verify_end = :erlang.system_time(:millisecond)
-    Logger.info("✅ handle_event verify_user completed in #{verify_end - verify_start}ms")
-    {:noreply, socket}
-  end
-
-  def handle_event("unverify_user", %{"username" => username, "admin_username" => admin_username}, socket) do
-    unverify_start = :erlang.system_time(:millisecond)
-    Logger.info("✅ Starting handle_event unverify_user for username #{username}")
-
-    Task.start(fn ->
-      try do
-        ManageUser.unverify_user(username, admin_username)
-        clear_user_cache(username)
-      rescue
-        error -> Logger.error("Error in unverify_user task: #{inspect(error)}")
-      end
-    end)
-
-    socket = socket |> put_flash(:info, "Unverification initiated") |> push_redirect(to: Routes.live_path(socket, __MODULE__, socket.assigns.locale, username))
-    unverify_end = :erlang.system_time(:millisecond)
-    Logger.info("✅ handle_event unverify_user completed in #{unverify_end - unverify_start}ms")
-    {:noreply, socket}
-  end
-
-  def handle_event("post_created", %{"username" => username}, socket) do
-    Logger.info("🆕 Post created for #{username}, refreshing cache with improved strategy")
-
-    current_user_id = socket.assigns.current_user.id
-    target_user_id = (socket.assigns[:user] || socket.assigns.current_user).id
-
-    send(self(), {:refresh_posts_cache, username})
-
-    {:noreply, socket}
-  end
-
-  def handle_event("comment_added", %{"username" => username}, socket) do
-    Logger.info("💬 Comment added for #{username}, refreshing posts")
-
-    current_user_id = socket.assigns.current_user.id
-    target_user_id = (socket.assigns[:user] || socket.assigns.current_user).id
-
-    send(self(), {:refresh_posts_cache, username})
-
-    {:noreply, socket}
-  end
-
-  def handle_info({:followers_loaded, followers}, socket) do
-    {:noreply, assign(socket, followers: followers)}
   end
 
   defp get_followers_with_details(follower_ids) do

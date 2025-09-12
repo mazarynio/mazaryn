@@ -1,17 +1,17 @@
 defmodule MazarynWeb.HomeLive.IpnsManager do
-  @moduledoc """
-  Manages IPNS fetching, caching, and background refresh operations.
-  """
 
   @content_cache :post_content_cache
 
-  @base_timeout 5_000
-  @cache_ttl 600
-  @fresh_threshold 60
+  @base_timeout 8_000
+  @cache_ttl 900
+  @fresh_threshold 120
 
-  @backoff_min 1_000
-  @backoff_max 300_000
-  @backoff_factor 2.0
+  @backoff_min 2_000
+  @backoff_max 60_000
+  @backoff_factor 1.8
+  @max_retries 15
+
+  require Logger
 
   def get_ipns_fast(post_id) do
     cache_key = {:ipns, post_id}
@@ -23,85 +23,82 @@ defmodule MazarynWeb.HomeLive.IpnsManager do
 
         cond do
           age < @fresh_threshold ->
-            IO.puts("📦 IPNS Cache HIT (fresh) for post #{post_id} (#{age}s old) — refreshing softly")
-            ensure_ipns(post_id)
             ipns
 
           age < @cache_ttl ->
-            IO.puts("📦 IPNS Cache HIT for post #{post_id} (#{age}s old)")
             ensure_ipns(post_id)
             ipns
 
           true ->
-            IO.puts("♻️ IPNS cache stale for post #{post_id} (#{age}s old) — starting insistent refresh")
             ensure_ipns(post_id)
             ipns
         end
 
       [] ->
-        IO.puts("🔎 IPNS cache miss for post #{post_id} — starting insistent fetch")
         ensure_ipns(post_id)
         nil
     end
   end
 
   def ensure_ipns(post_id) do
-    Task.start(fn -> insist_until_ipns(post_id) end)
+    Task.start(fn -> insist_until_ipns_aggressive(post_id) end)
   end
 
   def clear_cache(post_id) do
     :ets.delete(@content_cache, {:ipns, post_id})
-    IO.puts("🧹 Cleared IPNS cache for post #{post_id}")
   end
 
   def warm_cache_async(recent_post_ids) when is_list(recent_post_ids) do
     Task.start(fn ->
-      IO.puts("🔥 Starting async IPNS cache warming for #{length(recent_post_ids)} posts")
-
       recent_post_ids
-      |> Enum.take(10)
-      |> Enum.chunk_every(3)
+      |> Enum.take(8)
+      |> Enum.chunk_every(2)
       |> Enum.each(fn batch ->
         tasks = Enum.map(batch, &Task.async(fn -> soft_refresh(&1) end))
-        Task.yield_many(tasks, 500)
-        Process.sleep(200)
+        Task.yield_many(tasks, 1000)
+        Process.sleep(500)
       end)
-
-      IO.puts("✅ IPNS cache warming completed")
     end)
   end
 
-  defp insist_until_ipns(post_id, attempt \\ 1) do
-    case fetch_with_timeout(post_id, @base_timeout) do
+  defp insist_until_ipns_aggressive(post_id, attempt \\ 1) do
+    case fetch_with_timeout(post_id, calculate_timeout(attempt)) do
       ipns when not is_nil(ipns) ->
         cache_ipns(post_id, ipns)
         broadcast_ipns_ready(post_id, ipns)
-        IO.puts("✅ IPNS resolved for post #{post_id} on attempt #{attempt}")
+        Logger.info("✅ IPNS resolved for post #{post_id} on attempt #{attempt}")
         :ok
 
-      nil ->
+      nil when attempt < @max_retries ->
         delay = backoff_delay(attempt)
-        IO.puts("⏳ IPNS not ready for post #{post_id} (attempt #{attempt}). Retrying in #{delay}ms...")
+        Logger.info("⏳ IPNS attempt #{attempt} failed for post #{post_id}. Retrying in #{delay}ms...")
         Process.sleep(delay)
-        insist_until_ipns(post_id, attempt + 1)
+        insist_until_ipns_aggressive(post_id, attempt + 1)
+
+      nil ->
+        Logger.warning("❌ IPNS failed for post #{post_id} after #{@max_retries} attempts")
+        :failed
     end
   end
+
+  defp calculate_timeout(attempt) when attempt <= 3, do: @base_timeout
+  defp calculate_timeout(attempt) when attempt <= 7, do: @base_timeout + 2000
+  defp calculate_timeout(attempt) when attempt <= 12, do: @base_timeout + 5000
+  defp calculate_timeout(_attempt), do: @base_timeout + 10000
 
   defp backoff_delay(1), do: @backoff_min
   defp backoff_delay(attempt) do
     base = :math.pow(@backoff_factor, attempt - 1) * @backoff_min
-    jitter = :rand.uniform(1_000)
+    jitter = :rand.uniform(500)
     round(min(base + jitter, @backoff_max))
   end
 
   defp soft_refresh(post_id) do
-    case fetch_with_timeout(post_id, 3_000) do
+    case fetch_with_timeout(post_id, 4000) do
       ipns when not is_nil(ipns) ->
         cache_ipns(post_id, ipns)
         broadcast_ipns_ready(post_id, ipns)
-        IO.puts("✅ Background IPNS refresh completed for #{post_id}")
       nil ->
-        IO.puts("⚠️ Background IPNS refresh failed for #{post_id}")
         :noop
     end
   end

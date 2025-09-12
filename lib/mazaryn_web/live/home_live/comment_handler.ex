@@ -1,6 +1,6 @@
 defmodule MazarynWeb.HomeLive.CommentHandler do
   @moduledoc """
-  Handles comment operations for the home live view with immediate content availability.
+  Handles comment operations for the home live view with improved reliability.
   """
   alias Core.PostClient
   alias Mazaryn.Schema.{Comment, Post, Reply}
@@ -11,8 +11,9 @@ defmodule MazarynWeb.HomeLive.CommentHandler do
 
   require Logger
 
-  @comment_save_timeout 1000
-  @content_fetch_timeout 500
+  @comment_save_timeout 2000
+  @content_fetch_timeout 800
+  @reply_deletion_timeout 3000
 
   def handle_save_comment(%{"comment" => comment_params}) do
     start_time = System.monotonic_time(:millisecond)
@@ -67,6 +68,385 @@ defmodule MazarynWeb.HomeLive.CommentHandler do
   def handle_show_comments(%{"id" => post_id}) do
     comments = get_comments_with_content(post_id)
     {:ok, %{comments: comments}}
+  end
+
+  def handle_delete_comment(%{"comment-id" => comment_id, "post-id" => post_id}, comments) do
+    Logger.info("Deleting comment #{comment_id} with optimistic update")
+
+    comment_to_delete = find_comment_by_id(comments, comment_id)
+    updated_comments = remove_comment_from_list(comments, comment_id)
+
+    spawn_comment_deletion_task_fast(comment_id, comment_to_delete)
+
+    {:ok, %{comments: updated_comments}}
+  end
+
+  def handle_delete_reply(%{"reply-id" => reply_id, "comment-id" => comment_id}, comments) do
+    Logger.info("Starting enhanced reply deletion for reply #{reply_id} from comment #{comment_id}")
+
+    reply_to_delete = find_reply_in_comments(comments, comment_id, reply_id)
+    updated_comments = remove_reply_from_comments(comments, comment_id, reply_id)
+
+    spawn_enhanced_reply_deletion_task(reply_id, comment_id, reply_to_delete)
+
+    {:ok, %{comments: updated_comments}}
+  end
+
+  def handle_like_comment(%{"comment-id" => comment_id}, post_id, user_id) do
+    comment_id_charlist = to_charlist(comment_id)
+
+    Task.start(fn ->
+      PostClient.like_comment(user_id, comment_id_charlist)
+    end)
+
+    case CommentUtilities.rebuild_post_safe(post_id) do
+      {:ok, post} ->
+        comments = get_comments_with_content(post_id)
+        {:ok, %{post: post, comments: comments}}
+      {:error, _reason} ->
+        comments = get_comments_with_content(post_id)
+        {:ok, %{
+          post: %{id: post_id},
+          comments: comments
+        }}
+    end
+  end
+
+  def handle_unlike_comment(%{"comment-id" => comment_id}, post_id, user_id, comments) do
+    comment_id_charlist = to_charlist(comment_id)
+    user_id_charlist = to_charlist(user_id)
+
+    comment = find_comment_by_id(comments, comment_id_charlist)
+
+    Task.start(fn ->
+      try do
+        like = comment_id_charlist
+               |> PostClient.get_comment_likes()
+               |> Enum.map(&CommentUtilities.build_like/1)
+               |> Enum.find(&(&1.user_id == user_id_charlist))
+
+        if like do
+          updated_likes = Enum.reject(comment.likes, &(&1 == like.id))
+          :postdb.update_comment_likes(comment_id_charlist, updated_likes)
+        end
+      rescue
+        e ->
+          Logger.error("Error in background unlike: #{inspect(e)}")
+      end
+    end)
+
+    case CommentUtilities.rebuild_post_safe(post_id) do
+      {:ok, post} ->
+        fresh_comments = get_comments_with_content(post_id)
+        {:ok, %{post: post, comments: fresh_comments}}
+      {:error, _reason} ->
+        fresh_comments = get_comments_with_content(post_id)
+        {:ok, %{
+          post: %{id: post_id},
+          comments: fresh_comments
+        }}
+    end
+  end
+
+  def handle_reply_comment(%{"comment-id" => comment_id}) do
+    Logger.info("Setting reply state for comment: #{comment_id}")
+
+    {:ok, %{
+      reply_comment: true,
+      replying_to_comment_id: to_charlist(comment_id)
+    }}
+  end
+
+  def handle_cancel_comment_reply(_params) do
+    Logger.info("Cancelling comment reply")
+
+    {:ok, %{
+      reply_comment: false,
+      replying_to_comment_id: nil
+    }}
+  end
+
+  def handle_reply_comment_content(%{"comment" => comment_params}, user_id, comments) do
+    case create_reply_with_immediate_content(comment_params, user_id, comments) do
+      {:ok, result} ->
+        {:ok, result}
+      {:error, _reason} ->
+        {:error, %{flash: {:error, "Failed to create reply"}}}
+    end
+  end
+
+  def handle_validate_comment(%{"comment" => comment_params}) do
+    changeset = Comment.changeset(%Comment{}, comment_params)
+    |> Map.put(:action, :validate)
+
+    {:ok, %{changeset: changeset}}
+  end
+
+  def handle_validate_update_comment(%{"comment" => comment_params}) do
+    changeset = Comment.update_changeset(%Comment{}, comment_params)
+    |> Map.put(:action, :validate)
+
+    {:ok, %{update_comment_changeset: changeset}}
+  end
+
+  def handle_edit_comment(%{"comment-id" => comment_id}) do
+    Logger.info("Entering edit mode for comment: #{comment_id}")
+
+    {:ok, %{
+      editing_comment: true,
+      editing_comment_id: comment_id
+    }}
+  end
+
+  def handle_cancel_comment_edit(_params) do
+    Logger.info("Cancelling comment edit mode")
+
+    {:ok, %{
+      editing_comment: false,
+      editing_comment_id: nil
+    }}
+  end
+
+  defp spawn_enhanced_reply_deletion_task(reply_id, comment_id, reply_to_delete) do
+    parent_pid = self()
+
+    Task.start(fn ->
+      try do
+        Logger.info("Starting enhanced reply deletion for #{reply_id}")
+
+        deletion_attempts = [
+          fn -> attempt_mnesia_reply_deletion(reply_id) end,
+          fn -> attempt_postdb_reply_deletion(reply_id) end,
+          fn -> attempt_comment_reply_cleanup(comment_id, reply_id) end
+        ]
+
+        results = Enum.map(deletion_attempts, fn attempt ->
+          try do
+            case attempt.() do
+              :ok -> {:ok, :deleted}
+              {:ok, _} -> {:ok, :deleted}
+              {:error, reason} -> {:error, reason}
+              other -> {:error, {:unexpected_result, other}}
+            end
+          rescue
+            error -> {:error, {:exception, error}}
+          end
+        end)
+
+        success_count = Enum.count(results, &match?({:ok, _}, &1))
+
+        if success_count > 0 do
+          Logger.info("Enhanced reply deletion succeeded for #{reply_id} (#{success_count} methods)")
+          CommentUtilities.clear_content_cache_fast(:reply, reply_id)
+          send(parent_pid, {:reply_deleted_success, reply_id, comment_id})
+        else
+          Logger.error("All enhanced reply deletion methods failed for #{reply_id}: #{inspect(results)}")
+          send(parent_pid, {:reply_deletion_failed, reply_id, comment_id, reply_to_delete})
+        end
+
+        Process.sleep(1000)
+        attempt_final_cleanup(reply_id, comment_id)
+
+      rescue
+        e ->
+          Logger.error("Exception in enhanced reply deletion task: #{inspect(e)}")
+          send(parent_pid, {:reply_deletion_failed, reply_id, comment_id, reply_to_delete})
+      end
+    end)
+  end
+
+  defp attempt_mnesia_reply_deletion(reply_id) do
+    reply_id_charlist = to_charlist(reply_id)
+    :postdb.delete_reply_from_mnesia(reply_id_charlist)
+  end
+
+  defp attempt_postdb_reply_deletion(reply_id) do
+    reply_id_charlist = to_charlist(reply_id)
+
+    case :postdb.delete_reply(reply_id_charlist) do
+      :ok -> :ok
+      error ->
+        :postdb.remove_reply(reply_id_charlist)
+    end
+  end
+
+  defp attempt_comment_reply_cleanup(comment_id, reply_id) do
+    comment_id_charlist = to_charlist(comment_id)
+    reply_id_charlist = to_charlist(reply_id)
+
+    case :postdb.remove_reply_from_comment(comment_id_charlist, reply_id_charlist) do
+      :ok -> :ok
+      error ->
+        current_replies = :postdb.get_comment_replies(comment_id_charlist)
+        filtered_replies = Enum.reject(current_replies, fn reply ->
+          case reply do
+            {_, reply_id_from_db, _, _, _, _} ->
+              to_string(reply_id_from_db) == to_string(reply_id)
+            _ -> false
+          end
+        end)
+
+        :postdb.update_comment_replies(comment_id_charlist, filtered_replies)
+    end
+  end
+
+  defp attempt_final_cleanup(reply_id, comment_id) do
+    try do
+      reply_id_charlist = to_charlist(reply_id)
+      comment_id_charlist = to_charlist(comment_id)
+
+      case :postdb.get_reply_by_id(reply_id_charlist) do
+        :reply_not_exist ->
+          Logger.info("Final cleanup: Reply #{reply_id} successfully deleted")
+          :ok
+        _ ->
+          Logger.warning("Final cleanup: Reply #{reply_id} still exists, attempting force delete")
+          :postdb.force_delete_reply(reply_id_charlist)
+      end
+    rescue
+      e ->
+        Logger.warning("Final cleanup failed for reply #{reply_id}: #{inspect(e)}")
+    end
+  end
+
+  defp create_reply_with_immediate_content(params, user_id, comments) do
+    comment_id = params["comment_id"]
+    content = params["content"]
+
+    Logger.info("Creating reply for comment #{comment_id}")
+
+    temp_reply = create_temp_reply_with_real_content(user_id, comment_id, content)
+    updated_comments = add_reply_to_comment(comments, comment_id, temp_reply)
+
+    spawn_reply_save_task_fast(temp_reply, user_id, comment_id, content)
+
+    {:ok, %{
+      comments: updated_comments,
+      reply_comment: false,
+      replying_to_comment_id: nil
+    }}
+  end
+
+  defp create_temp_reply_with_real_content(user_id, comment_id, content) do
+    temp_id = "temp_" <> (:crypto.strong_rand_bytes(8) |> Base.encode16(case: :lower))
+
+    CommentUtilities.cache_content_fast(:reply, temp_id, content)
+
+    %{
+      id: temp_id,
+      content: content,
+      user_id: user_id,
+      comment_id: comment_id,
+      inserted_at: DateTime.utc_now(),
+      updated_at: DateTime.utc_now(),
+      is_temp: true
+    }
+  end
+
+  defp spawn_comment_deletion_task_fast(comment_id, comment_to_delete) do
+    Task.start(fn ->
+      try do
+        comment_id_charlist = to_charlist(comment_id)
+        :postdb.delete_comment_from_mnesia(comment_id_charlist)
+        CommentUtilities.clear_content_cache_fast(:comment, comment_id_charlist)
+        Logger.info("Comment #{comment_id} deleted successfully from backend")
+      rescue
+        e ->
+          Logger.error("Failed to delete comment #{comment_id}: #{inspect(e)}")
+      end
+    end)
+  end
+
+  defp spawn_reply_save_task_fast(temp_reply, user_id, comment_id, content) do
+    Task.start(fn ->
+      case PostClient.reply_comment(user_id, to_charlist(comment_id), content) do
+        {:ok, reply} ->
+          Logger.info("Reply saved successfully: #{inspect(reply.id)}")
+          if reply && reply.id do
+            CommentUtilities.cache_content_fast(:reply, reply.id, content)
+          end
+        error ->
+          Logger.error("Error saving reply: #{inspect(error)}")
+      end
+    end)
+  end
+
+  defp add_reply_to_comment(comments, comment_id, new_reply) do
+    Enum.map(comments, fn comment ->
+      if to_string(comment.id) == to_string(comment_id) do
+        existing_replies = comment.replies || []
+        updated_replies = existing_replies ++ [new_reply]
+        Logger.info("Added reply to comment #{comment_id}. Total replies: #{length(updated_replies)}")
+        Map.put(comment, :replies, updated_replies)
+      else
+        comment
+      end
+    end)
+  end
+
+  defp remove_reply_from_comments(comments, comment_id, reply_id) do
+    Logger.info("Optimistically removing reply #{reply_id} from comment #{comment_id}")
+
+    Enum.map(comments, fn comment ->
+      if to_string(comment.id) == to_string(comment_id) do
+        updated_replies = Enum.reject(comment.replies || [], fn reply ->
+          to_string(reply.id) == to_string(reply_id)
+        end)
+        %{comment | replies: updated_replies}
+      else
+        comment
+      end
+    end)
+  end
+
+  defp remove_comment_from_list(comments, comment_id) do
+    Logger.info("Optimistically removing comment #{comment_id}")
+
+    Enum.reject(comments, fn comment ->
+      to_string(comment.id) == to_string(comment_id)
+    end)
+  end
+
+  defp find_comment_by_id(comments, comment_id) do
+    Enum.find(comments, fn comment ->
+      to_string(comment.id) == to_string(comment_id)
+    end)
+  end
+
+  defp find_reply_in_comments(comments, comment_id, reply_id) do
+    comments
+    |> find_comment_by_id(comment_id)
+    |> case do
+      nil -> nil
+      comment ->
+        Enum.find(comment.replies || [], fn reply ->
+          to_string(reply.id) == to_string(reply_id)
+        end)
+    end
+  end
+
+  defp extract_update_params(params) do
+    comment_id = params["id"]
+    new_content = String.trim(params["content"] || "")
+
+    cond do
+      is_nil(comment_id) ->
+        {:error, :missing_comment_id}
+      new_content == "" ->
+        {:error, :empty_content}
+      true ->
+        {:ok, comment_id, new_content}
+    end
+  end
+
+  defp create_update_changeset(params) do
+    changeset = Comment.update_changeset(%Comment{}, params)
+
+    if changeset.valid? do
+      {:ok, changeset}
+    else
+      {:error, changeset}
+    end
   end
 
   defp validate_comment_params(params) do
@@ -244,297 +624,6 @@ defmodule MazarynWeb.HomeLive.CommentHandler do
           Logger.error("Exception in background comment update: #{inspect(e)}")
       end
     end)
-  end
-
-  def handle_validate_comment(%{"comment" => comment_params}) do
-    changeset = Comment.changeset(%Comment{}, comment_params)
-    |> Map.put(:action, :validate)
-
-    {:ok, %{changeset: changeset}}
-  end
-
-  def handle_validate_update_comment(%{"comment" => comment_params}) do
-    changeset = Comment.update_changeset(%Comment{}, comment_params)
-    |> Map.put(:action, :validate)
-
-    {:ok, %{update_comment_changeset: changeset}}
-  end
-
-  def handle_edit_comment(%{"comment-id" => comment_id}) do
-    Logger.info("Entering edit mode for comment: #{comment_id}")
-
-    {:ok, %{
-      editing_comment: true,
-      editing_comment_id: comment_id
-    }}
-  end
-
-  def handle_cancel_comment_edit(_params) do
-    Logger.info("Cancelling comment edit mode")
-
-    {:ok, %{
-      editing_comment: false,
-      editing_comment_id: nil
-    }}
-  end
-
-  def handle_delete_comment(%{"comment-id" => comment_id, "post-id" => post_id}, comments) do
-    Logger.info("Deleting comment #{comment_id} with optimistic update")
-
-    comment_to_delete = find_comment_by_id(comments, comment_id)
-    updated_comments = remove_comment_from_list(comments, comment_id)
-
-    spawn_comment_deletion_task_fast(comment_id, comment_to_delete)
-
-    {:ok, %{comments: updated_comments}}
-  end
-
-  def handle_like_comment(%{"comment-id" => comment_id}, post_id, user_id) do
-    comment_id_charlist = to_charlist(comment_id)
-
-    Task.start(fn ->
-      PostClient.like_comment(user_id, comment_id_charlist)
-    end)
-
-    case CommentUtilities.rebuild_post_safe(post_id) do
-      {:ok, post} ->
-        comments = get_comments_with_content(post_id)
-        {:ok, %{post: post, comments: comments}}
-      {:error, _reason} ->
-        comments = get_comments_with_content(post_id)
-        {:ok, %{
-          post: %{id: post_id},
-          comments: comments
-        }}
-    end
-  end
-
-  def handle_unlike_comment(%{"comment-id" => comment_id}, post_id, user_id, comments) do
-    comment_id_charlist = to_charlist(comment_id)
-    user_id_charlist = to_charlist(user_id)
-
-    comment = find_comment_by_id(comments, comment_id_charlist)
-
-    Task.start(fn ->
-      try do
-        like = comment_id_charlist
-               |> PostClient.get_comment_likes()
-               |> Enum.map(&CommentUtilities.build_like/1)
-               |> Enum.find(&(&1.user_id == user_id_charlist))
-
-        if like do
-          updated_likes = Enum.reject(comment.likes, &(&1 == like.id))
-          :postdb.update_comment_likes(comment_id_charlist, updated_likes)
-        end
-      rescue
-        e ->
-          Logger.error("Error in background unlike: #{inspect(e)}")
-      end
-    end)
-
-    case CommentUtilities.rebuild_post_safe(post_id) do
-      {:ok, post} ->
-        fresh_comments = get_comments_with_content(post_id)
-        {:ok, %{post: post, comments: fresh_comments}}
-      {:error, _reason} ->
-        fresh_comments = get_comments_with_content(post_id)
-        {:ok, %{
-          post: %{id: post_id},
-          comments: fresh_comments
-        }}
-    end
-  end
-
-  def handle_reply_comment(%{"comment-id" => comment_id}) do
-    Logger.info("Setting reply state for comment: #{comment_id}")
-
-    {:ok, %{
-      reply_comment: true,
-      replying_to_comment_id: to_charlist(comment_id)
-    }}
-  end
-
-  def handle_cancel_comment_reply(_params) do
-    Logger.info("Cancelling comment reply")
-
-    {:ok, %{
-      reply_comment: false,
-      replying_to_comment_id: nil
-    }}
-  end
-
-  def handle_reply_comment_content(%{"comment" => comment_params}, user_id, comments) do
-    case create_reply_with_immediate_content(comment_params, user_id, comments) do
-      {:ok, result} ->
-        {:ok, result}
-      {:error, _reason} ->
-        {:error, %{flash: {:error, "Failed to create reply"}}}
-    end
-  end
-
-  def handle_delete_reply(%{"reply-id" => reply_id, "comment-id" => comment_id}, comments) do
-    Logger.info("Deleting reply #{reply_id} from comment #{comment_id}")
-
-    reply_to_delete = find_reply_in_comments(comments, comment_id, reply_id)
-    updated_comments = remove_reply_from_comments(comments, comment_id, reply_id)
-
-    spawn_reply_deletion_task_fast(reply_id, comment_id, reply_to_delete)
-
-    {:ok, %{comments: updated_comments}}
-  end
-
-  defp create_reply_with_immediate_content(params, user_id, comments) do
-    comment_id = params["comment_id"]
-    content = params["content"]
-
-    Logger.info("Creating reply for comment #{comment_id}")
-
-    temp_reply = create_temp_reply_with_real_content(user_id, comment_id, content)
-    updated_comments = add_reply_to_comment(comments, comment_id, temp_reply)
-
-    spawn_reply_save_task_fast(temp_reply, user_id, comment_id, content)
-
-    {:ok, %{
-      comments: updated_comments,
-      reply_comment: false,
-      replying_to_comment_id: nil
-    }}
-  end
-
-  defp create_temp_reply_with_real_content(user_id, comment_id, content) do
-    temp_id = "temp_" <> (:crypto.strong_rand_bytes(8) |> Base.encode16(case: :lower))
-
-    CommentUtilities.cache_content_fast(:reply, temp_id, content)
-
-    %{
-      id: temp_id,
-      content: content,
-      user_id: user_id,
-      comment_id: comment_id,
-      inserted_at: DateTime.utc_now(),
-      updated_at: DateTime.utc_now(),
-      is_temp: true
-    }
-  end
-
-  defp spawn_comment_deletion_task_fast(comment_id, comment_to_delete) do
-    Task.start(fn ->
-      try do
-        comment_id_charlist = to_charlist(comment_id)
-        :postdb.delete_comment_from_mnesia(comment_id_charlist)
-        CommentUtilities.clear_content_cache_fast(:comment, comment_id_charlist)
-        Logger.info("Comment #{comment_id} deleted successfully from backend")
-      rescue
-        e ->
-          Logger.error("Failed to delete comment #{comment_id}: #{inspect(e)}")
-      end
-    end)
-  end
-
-  defp spawn_reply_deletion_task_fast(reply_id, comment_id, reply_to_delete) do
-    Task.start(fn ->
-      try do
-        reply_id_charlist = to_charlist(reply_id)
-        :postdb.delete_reply_from_mnesia(reply_id_charlist)
-        CommentUtilities.clear_content_cache_fast(:reply, reply_id_charlist)
-        Logger.info("Reply #{reply_id} deleted successfully from backend")
-      rescue
-        e ->
-          Logger.error("Failed to delete reply #{reply_id}: #{inspect(e)}")
-      end
-    end)
-  end
-
-  defp spawn_reply_save_task_fast(temp_reply, user_id, comment_id, content) do
-    Task.start(fn ->
-      case PostClient.reply_comment(user_id, to_charlist(comment_id), content) do
-        {:ok, reply} ->
-          Logger.info("Reply saved successfully: #{inspect(reply.id)}")
-          if reply && reply.id do
-            CommentUtilities.cache_content_fast(:reply, reply.id, content)
-          end
-        error ->
-          Logger.error("Error saving reply: #{inspect(error)}")
-      end
-    end)
-  end
-
-  defp add_reply_to_comment(comments, comment_id, new_reply) do
-    Enum.map(comments, fn comment ->
-      if to_string(comment.id) == to_string(comment_id) do
-        existing_replies = comment.replies || []
-        updated_replies = existing_replies ++ [new_reply]
-        Logger.info("Added reply to comment #{comment_id}. Total replies: #{length(updated_replies)}")
-        Map.put(comment, :replies, updated_replies)
-      else
-        comment
-      end
-    end)
-  end
-
-  defp remove_reply_from_comments(comments, comment_id, reply_id) do
-    Logger.info("Optimistically removing reply #{reply_id} from comment #{comment_id}")
-
-    Enum.map(comments, fn comment ->
-      if to_string(comment.id) == to_string(comment_id) do
-        updated_replies = Enum.reject(comment.replies || [], fn reply ->
-          to_string(reply.id) == to_string(reply_id)
-        end)
-        %{comment | replies: updated_replies}
-      else
-        comment
-      end
-    end)
-  end
-
-  defp remove_comment_from_list(comments, comment_id) do
-    Logger.info("Optimistically removing comment #{comment_id}")
-
-    Enum.reject(comments, fn comment ->
-      to_string(comment.id) == to_string(comment_id)
-    end)
-  end
-
-  defp find_comment_by_id(comments, comment_id) do
-    Enum.find(comments, fn comment ->
-      to_string(comment.id) == to_string(comment_id)
-    end)
-  end
-
-  defp find_reply_in_comments(comments, comment_id, reply_id) do
-    comments
-    |> find_comment_by_id(comment_id)
-    |> case do
-      nil -> nil
-      comment ->
-        Enum.find(comment.replies || [], fn reply ->
-          to_string(reply.id) == to_string(reply_id)
-        end)
-    end
-  end
-
-  defp extract_update_params(params) do
-    comment_id = params["id"]
-    new_content = String.trim(params["content"] || "")
-
-    cond do
-      is_nil(comment_id) ->
-        {:error, :missing_comment_id}
-      new_content == "" ->
-        {:error, :empty_content}
-      true ->
-        {:ok, comment_id, new_content}
-    end
-  end
-
-  defp create_update_changeset(params) do
-    changeset = Comment.update_changeset(%Comment{}, params)
-
-    if changeset.valid? do
-      {:ok, changeset}
-    else
-      {:error, changeset}
-    end
   end
 
   defp log_operation_time(operation, start_time) do
