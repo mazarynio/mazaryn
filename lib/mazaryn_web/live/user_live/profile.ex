@@ -59,7 +59,7 @@ defmodule MazarynWeb.UserLive.Profile do
         |> assign_base_data(session_uuid, current_user, user, post_changeset, user_changeset, privacy)
         |> assign_optimistic_states()
         |> assign_follow_data_optimistic(current_user.id, user.id)
-        |> assign_search_states()
+        |> clear_search_state()
 
       load_posts_with_improved_fallback(username, current_user.id, user.id)
 
@@ -97,10 +97,10 @@ defmodule MazarynWeb.UserLive.Profile do
           |> assign(post_changeset: post_changeset)
           |> assign(user_changeset: user_changeset)
           |> assign(current_user: current_user)
-          |> assign(results: [])
+          |> assign(user: current_user)
           |> assign(page: 1)
           |> assign(has_more_posts: true)
-          |> assign_search_states()
+          |> clear_search_state()
 
         load_posts_with_improved_fallback(current_user.username, current_user.id, current_user.id)
         {:ok, socket}
@@ -131,14 +131,13 @@ defmodule MazarynWeb.UserLive.Profile do
           |> assign(post_changeset: post_changeset)
           |> assign(user_changeset: user_changeset)
           |> assign(user: user)
-          |> assign(search: nil)
           |> assign(current_user: current_user)
           |> assign(posts: [])
           |> assign(posts_loading: false)
           |> assign(page: 1)
           |> assign(has_more_posts: true)
           |> assign_follow_data_optimistic(current_user.id, user.id)
-          |> assign_search_states()
+          |> clear_search_state()
 
         load_posts_with_improved_fallback(username, current_user.id, user.id)
         {:noreply, socket}
@@ -164,12 +163,11 @@ defmodule MazarynWeb.UserLive.Profile do
       socket
       |> assign(post_changeset: post_changeset)
       |> assign(user_changeset: user_changeset)
-      |> assign(search: nil)
       |> assign(user: current_user)
       |> assign(current_user: current_user)
       |> assign(page: 1)
       |> assign(has_more_posts: true)
-      |> assign_search_states()
+      |> clear_search_state()
 
     params_end = :erlang.system_time(:millisecond)
     Logger.info("🔍 HANDLE PARAMS MazarynWeb.UserLive.Profile (no username) completed in #{params_end - params_start}ms")
@@ -185,6 +183,7 @@ defmodule MazarynWeb.UserLive.Profile do
     |> assign(:search, search)
     |> assign(:last_search, search)
     |> assign(:search_loading, true)
+    |> assign(:show_search_overlay, true)
 
     if socket.assigns[:search_timer] do
       Process.cancel_timer(socket.assigns.search_timer)
@@ -200,11 +199,7 @@ defmodule MazarynWeb.UserLive.Profile do
 
   def handle_event("clear_search_results", _params, socket) do
     Logger.info("🔍 Clearing search results")
-    socket = socket
-    |> assign(:search, "")
-    |> assign(:results, [])
-    |> assign(:search_loading, false)
-
+    socket = clear_search_state(socket)
     {:noreply, socket}
   end
 
@@ -1059,12 +1054,21 @@ defmodule MazarynWeb.UserLive.Profile do
     |> assign(:followings, 0)
   end
 
-  defp assign_search_states(socket) do
+  defp clear_search_state(socket) do
+    socket = clear_search_timer(socket)
     socket
     |> assign(:search, "")
-    |> assign(:last_search, "")
+    |> assign(:results, [])
     |> assign(:search_loading, false)
-    |> assign(:search_timer, nil)
+    |> assign(:last_search, "")
+    |> assign(:show_search_overlay, false)
+  end
+
+  defp clear_search_timer(socket) do
+    if socket.assigns[:search_timer] do
+      Process.cancel_timer(socket.assigns.search_timer)
+    end
+    assign(socket, :search_timer, nil)
   end
 
   defp handle_user_not_found_error(socket, username) do
@@ -1177,7 +1181,7 @@ defmodule MazarynWeb.UserLive.Profile do
 
     case duration do
       d when d > 1000 -> Logger.warn("⚠️  Slow operation: #{operation} took #{d}ms")
-      d when d > 500 -> Logger.info("⏰ Operation: #{operation} took #{d}ms")
+      d when d > 500 -> Logger.info("⏰ Operation: #{operation} completed quickly")
       _ -> Logger.debug("✅ Operation: #{operation} completed quickly")
     end
   end
