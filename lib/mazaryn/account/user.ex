@@ -6,6 +6,8 @@ defmodule Account.User do
 
   import Ecto.Changeset
 
+  require Logger
+
   @optional_fields ~w(
     id
     p2p_node_address
@@ -155,7 +157,67 @@ defmodule Account.User do
     })
   end
 
-  def erl_changeset(value), do: raise(value)
+  def erl_changeset({:error, :timeout}) do
+    Logger.error("User operation timed out")
+    raise ArgumentError, "User operation timed out. Please try again."
+  end
+
+  def erl_changeset({:error, reason}) when is_atom(reason) do
+    Logger.error("User operation failed with reason: #{reason}")
+    raise ArgumentError, "User operation failed: #{reason}"
+  end
+
+  def erl_changeset({:error, reason}) do
+    Logger.error("User operation failed: #{inspect(reason)}")
+    raise ArgumentError, "User operation failed: #{inspect(reason)}"
+  end
+
+  def erl_changeset(nil) do
+    Logger.error("User operation returned nil")
+    raise ArgumentError, "User not found"
+  end
+
+  def erl_changeset(value) do
+    Logger.error("Unexpected value in erl_changeset: #{inspect(value)}")
+    raise ArgumentError, "Invalid user data format: #{inspect(value)}"
+  end
+
+  def erl_changeset_safe(
+        {:user, id, p2p_node_address, ipfs_key, ai_user_id, business_id, ads_id, quantum_id, username, password, email,
+         address, knode, media, posts, blog_post, notif, following, follower, blocked,
+         saved_posts, other_info, private, date_created, date_updated, avatar_url, banner_url,
+         token_id, chat, verified, report, level, last_activity, suspend, datasets, competitions, data} = _user
+      ) do
+    try do
+      changeset = erl_changeset({:user, id, p2p_node_address, ipfs_key, ai_user_id, business_id, ads_id, quantum_id, username, password, email,
+         address, knode, media, posts, blog_post, notif, following, follower, blocked,
+         saved_posts, other_info, private, date_created, date_updated, avatar_url, banner_url,
+         token_id, chat, verified, report, level, last_activity, suspend, datasets, competitions, data})
+      {:ok, changeset}
+    rescue
+      error -> {:error, Exception.message(error)}
+    end
+  end
+
+  def erl_changeset_safe({:error, :timeout}) do
+    Logger.warning("User operation timed out")
+    {:error, "User operation timed out. Please try again."}
+  end
+
+  def erl_changeset_safe({:error, reason}) do
+    Logger.error("User operation failed: #{inspect(reason)}")
+    {:error, "User operation failed: #{inspect(reason)}"}
+  end
+
+  def erl_changeset_safe(nil) do
+    Logger.warning("User operation returned nil")
+    {:error, "User not found"}
+  end
+
+  def erl_changeset_safe(value) do
+    Logger.error("Unexpected value in erl_changeset_safe: #{inspect(value)}")
+    {:error, "Invalid user data format"}
+  end
 
   def changeset(user, params \\ %{}) do
     user
