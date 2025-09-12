@@ -1,12 +1,10 @@
 defmodule MazarynWeb.HomeLive.CacheInitializer do
-
   require Logger
   use GenServer
 
   @cache_cleanup_interval 60_000
   @cache_ttl 300_000
-  @max_cache_size 10_000
-
+  @max_cache_size 15_000
 
   @table_configs %{
     post_content_cache: [:named_table, :public, :set, {:write_concurrency, true}, {:read_concurrency, true}],
@@ -17,7 +15,6 @@ defmodule MazarynWeb.HomeLive.CacheInitializer do
     user_cache: [:named_table, :public, :set, {:write_concurrency, true}, {:read_concurrency, true}],
     translation_cache: [:named_table, :public, :set, {:write_concurrency, true}, {:read_concurrency, true}]
   }
-
 
   def start_link(opts \\ []) do
     GenServer.start_link(__MODULE__, opts, name: __MODULE__)
@@ -51,6 +48,36 @@ defmodule MazarynWeb.HomeLive.CacheInitializer do
     end
   end
 
+  def safe_ets_insert_fast(table_name, data, options \\ nil) do
+    table_options = options || Map.get(@table_configs, table_name, [:named_table, :public, :set])
+
+    init_table(table_name, table_options)
+
+    try do
+      :ets.insert(table_name, data)
+      :ok
+    rescue
+      e ->
+        Logger.error("Failed to insert into #{table_name}: #{inspect(e)}")
+        :error
+    end
+  end
+
+  def safe_ets_lookup_fast(table_name, key) do
+    case :ets.info(table_name) do
+      :undefined ->
+        []
+      _ ->
+        try do
+          :ets.lookup(table_name, key)
+        rescue
+          e ->
+            Logger.error("Failed to lookup from #{table_name}: #{inspect(e)}")
+            []
+        end
+    end
+  end
+
   def safe_ets_delete(table_name, key) do
     case :ets.info(table_name) do
       :undefined ->
@@ -68,6 +95,59 @@ defmodule MazarynWeb.HomeLive.CacheInitializer do
     end
   end
 
+  def safe_ets_insert(table_name, data, options \\ nil) do
+    safe_ets_insert_fast(table_name, data, options)
+  end
+
+  def safe_ets_lookup(table_name, key) do
+    safe_ets_lookup_fast(table_name, key)
+  end
+
+  def safe_ets_insert_with_ttl(table_name, key, value, ttl \\ @cache_ttl) do
+    timestamp = :erlang.system_time(:millisecond)
+    expiry = timestamp + ttl
+    data = {key, {value, timestamp, expiry}}
+    safe_ets_insert_fast(table_name, data)
+  end
+
+  def safe_ets_lookup_with_ttl(table_name, key) do
+    case safe_ets_lookup_fast(table_name, key) do
+      [{^key, {value, _timestamp, expiry}}] ->
+        current_time = :erlang.system_time(:millisecond)
+        if current_time < expiry do
+          {:ok, value}
+        else
+          safe_ets_delete(table_name, key)
+          :expired
+        end
+
+      [{^key, value}] ->
+        {:ok, value}
+
+      [] ->
+        :not_found
+    end
+  end
+
+  def cache_comments_fast(post_id, comments, ttl \\ @cache_ttl) do
+    key = {:comments_fast, post_id}
+    smart_insert(:comment_cache, key, comments, ttl)
+  end
+
+  def get_cached_comments_fast(post_id) do
+    key = {:comments_fast, post_id}
+    safe_ets_lookup_with_ttl(:comment_cache, key)
+  end
+
+  def cache_post_content_fast(post_id, content, ttl \\ @cache_ttl) do
+    key = {:post_content_fast, post_id}
+    smart_insert(:post_content_cache, key, content, ttl)
+  end
+
+  def get_cached_post_content_fast(post_id) do
+    key = {:post_content_fast, post_id}
+    safe_ets_lookup_with_ttl(:post_content_cache, key)
+  end
 
   def safe_ets_delete_pattern(table_name, pattern) do
     case :ets.info(table_name) do
@@ -84,64 +164,6 @@ defmodule MazarynWeb.HomeLive.CacheInitializer do
             Logger.error("Failed to delete pattern from #{table_name}: #{inspect(e)}")
             :error
         end
-    end
-  end
-
-
-  def safe_ets_insert(table_name, data, options \\ nil) do
-    table_options = options || Map.get(@table_configs, table_name, [:named_table, :public, :set])
-
-    init_table(table_name, table_options)
-
-    try do
-      :ets.insert(table_name, data)
-      :ok
-    rescue
-      e ->
-        Logger.error("Failed to insert into #{table_name}: #{inspect(e)}")
-        :error
-    end
-  end
-
-  def safe_ets_insert_with_ttl(table_name, key, value, ttl \\ @cache_ttl) do
-    timestamp = :erlang.system_time(:millisecond)
-    expiry = timestamp + ttl
-    data = {key, {value, timestamp, expiry}}
-    safe_ets_insert(table_name, data)
-  end
-
-  def safe_ets_lookup(table_name, key) do
-    case :ets.info(table_name) do
-      :undefined ->
-        Logger.debug("Attempted to lookup from non-existent table #{table_name}")
-        []
-      _ ->
-        try do
-          :ets.lookup(table_name, key)
-        rescue
-          e ->
-            Logger.error("Failed to lookup from #{table_name}: #{inspect(e)}")
-            []
-        end
-    end
-  end
-
-  def safe_ets_lookup_with_ttl(table_name, key) do
-    case safe_ets_lookup(table_name, key) do
-      [{^key, {value, _timestamp, expiry}}] ->
-        current_time = :erlang.system_time(:millisecond)
-        if current_time < expiry do
-          {:ok, value}
-        else
-          safe_ets_delete(table_name, key)
-          :expired
-        end
-
-      [{^key, value}] ->
-        {:ok, value}
-
-      [] ->
-        :not_found
     end
   end
 
@@ -241,13 +263,10 @@ defmodule MazarynWeb.HomeLive.CacheInitializer do
     safe_ets_insert_with_ttl(table_name, key, value, ttl)
   end
 
-
   @impl true
   def init(_opts) do
     init_all_tables()
-
     Process.send_after(self(), :periodic_cleanup, @cache_cleanup_interval)
-
     {:ok, %{}}
   end
 
@@ -265,12 +284,9 @@ defmodule MazarynWeb.HomeLive.CacheInitializer do
   @impl true
   def handle_info(:periodic_cleanup, state) do
     cleanup_all_expired()
-
     Process.send_after(self(), :periodic_cleanup, @cache_cleanup_interval)
-
     {:noreply, state}
   end
-
 
   defp cleanup_all_expired() do
     @table_configs
@@ -331,23 +347,19 @@ defmodule MazarynWeb.HomeLive.CacheInitializer do
   end
 
   def cache_post_content(post_id, content, ttl \\ @cache_ttl) do
-    key = {:post_content, post_id}
-    smart_insert(:post_content_cache, key, content, ttl)
+    cache_post_content_fast(post_id, content, ttl)
   end
 
   def get_cached_post_content(post_id) do
-    key = {:post_content, post_id}
-    safe_ets_lookup_with_ttl(:post_content_cache, key)
+    get_cached_post_content_fast(post_id)
   end
 
   def cache_comments(post_id, comments, ttl \\ @cache_ttl) do
-    key = {:comments, post_id}
-    smart_insert(:comment_cache, key, comments, ttl)
+    cache_comments_fast(post_id, comments, ttl)
   end
 
   def get_cached_comments(post_id) do
-    key = {:comments, post_id}
-    safe_ets_lookup_with_ttl(:comment_cache, key)
+    get_cached_comments_fast(post_id)
   end
 
   def cache_likes_count(post_id, count, ttl \\ @cache_ttl) do
@@ -363,13 +375,15 @@ defmodule MazarynWeb.HomeLive.CacheInitializer do
   def clear_post_caches(post_id) do
     keys_to_clear = [
       {:post_content, post_id},
+      {:post_content_fast, post_id},
       {:comments, post_id},
+      {:comments_fast, post_id},
       {:likes_count, post_id}
     ]
 
     tables_to_clear = [:post_content_cache, :comment_cache, :likes_cache]
 
-    Enum.zip(tables_to_clear, keys_to_clear)
+    Enum.zip(tables_to_clear ++ tables_to_clear, keys_to_clear)
     |> Enum.each(fn {table, key} ->
       safe_ets_delete(table, key)
     end)
