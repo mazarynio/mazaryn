@@ -244,6 +244,11 @@ defmodule MazarynWeb.HomeLive.Home do
     {:noreply, socket}
   end
 
+  def handle_event("mark_notifications_read", _params, socket) do
+    Logger.info("📬 Marking notifications as read")
+    {:noreply, socket}
+  end
+
   @impl true
   def handle_info({:load_user_and_posts_immediate, user_id}, socket) do
     load_start = :erlang.system_time(:millisecond)

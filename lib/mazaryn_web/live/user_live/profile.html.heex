@@ -114,6 +114,81 @@
         </div>
       <% end %>
 
+      <%= if @show_delete_modal do %>
+        <div class="fixed inset-0 z-50 overflow-y-auto" phx-click="hide_delete_modal">
+          <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div class="fixed inset-0 bg-black bg-opacity-50 transition-opacity"></div>
+            
+            <div class="inline-block align-bottom bg-white rounded-2xl px-6 pt-6 pb-4 text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-md sm:w-full sm:p-8" 
+                 phx-click={JS.exec("event.stopPropagation()")}>
+              
+              <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-red-100 mb-6">
+                <svg class="h-8 w-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                </svg>
+              </div>
+
+              <div class="text-center">
+                <h3 class="text-xl font-bold text-gray-900 mb-2">
+                  Delete Your Account?
+                </h3>
+                <p class="text-sm text-gray-500 mb-6">
+                  Are you sure you want to permanently delete your account <strong class="text-gray-700">@<%= @user.username %></strong>? 
+                  This action cannot be undone and all your data will be lost forever.
+                </p>
+                
+                <div class="bg-red-50 border-l-4 border-red-400 p-4 mb-6 text-left rounded-lg">
+                  <div class="flex items-start">
+                    <svg class="w-5 h-5 text-red-400 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                    </svg>
+                    <div class="text-sm">
+                      <p class="font-medium text-red-800">This will permanently delete:</p>
+                      <ul class="mt-2 list-disc list-inside text-red-700 space-y-1">
+                        <li>All your posts and comments</li>
+                        <li>Your profile and personal information</li>
+                        <li>Your followers and following connections</li>
+                        <li>All your account data</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="flex flex-col-reverse sm:flex-row sm:justify-center sm:space-x-4 space-y-3 space-y-reverse sm:space-y-0">
+                <button
+                  phx-click="hide_delete_modal"
+                  type="button"
+                  class="w-full sm:w-auto inline-flex justify-center items-center px-6 py-3 border border-gray-300 shadow-sm text-base font-medium rounded-xl text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200"
+                >
+                  <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                  Keep My Account
+                </button>
+                <button
+                  phx-click="confirm_delete_user"
+                  phx-value-username={@user.username}
+                  type="button"
+                  class="w-full sm:w-auto inline-flex justify-center items-center px-6 py-3 border border-transparent text-base font-medium rounded-xl text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors duration-200 shadow-lg"
+                >
+                  <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                  Yes, Delete Forever
+                </button>
+              </div>
+              
+              <p class="text-xs text-gray-400 text-center mt-6">
+                This action is permanent and cannot be reversed
+              </p>
+            </div>
+          </div>
+        </div>
+      <% end %>
+
       <div class="relative block h-72">
         <%= if @user.banner_url do %>
           <div
@@ -227,10 +302,9 @@
                 </button>
 
                 <button
-                  phx-click="delete_user"
-                  phx-value-username={@user.username}
-                  data-confirm="Are you sure you want to delete your account?"
-                  class="py-2.5 px-5 text-base text-black focus:outline-none bg-[#FAFAFA] rounded-[10px] hover:bg-gray-100 hover:text-red-700 focus:z-10 focus:ring-4 focus:ring-gray-200"
+                  phx-click="show_delete_modal"
+                  class="py-2.5 px-5 text-base text-black focus:outline-none bg-[#FAFAFA] rounded-[10px] hover:bg-red-50 hover:text-red-600 focus:z-10 focus:ring-4 focus:ring-red-100 transition-all duration-200"
+                  title="Delete Account"
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"

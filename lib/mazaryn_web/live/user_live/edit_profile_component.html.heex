@@ -1,202 +1,245 @@
-<div class="container xl">
-  <div class="left-0 w-full font-semibold text-[20px] leading-[24px] text-black border-b border-b-[#AAA] pb-5 mb-10 mr-10">
-    <%= @title %>
-  </div>
-  <!-- accordion-tab  -->
-  <div class="form-container w-[100%]">
-    <div class="outline-none accordion-section w-[100%]" tabindex="1">
-      <div
-        phx-click={toggle_tab1()}
-        class="js--tabs-label items-center text-gray-500 cursor-pointer relative"
-      >
-        <div><%= @success_msg || @failure_msg %></div>
-        <div class="font-semibold text-[20px] leading-[24px] mb-[25px] text-black">
-          About Info
-        </div>
+<div class="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 py-8">
+  <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="bg-white rounded-2xl shadow-xl border border-gray-100 mb-8 overflow-hidden">
+      <div class="bg-gradient-to-r from-blue-600 to-purple-600 px-8 py-6">
+        <h1 class="text-3xl font-bold text-white flex items-center">
+          <svg class="w-8 h-8 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+          </svg>
+          <%= @title %>
+        </h1>
+        <p class="text-blue-100 mt-2">Customize your profile information and appearance</p>
       </div>
-      <div class="js--accordion acc-1  form-body w-[100%] group-focus:max-h-screen max-h-0 overflow-hidden transition ease duration-500">
-        <div class="form-input-container">
-          <.form
-            :let={f}
-            for={@changeset}
-            class="w-full"
-            phx-target={@myself}
-            phx-blur="validate-info"
-            phx-submit="save-info"
-          >
-            <div class="form-input-container">
-              <div>
-                <label class="form-input-label">First Name</label>
-              </div>
-              <div class="w-[100%]">
-                <%= text_input(f, :firstname,
-                  class: "group form-input max-w-[580px]",
-                  placeholder: "Your first name",
-                  aria_describedby: "form_firstname_detail",
-                  aria_required: "true",
-                  autofocus: "1"
-                ) %>
-              </div>
-
-              <div
-                aria-live="polite"
-                id="form_firstname_detail"
-                class={"#{detail_error f, @changeset, :firstname}"}
-              >
-                <span class="text-sm"><%= push_error_tag(f, :firstname) %></span>
-              </div>
+      
+      <%= if @success_msg || @failure_msg do %>
+        <div class="px-8 py-4 border-b border-gray-100">
+          <%= if @success_msg do %>
+            <div class="flex items-center p-4 bg-green-50 border border-green-200 rounded-lg">
+              <svg class="w-5 h-5 text-green-600 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+              </svg>
+              <span class="text-green-800 font-medium"><%= @success_msg %></span>
             </div>
-            <div class="form-input-container">
-              <div>
-                <label class="form-input-label">Last Name</label>
-              </div>
-              <div class="w-[100%]">
-                <%= text_input(f, :lastname,
-                  class: "form-input max-w-[580px]",
-                  placeholder: "Your last name",
-                  aria_describedby: "form_firstname_detail",
-                  aria_required: "true",
-                  autofocus: "1"
-                ) %>
-              </div>
-
-              <div
-                aria-live="polite"
-                id="form_lastname_detail"
-                class={"#{detail_error f, @changeset, :lastname}"}
-              >
-                <span class="text-sm"><%= push_error_tag(f, :lastname) %></span>
-              </div>
+          <% end %>
+          <%= if @failure_msg do %>
+            <div class="flex items-center p-4 bg-red-50 border border-red-200 rounded-lg">
+              <svg class="w-5 h-5 text-red-600 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
+              </svg>
+              <span class="text-red-800 font-medium"><%= @failure_msg %></span>
             </div>
-            <div class="form-input-container">
-              <div>
-                <label class="form-input-label">User Name</label>
-              </div>
-              <div class="w-[100%]">
-                <%= text_input(f, :username,
-                  class: "form-input max-w-[580px]",
-                  placeholder: "Your user name",
-                  aria_describedby: "form_username_detail",
-                  aria_required: "true",
-                  autofocus: "1"
-                ) %>
-              </div>
-
-              <div
-                aria-live="polite"
-                id="form_username_detail"
-                class={"#{detail_error f, @changeset, :username}"}
-              >
-                <span class="text-sm"><%= push_error_tag(f, :username) %></span>
-              </div>
-            </div>
-            <div class="form-input-container">
-              <div>
-                <label class="form-input-label">Location</label>
-              </div>
-              <div class="w-[100%]">
-                <%= text_input(f, :location,
-                  class: "form-input max-w-[580px] ",
-                  placeholder: "Your location",
-                  aria_describedby: "form_location_detail",
-                  aria_required: "true",
-                  autofocus: "1"
-                ) %>
-              </div>
-
-              <div
-                aria-live="polite"
-                id="form_location_detail"
-                class={"#{detail_error f, @changeset, :location}"}
-              >
-                <span class="text-sm"><%= push_error_tag(f, :location) %></span>
-              </div>
-            </div>
-            <div class="flex space-between flex-col md:flex-row mt-[30px] md:mt-[50px] mb-[30px]">
-              <div class="flex flex-row mb-[15px] md:mb-0 items-center">
-                <!-- <%= checkbox f, :accepts_conditions, [phx_click: "toggle", class: "rounded"] %> -->
-              </div>
-              <%= submit("Save",
-                phx_disabled_with: "Save",
-                class: "ml-auto bg-blue-500 hover:bg-blue-700 text-white py-3 px-14 rounded-md"
-              ) %>
-            </div>
-          </.form>
+          <% end %>
         </div>
-      </div>
+      <% end %>
     </div>
-  </div>
-  <!-- accordion-tab  -->
-  <div class="form-container w-[100%]">
-    <div class="outline-none accordion-section" tabindex="2">
-      <div
-        phx-click={toggle_tab2()}
-        class="js--tabs-label items-center text-gray-500 cursor-pointer relative"
-      >
-        <div class="mb-[25px] font-semibold text-[20px] leading-[24px] text-black">
-          Bio
-        </div>
-      </div>
-      <div class="js--accordion acc-2 form-body w-[100%] group-focus:max-h-screen max-h-0 overflow-hidden transition ease duration-500">
-        <.form
-          :let={f}
-          for={@changeset}
-          id="edit-form-bioinfo"
-          class="w-full"
-          phx-target={@myself}
-          phx-submit="save-bio"
+
+    <div class="space-y-6">
+      
+      <div class="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden transition-all duration-300 hover:shadow-xl">
+        <div 
+          phx-click={toggle_tab1()} 
+          class="js--tabs-label cursor-pointer bg-gradient-to-r from-gray-50 to-gray-100 hover:from-blue-50 hover:to-purple-50 transition-all duration-300 px-8 py-6 border-b border-gray-200"
         >
-          <div class="form-input-container">
-            <div>
-              <label class="form-input-label">Bio</label>
+          <div class="flex items-center justify-between">
+            <div class="flex items-center">
+              <div class="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-500 rounded-xl flex items-center justify-center mr-4">
+                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+              </div>
+              <div>
+                <h2 class="text-xl font-bold text-gray-800">Personal Information</h2>
+                <p class="text-gray-600 text-sm">Update your basic profile details</p>
+              </div>
             </div>
-            <div class="w-[100%] mt-[8px]">
-              <%= textarea(f, :biography,
-                class:
-                  "form-text-area w-[100%] font-['Inter'] text-[16px] leading-[24px] rounded-[10px] border-[#D2D2D1] py-[12px] px-[24px] mb-[30px] ",
-                placeholder: "Your Bio",
-                cols: "72",
-                rows: "5"
-              ) %>
-            </div>
-            <div class="mb-[30px] ml-auto">
-              <%= submit(submit_value(@changeset, "Save"),
-                phx_disabled_with: "Saving...",
-                class: "bg-blue-500 hover:bg-blue-700 text-white py-3 px-14 rounded-md"
-              ) %>
-            </div>
+            <svg class="w-6 h-6 text-gray-400 transform transition-transform duration-300 accordion-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+            </svg>
           </div>
-        </.form>
-      </div>
-    </div>
-  </div>
-  <!-- accordion-tab  -->
-  <div class="form-container w-full">
-    <div class="outline-none accordion-section w-[100%]" tabindex="3">
-      <div
-        phx-click={toggle_tab3()}
-        class="js--tabs-label items-center text-gray-500 cursor-pointer relative"
-      >
-        <div class="mb-[25px] font-semibold text-[20px] leading-[24px]  text-black">
-          Profile Image
         </div>
-        <div class="js--accordion acc-3 form-body w-full group-focus:max-h-screen max-h-0 overflow-hidden transition ease duration-500">
-          <%!--  <.form
-            :let={f}
-            for={@changeset}
-            class="w-full"
-            phx-target={@myself}
-            phx-blur="validate-profile-photo"
-            phx-submit="save-profile"
-            multipart
-          >
-          --%>
-          <div class="form-input-container">
-            <div class="w-full max-h-[260px]">
-              <div class="flex">
-                <label class="form__label-profile-photo z-20 cursor-pointer">
-                  <figure
-                    class="w-full relative max-w-[80px] max-h-[80px]"
+        
+        <div class="js--accordion acc-1 max-h-0 overflow-hidden transition-all duration-500 ease-in-out">
+          <div class="p-8">
+            <.form 
+              :let={f} 
+              for={@changeset} 
+              class="w-full" 
+              phx-target={@myself} 
+              phx-blur="validate-info" 
+              phx-submit="save-info"
+            >
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="space-y-2">
+                  <label class="block text-sm font-semibold text-gray-700">First Name</label>
+                  <%= text_input(f, :firstname, 
+                    class: "w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-gray-50 focus:bg-white", 
+                    placeholder: "Enter your first name"
+                  ) %>
+                  <div class="text-sm text-red-600">
+                    <%= push_error_tag(f, :firstname) %>
+                  </div>
+                </div>
+
+                <div class="space-y-2">
+                  <label class="block text-sm font-semibold text-gray-700">Last Name</label>
+                  <%= text_input(f, :lastname, 
+                    class: "w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-gray-50 focus:bg-white", 
+                    placeholder: "Enter your last name"
+                  ) %>
+                  <div class="text-sm text-red-600">
+                    <%= push_error_tag(f, :lastname) %>
+                  </div>
+                </div>
+
+                <div class="space-y-2">
+                  <label class="block text-sm font-semibold text-gray-700">Username</label>
+                  <%= text_input(f, :username, 
+                    class: "w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-gray-50 focus:bg-white", 
+                    placeholder: "Choose a unique username"
+                  ) %>
+                  <div class="text-sm text-red-600">
+                    <%= push_error_tag(f, :username) %>
+                  </div>
+                </div>
+
+                <div class="space-y-2">
+                  <label class="block text-sm font-semibold text-gray-700">Location</label>
+                  <%= text_input(f, :location, 
+                    class: "w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-gray-50 focus:bg-white", 
+                    placeholder: "Where are you located?"
+                  ) %>
+                  <div class="text-sm text-red-600">
+                    <%= push_error_tag(f, :location) %>
+                  </div>
+                </div>
+              </div>
+
+              <div class="flex justify-end mt-8">
+                <%= submit("Save Changes", 
+                  phx_disabled_with: "Saving...", 
+                  class: "px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-xl hover:from-blue-700 hover:to-purple-700 transform hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl"
+                ) %>
+              </div>
+            </.form>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden transition-all duration-300 hover:shadow-xl">
+        <div 
+          phx-click={toggle_tab2()} 
+          class="js--tabs-label cursor-pointer bg-gradient-to-r from-gray-50 to-gray-100 hover:from-green-50 hover:to-emerald-50 transition-all duration-300 px-8 py-6 border-b border-gray-200"
+        >
+          <div class="flex items-center justify-between">
+            <div class="flex items-center">
+              <div class="w-12 h-12 bg-gradient-to-r from-green-500 to-emerald-500 rounded-xl flex items-center justify-center mr-4">
+                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                </svg>
+              </div>
+              <div>
+                <h2 class="text-xl font-bold text-gray-800">Biography</h2>
+                <p class="text-gray-600 text-sm">Tell others about yourself</p>
+              </div>
+            </div>
+            <svg class="w-6 h-6 text-gray-400 transform transition-transform duration-300 accordion-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+            </svg>
+          </div>
+        </div>
+        
+        <div class="js--accordion acc-2 max-h-0 overflow-hidden transition-all duration-500 ease-in-out">
+          <div class="p-8">
+            <.form 
+              :let={f} 
+              for={@changeset} 
+              id="edit-form-bioinfo" 
+              class="w-full" 
+              phx-target={@myself} 
+              phx-submit="save-bio"
+            >
+              <div class="space-y-4">
+                <label class="block text-sm font-semibold text-gray-700">About You</label>
+                <%= textarea(f, :biography, 
+                  class: "w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 bg-gray-50 focus:bg-white resize-none", 
+                  placeholder: "Share something interesting about yourself...", 
+                  rows: "6"
+                ) %>
+                <p class="text-sm text-gray-500">Write a brief description about yourself, your interests, or what you do.</p>
+              </div>
+
+              <div class="flex justify-end mt-6">
+                <%= submit("Update Bio", 
+                  phx_disabled_with: "Saving...", 
+                  class: "px-8 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white font-semibold rounded-xl hover:from-green-700 hover:to-emerald-700 transform hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl"
+                ) %>
+              </div>
+            </.form>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden transition-all duration-300 hover:shadow-xl">
+        <div 
+          phx-click={toggle_tab3()} 
+          class="js--tabs-label cursor-pointer bg-gradient-to-r from-gray-50 to-gray-100 hover:from-orange-50 hover:to-amber-50 transition-all duration-300 px-8 py-6 border-b border-gray-200"
+        >
+          <div class="flex items-center justify-between">
+            <div class="flex items-center">
+              <div class="w-12 h-12 bg-gradient-to-r from-orange-500 to-amber-500 rounded-xl flex items-center justify-center mr-4">
+                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                </svg>
+              </div>
+              <div>
+                <h2 class="text-xl font-bold text-gray-800">Profile Picture</h2>
+                <p class="text-gray-600 text-sm">Upload your profile photo</p>
+              </div>
+            </div>
+            <svg class="w-6 h-6 text-gray-400 transform transition-transform duration-300 accordion-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+            </svg>
+          </div>
+        </div>
+        
+        <div class="js--accordion acc-3 max-h-0 overflow-hidden transition-all duration-500 ease-in-out">
+          <div class="p-8">
+            <div class="flex flex-col items-center space-y-6">
+              <div 
+                class="relative group cursor-pointer"
+                phx-drop-target={@uploads.avatar_url.ref}
+                phx-click={
+                  Phoenix.LiveView.JS.dispatch("click",
+                    to: "##{@uploads.avatar_url.ref}",
+                    bubbles: false
+                  )
+                }
+              >
+                <div class="w-32 h-32 rounded-full overflow-hidden border-4 border-gray-200 shadow-lg transition-all duration-300 group-hover:border-orange-400 group-hover:shadow-xl">
+                  <img 
+                    class="w-full h-full object-cover transition-all duration-300 group-hover:scale-110" 
+                    src="https://images.pexels.com/photos/771742/pexels-photo-771742.jpeg?auto=compress&cs=tinysrgb&w=300&h=300&fit=crop" 
+                    alt="Profile photo" 
+                  />
+                </div>
+                <div class="absolute inset-0 bg-black bg-opacity-50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                  <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                  </svg>
+                </div>
+              </div>
+
+              <div class="w-full max-w-md">
+                <.form
+                  phx-target={@myself}
+                  id="profile-upload"
+                  phx-submit="save-profile-pic"
+                  phx-change="validate-profile-photo"
+                  class="space-y-4"
+                >
+                  <div 
+                    class="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center hover:border-orange-400 transition-all duration-300 cursor-pointer"
                     phx-drop-target={@uploads.avatar_url.ref}
                     phx-click={
                       Phoenix.LiveView.JS.dispatch("click",
@@ -205,98 +248,121 @@
                       )
                     }
                   >
-                    <img
-                      class="block cursor-pointer rounded-[50%]"
-                      src="https://avatars1.githubusercontent.com/u/11435231?s=460&v=4"
-                      alt="profile-photo"
-                    />
-                    <figcaption class="contents">
-                      <svg
-                        class="relative invisible left-[55px] top-[-95px] z-30 cursor-pointer ease duration-200"
-                        width="40"
-                        height="40"
-                        viewBox="0 0 40 40"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
+                    <div class="hidden">
+                      <.live_file_input upload={@uploads.avatar_url} />
+                    </div>
+                    
+                    <svg class="mx-auto h-12 w-12 text-gray-400 mb-4" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                      <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                    <p class="text-sm text-gray-600">
+                      <span class="font-semibold text-orange-600">Choose file</span> or drag and drop
+                    </p>
+                    <p class="text-xs text-gray-500">PNG, JPG up to 20MB</p>
+                  </div>
+                  
+                  <button
+                    type="submit"
+                    class="w-full px-6 py-3 bg-gradient-to-r from-orange-600 to-amber-600 text-white font-semibold rounded-xl hover:from-orange-700 hover:to-amber-700 transform hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl"
+                  >
+                    Upload Profile Picture
+                  </button>
+                </.form>
+
+                <%= for entry <- @uploads.avatar_url.entries do %>
+                  <div class="mt-4">
+                    <div class="flex items-center justify-between text-sm text-gray-600 mb-2">
+                      <span><%= entry.client_name %></span>
+                      <span><%= entry.progress %>%</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2">
+                      <div 
+                        class="bg-gradient-to-r from-orange-500 to-amber-500 h-2 rounded-full transition-all duration-300" 
+                        style={"width: #{entry.progress}%"}
                       >
-                        <circle cx="20" cy="20" r="20" fill="#ebebeb" fill-opacity="0.5" />
-                        <path
-                          d="M14.1172 17.1328C14.6055 17.6207 15.3969 17.6211 15.8848 17.1329L18.75 14.2695V23.75C18.75 24.4402 19.3098 25 20 25C20.6902 25 21.25 24.4402 21.25 23.75V14.2695L24.1164 17.1359C24.6043 17.6238 25.3957 17.6238 25.884 17.1359C26.3719 16.648 26.3719 15.8566 25.884 15.3683L20.884 10.3683C20.6406 10.1221 20.3203 10 20 10C19.6797 10 19.3594 10.1221 19.1172 10.3662L14.1172 15.3672C13.6281 15.8555 13.6281 16.6445 14.1172 17.1328ZM28.75 23.75H22.5C22.5 25.1309 21.3809 26.25 20 26.25C18.6191 26.25 17.5 25.1309 17.5 23.75H11.25C10.5598 23.75 10 24.3098 10 25V28.75C10 29.4402 10.5598 30 11.25 30H28.75C29.4402 30 30 29.4402 30 28.75V25C30 24.3086 29.4414 23.75 28.75 23.75ZM26.875 27.8125C26.3594 27.8125 25.9375 27.3906 25.9375 26.875C25.9375 26.3594 26.3594 25.9375 26.875 25.9375C27.3906 25.9375 27.8125 26.3594 27.8125 26.875C27.8125 27.3906 27.3906 27.8125 26.875 27.8125Z"
-                          fill="#FAFAFA"
-                        />
-                      </svg>
-                    </figcaption>
-                  </figure>
-                </label>
+                      </div>
+                    </div>
+                  </div>
+                <% end %>
 
                 <%= for {_ref, msg} <- @uploads.avatar_url.errors do %>
-                  <p class="alert alert-danger"><%= Phoenix.Naming.humanize(msg) %></p>
+                  <div class="mt-2 p-3 bg-red-50 border border-red-200 rounded-lg">
+                    <p class="text-sm text-red-600"><%= Phoenix.Naming.humanize(msg) %></p>
+                  </div>
                 <% end %>
-                <%!-- <.live_file_input upload={@uploads.avatar_url} /> --%>
 
-                <div>
-                  <.form
-                    phx-target={@myself}
-                    id="profile-upload"
-                    phx-submit="save-profile-pic"
-                    phx-change="validate-profile-photo"
-                  >
-                    <.live_file_input upload={@uploads.avatar_url} />
-                    <button
-                      type="submit"
-                      class="bg-blue-500 hover:bg-blue-700 text-white py-3 px-14 rounded-md"
-                    >
-                      Save
-                    </button>
-                  </.form>
-
-                  <%= for err <- upload_errors(@uploads.avatar_url) do %>
-                    <p><%= error_to_string(err) %></p>
-                  <% end %>
-                </div>
+                <%= for err <- upload_errors(@uploads.avatar_url) do %>
+                  <div class="mt-2 p-3 bg-red-50 border border-red-200 rounded-lg">
+                    <p class="text-sm text-red-600"><%= error_to_string(err) %></p>
+                  </div>
+                <% end %>
               </div>
             </div>
-            <%!-- <div class="mt-[90px] md:mt-[60px] mb-[30px] ml-auto">
-                <%= submit("Save",
-                  phx_disabled_with: "Saving...",
-                  class: "bg-red-500 hover:bg-blue-700 text-white py-3 px-14 rounded-md"
-                ) %>
-              </div>
-              --%>
           </div>
-
-          <%!--</.form> --%>
         </div>
       </div>
-    </div>
-  </div>
-  <div class="form-container w-full">
-    <div class="outline-none accordion-section w-[100%]" tabindex="3">
-      <div
-        phx-click={toggle_tab4()}
-        class="js--tabs-label items-center text-gray-500 cursor-pointer relative"
-      >
-        <div class="mb-[25px] font-semibold text-[20px] leading-[24px]  text-black">
-          Banner
-        </div>
-        <div class="js--accordion acc-4 form-body w-full group-focus:max-h-screen max-h-0 overflow-hidden transition ease duration-500">
-          <%!--  <.form
-            :let={f}
-            for={@changeset}
-            class="w-full"
-            phx-target={@myself}
-            phx-blur="validate-banner"
-            phx-submit="save-banner"
-            multipart
-          >
-          --%>
-          <div class="form-input-container">
-            <div class="w-full max-h-[260px]">
+
+      <div class="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden transition-all duration-300 hover:shadow-xl">
+        <div 
+          phx-click={toggle_tab4()} 
+          class="js--tabs-label cursor-pointer bg-gradient-to-r from-gray-50 to-gray-100 hover:from-purple-50 hover:to-pink-50 transition-all duration-300 px-8 py-6 border-b border-gray-200"
+        >
+          <div class="flex items-center justify-between">
+            <div class="flex items-center">
+              <div class="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl flex items-center justify-center mr-4">
+                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path>
+                </svg>
+              </div>
               <div>
-                <label class="form__label-cover-image block w-[100%] h-[164px]">
-                  <figure
-                    class="w-full max-h-[164px]"
-                    id="upload-banner-area"
+                <h2 class="text-xl font-bold text-gray-800">Cover Banner</h2>
+                <p class="text-gray-600 text-sm">Customize your profile banner</p>
+              </div>
+            </div>
+            <svg class="w-6 h-6 text-gray-400 transform transition-transform duration-300 accordion-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+            </svg>
+          </div>
+        </div>
+        
+        <div class="js--accordion acc-4 max-h-0 overflow-hidden transition-all duration-500 ease-in-out">
+          <div class="p-8">
+            <div class="space-y-6">
+              <div 
+                class="relative group cursor-pointer"
+                phx-drop-target={@uploads.banner_url.ref}
+                phx-click={
+                  Phoenix.LiveView.JS.dispatch("click",
+                    to: "##{@uploads.banner_url.ref}",
+                    bubbles: false
+                  )
+                }
+              >
+                <div class="w-full h-48 rounded-xl overflow-hidden border-2 border-gray-200 shadow-lg transition-all duration-300 group-hover:border-purple-400 group-hover:shadow-xl">
+                  <img 
+                    class="w-full h-full object-cover transition-all duration-300 group-hover:scale-105" 
+                    src="https://images.pexels.com/photos/1629236/pexels-photo-1629236.jpeg?auto=compress&cs=tinysrgb&w=1200&h=300&fit=crop" 
+                    alt="Cover banner" 
+                  />
+                </div>
+                <div class="absolute inset-0 bg-black bg-opacity-50 rounded-xl flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                  <svg class="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                  </svg>
+                </div>
+              </div>
+
+              <div class="max-w-md mx-auto">
+                <.form
+                  phx-target={@myself}
+                  id="banner-upload"
+                  phx-submit="save-banner-pic"
+                  phx-change="validate-banner"
+                  class="space-y-4"
+                >
+                  <div 
+                    class="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center hover:border-purple-400 transition-all duration-300 cursor-pointer"
                     phx-drop-target={@uploads.banner_url.ref}
                     phx-click={
                       Phoenix.LiveView.JS.dispatch("click",
@@ -305,55 +371,90 @@
                       )
                     }
                   >
-                    <img
-                      class="h-[164px] object-cover w-[100%] z-20 cursor-pointer"
-                      src="https://avatars1.githubusercontent.com/u/11435231?s=460&v=4"
-                      alt="cover photo"
-                    />
-                    <figcaption class="contents">
-                      <svg
-                        class="relative invisible z-30 cursor-pointer  left-[45%] top-[45%] translate-y-[-100px]"
-                        width="40"
-                        height="40"
-                        viewBox="0 0 40 40"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
+                    <div class="hidden">
+                      <.live_file_input upload={@uploads.banner_url} />
+                    </div>
+                    
+                    <svg class="mx-auto h-12 w-12 text-gray-400 mb-4" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                      <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                    <p class="text-sm text-gray-600">
+                      <span class="font-semibold text-purple-600">Choose file</span> or drag and drop
+                    </p>
+                    <p class="text-xs text-gray-500">PNG, JPG up to 20MB (Recommended: 1200x300px)</p>
+                  </div>
+                  
+                  <button
+                    type="submit"
+                    class="w-full px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold rounded-xl hover:from-purple-700 hover:to-pink-700 transform hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl"
+                  >
+                    Upload Banner Image
+                  </button>
+                </.form>
+
+                <%= for entry <- @uploads.banner_url.entries do %>
+                  <div class="mt-4">
+                    <div class="flex items-center justify-between text-sm text-gray-600 mb-2">
+                      <span><%= entry.client_name %></span>
+                      <span><%= entry.progress %>%</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2">
+                      <div 
+                        class="bg-gradient-to-r from-purple-500 to-pink-500 h-2 rounded-full transition-all duration-300" 
+                        style={"width: #{entry.progress}%"}
                       >
-                        <circle cx="20" cy="20" r="20" fill="#ebebeb" fill-opacity="0.5" />
-                        <path
-                          d="M14.1172 17.1328C14.6055 17.6207 15.3969 17.6211 15.8848 17.1329L18.75 14.2695V23.75C18.75 24.4402 19.3098 25 20 25C20.6902 25 21.25 24.4402 21.25 23.75V14.2695L24.1164 17.1359C24.6043 17.6238 25.3957 17.6238 25.884 17.1359C26.3719 16.648 26.3719 15.8566 25.884 15.3683L20.884 10.3683C20.6406 10.1221 20.3203 10 20 10C19.6797 10 19.3594 10.1221 19.1172 10.3662L14.1172 15.3672C13.6281 15.8555 13.6281 16.6445 14.1172 17.1328ZM28.75 23.75H22.5C22.5 25.1309 21.3809 26.25 20 26.25C18.6191 26.25 17.5 25.1309 17.5 23.75H11.25C10.5598 23.75 10 24.3098 10 25V28.75C10 29.4402 10.5598 30 11.25 30H28.75C29.4402 30 30 29.4402 30 28.75V25C30 24.3086 29.4414 23.75 28.75 23.75ZM26.875 27.8125C26.3594 27.8125 25.9375 27.3906 25.9375 26.875C25.9375 26.3594 26.3594 25.9375 26.875 25.9375C27.3906 25.9375 27.8125 26.3594 27.8125 26.875C27.8125 27.3906 27.3906 27.8125 26.875 27.8125Z"
-                          fill="#FAFAFA"
-                        />
-                      </svg>
-                    </figcaption>
-                  </figure>
-                </label>
-                <!-- -->
+                      </div>
+                    </div>
+                  </div>
+                <% end %>
+
+                <%= for err <- upload_errors(@uploads.banner_url) do %>
+                  <div class="mt-2 p-3 bg-red-50 border border-red-200 rounded-lg">
+                    <p class="text-sm text-red-600"><%= error_to_string(err) %></p>
+                  </div>
+                <% end %>
               </div>
             </div>
-
-            <.form
-              phx-target={@myself}
-              id="profile-upload"
-              phx-submit="save-banner-pic"
-              phx-change="validate-banner"
-            >
-              <.live_file_input upload={@uploads.banner_url} />
-              <button
-                type="submit"
-                class="bg-blue-500 hover:bg-blue-700 text-white py-3 px-14 rounded-md"
-              >
-                Save
-              </button>
-            </.form>
-
-            <%= for err <- upload_errors(@uploads.banner_url) do %>
-              <p><%= error_to_string(err) %></p>
-            <% end %>
           </div>
-          <%!--     </.form> --%>
         </div>
       </div>
     </div>
   </div>
+
+  <style>
+    .acc-active {
+      max-height: 1000px !important;
+    }
+    
+    .js--tabs-label:hover .accordion-arrow {
+      transform: rotate(180deg);
+    }
+    
+    .acc-active ~ .js--tabs-label .accordion-arrow {
+      transform: rotate(180deg);
+    }
+    
+    .js--accordion {
+      transition: max-height 0.5s ease-in-out;
+    }
+    
+    .border-dashed:hover {
+      border-style: solid;
+    }
+    
+    input:focus, textarea:focus {
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+    
+    button:hover {
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    }
+    
+    input[type="file"] {
+      position: absolute;
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+  </style>
 </div>

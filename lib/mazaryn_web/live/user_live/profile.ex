@@ -60,6 +60,7 @@ defmodule MazarynWeb.UserLive.Profile do
         |> assign_optimistic_states()
         |> assign_follow_data_optimistic(current_user.id, user.id)
         |> clear_search_state()
+        |> assign(show_delete_modal: false)
 
       load_posts_with_improved_fallback(username, current_user.id, user.id)
 
@@ -100,6 +101,7 @@ defmodule MazarynWeb.UserLive.Profile do
           |> assign(user: current_user)
           |> assign(page: 1)
           |> assign(has_more_posts: true)
+          |> assign(show_delete_modal: false)
           |> clear_search_state()
 
         load_posts_with_improved_fallback(current_user.username, current_user.id, current_user.id)
@@ -136,6 +138,7 @@ defmodule MazarynWeb.UserLive.Profile do
           |> assign(posts_loading: false)
           |> assign(page: 1)
           |> assign(has_more_posts: true)
+          |> assign(show_delete_modal: false)
           |> assign_follow_data_optimistic(current_user.id, user.id)
           |> clear_search_state()
 
@@ -167,6 +170,7 @@ defmodule MazarynWeb.UserLive.Profile do
       |> assign(current_user: current_user)
       |> assign(page: 1)
       |> assign(has_more_posts: true)
+      |> assign(show_delete_modal: false)
       |> clear_search_state()
 
     params_end = :erlang.system_time(:millisecond)
@@ -307,9 +311,19 @@ defmodule MazarynWeb.UserLive.Profile do
     {:noreply, socket}
   end
 
-  def handle_event("delete_user", %{"username" => username}, socket) do
+  def handle_event("show_delete_modal", _params, socket) do
+    Logger.info("🗑 Showing delete account modal")
+    {:noreply, assign(socket, show_delete_modal: true)}
+  end
+
+  def handle_event("hide_delete_modal", _params, socket) do
+    Logger.info("🚫 Hiding delete account modal")
+    {:noreply, assign(socket, show_delete_modal: false)}
+  end
+
+  def handle_event("confirm_delete_user", %{"username" => username}, socket) do
     delete_start = :erlang.system_time(:millisecond)
-    Logger.info("🗑 Starting handle_event delete_user for username #{username}")
+    Logger.info("🗑 Starting handle_event confirm_delete_user for username #{username}")
 
     Task.start(fn ->
       try do
@@ -322,9 +336,13 @@ defmodule MazarynWeb.UserLive.Profile do
       end
     end)
 
-    socket = socket |> put_flash(:info, "User deletion initiated") |> push_redirect(to: Routes.page_path(socket, :index, "en"))
+    socket = socket
+    |> assign(show_delete_modal: false)
+    |> put_flash(:info, "Account deletion initiated successfully")
+    |> push_redirect(to: Routes.page_path(socket, :index, "en"))
+
     delete_end = :erlang.system_time(:millisecond)
-    Logger.info("🗑 handle_event delete_user completed in #{delete_end - delete_start}ms")
+    Logger.info("🗑 handle_event confirm_delete_user completed in #{delete_end - delete_start}ms")
     {:noreply, socket}
   end
 
@@ -392,23 +410,17 @@ defmodule MazarynWeb.UserLive.Profile do
   end
 
   def handle_event("post_created", %{"username" => username}, socket) do
-    Logger.info("🆕 Post created for #{username}, refreshing cache with improved strategy")
+    Logger.info("🆕 Post created for #{username}, using optimized refresh strategy")
 
-    current_user_id = socket.assigns.current_user.id
-    target_user_id = (socket.assigns[:user] || socket.assigns.current_user).id
-
-    send(self(), {:refresh_posts_cache, username})
+    send(self(), {:load_fresh_posts, username, 1})
 
     {:noreply, socket}
   end
 
-  def handle_event("comment_added", %{"username" => username}, socket) do
-    Logger.info("💬 Comment added for #{username}, refreshing posts")
+  def handle_event("comment_added", %{"username" => username, "post_id" => post_id}, socket) do
+    Logger.info("💬 Comment added for #{username} on post #{post_id}, using optimized approach")
 
-    current_user_id = socket.assigns.current_user.id
-    target_user_id = (socket.assigns[:user] || socket.assigns.current_user).id
-
-    send(self(), {:refresh_posts_cache, username})
+    send(self(), {:optimistic_comment_update, post_id})
 
     {:noreply, socket}
   end
@@ -532,6 +544,22 @@ defmodule MazarynWeb.UserLive.Profile do
     Logger.info("📚 Fresh load_posts completed in #{load_end - load_start}ms with #{length(all_posts)} total posts")
 
     {:noreply, assign(socket, posts: all_posts, posts_loading: false, has_more_posts: has_more, page: page)}
+  end
+
+  def handle_info({:optimistic_comment_update, post_id}, socket) do
+    Logger.info("💬 Optimistic comment update for post #{post_id}")
+
+    Task.start(fn ->
+      try do
+        refresh_post_comments_cache(post_id)
+        Logger.info("Background comment cache refresh completed for post #{post_id}")
+      rescue
+        error ->
+          Logger.error("Background comment cache refresh failed: #{inspect(error)}")
+      end
+    end)
+
+    {:noreply, socket}
   end
 
   def handle_info({:posts_fallback_timeout, username}, socket) do
@@ -679,6 +707,19 @@ defmodule MazarynWeb.UserLive.Profile do
   def handle_info(message, socket) do
     Logger.debug("Received unexpected message: #{inspect(message)}")
     {:noreply, socket}
+  end
+
+  defp refresh_post_comments_cache(post_id) do
+    try do
+      comments = post_id |> to_charlist() |> Mazaryn.Posts.get_comment_by_post_id()
+      cache_key = {:comments, post_id}
+      current_time = :erlang.system_time(:millisecond)
+      safe_ets_insert(:comments_cache, {cache_key, comments, current_time})
+      Logger.info("Refreshed comments cache for post #{post_id}")
+    rescue
+      error ->
+        Logger.error("Error refreshing comments cache for post #{post_id}: #{inspect(error)}")
+    end
   end
 
   defp load_posts_with_improved_fallback(username, current_user_id, target_user_id) do

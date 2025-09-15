@@ -44,34 +44,31 @@ defmodule MazarynWeb.UserLive.EditProfileComponent do
     {:noreply, save_user_info(socket, params)}
   end
 
-  def handle_event("save-profile", _params, socket) do
-    current_user = socket.assigns.current_user
-
-    case consume_upload(socket, :avatar_url) do
-      [avatar_url] ->
-        Account.Users.insert_avatar(current_user.id, avatar_url)
-        {:noreply, socket}
-
-      [] ->
-        {:noreply, socket}
-    end
-  end
-
   def handle_event("save-profile-pic", _params, socket) do
     current_user = socket.assigns.current_user
-    # save the file to database
+
     case uploads(:avatar_url, socket) do
       [upload_url] ->
-
         avatar_cid =
           upload_url
           |> PostClient.upload_media()
           |> List.to_string()
 
         Account.Users.insert_avatar(current_user.id, avatar_cid)
+
+        socket =
+          socket
+          |> assign(:success_msg, "Profile picture updated successfully!")
+          |> assign(:failure_msg, nil)
+
         {:noreply, socket}
 
       [] ->
+        socket =
+          socket
+          |> assign(:failure_msg, "Please select an image to upload")
+          |> assign(:success_msg, nil)
+
         {:noreply, socket}
     end
   end
@@ -80,36 +77,31 @@ defmodule MazarynWeb.UserLive.EditProfileComponent do
     {:noreply, socket}
   end
 
-  def handle_event("save-banner", _params, socket) do
-    current_user = socket.assigns.current_user
-
-    case consume_upload(socket, :banner_url) do
-      [banner_url] ->
-        Account.Users.insert_banner(current_user.id, banner_url)
-        {:noreply, socket}
-
-      [] ->
-        {:noreply, socket}
-    end
-  end
-
   def handle_event("save-banner-pic", _params, socket) do
     current_user = socket.assigns.current_user
 
     case uploads(:banner_url, socket) do
       [upload_url] ->
-
         banner_cid =
           upload_url
           |> PostClient.upload_media()
           |> List.to_string()
 
-          dbg(banner_cid)
-
         Account.Users.insert_banner(current_user.id, banner_cid)
+
+        socket =
+          socket
+          |> assign(:success_msg, "Banner image updated successfully!")
+          |> assign(:failure_msg, nil)
+
         {:noreply, socket}
 
       [] ->
+        socket =
+          socket
+          |> assign(:failure_msg, "Please select an image to upload")
+          |> assign(:success_msg, nil)
+
         {:noreply, socket}
     end
   end
@@ -133,15 +125,6 @@ defmodule MazarynWeb.UserLive.EditProfileComponent do
     end)
   end
 
-  # TODO: delete below once edit profile bug is fixed
-  # def preload(list_of_assigns) do
-  #   IO.inspect(list_of_assigns, label: "[PRELOAD]")
-
-  #   Enum.map(list_of_assigns, fn assigns ->
-  #     assigns
-  #   end)
-  # end
-
   defp error_to_string(:too_large), do: "Too large"
   defp error_to_string(:not_accepted), do: "You have selected an unacceptable file type"
 
@@ -154,17 +137,6 @@ defmodule MazarynWeb.UserLive.EditProfileComponent do
       :ok -> socket |> assign(:success_msg, "Successfully Saved")
       _ -> socket |> assign(:failure_msg, "Something went wrong not saved")
     end
-  end
-
-  defp consume_upload(socket, field) do
-    consume_uploaded_entries(socket, field, fn %{path: path}, entry ->
-      dir = Mazaryn.config([:media, :uploads_dir])
-
-      dest = Path.join(dir, "#{entry.uuid}.#{ext(entry)}")
-      File.mkdir_p!(Path.dirname(dest))
-      File.cp!(path, dest)
-      {:ok, Routes.static_path(socket, "/uploads/#{Path.basename(dest)}")}
-    end)
   end
 
   defp ext(entry) do
