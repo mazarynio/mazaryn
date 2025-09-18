@@ -14,7 +14,7 @@
          block/2, unblock/2, get_blocked/1, search_user/1, search_user_pattern/1,
          insert_avatar/2, insert_banner/2, get_avatar/1, get_banner/1, report_user/4, update_last_activity/2,
          last_activity_status/1, make_private/1, make_public/1, get_token/1, validate_user/1, insert_concurrent/3, get_following_usernames/1,
-         search_followings/2, get_follower_usernames/1, search_followers/2]).
+         search_followings/2, get_follower_usernames/1, search_followers/2, get_user_level/1]).
 
 
 -define(LIMIT_SEARCH, 50).
@@ -293,6 +293,17 @@ get_banner(UserID) ->
   Res = mnesia:transaction(F),
   case Res of
     {atomic, [User]} -> User#user.banner_url;
+    {atomic, []} -> user_not_existed;
+    _ -> error
+  end.
+
+get_user_level(UserID) ->
+  F = fun() ->
+    mnesia:read(user, UserID)
+    end,
+  Res = mnesia:transaction(F),
+  case Res of
+    {atomic, [User]} -> User#user.level;
     {atomic, []} -> user_not_existed;
     _ -> error
   end.

@@ -90,6 +90,7 @@ defmodule MazarynWeb.Router do
     live_session :restricted,
       on_mount: [{MazarynWeb.UserLiveAuth, :restricted}, {MazarynWeb.UserLiveAuth, :default}] do
       live("/home", HomeLive.Home)
+      live("/dashboard", DashboardLive.Dashboard)
       live("/approve", HomeLive.Approve)
       live("/coins", CoinLive.Index)
       live("/notifications", HomeLive.Notification)

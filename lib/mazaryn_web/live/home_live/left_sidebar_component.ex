@@ -126,8 +126,8 @@ defmodule MazarynWeb.HomeLive.LeftSidebarComponent do
           <div class="flex justify-center items-center">
             <ul>
               <li class="flex align-center items-center group mx-2 mb-7">
-                <a
-                  href="home"
+                <.link
+                  navigate={~p"/dashboard"}
                   class="group flex items-center text-base text-gray-500 font-semibold hover:text-blue-500"
                 >
                   <i>
@@ -148,7 +148,7 @@ defmodule MazarynWeb.HomeLive.LeftSidebarComponent do
                   <div class="text-base leading-6 text-[#60616D] group-hover:text-[#4385F5]">
                     <%= gettext("Dashboard") %>
                   </div>
-                </a>
+                </.link>
               </li>
 
               <li class="flex align-center items-center mx-2 mb-7">

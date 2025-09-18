@@ -41,6 +41,10 @@ defmodule Core.UserClient do
     :user_server.get_user(username)
   end
 
+  def get_user_level(user_id) do
+    :user_server.get_user_level(user_id)
+  end
+
   def get_user_in_transaction(username) do
     :user_server.get_user_in_transaction(username)
   end

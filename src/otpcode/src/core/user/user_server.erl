@@ -18,7 +18,7 @@
          block/2, unblock/2, get_blocked/1, add_media/3, get_media/2,
          search_user/1, search_user_pattern/1, insert_avatar/2,
          insert_banner/2, report_user/4, make_private/1, make_public/1, validate_user/1, get_following_usernames/1, search_followings/2,
-         get_follower_usernames/1, search_followers/2]).
+         get_follower_usernames/1, search_followers/2, get_user_level/1]).
 
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2,
@@ -76,6 +76,9 @@ set_user_info(Username, Fields, Values) ->
 %% @doc Get media for a user
 get_media(Id, Type) ->
     gen_server:call({global, ?MODULE}, {get_media, Id, Type}).
+
+get_user_level(UserID) ->
+    gen_server:call({global, ?MODULE}, {get_user_level, UserID}).
 
 %% @doc Get user by username
 get_user(Username) ->
@@ -298,6 +301,10 @@ handle_call({set_user_info, Username, Fields, Values}, _From, State) ->
 
 handle_call({get_media, Id, Type}, _From, State) ->
     Res = userdb:get_media(Id, Type),
+    {reply, Res, State};
+
+handle_call({get_user_level, UserID}, _From, State) ->
+    Res = userdb:get_user_level(UserID),
     {reply, Res, State};
 
 handle_call({get_user, Username}, _From, State) ->
