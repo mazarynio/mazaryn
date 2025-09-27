@@ -87,6 +87,36 @@ defmodule MazarynWeb.HomeLive.LeftSidebarComponent do
                 </a>
               </li>
 
+              <li class="flex align-center items-center mx-2 mb-7">
+                <button
+                  phx-click="open_weather"
+                  class="group flex items-start text-base text-gray-500 font-semibold hover:text-blue-500 w-full text-left"
+                >
+                  <i>
+                    <svg
+                      class="h-5 w-5 mr-3.5 fill-[#60616D] group-hover:fill-[#4385F5]"
+                      width="20"
+                      height="20"
+                      viewBox="0 0 20 20"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        class="fill-[#60616D] group-hover:fill-[#4385F5]"
+                        d="M15.833 12.5C17.214 12.5 18.333 11.381 18.333 10C18.333 8.619 17.214 7.5 15.833 7.5C15.756 7.5 15.679 7.503 15.603 7.509C15.064 5.445 13.193 3.889 10.972 3.889C8.25 3.889 6.042 6.097 6.042 8.819V8.889C4.375 9.181 3.125 10.639 3.125 12.361C3.125 14.292 4.681 15.847 6.611 15.847H15.833C17.214 15.847 18.333 14.728 18.333 13.347C18.333 12.847 18.125 12.403 17.806 12.069C17.181 12.347 16.528 12.5 15.833 12.5Z"
+                      />
+                      <path
+                        class="fill-[#60616D] group-hover:fill-[#4385F5]"
+                        d="M12 5.208C12.347 4.861 12.5 4.403 12.5 3.889C12.5 2.847 11.681 2 10.625 2C9.569 2 8.75 2.847 8.75 3.889C8.75 4.403 8.903 4.861 9.25 5.208C7.875 5.542 6.736 6.375 5.972 7.5H7.069C7.681 6.875 8.542 6.458 9.514 6.458C11.389 6.458 12.917 7.986 12.917 9.861C12.917 10.833 12.5 11.694 11.875 12.306V13.403C12.997 12.639 13.833 11.5 14.167 10.125C14.514 10.472 14.972 10.625 15.486 10.625C16.528 10.625 17.375 9.806 17.375 8.75C17.375 7.694 16.528 6.875 15.486 6.875C14.972 6.875 14.514 7.028 14.167 7.375C13.833 6 12.997 4.861 12 5.208Z"
+                      />
+                    </svg>
+                  </i>
+                  <div class="text-base leading-6 text-[#60616D] group-hover:text-[#4385F5]">
+                    <%= gettext("Weather") %>
+                  </div>
+                </button>
+              </li>
+
               <li class="flex align-center items-center mx-2">
                 <a
                   href="/home"

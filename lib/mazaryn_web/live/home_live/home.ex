@@ -5,6 +5,7 @@ defmodule MazarynWeb.HomeLive.Home do
   alias Mazaryn.Posts
   alias Account.Users
   alias Account.User
+  alias MazarynWeb.HomeLive.WeatherHelper
   require Logger
 
   @user_cache_ttl 60_000
@@ -72,6 +73,7 @@ defmodule MazarynWeb.HomeLive.Home do
       |> assign_initial_state()
       |> assign_base_data(session_uuid, user)
       |> assign_posts_immediately(cached_posts, cache_status)
+      |> assign_weather_state()
 
       schedule_immediate_load_if_needed(user.id, cache_status)
 
@@ -87,6 +89,7 @@ defmodule MazarynWeb.HomeLive.Home do
         |> assign_initial_state()
         |> assign(session_uuid: session_uuid)
         |> assign_posts_immediately(cached_posts, cache_status)
+        |> assign_weather_state()
 
         schedule_immediate_load_if_needed(user_id, cache_status)
         {:ok, socket}
@@ -117,6 +120,7 @@ defmodule MazarynWeb.HomeLive.Home do
         |> assign_initial_state()
         |> assign_base_data(user_id, user)
         |> assign_posts_immediately(cached_posts, cache_status)
+        |> assign_weather_state()
 
         schedule_immediate_load_if_needed(user.id, cache_status)
 
@@ -129,6 +133,7 @@ defmodule MazarynWeb.HomeLive.Home do
         |> assign_initial_state()
         |> assign(user_id: user_id)
         |> assign_posts_immediately(cached_posts, cache_status)
+        |> assign_weather_state()
 
         schedule_immediate_load_if_needed(user_id, cache_status)
         {:ok, socket}
@@ -164,6 +169,16 @@ defmodule MazarynWeb.HomeLive.Home do
     event_end = :erlang.system_time(:millisecond)
     Logger.info("💬 handle_event show-comments completed in #{event_end - event_start}ms")
     {:noreply, socket |> assign(:comments, comments) |> assign(:comments_loading, false)}
+  end
+
+  @impl true
+  def handle_event("open_weather", _params, socket) do
+    Logger.info("🌤️ Opening weather modal")
+    {:noreply, assign(socket, show_weather_modal: true)}
+  end
+
+  def handle_event("stop_propagation", _params, socket) do
+    {:noreply, socket}
   end
 
   @impl true
@@ -247,6 +262,26 @@ defmodule MazarynWeb.HomeLive.Home do
   def handle_event("mark_notifications_read", _params, socket) do
     Logger.info("📬 Marking notifications as read")
     {:noreply, socket}
+  end
+
+  @impl true
+  def handle_info({:fetch_weather, city}, socket) do
+    Logger.info("🌤️ Fetching weather data for #{city}")
+
+    case WeatherHelper.fetch_complete_weather(city) do
+      {:ok, weather_data} ->
+        Logger.info("🌤️ Successfully fetched weather data for #{city}")
+        {:noreply, assign(socket, weather_data: weather_data, weather_loading: false, weather_error: nil)}
+
+      {:error, error_message} ->
+        Logger.error("❌ Failed to fetch weather data for #{city}: #{error_message}")
+        {:noreply, assign(socket, weather_data: nil, weather_loading: false, weather_error: error_message)}
+    end
+  end
+
+  def handle_info(:close_weather_modal, socket) do
+    Logger.info("🌤️ Closing weather modal")
+    {:noreply, assign(socket, show_weather_modal: false)}
   end
 
   @impl true
@@ -451,6 +486,14 @@ defmodule MazarynWeb.HomeLive.Home do
   def handle_info(msg, socket) do
     Logger.debug("Received unexpected message: #{inspect(msg)}")
     {:noreply, socket}
+  end
+
+  defp assign_weather_state(socket) do
+    socket
+    |> assign(show_weather_modal: false)
+    |> assign(weather_data: nil)
+    |> assign(weather_loading: false)
+    |> assign(weather_error: nil)
   end
 
   defp get_cached_posts_with_status(user_id) do

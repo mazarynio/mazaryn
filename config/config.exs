@@ -1,20 +1,32 @@
-# This file is responsible for configuring your application
-# and its dependencies with the aid of the Config module.
-#
-# This configuration file is loaded before any dependency and
-# is restricted to this project.
-
-# General application configuration
 import Config
 
-config :logger, level: :warning
+if Mix.env() in [:dev, :test] do
+  env_files = [
+    ".env",
+    "mazaryn/.env",
+    Path.join([File.cwd!(), ".env"]),
+    Path.join([File.cwd!(), "mazaryn", ".env"])
+  ]
 
+  Enum.each(env_files, fn env_file ->
+    if File.exists?(env_file) do
+      DotenvParser.load_file(env_file)
+    end
+  end)
+end
+
+config :logger, level: :warning
 
 config :ex_heroicons, type: "solid"
 
 config :mazaryn,
   ecto_repos: [Mazaryn.Repo],
   env: config_env()
+
+config :mazaryn, :weather_api,
+  api_key: System.get_env("OPENWEATHER_API_KEY"),
+  base_url: "https://api.openweathermap.org/data/2.5",
+  geocoding_url: "https://api.openweathermap.org/geo/1.0"
 
 # Configures the endpoint
 config :mazaryn, MazarynWeb.Endpoint,
@@ -32,8 +44,7 @@ config :mazaryn, MazarynWeb.Endpoint,
 # locally. You can see the emails in your browser, at "/dev/mailbox".
 #
 # For production it's recommended to configure a different adapter
-# at the `config/runtime.exs`.
-
+# at the config/runtime.exs.
 
 # Swoosh API client is needed for adapters other than SMTP.
 config :swoosh, :api_client, false

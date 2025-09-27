@@ -6,6 +6,16 @@
   locale={@locale}
 />
 
+<%= if @show_weather_modal do %>
+  <.live_component
+    module={MazarynWeb.HomeLive.WeatherComponent}
+    id="weather-modal"
+    weather_data={@weather_data}
+    loading={@weather_loading}
+    error={@weather_error}
+  />
+<% end %>
+
 <div class="bg-[#FAFAFA]">
   <div class="flex flex-wrap w-[90%] max-w-[1440px] mx-auto">
     <div class="w-full lg:w-[18%] py-6">
@@ -17,7 +27,6 @@
       />
     </div>
 
-    <!-- middle column -->
     <div class="w-full lg:w-[54%] py-6 pl-11 pr-8">
       <div class="w-full text-sm leading-tight">
         <div class="flex justify-between align-center items-center py-5">
