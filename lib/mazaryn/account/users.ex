@@ -6,6 +6,7 @@ defmodule Account.Users do
   alias Account.User
   alias Core.UserClient
   alias Mazaryn.Mailer
+  alias Account.UserNotifier
   require Logger
 
   def signing_salt do
@@ -209,13 +210,29 @@ defmodule Account.Users do
           {:error, reason}
 
         user_id when is_list(user_id) ->
-          case Mail.UserEmail.register_email(username, email) |> Mailer.deliver() do
-            {:ok, _} ->
-              {:ok, user_id}
+          verification_token = User.generate_verification_token()
+
+          case Core.UserClient.set_verification_token(user_id, verification_token) do
+            :ok ->
+              if Application.get_env(:mazaryn, :email)[:send_emails] do
+                verification_url = MazarynWeb.Router.Helpers.email_verification_url(MazarynWeb.Endpoint, :verify, verification_token)
+
+                case UserNotifier.deliver_verification_email(%{email: email, username: username}, verification_url) do
+                  {:ok, _} ->
+                    Logger.info("Verification email sent successfully to #{email}")
+                    {:ok, user_id}
+                  {:error, reason} ->
+                    Logger.error("Failed to send verification email to #{email}: #{inspect(reason)}")
+                    {:ok, user_id}
+                end
+              else
+                Logger.info("Email sending disabled, skipping verification email for #{email}")
+                {:ok, user_id}
+              end
 
             {:error, reason} ->
-              Logger.error("Failed to send registration email to #{email}: #{inspect(reason)}")
-              {:error, :email_delivery_failed}
+              Logger.error("Failed to set verification token for #{username}: #{inspect(reason)}")
+              {:error, :token_setup_failed}
           end
 
         res ->
@@ -229,23 +246,82 @@ defmodule Account.Users do
     end
   end
 
-  def login(email, pass) do
+  def verify_email(token) do
     try do
-      case UserClient.login(email, pass) do
-        :logged_in ->
-          {:ok, :logged_in}
+      case Core.UserClient.verify_email_token(token) do
+        {:ok, user_id} ->
+          Logger.info("Email verified successfully for user #{user_id}")
+          {:ok, user_id}
 
-        {:error, :timeout} ->
-          Logger.warning("Login timed out for #{email}")
-          {:error, :timeout}
+        {:error, :token_not_found} ->
+          Logger.warning("Invalid verification token: #{token}")
+          {:error, :invalid_token}
 
         {:error, reason} ->
-          Logger.error("Login failed for #{email}: #{inspect(reason)}")
+          Logger.error("Email verification failed: #{inspect(reason)}")
           {:error, reason}
+      end
+    rescue
+      error ->
+        Logger.error("Exception during email verification: #{inspect(error)}")
+        {:error, :verification_failed}
+    end
+  end
 
-        res ->
-          Logger.error("Unexpected login result for #{email}: #{inspect(res)}")
-          {:error, res}
+  def login(email, pass) do
+    try do
+      case one_by_email(email) do
+        {:ok, user} ->
+          is_production = System.get_env("PHX_HOST") == "mazaryn.io"
+
+          if is_production do
+            if user.verified do
+              case UserClient.login(email, pass) do
+                :logged_in ->
+                  {:ok, :logged_in}
+
+                {:error, :timeout} ->
+                  Logger.warning("Login timed out for #{email}")
+                  {:error, :timeout}
+
+                {:error, reason} ->
+                  Logger.error("Login failed for #{email}: #{inspect(reason)}")
+                  {:error, reason}
+
+                res ->
+                  Logger.error("Unexpected login result for #{email}: #{inspect(res)}")
+                  {:error, res}
+              end
+            else
+              Logger.warning("Login attempt for unverified account: #{email}")
+              {:error, :email_not_verified}
+            end
+          else
+            case UserClient.login(email, pass) do
+              :logged_in ->
+                {:ok, :logged_in}
+
+              {:error, :timeout} ->
+                Logger.warning("Login timed out for #{email}")
+                {:error, :timeout}
+
+              {:error, reason} ->
+                Logger.error("Login failed for #{email}: #{inspect(reason)}")
+                {:error, reason}
+
+              res ->
+                Logger.error("Unexpected login result for #{email}: #{inspect(res)}")
+                {:error, res}
+            end
+          end
+
+        {:error, :user_not_exist} ->
+          Logger.info("Login attempt for non-existent user: #{email}")
+          {:error, :invalid_credentials}
+
+        {:error, reason} ->
+          Logger.error("User lookup failed during login for #{email}: #{inspect(reason)}")
+          {:error, :login_failed}
       end
     rescue
       error ->

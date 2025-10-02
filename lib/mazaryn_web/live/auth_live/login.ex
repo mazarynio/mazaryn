@@ -9,7 +9,6 @@ defmodule MazarynWeb.AuthLive.Login do
 
   @impl true
   def mount(_params, %{"session_uuid" => key}, socket) do
-    # Logger.info(socket: socket)
     changeset =
       Login.Form.changeset(%Login.Form{}, %{})
       |> Map.put(:action, :insert)
@@ -18,7 +17,7 @@ defmodule MazarynWeb.AuthLive.Login do
   end
 
   @impl true
-  def handle_event("save", %{"form" => params}, %{assigns: %{:key => key}} = socket) do
+  def handle_event("save", %{"form" => params}, %{assigns: %{:key => key, :locale => locale}} = socket) do
     if Map.get(params, "form_disabled", nil) != "true" do
       changeset =
         Login.Form.changeset(%Login.Form{}, params)
@@ -26,59 +25,37 @@ defmodule MazarynWeb.AuthLive.Login do
         |> Ecto.Changeset.put_change(:form_disabled, false)
         |> Map.put(:action, :insert)
 
-      ##case Login.Form.get_user_by_email(changeset) do
-        ##%User{email: email} ->
-          ##insert_session_token(key, email)
-
-          ##{:ok, user} =
-            ##Account.Users.one_by_email(email)
-
-          ##if Application.get_env(:mazaryn, :env) == :dev do
-            ##user |> IO.inspect(label: "USER record")
-
-            ##{:noreply,
-             ##push_redirect(socket,
-               ##to: Routes.live_path(socket, MazarynWeb.HomeLive.Home, socket.assigns.locale)
-             ##)}
-          ##else
-            ##if(user.verified === true) do
-              ##user |> IO.inspect(label: "USER record")
-
-              ##{:noreply,
-               ##push_redirect(socket,
-                 ##to: Routes.live_path(socket, MazarynWeb.HomeLive.Home, socket.assigns.locale)
-               ##)}
-            ##else
-              ##socket =
-                ##socket
-                ##|> assign(mess: "unverified")
-                ##|> assign(changeset: changeset)
-
-              ##{:noreply, socket}
-            ##end
-          ##end
-
-        ##changeset ->
-          ##changeset =
-            ##changeset
-            ##|> Ecto.Changeset.put_change(:form_disabled, false)
-
-          ##{:noreply, assign(socket, changeset: changeset)}
-      ##end
-
       case Login.Form.get_user_by_email(changeset) do
         %User{email: email} ->
-          insert_session_token(key, email)
+          case Account.Users.one_by_email(email) do
+            {:ok, user} ->
+              is_production = System.get_env("PHX_HOST") == "mazaryn.io"
 
-          {:ok, user} =
-            Account.Users.one_by_email(email)
+              if is_production and not user.verified do
+                changeset =
+                  changeset
+                  |> Ecto.Changeset.add_error(:email, "Please verify your email address before logging in. Check your inbox for the verification link.")
+                  |> Ecto.Changeset.put_change(:form_disabled, false)
 
-          user |> IO.inspect(label: "USER record")
+                {:noreply, assign(socket, changeset: changeset)}
+              else
+                insert_session_token(key, email)
+                user |> IO.inspect(label: "USER record")
 
-          {:noreply,
-           push_redirect(socket,
-             to: Routes.live_path(socket, MazarynWeb.HomeLive.Home, socket.assigns.locale)
-           )}
+                {:noreply,
+                 push_redirect(socket,
+                   to: Routes.live_path(socket, MazarynWeb.HomeLive.Home, locale)
+                 )}
+              end
+
+            {:error, _reason} ->
+              changeset =
+                changeset
+                |> Ecto.Changeset.add_error(:email, "Invalid email or password")
+                |> Ecto.Changeset.put_change(:form_disabled, false)
+
+              {:noreply, assign(socket, changeset: changeset)}
+          end
 
         changeset ->
           changeset =
@@ -87,10 +64,6 @@ defmodule MazarynWeb.AuthLive.Login do
 
           {:noreply, assign(socket, changeset: changeset)}
       end
-
-
-
-      # |> IO.inspect(label: "cheki login ")
     else
       {:noreply, socket}
     end

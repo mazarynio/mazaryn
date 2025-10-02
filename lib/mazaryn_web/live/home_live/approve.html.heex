@@ -1,52 +1,118 @@
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Account Verification</title>
-    <link href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css" rel="stylesheet" />
-  </head>
-  <body>
-    <div class="flex items-center justify-center min-h-screen p-5 bg-blue-100 min-w-screen">
-      <div class="max-w-xl p-8 text-center text-gray-800 bg-white shadow-xl lg:max-w-3xl rounded-3xl lg:p-12">
-        <h1 class="text-2xl">Thanks for signing up for Mazaryn!</h1>
-        <div class="flex justify-center">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="block w-24 h-24 my-4 text-green-400"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="1"
-              d="M3 19v-8.93a2 2 0 01.89-1.664l7-4.666a2 2 0 012.22 0l7 4.666A2 2 0 0121 10.07V19M3 19a2 2 0 002 2h14a2 2 0 002-2M3 19l6.75-4.5M21 19l-6.75-4.5M3 10l6.75 4.5M21 10l-6.75 4.5m0 0l-1.14.76a2 2 0 01-2.22 0l-1.14-.76"
-            />
+<div class="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center p-4">
+  <div class="max-w-2xl w-full">
+    <%= if live_flash(@flash, :info) do %>
+      <div class="mb-6 p-4 rounded-xl border-l-4 bg-green-50 border-green-400 text-green-800 shadow-sm animate-in slide-in-from-top duration-300">
+        <div class="flex items-center">
+          <svg class="w-5 h-5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+          </svg>
+          <p class="font-medium"><%= live_flash(@flash, :info) %></p>
+        </div>
+      </div>
+    <% end %>
+
+    <%= if live_flash(@flash, :error) do %>
+      <div class="mb-6 p-4 rounded-xl border-l-4 bg-red-50 border-red-400 text-red-800 shadow-sm animate-in slide-in-from-top duration-300">
+        <div class="flex items-center">
+          <svg class="w-5 h-5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+          </svg>
+          <p class="font-medium"><%= live_flash(@flash, :error) %></p>
+        </div>
+      </div>
+    <% end %>
+
+    <div class="bg-white rounded-3xl shadow-2xl overflow-hidden border border-gray-100">
+      <div class="bg-gradient-to-r from-blue-600 to-indigo-700 px-8 py-12 text-center">
+        <div class="w-20 h-20 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center mx-auto mb-6">
+          <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
           </svg>
         </div>
-        <p class="max-w-[460px]">
-          We're happy you're here. Please check your email inbox for our confirmation and verify your email address account.
+        <h1 class="text-3xl font-bold text-white mb-4">
+          Welcome to Mazaryn!
+        </h1>
+        <p class="text-blue-100 text-lg font-medium">
+          Thanks for joining our community
         </p>
-        <p class="hidden">We're happy you're here. Let's get your email address verified:</p>
-        <div class="mt-4 hidden">
-          <button class="px-4 py-2 text-blue-200 bg-blue-600 rounded">
-            Verify Email Address
-          </button>
-          <p class="mt-4 text-sm">
-            If you’re having trouble clicking the "Verify Email Address", copy
-            and
-            paste
-            the URL below
-            into your web browser:
-            <a href="#" class="text-blue-600 underline">
-              http://mazaryn:io/email/verify/3/1ab7a09a3
-            </a>
-          </p>
+      </div>
+
+      <div class="px-8 py-12">
+        <div class="text-center mb-8">
+          <div class="w-16 h-16 bg-gradient-to-br from-green-400 to-emerald-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
+            <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+            </svg>
+          </div>
+          
+          <h2 class="text-2xl font-bold text-gray-900 mb-4">
+            Check Your Email
+          </h2>
+          
+          <div class="max-w-md mx-auto">
+            <p class="text-gray-600 leading-relaxed mb-6">
+              We've sent a verification link to your email address. Please click the link to activate your account and start exploring Mazaryn.
+            </p>
+            
+            <%= if @user do %>
+              <div class="bg-gray-50 rounded-xl p-4 mb-6 border border-gray-200">
+                <div class="flex items-center justify-center">
+                  <svg class="w-5 h-5 text-gray-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                  </svg>
+                  <span class="text-gray-700 font-medium"><%= @user.email %></span>
+                </div>
+              </div>
+            <% end %>
+          </div>
+        </div>
+
+        <div class="space-y-4 mb-8">
+          <%= if @user && !@user.verified do %>
+            <button
+              phx-click="resend_verification"
+              class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-200 transform hover:scale-[1.02] hover:shadow-lg flex items-center justify-center group"
+            >
+              <svg class="w-5 h-5 mr-3 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+              </svg>
+              Resend Verification Email
+            </button>
+          <% end %>
+
+          <.link
+            navigate={~p"/#{@locale}/login"}
+            class="w-full bg-gray-100 hover:bg-gray-200 text-gray-800 font-semibold py-4 px-6 rounded-xl transition-all duration-200 flex items-center justify-center group border border-gray-200 hover:border-gray-300"
+          >
+            <span class="mr-3">Already verified? Go to Login</span>
+            <svg class="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
+            </svg>
+          </.link>
+        </div>
+
+        <div class="text-center">
+          <div class="bg-gray-50 rounded-xl p-6 border border-gray-200">
+            <h3 class="font-semibold text-gray-900 mb-3">Didn't receive the email?</h3>
+            <div class="space-y-2 text-sm text-gray-600">
+              <p>• Check your spam or junk folder</p>
+              <%= if @user do %>
+                <p>• Make sure <%= @user.email %> is correct</p>
+              <% end %>
+              <p>• Click "Resend Verification Email" above</p>
+            </div>
+          </div>
         </div>
       </div>
     </div>
-  </body>
-</html>
+
+    <div class="text-center mt-8">
+      <p class="text-gray-600 text-sm">
+        Need help? Contact us at
+        <a href="mailto:admin@mazaryn.io" class="text-blue-600 hover:text-blue-800 font-medium">
+          admin@mazaryn.io
+        </a>
+      </p>
+    </div>
+  </div>
+</div>

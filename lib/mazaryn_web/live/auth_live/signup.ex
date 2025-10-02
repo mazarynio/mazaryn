@@ -3,7 +3,7 @@ defmodule MazarynWeb.AuthLive.Signup do
 
   import MazarynWeb.Live.Helper
   alias Mazaryn.Signup
-  alias Account.UserNotifier
+  alias Account.Users
   alias Core.NotifEvent
   alias MazarynWeb.Router.Helpers, as: Routes
   require Logger
@@ -90,39 +90,30 @@ defmodule MazarynWeb.AuthLive.Signup do
   end
 
   @impl true
-  def handle_info({:create_user, changeset}, %{assigns: %{key: key, locale: locale}} = socket) do
-    case Signup.Form.create_user(changeset) do
-      {:ok, %Account.User{email: email, id: user_id}} ->
+  def handle_info({:create_user, changeset}, %{assigns: %{locale: locale, key: key}} = socket) do
+    username = Ecto.Changeset.get_field(changeset, :username)
+    password = Ecto.Changeset.get_field(changeset, :password)
+    email = Ecto.Changeset.get_field(changeset, :email)
+
+    case Users.register(username, password, email) do
+      {:ok, user_id} ->
         Logger.info("User created successfully: #{email}")
 
-        case create_user_session(key, email) do
-          {:ok, _session} ->
-            Logger.info("Session created successfully for user: #{email}")
-
-            try do
-              NotifEvent.welcome(user_id)
-            rescue
-              error ->
-                Logger.warn("Failed to send welcome notification: #{inspect(error)}")
-            end
-
-            Process.send_after(self(), {:redirect_to_approve, locale}, 200)
-
-            {:noreply,
-             socket
-             |> put_flash(:info, "Welcome! Your account has been created successfully.")
-             |> assign(:user_created, true)}
-
-          {:error, reason} ->
-            Logger.error("Failed to create session for #{email}: #{inspect(reason)}")
-
-            changeset =
-              changeset
-              |> Ecto.Changeset.add_error(:email, "Account created but login failed. Please try logging in.")
-              |> Ecto.Changeset.put_change(:form_disabled, false)
-
-            {:noreply, assign(socket, changeset: changeset)}
+        try do
+          NotifEvent.welcome(user_id)
+        rescue
+          error ->
+            Logger.warn("Failed to send welcome notification: #{inspect(error)}")
         end
+
+        insert_session_token(key, email)
+        Process.send_after(self(), {:redirect_to_approve, locale}, 200)
+
+        {:noreply,
+         socket
+         |> put_flash(:info, "Account created successfully! Please check your email to verify your account.")
+         |> assign(:user_created, true)
+         |> assign(:changeset, changeset)}
 
       :username_and_email_existed ->
         Logger.info("Attempted to create existing user account")
@@ -134,11 +125,19 @@ defmodule MazarynWeb.AuthLive.Signup do
 
         {:noreply, assign(socket, changeset: changeset)}
 
-      {:error, changeset} ->
-        Logger.error("Failed to create user: #{inspect(changeset.errors)}")
+      {:error, reason} ->
+        Logger.error("Failed to create user: #{inspect(reason)}")
+
+        error_message = case reason do
+          :timeout -> "Registration timed out. Please try again."
+          :email_delivery_failed -> "Account created but email verification couldn't be sent. Please contact support."
+          :token_setup_failed -> "Account created but verification setup failed. Please contact support."
+          _ -> "Unable to create account. Please try again."
+        end
 
         changeset =
           changeset
+          |> Ecto.Changeset.add_error(:email, error_message)
           |> Ecto.Changeset.put_change(:form_disabled, false)
           |> add_generic_error_if_needed()
 
@@ -155,23 +154,6 @@ defmodule MazarynWeb.AuthLive.Signup do
     else
       Logger.warn("Attempted redirect without user creation confirmation")
       {:noreply, push_navigate(socket, to: ~p"/#{locale}/login")}
-    end
-  end
-
-  defp create_user_session(session_key, email) do
-    try do
-      result = insert_session_token(session_key, email)
-
-      case result do
-        {:ok, _} = success -> success
-        {:error, _} = error -> error
-        other when not is_nil(other) -> {:ok, other}
-        _ -> {:error, :session_creation_failed}
-      end
-    rescue
-      error ->
-        Logger.error("Session creation exception: #{inspect(error)}")
-        {:error, :session_creation_exception}
     end
   end
 

@@ -14,7 +14,8 @@
          block/2, unblock/2, get_blocked/1, search_user/1, search_user_pattern/1,
          insert_avatar/2, insert_banner/2, get_avatar/1, get_banner/1, report_user/4, update_last_activity/2,
          last_activity_status/1, make_private/1, make_public/1, get_token/1, validate_user/1, insert_concurrent/3, get_following_usernames/1,
-         search_followings/2, get_follower_usernames/1, search_followers/2, get_user_level/1]).
+         search_followings/2, get_follower_usernames/1, search_followers/2, get_user_level/1, get_user_token/1, set_verification_token/2,
+        verify_email_token/1, get_user_by_verification_token/1, mark_user_as_verified/1]).
 
 
 -define(LIMIT_SEARCH, 50).
@@ -358,6 +359,17 @@ get_password(Id) ->
     Res = mnesia:transaction(F),
     case Res of
       {atomic, [User]} -> User#user.password;
+      {atomic, []} -> user_not_existed;
+      _ -> error
+    end.
+
+get_user_token(User_ID) ->
+    F = fun() ->
+        mnesia:read(user, User_ID)
+        end,
+    Res = mnesia:transaction(F),
+    case Res of
+      {atomic, [User]} -> User#user.token_id;
       {atomic, []} -> user_not_existed;
       _ -> error
     end.
@@ -828,4 +840,65 @@ validate_user(UserID) ->
     end,
     {atomic, Res} = mnesia:transaction(Fun),
                     Res.
-    
+
+set_verification_token(UserId, Token) ->
+    Fun = fun() ->
+        case mnesia:read(user, UserId) of
+            [] -> {error, user_not_found};
+            [User] ->
+                UpdatedUser = User#user{token_id = Token,
+                                        date_updated = calendar:universal_time()},
+                mnesia:write(UpdatedUser),
+                ok
+        end
+    end,
+    case mnesia:transaction(Fun) of
+        {atomic, ok} -> ok;
+        {atomic, {error, Reason}} -> {error, Reason};
+        {aborted, Reason} -> {error, Reason}
+    end.
+
+verify_email_token(Token) ->
+    Fun = fun() ->
+        case mnesia:match_object(#user{token_id = Token, _ = '_'}) of
+            [] -> {error, token_not_found};
+            [User] ->
+                UpdatedUser = User#user{verified = true,
+                                        date_updated = calendar:universal_time()},
+                mnesia:write(UpdatedUser),
+                {ok, User#user.id}
+        end
+    end,
+    case mnesia:transaction(Fun) of
+        {atomic, {ok, UserId}} -> {ok, UserId};
+        {atomic, {error, Reason}} -> {error, Reason};
+        {aborted, Reason} -> {error, Reason}
+    end.
+
+get_user_by_verification_token(Token) ->
+    Res = mnesia:transaction(
+        fun() ->
+            mnesia:match_object(#user{token_id = Token, _ = '_'})
+        end),
+    case Res of
+        {atomic, []} -> user_not_exist;
+        {atomic, [User]} -> User;
+        _ -> error
+    end.
+
+mark_user_as_verified(UserId) ->
+    Fun = fun() ->
+        case mnesia:read(user, UserId) of
+            [] -> {error, user_not_found};
+            [User] ->
+                UpdatedUser = User#user{verified = true,
+                                        date_updated = calendar:universal_time()},
+                mnesia:write(UpdatedUser),
+                ok
+        end
+    end,
+    case mnesia:transaction(Fun) of
+        {atomic, ok} -> ok;
+        {atomic, {error, Reason}} -> {error, Reason};
+        {aborted, Reason} -> {error, Reason}
+    end.

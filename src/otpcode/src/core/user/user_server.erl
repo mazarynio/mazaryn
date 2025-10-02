@@ -18,7 +18,8 @@
          block/2, unblock/2, get_blocked/1, add_media/3, get_media/2,
          search_user/1, search_user_pattern/1, insert_avatar/2,
          insert_banner/2, report_user/4, make_private/1, make_public/1, validate_user/1, get_following_usernames/1, search_followings/2,
-         get_follower_usernames/1, search_followers/2, get_user_level/1]).
+         get_follower_usernames/1, search_followers/2, get_user_level/1, set_verification_token/2, verify_email_token/1, get_user_by_verification_token/1,
+         mark_user_as_verified/1]).
 
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2,
@@ -227,6 +228,18 @@ make_private(UserID) ->
 %% @doc Make user account public
 make_public(UserID) ->
     gen_server:call({global, ?MODULE}, {make_public, UserID}).
+
+set_verification_token(UserId, Token) ->
+    gen_server:call({global, ?MODULE}, {set_verification_token, UserId, Token}).
+
+verify_email_token(Token) ->
+    gen_server:call({global, ?MODULE}, {verify_email_token, Token}).
+
+get_user_by_verification_token(Token) ->
+    gen_server:call({global, ?MODULE}, {get_user_by_verification_token, Token}).
+
+mark_user_as_verified(UserId) ->
+    gen_server:call({global, ?MODULE}, {mark_user_as_verified, UserId}).
 
 %%====================================================================
 %% gen_server callbacks
@@ -457,6 +470,22 @@ handle_call({make_private, UserID}, _From, State) ->
 
 handle_call({make_public, UserID}, _From, State) ->
     Res = userdb:make_public(UserID),
+    {reply, Res, State};
+
+handle_call({set_verification_token, UserId, Token}, _From, State) ->
+    Res = userdb:set_verification_token(UserId, Token),
+    {reply, Res, State};
+
+handle_call({verify_email_token, Token}, _From, State) ->
+    Res = userdb:verify_email_token(Token),
+    {reply, Res, State};
+
+handle_call({get_user_by_verification_token, Token}, _From, State) ->
+    Res = userdb:get_user_by_verification_token(Token),
+    {reply, Res, State};
+
+handle_call({mark_user_as_verified, UserId}, _From, State) ->
+    Res = userdb:mark_user_as_verified(UserId),
     {reply, Res, State};
 
 handle_call(_Request, _From, State) ->

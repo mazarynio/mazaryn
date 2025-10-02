@@ -83,6 +83,10 @@ defmodule Core.UserClient do
     :user_server.get_token_by_id(token_id)
   end
 
+  def get_user_toekn(user_id) do
+    :userdb.get_user_token(user_id)
+  end
+
   ## Change Password Using Username, Current Password and New Password
   def change_pass(username, current_pass, new_pass) do
     :user_server.change_password(username, current_pass, new_pass)
@@ -222,6 +226,22 @@ defmodule Core.UserClient do
        [] -> :ok
       end
     end)
+  end
+
+  def set_verification_token(user_id, token) do
+    :user_server.set_verification_token(user_id, token)
+  end
+
+  def verify_email_token(token) do
+    :user_server.verify_email_token(token)
+  end
+
+  def get_user_by_verification_token(token) do
+    :user_server.get_user_by_verification_token(token)
+  end
+
+  def mark_user_as_verified(user_id) do
+    :user_server.mark_user_as_verified(user_id)
   end
 
 end

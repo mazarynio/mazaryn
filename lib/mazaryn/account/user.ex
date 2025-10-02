@@ -34,6 +34,7 @@ defmodule Account.User do
     banner_url
     chat
     verified
+    verification_token
     report
     level
     last_activity
@@ -82,7 +83,8 @@ defmodule Account.User do
     field(:token_id, :string)
     field(:country, :string)
     field(:chat, {:array, :string}, default: [])
-    field(:verified, :boolean)
+    field(:verified, :boolean, default: false)
+    field(:verification_token, :string)
     field(:report, {:array, :string}, default: [])
     field(:level, :integer)
     field(:last_activity, :utc_datetime)
@@ -113,6 +115,12 @@ defmodule Account.User do
     token_id =
       case token_id do
         :undefined -> nil
+        value -> value
+      end
+
+    verified =
+      case verified do
+        :undefined -> false
         value -> value
       end
 
@@ -246,5 +254,10 @@ defmodule Account.User do
 
   def build(changeset) do
     apply_action(changeset, :build)
+  end
+
+  def generate_verification_token do
+    :crypto.strong_rand_bytes(32)
+    |> Base.url_encode64(padding: false)
   end
 end

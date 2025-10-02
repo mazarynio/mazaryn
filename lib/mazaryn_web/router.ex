@@ -55,6 +55,7 @@ defmodule MazarynWeb.Router do
 
     get("/logout", LogoutController, :index)
     get("/confirm/:token", ConfirmAccountController, :index)
+    get("/verify-email/:token", EmailVerificationController, :verify, as: :email_verification)
     get "/2908017.txt", FileController, :serve_empty_file
 
     live_session :default,
