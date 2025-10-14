@@ -10,11 +10,20 @@ defmodule MazarynWeb.AuthLive.Signup do
 
   @impl true
   def mount(_params, %{"session_uuid" => key}, socket) do
-    changeset =
-      Signup.Form.changeset(%Signup.Form{})
-      |> Map.put(:action, :insert)
 
-    {:ok, assign(socket, key: key, changeset: changeset)}
+    {:ok,
+     socket
+     |> assign_new(:key, fn -> key end)
+     |> assign_new(:changeset, fn ->
+       Signup.Form.changeset(%Signup.Form{}) |> Map.put(:action, :insert)
+     end)
+    }
+  end
+
+
+  @impl true
+  def handle_params(_params, _uri, socket) do
+    {:noreply, socket}
   end
 
   @impl true

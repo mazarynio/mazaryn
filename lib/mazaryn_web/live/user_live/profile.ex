@@ -1221,7 +1221,7 @@ defmodule MazarynWeb.UserLive.Profile do
     duration = end_time - start_time
 
     case duration do
-      d when d > 1000 -> Logger.warn("⚠️  Slow operation: #{operation} took #{d}ms")
+      d when d > 1000 -> Logger.warning("⚠️  Slow operation: #{operation} took #{d}ms")
       d when d > 500 -> Logger.info("⏰ Operation: #{operation} completed quickly")
       _ -> Logger.debug("✅ Operation: #{operation} completed quickly")
     end

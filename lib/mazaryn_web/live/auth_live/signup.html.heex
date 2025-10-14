@@ -156,12 +156,15 @@
               <button
                 type="submit"
                 phx-disable-with="Submitting..."
+                phx-loading-states={~s{visible delayed->hidden}}
                 class="bg-blue-500 hover:bg-blue-700 text-white py-3 px-14 rounded-md"
               >
                 Sign Up
               </button>
 
-              <.link navigate={~p"/#{@locale}/login"} class="text-blue-600 pl-6">
+              <.link navigate={~p"/#{@locale}/login"}
+                phx-loading-states={~s{visible delayed->hidden}}
+                class="text-blue-600 pl-6">
                 Login
               </.link>
             </div>
@@ -172,6 +175,14 @@
             <%= hidden_input(f, :form_submitted) %>
             <%= hidden_input(f, :form_disabled) %>
           </.form>
+        </div>
+        <div
+          id="signup-loader"
+          phx-hook="LoadingStates"
+          class="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-50 hidden"
+          phx:loading-states={~s{visible}}
+        >
+          <div class="bg-white p-4 rounded">Loading...</div>
         </div>
       </div>
     </div>

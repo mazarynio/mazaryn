@@ -17,7 +17,6 @@ end
 
 config :logger, level: :warning
 
-config :ex_heroicons, type: "solid"
 
 config :mazaryn,
   ecto_repos: [Mazaryn.Repo],

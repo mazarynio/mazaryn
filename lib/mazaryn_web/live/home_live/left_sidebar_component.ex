@@ -77,9 +77,7 @@ defmodule MazarynWeb.HomeLive.LeftSidebarComponent do
                   class="group flex items-start text-base text-gray-500 font-semibold hover:text-blue-500"
                 >
                   <i>
-                    <%= Heroicons.icon("users",
-                      class: "h-6 w-5 mr-3.5 fill-[#60616D] group-hover:fill-[#4385F5]"
-                    ) %>
+                    <%= icon("hero-users-solid", class: "h-6 w-5 mr-3.5 fill-[#60616D] group-hover:fill-[#4385F5]") %>
                   </i>
                   <div class="text-base leading-6 text-[#60616D] group-hover:text-[#4385F5]">
                     <%= gettext("Group") %>
@@ -243,9 +241,7 @@ defmodule MazarynWeb.HomeLive.LeftSidebarComponent do
                     class="group flex items-center text-base text-gray-500 font-semibold hover:text-blue-500"
                   >
                     <i>
-                      <%= Heroicons.icon("users",
-                        class: "h-6 w-5 mr-3.5 fill-[#60616D] group-hover:fill-[#4385F5]"
-                      ) %>
+                      <%= icon("hero-users-solid", class: "h-6 w-5 mr-3.5 fill-[#60616D] group-hover:fill-[#4385F5]") %>
                     </i>
                     <div class="text-base leading-6 text-[#60616D] group-hover:text-[#4385F5]">
                       <%= gettext("Manage Users") %>

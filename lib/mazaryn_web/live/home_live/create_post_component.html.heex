@@ -351,13 +351,14 @@
           </div>
 
           <div class="relative group">
-            <%= live_component(SelectLive,
-              id: "privacy-select",
-              f: f,
-              name: :privacy,
-              options: ["public", "private", "only me"],
-              class: "w-11 h-11 bg-gradient-to-br from-gray-100/80 to-gray-200/80 hover:from-gray-200/80 hover:to-gray-300/80 rounded-2xl border border-gray-200/50 text-gray-600 text-sm transition-all duration-300 hover:scale-105 cursor-pointer"
-            ) %>
+            <.live_component
+  module={SelectLive}
+  id="privacy-select"
+  f={f}
+  name={:privacy}
+  options={["public", "private", "only me"]}
+  class="w-11 h-11 bg-gradient-to-br from-gray-100/80 to-gray-200/80 hover:from-gray-200/80 hover:to-gray-300/80 rounded-2xl border border-gray-200/50 text-gray-600 text-sm transition-all duration-300 hover:scale-105 cursor-pointer"
+/>
 
             <div class="absolute -top-10 left-1/2 transform -translate-x-1/2 px-2.5 py-1 bg-gradient-to-br from-gray-900/95 to-gray-800/95 text-white text-sm rounded-lg shadow-md opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none" style="font-family: 'Inter', system-ui, sans-serif;">
               Privacy

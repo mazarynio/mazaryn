@@ -1,6 +1,8 @@
 defmodule MazarynWeb.HomeLive.CreatePostComponent do
   use MazarynWeb, :live_component
 
+  import Phoenix.Component
+
   alias MazarynWeb.Live.Helper
   alias MazarynWeb.Component.SelectLive
   alias Mazaryn.Schema.Post

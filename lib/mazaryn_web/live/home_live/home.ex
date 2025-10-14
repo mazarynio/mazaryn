@@ -220,7 +220,7 @@ defmodule MazarynWeb.HomeLive.Home do
   def handle_event("messages", _param, socket) do
     Logger.info("📨 Redirecting to messages")
     random_id = "/messages/" <> "1"
-    {:noreply, push_redirect(socket, to: random_id)}
+    {:noreply, push_navigate(socket, to: random_id)}
   end
 
   def handle_event("do_search", %{"search" => search}, socket) do

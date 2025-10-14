@@ -19,14 +19,13 @@
         class="w-full p-0 text-base leading-9 text-[#212121] caret-current placeholder:text-base placeholder:font-normal placeholder:leading-6 placeholder:text-[#AAAAAA] outline-none border-none bg-transparent hover:ring-transparent focus:text-base focus:leading-6 focus:ring-transparent focus-within:bg-transparent focus:bg-transparent"
       />
       <button type="submit">
-        <%= Heroicons.icon("magnifying-glass",
-          class: "magnifying_glass_icon w-5 h-5 fill-[#AAAAAA]"
-        ) %>
+        <Heroicons.magnifying_glass solid class="magnifying_glass_icon w-5 h-5 fill-[#AAAAAA]" />
       </button>
     </form>
     <ol
       x-data="{ isopen: false }"
-      x-on:click.outside="isopen = false"
+      @click.away="isopen = false"
+      x-init="isopen = false"
       class="hidden w-[55%] ml-14 md:flex justify-evenly items-center list-none"
     >
       <li class="ml-auto my-0">
@@ -47,7 +46,7 @@
             <.link navigate={
               Routes.live_path(@socket, MazarynWeb.NotificationLive.Index, @locale)
             }>
-              <%= Heroicons.icon("bell", class: "w-7 h-7 rounded-full fill-[#AAAAAA]") %>
+              <Heroicons.bell solid class="w-7 h-7 rounded-full fill-[#AAAAAA]" />
             </.link>
             <%= if @notifs_count > 0 do %>
               <span class="absolute bg-teal-300 text-teal-900 px-2 py-1 text-xs font-bold rounded-full -top-3 -right-3">
@@ -58,7 +57,7 @@
         </div>
       </li>
       <li>
-        <div @click="isopen = !isopen" class="relative z-10 inline-block text-left cursor-pointer">
+        <div @click.stop="isopen = !isopen" class="relative z-10 inline-block text-left cursor-pointer">
           <div
             class="dropdown inline-flex justify-center w-full rounded-md border border-slate-100 shadow-sm px-4 py-1.5 bg-slate-100 text-sm font-medium text-gray-700 flex-shrink-0 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-100 focus:ring-indigo-500 items-center"
             id="menu-button"
@@ -77,10 +76,12 @@
               <% end %>
             </div>
             <%= @user.username %>
-            <i><%= Heroicons.icon("chevron-down", class: "-mr-1 ml-2 h-5 w-5") %></i>
+            <i><i><Heroicons.chevron_down solid class="-mr-1 ml-2 h-5 w-5" /></i></i>
           </div>
           <div
             x-show="isopen"
+            x-cloak
+            style="display: none;"
             x-transition:enter="transition ease-out duration-200"
             x-transition:enter-start="opacity-0"
             x-transition:enter-end="opacity-100"

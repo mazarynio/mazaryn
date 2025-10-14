@@ -2,7 +2,11 @@
   
   <div class="flex flex-row justify-between items-center mb-4">
     <h1 class="flex items-center text-xl font-bold text-gray-800 dark:text-gray-100">
-      <i><%= Heroicons.icon("users", class: "h-8 w-8 mr-3 fill-blue-500 dark:fill-blue-400") %></i>
+      <i>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-8 w-8 mr-3 fill-blue-500 dark:fill-blue-400">
+          <path d="M4.5 6.375a4.125 4.125 0 118.25 0 4.125 4.125 0 01-8.25 0zM14.25 8.625a3.375 3.375 0 116.75 0 3.375 3.375 0 01-6.75 0zM1.5 19.125a7.125 7.125 0 0114.25 0v.003l-.001.119a.75.75 0 01-.363.63 13.067 13.067 0 01-6.761 1.873c-2.472 0-4.786-.684-6.76-1.873a.75.75 0 01-.364-.63l-.001-.122zM17.25 19.128l-.001.144a2.25 2.25 0 01-.233.96 10.088 10.088 0 005.06-1.01.75.75 0 00.42-.643 4.875 4.875 0 00-6.957-4.611 8.586 8.586 0 011.71 5.157v.003z" />
+        </svg>
+      </i>
       <%= @title %>
     </h1>
     <%= if @show_search do %>
@@ -20,9 +24,9 @@
           class="w-full p-0 text-base font-medium text-gray-800 dark:text-gray-200 placeholder:text-gray-400 dark:placeholder:text-gray-500 bg-transparent outline-none border-none focus:ring-0"
         />
         <button type="submit">
-          <%= Heroicons.icon("magnifying-glass",
-            class: "w-5 h-5 fill-gray-400 dark:fill-gray-500 hover:fill-blue-500 dark:hover:fill-blue-400 transition-colors duration-200"
-          ) %>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5 fill-gray-400 dark:fill-gray-500 hover:fill-blue-500 dark:hover:fill-blue-400 transition-colors duration-200">
+            <path fill-rule="evenodd" d="M10.5 3.75a6.75 6.75 0 100 13.5 6.75 6.75 0 000-13.5zM2.25 10.5a8.25 8.25 0 1114.59 5.28l4.69 4.69a.75.75 0 11-1.06 1.06l-4.69-4.69A8.25 8.25 0 012.25 10.5z" clip-rule="evenodd" />
+          </svg>
         </button>
       </form>
     <% end %>
@@ -61,7 +65,9 @@
               >
                 <div class="absolute inset-0 bg-gradient-to-r from-blue-200/20 to-blue-600/20 transform -skew-x-12 group-hover:skew-x-12 transition-transform duration-500"></div>
                 <i class="relative z-10">
-                  <%= Heroicons.icon("plus-circle", type: "outline", class: "h-5 w-5 mr-2") %>
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-5 w-5 mr-2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v6m3-3H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
                 </i>
                 <span class="relative z-10">Start Chat</span>
               </button>
@@ -73,7 +79,9 @@
               >
                 <div class="absolute inset-0 bg-gradient-to-r from-green-200/20 to-green-600/20 transform -skew-x-12 group-hover:skew-x-12 transition-transform duration-500"></div>
                 <i class="relative z-10">
-                  <%= Heroicons.icon("video-camera", type: "outline", class: "h-5 w-5 mr-2") %>
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-5 w-5 mr-2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5l4.72-4.72a.75.75 0 011.28.53v11.38a.75.75 0 01-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 002.25-2.25v-9a2.25 2.25 0 00-2.25-2.25h-9A2.25 2.25 0 002.25 7.5v9a2.25 2.25 0 002.25 2.25z" />
+                  </svg>
                 </i>
                 <span class="relative z-10">Video Call</span>
               </button>

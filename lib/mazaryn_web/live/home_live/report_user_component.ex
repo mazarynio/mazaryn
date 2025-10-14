@@ -28,12 +28,13 @@ defmodule MazarynWeb.HomeLive.ReportUserComponent do
             <label class="form-input-label">Type</label>
           </div>
           <div>
-            <%= live_component(SelectLive,
-              id: "type",
-              f: f,
-              name: :type,
-              options: @types
-            ) %>
+            <.live_component
+  module={SelectLive}
+  id="type"
+  f={f}
+  name={:type}
+  options={@types}
+/>
           </div>
 
           <div>
@@ -61,6 +62,7 @@ defmodule MazarynWeb.HomeLive.ReportUserComponent do
     """
   end
 
+  @impl true
   def update(assigns, socket) do
     {:ok,
      socket
@@ -68,6 +70,7 @@ defmodule MazarynWeb.HomeLive.ReportUserComponent do
      |> assign(types: @types)}
   end
 
+  @impl true
   def handle_event("report", %{"report_user" => params}, socket) do
     reporter_id = socket.assigns.current_user.id
     user_id = params["user_id"] |> to_charlist

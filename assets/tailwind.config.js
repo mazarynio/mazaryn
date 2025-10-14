@@ -3,28 +3,40 @@ const fs = require("fs")
 const path = require("path")
 
 module.exports = {
-  content: ["./js/**/*.js", "../lib/*_web.ex", "../lib/*_web/**/*.*ex"],
+  content: [
+    "./js/**/*.js",
+    "../lib/*_web.ex",
+    "../lib/*_web/**/*.*ex"
+  ],
   theme: {
-    extend: {},
+    extend: {
+      animation: {
+        "fade-in-up": "fadeInUp 0.3s ease-out forwards",
+        "fade-out-down": "fadeOutDown 0.2s ease-in forwards",
+      },
+      keyframes: {
+        fadeInUp: {
+          "from": { opacity: "0", transform: "translateY(10px) scale(0.95)" },
+          "to": { opacity: "1", transform: "translateY(0) scale(1)" }
+        },
+        fadeOutDown: {
+          "from": { opacity: "1", transform: "translateY(0) scale(1)" },
+          "to": { opacity: "0", transform: "translateY(10px) scale(0.95)" }
+        }
+      }
+    },
     fontFamily: {
       sans: ["Poppins", "Inter", "sans-serif"],
     },
   },
   plugins: [
-    require("@tailwindcss/forms", "daisyui"),
-    // Allows prefixing tailwind classes with LiveView classes to add rules
-    // only when LiveView classes are applied, for example:
-    //
-    //     <div class="phx-click-loading:animate-ping">
-    //
+    require("@tailwindcss/forms"),
+    require("daisyui"),  
     plugin(({addVariant}) => addVariant("phx-no-feedback", [".phx-no-feedback&", ".phx-no-feedback &"])),
     plugin(({addVariant}) => addVariant("phx-click-loading", [".phx-click-loading&", ".phx-click-loading &"])),
     plugin(({addVariant}) => addVariant("phx-submit-loading", [".phx-submit-loading&", ".phx-submit-loading &"])),
     plugin(({addVariant}) => addVariant("phx-change-loading", [".phx-change-loading&", ".phx-change-loading &"])),
 
-    // Embeds Hero Icons (https://heroicons.com) into your app.css bundle
-    // See your `CoreComponents.icon/1` for more information.
-    //
     plugin(function({matchComponents, theme}) {
       let iconsDir = path.join(__dirname, "./vendor/heroicons/optimized")
       let values = {}
@@ -56,7 +68,6 @@ module.exports = {
       }, {values})
     })
   ],
-
   daisyui: {
     themes: [
       "light",
@@ -90,4 +101,4 @@ module.exports = {
       "winter",
     ],
   },
-};
+}

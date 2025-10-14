@@ -34,14 +34,15 @@ defmodule Mazaryn.MixProject do
   # Type `mix help deps` for examples and options.
   defp deps do
     [
-      {:phoenix, "~> 1.7.10"},
-      {:phoenix_ecto, "~> 4.4"},
+      {:phoenix, "~> 1.8"},
+      {:phoenix_ecto, "~> 4.6"},
       {:phoenix_view, "~> 2.0"},
       {:ecto_sql, "~> 3.10"},
       {:postgrex, ">= 0.0.0"},
-      {:phoenix_html, "~> 3.3"},
-      {:phoenix_live_reload, "~> 1.4", only: :dev},
-      {:phoenix_live_view, "~> 0.20.3"},
+      {:phoenix_html, "~> 4.3"},
+      {:phoenix_html_helpers, "~> 1.0"},
+      {:phoenix_live_reload, "~> 1.6", only: :dev},
+      {:phoenix_live_view, "~> 1.1"},
       {:floki, ">= 0.33.1", only: :test},
       {:phoenix_live_dashboard, "~> 0.8"},
       {:esbuild, "~> 0.7", runtime: Mix.env() == :dev},
@@ -52,9 +53,9 @@ defmodule Mazaryn.MixProject do
       {:plug_cowboy, "~> 2.6"},
       {:joken, "~> 2.6"},
       {:tarams, "~> 1.7"},
-      {:tailwind, "~> 0.2", runtime: Mix.env() == :dev},
+      {:tailwind, "~> 0.4", runtime: Mix.env() == :dev},
       {:swoosh, "~> 1.11"},
-      {:phoenix_swoosh, "~> 1.0"},
+      {:phoenix_swoosh, "~> 1.2"},
       {:timex, "~> 3.7"},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:httpoison, "~> 2.0"},
@@ -71,7 +72,7 @@ defmodule Mazaryn.MixProject do
       {:erl_base58, "~> 0.0.1"},
 
       # Icons
-      {:ex_heroicons, "~> 2.0"},
+      {:heroicons, "~> 0.5.6"},
 
       # Graphql APIs
       {:absinthe, "~> 1.7.5"},
@@ -79,9 +80,9 @@ defmodule Mazaryn.MixProject do
       {:rustler, "~> 0.29"},
 
       # Machine Learning
-      {:nx, "~> 0.7"},
+      {:nx, "~> 0.7", only: :prod},
       {:earmark, "~> 1.4"},
-      {:axon, "~> 0.6"},
+      {:axon, "~> 0.6", only: :prod},
 
       # OpenAI
       {:ex_openai, "~> 1.2.1"},

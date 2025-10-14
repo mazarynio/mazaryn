@@ -1,11 +1,18 @@
 {
   "scripts": {
-    "deploy": "esbuild js/app.js --bundle --minify --target=es2017 --outdir=../priv/static/assets"
+    "deploy": "esbuild js/app.js --bundle --minify --target=es2017 --outdir=../priv/static/assets",
+    "watch": "esbuild js/app.js --bundle --target=es2017 --outdir=../priv/static/assets --watch"
+  },
+  "devDependencies": {
+    "@tailwindcss/forms": "^0.5.7",
+    "daisyui": "^4.12.10",
+    "tailwindcss": "^3.4.10"
   },
   "dependencies": {
     "alpinejs": "^3.14.9",
-    "phoenix": "^1.7.21",
-    "phoenix_html": "^4.2.1",
-    "phoenix_live_view": "^1.0.10"
+    "phoenix": "^1.8.1",
+    "phoenix_html": "^4.3.0",
+    "phoenix_live_view": "^1.0.14",
+    "topbar": "^3.0.0"
   }
 }

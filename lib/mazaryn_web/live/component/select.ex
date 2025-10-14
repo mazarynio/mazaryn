@@ -38,7 +38,7 @@ defmodule MazarynWeb.Component.SelectLive do
           </i>
         </div>
         <p class="text-[#5D5F63] font-normal capitalize"><%= @selected_option %></p>
-        <i><%= Heroicons.icon("chevron-down", class: "-mr-1 ml-2 h-5 w-5 fill-[#60616D]") %></i>
+        <i><Heroicons.chevron_down solid class="-mr-1 ml-2 h-5 w-5 fill-[#60616D]" /></i>
       </button>
       <ul
         class="hidden dropdown-menu-globe  max-w-[135px] origin-top-right absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none"

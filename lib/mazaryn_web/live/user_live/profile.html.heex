@@ -18,7 +18,7 @@
     </div>
 
     <div class="w-full lg:w-[78.6%] ml-11">
-      
+
       <%= if @show_search_overlay && (@search_loading or (@results && length(@results) > 0) or (@search && @search != "" && !@search_loading)) do %>
         <div class="fixed inset-0 bg-black bg-opacity-50 flex items-start justify-center pt-20 z-50" phx-click="clear_search_results">
           <div class="bg-white rounded-lg shadow-xl w-full max-w-2xl mx-4 max-h-[70vh] overflow-y-auto" phx-click={JS.exec("event.stopPropagation()")}>
@@ -34,7 +34,7 @@
                   </svg>
                 </button>
               </div>
-              
+
               <%= if @search_loading do %>
                 <div class="flex items-center justify-center py-12">
                   <div class="relative">
@@ -46,8 +46,8 @@
                 <%= if @results && length(@results) > 0 do %>
                   <div class="space-y-3">
                     <%= for user <- @results do %>
-                      <.link 
-                        patch={~p"/#{@locale}/#{to_string(user.username)}"} 
+                      <.link
+                        patch={~p"/#{@locale}/#{to_string(user.username)}"}
                         phx-click="clear_search_results"
                         class="block"
                       >
@@ -66,7 +66,7 @@
                               </div>
                             <% end %>
                           </div>
-                          
+
                           <div class="ml-4 flex-1 min-w-0">
                             <div class="flex items-center space-x-2">
                               <h4 class="text-base font-semibold text-gray-900 truncate">
@@ -79,7 +79,7 @@
                               </p>
                             <% end %>
                           </div>
-                          
+
                           <div class="flex-shrink-0 ml-4">
                             <div class="flex items-center px-3 py-1.5 bg-blue-50 text-blue-600 rounded-full text-sm font-medium">
                               <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -101,7 +101,7 @@
                         </svg>
                         <h3 class="text-lg font-medium text-gray-900 mb-2">No users found</h3>
                         <p class="text-gray-500 max-w-md text-center">
-                          We couldn't find any users matching "<span class="font-medium text-gray-700"><%= @search %></span>". 
+                          We couldn't find any users matching "<span class="font-medium text-gray-700"><%= @search %></span>".
                           Try searching with a different username.
                         </p>
                       </div>
@@ -118,13 +118,13 @@
         <div class="fixed inset-0 z-50 overflow-y-auto" phx-click="hide_delete_modal">
           <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
             <div class="fixed inset-0 bg-black bg-opacity-50 transition-opacity"></div>
-            
-            <div class="inline-block align-bottom bg-white rounded-2xl px-6 pt-6 pb-4 text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-md sm:w-full sm:p-8" 
+
+            <div class="inline-block align-bottom bg-white rounded-2xl px-6 pt-6 pb-4 text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-md sm:w-full sm:p-8"
                  phx-click={JS.exec("event.stopPropagation()")}>
-              
+
               <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-red-100 mb-6">
                 <svg class="h-8 w-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
                 </svg>
               </div>
@@ -134,10 +134,10 @@
                   Delete Your Account?
                 </h3>
                 <p class="text-sm text-gray-500 mb-6">
-                  Are you sure you want to permanently delete your account <strong class="text-gray-700">@<%= @user.username %></strong>? 
+                  Are you sure you want to permanently delete your account <strong class="text-gray-700">@<%= @user.username %></strong>?
                   This action cannot be undone and all your data will be lost forever.
                 </p>
-                
+
                 <div class="bg-red-50 border-l-4 border-red-400 p-4 mb-6 text-left rounded-lg">
                   <div class="flex items-start">
                     <svg class="w-5 h-5 text-red-400 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
@@ -174,13 +174,13 @@
                   class="w-full sm:w-auto inline-flex justify-center items-center px-6 py-3 border border-transparent text-base font-medium rounded-xl text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors duration-200 shadow-lg"
                 >
                   <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                           d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                   </svg>
                   Yes, Delete Forever
                 </button>
               </div>
-              
+
               <p class="text-xs text-gray-400 text-center mt-6">
                 This action is permanent and cannot be reversed
               </p>
@@ -334,26 +334,28 @@
                 </button>
                 <div
                   x-data="{ open: false }"
-                  x-on:click.outside="open = false"
+                  @click.away="open = false"
+                  x-init="open = false"
                   class="flex justify-between align-center items-center"
                 >
                   <div class="w-90 flex justify-evenly items-center ml-1.5 text-sm self-start">
                     <div class="relative">
-                      <i @click="open = !open">
-                        <%= Heroicons.icon("ellipsis-vertical",
-                          type: "solid",
-                          class: "h-7 w-7 fill-[#60616D] cursor-pointer"
-                        ) %>
+                    <i @click.stop.prevent="open = !open">
+                      <svg class="h-7 w-7 fill-[#60616D] cursor-pointer" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                          <path fill-rule="evenodd" d="M10.5 6a1.5 1.5 0 113 0 1.5 1.5 0 01-3 0zm0 6a1.5 1.5 0 113 0 1.5 1.5 0 01-3 0zm0 6a1.5 1.5 0 113 0 1.5 1.5 0 01-3 0z" clip-rule="evenodd" />
+                        </svg>
                       </i>
                       <ul
                         x-show="open"
+                        x-cloak
+                        style="display: none;"
                         x-transition:enter="transition ease-out duration-200"
-                        x-transition:enter-start="opacity-0"
-                        x-transition:enter-end="opacity-100"
-                        x-transition:leave="transition ease-in duration-200"
-                        x-transition:leave-start="opacity-100"
-                        x-transition:leave-end="opacity-0"
-                        class="absolute top-4 right-4 bg-white rounded rounded-md text-blue-900 border p-3 border-blue space-y-2 w-32"
+                        x-transition:enter-start="opacity-0 scale-95"
+                        x-transition:enter-end="opacity-100 scale-100"
+                        x-transition:leave="transition ease-in duration-150"
+                        x-transition:leave-start="opacity-100 scale-100"
+                        x-transition:leave-end="opacity-0 scale-95"
+                        class="absolute top-4 right-4 bg-white rounded rounded-md text-blue-900 border p-3 border-blue space-y-2 w-32 z-50"
                       >
                         <li class="">
                           <p
@@ -397,21 +399,22 @@
 
         <div class="flex mt-3 ml-16 mr-8 mb-5">
           <div class="mr-10 p-3 text-center flex items-center">
-            <i><%= Heroicons.icon("map-pin", class: "h-5 w-5 mr-2 fill-[#60616D]") %></i>
+            <svg class="h-5 w-5 mr-2 fill-[#60616D]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
+              <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
+            </svg>
             <a class="font-semibold text-black mr-1">
               <%= @user.other_info["location"] || "N/A" %>
             </a>
           </div>
+
           <div class="mr-10 p-3 text-center flex items-center">
-            <i><%= Heroicons.icon("newspaper", class: "h-5 w-5 mr-2 fill-[#60616D]") %></i>
-            <a class="font-semibold text-black mr-1"><%= Enum.count(@posts) %></a>
-            <a class="text-black">Posts</a>
-          </div>
-          <div class="mr-10 p-3 text-center flex items-center">
-            <i><%= Heroicons.icon("users", class: "h-5 w-5 mr-2 fill-[#60616D]") %></i>
+            <svg class="h-5 w-5 mr-2 fill-[#60616D]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
+            </svg>
             <a class="font-semibold text-black mr-1"><%= Enum.count(@user.following) %></a>
             <%= if Enum.count(@user.following) == 0 do %>
-              <a class="text-black">Follows</a>
+              <span class="text-black">Follows</span>
             <% else %>
               <a
                 class="text-black cursor-pointer"
@@ -422,11 +425,14 @@
               </a>
             <% end %>
           </div>
+
           <div class="mr-10 p-3 text-center flex items-center">
-            <i><%= Heroicons.icon("users", class: "h-5 w-5 mr-2 fill-[#60616D]") %></i>
+            <svg class="h-5 w-5 mr-2 fill-[#60616D]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
+            </svg>
             <a class="font-semibold text-black mr-1"><%= Enum.count(@user.follower) %></a>
             <%= if Enum.count(@user.follower) == 0 do %>
-              <a class="text-black"> Followers </a>
+              <span class="text-black">Followers</span>
             <% else %>
               <a
                 class="text-black cursor-pointer"
