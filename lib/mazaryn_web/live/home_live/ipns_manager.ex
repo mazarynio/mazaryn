@@ -1,14 +1,14 @@
 defmodule MazarynWeb.HomeLive.IpnsManager do
   @content_cache :post_content_cache
 
-  @base_timeout 3_000
+  @base_timeout 2_000
   @cache_ttl 1800
   @fresh_threshold 300
 
-  @backoff_min 1_000
-  @backoff_max 30_000
-  @backoff_factor 1.5
-  @max_retries 8
+  @backoff_min 2_000
+  @backoff_max 45_000
+  @backoff_factor 2.0
+  @max_retries 5
 
   require Logger
 
@@ -20,38 +20,26 @@ defmodule MazarynWeb.HomeLive.IpnsManager do
       [{^cache_key, ipns, ts}] ->
         age = now - ts
 
-        cond do
-          age < @fresh_threshold ->
-            ipns
-
-          age < @cache_ttl ->
-            ensure_ipns_background(post_id)
-            ipns
-
-          true ->
-            ensure_ipns_background(post_id)
-            ipns
+        if age >= @cache_ttl do
+          spawn(fn -> fetch_ipns_silent(post_id) end)
         end
 
+        ipns
+
       [] ->
-        ensure_ipns_background(post_id)
+        spawn(fn -> fetch_ipns_silent(post_id) end)
         nil
     end
   end
 
   def ensure_ipns(post_id) do
-    ensure_ipns_background(post_id)
+    spawn(fn -> fetch_ipns_silent(post_id) end)
+    :ok
   end
 
   def ensure_ipns_background(post_id) do
-    Task.start(fn ->
-      try do
-        fetch_ipns_with_retries(post_id)
-      rescue
-        e ->
-          Logger.error("Background IPNS fetch failed for post #{post_id}: #{inspect(e)}")
-      end
-    end)
+    spawn(fn -> fetch_ipns_silent(post_id) end)
+    :ok
   end
 
   def clear_cache(post_id) do
@@ -59,12 +47,24 @@ defmodule MazarynWeb.HomeLive.IpnsManager do
   end
 
   def warm_cache_async(recent_post_ids) when is_list(recent_post_ids) do
-    Task.start(fn ->
+    spawn(fn ->
       recent_post_ids
-      |> Enum.take(5)
-      |> Task.async_stream(&background_ipns_fetch/1, max_concurrency: 2, timeout: 5000)
-      |> Stream.run()
+      |> Enum.take(3)
+      |> Enum.each(fn post_id ->
+        spawn(fn -> fetch_ipns_silent(post_id) end)
+        Process.sleep(500)
+      end)
     end)
+  end
+
+  defp fetch_ipns_silent(post_id) do
+    try do
+      fetch_ipns_with_retries(post_id)
+    rescue
+      _ -> :ok
+    catch
+      _, _ -> :ok
+    end
   end
 
   defp fetch_ipns_with_retries(post_id, attempt \\ 1) do
@@ -73,73 +73,54 @@ defmodule MazarynWeb.HomeLive.IpnsManager do
     if is_valid_ipns(result) do
       cache_ipns(post_id, result)
       broadcast_ipns_ready(post_id, result)
-      Logger.info("✅ IPNS resolved for post #{post_id} on attempt #{attempt}")
+      Logger.debug("IPNS resolved for post #{post_id} on attempt #{attempt}")
       :ok
     else
       if attempt < @max_retries do
         delay = backoff_delay(attempt)
-        Logger.debug("⏳ IPNS attempt #{attempt} failed for post #{post_id}. Retrying in #{delay}ms...")
         Process.sleep(delay)
         fetch_ipns_with_retries(post_id, attempt + 1)
       else
-        Logger.debug("❌ IPNS failed for post #{post_id} after #{@max_retries} attempts")
         :failed
       end
     end
   end
 
-  defp calculate_timeout(attempt) when attempt <= 2, do: @base_timeout
-  defp calculate_timeout(attempt) when attempt <= 4, do: @base_timeout + 1000
+  defp calculate_timeout(attempt) when attempt <= 1, do: @base_timeout
+  defp calculate_timeout(attempt) when attempt <= 3, do: @base_timeout + 1000
   defp calculate_timeout(_attempt), do: @base_timeout + 2000
 
   defp backoff_delay(1), do: @backoff_min
   defp backoff_delay(attempt) do
     base = :math.pow(@backoff_factor, attempt - 1) * @backoff_min
-    jitter = :rand.uniform(200)
+    jitter = :rand.uniform(1000)
     round(min(base + jitter, @backoff_max))
-  end
-
-  defp background_ipns_fetch(post_id) do
-    result = fetch_with_timeout(post_id, 3000)
-
-    if is_valid_ipns(result) do
-      cache_ipns(post_id, result)
-      broadcast_ipns_ready(post_id, result)
-      Logger.debug("Background IPNS fetch succeeded for #{post_id}")
-    else
-      Logger.debug("Background IPNS fetch failed for #{post_id}")
-    end
   end
 
   defp fetch_with_timeout(post_id, timeout_ms) do
     with {:ok, valid_id} <- validate_post_id(post_id) do
-      task = Task.async(fn ->
-        try do
+      parent = self()
+      ref = make_ref()
+
+      pid = spawn(fn ->
+        result = try do
           id_charlist = if is_binary(valid_id), do: to_charlist(valid_id), else: valid_id
-
-          internal_task = Task.async(fn ->
-            result = Core.PostClient.get_ipns_from_post(id_charlist)
-            normalize_ipns_result(result)
-          end)
-
-          case Task.yield(internal_task, div(timeout_ms, 2)) || Task.shutdown(internal_task, :brutal_kill) do
-            {:ok, result} -> result
-            nil -> nil
-          end
+          Core.PostClient.get_ipns_from_post(id_charlist)
         rescue
-          e ->
-            Logger.debug("Error in IPNS fetch task: #{inspect(e)}")
-            nil
+          _ -> nil
         catch
-          kind, reason ->
-            Logger.debug("Caught #{kind} in IPNS fetch task: #{inspect(reason)}")
-            nil
+          _, _ -> nil
         end
+
+        send(parent, {ref, normalize_ipns_result(result)})
       end)
 
-      case Task.yield(task, timeout_ms) || Task.shutdown(task, :brutal_kill) do
-        {:ok, result} -> result
-        nil -> nil
+      receive do
+        {^ref, result} -> result
+      after
+        timeout_ms ->
+          Process.exit(pid, :kill)
+          nil
       end
     else
       {:error, _} -> nil
@@ -148,18 +129,12 @@ defmodule MazarynWeb.HomeLive.IpnsManager do
 
   defp normalize_ipns_result(result) do
     case result do
-      :undefined ->
-        nil
-      :error ->
-        nil
-      {:error, _} ->
-        nil
-      nil ->
-        nil
-      "" ->
-        nil
-      result when is_binary(result) and byte_size(result) > 0 ->
-        result
+      :undefined -> nil
+      :error -> nil
+      {:error, _} -> nil
+      nil -> nil
+      "" -> nil
+      result when is_binary(result) and byte_size(result) > 0 -> result
       result when is_list(result) ->
         try do
           if Enum.all?(result, &is_integer/1) and Enum.all?(result, &(&1 >= 0 and &1 <= 1_114_111)) do
@@ -171,18 +146,9 @@ defmodule MazarynWeb.HomeLive.IpnsManager do
             nil
           end
         rescue
-          ArgumentError ->
-            Logger.debug("Invalid character list: #{inspect(result)}")
-            nil
-          _ ->
-            Logger.debug("Error converting list to string: #{inspect(result)}")
-            nil
+          _ -> nil
         end
-      result when is_atom(result) ->
-        nil
-      _ ->
-        Logger.debug("Unhandled IPNS result type: #{inspect(result)}")
-        nil
+      _ -> nil
     end
   end
 
@@ -210,34 +176,31 @@ defmodule MazarynWeb.HomeLive.IpnsManager do
   defp cache_ipns(post_id, ipns) do
     timestamp = :erlang.system_time(:second)
     :ets.insert(@content_cache, {{:ipns, post_id}, ipns, timestamp})
-    Logger.debug("Cached IPNS for post #{post_id}")
   end
 
   defp broadcast_ipns_ready(post_id, ipns) do
-    Task.start(fn ->
+    spawn(fn ->
       try do
         Phoenix.PubSub.broadcast(Mazaryn.PubSub, "home_feed_updates", {:ipns_ready, post_id, ipns})
         Phoenix.PubSub.broadcast(Mazaryn.PubSub, "post_updates", {:ipns_ready, post_id, ipns})
       rescue
-        e ->
-          Logger.error("Failed to broadcast IPNS ready: #{inspect(e)}")
+        _ -> :ok
       end
     end)
   end
 
   def resolve_ipns_batch(post_ids) when is_list(post_ids) do
-    post_ids
-    |> Enum.take(3)
-    |> Task.async_stream(&background_ipns_fetch/1,
-      max_concurrency: 2,
-      timeout: 4000,
-      on_timeout: :kill_task)
-    |> Stream.run()
+    spawn(fn ->
+      post_ids
+      |> Enum.take(3)
+      |> Enum.each(fn post_id ->
+        spawn(fn -> fetch_ipns_silent(post_id) end)
+        Process.sleep(300)
+      end)
+    end)
   end
 
-  def ipns_processing?(post_id) do
-    Process.whereis(:"ipns_task_#{post_id}") != nil
-  end
+  def ipns_processing?(_post_id), do: false
 
   def get_ipns_with_fallback(post_id, fallback \\ nil) do
     case get_ipns_fast(post_id) do
@@ -247,7 +210,7 @@ defmodule MazarynWeb.HomeLive.IpnsManager do
   end
 
   def preload_critical_ipns(post_ids) when is_list(post_ids) do
-    Task.start(fn ->
+    spawn(fn ->
       post_ids
       |> Enum.take(2)
       |> Enum.each(&ensure_ipns_background/1)

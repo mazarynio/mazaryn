@@ -357,8 +357,14 @@ defmodule MazarynWeb.HomeLive.CreatePostComponent do
     |> Post.changeset(post_params)
     |> Posts.create_post()
     |> case do
-      {:ok, %Post{}} ->
+      {:ok, %Post{} = new_post} ->
         add_mention_to_notif(mentions, socket.assigns.user.id)
+
+        Task.start(fn ->
+          Process.sleep(5000)
+          MazarynWeb.HomeLive.IpnsManager.ensure_ipns_background(new_post.id)
+        end)
+
         send(self(), :reload_posts)
         socket
         |> assign(:changeset, Post.changeset(%Post{}))

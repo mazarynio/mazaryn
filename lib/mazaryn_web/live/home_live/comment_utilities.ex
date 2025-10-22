@@ -29,36 +29,39 @@ defmodule MazarynWeb.HomeLive.CommentUtilities do
     start_time = System.monotonic_time(:millisecond)
     Logger.info("Fast fetching comments for post #{post_id}")
 
-    result = try do
-      cache_key = {:comments_fast, post_id}
+    result =
+      try do
+        cache_key = {:comments_fast, post_id}
 
-      case lookup_cache_fast(cache_key) do
-        {:hit, comments} ->
-          Logger.info("Fast cache hit for post #{post_id}")
-          verify_and_ensure_comment_content(comments)
+        case lookup_cache_fast(cache_key) do
+          {:hit, comments} ->
+            Logger.info("Fast cache hit for post #{post_id}")
+            verify_and_ensure_comment_content(comments)
 
-        {:miss, _} ->
-          Logger.info("Fast cache miss for post #{post_id}")
-          regular_key = {:comments_processed, post_id}
-          case lookup_cache_fast(regular_key) do
-            {:hit, comments} ->
-              processed_comments = verify_and_ensure_comment_content(comments)
-              store_in_cache_fast(cache_key, processed_comments)
-              processed_comments
-            _ ->
-              fetch_comments_immediately(post_id, cache_key)
-          end
+          {:miss, _} ->
+            Logger.info("Fast cache miss for post #{post_id}")
+            regular_key = {:comments_processed, post_id}
 
-        {:expired, comments} ->
-          Logger.info("Fast cache expired for post #{post_id}")
-          spawn_background_comment_refresh(post_id, cache_key)
-          verify_and_ensure_comment_content(comments)
+            case lookup_cache_fast(regular_key) do
+              {:hit, comments} ->
+                processed_comments = verify_and_ensure_comment_content(comments)
+                store_in_cache_fast(cache_key, processed_comments)
+                processed_comments
+
+              _ ->
+                fetch_comments_immediately(post_id, cache_key)
+            end
+
+          {:expired, comments} ->
+            Logger.info("Fast cache expired for post #{post_id}")
+            spawn_background_comment_refresh(post_id, cache_key)
+            verify_and_ensure_comment_content(comments)
+        end
+      rescue
+        e ->
+          Logger.error("Error getting comments for post #{post_id}: #{inspect(e)}")
+          fetch_comments_immediately(post_id, {:comments_fast, post_id})
       end
-    rescue
-      e ->
-        Logger.error("Error getting comments for post #{post_id}: #{inspect(e)}")
-        fetch_comments_immediately(post_id, {:comments_fast, post_id})
-    end
 
     log_operation_time("Fast comments fetch", start_time)
     result
@@ -67,35 +70,42 @@ defmodule MazarynWeb.HomeLive.CommentUtilities do
   def fetch_comments_immediately(post_id, cache_key) do
     Logger.info("Immediately fetching comments for post #{post_id}")
 
-    task = Task.async(fn ->
-      try do
-        case Posts.get_comment_by_post_id(post_id) do
-          comments when is_list(comments) -> comments
-          nil -> []
-          other ->
-            Logger.warning("Unexpected result from get_comment_by_post_id: #{inspect(other)}")
-            []
-        end
-      rescue
-        e ->
-          Logger.error("Error in Posts.get_comment_by_post_id: #{inspect(e)}")
+    parent = self()
+    ref = make_ref()
+
+    pid =
+      spawn(fn ->
+        result =
+          try do
+            case Posts.get_comment_by_post_id(post_id) do
+              comments when is_list(comments) -> comments
+              nil -> []
+              _ -> []
+            end
+          rescue
+            _ -> []
+          end
+
+        send(parent, {ref, result})
+      end)
+
+    comments =
+      receive do
+        {^ref, result} ->
+          Logger.info("Immediately fetched #{length(result)} comments for post #{post_id}")
+          result
+      after
+        @fetch_timeout_ms ->
+          Process.exit(pid, :kill)
+          Logger.warning("Immediate timeout fetching comments for post #{post_id}")
           []
       end
-    end)
 
-    comments = case Task.yield(task, @fetch_timeout_ms) || Task.shutdown(task, :brutal_kill) do
-      {:ok, result} ->
-        Logger.info("Immediately fetched #{length(result)} comments for post #{post_id}")
-        result
-      nil ->
-        Logger.warning("Immediate timeout fetching comments for post #{post_id}")
-        []
-    end
-
-    processed_comments = comments
-                         |> Enum.take(@max_comments_per_fetch)
-                         |> Enum.map(&process_comment_with_immediate_content/1)
-                         |> Enum.filter(&(&1 != nil))
+    processed_comments =
+      comments
+      |> Enum.take(@max_comments_per_fetch)
+      |> Enum.map(&process_comment_with_immediate_content/1)
+      |> Enum.filter(&(&1 != nil))
 
     store_in_cache_fast(cache_key, processed_comments)
 
@@ -127,14 +137,18 @@ defmodule MazarynWeb.HomeLive.CommentUtilities do
         else
           fetch_content_from_all_sources(comment_id, :comment)
         end
+
       _ ->
         fetch_content_from_all_sources(comment_id, :comment)
     end
   end
 
   def fetch_content_from_all_sources(id, type \\ :comment) do
-    tasks = [
-      Task.async(fn ->
+    parent = self()
+    ref = make_ref()
+
+    spawn(fn ->
+      result =
         try do
           case type do
             :comment -> Core.PostClient.get_comment_content(id)
@@ -143,8 +157,12 @@ defmodule MazarynWeb.HomeLive.CommentUtilities do
         rescue
           _ -> nil
         end
-      end),
-      Task.async(fn ->
+
+      send(parent, {ref, {:source1, result}})
+    end)
+
+    spawn(fn ->
+      result =
         try do
           case type do
             :comment ->
@@ -152,13 +170,19 @@ defmodule MazarynWeb.HomeLive.CommentUtilities do
                 %{content: content} when is_binary(content) -> content
                 _ -> nil
               end
-            :reply -> nil
+
+            :reply ->
+              nil
           end
         rescue
           _ -> nil
         end
-      end),
-      Task.async(fn ->
+
+      send(parent, {ref, {:source2, result}})
+    end)
+
+    spawn(fn ->
+      result =
         try do
           case type do
             :comment -> :postdb.get_comment_content(id)
@@ -167,21 +191,11 @@ defmodule MazarynWeb.HomeLive.CommentUtilities do
         rescue
           _ -> nil
         end
-      end)
-    ]
 
-    results = Task.yield_many(tasks, 600)
+      send(parent, {ref, {:source3, result}})
+    end)
 
-    Enum.each(tasks, &Task.shutdown(&1, :brutal_kill))
-
-    content = results
-              |> Enum.map(fn {_task, result} ->
-                case result do
-                  {:ok, content} -> normalize_content(content)
-                  _ -> nil
-                end
-              end)
-              |> Enum.find(&is_valid_content/1)
+    content = collect_fetch_results(ref, 3, 600, [])
 
     final_content = content || "Content unavailable"
 
@@ -192,36 +206,68 @@ defmodule MazarynWeb.HomeLive.CommentUtilities do
     final_content
   end
 
+  defp collect_fetch_results(_ref, 0, _timeout, results) do
+    results
+    |> Enum.map(&normalize_content/1)
+    |> Enum.find(&is_valid_content/1)
+  end
+
+  defp collect_fetch_results(ref, remaining, timeout, results) do
+    receive do
+      {^ref, {_source, result}} ->
+        updated_results = [result | results]
+
+        case normalize_content(result) do
+          content when is_binary(content) and byte_size(content) > 0 ->
+            content
+
+          _ ->
+            collect_fetch_results(ref, remaining - 1, timeout, updated_results)
+        end
+    after
+      timeout ->
+        collect_fetch_results(ref, 0, 0, results)
+    end
+  end
+
   def verify_and_ensure_comment_content(comments) do
     Enum.map(comments, fn comment ->
-      content = case comment.content do
-        content when is_binary(content) ->
-          if content != "" and not is_loading_state(content) do
-            content
-          else
-            get_comment_content_immediate(comment.id)
-          end
-        _ ->
-          get_comment_content_immediate(comment.id)
-      end
-
-      replies = case comment.replies do
-        replies when is_list(replies) ->
-          Enum.map(replies, fn reply ->
-            reply_content = case reply.content do
-              content when is_binary(content) ->
-                if content != "" and not is_loading_state(content) do
-                  content
-                else
-                  get_reply_content_immediate(reply.id)
-                end
-              _ ->
-                get_reply_content_immediate(reply.id)
+      content =
+        case comment.content do
+          content when is_binary(content) ->
+            if content != "" and not is_loading_state(content) do
+              content
+            else
+              get_comment_content_immediate(comment.id)
             end
-            Map.put(reply, :content, reply_content)
-          end)
-        _ -> []
-      end
+
+          _ ->
+            get_comment_content_immediate(comment.id)
+        end
+
+      replies =
+        case comment.replies do
+          replies when is_list(replies) ->
+            Enum.map(replies, fn reply ->
+              reply_content =
+                case reply.content do
+                  content when is_binary(content) ->
+                    if content != "" and not is_loading_state(content) do
+                      content
+                    else
+                      get_reply_content_immediate(reply.id)
+                    end
+
+                  _ ->
+                    get_reply_content_immediate(reply.id)
+                end
+
+              Map.put(reply, :content, reply_content)
+            end)
+
+          _ ->
+            []
+        end
 
       comment
       |> Map.put(:content, content)
@@ -237,30 +283,41 @@ defmodule MazarynWeb.HomeLive.CommentUtilities do
         else
           fetch_content_from_all_sources(reply_id, :reply)
         end
+
       _ ->
         fetch_content_from_all_sources(reply_id, :reply)
     end
   end
 
   def get_comment_replies_immediate(comment_id) do
-    try do
-      task = Task.async(fn ->
-        :postdb.get_comment_replies(to_charlist(comment_id))
+    parent = self()
+    ref = make_ref()
+
+    pid =
+      spawn(fn ->
+        result =
+          try do
+            :postdb.get_comment_replies(to_charlist(comment_id))
+          rescue
+            _ -> []
+          end
+
+        send(parent, {ref, result})
       end)
 
-      case Task.yield(task, 800) || Task.shutdown(task, :brutal_kill) do
-        {:ok, replies} ->
-          replies
-          |> Enum.take(@max_replies_per_comment)
-          |> Enum.map(&process_reply_immediate/1)
-          |> Enum.filter(&(&1 != nil))
-        nil -> []
-      end
-    rescue
-      e ->
-        Logger.error("Error getting replies for comment #{comment_id}: #{inspect(e)}")
+    receive do
+      {^ref, replies} ->
+        replies
+        |> Enum.take(@max_replies_per_comment)
+        |> Enum.map(&process_reply_immediate/1)
+        |> Enum.filter(&(&1 != nil))
+    after
+      800 ->
+        Process.exit(pid, :kill)
         []
     end
+  rescue
+    _ -> []
   end
 
   defp process_reply_immediate(reply) do
@@ -268,6 +325,7 @@ defmodule MazarynWeb.HomeLive.CommentUtilities do
       {:ok, built_reply} ->
         content = get_reply_content_immediate(built_reply.id)
         Map.put(built_reply, :content, content)
+
       {:error, _} ->
         nil
     end
@@ -283,25 +341,31 @@ defmodule MazarynWeb.HomeLive.CommentUtilities do
       case lookup_cache_fast(cache_key) do
         {:hit, post} ->
           {:ok, post}
+
         _ ->
           case PostClient.get_by_id(post_id) do
             :post_not_exist ->
               Logger.warning("Post #{post_id} does not exist")
               {:error, :post_not_exist}
+
             post_data when post_data != nil ->
               changeset = Post.erl_changeset(post_data)
+
               case Post.build(changeset) do
                 {:ok, post} ->
                   store_in_cache_fast(cache_key, post)
                   log_operation_time("Safe post rebuild", start_time, :debug)
                   {:ok, post}
+
                 {:error, reason} ->
                   Logger.error("Failed to build post from changeset: #{inspect(reason)}")
                   {:error, reason}
               end
+
             nil ->
               Logger.warning("PostClient.get_by_id returned nil for post #{post_id}")
               {:error, :post_not_found}
+
             other ->
               Logger.warning("Unexpected result from PostClient.get_by_id: #{inspect(other)}")
               {:error, :unexpected_result}
@@ -316,7 +380,9 @@ defmodule MazarynWeb.HomeLive.CommentUtilities do
 
   def rebuild_post_fast(post_id) do
     case rebuild_post_safe(post_id) do
-      {:ok, post} -> post
+      {:ok, post} ->
+        post
+
       {:error, _reason} ->
         %{
           id: post_id,
@@ -375,23 +441,22 @@ defmodule MazarynWeb.HomeLive.CommentUtilities do
   end
 
   def build_like(like_data) do
-    {:ok, like} = like_data
-    |> Like.erl_changeset()
-    |> Like.build()
+    {:ok, like} =
+      like_data
+      |> Like.erl_changeset()
+      |> Like.build()
+
     like
   end
 
   defp spawn_background_comment_refresh(post_id, cache_key) do
-    Task.start(fn ->
+    spawn(fn ->
       try do
         Logger.info("Background comment refresh started for post #{post_id}")
-
         _fresh_comments = fetch_comments_immediately(post_id, cache_key)
-
         Logger.info("Background comment refresh completed for post #{post_id}")
       rescue
-        e ->
-          Logger.error("Error in background comment refresh: #{inspect(e)}")
+        _ -> :ok
       end
     end)
   end
@@ -465,6 +530,7 @@ defmodule MazarynWeb.HomeLive.CommentUtilities do
         :ets.new(@content_cache, [:named_table, :public, :set])
         Logger.info("Initialized ETS cache table: #{@content_cache}")
         :ok
+
       _ ->
         Logger.debug("ETS cache table #{@content_cache} already exists")
         :ok
@@ -483,21 +549,25 @@ defmodule MazarynWeb.HomeLive.CommentUtilities do
 
   defp normalize_content(content) do
     cond do
-      is_binary(content) and content != "" -> content
+      is_binary(content) and content != "" ->
+        content
+
       is_list(content) ->
         case List.to_string(content) do
           "" -> nil
           str -> str
         end
-      true -> nil
+
+      true ->
+        nil
     end
   end
 
   defp is_valid_content(content) do
     is_binary(content) and
-    content != "" and
-    content != "Content unavailable" and
-    not is_loading_state(content)
+      content != "" and
+      content != "Content unavailable" and
+      not is_loading_state(content)
   end
 
   defp is_loading_state(content) do
@@ -527,6 +597,7 @@ defmodule MazarynWeb.HomeLive.CommentUtilities do
 
   def clear_comments_cache(post_id) do
     init_cache_table()
+
     cache_keys = [
       {:comments_fast, post_id},
       {:comments_processed, post_id}
@@ -550,6 +621,7 @@ defmodule MazarynWeb.HomeLive.CommentUtilities do
     case :ets.lookup(table_name, key) do
       [{^key, {value, _timestamp, expiry}}] ->
         current_time = :erlang.system_time(:millisecond)
+
         if current_time < expiry do
           {:ok, value}
         else
@@ -608,9 +680,11 @@ defmodule MazarynWeb.HomeLive.CommentUtilities do
         {:ok, result} ->
           Logger.info("PostClient.create_comment succeeded")
           {:ok, result}
+
         {:error, reason} ->
           Logger.info("PostClient.create_comment failed: #{inspect(reason)}")
           try_postdb_save(comment_id, post_id, author, content)
+
         other ->
           Logger.warning("PostClient.create_comment returned: #{inspect(other)}")
           try_postdb_save(comment_id, post_id, author, content)

@@ -329,7 +329,10 @@ defmodule MazarynWeb.HomeLive.PostComponent do
 
           ipns_id = IpnsManager.get_ipns_fast(post_id)
 
-          IpnsManager.ensure_ipns(post_id)
+          spawn(fn ->
+            Process.sleep(3000)
+            IpnsManager.ensure_ipns(post_id)
+          end)
 
           send(self(), :reload_posts)
           {:noreply, assign(socket, %{editing_post: false, edit_post_id: nil, ipns_id: ipns_id})}
