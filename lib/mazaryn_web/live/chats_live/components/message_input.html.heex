@@ -1,139 +1,41 @@
-<div class="relative">
+<div class="relative" id={"message-input-wrapper-#{@myself}"}>
+  <script src="https://cdn.jsdelivr.net/npm/emoji-picker-element@^1/index.js" type="module"></script>
+
   <%= if @show_emoji_panel do %>
     <div
-      id="emoji-panel-#{@myself}"
-      class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-gradient-to-br from-white/90 to-gray-100/80 backdrop-blur-2xl rounded-2xl shadow-2xl border-2 border-gradient-to-br from-indigo-400/60 to-purple-400/60 p-4 z-[100] min-w-[300px] max-w-[380px] max-h-[360px] overflow-y-auto animate-[fadeInUp_0.2s_ease-out]"
-      style="transform-origin: center; background-image: radial-gradient(circle at center, rgba(99, 102, 241, 0.15) 0%, transparent 70%);"
+      id={"emoji-panel-#{@myself}"}
+      class="fixed inset-0 z-50 flex items-center justify-center p-4 animate-fadeIn"
+      phx-click="close_emoji_panel"
+      phx-target={@myself}
     >
-      <style>
-        #emoji-panel-#{@myself}::-webkit-scrollbar {
-          width: 6px;
-        }
-        #emoji-panel-#{@myself}::-webkit-scrollbar-track {
-          background: rgba(255, 255, 255, 0.3);
-          border-radius: 8px;
-        }
-        #emoji-panel-#{@myself}::-webkit-scrollbar-thumb {
-          background: linear-gradient(to bottom, #6366f1, #a855f7);
-          border-radius: 8px;
-        }
-        #emoji-panel-#{@myself}::-webkit-scrollbar-thumb:hover {
-          background: linear-gradient(to bottom, #4f46e5, #9333ea);
-        }
-      </style>
+      <div class="absolute inset-0 bg-black/40 backdrop-blur-sm"></div>
 
-      <div class="mb-3">
-        <h3 class="text-sm font-bold text-gray-900" style="font-family: 'Inter', system-ui, sans-serif;">Choose an Emoji</h3>
-        <div class="h-0.5 bg-gradient-to-r from-indigo-500/60 to-purple-500/60 mt-1"></div>
-      </div>
-
-      <div class="mb-3">
-        <h4 class="text-xs font-bold text-gray-900 mb-1.5 border-b-2 border-gradient-to-r from-indigo-500/60 to-purple-500/60" style="font-family: 'Inter', system-ui, sans-serif;">Faces</h4>
-        <div class="grid grid-cols-7 gap-1.5">
-          <%= for emoji <- Enum.slice(@emojis, 0, 44) do %>
-            <% {key, character} = Enum.at(emoji, 0) %>
+      <div
+        class="relative bg-white rounded-3xl shadow-2xl max-w-[480px] w-full overflow-hidden animate-scaleIn"
+        phx-click={Phoenix.LiveView.JS.exec("phx-noop")}
+        style="animation-duration: 0.3s;"
+      >
+        <div class="sticky top-0 z-10 bg-gradient-to-r from-indigo-500 to-purple-600 px-6 py-4">
+          <div class="flex items-center justify-between">
+            <h3 class="text-lg font-bold text-white flex items-center gap-2">
+              <span class="text-2xl">😊</span>
+              Choose an Emoji
+            </h3>
             <button
               type="button"
-              class="emoji-btn w-10 h-10 bg-white/70 hover:bg-gradient-to-br hover:from-indigo-300/90 hover:to-purple-300/90 rounded-lg text-xl transition-all duration-200 flex items-center justify-center group relative hover:scale-110 hover:shadow-lg hover:ring-2 hover:ring-indigo-400/40 border border-gray-100/50"
-              phx-click="select_emoji"
-              phx-value-emoji={character}
+              phx-click="close_emoji_panel"
               phx-target={@myself}
-              title={to_string(key)}
+              class="w-8 h-8 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center transition-all duration-200 hover:rotate-90"
             >
-              <%= character %>
-              <div class="absolute -top-9 left-1/2 transform -translate-x-1/2 px-2.5 py-1 bg-gradient-to-br from-gray-900/95 to-gray-800/95 text-white text-sm rounded-lg shadow-md opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none whitespace-nowrap z-[101] animate-[fadeInUp_0.2s_ease-out]" style="font-family: 'Inter', system-ui, sans-serif;">
-                <%= to_string(key) |> String.replace("_", " ") %>
-              </div>
+              <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+              </svg>
             </button>
-          <% end %>
+          </div>
         </div>
-      </div>
 
-      <div class="mb-3">
-        <h4 class="text-xs font-bold text-gray-900 mb-1.5 border-b-2 border-gradient-to-r from-indigo-500/60 to-purple-500/60" style="font-family: 'Inter', system-ui, sans-serif;">Gestures</h4>
-        <div class="grid grid-cols-7 gap-1.5">
-          <%= for emoji <- Enum.slice(@emojis, 44, 9) do %>
-            <% {key, character} = Enum.at(emoji, 0) %>
-            <button
-              type="button"
-              class="emoji-btn w-10 h-10 bg-white/70 hover:bg-gradient-to-br hover:from-indigo-300/90 hover:to-purple-300/90 rounded-lg text-xl transition-all duration-200 flex items-center justify-center group relative hover:scale-110 hover:shadow-lg hover:ring-2 hover:ring-indigo-400/40 border border-gray-100/50"
-              phx-click="select_emoji"
-              phx-value-emoji={character}
-              phx-target={@myself}
-              title={to_string(key)}
-            >
-              <%= character %>
-              <div class="absolute -top-9 left-1/2 transform -translate-x-1/2 px-2.5 py-1 bg-gradient-to-br from-gray-900/95 to-gray-800/95 text-white text-sm rounded-lg shadow-md opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none whitespace-nowrap z-[101] animate-[fadeInUp_0.2s_ease-out]" style="font-family: 'Inter', system-ui, sans-serif;">
-                <%= to_string(key) |> String.replace("_", " ") %>
-              </div>
-            </button>
-          <% end %>
-        </div>
-      </div>
-
-      <div class="mb-3">
-        <h4 class="text-xs font-bold text-gray-900 mb-1.5 border-b-2 border-gradient-to-r from-indigo-500/60 to-purple-500/60" style="font-family: 'Inter', system-ui, sans-serif;">Objects</h4>
-        <div class="grid grid-cols-7 gap-1.5">
-          <%= for emoji <- Enum.slice(@emojis, 53, 9) do %>
-            <% {key, character} = Enum.at(emoji, 0) %>
-            <button
-              type="button"
-              class="emoji-btn w-10 h-10 bg-white/70 hover:bg-gradient-to-br hover:from-indigo-300/90 hover:to-purple-300/90 rounded-lg text-xl transition-all duration-200 flex items-center justify-center group relative hover:scale-110 hover:shadow-lg hover:ring-2 hover:ring-indigo-400/40 border border-gray-100/50"
-              phx-click="select_emoji"
-              phx-value-emoji={character}
-              phx-target={@myself}
-              title={to_string(key)}
-            >
-              <%= character %>
-              <div class="absolute -top-9 left-1/2 transform -translate-x-1/2 px-2.5 py-1 bg-gradient-to-br from-gray-900/95 to-gray-800/95 text-white text-sm rounded-lg shadow-md opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none whitespace-nowrap z-[101] animate-[fadeInUp_0.2s_ease-out]" style="font-family: 'Inter', system-ui, sans-serif;">
-                <%= to_string(key) |> String.replace("_", " ") %>
-              </div>
-            </button>
-          <% end %>
-        </div>
-      </div>
-
-      <div class="mb-3">
-        <h4 class="text-xs font-bold text-gray-900 mb-1.5 border-b-2 border-gradient-to-r from-indigo-500/60 to-purple-500/60" style="font-family: 'Inter', system-ui, sans-serif;">Animals</h4>
-        <div class="grid grid-cols-7 gap-1.5">
-          <%= for emoji <- Enum.slice(@emojis, 62, 8) do %>
-            <% {key, character} = Enum.at(emoji, 0) %>
-            <button
-              type="button"
-              class="emoji-btn w-10 h-10 bg-white/70 hover:bg-gradient-to-br hover:from-indigo-300/90 hover:to-purple-300/90 rounded-lg text-xl transition-all duration-200 flex items-center justify-center group relative hover:scale-110 hover:shadow-lg hover:ring-2 hover:ring-indigo-400/40 border border-gray-100/50"
-              phx-click="select_emoji"
-              phx-value-emoji={character}
-              phx-target={@myself}
-              title={to_string(key)}
-            >
-              <%= character %>
-              <div class="absolute -top-9 left-1/2 transform -translate-x-1/2 px-2.5 py-1 bg-gradient-to-br from-gray-900/95 to-gray-800/95 text-white text-sm rounded-lg shadow-md opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none whitespace-nowrap z-[101] animate-[fadeInUp_0.2s_ease-out]" style="font-family: 'Inter', system-ui, sans-serif;">
-                <%= to_string(key) |> String.replace("_", " ") %>
-              </div>
-            </button>
-          <% end %>
-        </div>
-      </div>
-
-      <div>
-        <h4 class="text-xs font-bold text-gray-900 mb-1.5 border-b-2 border-gradient-to-r from-indigo-500/60 to-purple-500/60" style="font-family: 'Inter', system-ui, sans-serif;">Symbols & Food</h4>
-        <div class="grid grid-cols-7 gap-1.5">
-          <%= for emoji <- Enum.slice(@emojis, 70, 30) do %>
-            <% {key, character} = Enum.at(emoji, 0) %>
-            <button
-              type="button"
-              class="emoji-btn w-10 h-10 bg-white/70 hover:bg-gradient-to-br hover:from-indigo-300/90 hover:to-purple-300/90 rounded-lg text-xl transition-all duration-200 flex items-center justify-center group relative hover:scale-110 hover:shadow-lg hover:ring-2 hover:ring-indigo-400/40 border border-gray-100/50"
-              phx-click="select_emoji"
-              phx-value-emoji={character}
-              phx-target={@myself}
-              title={to_string(key)}
-            >
-              <%= character %>
-              <div class="absolute -top-9 left-1/2 transform -translate-x-1/2 px-2.5 py-1 bg-gradient-to-br from-gray-900/95 to-gray-800/95 text-white text-sm rounded-lg shadow-md opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none whitespace-nowrap z-[101] animate-[fadeInUp_0.2s_ease-out]" style="font-family: 'Inter', system-ui, sans-serif;">
-                <%= to_string(key) |> String.replace("_", " ") %>
-              </div>
-            </button>
-          <% end %>
+        <div class="p-6">
+          <emoji-picker id={"emoji-picker-#{@myself}"} class="w-full"></emoji-picker>
         </div>
       </div>
     </div>
@@ -202,7 +104,7 @@
       id="message-form-#{@myself}"
     >
       <div class="flex relative items-start p-4 bg-gradient-to-r from-gray-50 to-white rounded-2xl border border-gray-200/60 shadow-sm hover:shadow-md transition-all duration-300">
-        
+
         <div class="relative flex-shrink-0 mr-4">
           <img
             src={MazarynWeb.Live.Helper.handle_avatar(@user)}
@@ -210,7 +112,7 @@
           />
           <div class="absolute -bottom-1 -right-1 w-4 h-4 bg-green-400 rounded-full border-2 border-white shadow-sm"></div>
         </div>
-        
+
         <div class="flex-1 min-w-0 relative">
           <%= textarea(
             f,
@@ -220,11 +122,12 @@
               "w-full border-none resize-none focus:text-gray-800 focus:ring-0 font-normal leading-relaxed block placeholder:text-gray-400 text-gray-700 bg-transparent text-base py-2 px-0 min-h-[24px] max-h-32 overflow-y-auto",
             placeholder: "Type your message...",
             rows: "1",
-            id: "message-input-#{@myself}"
+            id: "message-input-#{@myself}",
+            phx_hook: "MessageCharCounter"
           ) %>
           <%= hidden_input(f, :user_id, value: @user.id) %>
           <%= hidden_input(f, :recipient_id, value: @recipient.id) %>
-          
+
           <div class="flex justify-between items-center mt-3">
             <div class="text-xs text-gray-400 font-medium">
               <span id="char-count-#{@myself}">0 characters</span>
@@ -260,7 +163,7 @@
               <div class="relative">
                 <.live_img_preview entry={entry} class="w-full h-20 object-cover rounded-xl shadow-sm" />
                 <div class="mt-3 w-full bg-gray-200 rounded-full h-2 overflow-hidden">
-                  <div 
+                  <div
                     class="h-full bg-gradient-to-r from-blue-500 to-purple-600 rounded-full transition-all duration-300 ease-out"
                     style={"width: #{entry.progress}%"}
                   ></div>
@@ -400,127 +303,108 @@
     </.form>
   </div>
 
-  <script>
-    document.addEventListener('DOMContentLoaded', function() {
-      const textareas = document.querySelectorAll('[id^="message-input-"]');
-      textareas.forEach(textarea => {
-        const componentId = textarea.id.replace('message-input-', '');
-        const charCount = document.getElementById('char-count-' + componentId);
-        const charProgress = document.getElementById('char-progress-' + componentId);
+  <style>
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
 
-        textarea.addEventListener('input', function() {
-          updateCharCount(textarea, charCount, charProgress);
-        });
-
-        updateCharCount(textarea, charCount, charProgress);
-      });
-
-      window.addEventListener('phx:insert_emoji', function(event) {
-        const { emoji, component_id } = event.detail;
-        const textarea = document.getElementById('message-input-' + component_id);
-        const charCount = document.getElementById('char-count-' + component_id);
-        const charProgress = document.getElementById('char-progress-' + component_id);
-
-        if (textarea) {
-          const start = textarea.selectionStart;
-          const end = textarea.selectionEnd;
-          const text = textarea.value;
-
-          textarea.value = text.substring(0, start) + emoji + text.substring(end);
-          textarea.focus();
-          textarea.setSelectionRange(start + emoji.length, start + emoji.length);
-
-          textarea.dispatchEvent(new Event('input', { bubbles: true }));
-
-          updateCharCount(textarea, charCount, charProgress);
-        }
-      });
-
-      window.addEventListener('phx:insert_sticker', function(event) {
-        const { sticker, component_id } = event.detail;
-        const textarea = document.getElementById('message-input-' + component_id);
-        const charCount = document.getElementById('char-count-' + component_id);
-        const charProgress = document.getElementById('char-progress-' + component_id);
-
-        if (textarea) {
-          const start = textarea.selectionStart;
-          const end = textarea.selectionEnd;
-          const text = textarea.value;
-          const stickerTag = `![sticker](${sticker})`;
-
-          textarea.value = text.substring(0, start) + stickerTag + text.substring(end);
-          textarea.focus();
-          textarea.setSelectionRange(start + stickerTag.length, start + stickerTag.length);
-
-          textarea.dispatchEvent(new Event('input', { bubbles: true }));
-
-          updateCharCount(textarea, charCount, charProgress);
-        }
-      });
-
-      const emojiPanels = document.querySelectorAll('[id^="emoji-panel-"]');
-      emojiPanels.forEach(panel => {
-        panel.addEventListener('animationend', () => {
-          panel.style.animation = '';
-        });
-      });
-
-      const stickerPanels = document.querySelectorAll('[id^="sticker-panel-"]');
-      stickerPanels.forEach(panel => {
-        panel.addEventListener('animationend', () => {
-          panel.style.animation = '';
-        });
-      });
-    });
-
-    function updateCharCount(textarea, charCount, charProgress) {
-      if (!textarea || !charCount || !charProgress) return;
-
-      const count = textarea.value.length;
-      const maxChars = 280;
-      const percentage = (count / maxChars) * 100;
-
-      charCount.textContent = count + ' characters';
-      charProgress.style.width = Math.min(percentage, 100) + '%';
-
-      if (count > maxChars) {
-        charCount.classList.add('text-red-500');
-        charProgress.classList.remove('bg-gradient-to-r', 'from-indigo-500', 'to-purple-500');
-        charProgress.classList.add('bg-red-500');
-      } else {
-        charCount.classList.remove('text-red-500');
-        charProgress.classList.remove('bg-red-500');
-        charProgress.classList.add('bg-gradient-to-r', 'from-indigo-500', 'to-purple-500');
+    @keyframes scaleIn {
+      from {
+        opacity: 0;
+        transform: scale(0.9);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1);
       }
     }
 
-    if (!document.getElementById('emoji-animations')) {
-      const style = document.createElement('style');
-      style.id = 'emoji-animations';
-      style.textContent = `
-        @keyframes fadeInUp {
-          from {
-            opacity: 0;
-            transform: translateY(10px) scale(0.95);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0) scale(1);
-          }
-        }
-
-        @keyframes fadeOutDown {
-          from {
-            opacity: 1;
-            transform: translateY(0) scale(1);
-          }
-          to {
-            opacity: 0;
-            transform: translateY(10px) scale(0.95);
-          }
-        }
-      `;
-      document.head.appendChild(style);
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(10px) scale(0.95);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
     }
+
+    .animate-fadeIn {
+      animation: fadeIn 0.3s ease-out;
+    }
+
+    .animate-scaleIn {
+      animation: scaleIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .animate-fadeInUp {
+      animation: fadeInUp 0.2s ease-out;
+    }
+
+    emoji-picker {
+      width: 100%;
+      height: 400px;
+      --background: #ffffff;
+      --border-color: #e5e7eb;
+      --category-emoji-size: 1.5rem;
+      --emoji-size: 1.75rem;
+    }
+  </style>
+
+  <script>
+    (function() {
+      const componentId = '<%= @myself %>';
+
+      const initEmojiPicker = () => {
+        const picker = document.getElementById('emoji-picker-' + componentId);
+        if (picker && !picker._listenerAdded) {
+          picker._listenerAdded = true;
+
+          picker.addEventListener('emoji-click', (event) => {
+            const emoji = event.detail.unicode;
+            const textarea = document.getElementById('message-input-' + componentId);
+
+            if (textarea) {
+              const start = textarea.selectionStart || 0;
+              const end = textarea.selectionEnd || 0;
+              const text = textarea.value;
+
+              const newLength = text.length - (end - start) + emoji.length;
+              if (newLength <= 280) {
+                textarea.value = text.substring(0, start) + emoji + text.substring(end);
+
+                const newPosition = start + emoji.length;
+                textarea.setSelectionRange(newPosition, newPosition);
+                textarea.focus();
+
+                textarea.dispatchEvent(new Event('input', { bubbles: true }));
+
+                setTimeout(() => {
+                  const closeBtn = document.querySelector('[phx-click="close_emoji_panel"]');
+                  if (closeBtn) closeBtn.click();
+                }, 100);
+              }
+            }
+          });
+        }
+      };
+
+      setTimeout(initEmojiPicker, 500);
+
+      const observer = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+          if (mutation.addedNodes.length) {
+            initEmojiPicker();
+          }
+        });
+      });
+
+      const wrapper = document.getElementById('message-input-wrapper-' + componentId);
+      if (wrapper) {
+        observer.observe(wrapper, { childList: true, subtree: true });
+      }
+    })();
   </script>
 </div>
