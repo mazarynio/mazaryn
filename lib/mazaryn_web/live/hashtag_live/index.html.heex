@@ -1,4 +1,3 @@
-<!-- navigation -->
 <.live_component
   module={MazarynWeb.HomeLive.NavComponent}
   id="navigation"
@@ -6,7 +5,6 @@
   search={@search}
   locale={@locale}
 />
-<!-- Three columns -->
 <div class="bg-[#FAFAFA]">
   <div class="flex flex-wrap w-[90%] max-w-[1440px] mx-auto">
     <div class="w-full lg:w-[18%] py-6">
@@ -17,21 +15,57 @@
         locale={@locale}
       />
     </div>
-    <!-- middle column -->
     <div class="w-full lg:w-[54%] py-6 pl-11 pr-8">
-      <div class="flex flex-wrap justify-center align-center mb-6">
-        <%= for post <- @posts do %>
-          <.live_component
-            module={MazarynWeb.HomeLive.PostComponent}
-            id={post.id}
-            current_user={@current_user}
-            post={post}
-            locale={@locale}
-          />
-        <% end %>
-      </div>
+      <%= if @hashtag_name do %>
+        <div class="w-full bg-white dark:bg-gray-800 custom-box-shadow p-6 rounded-[20px] mb-6">
+          <div class="flex items-center space-x-3">
+            <div class="flex items-center justify-center h-12 w-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600">
+              <svg class="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14"></path>
+              </svg>
+            </div>
+            <div>
+              <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
+                #<%= @hashtag_name %>
+              </h1>
+              <p class="text-sm text-gray-500 dark:text-gray-400">
+                <%= length(@posts) %> <%= if length(@posts) == 1, do: "post", else: "posts" %>
+              </p>
+            </div>
+          </div>
+        </div>
+      <% end %>
+
+      <%= if length(@posts) > 0 do %>
+        <div class="flex flex-wrap justify-center align-center mb-6">
+          <%= for post <- @posts do %>
+            <.live_component
+              module={MazarynWeb.HomeLive.PostComponent}
+              id={"post-#{post.id}"}
+              post={post}
+              locale={@locale}
+              current_user={@current_user}
+            />
+          <% end %>
+        </div>
+      <% else %>
+        <div class="w-full bg-white dark:bg-gray-800 custom-box-shadow p-12 rounded-[20px] text-center">
+          <div class="flex flex-col items-center">
+            <div class="h-24 w-24 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mb-6">
+              <svg class="h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14"></path>
+              </svg>
+            </div>
+            <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">
+              No posts found
+            </h3>
+            <p class="text-gray-500 dark:text-gray-400 max-w-md">
+              There are no posts with #<%= @hashtag_name %> yet. Be the first to create one!
+            </p>
+          </div>
+        </div>
+      <% end %>
     </div>
-    <!-- end of middle column-->
     <div class="w-full lg:w-[28%] py-6">
       <.live_component
         module={MazarynWeb.Component.CompleteProfile}
@@ -39,7 +73,6 @@
         id="completing"
         locale={@locale}
       />
-      <!-- Trending -->
       <div class="w-full bg-white white:bg-gray-800 custom-box-shadow py-7 pl-8 pr-7 rounded-[20px] my-7">
         <div class="flex flex-row justify-between">
           <h1 class="block flex items-center text-l font-semibold">
@@ -69,17 +102,16 @@
               <li class="active mb-7">
                 <div class="flex justify-between align-center items-center">
                   <div class="flex flex-col">
-                    <a href="home" class="text-base text-[#5D5F63] font-semibold">#TECH</a>
+                    <a href={~p"/#{@locale}/hashtag/tech"} class="text-base text-[#5D5F63] font-semibold">#TECH</a>
                     <span class="text-sm text-[#60616D]">345 posts</span>
                   </div>
-
                   <div class="flex space-x-2 justify-center">
                     <button
                       type="button"
                       class="inline-block flex items-center px-4 py-2.5 border border-gray-400  text-gray-400 font-medium text-xs leading-tight uppercase rounded-lg transition duration-150 ease-in-out hover:bg-gray-100"
                     >
                       <i>
-                        <%= Heroicons.icon("plus-circle", type: "outline", class: "h-5 w-5 mr-2") %>
+                        <Heroicons.plus_circle outline class="h-5 w-5 mr-2" />
                       </i>
                       Follow
                     </button>
@@ -89,8 +121,8 @@
               <li class="active">
                 <div class="flex justify-between align-center items-center">
                   <div class="flex flex-col">
-                    <a href="home" class="text-base text-[#5D5F63] font-semibold">
-                      #METAVERSE
+                    <a href={~p"/#{@locale}/hashtag/ai"} class="text-base text-[#5D5F63] font-semibold">
+                      #AI
                     </a>
                     <span class="text-sm text-[#60616D]">200 posts</span>
                   </div>
@@ -100,7 +132,7 @@
                       class="inline-block flex items-center px-4 py-2.5 border border-gray-400  text-gray-400 font-medium text-xs leading-tight uppercase rounded-lg transition duration-150 ease-in-out hover:bg-gray-100"
                     >
                       <i>
-                        <%= Heroicons.icon("plus-circle", type: "outline", class: "h-5 w-5 mr-2") %>
+                        <Heroicons.plus_circle outline class="h-5 w-5 mr-2" />
                       </i>
                       Follow
                     </button>
@@ -111,11 +143,10 @@
           </div>
         </div>
       </div>
-      <!-- Groups -->
       <div class="w-full opacity-0 bg-white white:bg-gray-800 custom-box-shadow py-7 pl-8 pr-7 rounded-[20px] my-7">
         <div class="flex flex-row justify-between">
           <h1 class="block flex items-center text-base font-semibold">
-            <i><%= Heroicons.icon("users", class: "h-7 w-7 mr-3 fill-blue-500") %></i> Groups
+            <i><Heroicons.user_group solid class="h-7 w-7 mr-3 fill-blue-500" /></i> Groups
           </h1>
           <a href="#" class="block text-base text-[#4385F5]">See more</a>
         </div>
@@ -140,14 +171,13 @@
                       <span class="text-sm text-[#60616D]">20k members</span>
                     </div>
                   </div>
-
                   <div class="flex space-x-2 justify-center">
                     <button
                       type="button"
                       class="inline-block flex items-center px-4 py-2.5 border border-gray-400  text-gray-400 font-medium text-xs leading-tight uppercase rounded-lg transition duration-150 ease-in-out hover:bg-gray-100"
                     >
                       <i>
-                        <%= Heroicons.icon("plus-circle", type: "outline", class: "h-5 w-5 mr-2") %>
+                        <Heroicons.plus_circle outline class="h-5 w-5 mr-2" />
                       </i>
                       Join
                     </button>
@@ -171,14 +201,13 @@
                       <span class="text-sm text-[#60616D]">20k members</span>
                     </div>
                   </div>
-
                   <div class="flex space-x-2 justify-center">
                     <button
                       type="button"
                       class="inline-block flex items-center px-4 py-2.5 border border-gray-400  text-gray-400 font-medium text-xs leading-tight uppercase rounded-lg transition duration-150 ease-in-out hover:bg-gray-100"
                     >
                       <i>
-                        <%= Heroicons.icon("plus-circle", type: "outline", class: "h-5 w-5 mr-2") %>
+                        <Heroicons.plus_circle outline class="h-5 w-5 mr-2" />
                       </i>
                       Join
                     </button>

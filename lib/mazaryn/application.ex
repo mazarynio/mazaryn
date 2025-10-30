@@ -16,6 +16,7 @@ defmodule Mazaryn.Application do
       {Phoenix.PubSub, name: Mazaryn.PubSub},
       # Start the Endpoint (http/https)
       MazarynWeb.Endpoint,
+      Mazaryn.HashtagIndexer,
 
       # Start a worker by calling: Mazaryn.Worker.start_link(arg)
       # {Mazaryn.Worker, arg}

@@ -6,15 +6,32 @@ defmodule Core.PostClient do
     iex> Core.PostClient.create("username", "Hello World", "#world", "@friend", "https://mazaryn.io")
     ~c"zKegB4mWRXP3PDVuntpnA"
   """
-  def create(author, content, media \\ [], hashtag \\ "#mazaryn", link_url, emoji, mention) do
+  def create(author, content, media \\ [], hashtag, link_url, emoji, mention) do
     content_erlang = String.to_charlist(content)
     :post_server.insert(author, content_erlang, media, hashtag, link_url, emoji, mention)
   end
 
-  def modify_post(post_id, author, newContent, newEmoji, newMedia, newHashtag, newMention, newLink_url) do
+  def modify_post(
+        post_id,
+        author,
+        newContent,
+        newEmoji,
+        newMedia,
+        newHashtag,
+        newMention,
+        newLink_url
+      ) do
     content_erlang = String.to_charlist(newContent)
+
     :post_server.modify_post(
-      post_id, author, content_erlang, newEmoji, newMedia, newHashtag, newMention, newLink_url
+      post_id,
+      author,
+      content_erlang,
+      newEmoji,
+      newMedia,
+      newHashtag,
+      newMention,
+      newLink_url
     )
   end
 
@@ -71,6 +88,7 @@ defmodule Core.PostClient do
   def upload_media(filepath) do
     :ipfs_media.upload_media([filepath])
   end
+
   ## Remove post permanently
   def delete_post(id) do
     :post_server.delete_post(id)
@@ -93,34 +111,34 @@ defmodule Core.PostClient do
 
   ## Add comment to post using My Username, PostID and Comment's Content
   def add_comment(author, postID, content) do
-  postID_charlist =
-    case postID do
-      id when is_binary(id) -> String.to_charlist(id)
-      id when is_list(id) -> id
-    end
+    postID_charlist =
+      case postID do
+        id when is_binary(id) -> String.to_charlist(id)
+        id when is_list(id) -> id
+      end
 
-  case :post_server.add_comment(author, postID_charlist, content) do
-    comment_id when is_list(comment_id) -> List.to_string(comment_id)
-    error -> error
+    case :post_server.add_comment(author, postID_charlist, content) do
+      comment_id when is_list(comment_id) -> List.to_string(comment_id)
+      error -> error
+    end
   end
-end
 
   def update_comment(commentID, newContent) do
     :post_server.update_comment(commentID, newContent)
   end
 
   def get_comment_content(comment_id) do
-  comment_id_charlist =
-    case comment_id do
-      id when is_binary(id) -> String.to_charlist(id)
-      id when is_list(id) -> id
-    end
+    comment_id_charlist =
+      case comment_id do
+        id when is_binary(id) -> String.to_charlist(id)
+        id when is_list(id) -> id
+      end
 
-  case :post_server.get_comment_content(comment_id_charlist) do
-    content when is_list(content) -> List.to_string(content)
-    error -> error
+    case :post_server.get_comment_content(comment_id_charlist) do
+      content when is_list(content) -> List.to_string(content)
+      error -> error
+    end
   end
-end
 
   def like_comment(userID, commentID) do
     userID = if is_binary(userID), do: String.to_charlist(userID), else: userID
@@ -253,18 +271,19 @@ end
   end
 
   def translate_post(postID, target) do
-    text =  :postdb.get_post_content_by_id(postID)
+    text = :postdb.get_post_content_by_id(postID)
     Translator.translate_text(text, "en", target)
   end
 
   def get_media_cid(post_id) do
     cid = :postdb.get_media_cid(post_id)
 
-    cid = if is_tuple(cid) do
-      elem(cid, 1)
-    else
-      cid
-    end
+    cid =
+      if is_tuple(cid) do
+        elem(cid, 1)
+      else
+        cid
+      end
 
     cid
     |> List.to_string()
@@ -279,7 +298,10 @@ end
   end
 
   defp detect_content_type(<<0xFF, 0xD8, 0xFF, _::binary>>), do: "image/jpeg"
-  defp detect_content_type(<<0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, _::binary>>), do: "image/png"
+
+  defp detect_content_type(<<0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, _::binary>>),
+    do: "image/png"
+
   defp detect_content_type(<<0x47, 0x49, 0x46, 0x38, _::binary>>), do: "image/gif"
   defp detect_content_type(<<0x42, 0x4D, _::binary>>), do: "image/bmp"
   defp detect_content_type(<<0x52, 0x49, 0x46, 0x46, _::binary>>), do: "image/webp"
