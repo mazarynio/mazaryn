@@ -31,7 +31,7 @@ defmodule Mazaryn.MixProject do
       {:phoenix_ecto, "~> 4.6"},
       {:phoenix_view, "~> 2.0"},
       {:ecto_sql, "~> 3.10"},
-      {:postgrex, ">= 0.0.0"},
+      {:postgrex, "~> 0.21.1"},
       {:phoenix_html, "~> 4.3"},
       {:phoenix_html_helpers, "~> 1.0"},
       {:phoenix_live_reload, "~> 1.6", only: :dev},
@@ -41,7 +41,7 @@ defmodule Mazaryn.MixProject do
       {:esbuild, "~> 0.7", runtime: Mix.env() == :dev},
       {:telemetry_metrics, "~> 0.6"},
       {:telemetry_poller, "~> 1.0"},
-      {:gettext, "~> 0.24"},
+      {:gettext, "~> 0.26"},
       {:jason, "~> 1.4"},
       {:plug_cowboy, "~> 2.6"},
       {:joken, "~> 2.6"},
@@ -73,7 +73,7 @@ defmodule Mazaryn.MixProject do
       {:rustler, "~> 0.29"},
 
       # Machine Learning
-      {:nx, "~> 0.7", only: :prod},
+      {:nx, "~> 0.9", only: :prod},
       {:earmark, "~> 1.4"},
       {:axon, "~> 0.6", only: :prod},
 
