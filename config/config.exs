@@ -30,11 +30,10 @@ config :mazaryn,
   env: config_env()
 
 config :mazaryn, :weather_api,
-  api_key: System.get_env("OPENWEATHER_API_KEY"),
   base_url: "https://api.openweathermap.org/data/2.5",
   geocoding_url: "https://api.openweathermap.org/geo/1.0"
 
-config :mazaryn, :email, send_emails: System.get_env("PHX_HOST") == "mazaryn.io"
+config :mazaryn, :email, send_emails: false
 
 config :mazaryn, MazarynWeb.Endpoint,
   url: [host: "localhost"],
@@ -106,9 +105,6 @@ config :mazaryn, :media,
 config :mazaryn, MazarynWeb.Endpoint,
   static_paths: ~w(assets fonts images favicon.ico robots.txt uploads)
 
-config :mazaryn, Mazaryn.Mailer,
-  adapter: Swoosh.Adapters.Mailjet,
-  api_key: System.get_env("MAILJET_API_KEY"),
-  secret: System.get_env("MAILJET_SECRET_KEY")
+config :mazaryn, Mazaryn.Mailer, adapter: Swoosh.Adapters.Local
 
 import_config "#{config_env()}.exs"

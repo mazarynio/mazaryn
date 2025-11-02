@@ -26,7 +26,7 @@ if config_env() == :prod do
       You can generate one by calling: mix phx.gen.secret
       """
 
-  host = System.get_env("PHX_HOST") || "example.com"
+  host = System.get_env("PHX_HOST") || "mazaryn.io"
   port = String.to_integer(System.get_env("PORT") || "4000")
 
   config :mazaryn, MazarynWeb.Endpoint,
@@ -37,8 +37,15 @@ if config_env() == :prod do
     ],
     secret_key_base: secret_key_base
 
+  config :mazaryn, :weather_api,
+    api_key: System.get_env("OPENWEATHER_API_KEY"),
+    base_url: "https://api.openweathermap.org/data/2.5",
+    geocoding_url: "https://api.openweathermap.org/geo/1.0"
+
+  config :mazaryn, :email, send_emails: host == "mazaryn.io"
+
   config :mazaryn, :media,
-    uploads_dir: "/app/bin/uploads",
+    uploads_dir: "/home/zaryn/mazaryn/priv/static/uploads",
     host: [scheme: "https", host: host, port: 443]
 
   config :mazaryn, Mazaryn.Mailer,
@@ -49,7 +56,7 @@ if config_env() == :prod do
   config :swoosh, :api_client, Swoosh.ApiClient.Hackney
 
   config :ex_openai,
-    api_key: System.get_env("OPENAI_API_KEY"),
+    api_key: System.get_env("OPENAI_KEY"),
     organization_key: System.get_env("OPENAI_ORGANIZATION_KEY"),
     http_options: [recv_timeout: 50_000]
 end
