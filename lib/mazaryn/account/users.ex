@@ -9,6 +9,8 @@ defmodule Account.Users do
   alias Account.UserNotifier
   require Logger
 
+  import Phoenix.Controller, only: [url: 2]
+
   def signing_salt do
     salt = MazarynWeb.Endpoint.config(:live_view)[:signing_salt]
 
@@ -52,6 +54,7 @@ defmodule Account.Users do
           case User.erl_changeset_safe(result) do
             {:ok, changeset} ->
               User.build(changeset)
+
             {:error, reason} ->
               Logger.error("Invalid avatar update result for user #{id}: #{reason}")
               {:error, "Invalid avatar data"}
@@ -79,6 +82,7 @@ defmodule Account.Users do
           case User.erl_changeset_safe(result) do
             {:ok, changeset} ->
               User.build(changeset)
+
             {:error, reason} ->
               Logger.error("Invalid banner update result for user #{id}: #{reason}")
               {:error, "Invalid banner data"}
@@ -111,6 +115,7 @@ defmodule Account.Users do
           case User.erl_changeset_safe(erl_user) do
             {:ok, changeset} ->
               User.build(changeset)
+
             {:error, reason} ->
               Logger.error("Invalid user data for username #{username}: #{reason}")
               {:error, :invalid_data}
@@ -142,6 +147,7 @@ defmodule Account.Users do
           case User.erl_changeset_safe(erl_user) do
             {:ok, changeset} ->
               User.build(changeset)
+
             {:error, reason} ->
               Logger.error("Invalid user data for email #{email}: #{reason}")
               {:error, :invalid_data}
@@ -176,6 +182,7 @@ defmodule Account.Users do
                 {:ok, user} -> {:ok, user}
                 {:error, reason} -> {:error, reason}
               end
+
             {:error, reason} ->
               Logger.error("Invalid user data for ID #{id}: #{reason}")
               {:error, :invalid_data}
@@ -215,14 +222,22 @@ defmodule Account.Users do
           case Core.UserClient.set_verification_token(user_id, verification_token) do
             :ok ->
               if Application.get_env(:mazaryn, :email)[:send_emails] do
-                verification_url = MazarynWeb.Router.Helpers.email_verification_url(MazarynWeb.Endpoint, :verify, verification_token)
+                verification_url =
+                  "https://#{Application.get_env(:mazaryn, MazarynWeb.Endpoint)[:url][:host]}/en/verify-email/#{verification_token}"
 
-                case UserNotifier.deliver_verification_email(%{email: email, username: username}, verification_url) do
+                case UserNotifier.deliver_verification_email(
+                       %{email: email, username: username},
+                       verification_url
+                     ) do
                   {:ok, _} ->
                     Logger.info("Verification email sent successfully to #{email}")
                     {:ok, user_id}
+
                   {:error, reason} ->
-                    Logger.error("Failed to send verification email to #{email}: #{inspect(reason)}")
+                    Logger.error(
+                      "Failed to send verification email to #{email}: #{inspect(reason)}"
+                    )
+
                     {:ok, user_id}
                 end
               else
@@ -395,7 +410,9 @@ defmodule Account.Users do
           users
           |> Enum.map(fn user_id ->
             case one_by_id(user_id) do
-              {:ok, user} -> user
+              {:ok, user} ->
+                user
+
               {:error, reason} ->
                 Logger.warning("Failed to get user #{user_id}: #{inspect(reason)}")
                 nil
@@ -457,11 +474,17 @@ defmodule Account.Users do
           case User.erl_changeset_safe(erl_user) do
             {:ok, changeset} ->
               case User.build(changeset) do
-                {:ok, user} -> user
+                {:ok, user} ->
+                  user
+
                 {:error, reason} ->
-                  Logger.error("Failed to build user from changeset for ID #{id}: #{inspect(reason)}")
+                  Logger.error(
+                    "Failed to build user from changeset for ID #{id}: #{inspect(reason)}"
+                  )
+
                   {:error, :build_failed}
               end
+
             {:error, reason} ->
               Logger.error("Invalid user data for ID #{id}: #{reason}")
               {:error, :invalid_data}
