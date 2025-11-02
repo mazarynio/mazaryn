@@ -1,22 +1,29 @@
 import Config
 
 if Mix.env() in [:dev, :test] do
-  env_files = [
-    ".env",
-    "mazaryn/.env",
-    Path.join([File.cwd!(), ".env"]),
-    Path.join([File.cwd!(), "mazaryn", ".env"])
-  ]
+  env_file = Path.join([File.cwd!(), ".env"])
 
-  Enum.each(env_files, fn env_file ->
-    if File.exists?(env_file) do
-      DotenvParser.load_file(env_file)
-    end
-  end)
+  if File.exists?(env_file) do
+    File.read!(env_file)
+    |> String.split("\n", trim: true)
+    |> Enum.reject(fn line ->
+      String.starts_with?(String.trim(line), "#") or String.trim(line) == ""
+    end)
+    |> Enum.each(fn line ->
+      case String.split(line, "=", parts: 2) do
+        [key, value] ->
+          key = String.trim(key)
+          value = String.trim(value) |> String.trim("\"") |> String.trim("'")
+          System.put_env(key, value)
+
+        _ ->
+          :ok
+      end
+    end)
+  end
 end
 
 config :logger, level: :warning
-
 
 config :mazaryn,
   ecto_repos: [Mazaryn.Repo],
@@ -27,8 +34,7 @@ config :mazaryn, :weather_api,
   base_url: "https://api.openweathermap.org/data/2.5",
   geocoding_url: "https://api.openweathermap.org/geo/1.0"
 
-config :mazaryn, :email,
-  send_emails: System.get_env("PHX_HOST") == "mazaryn.io"
+config :mazaryn, :email, send_emails: System.get_env("PHX_HOST") == "mazaryn.io"
 
 config :mazaryn, MazarynWeb.Endpoint,
   url: [host: "localhost"],
@@ -71,7 +77,6 @@ config :logger, :console,
   metadata: [:request_id]
 
 config :phoenix, :json_library, Jason
-
 config :mnesia, dir: ~c"Mnesia/"
 
 config :mazaryn, Mazaryn.Gettext,
