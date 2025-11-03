@@ -49,9 +49,8 @@ if config_env() == :prod do
     host: [scheme: "https", host: host, port: 443]
 
   config :mazaryn, Mazaryn.Mailer,
-    adapter: Swoosh.Adapters.Mailjet,
-    api_key: System.get_env("MAILJET_API_KEY"),
-    secret: System.get_env("MAILJET_SECRET_KEY")
+    adapter: Resend.Swoosh.Adapter,
+    api_key: System.get_env("RESEND_API_KEY")
 
   config :swoosh, :api_client, Swoosh.ApiClient.Hackney
 
