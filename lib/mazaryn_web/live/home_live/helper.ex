@@ -1,13 +1,4 @@
 defmodule MazarynWeb.HomeLive.PostComponent.Helper do
-  @moduledoc """
-  Helper utilities for PostComponent:
-  - Likes fetching and user lookups
-  - Content processing & link activation
-  - Batch processing and task orchestration
-  - ETS caching for content/likes/IPNS
-  - Small UI helpers used by HEEx templates
-  """
-
   use MazarynWeb, :verified_routes
   alias MazarynWeb.Router.Helpers, as: Routes
 
@@ -17,16 +8,17 @@ defmodule MazarynWeb.HomeLive.PostComponent.Helper do
   alias MazarynWeb.HomeLive.{CommentHandler, IpnsManager}
   alias Home.Like
 
-  # =============================== CONFIG ======================================
   @content_cache :post_content_cache
   @batch_size 5
   @cache_ttl %{content: 600, likes: 300, ipns: 300}
   @timeouts %{content: 800, likes: 300, ipns: 200, comment: 2000, post_update: 1500}
 
-  # ============================ LIKES MODAL HELPERS ============================
   def fetch_likers(post_id_charlist) when is_list(post_id_charlist) do
     likes = PostClient.get_likes(post_id_charlist)
-    IO.puts("👍 fetch_likers: #{length(likes)} like tuples for #{List.to_string(post_id_charlist)}")
+
+    IO.puts(
+      "👍 fetch_likers: #{length(likes)} like tuples for #{List.to_string(post_id_charlist)}"
+    )
 
     likes
     |> Enum.map(&extract_user_from_like/1)
@@ -54,7 +46,9 @@ defmodule MazarynWeb.HomeLive.PostComponent.Helper do
     username =
       try do
         case Core.UserClient.get_user_by_id(String.to_charlist(user_id)) do
-          tuple when is_tuple(tuple) and tuple_size(tuple) >= 9 -> elem(tuple, 8) |> to_string()
+          tuple when is_tuple(tuple) and tuple_size(tuple) >= 9 ->
+            elem(tuple, 8) |> to_string()
+
           other ->
             IO.puts("⚠️ get_user_by_id unexpected shape for #{user_id}: #{inspect(other)}")
             user_id
@@ -66,7 +60,9 @@ defmodule MazarynWeb.HomeLive.PostComponent.Helper do
       end
 
     case Users.one_by_username(username) do
-      {:ok, user} -> user
+      {:ok, user} ->
+        user
+
       miss ->
         IO.puts("ℹ️ No DB record for #{username} (#{inspect(miss)}), using lightweight map")
         %{username: username, verified: false, level: nil, country: nil, bio: nil}
@@ -110,7 +106,11 @@ defmodule MazarynWeb.HomeLive.PostComponent.Helper do
 
   def maybe_close_likes_modal(socket) do
     if socket.assigns[:show_likes_modal] do
-      Phoenix.Component.assign(socket, %{show_likes_modal: false, liked_users: [], likes_loading: false})
+      Phoenix.Component.assign(socket, %{
+        show_likes_modal: false,
+        liked_users: [],
+        likes_loading: false
+      })
     else
       socket
     end
@@ -296,10 +296,13 @@ defmodule MazarynWeb.HomeLive.PostComponent.Helper do
           case List.to_string(cid) do
             str when byte_size(str) > 0 ->
               String.starts_with?(str, "Qm") and String.length(str) == 46
-            _ -> false
+
+            _ ->
+              false
           end
 
-        _ -> false
+        _ ->
+          false
       end
     rescue
       _ -> false
@@ -382,7 +385,11 @@ defmodule MazarynWeb.HomeLive.PostComponent.Helper do
          start = :erlang.system_time(:millisecond)
          result = func.()
          duration = :erlang.system_time(:millisecond) - start
-         IO.puts("#{task_emoji(name)} #{String.capitalize(to_string(name))} fetch for post #{post_id} took #{duration}ms")
+
+         IO.puts(
+           "#{task_emoji(name)} #{String.capitalize(to_string(name))} fetch for post #{post_id} took #{duration}ms"
+         )
+
          result
        end)}
     end)
@@ -394,7 +401,13 @@ defmodule MazarynWeb.HomeLive.PostComponent.Helper do
   defp task_emoji(:content), do: "📄"
 
   defp await_tasks_with_fallbacks(tasks, post_id) do
-    fallbacks = %{comments: [], ipns_id: nil, likes_count: 0, post_content_cached: "Content loading..."}
+    fallbacks = %{
+      comments: [],
+      ipns_id: nil,
+      likes_count: 0,
+      post_content_cached: "Content loading..."
+    }
+
     timeouts = %{comments: 2000, ipns_id: 200, likes_count: 500, post_content_cached: 1500}
 
     Enum.into(tasks, %{}, fn {key, task} ->
@@ -417,7 +430,9 @@ defmodule MazarynWeb.HomeLive.PostComponent.Helper do
       report_action: false,
       like_action: false,
       is_liked: false,
-      supported_translation_langs: Mazaryn.Translator.supported_targets()
+      supported_translation_langs: Mazaryn.Translator.supported_targets(),
+      repost_count: get_repost_count(assigns.post.id),
+      user_has_reposted: has_user_reposted?(assigns.current_user.id, assigns.post.id)
     }
 
     assigns |> Map.merge(base_assigns) |> Map.merge(results) |> Map.merge(changesets)
@@ -514,7 +529,7 @@ defmodule MazarynWeb.HomeLive.PostComponent.Helper do
   defp cache_valid?(timestamp, ttl_seconds) do
     age = :erlang.system_time(:second) - timestamp
     age < ttl_seconds
- end
+  end
 
   defp cache_content(cache_key, content) do
     timestamp = :erlang.system_time(:second)
@@ -548,7 +563,9 @@ defmodule MazarynWeb.HomeLive.PostComponent.Helper do
 
   def warm_likes_cache(recent_post_ids) do
     Task.start(fn ->
-      recent_post_ids |> Enum.take(10) |> Enum.each(fn post_id ->
+      recent_post_ids
+      |> Enum.take(10)
+      |> Enum.each(fn post_id ->
         spawn_likes_refresh(post_id)
         Process.sleep(100)
       end)
@@ -602,6 +619,68 @@ defmodule MazarynWeb.HomeLive.PostComponent.Helper do
     end
   end
 
+  def get_repost_count(post_id) do
+    try do
+      post_id |> to_charlist() |> Core.RepostClient.get_repost_count()
+    rescue
+      _ -> 0
+    end
+  end
+
+  def has_user_reposted?(user_id, post_id) do
+    try do
+      Core.RepostClient.is_reposted_by_user(
+        String.to_charlist(user_id),
+        to_charlist(post_id)
+      )
+    rescue
+      _ -> false
+    end
+  end
+
+  def get_repost_icon(user_id, post_id) do
+    if has_user_reposted?(user_id, post_id), do: "reposted", else: "repost"
+  end
+
+  def format_repost_display(post) do
+    if post.is_repost do
+      case post.repost_type do
+        "simple" ->
+          %{
+            type: :simple,
+            show_original: true,
+            show_comment: false
+          }
+
+        "with_comment" ->
+          %{
+            type: :with_comment,
+            show_original: true,
+            show_comment: true,
+            comment: get_repost_comment(post.id)
+          }
+
+        _ ->
+          %{type: :unknown, show_original: false, show_comment: false}
+      end
+    else
+      %{type: :regular, show_original: false, show_comment: false}
+    end
+  end
+
+  defp get_repost_comment(post_id) do
+    try do
+      case Core.PostClient.get_repost_comment(to_charlist(post_id)) do
+        {:error, _} -> nil
+        comment when is_binary(comment) -> comment
+        comment when is_list(comment) -> List.to_string(comment)
+        _ -> nil
+      end
+    rescue
+      _ -> nil
+    end
+  end
+
   def get_likes_count_with_timeout(post_id, timeout) do
     task = Task.async(fn -> get_likes_count(post_id) end)
 
@@ -618,6 +697,115 @@ defmodule MazarynWeb.HomeLive.PostComponent.Helper do
       e ->
         IO.puts("❌ Error getting likes count: #{inspect(e)}")
         0
+    end
+  end
+
+  def get_repost_count(post_id) do
+    try do
+      post_id |> to_charlist() |> Core.RepostClient.get_repost_count()
+    rescue
+      _ -> 0
+    end
+  end
+
+  def has_user_reposted?(user_id, post_id) do
+    try do
+      Core.RepostClient.is_reposted_by_user(
+        String.to_charlist(user_id),
+        to_charlist(post_id)
+      )
+    rescue
+      _ -> false
+    end
+  end
+
+  def get_repost_icon(user_id, post_id) do
+    if has_user_reposted?(user_id, post_id), do: "reposted", else: "repost"
+  end
+
+  def format_repost_display(post) do
+    if post.is_repost do
+      case post.repost_type do
+        "simple" ->
+          %{
+            type: :simple,
+            show_original: true,
+            show_comment: false
+          }
+
+        "with_comment" ->
+          %{
+            type: :with_comment,
+            show_original: true,
+            show_comment: true,
+            comment: get_repost_comment(post.id)
+          }
+
+        _ ->
+          %{type: :unknown, show_original: false, show_comment: false}
+      end
+    else
+      %{type: :regular, show_original: false, show_comment: false}
+    end
+  end
+
+  defp get_repost_comment(post_id) do
+    try do
+      case Core.PostClient.get_repost_comment(to_charlist(post_id)) do
+        {:error, _} -> nil
+        comment when is_binary(comment) -> comment
+        comment when is_list(comment) -> List.to_string(comment)
+        _ -> nil
+      end
+    rescue
+      _ -> nil
+    end
+  end
+
+  def is_repost?(post) do
+    Map.get(post, :is_repost, false) == true
+  end
+
+  def get_original_post(post) do
+    if is_repost?(post) and post.original_post_id do
+      case Core.PostClient.get_by_id(to_charlist(post.original_post_id)) do
+        original when is_tuple(original) ->
+          case Mazaryn.Schema.Post.erl_changeset(original) |> Mazaryn.Schema.Post.build() do
+            {:ok, original_post} -> {:ok, original_post}
+            _ -> {:error, :invalid_original}
+          end
+
+        _ ->
+          {:error, :not_found}
+      end
+    else
+      {:error, :not_a_repost}
+    end
+  end
+
+  def get_repost_comment_content(post) do
+    cond do
+      not Map.get(post, :is_repost, false) ->
+        nil
+
+      Map.get(post, :repost_type) == "simple" ->
+        nil
+
+      Map.get(post, :repost_type) == "with_comment" ->
+        case Core.RepostClient.get_repost_comment_content(post.id) do
+          nil ->
+            nil
+
+          "" ->
+            nil
+
+          content when is_binary(content) ->
+            trimmed = String.trim(content)
+            if trimmed == "", do: nil, else: trimmed
+        end
+
+      true ->
+        nil
     end
   end
 end

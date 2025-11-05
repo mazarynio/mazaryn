@@ -28,6 +28,7 @@ defmodule Account.User do
     follower
     blocked
     saved_posts
+    reposts
     notif
     country
     avatar_url
@@ -75,6 +76,7 @@ defmodule Account.User do
     field(:follower, {:array, :string}, default: [])
     field(:blocked, {:array, :string}, default: [])
     field(:saved_posts, {:array, :string}, default: [])
+    field(:reposts, {:array, :string}, default: [])
 
     field(:notif, {:array, :string}, default: [])
 
@@ -95,10 +97,11 @@ defmodule Account.User do
   end
 
   def erl_changeset(
-        {:user, id, p2p_node_address, ipfs_key, ai_user_id, business_id, ads_id, quantum_id, username, password, email,
-         address, knode, media, posts, blog_post, notif, following, follower, blocked,
-         saved_posts, other_info, private, date_created, date_updated, avatar_url, banner_url,
-         token_id, chat, verified, report, level, last_activity, suspend, datasets, competitions, data} = _user
+        {:user, id, p2p_node_address, ipfs_key, ai_user_id, business_id, ads_id, quantum_id,
+         username, password, email, address, knode, media, posts, blog_post, notif, following,
+         follower, blocked, saved_posts, reposts, other_info, private, date_created, date_updated,
+         avatar_url, banner_url, token_id, chat, verified, report, level, last_activity, suspend,
+         datasets, competitions, data} = _user
       ) do
     avatar_url =
       case avatar_url do
@@ -145,6 +148,7 @@ defmodule Account.User do
       follower: follower,
       blocked: blocked,
       saved_posts: saved_posts,
+      reposts: reposts,
       other_info: Enum.into(other_info, %{}),
       private: private,
       date_created: date_created,
@@ -191,16 +195,22 @@ defmodule Account.User do
   end
 
   def erl_changeset_safe(
-        {:user, id, p2p_node_address, ipfs_key, ai_user_id, business_id, ads_id, quantum_id, username, password, email,
-         address, knode, media, posts, blog_post, notif, following, follower, blocked,
-         saved_posts, other_info, private, date_created, date_updated, avatar_url, banner_url,
-         token_id, chat, verified, report, level, last_activity, suspend, datasets, competitions, data} = _user
+        {:user, id, p2p_node_address, ipfs_key, ai_user_id, business_id, ads_id, quantum_id,
+         username, password, email, address, knode, media, posts, blog_post, notif, following,
+         follower, blocked, saved_posts, reposts, other_info, private, date_created, date_updated,
+         avatar_url, banner_url, token_id, chat, verified, report, level, last_activity, suspend,
+         datasets, competitions, data} = _user
       ) do
     try do
-      changeset = erl_changeset({:user, id, p2p_node_address, ipfs_key, ai_user_id, business_id, ads_id, quantum_id, username, password, email,
-         address, knode, media, posts, blog_post, notif, following, follower, blocked,
-         saved_posts, other_info, private, date_created, date_updated, avatar_url, banner_url,
-         token_id, chat, verified, report, level, last_activity, suspend, datasets, competitions, data})
+      changeset =
+        erl_changeset(
+          {:user, id, p2p_node_address, ipfs_key, ai_user_id, business_id, ads_id, quantum_id,
+           username, password, email, address, knode, media, posts, blog_post, notif, following,
+           follower, blocked, saved_posts, reposts, other_info, private, date_created,
+           date_updated, avatar_url, banner_url, token_id, chat, verified, report, level,
+           last_activity, suspend, datasets, competitions, data}
+        )
+
       {:ok, changeset}
     rescue
       error -> {:error, Exception.message(error)}
@@ -259,5 +269,21 @@ defmodule Account.User do
   def generate_verification_token do
     :crypto.strong_rand_bytes(32)
     |> Base.url_encode64(padding: false)
+  end
+
+  def has_reposted?(%__MODULE__{reposts: reposts}, post_id) do
+    post_id in reposts
+  end
+
+  def repost_count(%__MODULE__{reposts: reposts}) do
+    length(reposts)
+  end
+
+  def add_repost(%__MODULE__{reposts: reposts} = user, post_id) do
+    %{user | reposts: [post_id | reposts]}
+  end
+
+  def remove_repost(%__MODULE__{reposts: reposts} = user, post_id) do
+    %{user | reposts: List.delete(reposts, post_id)}
   end
 end

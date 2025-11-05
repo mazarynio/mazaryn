@@ -1,7 +1,7 @@
 <div class="relative w-full bg-white dark:bg-gray-900 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100 dark:border-gray-700 pr-6 pl-6 pb-6 pt-6 mt-6 rounded-2xl">
   <div
-    x-data="{ open: false, tOpen: false, showDeleteConfirm: false }"
-    x-on:click.outside="open = false; tOpen = false; showDeleteConfirm = false"
+    x-data="{ open: false, tOpen: false, showDeleteConfirm: false, showUnrepostConfirm: false }"
+    x-on:click.outside="open = false; tOpen = false; showDeleteConfirm = false; showUnrepostConfirm = false"
     class="flex justify-between items-center"
   >
     <div class="flex items-center space-x-4">
@@ -157,7 +157,7 @@
             <% end %>
           </div>
         <% else %>
-        <button
+          <button
             class="w-full text-left px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-green-50 dark:hover:bg-green-900/20 hover:text-green-600 dark:hover:text-green-400 transition-colors duration-200 flex items-center space-x-3"
             phx-click="edit_post"
             phx-value-post-id={@post.id}
@@ -179,6 +179,19 @@
             </svg>
             <span>Delete</span>
           </button>
+
+          <%= if is_repost?(@post) do %>
+            <div class="border-t border-gray-200 dark:border-gray-700 my-2"></div>
+            <button
+              @click="showUnrepostConfirm = true; open = false"
+              class="w-full text-left px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-orange-50 dark:hover:bg-orange-900/20 hover:text-orange-600 dark:hover:text-orange-400 transition-colors duration-200 flex items-center space-x-3"
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/>
+              </svg>
+              <span>Unshare Post</span>
+            </button>
+          <% end %>
 
           <div class="border-t border-gray-200 dark:border-gray-700 my-2"></div>
 
@@ -299,736 +312,1096 @@
         </div>
       </div>
     </div>
-  </div>
 
-  <%= if @editing_post do %>
-    <div class="mt-6">
-      <.form
-        :let={f}
-        for={@update_post_changeset}
-        phx-submit="update-post"
-        phx-target={@myself}
-        class="w-full"
+    <div
+      x-show="showUnrepostConfirm"
+      x-transition:enter="transition ease-out duration-300"
+      x-transition:enter-start="opacity-0"
+      x-transition:enter-end="opacity-100"
+      x-transition:leave="transition ease-in duration-200"
+      x-transition:leave-start="opacity-100"
+      x-transition:leave-end="opacity-0"
+      class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+      style="display: none;"
+    >
+      <div
+        x-show="showUnrepostConfirm"
+        x-transition:enter="transition ease-out duration-300"
+        x-transition:enter-start="opacity-0 scale-95"
+        x-transition:enter-end="opacity-100 scale-100"
+        x-transition:leave="transition ease-in duration-200"
+        x-transition:leave-start="opacity-100 scale-100"
+        x-transition:leave-end="opacity-0 scale-95"
+        class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-8 max-w-md mx-4"
       >
-        <div class="space-y-4">
-          <%= textarea(f, :content,
-            class: "w-full border border-gray-300 dark:border-gray-600 rounded-xl p-4 focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-800 dark:text-white resize-none",
-            placeholder: "Edit your post...",
-            value: @editing_post,
-            rows: "4"
-          ) %>
-          <div class="flex justify-end space-x-3">
-            <%= submit("Save Changes",
-              class: "bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-xl font-medium transition-colors duration-200"
-            ) %>
+        <div class="text-center">
+          <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-orange-100 dark:bg-orange-900/20 mb-6">
+            <svg class="h-8 w-8 text-orange-600 dark:text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/>
+            </svg>
+          </div>
+          <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-3">Unshare Post?</h3>
+          <p class="text-gray-600 dark:text-gray-400 mb-8 leading-relaxed">
+            Are you sure you want to remove this shared post? This will remove it from your profile and your followers' feeds.
+          </p>
+          <div class="flex space-x-4 justify-center">
             <button
-              type="button"
-              phx-click="cancel-edit"
-              phx-target={@myself}
-              class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-2 rounded-xl font-medium transition-colors duration-200"
+              @click="showUnrepostConfirm = false"
+              class="px-6 py-3 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 font-semibold rounded-xl transition-colors duration-200"
             >
               Cancel
             </button>
+            <button
+              phx-click="confirm_unrepost"
+              phx-value-post-id={@post.id}
+              phx-target={@myself}
+              @click="showUnrepostConfirm = false"
+              class="px-6 py-3 bg-orange-600 hover:bg-orange-700 text-white font-semibold rounded-xl transition-colors duration-200 shadow-lg hover:shadow-xl"
+            >
+              Unshare
+            </button>
           </div>
         </div>
-      </.form>
+      </div>
     </div>
-  <% else %>
-    <div class="mt-4">
+  </div>
 
-      <%= if @translated_text do %>
-        <div class="mb-4 rounded-2xl border border-blue-200 dark:border-blue-900/40 bg-blue-50/60 dark:bg-blue-900/10 p-4 shadow-sm">
-          <div class="flex items-start justify-between">
-            <div class="flex items-center space-x-2">
-              <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-200">
-                <%= String.upcase(@translated_lang || "EN") %>
-              </span>
-              <span class="text-xs text-blue-700/80 dark:text-blue-200/80">
-                Translated from EN → <%= String.upcase(@translated_lang || "") %>
-              </span>
-            </div>
-            <div class="flex items-center space-x-2">
-              <div class="hidden sm:flex items-center space-x-1">
-                <%= for lang <- (assigns[:supported_translation_langs] || ["ru","it","es","az"]) do %>
-                  <button
-                    class={"px-2 py-1 rounded-md text-[10px] font-medium border transition-all #{if @translated_lang == lang, do: "bg-white dark:bg-blue-900/30 text-blue-700 dark:text-blue-200 border-blue-300 dark:border-blue-800 shadow", else: "text-blue-700/80 dark:text-blue-200/80 border-blue-200 dark:border-blue-800 hover:bg-white hover:shadow"}"}
-                    phx-click="translate-post"
-                    phx-value-post-id={@post.id}
-                    phx-value-target={lang}
-                    phx-target={@myself}
-                    title={"Translate to #{String.upcase(lang)}"}
-                  >
-                    <%= String.upcase(lang) %>
-                  </button>
+  <%= if is_repost?(@post) do %>
+    <div class="mt-4 mb-3 flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400">
+      <svg class="h-4 w-4 text-green-600 dark:text-green-400" fill="currentColor" viewBox="0 0 24 24">
+        <path d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z"/>
+      </svg>
+      <span class="font-medium">
+        <%= if @post.user_id == @current_user.id do %>
+          You shared this
+        <% else %>
+          <%= @post.author %> shared this
+        <% end %>
+      </span>
+    </div>
+
+    <%= if @post.repost_type == "with_comment" do %>
+      <% repost_comment = get_repost_comment_content(@post) %>
+      <%= if repost_comment && String.trim(repost_comment) != "" do %>
+        <div class="mt-3 mb-4">
+          <div class="flex items-start space-x-3">
+            <div class="relative group flex-shrink-0">
+              <div class="absolute inset-0 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full blur-sm opacity-20 group-hover:opacity-40 animate-pulse transition-opacity duration-300"></div>
+              <div class="relative h-10 w-10 rounded-full overflow-hidden border-2 border-blue-200 dark:border-blue-700 shadow-sm">
+                <%= if get_user_avatar(@post.author) != "/images/default-avatar.png" do %>
+                  <img
+                    src={get_user_avatar(@post.author)}
+                    class="h-full w-full object-cover"
+                    alt={"#{@post.author}'s avatar"}
+                  />
+                <% else %>
+                  <div class="h-full w-full flex items-center justify-center bg-gradient-to-br from-blue-500 to-purple-600 text-white text-sm font-bold">
+                    <%= String.first(@post.author || "U") |> String.upcase() %>
+                  </div>
                 <% end %>
               </div>
-              <button
-                class="ml-2 inline-flex items-center px-2.5 py-1.5 rounded-md text-xs font-medium bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition"
-                phx-click="clear-translation"
-                phx-target={@myself}
-                title="Clear translation"
-              >
-                Clear
-              </button>
             </div>
-          </div>
-          <div class="mt-3">
-            <p class="text-gray-900 dark:text-gray-100 leading-relaxed">
-              <%= @translated_text %>
-            </p>
+            <div class="flex-1">
+              <p class="text-base font-semibold text-gray-900 dark:text-white mb-1">
+                <%= @post.author %>
+              </p>
+              <p class="text-base text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap">
+                <%= repost_comment %>
+              </p>
+            </div>
           </div>
         </div>
       <% end %>
+    <% end %>
 
-      <p class="text-gray-900 dark:text-white text-base leading-relaxed">
-        <%= raw(@post |> activate_content_characters(@socket)) %>
-        <span class="text-blue-600 dark:text-blue-400 text-sm font-medium ml-2"><%= Enum.join(@post.profile_tags, " ") %></span>
-      </p>
-
-      <%= if post_has_media?(@post.id) do %>
-        <div class="mt-4">
-          <img
-            alt="Post image"
-            class="w-full rounded-xl object-cover border border-gray-200 dark:border-gray-700"
-            src={get_image_url(@post.id)}
-          />
-        </div>
-      <% end %>
-    </div>
-  <% end %>
-
-  <div class="flex items-center justify-between mt-6 pt-4 border-t border-gray-100 dark:border-gray-700">
-    <div class="flex items-center space-x-6">
-      <div class="flex items-center space-x-1">
-      <button
-        class="relative flex items-center space-x-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-white to-gray-50 dark:from-gray-800 dark:to-gray-750 border border-gray-200 dark:border-gray-700 hover:border-red-300 dark:hover:border-red-500 transition-all duration-300 group shadow-sm hover:shadow-md"
-        phx-click={@like_event}
-        phx-value-post-id={@post.id}
-        phx-target={@myself}
-        phx-value-action="like-post"
-      >
-        <%= if @like_icon == "heart" do %>
-          <div class="absolute inset-0 bg-gradient-to-r from-red-500/20 via-pink-500/20 to-red-500/20 rounded-xl blur-sm animate-pulse"></div>
-        <% end %>
-
-        <div class="relative z-10">
-          <svg
-            class={"h-6 w-6 transition-all duration-300 #{if @like_icon == "heart", do: "text-red-500 fill-current animate-[heartbeat_1s_ease-in-out]", else: "text-gray-400 group-hover:text-red-400 group-hover:scale-110"}"}
-            viewBox="0 0 24 24"
-            fill={if @like_icon == "heart", do: "currentColor", else: "none"}
-            stroke="currentColor"
-            stroke-width="2"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"
-            />
-          </svg>
-
-          <%= if @like_icon == "heart" do %>
-            <div class="absolute -top-2 left-1/2 -translate-x-1/2 pointer-events-none">
-              <svg class="h-3 w-3 text-red-400 animate-[float_2s_ease-in-out_infinite]" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/>
-              </svg>
-            </div>
-            <div class="absolute -top-1 left-0 pointer-events-none">
-              <svg class="h-2 w-2 text-pink-400 animate-[float_2.5s_ease-in-out_infinite_0.5s]" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/>
-              </svg>
-            </div>
-            <div class="absolute -top-1 right-0 pointer-events-none">
-              <svg class="h-2 w-2 text-rose-400 animate-[float_2s_ease-in-out_infinite_1s]" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/>
-              </svg>
-            </div>
-          <% end %>
-        </div>
-
-        <%= if @like_icon == "heart" do %>
-          <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <div class="absolute w-1 h-1 bg-red-400 rounded-full animate-[particle1_1s_ease-out]"></div>
-            <div class="absolute w-1 h-1 bg-pink-400 rounded-full animate-[particle2_1s_ease-out]"></div>
-            <div class="absolute w-1 h-1 bg-rose-400 rounded-full animate-[particle3_1s_ease-out]"></div>
-            <div class="absolute w-1 h-1 bg-red-300 rounded-full animate-[particle4_1s_ease-out]"></div>
-          </div>
-        <% end %>
-
-        <span class={"relative z-10 text-sm font-semibold transition-all duration-300 #{if @like_icon == "heart", do: "bg-gradient-to-r from-red-600 to-pink-600 bg-clip-text text-transparent", else: "text-gray-600 dark:text-gray-400 group-hover:text-red-500"}"}>
-          <%= if @like_icon == "heart", do: "Liked", else: "Like" %>
-        </span>
-      </button>
-
-        <%= if @likes_count > 0 do %>
-          <button
-            class="text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-red-500 hover:underline transition-colors duration-200 px-2 py-1 rounded"
-            phx-click="open_likes_modal"
-            phx-value-post-id={@post.id}
-            phx-target={@myself}
-            title="View who liked this post"
-          >
-            <%= @likes_count %> <%= if @likes_count == 1, do: "like", else: "likes" %>
-          </button>
-        <% else %>
-          <span class="text-sm font-medium text-gray-600 dark:text-gray-400 px-2 py-1">
-            0 likes
-          </span>
-        <% end %>
-      </div>
-
-      <button class="flex items-center space-x-2 px-3 py-2 rounded-xl hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all duration-200 group">
-        <svg class="h-5 w-5 text-gray-500 group-hover:text-blue-500 transition-colors duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z"></path>
-        </svg>
-        <span class="text-sm font-medium text-gray-600 dark:text-gray-400 group-hover:text-blue-500 transition-colors duration-200">
-          Share
-        </span>
-      </button>
-
-      <button
-        class="flex items-center space-x-2 px-3 py-2 rounded-xl hover:bg-green-50 dark:hover:bg-green-900/20 transition-all duration-200 group"
-        phx-click={Phoenix.LiveView.JS.toggle(to: "#view-comments-#{@post.id}")}
-      >
-        <svg class="h-5 w-5 text-gray-500 group-hover:text-green-500 transition-colors duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
-        </svg>
-        <span class="text-sm font-medium text-gray-600 dark:text-gray-400 group-hover:text-green-500 transition-colors duration-200">
-          <%= Enum.count(@comments) %>
-        </span>
-      </button>
-    </div>
-
-    <button
-      class="text-blue-600 dark:text-blue-400 text-sm font-medium hover:text-blue-700 dark:hover:text-blue-300 transition-colors duration-200"
-      phx-click={Phoenix.LiveView.JS.toggle(to: "#view-comments-#{@post.id}")}
-    >
-      View <%= @comments |> Enum.count() %> comments
-    </button>
-  </div>
-
-  <div class="mt-6 pt-6 border-t border-gray-100 dark:border-gray-700">
-    <.form
-      :let={f}
-      for={@changeset}
-      phx-blur="validate-comment"
-      phx-target={@myself}
-      phx-submit="save-comment"
-      as={:comment}
-      class="flex items-start space-x-4"
-    >
-      <div class="relative group flex-shrink-0">
-        <div class="absolute inset-0 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full blur-sm opacity-20 group-hover:opacity-40 animate-pulse transition-opacity duration-300"></div>
-        <div class="relative h-10 w-10 rounded-full overflow-hidden border-2 border-gray-200 dark:border-gray-700 shadow-md ring-2 ring-indigo-100/50 dark:ring-purple-900/30 bg-gradient-to-br from-indigo-100 to-purple-100 dark:from-indigo-900/20 dark:to-purple-900/20">
-          <%= if get_user_avatar(@current_user.username) != "/images/default-avatar.png" do %>
-            <img
-              src={get_user_avatar(@current_user.username)}
-              class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
-              alt={"#{@current_user.username}'s avatar"}
-              onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
-            />
-            <div class="absolute inset-0 hidden items-center justify-center bg-gradient-to-br from-indigo-500 to-purple-600 text-white text-sm font-bold">
-              <%= String.first(@current_user.username || "U") |> String.upcase() %>
-            </div>
-          <% else %>
-            <div class="h-full w-full flex items-center justify-center bg-gradient-to-br from-indigo-500 to-purple-600 text-white text-sm font-bold group-hover:from-indigo-600 group-hover:to-purple-700 transition-all duration-300">
-              <%= String.first(@current_user.username || "U") |> String.upcase() %>
-            </div>
-          <% end %>
-        </div>
-      </div>
-
-      <div class="flex-1">
-        <%= hidden_input(f, :post_id, value: @post.id) %>
-        <%= hidden_input(f, :author, value: @current_user.id) %>
-
-        <div class="flex items-end space-x-3">
-          <%= text_input(f, :content,
-            class: "flex-1 border border-gray-300 dark:border-gray-600 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-800 dark:text-white placeholder-gray-500 dark:placeholder-gray-400",
-            placeholder: "Write a comment...",
-            required: true
-          ) %>
-          <%= submit("Post",
-            class: "bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-medium transition-colors duration-200 disabled:opacity-50",
-            phx_disable_with: "Posting..."
-          ) %>
-        </div>
-      </div>
-    </.form>
-  </div>
-  <div id={"view-comments-#{@post.id}"} class="mt-6 space-y-4">
-    <%= for comment <- @comments do %>
-      <div
-        x-data="{ open: false, showDeleteCommentConfirm: false }"
-        x-on:click.outside="open = false; showDeleteCommentConfirm = false"
-        class="bg-gray-50 dark:bg-gray-800 rounded-xl p-4 hover:bg-gray-100 dark:hover:bg-gray-750 transition-colors duration-200"
-      >
-        <div class="flex items-start space-x-3">
-          <% comment_user = Account.Users.get_user_by_id(comment.author) %>
-
-          <div class="relative group flex-shrink-0">
-            <div class="absolute inset-0 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full blur-sm opacity-20 group-hover:opacity-40 animate-pulse transition-opacity duration-300"></div>
-            <div class="relative h-9 w-9 rounded-full overflow-hidden border-2 border-white dark:border-gray-600 shadow-sm ring-2 ring-blue-100/50 dark:ring-purple-900/30 bg-gradient-to-br from-blue-100 to-purple-100 dark:from-blue-900/20 dark:to-purple-900/20">
-              <%= if get_user_avatar(comment_user.username) != "/images/default-avatar.png" do %>
+    <%= case get_original_post(@post) do %>
+      <% {:ok, original_post} -> %>
+        <div class="mt-3 p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl border-2 border-gray-200 dark:border-gray-700">
+          <!-- Original Post Author -->
+          <div class="flex items-center space-x-3 mb-3">
+            <div class="relative h-8 w-8 rounded-full overflow-hidden border-2 border-white dark:border-gray-700 shadow-sm">
+              <%= if get_user_avatar(original_post.author) != "/images/default-avatar.png" do %>
                 <img
-                  src={get_user_avatar(comment_user.username)}
-                  class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
-                  alt={"#{comment_user.username}'s avatar"}
-                  onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+                  src={get_user_avatar(original_post.author)}
+                  class="h-full w-full object-cover"
+                  alt={"#{original_post.author}'s avatar"}
                 />
-                <div class="absolute inset-0 hidden items-center justify-center bg-gradient-to-br from-blue-500 to-purple-600 text-white text-xs font-bold">
-                  <%= String.first(comment_user.username || "U") |> String.upcase() %>
-                </div>
               <% else %>
-                <div class="h-full w-full flex items-center justify-center bg-gradient-to-br from-blue-500 to-purple-600 text-white text-xs font-bold group-hover:from-blue-600 group-hover:to-purple-700 transition-all duration-300">
-                  <%= String.first(comment_user.username || "U") |> String.upcase() %>
+                <div class="h-full w-full flex items-center justify-center bg-gradient-to-br from-purple-500 to-pink-600 text-white text-xs font-bold">
+                  <%= String.first(original_post.author || "U") |> String.upcase() %>
                 </div>
               <% end %>
             </div>
-          </div>
-
-          <div class="flex-1 min-w-0">
-            <div class="flex items-center justify-between">
+            <div>
               <div class="flex items-center space-x-2">
-                <span
-                  class="text-sm font-semibold text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200 cursor-pointer"
-                  phx-click="view_profile"
-                  phx-value-username={comment_user.username}
-                  phx-target={@myself}
-                  title={"View #{comment_user.username}'s profile"}
-                >
-                  <%= comment_user.username %>
+                <span class="text-sm font-semibold text-gray-900 dark:text-white">
+                  <%= original_post.author %>
                 </span>
-
-                <%= if comment_user.verified do %>
+                <%= if verified?(original_post.author) do %>
                   <img
                     alt="verified user"
                     src={Routes.static_path(@socket, "/images/verified.png")}
                     class="h-4 w-4"
                   />
                 <% end %>
+              </div>
+              <span class="text-xs text-gray-500 dark:text-gray-400">
+                <%= Timex.from_now(original_post.date_created) %>
+              </span>
+            </div>
+          </div>
 
-                <span class="text-xs text-gray-500 dark:text-gray-400">
-                  <%= Timex.from_now(comment.date_created) %>
+          <p class="text-sm text-gray-800 dark:text-white leading-relaxed whitespace-pre-wrap">
+            <%= raw(original_post |> activate_content_characters(@socket)) %>
+          </p>
+
+          <%= if post_has_media?(original_post.id) do %>
+            <div class="mt-3">
+              <img
+                alt="Post image"
+                class="w-full rounded-lg object-cover border border-gray-200 dark:border-gray-700"
+                src={get_image_url(original_post.id)}
+              />
+            </div>
+          <% end %>
+        </div>
+      <% {:error, _} -> %>
+        <div class="mt-3 p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-200 dark:border-gray-700">
+          <p class="text-sm text-gray-500 dark:text-gray-400 italic">
+            Original post unavailable
+          </p>
+        </div>
+    <% end %>
+  <% end %>
+  <%= if @editing_post do %>
+      <div class="mt-6">
+        <.form
+          :let={f}
+          for={@update_post_changeset}
+          phx-submit="update-post"
+          phx-target={@myself}
+          class="w-full"
+        >
+          <div class="space-y-4">
+            <%= textarea(f, :content,
+              class: "w-full border border-gray-300 dark:border-gray-600 rounded-xl p-4 focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-800 dark:text-white resize-none",
+              placeholder: "Edit your post...",
+              value: @editing_post,
+              rows: "4"
+            ) %>
+            <div class="flex justify-end space-x-3">
+              <%= submit("Save Changes",
+                class: "bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-xl font-medium transition-colors duration-200"
+              ) %>
+              <button
+                type="button"
+                phx-click="cancel-edit"
+                phx-target={@myself}
+                class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-2 rounded-xl font-medium transition-colors duration-200"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </.form>
+      </div>
+    <% else %>
+      <div class="mt-4">
+
+        <%= if @translated_text do %>
+          <div class="mb-4 rounded-2xl border border-blue-200 dark:border-blue-900/40 bg-blue-50/60 dark:bg-blue-900/10 p-4 shadow-sm">
+            <div class="flex items-start justify-between">
+              <div class="flex items-center space-x-2">
+                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-200">
+                  <%= String.upcase(@translated_lang || "EN") %>
+                </span>
+                <span class="text-xs text-blue-700/80 dark:text-blue-200/80">
+                  Translated from EN → <%= String.upcase(@translated_lang || "") %>
                 </span>
               </div>
-
-              <div class="relative">
-                <button
-                  @click="open = !open"
-                  class="p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors duration-200"
-                >
-                  <svg class="h-4 w-4 text-gray-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"/>
-                  </svg>
-                </button>
-
-                <div
-                  x-show="open"
-                  x-transition
-                  class="absolute top-full right-0 mt-1 w-40 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-10"
-                  style="display: none;"
-                >
-                  <%= if comment.author != @current_user.id do %>
+              <div class="flex items-center space-x-2">
+                <div class="hidden sm:flex items-center space-x-1">
+                  <%= for lang <- (assigns[:supported_translation_langs] || ["ru","it","es","az"]) do %>
                     <button
-                      @click="open = false"
-                      phx-click="report-comment"
-                      phx-value-comment-id={comment.id}
-                      class="w-full text-left px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200 rounded-t-lg"
-                    >
-                      Report
-                    </button>
-                  <% else %>
-                    <button
-                      phx-click="edit-comment"
-                      phx-value-comment-id={comment.id}
+                      class={"px-2 py-1 rounded-md text-[10px] font-medium border transition-all #{if @translated_lang == lang, do: "bg-white dark:bg-blue-900/30 text-blue-700 dark:text-blue-200 border-blue-300 dark:border-blue-800 shadow", else: "text-blue-700/80 dark:text-blue-200/80 border-blue-200 dark:border-blue-800 hover:bg-white hover:shadow"}"}
+                      phx-click="translate-post"
+                      phx-value-post-id={@post.id}
+                      phx-value-target={lang}
                       phx-target={@myself}
-                      @click="open = false"
-                      class="w-full text-left px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200 rounded-t-lg"
+                      title={"Translate to #{String.upcase(lang)}"}
                     >
-                      Edit
-                    </button>
-                    <button
-                      @click="showDeleteCommentConfirm = true; open = false"
-                      class="w-full text-left px-3 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors duration-200 rounded-b-lg"
-                    >
-                      Delete
+                      <%= String.upcase(lang) %>
                     </button>
                   <% end %>
                 </div>
+                <button
+                  class="ml-2 inline-flex items-center px-2.5 py-1.5 rounded-md text-xs font-medium bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition"
+                  phx-click="clear-translation"
+                  phx-target={@myself}
+                  title="Clear translation"
+                >
+                  Clear
+                </button>
               </div>
             </div>
+            <div class="mt-3">
+              <p class="text-gray-900 dark:text-gray-100 leading-relaxed">
+                <%= @translated_text %>
+              </p>
+            </div>
+          </div>
+        <% end %>
 
-            <%= if @editing_comment && @editing_comment_id == to_string(comment.id) do %>
-              <div class="mt-2">
-                <.form
-                  :let={f}
-                  for={@update_comment_changeset}
-                  phx-blur="validate-update-comment"
-                  phx-target={@myself}
-                  phx-submit="update-comment"
-                  as={:comment}
-                  class="space-y-3"
-                >
-                  <%= hidden_input(f, :id, value: comment.id) %>
-                  <%= text_input(f, :content,
-                    value: comment.content,
-                    class: "w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white",
-                    placeholder: "Edit your comment",
-                    required: true
-                  ) %>
-                  <div class="flex justify-end space-x-2">
-                    <button
-                      type="submit"
-                      class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200"
-                    >
-                      Save
-                    </button>
-                    <button
-                      type="button"
-                      phx-click="cancel-comment-edit"
-                      phx-target={@myself}
-                      class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200"
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                </.form>
+        <%= if !is_repost?(@post) do %>
+          <p class="text-gray-900 dark:text-white text-base leading-relaxed">
+            <%= raw(@post |> activate_content_characters(@socket)) %>
+            <span class="text-blue-600 dark:text-blue-400 text-sm font-medium ml-2"><%= Enum.join(@post.profile_tags, " ") %></span>
+          </p>
+
+          <%= if post_has_media?(@post.id) do %>
+            <div class="mt-4">
+              <img
+                alt="Post image"
+                class="w-full rounded-xl object-cover border border-gray-200 dark:border-gray-700"
+                src={get_image_url(@post.id)}
+              />
+            </div>
+          <% end %>
+        <% end %>
+      </div>
+    <% end %>
+
+    <div class="flex items-center justify-between mt-6 pt-4 border-t border-gray-100 dark:border-gray-700">
+      <div class="flex items-center space-x-6">
+        <div class="flex items-center space-x-1">
+        <button
+          class="relative flex items-center space-x-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-white to-gray-50 dark:from-gray-800 dark:to-gray-750 border border-gray-200 dark:border-gray-700 hover:border-red-300 dark:hover:border-red-500 transition-all duration-300 group shadow-sm hover:shadow-md"
+          phx-click={@like_event}
+          phx-value-post-id={@post.id}
+          phx-target={@myself}
+          phx-value-action="like-post"
+        >
+          <%= if @like_icon == "heart" do %>
+            <div class="absolute inset-0 bg-gradient-to-r from-red-500/20 via-pink-500/20 to-red-500/20 rounded-xl blur-sm animate-pulse"></div>
+          <% end %>
+
+          <div class="relative z-10">
+            <svg
+              class={"h-6 w-6 transition-all duration-300 #{if @like_icon == "heart", do: "text-red-500 fill-current animate-[heartbeat_1s_ease-in-out]", else: "text-gray-400 group-hover:text-red-400 group-hover:scale-110"}"}
+              viewBox="0 0 24 24"
+              fill={if @like_icon == "heart", do: "currentColor", else: "none"}
+              stroke="currentColor"
+              stroke-width="2"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"
+              />
+            </svg>
+
+            <%= if @like_icon == "heart" do %>
+              <div class="absolute -top-2 left-1/2 -translate-x-1/2 pointer-events-none">
+                <svg class="h-3 w-3 text-red-400 animate-[float_2s_ease-in-out_infinite]" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/>
+                </svg>
               </div>
-            <% else %>
-              <div class="mt-1 text-sm text-gray-800 dark:text-gray-200 leading-relaxed">
-                <%= comment.content %>
+              <div class="absolute -top-1 left-0 pointer-events-none">
+                <svg class="h-2 w-2 text-pink-400 animate-[float_2.5s_ease-in-out_infinite_0.5s]" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/>
+                </svg>
+              </div>
+              <div class="absolute -top-1 right-0 pointer-events-none">
+                <svg class="h-2 w-2 text-rose-400 animate-[float_2s_ease-in-out_infinite_1s]" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/>
+                </svg>
               </div>
             <% end %>
+          </div>
 
-            <div class="flex items-center space-x-4 mt-3">
-              <button
-                phx-click={comment.like_comment_event}
-                phx-value-comment-id={comment.id}
-                phx-target={@myself}
-                class="flex items-center space-x-1 px-2 py-1 rounded-lg hover:bg-white dark:hover:bg-gray-700 transition-all duration-200 group"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  class={"h-4 w-4 #{comment_like_color(@current_user.id, comment.id)} group-hover:text-red-500 transition-colors duration-200"}
-                  viewBox="0 0 24 24"
-                  fill={
-                    if comment.like_comment_event == "unlike-comment",
-                      do: "currentColor",
-                      else: "none"
-                  }
-                  stroke="currentColor"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+          <%= if @like_icon == "heart" do %>
+            <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+              <div class="absolute w-1 h-1 bg-red-400 rounded-full animate-[particle1_1s_ease-out]"></div>
+              <div class="absolute w-1 h-1 bg-pink-400 rounded-full animate-[particle2_1s_ease-out]"></div>
+              <div class="absolute w-1 h-1 bg-rose-400 rounded-full animate-[particle3_1s_ease-out]"></div>
+              <div class="absolute w-1 h-1 bg-red-300 rounded-full animate-[particle4_1s_ease-out]"></div>
+            </div>
+          <% end %>
+
+          <span class={"relative z-10 text-sm font-semibold transition-all duration-300 #{if @like_icon == "heart", do: "bg-gradient-to-r from-red-600 to-pink-600 bg-clip-text text-transparent", else: "text-gray-600 dark:text-gray-400 group-hover:text-red-500"}"}>
+            <%= if @like_icon == "heart", do: "Liked", else: "Like" %>
+          </span>
+        </button>
+
+          <%= if @likes_count > 0 do %>
+            <button
+              class="text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-red-500 hover:underline transition-colors duration-200 px-2 py-1 rounded"
+              phx-click="open_likes_modal"
+              phx-value-post-id={@post.id}
+              phx-target={@myself}
+              title="View who liked this post"
+            >
+              <%= @likes_count %> <%= if @likes_count == 1, do: "like", else: "likes" %>
+            </button>
+          <% else %>
+            <span class="text-sm font-medium text-gray-600 dark:text-gray-400 px-2 py-1">
+              0 likes
+            </span>
+          <% end %>
+        </div>
+
+        <div class="flex items-center space-x-1">
+          <button
+            class="flex items-center space-x-2 px-3 py-2 rounded-xl hover:bg-green-50 dark:hover:bg-green-900/20 transition-all duration-200 group"
+            phx-click="open_repost_modal"
+            phx-value-post-id={@post.id}
+            phx-target={@myself}
+          >
+            <%= if @user_has_reposted do %>
+              <svg class="h-5 w-5 text-green-600 dark:text-green-400" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z"/>
+              </svg>
+            <% else %>
+              <svg class="h-5 w-5 text-gray-500 group-hover:text-green-500 transition-colors duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/>
+              </svg>
+            <% end %>
+            <span class={"text-sm font-medium transition-colors duration-200 #{if @user_has_reposted, do: "text-green-600 dark:text-green-400", else: "text-gray-600 dark:text-gray-400 group-hover:text-green-500"}"}>
+              <%= if @user_has_reposted, do: "Shared", else: "Share" %>
+            </span>
+          </button>
+
+          <%= if @repost_count > 0 do %>
+            <span class="text-sm font-medium text-gray-600 dark:text-gray-400 px-2">
+              <%= @repost_count %>
+            </span>
+          <% end %>
+        </div>
+
+        <button
+          class="flex items-center space-x-2 px-3 py-2 rounded-xl hover:bg-green-50 dark:hover:bg-green-900/20 transition-all duration-200 group"
+          phx-click={Phoenix.LiveView.JS.toggle(to: "#view-comments-#{@post.id}")}
+        >
+          <svg class="h-5 w-5 text-gray-500 group-hover:text-green-500 transition-colors duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+          </svg>
+          <span class="text-sm font-medium text-gray-600 dark:text-gray-400 group-hover:text-green-500 transition-colors duration-200">
+            <%= Enum.count(@comments) %>
+          </span>
+        </button>
+      </div>
+
+      <button
+        class="text-blue-600 dark:text-blue-400 text-sm font-medium hover:text-blue-700 dark:hover:text-blue-300 transition-colors duration-200"
+        phx-click={Phoenix.LiveView.JS.toggle(to: "#view-comments-#{@post.id}")}
+      >
+        View <%= @comments |> Enum.count() %> comments
+      </button>
+    </div>
+
+    <div class="mt-6 pt-6 border-t border-gray-100 dark:border-gray-700">
+      <.form
+        :let={f}
+        for={@changeset}
+        phx-blur="validate-comment"
+        phx-target={@myself}
+        phx-submit="save-comment"
+        as={:comment}
+        class="flex items-start space-x-4"
+      >
+        <div class="relative group flex-shrink-0">
+          <div class="absolute inset-0 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full blur-sm opacity-20 group-hover:opacity-40 animate-pulse transition-opacity duration-300"></div>
+          <div class="relative h-10 w-10 rounded-full overflow-hidden border-2 border-gray-200 dark:border-gray-700 shadow-md ring-2 ring-indigo-100/50 dark:ring-purple-900/30 bg-gradient-to-br from-indigo-100 to-purple-100 dark:from-indigo-900/20 dark:to-purple-900/20">
+            <%= if get_user_avatar(@current_user.username) != "/images/default-avatar.png" do %>
+              <img
+                src={get_user_avatar(@current_user.username)}
+                class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
+                alt={"#{@current_user.username}'s avatar"}
+                onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+              />
+              <div class="absolute inset-0 hidden items-center justify-center bg-gradient-to-br from-indigo-500 to-purple-600 text-white text-sm font-bold">
+                <%= String.first(@current_user.username || "U") |> String.upcase() %>
+              </div>
+            <% else %>
+              <div class="h-full w-full flex items-center justify-center bg-gradient-to-br from-indigo-500 to-purple-600 text-white text-sm font-bold group-hover:from-indigo-600 group-hover:to-purple-700 transition-all duration-300">
+                <%= String.first(@current_user.username || "U") |> String.upcase() %>
+              </div>
+            <% end %>
+          </div>
+        </div>
+
+        <div class="flex-1">
+          <%= hidden_input(f, :post_id, value: @post.id) %>
+          <%= hidden_input(f, :author, value: @current_user.id) %>
+
+          <div class="flex items-end space-x-3">
+            <%= text_input(f, :content,
+              class: "flex-1 border border-gray-300 dark:border-gray-600 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-800 dark:text-white placeholder-gray-500 dark:placeholder-gray-400",
+              placeholder: "Write a comment...",
+              required: true
+            ) %>
+            <%= submit("Post",
+              class: "bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-medium transition-colors duration-200 disabled:opacity-50",
+              phx_disable_with: "Posting..."
+            ) %>
+          </div>
+        </div>
+      </.form>
+    </div>
+
+    <div id={"view-comments-#{@post.id}"} class="mt-6 space-y-4">
+      <%= for comment <- @comments do %>
+        <div
+          x-data="{ open: false, showDeleteCommentConfirm: false }"
+          x-on:click.outside="open = false; showDeleteCommentConfirm = false"
+          class="bg-gray-50 dark:bg-gray-800 rounded-xl p-4 hover:bg-gray-100 dark:hover:bg-gray-750 transition-colors duration-200"
+        >
+          <div class="flex items-start space-x-3">
+            <% comment_user = Account.Users.get_user_by_id(comment.author) %>
+
+            <div class="relative group flex-shrink-0">
+              <div class="absolute inset-0 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full blur-sm opacity-20 group-hover:opacity-40 animate-pulse transition-opacity duration-300"></div>
+              <div class="relative h-9 w-9 rounded-full overflow-hidden border-2 border-white dark:border-gray-600 shadow-sm ring-2 ring-blue-100/50 dark:ring-purple-900/30 bg-gradient-to-br from-blue-100 to-purple-100 dark:from-blue-900/20 dark:to-purple-900/20">
+                <%= if get_user_avatar(comment_user.username) != "/images/default-avatar.png" do %>
+                  <img
+                    src={get_user_avatar(comment_user.username)}
+                    class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
+                    alt={"#{comment_user.username}'s avatar"}
+                    onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
                   />
-                </svg>
-                <span class="text-xs font-medium text-gray-600 dark:text-gray-400 group-hover:text-red-500 transition-colors duration-200">
-                  Like
-                </span>
-              </button>
-
-              <button
-                phx-click="reply_comment"
-                phx-value-comment-id={comment.id}
-                phx-target={@myself}
-                class="flex items-center space-x-1 px-2 py-1 rounded-lg hover:bg-white dark:hover:bg-gray-700 transition-all duration-200 group"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  class="h-4 w-4 text-gray-600 dark:text-gray-400 group-hover:text-blue-500 transition-colors duration-200"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
-                </svg>
-                <span class="text-xs font-medium text-gray-600 dark:text-gray-400 group-hover:text-blue-500 transition-colors duration-200">
-                  Reply
-                </span>
-              </button>
+                  <div class="absolute inset-0 hidden items-center justify-center bg-gradient-to-br from-blue-500 to-purple-600 text-white text-xs font-bold">
+                    <%= String.first(comment_user.username || "U") |> String.upcase() %>
+                  </div>
+                <% else %>
+                  <div class="h-full w-full flex items-center justify-center bg-gradient-to-br from-blue-500 to-purple-600 text-white text-xs font-bold group-hover:from-blue-600 group-hover:to-purple-700 transition-all duration-300">
+                    <%= String.first(comment_user.username || "U") |> String.upcase() %>
+                  </div>
+                <% end %>
+              </div>
             </div>
 
-            <div class="mt-3 space-y-3">
-              <%= for reply <- comment.replies do %>
-                <div
-                  x-data="{ showDeleteReplyConfirm: false }"
-                  x-on:click.outside="showDeleteReplyConfirm = false"
-                  class="ml-6 p-3 bg-white dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600 transition-all duration-300 hover:shadow-md"
-                >
-                  <div class="flex items-start justify-between">
-                    <div class="flex items-center space-x-2">
-                      <% reply_user = Account.Users.get_user_by_id(reply.user_id) %>
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-2">
+                  <span
+                    class="text-sm font-semibold text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200 cursor-pointer"
+                    phx-click="view_profile"
+                    phx-value-username={comment_user.username}
+                    phx-target={@myself}
+                    title={"View #{comment_user.username}'s profile"}
+                  >
+                    <%= comment_user.username %>
+                  </span>
 
-                      <div class="relative group flex-shrink-0">
-                        <div class="absolute inset-0 bg-gradient-to-br from-green-500 to-blue-600 rounded-full blur-sm opacity-20 group-hover:opacity-40 animate-pulse transition-opacity duration-300"></div>
-                        <div class="relative h-7 w-7 rounded-full overflow-hidden border-2 border-gray-200 dark:border-gray-600 shadow-sm ring-2 ring-green-100/50 dark:ring-blue-900/30 bg-gradient-to-br from-green-100 to-blue-100 dark:from-green-900/20 dark:to-blue-900/20">
-                          <%= if get_user_avatar(reply_user.username) != "/images/default-avatar.png" do %>
-                            <img
-                              src={get_user_avatar(reply_user.username)}
-                              class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
-                              alt={"#{reply_user.username}'s avatar"}
-                              onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
-                            />
-                            <div class="absolute inset-0 hidden items-center justify-center bg-gradient-to-br from-green-500 to-blue-600 text-white text-xs font-bold">
-                              <%= String.first(reply_user.username || "U") |> String.upcase() %>
-                            </div>
-                          <% else %>
-                            <div class="h-full w-full flex items-center justify-center bg-gradient-to-br from-green-500 to-blue-600 text-white text-xs font-bold group-hover:from-green-600 group-hover:to-blue-700 transition-all duration-300">
-                              <%= String.first(reply_user.username || "U") |> String.upcase() %>
-                            </div>
-                          <% end %>
-                        </div>
-                      </div>
+                  <%= if comment_user.verified do %>
+                    <img
+                      alt="verified user"
+                      src={Routes.static_path(@socket, "/images/verified.png")}
+                      class="h-4 w-4"
+                    />
+                  <% end %>
 
-                      <span
-                        class="text-sm font-semibold text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200 cursor-pointer"
-                        phx-click="view_profile"
-                        phx-value-username={reply_user.username}
-                        phx-target={@myself}
-                        title={"View #{reply_user.username}'s profile"}
-                      >
-                        <%= reply_user.username %>
-                      </span>
-                      <%= if reply_user.verified do %>
-                        <img
-                          alt="verified user"
-                          src={Routes.static_path(@socket, "/images/verified.png")}
-                          class="h-3 w-3"
-                        />
-                      <% end %>
-                    </div>
+                  <span class="text-xs text-gray-500 dark:text-gray-400">
+                    <%= Timex.from_now(comment.date_created) %>
+                  </span>
+                </div>
 
-                    <%= if reply.user_id == @current_user.id do %>
+                <div class="relative">
+                  <button
+                    @click="open = !open"
+                    class="p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors duration-200"
+                  >
+                    <svg class="h-4 w-4 text-gray-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"/>
+                    </svg>
+                  </button>
+
+                  <div
+                    x-show="open"
+                    x-transition
+                    class="absolute top-full right-0 mt-1 w-40 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-10"
+                    style="display: none;"
+                  >
+                    <%= if comment.author != @current_user.id do %>
                       <button
-                        @click="showDeleteReplyConfirm = true"
-                        class="p-1 rounded-full text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all duration-200 group"
-                        title="Delete reply"
+                        @click="open = false"
+                        phx-click="report-comment"
+                        phx-value-comment-id={comment.id}
+                        class="w-full text-left px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200 rounded-t-lg"
                       >
-                        <svg class="h-4 w-4 transform group-hover:scale-110 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                        </svg>
+                        Report
+                      </button>
+                    <% else %>
+                      <button
+                        phx-click="edit-comment"
+                        phx-value-comment-id={comment.id}
+                        phx-target={@myself}
+                        @click="open = false"
+                        class="w-full text-left px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200 rounded-t-lg"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        @click="showDeleteCommentConfirm = true; open = false"
+                        class="w-full text-left px-3 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors duration-200 rounded-b-lg"
+                      >
+                        Delete
                       </button>
                     <% end %>
                   </div>
-                  <p class="text-sm text-gray-700 dark:text-gray-300 mt-1 ml-9 leading-relaxed">
-                    <%= reply.content %>
-                  </p>
-
-                  <div
-                    x-show="showDeleteReplyConfirm"
-                    x-transition:enter="transition ease-out duration-300"
-                    x-transition:enter-start="opacity-0"
-                    x-transition:enter-end="opacity-100"
-                    x-transition:leave="transition ease-in duration-200"
-                    x-transition:leave-start="opacity-100"
-                    x-transition:leave-end="opacity-0"
-                    class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
-                    style="display: none;"
-                  >
-                    <div
-                      x-show="showDeleteReplyConfirm"
-                      x-transition:enter="transition ease-out duration-300"
-                      x-transition:enter-start="opacity-0 scale-95"
-                      x-transition:enter-end="opacity-100 scale-100"
-                      x-transition:leave="transition ease-in duration-200"
-                      x-transition:leave-start="opacity-100 scale-100"
-                      x-transition:leave-end="opacity-0 scale-95"
-                      class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-8 max-w-md mx-4"
-                    >
-                      <div class="text-center">
-                        <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-red-100 dark:bg-red-900/20 mb-6">
-                          <svg class="h-8 w-8 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                          </svg>
-                        </div>
-                        <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-3">Delete Reply?</h3>
-                        <p class="text-gray-600 dark:text-gray-400 mb-8 leading-relaxed">
-                          Are you sure you want to delete this reply? This action cannot be undone.
-                        </p>
-                        <div class="flex space-x-4 justify-center">
-                          <button
-                            @click="showDeleteReplyConfirm = false"
-                            class="px-6 py-3 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 font-semibold rounded-xl transition-colors duration-200"
-                          >
-                            Cancel
-                          </button>
-                          <button
-                            phx-click="delete-reply"
-                            phx-value-reply-id={reply.id}
-                            phx-value-comment-id={comment.id}
-                            phx-target={@myself}
-                            @click="showDeleteReplyConfirm = false"
-                            class="px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-xl transition-colors duration-200 shadow-lg hover:shadow-xl"
-                          >
-                            Delete Reply
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
                 </div>
-              <% end %>
-            </div>
+              </div>
 
-            <%= if @reply_comment and @replying_to_comment_id == comment.id do %>
-              <div class="mt-4 ml-6 p-3 bg-white dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600 transition-all duration-300">
-                <div class="flex items-start space-x-3">
-                  <div class="relative group flex-shrink-0">
-                    <div class="absolute inset-0 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full blur-sm opacity-20 group-hover:opacity-40 animate-pulse transition-opacity duration-300"></div>
-                    <div class="relative h-7 w-7 rounded-full overflow-hidden border-2 border-blue-200 dark:border-blue-600 shadow-sm ring-2 ring-indigo-100/50 dark:ring-purple-900/30 bg-gradient-to-br from-indigo-100 to-purple-100 dark:from-indigo-900/20 dark:to-purple-900/20">
-                      <%= if get_user_avatar(@current_user.username) != "/images/default-avatar.png" do %>
-                        <img
-                          src={get_user_avatar(@current_user.username)}
-                          class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
-                          alt={"#{@current_user.username}'s avatar"}
-                          onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
-                        />
-                        <div class="absolute inset-0 hidden items-center justify-center bg-gradient-to-br from-indigo-500 to-purple-600 text-white text-xs font-bold">
-                          <%= String.first(@current_user.username || "U") |> String.upcase() %>
-                        </div>
-                      <% else %>
-                        <div class="h-full w-full flex items-center justify-center bg-gradient-to-br from-indigo-500 to-purple-600 text-white text-xs font-bold group-hover:from-indigo-600 group-hover:to-purple-700 transition-all duration-300">
-                          <%= String.first(@current_user.username || "U") |> String.upcase() %>
-                        </div>
-                      <% end %>
-                    </div>
-                  </div>
-
+              <%= if @editing_comment && @editing_comment_id == to_string(comment.id) do %>
+                <div class="mt-2">
                   <.form
                     :let={f}
-                    for={@changeset}
-                    phx-submit="reply_comment_content"
+                    for={@update_comment_changeset}
+                    phx-blur="validate-update-comment"
                     phx-target={@myself}
+                    phx-submit="update-comment"
                     as={:comment}
-                    class="flex-1 space-y-3"
+                    class="space-y-3"
                   >
-                    <%= hidden_input(f, :comment_id, value: comment.id) %>
+                    <%= hidden_input(f, :id, value: comment.id) %>
                     <%= text_input(f, :content,
-                      class: "w-full border border-gray-300 dark:border-gray-600 rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-800 dark:text-white placeholder-gray-500 dark:placeholder-gray-400",
-                      placeholder: "Write a reply...",
-                      required: true,
-                      autofocus: true) %>
+                      value: comment.content,
+                      class: "w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white",
+                      placeholder: "Edit your comment",
+                      required: true
+                    ) %>
                     <div class="flex justify-end space-x-2">
-                      <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 disabled:opacity-50" phx-disable-with="Replying...">
-                        Reply
+                      <button
+                        type="submit"
+                        class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200"
+                      >
+                        Save
                       </button>
-                      <button type="button" phx-click="cancel-comment-reply" phx-target={@myself}
-                        class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200">
+                      <button
+                        type="button"
+                        phx-click="cancel-comment-edit"
+                        phx-target={@myself}
+                        class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200"
+                      >
                         Cancel
                       </button>
                     </div>
                   </.form>
                 </div>
-              </div>
-            <% end %>
-          </div>
-        </div>
+              <% else %>
+                <div class="mt-1 text-sm text-gray-800 dark:text-gray-200 leading-relaxed">
+                  <%= comment.content %>
+                </div>
+              <% end %>
 
-        <div
-          x-show="showDeleteCommentConfirm"
-          x-transition:enter="transition ease-out duration-300"
-          x-transition:enter-start="opacity-0"
-          x-transition:enter-end="opacity-100"
-          x-transition:leave="transition ease-in duration-200"
-          x-transition:leave-start="opacity-100"
-          x-transition:leave-end="opacity-0"
-          class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
-          style="display: none;"
-        >
+              <div class="flex items-center space-x-4 mt-3">
+                <button
+                  phx-click={comment.like_comment_event}
+                  phx-value-comment-id={comment.id}
+                  phx-target={@myself}
+                  class="flex items-center space-x-1 px-2 py-1 rounded-lg hover:bg-white dark:hover:bg-gray-700 transition-all duration-200 group"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class={"h-4 w-4 #{comment_like_color(@current_user.id, comment.id)} group-hover:text-red-500 transition-colors duration-200"}
+                    viewBox="0 0 24 24"
+                    fill={
+                      if comment.like_comment_event == "unlike-comment",
+                        do: "currentColor",
+                        else: "none"
+                    }
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+                    />
+                  </svg>
+                  <span class="text-xs font-medium text-gray-600 dark:text-gray-400 group-hover:text-red-500 transition-colors duration-200">
+                    Like
+                  </span>
+                </button>
+
+                <button
+                  phx-click="reply_comment"
+                  phx-value-comment-id={comment.id}
+                  phx-target={@myself}
+                  class="flex items-center space-x-1 px-2 py-1 rounded-lg hover:bg-white dark:hover:bg-gray-700 transition-all duration-200 group"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-4 w-4 text-gray-600 dark:text-gray-400 group-hover:text-blue-500 transition-colors duration-200"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+                  </svg>
+                  <span class="text-xs font-medium text-gray-600 dark:text-gray-400 group-hover:text-blue-500 transition-colors duration-200">
+                    Reply
+                  </span>
+                </button>
+              </div>
+
+              <div class="mt-3 space-y-3">
+                <%= for reply <- comment.replies do %>
+                  <div
+                    x-data="{ showDeleteReplyConfirm: false }"
+                    x-on:click.outside="showDeleteReplyConfirm = false"
+                    class="ml-6 p-3 bg-white dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600 transition-all duration-300 hover:shadow-md"
+                  >
+                    <div class="flex items-start justify-between">
+                      <div class="flex items-center space-x-2">
+                        <% reply_user = Account.Users.get_user_by_id(reply.user_id) %>
+
+                        <div class="relative group flex-shrink-0">
+                          <div class="absolute inset-0 bg-gradient-to-br from-green-500 to-blue-600 rounded-full blur-sm opacity-20 group-hover:opacity-40 animate-pulse transition-opacity duration-300"></div>
+                          <div class="relative h-7 w-7 rounded-full overflow-hidden border-2 border-gray-200 dark:border-gray-600 shadow-sm ring-2 ring-green-100/50 dark:ring-blue-900/30 bg-gradient-to-br from-green-100 to-blue-100 dark:from-green-900/20 dark:to-blue-900/20">
+                            <%= if get_user_avatar(reply_user.username) != "/images/default-avatar.png" do %>
+                              <img
+                                src={get_user_avatar(reply_user.username)}
+                                class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
+                                alt={"#{reply_user.username}'s avatar"}
+                                onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+                              />
+                              <div class="absolute inset-0 hidden items-center justify-center bg-gradient-to-br from-green-500 to-blue-600 text-white text-xs font-bold">
+                                <%= String.first(reply_user.username || "U") |> String.upcase() %>
+                              </div>
+                            <% else %>
+                              <div class="h-full w-full flex items-center justify-center bg-gradient-to-br from-green-500 to-blue-600 text-white text-xs font-bold group-hover:from-green-600 group-hover:to-blue-700 transition-all duration-300">
+                                <%= String.first(reply_user.username || "U") |> String.upcase() %>
+                              </div>
+                            <% end %>
+                          </div>
+                        </div>
+
+                        <span
+                          class="text-sm font-semibold text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200 cursor-pointer"
+                          phx-click="view_profile"
+                          phx-value-username={reply_user.username}
+                          phx-target={@myself}
+                          title={"View #{reply_user.username}'s profile"}
+                        >
+                          <%= reply_user.username %>
+                        </span>
+                        <%= if reply_user.verified do %>
+                          <img
+                            alt="verified user"
+                            src={Routes.static_path(@socket, "/images/verified.png")}
+                            class="h-3 w-3"
+                          />
+                        <% end %>
+                      </div>
+
+                      <%= if reply.user_id == @current_user.id do %>
+                        <button
+                          @click="showDeleteReplyConfirm = true"
+                          class="p-1 rounded-full text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all duration-200 group"
+                          title="Delete reply"
+                        >
+                          <svg class="h-4 w-4 transform group-hover:scale-110 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                          </svg>
+                        </button>
+                      <% end %>
+                    </div>
+                    <p class="text-sm text-gray-700 dark:text-gray-300 mt-1 ml-9 leading-relaxed">
+                      <%= reply.content %>
+                    </p>
+
+                    <div
+                      x-show="showDeleteReplyConfirm"
+                      x-transition:enter="transition ease-out duration-300"
+                      x-transition:enter-start="opacity-0"
+                      x-transition:enter-end="opacity-100"
+                      x-transition:leave="transition ease-in duration-200"
+                      x-transition:leave-start="opacity-100"
+                      x-transition:leave-end="opacity-0"
+                      class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+                      style="display: none;"
+                    >
+                      <div
+                        x-show="showDeleteReplyConfirm"
+                        x-transition:enter="transition ease-out duration-300"
+                        x-transition:enter-start="opacity-0 scale-95"
+                        x-transition:enter-end="opacity-100 scale-100"
+                        x-transition:leave="transition ease-in duration-200"
+                        x-transition:leave-start="opacity-100 scale-100"
+                        x-transition:leave-end="opacity-0 scale-95"
+                        class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-8 max-w-md mx-4"
+                      >
+                        <div class="text-center">
+                          <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-red-100 dark:bg-red-900/20 mb-6">
+                            <svg class="h-8 w-8 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                            </svg>
+                          </div>
+                          <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-3">Delete Reply?</h3>
+                          <p class="text-gray-600 dark:text-gray-400 mb-8 leading-relaxed">
+                            Are you sure you want to delete this reply? This action cannot be undone.
+                          </p>
+                          <div class="flex space-x-4 justify-center">
+                            <button
+                              @click="showDeleteReplyConfirm = false"
+                              class="px-6 py-3 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 font-semibold rounded-xl transition-colors duration-200"
+                            >
+                              Cancel
+                            </button>
+                            <button
+                              phx-click="delete-reply"
+                              phx-value-reply-id={reply.id}
+                              phx-value-comment-id={comment.id}
+                              phx-target={@myself}
+                              @click="showDeleteReplyConfirm = false"
+                              class="px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-xl transition-colors duration-200 shadow-lg hover:shadow-xl"
+                            >
+                              Delete Reply
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                <% end %>
+              </div>
+
+              <%= if @reply_comment and @replying_to_comment_id == comment.id do %>
+                <div class="mt-4 ml-6 p-3 bg-white dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600 transition-all duration-300">
+                  <div class="flex items-start space-x-3">
+                    <div class="relative group flex-shrink-0">
+                      <div class="absolute inset-0 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full blur-sm opacity-20 group-hover:opacity-40 animate-pulse transition-opacity duration-300"></div>
+                      <div class="relative h-7 w-7 rounded-full overflow-hidden border-2 border-blue-200 dark:border-blue-600 shadow-sm ring-2 ring-indigo-100/50 dark:ring-purple-900/30 bg-gradient-to-br from-indigo-100 to-purple-100 dark:from-indigo-900/20 dark:to-purple-900/20">
+                        <%= if get_user_avatar(@current_user.username) != "/images/default-avatar.png" do %>
+                          <img
+                            src={get_user_avatar(@current_user.username)}
+                            class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
+                            alt={"#{@current_user.username}'s avatar"}
+                            onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+                          />
+                          <div class="absolute inset-0 hidden items-center justify-center bg-gradient-to-br from-indigo-500 to-purple-600 text-white text-xs font-bold">
+                            <%= String.first(@current_user.username || "U") |> String.upcase() %>
+                          </div>
+                        <% else %>
+                          <div class="h-full w-full flex items-center justify-center bg-gradient-to-br from-indigo-500 to-purple-600 text-white text-xs font-bold group-hover:from-indigo-600 group-hover:to-purple-700 transition-all duration-300">
+                            <%= String.first(@current_user.username || "U") |> String.upcase() %>
+                          </div>
+                        <% end %>
+                      </div>
+                    </div>
+
+                    <.form
+                      :let={f}
+                      for={@changeset}
+                      phx-submit="reply_comment_content"
+                      phx-target={@myself}
+                      as={:comment}
+                      class="flex-1 space-y-3"
+                    >
+                      <%= hidden_input(f, :comment_id, value: comment.id) %>
+                      <%= text_input(f, :content,
+                        class: "w-full border border-gray-300 dark:border-gray-600 rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-800 dark:text-white placeholder-gray-500 dark:placeholder-gray-400",
+                        placeholder: "Write a reply...",
+                        required: true,
+                        autofocus: true) %>
+                      <div class="flex justify-end space-x-2">
+                        <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 disabled:opacity-50" phx-disable-with="Replying...">
+                          Reply
+                        </button>
+                        <button type="button" phx-click="cancel-comment-reply" phx-target={@myself}
+                          class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200">
+                          Cancel
+                        </button>
+                      </div>
+                    </.form>
+                  </div>
+                </div>
+              <% end %>
+            </div>
+          </div>
+
           <div
             x-show="showDeleteCommentConfirm"
             x-transition:enter="transition ease-out duration-300"
-            x-transition:enter-start="opacity-0 scale-95"
-            x-transition:enter-end="opacity-100 scale-100"
+            x-transition:enter-start="opacity-0"
+            x-transition:enter-end="opacity-100"
             x-transition:leave="transition ease-in duration-200"
-            x-transition:leave-start="opacity-100 scale-100"
-            x-transition:leave-end="opacity-0 scale-95"
-            class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-8 max-w-md mx-4"
+            x-transition:leave-start="opacity-100"
+            x-transition:leave-end="opacity-0"
+            class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+            style="display: none;"
           >
-            <div class="text-center">
-              <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-red-100 dark:bg-red-900/20 mb-6">
-                <svg class="h-8 w-8 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
-                </svg>
-              </div>
-              <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-3">Delete Comment?</h3>
-              <p class="text-gray-600 dark:text-gray-400 mb-8 leading-relaxed">
-                Are you sure you want to delete this comment? This action cannot be undone and will also delete all replies to this comment.
-              </p>
-              <div class="flex space-x-4 justify-center">
-                <button
-                  @click="showDeleteCommentConfirm = false"
-                  class="px-6 py-3 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 font-semibold rounded-xl transition-colors duration-200"
-                >
-                  Cancel
-                </button>
-                <button
-                  phx-click="delete-comment"
-                  phx-value-comment-id={comment.id}
-                  phx-value-post-id={comment.post_id}
-                  phx-target={@myself}
-                  @click="showDeleteCommentConfirm = false"
-                  class="px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-xl transition-colors duration-200 shadow-lg hover:shadow-xl"
-                >
-                  Delete Comment
-                </button>
+            <div
+              x-show="showDeleteCommentConfirm"
+              x-transition:enter="transition ease-out duration-300"
+              x-transition:enter-start="opacity-0 scale-95"
+              x-transition:enter-end="opacity-100 scale-100"
+              x-transition:leave="transition ease-in duration-200"
+              x-transition:leave-start="opacity-100 scale-100"
+              x-transition:leave-end="opacity-0 scale-95"
+              class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-8 max-w-md mx-4"
+            >
+              <div class="text-center">
+                <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-red-100 dark:bg-red-900/20 mb-6">
+                  <svg class="h-8 w-8 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+                  </svg>
+                </div>
+                <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-3">Delete Comment?</h3>
+                <p class="text-gray-600 dark:text-gray-400 mb-8 leading-relaxed">
+                  Are you sure you want to delete this comment? This action cannot be undone and will also delete all replies to this comment.
+                </p>
+                <div class="flex space-x-4 justify-center">
+                  <button
+                    @click="showDeleteCommentConfirm = false"
+                    class="px-6 py-3 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 font-semibold rounded-xl transition-colors duration-200"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    phx-click="delete-comment"
+                    phx-value-comment-id={comment.id}
+                    phx-value-post-id={comment.post_id}
+                    phx-target={@myself}
+                    @click="showDeleteCommentConfirm = false"
+                    class="px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-xl transition-colors duration-200 shadow-lg hover:shadow-xl"
+                  >
+                    Delete Comment
+                  </button>
+                </div>
               </div>
             </div>
+          </div>
+        </div>
+      <% end %>
+    </div>
+
+    <%= if @report_action or @like_action or assigns[:show_likes_modal] do %>
+      <div class="fixed inset-0 z-50 overflow-y-auto">
+        <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+          <div
+            class="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75"
+            phx-click="close_likes_modal"
+            phx-target={@myself}
+          ></div>
+
+          <span class="hidden sm:inline-block sm:align-middle sm:h-screen">&#8203;</span>
+
+          <div class="inline-block align-bottom bg-white dark:bg-gray-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+
+            <%= if @report_action do %>
+              <div class="bg-white dark:bg-gray-800 px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                <div class="sm:flex sm:items-start">
+                  <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 dark:bg-red-900 sm:mx-0 sm:h-10 sm:w-10">
+                    <svg class="h-6 w-6 text-red-600 dark:text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                    </svg>
+                  </div>
+                  <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
+                    <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white">Report Post</h3>
+                    <div class="mt-2">
+                      <.live_component
+                        module={MazarynWeb.HomeLive.ReportPostsComponent}
+                        id={@post.id}
+                        current_user={@current_user}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            <% end %>
+
+            <%= if assigns[:show_likes_modal] do %>
+              <div class="bg-white dark:bg-gray-800 px-4 pt-5 pb-4 sm:p-6">
+                <div class="flex items-center justify-between mb-4">
+                  <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white">
+                    Liked by
+                  </h3>
+                  <button
+                    phx-click="close_likes_modal"
+                    phx-target={@myself}
+                    class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+                  >
+                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+
+                <div class="max-h-96 overflow-y-auto">
+                  <%= if assigns[:likes_loading] do %>
+                    <div class="text-center py-12">
+                      <div class="relative">
+                        <div class="animate-spin rounded-full h-12 w-12 border-4 border-gray-200 dark:border-gray-700 border-t-blue-600 mx-auto"></div>
+                        <div class="absolute inset-0 flex items-center justify-center">
+                          <svg class="h-6 w-6 text-blue-600 animate-pulse" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                          </svg>
+                        </div>
+                      </div>
+                      <p class="text-gray-600 dark:text-gray-300 mt-4 font-medium">Loading likes...</p>
+                      <p class="text-gray-400 dark:text-gray-500 text-sm mt-1">Finding who loved this post</p>
+                    </div>
+                  <% else %>
+                    <%= if assigns[:liked_users] && length(assigns[:liked_users] || []) > 0 do %>
+                      <div class="divide-y divide-gray-100 dark:divide-gray-700">
+                        <%= for user <- @liked_users do %>
+                          <div class="group p-4 hover:bg-gradient-to-r hover:from-gray-50 hover:to-blue-50 dark:hover:from-gray-800 dark:hover:to-blue-900/20 transition-all duration-200">
+                            <div class="flex items-center justify-between">
+
+                              <div class="flex items-center space-x-4 flex-1 min-w-0">
+
+                                <div class="relative group/avatar">
+                                  <div class="absolute inset-0 bg-gradient-to-br from-pink-500 to-violet-600 rounded-full blur-md opacity-20 group-hover/avatar:opacity-40 animate-pulse transition-opacity duration-300"></div>
+                                  <div class="relative h-12 w-12 rounded-full overflow-hidden border-3 border-white dark:border-gray-800 shadow-md ring-2 ring-pink-100/50 dark:ring-violet-900/30 bg-gradient-to-br from-pink-100 to-violet-100 dark:from-pink-900/20 dark:to-violet-900/20">
+                                    <%= if get_user_avatar(user.username) != "/images/default-avatar.png" do %>
+                                      <img
+                                        src={get_user_avatar(user.username)}
+                                        class="h-full w-full object-cover transition-transform duration-300 group-hover/avatar:scale-110"
+                                        alt={"#{user.username}'s avatar"}
+                                        onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+                                      />
+                                      <div class="absolute inset-0 hidden items-center justify-center bg-gradient-to-br from-pink-500 to-violet-600 text-white text-lg font-bold">
+                                        <%= String.first(user.username || "U") |> String.upcase() %>
+                                      </div>
+                                    <% else %>
+                                      <div class="h-full w-full flex items-center justify-center bg-gradient-to-br from-pink-500 to-violet-600 text-white text-lg font-bold group-hover/avatar:from-pink-600 group-hover/avatar:to-violet-700 transition-all duration-300">
+                                        <%= String.first(user.username || "U") |> String.upcase() %>
+                                      </div>
+                                    <% end %>
+                                  </div>
+                                  <div class="absolute -bottom-1 -right-1 w-4 h-4 bg-green-400 border-2 border-white dark:border-gray-800 rounded-full"></div>
+                                </div>
+
+
+                                <div class="flex-1 min-w-0">
+                                  <div class="flex items-center space-x-2 mb-1">
+                                    <h4 class="text-base font-semibold text-gray-900 dark:text-white truncate group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                                      <%= user.username %>
+                                    </h4>
+                                    <%= if user.verified do %>
+                                      <div class="relative">
+                                        <img
+                                          alt="verified user"
+                                          src={Routes.static_path(@socket, "/images/verified.png")}
+                                          class="h-5 w-5"
+                                        />
+                                        <div class="absolute inset-0 bg-blue-500 rounded-full opacity-20 animate-ping"></div>
+                                      </div>
+                                    <% end %>
+                                    <%= if user.level && user.level > 1 do %>
+                                      <span class="inline-flex items-center px-2 py-1 text-xs font-medium bg-gradient-to-r from-purple-100 to-pink-100 dark:from-purple-900/30 dark:to-pink-900/30 text-purple-800 dark:text-purple-200 rounded-full">
+                                        Level <%= user.level %>
+                                      </span>
+                                    <% end %>
+                                  </div>
+
+                                  <%= if Map.get(user, :bio) do %>
+                                    <p class="text-sm text-gray-600 dark:text-gray-400 truncate leading-relaxed">
+                                      <%= user.bio %>
+                                    </p>
+                                  <% else %>
+                                    <p class="text-sm text-gray-500 dark:text-gray-500 italic">
+                                      No bio available
+                                    </p>
+                                  <% end %>
+
+
+                                  <div class="flex items-center space-x-4 mt-2 text-xs text-gray-500 dark:text-gray-400">
+                                    <span class="flex items-center space-x-1">
+                                      <svg class="h-3 w-3" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.94-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
+                                      </svg>
+                                      <span>Active user</span>
+                                    </span>
+                                    <%= if user.country do %>
+                                      <span class="flex items-center space-x-1">
+                                        <svg class="h-3 w-3" fill="currentColor" viewBox="0 0 24 24">
+                                          <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+                                        </svg>
+                                        <span><%= user.country %></span>
+                                      </span>
+                                    <% end %>
+                                  </div>
+                                </div>
+                              </div>
+
+
+                              <div class="flex items-center space-x-2 ml-4">
+
+                                <button
+                                  phx-click="view_profile"
+                                  phx-value-username={user.username}
+                                  phx-target={@myself}
+                                  class="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 hover:border-blue-300 dark:hover:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 group/btn"
+                                  title={"View #{user.username}'s profile"}
+                                >
+                                  <svg class="h-4 w-4 mr-2 text-gray-500 dark:text-gray-400 group-hover/btn:text-blue-500 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                  </svg>
+                                  <span class="group-hover/btn:text-blue-600 dark:group-hover/btn:text-blue-400 transition-colors">
+                                    View Profile
+                                  </span>
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        <% end %>
+                      </div>
+                    <% else %>
+                      <div class="text-center py-12">
+                        <div class="mx-auto h-24 w-24 text-gray-300 dark:text-gray-600 mb-4">
+                          <svg fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                          </svg>
+                        </div>
+                        <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">No likes yet</h3>
+                        <p class="text-gray-500 dark:text-gray-400">Be the first to show some love!</p>
+                      </div>
+                    <% end %>
+                  <% end %>
+                </div>
+              </div>
+            <% end %>
+
+            <%= if @like_action do %>
+              <div class="bg-white dark:bg-gray-800 px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                <.live_component
+                  module={MazarynWeb.HomeLive.ShowLikersComponent}
+                  locale={@locale}
+                  id={@post.id}
+                />
+              </div>
+            <% end %>
+
           </div>
         </div>
       </div>
     <% end %>
-  </div>
 
-  <%= if @report_action or @like_action or assigns[:show_likes_modal] do %>
-    <div class="fixed inset-0 z-50 overflow-y-auto">
-      <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-        <div
-          class="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75"
-          phx-click="close_likes_modal"
-          phx-target={@myself}
-        ></div>
+    <%= if @show_repost_modal do %>
+      <div class="fixed inset-0 z-50 overflow-y-auto">
+        <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+          <div
+            class="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75"
+            phx-click="close_repost_modal"
+            phx-target={@myself}
+          ></div>
 
-        <span class="hidden sm:inline-block sm:align-middle sm:h-screen">&#8203;</span>
+          <span class="hidden sm:inline-block sm:align-middle sm:h-screen">&#8203;</span>
 
-        <div class="inline-block align-bottom bg-white dark:bg-gray-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
-
-          <%= if @report_action do %>
-            <div class="bg-white dark:bg-gray-800 px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-              <div class="sm:flex sm:items-start">
-                <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 dark:bg-red-900 sm:mx-0 sm:h-10 sm:w-10">
-                  <svg class="h-6 w-6 text-red-600 dark:text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
-                  </svg>
-                </div>
-                <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
-                  <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white">Report Post</h3>
-                  <div class="mt-2">
-                    <.live_component
-                      module={MazarynWeb.HomeLive.ReportPostsComponent}
-                      id={@post.id}
-                      current_user={@current_user}
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-          <% end %>
-
-          <%= if assigns[:show_likes_modal] do %>
-            <div class="bg-white dark:bg-gray-800 px-4 pt-5 pb-4 sm:p-6">
+          <div class="inline-block align-bottom bg-white dark:bg-gray-800 rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+            <div class="bg-white dark:bg-gray-800 px-6 pt-5 pb-4">
               <div class="flex items-center justify-between mb-4">
-                <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white">
-                  Liked by
+                <h3 class="text-xl font-bold text-gray-900 dark:text-white">
+                  Share this post
                 </h3>
                 <button
-                  phx-click="close_likes_modal"
+                  phx-click="close_repost_modal"
                   phx-target={@myself}
-                  class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+                  class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors"
                 >
                   <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -1036,154 +1409,75 @@
                 </button>
               </div>
 
-              <div class="max-h-96 overflow-y-auto">
-                <%= if assigns[:likes_loading] do %>
-                  <div class="text-center py-12">
-                    <div class="relative">
-                      <div class="animate-spin rounded-full h-12 w-12 border-4 border-gray-200 dark:border-gray-700 border-t-blue-600 mx-auto"></div>
-                      <div class="absolute inset-0 flex items-center justify-center">
-                        <svg class="h-6 w-6 text-blue-600 animate-pulse" fill="currentColor" viewBox="0 0 24 24">
-                          <path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                        </svg>
-                      </div>
+              <div class="space-y-4">
+                <button
+                  phx-click="simple_repost"
+                  phx-value-post-id={@reposting_post_id}
+                  phx-target={@myself}
+                  class="w-full flex items-center space-x-4 p-4 rounded-xl border-2 border-gray-200 dark:border-gray-700 hover:border-green-500 dark:hover:border-green-500 hover:bg-green-50 dark:hover:bg-green-900/10 transition-all duration-200 group"
+                >
+                  <div class="flex-shrink-0">
+                    <div class="h-12 w-12 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center group-hover:bg-green-200 dark:group-hover:bg-green-900/50 transition-colors">
+                      <svg class="h-6 w-6 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/>
+                      </svg>
                     </div>
-                    <p class="text-gray-600 dark:text-gray-300 mt-4 font-medium">Loading likes...</p>
-                    <p class="text-gray-400 dark:text-gray-500 text-sm mt-1">Finding who loved this post</p>
                   </div>
-                <% else %>
-                  <%= if assigns[:liked_users] && length(assigns[:liked_users] || []) > 0 do %>
-                    <div class="divide-y divide-gray-100 dark:divide-gray-700">
-                      <%= for user <- @liked_users do %>
-                        <div class="group p-4 hover:bg-gradient-to-r hover:from-gray-50 hover:to-blue-50 dark:hover:from-gray-800 dark:hover:to-blue-900/20 transition-all duration-200">
-                          <div class="flex items-center justify-between">
+                  <div class="flex-1 text-left">
+                    <h4 class="text-base font-semibold text-gray-900 dark:text-white group-hover:text-green-600 dark:group-hover:text-green-400 transition-colors">
+                      Quick Share
+                    </h4>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">
+                      Share this post to your followers
+                    </p>
+                  </div>
+                </button>
 
-                            <div class="flex items-center space-x-4 flex-1 min-w-0">
-
-                              <div class="relative group/avatar">
-                                <div class="absolute inset-0 bg-gradient-to-br from-pink-500 to-violet-600 rounded-full blur-md opacity-20 group-hover/avatar:opacity-40 animate-pulse transition-opacity duration-300"></div>
-                                <div class="relative h-12 w-12 rounded-full overflow-hidden border-3 border-white dark:border-gray-800 shadow-md ring-2 ring-pink-100/50 dark:ring-violet-900/30 bg-gradient-to-br from-pink-100 to-violet-100 dark:from-pink-900/20 dark:to-violet-900/20">
-                                  <%= if get_user_avatar(user.username) != "/images/default-avatar.png" do %>
-                                    <img
-                                      src={get_user_avatar(user.username)}
-                                      class="h-full w-full object-cover transition-transform duration-300 group-hover/avatar:scale-110"
-                                      alt={"#{user.username}'s avatar"}
-                                      onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
-                                    />
-                                    <div class="absolute inset-0 hidden items-center justify-center bg-gradient-to-br from-pink-500 to-violet-600 text-white text-lg font-bold">
-                                      <%= String.first(user.username || "U") |> String.upcase() %>
-                                    </div>
-                                  <% else %>
-                                    <div class="h-full w-full flex items-center justify-center bg-gradient-to-br from-pink-500 to-violet-600 text-white text-lg font-bold group-hover/avatar:from-pink-600 group-hover/avatar:to-violet-700 transition-all duration-300">
-                                      <%= String.first(user.username || "U") |> String.upcase() %>
-                                    </div>
-                                  <% end %>
-                                </div>
-                                <div class="absolute -bottom-1 -right-1 w-4 h-4 bg-green-400 border-2 border-white dark:border-gray-800 rounded-full"></div>
-                              </div>
-
-
-                              <div class="flex-1 min-w-0">
-                                <div class="flex items-center space-x-2 mb-1">
-                                  <h4 class="text-base font-semibold text-gray-900 dark:text-white truncate group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                                    <%= user.username %>
-                                  </h4>
-                                  <%= if user.verified do %>
-                                    <div class="relative">
-                                      <img
-                                        alt="verified user"
-                                        src={Routes.static_path(@socket, "/images/verified.png")}
-                                        class="h-5 w-5"
-                                      />
-                                      <div class="absolute inset-0 bg-blue-500 rounded-full opacity-20 animate-ping"></div>
-                                    </div>
-                                  <% end %>
-                                  <%= if user.level && user.level > 1 do %>
-                                    <span class="inline-flex items-center px-2 py-1 text-xs font-medium bg-gradient-to-r from-purple-100 to-pink-100 dark:from-purple-900/30 dark:to-pink-900/30 text-purple-800 dark:text-purple-200 rounded-full">
-                                      Level <%= user.level %>
-                                    </span>
-                                  <% end %>
-                                </div>
-
-                                <%= if Map.get(user, :bio) do %>
-                                  <p class="text-sm text-gray-600 dark:text-gray-400 truncate leading-relaxed">
-                                    <%= user.bio %>
-                                  </p>
-                                <% else %>
-                                  <p class="text-sm text-gray-500 dark:text-gray-500 italic">
-                                    No bio available
-                                  </p>
-                                <% end %>
-
-
-                                <div class="flex items-center space-x-4 mt-2 text-xs text-gray-500 dark:text-gray-400">
-                                  <span class="flex items-center space-x-1">
-                                    <svg class="h-3 w-3" fill="currentColor" viewBox="0 0 24 24">
-                                      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.94-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
-                                    </svg>
-                                    <span>Active user</span>
-                                  </span>
-                                  <%= if user.country do %>
-                                    <span class="flex items-center space-x-1">
-                                      <svg class="h-3 w-3" fill="currentColor" viewBox="0 0 24 24">
-                                        <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
-                                      </svg>
-                                      <span><%= user.country %></span>
-                                    </span>
-                                  <% end %>
-                                </div>
-                              </div>
-                            </div>
-
-
-                            <div class="flex items-center space-x-2 ml-4">
-
-                              <button
-                                phx-click="view_profile"
-                                phx-value-username={user.username}
-                                phx-target={@myself}
-                                class="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 hover:border-blue-300 dark:hover:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 group/btn"
-                                title={"View #{user.username}'s profile"}
-                              >
-                                <svg class="h-4 w-4 mr-2 text-gray-500 dark:text-gray-400 group-hover/btn:text-blue-500 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                                </svg>
-                                <span class="group-hover/btn:text-blue-600 dark:group-hover/btn:text-blue-400 transition-colors">
-                                  View Profile
-                                </span>
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-                      <% end %>
-                    </div>
-                  <% else %>
-                    <div class="text-center py-12">
-                      <div class="mx-auto h-24 w-24 text-gray-300 dark:text-gray-600 mb-4">
-                        <svg fill="currentColor" viewBox="0 0 24 24">
-                          <path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                <div class="p-4 rounded-xl border-2 border-gray-200 dark:border-gray-700 hover:border-blue-500 dark:hover:border-blue-500 transition-all duration-200 space-y-3">
+                  <div class="flex items-center space-x-4">
+                    <div class="flex-shrink-0">
+                      <div class="h-12 w-12 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+                        <svg class="h-6 w-6 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
                         </svg>
                       </div>
-                      <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">No likes yet</h3>
-                      <p class="text-gray-500 dark:text-gray-400">Be the first to show some love!</p>
                     </div>
-                  <% end %>
-                <% end %>
+                    <div class="flex-1 text-left">
+                      <h4 class="text-base font-semibold text-gray-900 dark:text-white">
+                        Share with your thoughts
+                      </h4>
+                      <p class="text-sm text-gray-500 dark:text-gray-400">
+                        Add a comment before sharing
+                      </p>
+                    </div>
+                  </div>
+
+                  <.form
+                    :let={f}
+                    for={%{}}
+                    as={:repost}
+                    phx-change="validate_repost_comment"
+                    phx-submit="repost_with_comment_submit"
+                    phx-target={@myself}
+                  >
+                    <%= textarea(f, :comment,
+                      value: @repost_comment || "",
+                      placeholder: "Add your thoughts...",
+                      rows: "3",
+                      class: "w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 resize-none",
+                      required: true
+                    ) %>
+
+                    <%= submit("Share with comment",
+                      disabled: String.trim(@repost_comment || "") == "",
+                      class: "w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white px-6 py-3 rounded-xl font-semibold transition-colors duration-200"
+                    ) %>
+                  </.form>
+                </div>
               </div>
             </div>
-          <% end %>
-
-          <%= if @like_action do %>
-            <div class="bg-white dark:bg-gray-800 px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-              <.live_component
-                module={MazarynWeb.HomeLive.ShowLikersComponent}
-                locale={@locale}
-                id={@post.id}
-              />
-            </div>
-          <% end %>
-
+          </div>
         </div>
       </div>
-    </div>
-  <% end %>
-</div>
+    <% end %>
+  </div>

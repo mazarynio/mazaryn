@@ -1,5 +1,5 @@
 %% TODO: change id order for testing, modify later
--record(user, { id, 
+-record(user, { id,
                 p2p_node_address,
                 ipfs_key,
                 ai_user_id,
@@ -19,6 +19,7 @@
                 follower = [],
                 blocked = [],
                 saved_posts = [],
+                reposts = [],
                 other_info = [], %location, birthday
                 private = false,
                 date_created,
@@ -34,11 +35,12 @@
                 suspend = [],
                 datasets,
                 competitions,
-                data = #{} }). 
+
+                data = #{} }).
 
 -record(ipfs, {
     key_id,
-    key_type 
+    key_type
 }).
 
 -record(notif, { id,
@@ -70,30 +72,38 @@
                 report = [],
                 device_info,
                 pin_info,
-                data = #{} }). 
+
+                is_repost = false,
+                original_post_id,
+                repost_type,
+                repost_comment,
+                repost_count = 0,
+                reposted_by = [],
+
+                data = #{} }).
 
 -record(pin_info, {
-    post_id,          
+    post_id,
     pin_id,
-    user_id,          
-    pin_type,         
-    pin_name,        
-    content_cid,     
-    media_cids = [],  
+    user_id,
+    pin_type,
+    pin_name,
+    content_cid,
+    media_cids = [],
     size_bytes,
-    replication,      
-    service,         
-    pin_time,         
-    tags = [],        
-    region,           
-    expires_at,       
+    replication,
+    service,
+    pin_time,
+    tags = [],
+    region,
+    expires_at,
     status,
     tier,
     encrypted,
-    access_control,         
-    last_checked,     
-    verification_count = 0,  
-    metadata = #{}    
+    access_control,
+    last_checked,
+    verification_count = 0,
+    metadata = #{}
 }).
 
 -record(pin_params, {
@@ -131,36 +141,36 @@
     storage_limit_bytes,
     pin_count,
     pin_limit,
-    tier_level,          
+    tier_level,
     cost_per_gb,
     billing_cycle_start,
     billing_cycle_end
 }).
 
 -record(bulk_operation, {
-    batch_id,           
-    operation,         
-    timestamp,         
-    results,           
-    success_count,     
-    failure_count      
+    batch_id,
+    operation,
+    timestamp,
+    results,
+    success_count,
+    failure_count
 }).
 
 -record(scheduled_job, {
-    job_id,           
-    operation,       
-    post_id,          
-    schedule_time,    
-    options,          
-    created_at,      
-    status            
+    job_id,
+    operation,
+    post_id,
+    schedule_time,
+    options,
+    created_at,
+    status
 }).
 
 -record(rate_limiter_usage, {
-    user_id,           
-    operation,        
-    count,            
-    timestamp         
+    user_id,
+    operation,
+    count,
+    timestamp
 }).
 
 -record(pin_info_lookup, {
@@ -169,18 +179,18 @@
 }).
 
 -record(pin_health, {
-    pin_id,                 
-    last_check,                
-    status,                    
-    availability_score,        
-    geographic_distribution,   
-    retrieval_latency,         
-    replication_actual,        
-    issues,                    
-    metadata = #{}             
+    pin_id,
+    last_check,
+    status,
+    availability_score,
+    geographic_distribution,
+    retrieval_latency,
+    replication_actual,
+    issues,
+    metadata = #{}
 }).
 
--record(blog_post, {id, 
+-record(blog_post, {id,
                     content,
                     comments = [],
                     media,
@@ -203,7 +213,7 @@
 
 -record(blog_comment, {id,
                        blog_post,
-                       author, 
+                       author,
                        content,
                        date_created,
                        data = #{} }).
@@ -223,30 +233,30 @@
                 date_created,
                 data = #{} }).
 
--record(chat, {id,  
+-record(chat, {id,
                ai_chat_id,
-               user_id, 
+               user_id,
                recipient_id,
                body,
                media = [],
                bot,
                date_created,
                date_updated,
-               call_id,          
+               call_id,
                call_type,             % video | audio
                call_status,           % initiated | ringing | connected | ended | failed
                call_link,
-               call_start_time,      
-               call_end_time, 
-               timeout_ref,           % Timer reference for call timeout        
+               call_start_time,
+               call_end_time,
+               timeout_ref,           % Timer reference for call timeout
                data = #{} }).
 
 -record(presence, {user_id,
                    status = offline,
                    last_updated}).
 
--record(p2p_node, { 
-    node_id, 
+-record(p2p_node, {
+    node_id,
     address,
     peer_id,  % Constant
     date_created,
@@ -260,7 +270,7 @@
 -record(hed_wallet, { id, password, date_created, data =#{} }).
 
 -record(media, {id, ai_media_id, user_id, file, files, type,
-date_created, date_updated, report = [], data = #{}}). 
+date_created, date_updated, report = [], data = #{}}).
 -record(suspend, {
     id,
     user,
@@ -280,14 +290,14 @@ date_created, date_updated, report = [], data = #{}}).
     data = #{}
 }).
 
--record(ai_user, { 
+-record(ai_user, {
     id,
     user_id,
     interests = [],             % List of user interests (e.g., [sports, music, art])
     behavior_tags = [],         % Tags representing user behavior patterns (e.g., [active, frequent])
     interaction_history = [],       % History of interactions with other users and content (e.g., [{timestamp, interaction_type}])
     device_info = [],               % Information about devices used by the user (e.g., [{device_type, os_version}])
-    language_preferences = [],      % List of languages preferred by the user (e.g., [en, es]) 
+    language_preferences = [],      % List of languages preferred by the user (e.g., [en, es])
     active_times = [],          % Times of day when the user is most active (e.g., [{0, 6}, {6, 12}, {12, 18}, {18, 24}])
     user_segments = [],             % Segments or groups the user belongs to (e.g., [premium, beta_tester])
     ai_generated_recommendations = [], % Recommendations generated by AI (e.g., [{recommendation_id, recommendation_details}])
@@ -397,82 +407,82 @@ date_created, date_updated, report = [], data = #{}}).
     cross_platform_identity = #{}, % Linked identities across platforms
     ethical_ai_metrics = #{}, % Metrics ensuring ethical AI interactions
     neural_network_embeddings = #{},  % User embeddings for neural network models
-    
+
     nlp_features = #{
         sentiment_analysis_results => [],
         named_entity_recognition => [],
         text_classification_outputs => [],
         language_detection_scores => #{}
     },
-    
+
     computer_vision_data = #{
         facial_recognition_features => [],
         object_detection_results => [],
         image_classification_scores => #{}
     },
-    
+
     speech_recognition_data = #{
         voice_features => [],
         speaker_identification_scores => #{}
     },
-    
+
     recommender_system_data = #{
         collaborative_filtering_vectors => [],
         content_based_filtering_features => [],
         hybrid_recommendation_scores => #{}
     },
-    
+
     anomaly_detection_metrics = #{
         isolation_forest_scores => [],
         autoencoder_reconstruction_errors => []
     },
-    
+
     deep_learning_features = #{
         cnn_activations => [],
         rnn_hidden_states => [],
         transformer_attention_maps => []
     },
-    
+
     graph_neural_network_data = #{
         node_embeddings => [],
         edge_features => [],
         graph_level_representations => []
     },
-    
+
     quantum_computing_data = #{
         quantum_state_vectors => [],
         quantum_circuit_parameters => []
     },
-    
+
     multimodal_learning_data = #{
         text_image_joint_embeddings => [],
         audio_visual_fusion_features => []
     },
-    
+
     time_series_analysis = #{
         arima_model_params => [],
         lstm_predictions => [],
         prophet_forecasts => []
     },
-    
+
     natural_language_generation = #{
         gpt_model_state => [],
         language_model_perplexity_scores => []
     },
-    
+
     autonomous_agent_data = #{
         environment_state_history => [],
         policy_network_parameters => [],
         value_function_estimates => []
     },
-    
+
     privacy_preserving_ml_data = #{
         homomorphic_encryption_ciphertexts => [],
         secure_multi_party_computation_shares => []
     },
-    
+
     unsupervised_learning_clusters = [],
-    
+
     data = #{}  % For any additional custom data
 }).
 
@@ -520,105 +530,105 @@ date_created, date_updated, report = [], data = #{}}).
         text_summarization => "",
         question_answering_context => #{}
     },
-    
+
     semantic_analysis = #{
         word_embeddings => [],
         sentence_embeddings => [],
         document_embedding => []
     },
-    
+
     emotion_detection = #{
         primary_emotion => "",
         emotion_distribution => #{}
     },
-    
+
     style_analysis = #{
         writing_style => "",
         formality_score => 0.0,
         tone_analysis => #{}
     },
-    
+
     intent_classification = "",  % e.g., informative, persuasive, entertaining
-    
+
     time_series_data = #{
         engagement_over_time => [],
         sentiment_trend => []
     },
-    
+
     topic_modeling = #{
         lda_topics => [],
         topic_coherence_score => 0.0
     },
-    
+
     content_authenticity = #{
         plagiarism_score => 0.0,
         bot_generated_probability => 0.0
     },
-    
+
     multimedia_analysis = #{
         image_captioning => [],
         video_scene_detection => [],
         audio_transcription => ""
     },
-    
+
     user_interaction_patterns = #{
         time_to_first_interaction => 0,
         interaction_sequence => []
     },
-    
+
     network_effect_metrics = #{
         influence_score => 0.0,
         reach_estimation => 0
     },
-    
+
     content_moderation = #{
         toxicity_score => 0.0,
         hate_speech_probability => 0.0,
         sensitive_content_flags => []
     },
-    
+
     cross_lingual_features = #{
         translation_quality_score => 0.0,
         multilingual_sentiment => #{}
     },
-    
+
     contextual_relevance = #{
         current_events_relevance => 0.0,
         user_interest_alignment => 0.0
     },
-    
+
     content_structure_analysis = #{
         readability_metrics => #{},
         section_breakdown => [],
         argument_structure => []
     },
-    
+
     trend_analysis = #{
         trending_score => 0.0,
         trend_lifecycle_stage => ""
     },
-    
+
     content_recommendation_features = #{
         collaborative_filtering_vector => [],
         content_based_features => #{}
     },
-    
+
     anomaly_detection = #{
         content_anomaly_score => 0.0,
         engagement_anomaly_score => 0.0
     },
-    
+
     causal_inference_data = #{
         treatment_effect_estimates => #{}
     },
-    
+
     federated_learning_contributions = #{},
-    
+
     explainable_ai_outputs = #{
         feature_importance => [],
         decision_path => ""
     },
-    
+
     data = #{}  % For any additional custom data
 }).
 
@@ -675,78 +685,78 @@ date_created, date_updated, report = [], data = #{}}).
     last_updated,  % Timestamp of last AI analysis update
     model_version, % Version of AI model used for analysis
     conversation_graph = #{},  % Graph representation of the conversation structure
-    
+
     turn_taking_analysis = #{
         average_response_time => 0.0,
         turn_distribution => #{}
     },
-    
+
     contextual_relevance = #{
         user_profile_alignment => 0.0,
         conversation_history_relevance => 0.0
     },
-    
+
     conversation_dynamics = #{
         power_dynamics_score => 0.0,
         collaboration_score => 0.0
     },
-    
+
     multi_modal_integration = #{
         text_image_coherence => 0.0,
         text_audio_alignment => 0.0
     },
-    
+
     conversation_summarization = #{
         key_points => [],
         action_items => []
     },
-    
+
     language_style_matching = 0.0,  % Measure of linguistic style synchronization
-    
+
     conversation_trajectory_prediction = #{
         expected_duration => 0,
         predicted_outcome => ""
     },
-    
+
     user_engagement_metrics = #{
         response_rate => 0.0,
         average_message_length => 0
     },
-    
+
     content_depth_analysis = #{
         superficiality_score => 0.0,
         information_density => 0.0
     },
-    
+
     conversational_ai_performance = #{
         human_likeness_score => 0.0,
         turing_test_pass_probability => 0.0
     },
-    
+
     real_time_emotion_tracking = [],  % List of emotion changes throughout the conversation
-    
+
     conversation_privacy_score = 0.0,  % Overall privacy risk assessment
-    
+
     multiparty_conversation_metrics = #{  % For group chats
         participant_balance => 0.0,
         conversation_dominance_distribution => #{}
     },
-    
+
     time_sensitivity_analysis = #{
         urgency_trend => 0.0,
         time_critical_topics => []
     },
-    
+
     conversation_clustering = #{
         cluster_id => "",
         cluster_similarity_score => 0.0
     },
-    
+
     persuasion_detection = #{
         persuasion_techniques => [],
         persuasion_effectiveness_score => 0.0
     },
-    
+
     data = #{}  % For any additional custom data
 }).
 
@@ -754,14 +764,14 @@ date_created, date_updated, report = [], data = #{}}).
     id,
     media_id,     % Reference back to the main media record
     media_type,   % 'video' or 'audio'
-    
+
     % General AI analysis
     content_classification = [],  % List of content categories (e.g., [landscape, portrait, meme])
     nsfw_score = 0.0,             % Likelihood of Not Safe For Work content (0.0 to 1.0)
     aesthetic_score = 0.0,        % AI-judged aesthetic quality (0.0 to 1.0)
     originality_score = 0.0,      % Measure of content originality (0.0 to 1.0)
     engagement_prediction = 0.0,  % Predicted user engagement level (0.0 to 1.0)
-    
+
     % Image-specific analysis (for image files)
     image_analysis = #{
         object_detection => [],     % List of detected objects with bounding boxes
@@ -775,7 +785,7 @@ date_created, date_updated, report = [], data = #{}}).
         image_sentiment => 0.0,     % Overall sentiment conveyed by the image (-1.0 to 1.0)
         composition_analysis => #{} % Analysis of image composition and framing
     },
-    
+
     % Video-specific analysis (for video files)
     video_analysis = #{
         scene_segmentation => [],   % Timestamps of different scenes in the video
@@ -793,7 +803,7 @@ date_created, date_updated, report = [], data = #{}}).
         on_screen_text_recognition => [], % Text appearing in the video
         celebrity_recognition => [] % Recognized celebrities or public figures (if applicable)
     },
-    
+
     % Audio analysis (for both video and audio files)
     audio_analysis = #{
         speech_to_text => "",       % Transcribed speech from the audio
@@ -813,44 +823,44 @@ date_created, date_updated, report = [], data = #{}}).
         mood_classification => [], % Mood or emotion conveyed by the audio
         audio_fingerprinting => "" % Unique audio fingerprint for identification
     },
-    
+
     % Deep learning features
     feature_embeddings = [],       % High-dimensional feature representation
     similarity_vectors = [],       % Vectors for content-based similarity search
     style_transfer_compatibility = 0.0, % Suitability for AI style transfer (0.0 to 1.0)
-    
+
     % Machine learning predictions
     popularity_prediction = 0.0,   % Predicted popularity score (0.0 to 1.0)
     recommended_tags = [],         % AI-suggested tags for the media
     content_moderation_flags = [], % Potential issues flagged by AI moderation
-    
+
     % Neural network analysis
     neural_style_classification = "", % Style classification using neural networks
     generative_ai_prompts = [],    % Suggested prompts for generative AI based on this media
-    
+
     % AI-enhanced metadata
     ai_generated_caption = "",     % AI-generated description of the media
     semantic_segmentation = #{},   % Pixel-wise classification of image contents
     depth_estimation = #{},        % Estimated depth map for images or video frames
     three_d_reconstruction_potential = 0.0, % Suitability for 3D reconstruction (0.0 to 1.0)
-    
+
     % Technical analysis
     file_integrity_check = "",     % Result of AI-powered file integrity analysis
     compression_artifacts_detection = 0.0, % Detected level of compression artifacts (0.0 to 1.0)
     metadata_consistency_score = 0.0, % Consistency of metadata with content (0.0 to 1.0)
-    
+
     % Contextual analysis
     contextual_relevance_score = 0.0, % Relevance to current trends or events (0.0 to 1.0)
     cross_cultural_interpretation = #{}, % How the content might be perceived in different cultures
-    
+
     % Accessibility features
     accessibility_score = 0.0,     % Overall accessibility of the media (0.0 to 1.0)
     alt_text_suggestion = "",      % AI-generated alternative text for images
-    
+
     % Legal and ethical analysis
     copyright_infringement_probability = 0.0, % Likelihood of copyright issues (0.0 to 1.0)
     ethical_concerns = [],         % Potential ethical issues detected by AI
-    
+
     model_version,                 % Version of AI model(s) used for analysis
     last_updated,                  % Timestamp of last AI analysis update
     confidence_scores = #{},       % Confidence levels for various AI predictions
@@ -859,53 +869,53 @@ date_created, date_updated, report = [], data = #{}}).
         ar_compatibility_score => 0.0,
         suggested_ar_interactions => []
     },
-    
+
     virtual_reality_analysis = #{
         vr_immersion_potential => 0.0,
         media_360_degree_view_quality => 0.0
     },
-    
+
     holographic_display_suitability = 0.0,
-    
+
     multi_modal_fusion_analysis = #{
         text_image_coherence => 0.0,
         audio_visual_synchronization => 0.0
     },
-    
+
     attention_heatmap = #{},  % Areas of the media likely to attract viewer attention
-    
+
     content_repurposing_suggestions = [],  % AI suggestions for reusing the content
-    
+
     trend_alignment_score = 0.0,  % How well the content aligns with current trends
-    
+
     ai_enhancement_suggestions = #{
         color_correction => [],
         audio_enhancement => [],
         video_stabilization => 0.0
     },
-    
+
     deepfake_detection_score = 0.0,  % Probability of the media being artificially generated
-    
+
     multi_language_captioning = #{},  % AI-generated captions in multiple languages
-    
+
     interactive_element_detection = [],  % Potential points of interactivity in the media
-    
+
     semantic_search_keywords = [],  % AI-generated keywords for semantic search
-    
+
     cross_platform_optimization_suggestions = #{},  % Suggestions for different social platforms
-    
+
     content_authenticity_verification = #{
         blockchain_hash => "",
         digital_signature_verification => false
     },
-    
+
     real_time_processing_metrics = #{
         streaming_compatibility => 0.0,
         real_time_filter_suggestions => []
     },
-    
+
     federated_learning_contributions = #{},  % How this media contributes to federated learning models
-    
+
     quantum_resistant_encryption_status = false,  % If the media uses quantum-resistant encryption
 
 
@@ -919,149 +929,149 @@ date_created, date_updated, report = [], data = #{}}).
     % Notification Classification
     notif_type,   % e.g., follow, like, comment, mention, system_alert
     priority_score = 0.0,  % AI-determined importance (0.0 to 1.0)
-    
+
     % Content Analysis
     sentiment_score = 0.0, % Sentiment of the notification message (-1.0 to 1.0)
     emotion_classification = [], % e.g., [excitement, gratitude, curiosity]
     key_entities = [],     % Important entities mentioned in the notification
-    
+
     % User Interaction Prediction
     click_through_probability = 0.0, % Likelihood of user interaction (0.0 to 1.0)
     expected_response_time = 0,  % Predicted time until user interaction (in seconds)
-    
+
     % Personalization
     user_interest_alignment = 0.0, % How well it aligns with user interests (0.0 to 1.0)
     personalized_importance = 0.0, % Importance based on user history (0.0 to 1.0)
-    
+
     % Timing Optimization
     optimal_delivery_time = {0,0,0}, % AI-suggested best time to show the notification
     time_sensitivity_score = 0.0, % How time-sensitive the notification is (0.0 to 1.0)
-    
+
     % Context Awareness
     user_context = #{},    % e.g., #{location: "home", activity: "relaxing"}
     device_context = "",   % e.g., "mobile", "desktop", "tablet"
-    
+
     % Notification Grouping
     group_id = "",         % ID for grouping related notifications
     group_position = 0,    % Position within the group (0 for standalone)
-    
+
     % Language Optimization
     language_style = "",   % e.g., "formal", "casual", "emoji-rich"
     localization_needed = false, % Whether the message needs translation
-    
+
     % Rich Media Suggestions
     suggested_media = #{}, % e.g., #{type: "image", url: "..."}
-    
+
     % Accessibility
     accessibility_score = 0.0, % How accessible the notification is (0.0 to 1.0)
     alt_text_suggestion = "", % For any media in the notification
-    
+
     % Feedback Loop
     user_response = "",    % e.g., "clicked", "ignored", "snoozed"
     feedback_score = 0.0,  % User-provided feedback if any (-1.0 to 1.0)
-    
+
     % Anti-Spam and Safety
     spam_probability = 0.0, % Likelihood of being spam (0.0 to 1.0)
     safety_check_result = "", % e.g., "safe", "potential_harm", "blocked"
-    
+
     % Engagement Metrics
     cumulative_views = 0,  % Number of times the notification was viewed
     engagement_score = 0.0, % Overall engagement metric (0.0 to 1.0)
-    
+
     % A/B Testing
     ab_test_group = "",    % If this notification is part of an A/B test
-    
+
     % Dynamic Content
     dynamic_content_placeholders = #{}, % For personalized content insertion
-    
+
     % Cross-Platform Consistency
     cross_platform_id = "", % For consistent notification across devices
-    
+
     % Privacy and Permissions
     privacy_level = "",    % e.g., "public", "followers_only", "private"
     required_permissions = [], % Any permissions needed to show full content
-    
+
     % AI Model Metadata
     model_version,         % Version of AI model used for analysis
     confidence_score = 0.0, % AI's confidence in its analysis (0.0 to 1.0)
     processing_timestamp,  % When the AI analysis was performed
-    
+
     user_state_prediction = #{
         mood => "",
         receptivity => 0.0,
         cognitive_load => 0.0
     },
-    
+
     notification_fatigue_index = 0.0, % Measure of user's notification fatigue (0.0 to 1.0)
-    
+
     content_novelty_score = 0.0, % How novel the notification content is to the user (0.0 to 1.0)
-    
+
     user_behavior_trigger = "", % What user action or behavior triggered this notification
-    
+
     contextual_relevance = #{
         current_events => 0.0,
         user_activity => 0.0,
         social_context => 0.0
     },
-    
+
     notification_chain_analysis = #{
         previous_notification_id => "",
         next_predicted_notification => ""
     },
-    
+
     multimodal_delivery_options = #{
         text => "",
         voice => "",
         visual_cue => ""
     },
-    
+
     user_attention_prediction = #{
         estimated_attention_span => 0,
         optimal_notification_duration => 0
     },
-    
+
     behavioral_nudge_type = "", % e.g., "social proof", "scarcity", "reciprocity"
-    
+
     notification_lifetime = #{
         expiry_time => {0,0,0},
         decay_rate => 0.0
     },
-    
+
     cross_user_impact_analysis = #{
         network_effect_score => 0.0,
         viral_potential => 0.0
     },
-    
+
     adaptive_frequency_recommendation = #{
         optimal_frequency => 0,
         frequency_adjustment => 0
     },
-    
+
     real_time_personalization = #{
         dynamic_content_url => "",
         personalization_timestamp => {0,0,0}
     },
-    
+
     notification_style_optimization = #{
         color_scheme => "",
         animation_type => "",
         sound_profile => ""
     },
-    
+
     interaction_prediction_model = #{
         model_type => "",
         feature_importance => #{}
     },
-    
+
     ethical_consideration_score = 0.0, % Measure of ethical considerations (0.0 to 1.0)
-    
+
     data = #{}  % Existing field for any additional custom data
 }).
 
 -record(ai_comment, {
     id,
     comment_id,    % Reference back to the main comment record
-    
+
     % Content Analysis
     sentiment_score = 0.0,         % Overall sentiment of the comment (-1.0 to 1.0)
     emotion_classification = [],   % e.g., [joy, anger, surprise]
@@ -1070,101 +1080,101 @@ date_created, date_updated, report = [], data = #{}}).
     entity_recognition = [],       % Named entities mentioned in the comment
     language_detected = "",        % Detected language of the comment
     toxicity_score = 0.0,          % Measure of how toxic/inappropriate the content is (0.0 to 1.0)
-    
+
     % Engagement Prediction
     engagement_score = 0.0,        % Predicted engagement level (0.0 to 1.0)
     reply_probability = 0.0,       % Likelihood of receiving a reply (0.0 to 1.0)
     viral_potential = 0.0,         % Potential for the comment to go viral (0.0 to 1.0)
-    
+
     % User Interaction
     user_mention_count = 0,        % Number of user mentions in the comment
     hashtag_count = 0,             % Number of hashtags used
     url_count = 0,                 % Number of URLs in the comment
-    
+
     % Contextual Relevance
     relevance_to_post = 0.0,       % How relevant the comment is to the original post (0.0 to 1.0)
     conversation_depth = 0,        % Depth in the conversation thread
-    
+
     % User Behavior Analysis
     author_credibility_score = 0.0, % Credibility score of the comment author (0.0 to 1.0)
     author_engagement_history = #{}, % Historical engagement metrics of the author
-    
+
     % Moderation Assistance
     moderation_flags = [],         % Potential issues flagged for moderation
     auto_moderation_action = "",   % Suggested auto-moderation action if any
-    
+
     % Enhanced Features
     sentiment_progression = [],    % Sentiment change if it's a long comment
     readability_score = 0.0,       % How easy the comment is to read (0.0 to 1.0)
     novelty_score = 0.0,           % How novel the comment is compared to others (0.0 to 1.0)
-    
+
     % Recommendation Engine Data
     recommendation_vector = [],    % For use in recommendation systems
-    
+
     % Accessibility
     accessibility_score = 0.0,     % How accessible the comment is (0.0 to 1.0)
     alt_text_suggestions = #{},    % For any media in the comment
-    
+
     % Privacy and Safety
     pii_detection_results = #{},   % Detected Personal Identifiable Information
     safety_classification = "",    % e.g., "safe", "sensitive", "unsafe"
-    
+
     % AI Model Metadata
     model_version,                 % Version of AI model used for analysis
     confidence_score = 0.0,        % AI's confidence in its analysis (0.0 to 1.0)
     processing_timestamp,          % When the AI analysis was performed
-    
+
     data = #{}                     % Additional custom data for future expansions
 }).
 
 -record(ai_like, {
     id,
     like_id,      % Reference back to the main like record
-    
+
     % User Behavior Analysis
     user_engagement_score = 0.0,   % Overall engagement score of the user (0.0 to 1.0)
     user_activity_frequency = 0.0, % How often the user interacts (likes per day)
     user_preference_vector = [],   % Vector representing user's content preferences
-    
+
     % Context Analysis
     time_since_post_creation = 0,  % Time between post creation and like (in seconds)
     user_post_relationship = "",   % e.g., "follower", "friend", "new_interaction"
     session_engagement_level = 0.0, % User's engagement level in the current session
-    
+
     % Predictive Metrics
     influence_score = 0.0,         % Predicted influence of this like on post visibility
     chain_reaction_probability = 0.0, % Likelihood of triggering more likes
-    
+
     % Content Relevance
     content_category_alignment = 0.0, % How well the post aligns with user's interests
     trending_topic_relevance = 0.0,  % Relevance to current trending topics
-    
+
     % User Journey
     user_lifecycle_stage = "",     % e.g., "new_user", "active", "re_engaged"
     retention_impact_score = 0.0,  % Predicted impact on user retention
-    
+
     % Platform Health
     authenticity_score = 0.0,      % Likelihood that the like is genuine (not bot/spam)
     community_health_impact = 0.0, % Impact on overall community engagement health
-    
+
     % Recommendation Engine Data
     recommendation_feedback = #{}, % How this like affects future recommendations
-    
+
     % A/B Testing
     ab_test_group = "",            % If this like is part of an A/B test
-    
+
     % Timing Analysis
     time_of_day_pattern = "",      % User's liking pattern by time of day
     day_of_week_pattern = "",      % User's liking pattern by day of week
-    
+
     % Cross-Platform Data
     cross_platform_consistency = 0.0, % Consistency with user's behavior on other platforms
-    
+
     % AI Model Metadata
     model_version,                 % Version of AI model used for analysis
     confidence_score = 0.0,        % AI's confidence in its analysis (0.0 to 1.0)
     processing_timestamp,          % When the AI analysis was performed
-    
+
     data = #{}                     % Additional custom data for future expansions
 }).
 
@@ -2076,7 +2086,7 @@ date_created, date_updated, report = [], data = #{}}).
     model_version,
     last_update_timestamp,
     accuracy_metrics = #{},
-    
+
     % AI and Machine Learning features
     predictive_health_model,
     personalized_intervention_generator,
@@ -2088,7 +2098,7 @@ date_created, date_updated, report = [], data = #{}}).
     explainable_ai_interface,
     uncertainty_quantification_model,
     adversarial_attack_resistance_score,
-    
+
     % Health-specific AI features
     biomarker_forecasting_engine,
     symptom_trajectory_predictor,
@@ -2100,7 +2110,7 @@ date_created, date_updated, report = [], data = #{}}).
     protein_folding_predictor,
     medical_imaging_interpreter,
     natural_language_health_advisor,
-    
+
     % Advanced AI concepts
     quantum_machine_learning_modules = [],
     neuromorphic_computing_integration,
@@ -2112,7 +2122,7 @@ date_created, date_updated, report = [], data = #{}}).
     continual_learning_health_tracker,
     neuro_symbolic_ai_reasoner,
     ethical_ai_decision_framework,
-    
+
     % AI-enhanced health features
     ai_enhanced_telemedicine_interface,
     virtual_health_assistant_persona,
@@ -2124,7 +2134,7 @@ date_created, date_updated, report = [], data = #{}}).
     health_misinformation_detector,
     ai_facilitated_peer_support_system,
     holographic_health_visualization_engine,
-    
+
     performance_metrics = #{},
     data = #{}
 }).

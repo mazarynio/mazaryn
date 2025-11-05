@@ -29,7 +29,15 @@ defmodule MazarynWeb.HomeLive.Home do
 
   @spec init_cache_tables() :: :ok
   defp init_cache_tables do
-    tables = [:user_cache, :posts_cache, :comments_cache, :search_cache, :session_cache, :following_cache, :rate_limit_cache]
+    tables = [
+      :user_cache,
+      :posts_cache,
+      :comments_cache,
+      :search_cache,
+      :session_cache,
+      :following_cache,
+      :rate_limit_cache
+    ]
 
     Enum.each(tables, fn table ->
       case :ets.whereis(table) do
@@ -44,9 +52,10 @@ defmodule MazarynWeb.HomeLive.Home do
     ipns_start = :erlang.system_time(:millisecond)
     Logger.info("🌐 IPNS ready for post #{post_id}, IPNS ID: #{ipns_id}")
 
-    updated_posts = update_post_in_list(socket.assigns.posts, post_id, fn post ->
-      Map.put(post, :ipns_id, ipns_id)
-    end)
+    updated_posts =
+      update_post_in_list(socket.assigns.posts, post_id, fn post ->
+        Map.put(post, :ipns_id, ipns_id)
+      end)
 
     ipns_end = :erlang.system_time(:millisecond)
     Logger.info("🌐 IPNS ready handling completed in #{ipns_end - ipns_start}ms")
@@ -66,34 +75,37 @@ defmodule MazarynWeb.HomeLive.Home do
     Phoenix.PubSub.subscribe(Mazaryn.PubSub, "user_updates")
     Phoenix.PubSub.subscribe(Mazaryn.PubSub, "post_updates")
 
-    result = with {:ok, user} <- get_user_by_session_cached(session_uuid) do
-      {cached_posts, cache_status} = get_cached_posts_with_status(user.id)
+    result =
+      with {:ok, user} <- get_user_by_session_cached(session_uuid) do
+        {cached_posts, cache_status} = get_cached_posts_with_status(user.id)
 
-      socket = socket
-      |> assign_initial_state()
-      |> assign_base_data(session_uuid, user)
-      |> assign_posts_immediately(cached_posts, cache_status)
-      |> assign_weather_state()
+        socket =
+          socket
+          |> assign_initial_state()
+          |> assign_base_data(session_uuid, user)
+          |> assign_posts_immediately(cached_posts, cache_status)
+          |> assign_weather_state()
 
-      schedule_immediate_load_if_needed(user.id, cache_status)
+        schedule_immediate_load_if_needed(user.id, cache_status)
 
-      {:ok, socket}
-    else
-      {:error, reason} ->
-        Logger.error("❌ Mount error: #{inspect(reason)}")
-
-        user_id = get_user_id_from_session(session_uuid)
-        {cached_posts, cache_status} = get_cached_posts_with_status(user_id)
-
-        socket = socket
-        |> assign_initial_state()
-        |> assign(session_uuid: session_uuid)
-        |> assign_posts_immediately(cached_posts, cache_status)
-        |> assign_weather_state()
-
-        schedule_immediate_load_if_needed(user_id, cache_status)
         {:ok, socket}
-    end
+      else
+        {:error, reason} ->
+          Logger.error("❌ Mount error: #{inspect(reason)}")
+
+          user_id = get_user_id_from_session(session_uuid)
+          {cached_posts, cache_status} = get_cached_posts_with_status(user_id)
+
+          socket =
+            socket
+            |> assign_initial_state()
+            |> assign(session_uuid: session_uuid)
+            |> assign_posts_immediately(cached_posts, cache_status)
+            |> assign_weather_state()
+
+          schedule_immediate_load_if_needed(user_id, cache_status)
+          {:ok, socket}
+      end
 
     mount_end = :erlang.system_time(:millisecond)
     Logger.info("🏠 MOUNT MazarynWeb.HomeLive.Home completed in #{mount_end - mount_start}ms")
@@ -112,32 +124,35 @@ defmodule MazarynWeb.HomeLive.Home do
     Phoenix.PubSub.subscribe(Mazaryn.PubSub, "user_updates")
     Phoenix.PubSub.subscribe(Mazaryn.PubSub, "post_updates")
 
-    result = case get_user_cached_optimized(user_id) do
-      {:ok, user} ->
-        {cached_posts, cache_status} = get_cached_posts_with_status(user.id)
+    result =
+      case get_user_cached_optimized(user_id) do
+        {:ok, user} ->
+          {cached_posts, cache_status} = get_cached_posts_with_status(user.id)
 
-        socket = socket
-        |> assign_initial_state()
-        |> assign_base_data(user_id, user)
-        |> assign_posts_immediately(cached_posts, cache_status)
-        |> assign_weather_state()
+          socket =
+            socket
+            |> assign_initial_state()
+            |> assign_base_data(user_id, user)
+            |> assign_posts_immediately(cached_posts, cache_status)
+            |> assign_weather_state()
 
-        schedule_immediate_load_if_needed(user.id, cache_status)
+          schedule_immediate_load_if_needed(user.id, cache_status)
 
-        {:ok, socket}
+          {:ok, socket}
 
-      {:error, _reason} ->
-        {cached_posts, cache_status} = get_cached_posts_with_status(user_id)
+        {:error, _reason} ->
+          {cached_posts, cache_status} = get_cached_posts_with_status(user_id)
 
-        socket = socket
-        |> assign_initial_state()
-        |> assign(user_id: user_id)
-        |> assign_posts_immediately(cached_posts, cache_status)
-        |> assign_weather_state()
+          socket =
+            socket
+            |> assign_initial_state()
+            |> assign(user_id: user_id)
+            |> assign_posts_immediately(cached_posts, cache_status)
+            |> assign_weather_state()
 
-        schedule_immediate_load_if_needed(user_id, cache_status)
-        {:ok, socket}
-    end
+          schedule_immediate_load_if_needed(user_id, cache_status)
+          {:ok, socket}
+      end
 
     mount_end = :erlang.system_time(:millisecond)
     Logger.info("🏠 MOUNT MazarynWeb.HomeLive.Home completed in #{mount_end - mount_start}ms")
@@ -152,7 +167,11 @@ defmodule MazarynWeb.HomeLive.Home do
     socket = assign(socket, current_path: URI.parse(url).path)
 
     params_end = :erlang.system_time(:millisecond)
-    Logger.info("🏠 HANDLE PARAMS MazarynWeb.HomeLive.Home completed in #{params_end - params_start}ms")
+
+    Logger.info(
+      "🏠 HANDLE PARAMS MazarynWeb.HomeLive.Home completed in #{params_end - params_start}ms"
+    )
+
     {:noreply, socket}
   end
 
@@ -227,10 +246,11 @@ defmodule MazarynWeb.HomeLive.Home do
     search_start = :erlang.system_time(:millisecond)
     Logger.info("🔍 Starting handle_event do_search for query #{search}")
 
-    socket = socket
-    |> assign(:search, search)
-    |> assign(:last_search, search)
-    |> assign(:search_loading, true)
+    socket =
+      socket
+      |> assign(:search, search)
+      |> assign(:last_search, search)
+      |> assign(:search_loading, true)
 
     if socket.assigns[:search_timer] do
       Process.cancel_timer(socket.assigns.search_timer)
@@ -246,10 +266,12 @@ defmodule MazarynWeb.HomeLive.Home do
 
   def handle_event("clear_search_results", _params, socket) do
     Logger.info("🔍 Clearing search results")
-    socket = socket
-    |> assign(:search, "")
-    |> assign(:results, [])
-    |> assign(:search_loading, false)
+
+    socket =
+      socket
+      |> assign(:search, "")
+      |> assign(:results, [])
+      |> assign(:search_loading, false)
 
     {:noreply, socket}
   end
@@ -271,11 +293,15 @@ defmodule MazarynWeb.HomeLive.Home do
     case WeatherHelper.fetch_complete_weather(city) do
       {:ok, weather_data} ->
         Logger.info("🌤️ Successfully fetched weather data for #{city}")
-        {:noreply, assign(socket, weather_data: weather_data, weather_loading: false, weather_error: nil)}
+
+        {:noreply,
+         assign(socket, weather_data: weather_data, weather_loading: false, weather_error: nil)}
 
       {:error, error_message} ->
         Logger.error("❌ Failed to fetch weather data for #{city}: #{error_message}")
-        {:noreply, assign(socket, weather_data: nil, weather_loading: false, weather_error: error_message)}
+
+        {:noreply,
+         assign(socket, weather_data: nil, weather_loading: false, weather_error: error_message)}
     end
   end
 
@@ -289,43 +315,51 @@ defmodule MazarynWeb.HomeLive.Home do
     load_start = :erlang.system_time(:millisecond)
     Logger.info("👤📚 Starting immediate load_user_and_posts for user_id #{user_id}")
 
-    user_result = case get_user_with_timeout(user_id, @user_load_timeout) do
-      {:ok, user} ->
-        Logger.info("👤 Successfully loaded user #{user.username}")
-        user
-      {:error, reason} ->
-        Logger.error("❌ Failed to load user: #{inspect(reason)}")
-        nil
-    end
+    user_result =
+      case get_user_with_timeout(user_id, @user_load_timeout) do
+        {:ok, user} ->
+          Logger.info("👤 Successfully loaded user #{user.username}")
+          user
 
-    posts_result = case get_posts_with_timeout(user_id, @initial_posts_limit, @posts_load_timeout) do
-      {:ok, posts} ->
-        Logger.info("Successfully loaded #{length(posts)} posts for home feed")
-        posts
-      {:error, _reason} ->
-        Logger.warning("Failed to load posts, using cached fallback")
-        get_cached_posts_fallback(user_id)
-    end
-
-    socket = if user_result do
-      post_changeset = Post.changeset(%Post{})
-      socket = socket
-      |> assign(post_changeset: post_changeset)
-      |> assign(user: user_result)
-      |> assign(last_post_loaded_at: :erlang.system_time(:millisecond))
-
-      socket = if length(posts_result) > 0 and posts_result != socket.assigns.posts do
-        assign(socket, posts: posts_result)
-      else
-        socket
+        {:error, reason} ->
+          Logger.error("❌ Failed to load user: #{inspect(reason)}")
+          nil
       end
 
-      assign(socket, posts_loading: false)
-    else
-      socket
-      |> assign(posts: posts_result)
-      |> assign(posts_loading: false)
-    end
+    posts_result =
+      case get_posts_with_timeout(user_id, @initial_posts_limit, @posts_load_timeout) do
+        {:ok, posts} ->
+          Logger.info("Successfully loaded #{length(posts)} posts for home feed")
+          posts
+
+        {:error, _reason} ->
+          Logger.warning("Failed to load posts, using cached fallback")
+          get_cached_posts_fallback(user_id)
+      end
+
+    socket =
+      if user_result do
+        post_changeset = Post.changeset(%Post{})
+
+        socket =
+          socket
+          |> assign(post_changeset: post_changeset)
+          |> assign(user: user_result)
+          |> assign(last_post_loaded_at: :erlang.system_time(:millisecond))
+
+        socket =
+          if length(posts_result) > 0 and posts_result != socket.assigns.posts do
+            assign(socket, posts: posts_result)
+          else
+            socket
+          end
+
+        assign(socket, posts_loading: false)
+      else
+        socket
+        |> assign(posts: posts_result)
+        |> assign(posts_loading: false)
+      end
 
     load_end = :erlang.system_time(:millisecond)
     Logger.info("Immediate load_user_and_posts completed in #{load_end - load_start}ms")
@@ -337,19 +371,22 @@ defmodule MazarynWeb.HomeLive.Home do
     load_start = :erlang.system_time(:millisecond)
     Logger.info("📚 Starting immediate load_posts for user_id #{user_id}")
 
-    posts_result = case get_posts_with_timeout(user_id, @initial_posts_limit, @posts_load_timeout) do
-      {:ok, posts} ->
-        Logger.info("Successfully loaded #{length(posts)} posts for home feed")
-        posts
-      {:error, _reason} ->
-        Logger.warning("Failed to load posts, using cached fallback")
-        get_cached_posts_fallback(user_id)
-    end
+    posts_result =
+      case get_posts_with_timeout(user_id, @initial_posts_limit, @posts_load_timeout) do
+        {:ok, posts} ->
+          Logger.info("Successfully loaded #{length(posts)} posts for home feed")
+          posts
 
-    socket = socket
-    |> assign(posts: posts_result)
-    |> assign(posts_loading: false)
-    |> assign(last_post_loaded_at: :erlang.system_time(:millisecond))
+        {:error, _reason} ->
+          Logger.warning("Failed to load posts, using cached fallback")
+          get_cached_posts_fallback(user_id)
+      end
+
+    socket =
+      socket
+      |> assign(posts: posts_result)
+      |> assign(posts_loading: false)
+      |> assign(last_post_loaded_at: :erlang.system_time(:millisecond))
 
     load_end = :erlang.system_time(:millisecond)
     Logger.info("Immediate load_posts completed in #{load_end - load_start}ms")
@@ -360,14 +397,16 @@ defmodule MazarynWeb.HomeLive.Home do
   def handle_info({:load_more_posts_immediate, user_id, offset}, socket) do
     Logger.info("Loading more posts from offset #{offset}")
 
-    new_posts = case get_posts_with_timeout(user_id, @posts_per_page, @posts_load_timeout, offset) do
-      {:ok, posts} ->
-        Logger.info("Successfully loaded #{length(posts)} more posts")
-        posts
-      {:error, _reason} ->
-        Logger.warning("Failed to load more posts")
-        []
-    end
+    new_posts =
+      case get_posts_with_timeout(user_id, @posts_per_page, @posts_load_timeout, offset) do
+        {:ok, posts} ->
+          Logger.info("Successfully loaded #{length(posts)} more posts")
+          posts
+
+        {:error, _reason} ->
+          Logger.warning("Failed to load more posts")
+          []
+      end
 
     current_posts = socket.assigns.posts
     all_posts = current_posts ++ new_posts
@@ -381,14 +420,19 @@ defmodule MazarynWeb.HomeLive.Home do
         search_start = :erlang.system_time(:millisecond)
         Logger.info("Executing immediate search for #{search_term}")
 
-        results = case search_user_with_timeout(search_term, @search_timeout) do
-          {:ok, users} ->
-            Logger.info("Successfully found #{length(users || [])} users for query #{search_term}")
-            users || []
-          {:error, _reason} ->
-            Logger.warning("Search failed/timeout")
-            []
-        end
+        results =
+          case search_user_with_timeout(search_term, @search_timeout) do
+            {:ok, users} ->
+              Logger.info(
+                "Successfully found #{length(users || [])} users for query #{search_term}"
+              )
+
+              users || []
+
+            {:error, _reason} ->
+              Logger.warning("Search failed/timeout")
+              []
+          end
 
         search_end = :erlang.system_time(:millisecond)
         Logger.info("Immediate search completed in #{search_end - search_start}ms")
@@ -405,13 +449,15 @@ defmodule MazarynWeb.HomeLive.Home do
     Logger.info("Starting handle_info reload_posts")
 
     user = socket.assigns.user
-    socket = if user do
-      clear_posts_cache(user.id)
-      send(self(), {:load_posts_immediate, user.id})
-      assign(socket, posts_loading: true)
-    else
-      socket
-    end
+
+    socket =
+      if user do
+        clear_posts_cache(user.id)
+        send(self(), {:load_posts_immediate, user.id})
+        assign(socket, posts_loading: true)
+      else
+        socket
+      end
 
     reload_end = :erlang.system_time(:millisecond)
     Logger.info("handle_info reload_posts completed in #{reload_end - reload_start}ms")
@@ -444,8 +490,10 @@ defmodule MazarynWeb.HomeLive.Home do
     case reason do
       :normal ->
         Logger.debug("Task #{inspect(pid)} completed normally")
+
       :killed ->
         Logger.info("Task #{inspect(pid)} was killed")
+
       other ->
         Logger.warning("Task #{inspect(pid)} exited with reason: #{inspect(other)}")
     end
@@ -504,12 +552,16 @@ defmodule MazarynWeb.HomeLive.Home do
       case safe_ets_lookup(:posts_cache, cache_key) do
         [{_, posts, timestamp}] ->
           age = current_time - timestamp
-          cache_status = cond do
-            age < @fresh_cache_threshold -> :fresh
-            age < @stale_cache_threshold -> :stale
-            true -> :expired
-          end
+
+          cache_status =
+            cond do
+              age < @fresh_cache_threshold -> :fresh
+              age < @stale_cache_threshold -> :stale
+              true -> :expired
+            end
+
           {posts, cache_status}
+
         [] ->
           {[], :no_cache}
       end
@@ -523,10 +575,13 @@ defmodule MazarynWeb.HomeLive.Home do
       case cache_status do
         :fresh ->
           :ok
+
         :stale ->
           Process.send_after(self(), {:load_posts_immediate, user_id}, 100)
+
         :expired ->
           send(self(), {:load_user_and_posts_immediate, user_id})
+
         :no_cache ->
           send(self(), {:load_user_and_posts_immediate, user_id})
       end
@@ -534,11 +589,12 @@ defmodule MazarynWeb.HomeLive.Home do
   end
 
   defp assign_posts_immediately(socket, cached_posts, cache_status) do
-    posts_loading = case cache_status do
-      :no_cache -> true
-      :expired -> true
-      _ -> false
-    end
+    posts_loading =
+      case cache_status do
+        :no_cache -> true
+        :expired -> true
+        _ -> false
+      end
 
     socket
     |> assign(posts: cached_posts)
@@ -546,9 +602,10 @@ defmodule MazarynWeb.HomeLive.Home do
   end
 
   defp get_user_with_timeout(user_id, timeout) do
-    task = Task.async(fn ->
-      get_user_cached_optimized(user_id)
-    end)
+    task =
+      Task.async(fn ->
+        get_user_cached_optimized(user_id)
+      end)
 
     case Task.yield(task, timeout) || Task.shutdown(task, :brutal_kill) do
       {:ok, result} -> result
@@ -557,9 +614,10 @@ defmodule MazarynWeb.HomeLive.Home do
   end
 
   defp get_posts_with_timeout(user_id, limit, timeout, offset \\ 0) do
-    task = Task.async(fn ->
-      get_user_and_following_posts_optimized(user_id, limit, offset)
-    end)
+    task =
+      Task.async(fn ->
+        get_user_and_following_posts_optimized(user_id, limit, offset)
+      end)
 
     case Task.yield(task, timeout) || Task.shutdown(task, :brutal_kill) do
       {:ok, posts} -> {:ok, posts}
@@ -568,9 +626,10 @@ defmodule MazarynWeb.HomeLive.Home do
   end
 
   defp search_user_with_timeout(search_term, timeout) do
-    task = Task.async(fn ->
-      search_user_by_username_cached(search_term)
-    end)
+    task =
+      Task.async(fn ->
+        search_user_by_username_cached(search_term)
+      end)
 
     case Task.yield(task, timeout) || Task.shutdown(task, :brutal_kill) do
       {:ok, result} ->
@@ -579,7 +638,9 @@ defmodule MazarynWeb.HomeLive.Home do
         else
           {:ok, []}
         end
-      nil -> {:error, :timeout}
+
+      nil ->
+        {:error, :timeout}
     end
   end
 
@@ -588,15 +649,18 @@ defmodule MazarynWeb.HomeLive.Home do
       case get_comments_cached(post_id) do
         comments when is_list(comments) and length(comments) > 0 ->
           comments
+
         _ ->
-          task = Task.async(fn ->
-            post_id |> to_charlist() |> Mazaryn.Posts.get_comment_by_post_id()
-          end)
+          task =
+            Task.async(fn ->
+              post_id |> to_charlist() |> Mazaryn.Posts.get_comment_by_post_id()
+            end)
 
           case Task.yield(task, @comments_load_timeout) || Task.shutdown(task, :brutal_kill) do
             {:ok, comments} when is_list(comments) ->
               Logger.info("Successfully loaded #{length(comments)} comments immediately")
               comments
+
             _ ->
               Logger.warning("Failed to load comments immediately")
               []
@@ -617,6 +681,7 @@ defmodule MazarynWeb.HomeLive.Home do
       [{_, user, timestamp}] when current_time - timestamp < @session_cache_ttl ->
         Logger.info("Session Cache HIT for #{session_uuid}")
         {:ok, user}
+
       _ ->
         Logger.info("Session Cache MISS/EXPIRED for #{session_uuid}")
         fetch_and_cache_session_user(session_uuid, cache_key, current_time)
@@ -631,6 +696,7 @@ defmodule MazarynWeb.HomeLive.Home do
       [{_, user, timestamp}] when current_time - timestamp < @user_cache_ttl ->
         Logger.info("Home User Cache HIT for #{user_id}")
         {:ok, user}
+
       _ ->
         Logger.info("Home User Cache MISS/EXPIRED for #{user_id}")
         fetch_and_cache_home_user_optimized(user_id, cache_key, current_time)
@@ -645,6 +711,7 @@ defmodule MazarynWeb.HomeLive.Home do
       [{_, following_ids, timestamp}] when current_time - timestamp < @user_cache_ttl ->
         Logger.info("Following Cache HIT for #{user_id}")
         following_ids
+
       _ ->
         Logger.info("Following Cache MISS/EXPIRED for #{user_id}")
         fetch_and_cache_following(user_id, cache_key, current_time)
@@ -659,6 +726,7 @@ defmodule MazarynWeb.HomeLive.Home do
       [{_, comments, timestamp}] when current_time - timestamp < @comments_cache_ttl ->
         Logger.info("Comments Cache HIT for post #{post_id}")
         comments
+
       _ ->
         Logger.info("Comments Cache MISS/EXPIRED for post #{post_id}")
         []
@@ -673,6 +741,7 @@ defmodule MazarynWeb.HomeLive.Home do
       [{_, results, timestamp}] when current_time - timestamp < @search_cache_ttl ->
         Logger.info("Search Cache HIT for #{username}")
         results
+
       _ ->
         Logger.info("Search Cache MISS/EXPIRED for #{username}")
         fetch_and_cache_search(username, cache_key, current_time)
@@ -704,8 +773,12 @@ defmodule MazarynWeb.HomeLive.Home do
       {:ok, user} = result ->
         safe_ets_insert(:session_cache, {cache_key, user, current_time})
         result
-      {:error, _} = error -> error
-      other -> {:error, other}
+
+      {:error, _} = error ->
+        error
+
+      other ->
+        {:error, other}
     end
   end
 
@@ -714,7 +787,9 @@ defmodule MazarynWeb.HomeLive.Home do
       {:ok, user} = result ->
         safe_ets_insert(:user_cache, {cache_key, user, current_time})
         result
-      other -> other
+
+      other ->
+        other
     end
   end
 
@@ -734,15 +809,17 @@ defmodule MazarynWeb.HomeLive.Home do
     try do
       fetch_start = :erlang.system_time(:millisecond)
 
-      result = case username |> String.downcase() |> Core.UserClient.search_user() do
-        :username_not_exist ->
-          nil
-        erl_user ->
-          case User.erl_changeset(erl_user) |> User.build() do
-            {:ok, user} -> user
-            {:error, _} -> nil
-          end
-      end
+      result =
+        case username |> String.downcase() |> Core.UserClient.search_user() do
+          :username_not_exist ->
+            nil
+
+          erl_user ->
+            case User.erl_changeset(erl_user) |> User.build() do
+              {:ok, user} -> user
+              {:error, _} -> nil
+            end
+        end
 
       safe_ets_insert(:search_cache, {cache_key, result, current_time})
 
@@ -761,17 +838,21 @@ defmodule MazarynWeb.HomeLive.Home do
       following_user_ids = get_following_cached(user_id)
       all_user_ids = [user_id | following_user_ids]
 
-      Logger.info("Following user IDs: #{inspect(following_user_ids)} (#{length(following_user_ids)} users)")
+      Logger.info(
+        "Following user IDs: #{inspect(following_user_ids)} (#{length(following_user_ids)} users)"
+      )
 
-      all_posts = all_user_ids
-      |> Task.async_stream(fn uid ->
-        Posts.get_posts_by_user_id(uid)
-      end, max_concurrency: @max_concurrent_tasks, timeout: 1000, on_timeout: :kill_task)
-      |> Stream.filter(&match?({:ok, _}, &1))
-      |> Stream.flat_map(&elem(&1, 1))
-      |> Enum.sort_by(& &1.date_created, &>=/2)
-      |> Enum.drop(offset)
-      |> Enum.take(limit)
+      all_posts =
+        all_user_ids
+        |> Task.async_stream(
+          fn uid ->
+            Posts.get_posts_by_user_id(uid)
+          end, max_concurrency: @max_concurrent_tasks, timeout: 1000, on_timeout: :kill_task)
+        |> Stream.filter(&match?({:ok, _}, &1))
+        |> Stream.flat_map(&elem(&1, 1))
+        |> Enum.sort_by(& &1.date_created, &>=/2)
+        |> Enum.drop(offset)
+        |> Enum.take(limit)
 
       Logger.info("Loaded #{length(all_posts)} posts (limit: #{limit}, offset: #{offset})")
       all_posts
@@ -793,6 +874,7 @@ defmodule MazarynWeb.HomeLive.Home do
 
   defp get_cached_posts_fallback(user_id) do
     cache_key = {:home_posts, user_id, @initial_posts_limit, 0}
+
     case safe_ets_lookup(:posts_cache, cache_key) do
       [{_, posts, _}] -> posts
       _ -> []

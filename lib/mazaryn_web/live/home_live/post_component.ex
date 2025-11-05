@@ -25,6 +25,11 @@ defmodule MazarynWeb.HomeLive.PostComponent do
   defdelegate get_likes_count(post_id), to: PCH
   defdelegate rebuild_post(post_id), to: PCH
 
+  defdelegate get_repost_count(post_id), to: PCH
+  defdelegate has_user_reposted?(user_id, post_id), to: PCH
+  defdelegate get_repost_icon(user_id, post_id), to: PCH
+  defdelegate format_repost_display(post), to: PCH
+
   defdelegate verified?(author), to: PCH
   defdelegate one_of_comment_likes?(user_id, comment_id), to: PCH
   defdelegate comment_like_color(user_id, comment_id), to: PCH
@@ -43,10 +48,13 @@ defmodule MazarynWeb.HomeLive.PostComponent do
   defdelegate clear_content_cache(key), to: PCH
   defdelegate clear_all_cache_for_post(post_id), to: PCH
 
+  defdelegate is_repost?(post), to: PCH
+  defdelegate get_original_post(post), to: PCH
+  defdelegate get_repost_comment_content(post), to: PCH
+
   @supported_translation_langs Translator.supported_targets()
   @default_src_lang Translator.default_src()
 
-  # ========================== DEFAULT ASSIGNS ==================================
   defp assign_default_state(socket) do
     default_assigns = %{
       uploaded_files: [],
@@ -56,22 +64,24 @@ defmodule MazarynWeb.HomeLive.PostComponent do
       reply_comment: false,
       replying_to_comment_id: nil,
       ipns_id: nil,
-
       show_likes_modal: false,
       liked_users: [],
       likes_loading: false,
       likes_task: nil,
       likes_task_ref: nil,
-
       translated_text: nil,
       translated_lang: nil,
-      supported_translation_langs: @supported_translation_langs
+      supported_translation_langs: @supported_translation_langs,
+      show_repost_modal: false,
+      reposting_post_id: nil,
+      repost_comment: "",
+      repost_count: 0,
+      user_has_reposted: false
     }
 
     assign(socket, default_assigns)
   end
 
-  # ============================== MOUNT / UPDATE ===============================
   @impl true
   def mount(socket) do
     Phoenix.PubSub.subscribe(Mazaryn.PubSub, "post_updates")
@@ -99,7 +109,6 @@ defmodule MazarynWeb.HomeLive.PostComponent do
 
   def update(assigns, socket), do: {:ok, assign(socket, assigns)}
 
-  # ============================ LIKES MODAL ====================================
   def handle_event("open_likes_modal", %{"post-id" => post_id}, socket) do
     post_id_charlist =
       case post_id do
@@ -133,7 +142,6 @@ defmodule MazarynWeb.HomeLive.PostComponent do
      })}
   end
 
-  # ============================== TRANSLATION ==================================
   def handle_event("translate-post", %{"post-id" => post_id, "target" => target}, socket) do
     post = socket.assigns.post
     post_id = normalize_post_id(post_id)
@@ -143,10 +151,17 @@ defmodule MazarynWeb.HomeLive.PostComponent do
          {:ok, translated} <- translate_with_cache(post_id, content, target) do
       {:noreply, assign(socket, translated_text: translated, translated_lang: target)}
     else
-      false -> {:noreply, put_flash(socket, :error, "Unsupported language")}
-      {:error, :no_content} -> {:noreply, put_flash(socket, :error, "Nothing to translate")}
-      {:error, :translator_failed} -> {:noreply, put_flash(socket, :error, "Translation failed")}
-      {:error, reason} -> {:noreply, put_flash(socket, :error, "Translation error: #{inspect(reason)}")}
+      false ->
+        {:noreply, put_flash(socket, :error, "Unsupported language")}
+
+      {:error, :no_content} ->
+        {:noreply, put_flash(socket, :error, "Nothing to translate")}
+
+      {:error, :translator_failed} ->
+        {:noreply, put_flash(socket, :error, "Translation failed")}
+
+      {:error, reason} ->
+        {:noreply, put_flash(socket, :error, "Translation error: #{inspect(reason)}")}
     end
   end
 
@@ -210,7 +225,8 @@ defmodule MazarynWeb.HomeLive.PostComponent do
             trim_non_empty(other)
         end
 
-      function_exported?(:post_server, :get_posts_content_by_user_id, 1) and Map.get(post, :author_id) ->
+      function_exported?(:post_server, :get_posts_content_by_user_id, 1) and
+          Map.get(post, :author_id) ->
         case :post_server.get_posts_content_by_user_id(post.author_id) do
           bin when is_binary(bin) ->
             trim_non_empty(bin)
@@ -275,7 +291,6 @@ defmodule MazarynWeb.HomeLive.PostComponent do
     end
   end
 
-  # ============================== LIKE / UNLIKE ================================
   def handle_event("like_post", %{"post-id" => post_id}, socket) do
     handle_post_like_action(socket, :like, post_id)
   end
@@ -312,10 +327,11 @@ defmodule MazarynWeb.HomeLive.PostComponent do
     {:noreply, assign(socket, assigns)}
   end
 
-  # =========================== EDIT / DELETE POST ==============================
   def handle_event("edit_post", %{"post-id" => post_id}, socket) do
     post = PostClient.get_post_content_by_id(to_charlist(post_id))
-    {:noreply, socket |> assign(:editing_post, post) |> assign(:edit_post_id, to_charlist(post_id))}
+
+    {:noreply,
+     socket |> assign(:editing_post, post) |> assign(:edit_post_id, to_charlist(post_id))}
   end
 
   def handle_event("update-post", %{"post" => post_params}, socket) do
@@ -358,7 +374,122 @@ defmodule MazarynWeb.HomeLive.PostComponent do
     {:noreply, socket}
   end
 
-  # ============================== PROFILE / MODALS =============================
+  def handle_event("open_repost_modal", %{"post-id" => post_id}, socket) do
+    {:noreply,
+     assign(socket, %{
+       show_repost_modal: true,
+       reposting_post_id: post_id,
+       repost_comment: ""
+     })}
+  end
+
+  def handle_event("close_repost_modal", _params, socket) do
+    {:noreply,
+     assign(socket, %{
+       show_repost_modal: false,
+       reposting_post_id: nil,
+       repost_comment: ""
+     })}
+  end
+
+  def handle_event("simple_repost", %{"post-id" => post_id}, socket) do
+    user_id = socket.assigns.current_user.id
+    post_id_charlist = to_charlist(post_id)
+
+    user_id_charlist =
+      case user_id do
+        id when is_binary(id) -> String.to_charlist(id)
+        id when is_list(id) -> id
+        _ -> to_charlist(user_id)
+      end
+
+    case Core.RepostClient.simple_repost(user_id_charlist, post_id_charlist) do
+      {:ok, _repost_id} ->
+        send(self(), :reload_posts)
+
+        {:noreply,
+         socket
+         |> assign(:show_repost_modal, false)
+         |> put_flash(:info, "Post shared successfully!")}
+
+      {:error, :already_reposted} ->
+        {:noreply, put_flash(socket, :error, "You've already shared this post")}
+
+      {:error, :cannot_repost_own_post} ->
+        {:noreply, put_flash(socket, :error, "You cannot share your own post")}
+
+      {:error, reason} ->
+        {:noreply, put_flash(socket, :error, "Failed to share: #{inspect(reason)}")}
+    end
+  end
+
+  def handle_event("validate_repost_comment", %{"repost" => %{"comment" => comment}}, socket) do
+    {:noreply, assign(socket, :repost_comment, comment)}
+  end
+
+  def handle_event("repost_with_comment_submit", %{"repost" => %{"comment" => comment}}, socket) do
+    post_id = socket.assigns.reposting_post_id
+    user_id = socket.assigns.current_user.id
+
+    if String.trim(comment) == "" do
+      {:noreply, put_flash(socket, :error, "Please add your thoughts")}
+    else
+      post_id_charlist = to_charlist(post_id)
+
+      user_id_charlist =
+        case user_id do
+          id when is_binary(id) -> String.to_charlist(id)
+          id when is_list(id) -> id
+          _ -> to_charlist(user_id)
+        end
+
+      comment_charlist = String.to_charlist(comment)
+
+      case Core.RepostClient.repost_with_comment(
+             user_id_charlist,
+             post_id_charlist,
+             comment_charlist
+           ) do
+        {:ok, _repost_id} ->
+          send(self(), :reload_posts)
+
+          {:noreply,
+           socket
+           |> assign(%{show_repost_modal: false, repost_comment: "", reposting_post_id: nil})
+           |> put_flash(:info, "Post shared with your thoughts!")}
+
+        {:error, :already_reposted} ->
+          {:noreply, put_flash(socket, :error, "You've already shared this post")}
+
+        {:error, :cannot_repost_own_post} ->
+          {:noreply, put_flash(socket, :error, "You cannot share your own post")}
+
+        {:error, reason} ->
+          {:noreply, put_flash(socket, :error, "Failed to share: #{inspect(reason)}")}
+      end
+    end
+  end
+
+  def handle_event("confirm_unrepost", %{"post-id" => post_id}, socket) do
+    user_id = socket.assigns.current_user.id
+
+    user_id_charlist =
+      case user_id do
+        id when is_binary(id) -> String.to_charlist(id)
+        id when is_list(id) -> id
+        _ -> to_charlist(user_id)
+      end
+
+    case Core.RepostClient.unrepost(user_id_charlist, to_charlist(post_id)) do
+      :ok ->
+        send(self(), :reload_posts)
+        {:noreply, put_flash(socket, :info, "Post unshared successfully")}
+
+      {:error, reason} ->
+        {:noreply, put_flash(socket, :error, "Failed to unshare: #{inspect(reason)}")}
+    end
+  end
+
   def handle_event("view_profile", %{"username" => username}, socket) do
     locale = socket.assigns[:locale] || "en"
     profile_path = Routes.live_path(socket, MazarynWeb.UserLive.Profile, locale, username)
@@ -390,11 +521,11 @@ defmodule MazarynWeb.HomeLive.PostComponent do
     end
   end
 
-  # ============================== COMMENT HANDLERS =============================
   def handle_event("save-comment", params, socket) do
     case CommentHandler.handle_save_comment(params) do
       {:ok, %{post: post, comments: comments, changeset: changeset, flash: {type, msg}}} ->
-        {:noreply, socket |> assign_comment_success(post, comments, changeset) |> put_flash(type, msg)}
+        {:noreply,
+         socket |> assign_comment_success(post, comments, changeset) |> put_flash(type, msg)}
 
       {:error, reason} ->
         {:noreply, handle_comment_error(socket, reason)}
@@ -413,9 +544,13 @@ defmodule MazarynWeb.HomeLive.PostComponent do
   end
 
   def handle_event("update-comment", params, socket) do
-    handle_comment_operation(socket, fn ->
-      CommentHandler.handle_update_comment(params, socket.assigns.post.id)
-    end, &assign_comment_update_result/2)
+    handle_comment_operation(
+      socket,
+      fn ->
+        CommentHandler.handle_update_comment(params, socket.assigns.post.id)
+      end,
+      &assign_comment_update_result/2
+    )
   end
 
   def handle_event("validate-comment", params, socket) do
@@ -468,7 +603,6 @@ defmodule MazarynWeb.HomeLive.PostComponent do
     handle_comment_like_action(socket, :unlike, params)
   end
 
-  # ===== helper implementations used above =====
   defp handle_comment_operation(socket, operation_func, result_handler) do
     case operation_func.() do
       {:ok, result} -> {:noreply, result_handler.(socket, result)}
@@ -480,11 +614,12 @@ defmodule MazarynWeb.HomeLive.PostComponent do
     action_map = %{
       "edit-comment": :handle_edit_comment,
       "cancel-comment-edit": :handle_cancel_comment_edit,
-      "reply_comment": :handle_reply_comment,
+      reply_comment: :handle_reply_comment,
       "cancel-comment-reply": :handle_cancel_comment_reply
     }
 
     handler = Map.get(action_map, action)
+
     case apply(CommentHandler, handler, [params]) do
       {:ok, result} -> {:noreply, assign_comment_action_result(socket, result)}
     end
@@ -547,8 +682,14 @@ defmodule MazarynWeb.HomeLive.PostComponent do
 
     socket =
       case Map.get(result, :editing_comment) do
-        nil -> socket
-        editing_comment -> assign(socket, %{editing_comment: editing_comment, editing_comment_id: result.editing_comment_id})
+        nil ->
+          socket
+
+        editing_comment ->
+          assign(socket, %{
+            editing_comment: editing_comment,
+            editing_comment_id: result.editing_comment_id
+          })
       end
 
     {flash_type, message} = result.flash
@@ -559,10 +700,12 @@ defmodule MazarynWeb.HomeLive.PostComponent do
     Enum.reduce(result, socket, fn {key, value}, acc -> assign(acc, key, value) end)
   end
 
-  # =============================== INFO HANDLERS ===============================
   def handle_info({:temp_comment_saved, temp_id, real_comment}, socket) do
     IO.puts("🔄 Replacing temp comment #{temp_id} with real comment #{real_comment.id}")
-    updated_comments = replace_temp_comment_with_real(socket.assigns.comments, temp_id, real_comment)
+
+    updated_comments =
+      replace_temp_comment_with_real(socket.assigns.comments, temp_id, real_comment)
+
     {:noreply, assign(socket, comments: updated_comments)}
   end
 
@@ -584,7 +727,13 @@ defmodule MazarynWeb.HomeLive.PostComponent do
 
   def handle_info(:refresh_processing_content, socket) do
     comments = CommentHandler.get_comments_with_content(socket.assigns.post.id)
-    processing_content = Enum.any?(comments, &(&1.content in ["Content is being processed...", "Content loading..."]))
+
+    processing_content =
+      Enum.any?(
+        comments,
+        &(&1.content in ["Content is being processed...", "Content loading..."])
+      )
+
     if processing_content, do: Process.send_after(self(), :refresh_processing_content, 3000)
     {:noreply, assign(socket, :comments, comments)}
   end
@@ -596,18 +745,31 @@ defmodule MazarynWeb.HomeLive.PostComponent do
     do: handle_content_update(socket, :reply, reply_id, content)
 
   def handle_info({:reply_saved, comment_id, real_reply, temp_id}, socket) do
-    updated_comments = CommentHandler.replace_temp_reply_with_real(socket.assigns.comments, comment_id, temp_id, real_reply)
+    updated_comments =
+      CommentHandler.replace_temp_reply_with_real(
+        socket.assigns.comments,
+        comment_id,
+        temp_id,
+        real_reply
+      )
+
     {:noreply, assign(socket, :comments, updated_comments)}
   end
 
   def handle_info({:reply_failed, comment_id, temp_id}, socket) do
-    updated_comments = CommentHandler.remove_temp_reply(socket.assigns.comments, comment_id, temp_id)
-    {:noreply, assign(socket, :comments, updated_comments) |> put_flash(:error, "Failed to save reply. Please try again.")}
+    updated_comments =
+      CommentHandler.remove_temp_reply(socket.assigns.comments, comment_id, temp_id)
+
+    {:noreply,
+     assign(socket, :comments, updated_comments)
+     |> put_flash(:error, "Failed to save reply. Please try again.")}
   end
 
   defp handle_ipns_update(socket, post_id, ipns, type) do
     if socket.assigns[:post] && to_string(socket.assigns.post.id) == to_string(post_id) do
-      if type == "scheduled", do: IO.puts("🎉 Received scheduled IPNS update for displayed post #{post_id}")
+      if type == "scheduled",
+        do: IO.puts("🎉 Received scheduled IPNS update for displayed post #{post_id}")
+
       {:noreply, assign(socket, :ipns_id, ipns)}
     else
       {:noreply, socket}
@@ -651,7 +813,6 @@ defmodule MazarynWeb.HomeLive.PostComponent do
     end)
   end
 
-  # ====================== FOLLOW/LIKE/COMMENT HELPERS ==========================
   defp normalize_post_id(post_id),
     do: if(is_binary(post_id), do: :erlang.binary_to_list(post_id), else: post_id)
 end
