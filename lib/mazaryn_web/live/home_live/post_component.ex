@@ -813,6 +813,13 @@ defmodule MazarynWeb.HomeLive.PostComponent do
     end)
   end
 
+  def handle_event("view_original_post", %{"post-id" => post_id}, socket) do
+    locale = socket.assigns[:locale] || "en"
+    post_path = Routes.live_path(socket, MazarynWeb.PostLive.Show, locale, post_id)
+
+    {:noreply, push_navigate(socket, to: post_path)}
+  end
+
   defp normalize_post_id(post_id),
     do: if(is_binary(post_id), do: :erlang.binary_to_list(post_id), else: post_id)
 end

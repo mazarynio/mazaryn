@@ -367,7 +367,7 @@
   </div>
 
   <%= if is_repost?(@post) do %>
-    <div class="mt-4 mb-3 flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400">
+    <div class="mt-2 mb-1 flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400">
       <svg class="h-4 w-4 text-green-600 dark:text-green-400" fill="currentColor" viewBox="0 0 24 24">
         <path d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z"/>
       </svg>
@@ -383,71 +383,62 @@
     <%= if @post.repost_type == "with_comment" do %>
       <% repost_comment = get_repost_comment_content(@post) %>
       <%= if repost_comment && String.trim(repost_comment) != "" do %>
-        <div class="mt-3 mb-4">
-          <div class="flex items-start space-x-3">
-            <div class="relative group flex-shrink-0">
-              <div class="absolute inset-0 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full blur-sm opacity-20 group-hover:opacity-40 animate-pulse transition-opacity duration-300"></div>
-              <div class="relative h-10 w-10 rounded-full overflow-hidden border-2 border-blue-200 dark:border-blue-700 shadow-sm">
-                <%= if get_user_avatar(@post.author) != "/images/default-avatar.png" do %>
-                  <img
-                    src={get_user_avatar(@post.author)}
-                    class="h-full w-full object-cover"
-                    alt={"#{@post.author}'s avatar"}
-                  />
-                <% else %>
-                  <div class="h-full w-full flex items-center justify-center bg-gradient-to-br from-blue-500 to-purple-600 text-white text-sm font-bold">
-                    <%= String.first(@post.author || "U") |> String.upcase() %>
-                  </div>
-                <% end %>
-              </div>
-            </div>
-            <div class="flex-1">
-              <p class="text-base font-semibold text-gray-900 dark:text-white mb-1">
-                <%= @post.author %>
-              </p>
-              <p class="text-base text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap">
-                <%= repost_comment %>
-              </p>
-            </div>
-          </div>
+        <div class="mt-1 mb-2 p-2 bg-gray-50 dark:bg-gray-800/50 rounded-xl">
+          <p class="text-base font-semibold text-gray-900 dark:text-white leading-relaxed whitespace-pre-wrap">
+            <%= repost_comment %>
+          </p>
         </div>
       <% end %>
     <% end %>
 
     <%= case get_original_post(@post) do %>
       <% {:ok, original_post} -> %>
-        <div class="mt-3 p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl border-2 border-gray-200 dark:border-gray-700">
+        <div
+          class="mt-1 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-xl border-2 border-gray-200 dark:border-gray-700 hover:border-blue-400 dark:hover:border-blue-500 transition-all duration-200 cursor-pointer group"
+          phx-click="view_original_post"
+          phx-value-post-id={original_post.id}
+          phx-target={@myself}
+        >
           <!-- Original Post Author -->
-          <div class="flex items-center space-x-3 mb-3">
-            <div class="relative h-8 w-8 rounded-full overflow-hidden border-2 border-white dark:border-gray-700 shadow-sm">
-              <%= if get_user_avatar(original_post.author) != "/images/default-avatar.png" do %>
-                <img
-                  src={get_user_avatar(original_post.author)}
-                  class="h-full w-full object-cover"
-                  alt={"#{original_post.author}'s avatar"}
-                />
-              <% else %>
-                <div class="h-full w-full flex items-center justify-center bg-gradient-to-br from-purple-500 to-pink-600 text-white text-xs font-bold">
-                  <%= String.first(original_post.author || "U") |> String.upcase() %>
-                </div>
-              <% end %>
-            </div>
-            <div>
-              <div class="flex items-center space-x-2">
-                <span class="text-sm font-semibold text-gray-900 dark:text-white">
-                  <%= original_post.author %>
-                </span>
-                <%= if verified?(original_post.author) do %>
+          <div class="flex items-center justify-between mb-2">
+            <div class="flex items-center space-x-3">
+              <div class="relative h-8 w-8 rounded-full overflow-hidden border-2 border-white dark:border-gray-700 shadow-sm">
+                <%= if get_user_avatar(original_post.author) != "/images/default-avatar.png" do %>
                   <img
-                    alt="verified user"
-                    src={Routes.static_path(@socket, "/images/verified.png")}
-                    class="h-4 w-4"
+                    src={get_user_avatar(original_post.author)}
+                    class="h-full w-full object-cover"
+                    alt={"#{original_post.author}'s avatar"}
                   />
+                <% else %>
+                  <div class="h-full w-full flex items-center justify-center bg-gradient-to-br from-purple-500 to-pink-600 text-white text-xs font-bold">
+                    <%= String.first(original_post.author || "U") |> String.upcase() %>
+                  </div>
                 <% end %>
               </div>
-              <span class="text-xs text-gray-500 dark:text-gray-400">
-                <%= Timex.from_now(original_post.date_created) %>
-              </span>
+              <div>
+                <div class="flex items-center space-x-2">
+                  <span class="text-sm font-semibold text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                    <%= original_post.author %>
+                  </span>
+                  <%= if verified?(original_post.author) do %>
+                    <img
+                      alt="verified user"
+                      src={Routes.static_path(@socket, "/images/verified.png")}
+                      class="h-4 w-4"
+                    />
+                  <% end %>
+                </div>
+                <span class="text-xs text-gray-500 dark:text-gray-400">
+                  <%= Timex.from_now(original_post.date_created) %>
+                </span>
+              </div>
+            </div>
+
+            <div class="flex items-center space-x-1 text-xs text-blue-600 dark:text-blue-400 opacity-0 group-hover:opacity-100 transition-opacity">
+              <span class="font-medium">View original</span>
+              <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+              </svg>
             </div>
           </div>
 
@@ -456,7 +447,7 @@
           </p>
 
           <%= if post_has_media?(original_post.id) do %>
-            <div class="mt-3">
+            <div class="mt-2">
               <img
                 alt="Post image"
                 class="w-full rounded-lg object-cover border border-gray-200 dark:border-gray-700"
@@ -466,7 +457,7 @@
           <% end %>
         </div>
       <% {:error, _} -> %>
-        <div class="mt-3 p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-200 dark:border-gray-700">
+        <div class="mt-1 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-200 dark:border-gray-700">
           <p class="text-sm text-gray-500 dark:text-gray-400 italic">
             Original post unavailable
           </p>
