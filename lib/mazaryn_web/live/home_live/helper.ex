@@ -179,28 +179,16 @@ defmodule MazarynWeb.HomeLive.PostComponent.Helper do
   end
 
   def get_image_url(post_id) do
-    IO.puts("🖼️ get_image_url called for post_id: #{inspect(post_id)}")
-
     try do
-      post_id_charlist = to_charlist(post_id)
-      IO.puts("🖼️ Converted to charlist: #{inspect(post_id_charlist)}")
-
-      case PostClient.get_media(post_id_charlist) do
+      case PostClient.get_media(to_charlist(post_id)) do
         media_binary when is_binary(media_binary) and byte_size(media_binary) > 0 ->
-          IO.puts("✅ Got media binary, size: #{byte_size(media_binary)} bytes")
-          result = PostClient.display_real_media(media_binary)
-          IO.puts("✅ Generated data URL, length: #{String.length(result)}")
-          result
+          PostClient.display_real_media(media_binary)
 
-        other ->
-          IO.puts("❌ No media binary received: #{inspect(other)}")
+        _ ->
           nil
       end
     rescue
-      e ->
-        IO.puts("❌ Error in get_image_url: #{inspect(e)}")
-        IO.puts("❌ Stacktrace: #{inspect(__STACKTRACE__)}")
-        nil
+      _ -> nil
     end
   end
 
@@ -315,26 +303,18 @@ defmodule MazarynWeb.HomeLive.PostComponent.Helper do
 
   # ============================== MEDIA HELPERS ================================
   def post_has_media?(post_id) do
-    IO.puts("🔍 post_has_media? called for post_id: #{inspect(post_id)}")
-
     try do
       case PostClient.get_media(to_charlist(post_id)) do
         media_binary when is_binary(media_binary) and byte_size(media_binary) > 0 ->
-          IO.puts("🔍 Has media binary, size: #{byte_size(media_binary)} bytes")
           true
 
-        other ->
-          IO.puts("🔍 No media binary: #{inspect(other)}")
+        _ ->
           false
       end
     rescue
-      e ->
-        IO.puts("❌ Error in post_has_media?: #{inspect(e)}")
-        false
+      _ -> false
     catch
-      _, reason ->
-        IO.puts("❌ Caught in post_has_media?: #{inspect(reason)}")
-        false
+      _, _ -> false
     end
   end
 

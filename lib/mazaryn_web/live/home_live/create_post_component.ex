@@ -64,9 +64,6 @@ defmodule MazarynWeb.HomeLive.CreatePostComponent do
   end
 
   defp handle_save_post(socket, %{"post" => post_params}) do
-    IO.puts("💾 handle_save_post called")
-    IO.puts("💾 post_params: #{inspect(post_params)}")
-
     content = Map.get(post_params, "content", "")
 
     if String.length(content) > @max_chars do
@@ -75,14 +72,11 @@ defmodule MazarynWeb.HomeLive.CreatePostComponent do
       {:ok, user} = Users.one_by_id(socket.assigns.user.id)
 
       urls = consume_upload(socket)
-      IO.puts("💾 Uploaded URLs: #{inspect(urls)}")
 
       post_params =
         post_params
         |> Map.put("author", user.username)
         |> Map.put("media", urls)
-
-      IO.puts("💾 Final post_params with media: #{inspect(post_params)}")
 
       hashtags = fetch_from_content(~r/#\S[a-zA-Z]*/, post_params)
       mentions = fetch_from_content(~r/@\S[a-zA-Z]*/, post_params)
@@ -119,10 +113,9 @@ defmodule MazarynWeb.HomeLive.CreatePostComponent do
       |> Posts.create_post()
       |> case do
         {:ok, %Post{} = new_post} ->
-          IO.puts("✅ Post created successfully with ID: #{inspect(new_post.id)}")
-          IO.puts("✅ Post media: #{inspect(new_post.media)}")
-
           add_mention_to_notif(mentions, socket.assigns.user.id)
+
+          cleanup_uploaded_files(urls)
 
           Task.start(fn ->
             Process.sleep(5000)
@@ -136,11 +129,29 @@ defmodule MazarynWeb.HomeLive.CreatePostComponent do
           |> assign(:show_emoji_panel, false)
           |> push_event("clear_textarea", %{component_id: to_string(socket.assigns.myself)})
 
-        error ->
-          IO.puts("❌ Post creation failed: #{inspect(error)}")
+        _other ->
+          cleanup_uploaded_files(urls)
           socket
       end
     end
+  end
+
+  defp cleanup_uploaded_files([]), do: :ok
+
+  defp cleanup_uploaded_files(file_paths) when is_list(file_paths) do
+    Task.start(fn ->
+      Process.sleep(10000)
+
+      Enum.each(file_paths, fn path ->
+        try do
+          if File.exists?(path) do
+            File.rm(path)
+          end
+        rescue
+          _ -> :ok
+        end
+      end)
+    end)
   end
 
   defp add_mention_to_notif("", _user_id), do: :ok
