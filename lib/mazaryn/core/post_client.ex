@@ -7,8 +7,26 @@ defmodule Core.PostClient do
     ~c"zKegB4mWRXP3PDVuntpnA"
   """
   def create(author, content, media \\ [], hashtag, link_url, emoji, mention) do
+    IO.puts("🔨 PostClient.create called")
+    IO.puts("🔨 Author: #{author}")
+    IO.puts("🔨 Content: #{content}")
+    IO.puts("🔨 Media: #{inspect(media)}")
+    IO.puts("🔨 Hashtag: #{hashtag}")
+    IO.puts("🔨 Link URL: #{link_url}")
+    IO.puts("🔨 Emoji: #{emoji}")
+    IO.puts("🔨 Mention: #{mention}")
+
     content_erlang = String.to_charlist(content)
-    :post_server.insert(author, content_erlang, media, hashtag, link_url, emoji, mention)
+
+    media_param = if is_list(media) and length(media) > 0, do: media, else: []
+
+    IO.puts("🔨 Final media param: #{inspect(media_param)}")
+
+    result =
+      :post_server.insert(author, content_erlang, media_param, hashtag, link_url, emoji, mention)
+
+    IO.puts("🔨 Post insert result: #{inspect(result)}")
+    result
   end
 
   def modify_post(
@@ -276,17 +294,31 @@ defmodule Core.PostClient do
   end
 
   def get_media_cid(post_id) do
+    IO.puts("🔑 PostClient.get_media_cid called with: #{inspect(post_id)}")
+
+    post = :post_server.get_post_by_id(post_id)
+    IO.puts("🔑 Full post tuple: #{inspect(post)}")
+
     cid = :postdb.get_media_cid(post_id)
+    IO.puts("🔑 Raw CID from postdb: #{inspect(cid)}")
 
     cid =
       if is_tuple(cid) do
+        IO.puts("🔑 CID is tuple, extracting element 1")
         elem(cid, 1)
       else
         cid
       end
 
-    cid
-    |> List.to_string()
+    final_cid =
+      if is_list(cid) do
+        List.to_string(cid)
+      else
+        to_string(cid)
+      end
+
+    IO.puts("🔑 Final CID string: #{final_cid}")
+    final_cid
   end
 
   def display_real_media(media_binary) do

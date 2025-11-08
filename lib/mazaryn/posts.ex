@@ -62,7 +62,20 @@ defmodule Mazaryn.Posts do
   end
 
   def create(author, content, media, hashtag, mention, link_url) do
-    {:ok, PostClient.create(author, content, media, hashtag, mention, link_url)}
+    IO.puts("🏗️ Mazaryn.Posts.create called")
+    IO.puts("🏗️ Author: #{author}")
+    IO.puts("🏗️ Content: #{content}")
+    IO.puts("🏗️ Media: #{inspect(media)}")
+    IO.puts("🏗️ Hashtag: #{hashtag}")
+    IO.puts("🏗️ Mention: #{mention}")
+    IO.puts("🏗️ Link URL: #{link_url}")
+
+    emoji = ""
+
+    post_id = PostClient.create(author, content, media, hashtag, link_url, emoji, mention)
+    IO.puts("🏗️ Created post_id: #{inspect(post_id)}")
+
+    {:ok, post_id}
   end
 
   def one_by_id(id) do

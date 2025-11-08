@@ -447,15 +447,18 @@
           </p>
 
           <%= if post_has_media?(original_post.id) do %>
-            <div class="mt-2">
-              <img
-                alt="Post image"
-                class="w-full rounded-lg object-cover border border-gray-200 dark:border-gray-700"
-                src={get_image_url(original_post.id)}
-              />
-            </div>
-          <% end %>
-        </div>
+                      <div class="mt-2">
+                        <% image_url = get_image_url(original_post.id) %>
+                        <%= if image_url do %>
+                          <img
+                            alt="Post image"
+                            class="w-full rounded-lg object-cover border border-gray-200 dark:border-gray-700"
+                            src={image_url}
+                          />
+                        <% end %>
+                      </div>
+                    <% end %>
+                  </div>
       <% {:error, _} -> %>
         <div class="mt-1 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-200 dark:border-gray-700">
           <p class="text-sm text-gray-500 dark:text-gray-400 italic">

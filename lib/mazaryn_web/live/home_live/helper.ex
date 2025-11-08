@@ -179,8 +179,36 @@ defmodule MazarynWeb.HomeLive.PostComponent.Helper do
   end
 
   def get_image_url(post_id) do
-    cid = PostClient.get_media_cid(post_id)
-    Mazaryn.config([:media, :ipfs_gateway]) <> cid
+    IO.puts("🖼️ get_image_url called for post_id: #{inspect(post_id)}")
+
+    try do
+      post_id_charlist = to_charlist(post_id)
+      IO.puts("🖼️ Converted to charlist: #{inspect(post_id_charlist)}")
+
+      case PostClient.get_media(post_id_charlist) do
+        media_binary when is_binary(media_binary) and byte_size(media_binary) > 0 ->
+          IO.puts("✅ Got media binary, size: #{byte_size(media_binary)} bytes")
+          result = PostClient.display_real_media(media_binary)
+          IO.puts("✅ Generated data URL, length: #{String.length(result)}")
+          result
+
+        other ->
+          IO.puts("❌ No media binary received: #{inspect(other)}")
+          nil
+      end
+    rescue
+      e ->
+        IO.puts("❌ Error in get_image_url: #{inspect(e)}")
+        IO.puts("❌ Stacktrace: #{inspect(__STACKTRACE__)}")
+        nil
+    end
+  end
+
+  defp get_processed_content(post) do
+    case Core.PostClient.get_post_content_by_id(post.id) do
+      nil -> process_post_content(post.content)
+      ipfs_content -> process_ipfs_content(ipfs_content)
+    end
   end
 
   defp get_processed_content(post) do
@@ -287,27 +315,26 @@ defmodule MazarynWeb.HomeLive.PostComponent.Helper do
 
   # ============================== MEDIA HELPERS ================================
   def post_has_media?(post_id) do
+    IO.puts("🔍 post_has_media? called for post_id: #{inspect(post_id)}")
+
     try do
-      case PostClient.get_media_cid(post_id) do
-        cid when is_binary(cid) and byte_size(cid) > 0 ->
-          String.starts_with?(cid, "Qm") and String.length(cid) == 46
+      case PostClient.get_media(to_charlist(post_id)) do
+        media_binary when is_binary(media_binary) and byte_size(media_binary) > 0 ->
+          IO.puts("🔍 Has media binary, size: #{byte_size(media_binary)} bytes")
+          true
 
-        cid when is_list(cid) ->
-          case List.to_string(cid) do
-            str when byte_size(str) > 0 ->
-              String.starts_with?(str, "Qm") and String.length(str) == 46
-
-            _ ->
-              false
-          end
-
-        _ ->
+        other ->
+          IO.puts("🔍 No media binary: #{inspect(other)}")
           false
       end
     rescue
-      _ -> false
+      e ->
+        IO.puts("❌ Error in post_has_media?: #{inspect(e)}")
+        false
     catch
-      _, _ -> false
+      _, reason ->
+        IO.puts("❌ Caught in post_has_media?: #{inspect(reason)}")
+        false
     end
   end
 

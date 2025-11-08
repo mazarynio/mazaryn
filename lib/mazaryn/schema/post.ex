@@ -85,6 +85,26 @@ defmodule Mazaryn.Schema.Post do
          device_info, pin_info, is_repost, original_post_id, repost_type, repost_comment,
          repost_count, reposted_by, data}
       ) do
+    IO.puts("📋 Post.erl_changeset called for post: #{inspect(id)}")
+    IO.puts("📋 Media field: #{inspect(media)}")
+
+    processed_media =
+      cond do
+        is_tuple(media) and elem(media, 0) == :media ->
+          IO.puts("📋 Media is tuple with :media tag")
+          []
+
+        is_list(media) ->
+          IO.puts("📋 Media is list: #{inspect(media)}")
+          media
+
+        true ->
+          IO.puts("📋 Media is other: #{inspect(media)}")
+          []
+      end
+
+    IO.puts("📋 Processed media: #{inspect(processed_media)}")
+
     new_likes =
       case likes do
         list when is_list(list) -> list
