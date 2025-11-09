@@ -161,36 +161,66 @@ defmodule Account.Users do
   end
 
   def one_by_id(id) do
+    Logger.info("👤 Account.Users.one_by_id called with: #{inspect(id)}")
+
+    Logger.info(
+      "👤 id type: #{if is_binary(id), do: "binary", else: if(is_list(id), do: "charlist", else: "unknown")}"
+    )
+
     try do
       case Core.UserClient.get_user_by_id(id) do
         :user_not_exist ->
-          Logger.info("User not found: #{id}")
+          Logger.info("👤 User not found: #{id}")
           nil
 
         {:error, :timeout} ->
-          Logger.warning("User lookup timed out for ID: #{id}")
+          Logger.warning("👤 User lookup timed out for ID: #{id}")
           {:error, :timeout}
 
         {:error, reason} ->
-          Logger.error("User lookup failed for ID #{id}: #{inspect(reason)}")
+          Logger.error("👤 User lookup failed for ID #{id}: #{inspect(reason)}")
           {:error, reason}
 
         erl_user ->
+          Logger.info("👤 Got erl_user tuple")
+          Logger.info("👤 erl_user is tuple?: #{is_tuple(erl_user)}")
+
+          Logger.info(
+            "👤 erl_user first element: #{if is_tuple(erl_user), do: elem(erl_user, 0), else: "not tuple"}"
+          )
+
           case User.erl_changeset_safe(erl_user) do
             {:ok, changeset} ->
+              Logger.info("👤 Changeset created successfully")
+              Logger.info("👤 Changeset valid?: #{changeset.valid?}")
+              Logger.info("👤 Changeset changes keys: #{inspect(Map.keys(changeset.changes))}")
+
+              Logger.info(
+                "👤 saved_posts in changeset: #{inspect(changeset.changes[:saved_posts])}"
+              )
+
               case User.build(changeset) do
-                {:ok, user} -> {:ok, user}
-                {:error, reason} -> {:error, reason}
+                {:ok, user} ->
+                  Logger.info("👤 ✅ User built successfully")
+                  Logger.info("👤 User username: #{user.username}")
+                  Logger.info("👤 User saved_posts: #{inspect(user.saved_posts)}")
+                  Logger.info("👤 User saved_posts length: #{length(user.saved_posts || [])}")
+                  {:ok, user}
+
+                {:error, reason} ->
+                  Logger.error("👤 ❌ Failed to build user: #{inspect(reason)}")
+                  {:error, reason}
               end
 
             {:error, reason} ->
-              Logger.error("Invalid user data for ID #{id}: #{reason}")
+              Logger.error("👤 Invalid user data for ID #{id}: #{reason}")
               {:error, :invalid_data}
           end
       end
     rescue
       error ->
-        Logger.error("Exception in one_by_id for #{id}: #{inspect(error)}")
+        Logger.error("👤 Exception in one_by_id for #{id}: #{inspect(error)}")
+        Logger.error("👤 Stacktrace: #{inspect(__STACKTRACE__)}")
         {:error, :lookup_failed}
     end
   end

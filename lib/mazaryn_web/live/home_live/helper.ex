@@ -439,7 +439,10 @@ defmodule MazarynWeb.HomeLive.PostComponent.Helper do
       is_liked: false,
       supported_translation_langs: Mazaryn.Translator.supported_targets(),
       repost_count: get_repost_count(assigns.post.id),
-      user_has_reposted: has_user_reposted?(assigns.current_user.id, assigns.post.id)
+      user_has_reposted: has_user_reposted?(assigns.current_user.id, assigns.post.id),
+      is_saved: is_post_saved?(assigns.current_user.id, assigns.post.id),
+      save_icon: get_save_icon(assigns.current_user.id, assigns.post.id),
+      save_event: get_save_event(assigns.current_user.id, assigns.post.id)
     }
 
     assigns |> Map.merge(base_assigns) |> Map.merge(results) |> Map.merge(changesets)
@@ -460,7 +463,8 @@ defmodule MazarynWeb.HomeLive.PostComponent.Helper do
       is_liked: false,
       ipns_id: nil,
       likes_count: 0,
-      post_content_cached: "Content loading..."
+      post_content_cached: "Content loading...",
+      is_saved: false
     }
   end
 
@@ -814,5 +818,28 @@ defmodule MazarynWeb.HomeLive.PostComponent.Helper do
       true ->
         nil
     end
+  end
+
+  def is_post_saved?(user_id, post_id) do
+    try do
+      user_id_charlist = to_charlist(user_id)
+      saved_posts = Core.PostClient.get_save_posts(user_id_charlist)
+      post_id_charlist = to_charlist(post_id)
+      Enum.member?(saved_posts, post_id_charlist)
+    rescue
+      _ -> false
+    end
+  end
+
+  def is_viewing_saved_posts?(socket) do
+    Map.get(socket.assigns, :current_filter) == "interest"
+  end
+
+  def get_save_icon(user_id, post_id) do
+    if is_post_saved?(user_id, post_id), do: "saved", else: "save"
+  end
+
+  def get_save_event(user_id, post_id) do
+    if is_post_saved?(user_id, post_id), do: "unsave_post", else: "save_post"
   end
 end

@@ -255,12 +255,12 @@ defmodule Core.PostClient do
     :post_server.get_all_comments(postID)
   end
 
-  def save_post(username, post_id) do
-    :user_server.save_post(username, post_id)
+  def save_post(user_id, post_id) do
+    :post_server.save_post(user_id, post_id)
   end
 
-  def unsave_post(username, post_id) do
-    :user_server.unsave_post(username, post_id)
+  def unsave_post(user_id, post_id) do
+    :post_server.unsave_post(user_id, post_id)
   end
 
   def save_posts(username, post_ids) do
@@ -271,8 +271,15 @@ defmodule Core.PostClient do
     :user_server.unsave_posts(username, post_ids)
   end
 
-  def get_save_posts(username) do
-    :user_server.get_save_posts(username)
+  def get_save_posts(user_id) do
+    IO.puts("🔑 PostClient.get_save_posts called")
+    IO.puts("🔑 user_id: #{inspect(user_id)}")
+
+    IO.puts(
+      "🔑 user_id type: #{if is_binary(user_id), do: "binary", else: if(is_list(user_id), do: "charlist", else: "other")}"
+    )
+
+    :post_server.get_save_posts(user_id)
   end
 
   def get_media(post_id) do

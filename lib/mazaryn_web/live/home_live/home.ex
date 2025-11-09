@@ -536,6 +536,12 @@ defmodule MazarynWeb.HomeLive.Home do
     {:noreply, socket}
   end
 
+  def handle_info({:view_post, post_id}, socket) do
+    locale = socket.assigns[:locale] || "en"
+    post_path = Routes.live_path(socket, MazarynWeb.PostLive.Show, locale, post_id)
+    {:noreply, push_navigate(socket, to: post_path)}
+  end
+
   defp assign_weather_state(socket) do
     socket
     |> assign(show_weather_modal: false)
@@ -847,7 +853,11 @@ defmodule MazarynWeb.HomeLive.Home do
         |> Task.async_stream(
           fn uid ->
             Posts.get_posts_by_user_id(uid)
-          end, max_concurrency: @max_concurrent_tasks, timeout: 1000, on_timeout: :kill_task)
+          end,
+          max_concurrency: @max_concurrent_tasks,
+          timeout: 1000,
+          on_timeout: :kill_task
+        )
         |> Stream.filter(&match?({:ok, _}, &1))
         |> Stream.flat_map(&elem(&1, 1))
         |> Enum.sort_by(& &1.date_created, &>=/2)

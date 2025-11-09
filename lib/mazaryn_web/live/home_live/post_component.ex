@@ -1,6 +1,8 @@
 defmodule MazarynWeb.HomeLive.PostComponent do
   use MazarynWeb, :live_component
 
+  require Logger
+
   import MazarynWeb.Live.Helper
   alias MazarynWeb.Router.Helpers, as: Routes
 
@@ -51,6 +53,10 @@ defmodule MazarynWeb.HomeLive.PostComponent do
   defdelegate is_repost?(post), to: PCH
   defdelegate get_original_post(post), to: PCH
   defdelegate get_repost_comment_content(post), to: PCH
+
+  defdelegate is_post_saved?(user_id, post_id), to: PCH
+  defdelegate get_save_icon(user_id, post_id), to: PCH
+  defdelegate get_save_event(user_id, post_id), to: PCH
 
   @supported_translation_langs Translator.supported_targets()
   @default_src_lang Translator.default_src()
@@ -142,6 +148,27 @@ defmodule MazarynWeb.HomeLive.PostComponent do
      })}
   end
 
+  def handle_event("view_post_details", %{"post-id" => post_id}, socket) do
+    locale = socket.assigns[:locale] || "en"
+    post_path = Routes.live_path(socket, MazarynWeb.PostLive.Show, locale, post_id)
+    {:noreply, push_navigate(socket, to: post_path)}
+  end
+
+  def handle_event("open_repost_modal", %{"post-id" => post_id}, socket) do
+    post = socket.assigns.post
+
+    if post.author == socket.assigns.current_user.username do
+      {:noreply, put_flash(socket, :error, "You cannot share your own post")}
+    else
+      {:noreply,
+       assign(socket, %{
+         show_repost_modal: true,
+         reposting_post_id: post_id,
+         repost_comment: ""
+       })}
+    end
+  end
+
   def handle_event("translate-post", %{"post-id" => post_id, "target" => target}, socket) do
     post = socket.assigns.post
     post_id = normalize_post_id(post_id)
@@ -162,6 +189,66 @@ defmodule MazarynWeb.HomeLive.PostComponent do
 
       {:error, reason} ->
         {:noreply, put_flash(socket, :error, "Translation error: #{inspect(reason)}")}
+    end
+  end
+
+  def handle_event("save_post", %{"post-id" => post_id}, socket) do
+    user_id = socket.assigns.current_user.id
+    post_id_charlist = to_charlist(post_id)
+    user_id_charlist = to_charlist(user_id)
+
+    case Core.PostClient.save_post(user_id_charlist, post_id_charlist) do
+      :ok ->
+        clear_saved_posts_cache(user_id)
+
+        if socket.assigns[:current_filter] == "interest" do
+          send(self(), {:refresh_saved_posts_view})
+        end
+
+        {:noreply,
+         socket
+         |> assign(:is_saved, true)
+         |> assign(:save_event, "unsave_post")
+         |> put_flash(:info, "Post saved successfully")}
+
+      {:error, reason} ->
+        {:noreply, put_flash(socket, :error, "Failed to save post: #{inspect(reason)}")}
+    end
+  end
+
+  def handle_event("unsave_post", %{"post-id" => post_id}, socket) do
+    user_id = socket.assigns.current_user.id
+    post_id_charlist = to_charlist(post_id)
+    user_id_charlist = to_charlist(user_id)
+
+    case Core.PostClient.unsave_post(user_id_charlist, post_id_charlist) do
+      result when result in [:ok, {:atomic, :ok}] ->
+        clear_saved_posts_cache(user_id)
+
+        if socket.assigns[:current_filter] == "interest" do
+          send(self(), {:refresh_saved_posts_view})
+        end
+
+        {:noreply,
+         socket
+         |> assign(:is_saved, false)
+         |> assign(:save_event, "save_post")
+         |> put_flash(:info, "Post unsaved successfully")}
+
+      {:error, reason} ->
+        {:noreply, put_flash(socket, :error, "Failed to unsave post: #{inspect(reason)}")}
+    end
+  end
+
+  defp clear_saved_posts_cache(user_id) do
+    try do
+      cache_key = {:saved_posts, user_id}
+      :ets.delete(:posts_cache, cache_key)
+      Logger.info("🗑️ Cleared saved posts cache for user #{user_id}")
+    rescue
+      ArgumentError ->
+        Logger.debug("Cache table not found, skipping cache clear")
+        :ok
     end
   end
 

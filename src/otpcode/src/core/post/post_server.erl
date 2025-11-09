@@ -1,15 +1,15 @@
 %%%-------------------------------------------------------------------
-%%% @author Mazaryn 
+%%% @author Mazaryn
 %%% @copyright (C) 2022, <COMPANY>
 %%% @doc
 %%%
 %%% @end
 %%% Created : 14. May 2022 9:45 PM
 %%%-------------------------------------------------------------------
--module(post_server). 
--author("Zaryn Technologies"). 
+-module(post_server).
+-author("Zaryn Technologies").
 -define(NUM, 5).
--include_lib("kernel/include/logger.hrl"). 
+-include_lib("kernel/include/logger.hrl").
 
 -behaviour(gen_server).
 %% API
@@ -86,10 +86,10 @@ update_comment(CommentID, NewContent) ->
     gen_server:call({global, ?MODULE}, {update_comment, CommentID, NewContent}).
 
 like_comment(UserID, CommentID) ->
-    gen_server:call({global, ?MODULE}, {like_comment, UserID, CommentID}). 
+    gen_server:call({global, ?MODULE}, {like_comment, UserID, CommentID}).
 
 get_comment_likes(CommentID) ->
-    gen_server:call({global, ?MODULE}, {get_comment_likes, CommentID}). 
+    gen_server:call({global, ?MODULE}, {get_comment_likes, CommentID}).
 
 get_all_likes_for_user(UserID) ->
     gen_server:call({global, ?MODULE}, {get_all_likes_for_user, UserID}).
@@ -102,7 +102,7 @@ get_all_comments_for_user(UserID) ->
 
 get_last_50_comments_for_user(UserID) ->
     gen_server:call({global, ?MODULE}, {get_last_50_comments_for_user, UserID}).
-    
+
 reply_comment(UserID, CommentID, Content) ->
     gen_server:call({global, ?MODULE}, {reply_comment, UserID, CommentID, Content}).
 
@@ -157,11 +157,11 @@ get_all_posts_from_date(Year, Month, Date, Author) ->
 get_all_posts_from_month(Year, Month, Author) ->
   gen_server:call({global, ?MODULE}, {get_all_posts_from_month, Year, Month, Author}).
 
-save_post(Username, PostId) ->
-    gen_server:call({global, ?MODULE}, {save_post, Username, PostId}).
+save_post(UserID, PostId) ->
+    gen_server:call({global, ?MODULE}, {save_post, UserID, PostId}).
 
-unsave_post(Username, PostId) ->
-    gen_server:call({global, ?MODULE}, {unsave_post, Username, PostId}).
+unsave_post(UserID, PostId) ->
+    gen_server:call({global, ?MODULE}, {unsave_post, UserID, PostId}).
 
 save_posts(Username, PostIds) ->
     gen_server:call({global, ?MODULE}, {save_posts, Username, PostIds}).
@@ -169,8 +169,8 @@ save_posts(Username, PostIds) ->
 unsave_posts(Username, PostIds) ->
     gen_server:call({global, ?MODULE}, {unsave_posts, Username, PostIds}).
 
-get_save_posts(Username) ->
-    gen_server:call({global, ?MODULE}, {get_save_posts, Username}).
+get_save_posts(UserID) ->
+    gen_server:call({global, ?MODULE}, {get_save_posts, UserID}).
 
 report_post(MyID, PostID, Type, Description) ->
     gen_server:call({global, ?MODULE}, {report_post, MyID, PostID, Type, Description}).
@@ -307,7 +307,7 @@ handle_call({get_reply, ReplyID}, _From, State) ->
 
 handle_call({get_reply_content, ReplyID}, From, State) ->
     spawn(fun() ->
-        Result = postdb:get_reply_content(ReplyID), 
+        Result = postdb:get_reply_content(ReplyID),
         gen_server:reply(From, Result)
     end),
     {noreply, State};
@@ -324,14 +324,14 @@ handle_call({get_single_comment, CommentId}, _From, State) ->
 
 handle_call({get_comment_content, CommentID}, From, State) ->
     spawn(fun() ->
-        Result = postdb:get_comment_content(CommentID), 
+        Result = postdb:get_comment_content(CommentID),
         gen_server:reply(From, Result)
     end),
     {noreply, State};
 
 handle_call({get_comment_status, CommentID}, From, State) ->
     spawn(fun() ->
-        Result = postdb:get_comment_status(CommentID), 
+        Result = postdb:get_comment_status(CommentID),
         gen_server:reply(From, Result)
     end),
     {noreply, State};
@@ -377,12 +377,12 @@ handle_call({get_all_posts_from_month, Year, Month, Author}, _From, State) ->
     {reply, Posts, State};
 
 %% Save post for reading alter
-handle_call({save_post, Username, PostId}, _From, State) ->
-    Res = userdb:save_post(Username, PostId),
+handle_call({save_post, UserID, PostId}, _From, State) ->
+    Res = userdb:save_post(UserID, PostId),
     {reply, Res, State};
 
-handle_call({unsave_post, Username, PostId}, _From, State) ->
-    Res = userdb:unsave_post(Username, PostId),
+handle_call({unsave_post, UserID, PostId}, _From, State) ->
+    Res = userdb:unsave_post(UserID, PostId),
     {reply, Res, State};
 
 handle_call({save_posts, Username, PostIds}, _From, State) ->
@@ -393,8 +393,8 @@ handle_call({unsave_posts, Username, PostIds}, _From, State) ->
     Res = userdb:unsave_posts(Username, PostIds),
     {reply, Res, State};
 
-handle_call({get_save_posts, Username}, _From, State) ->
-    Res = userdb:get_save_posts(Username),
+handle_call({get_save_posts, UserID}, _From, State) ->
+    Res = userdb:get_save_posts(UserID),
     {reply, Res, State};
 
 handle_call({report_post, MyID, PostID, Type, Description}, _From, State) ->
