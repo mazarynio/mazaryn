@@ -14,7 +14,15 @@
         get_comments_for_display/1,
         get_comment_count_for_display/1,
         get_like_count_for_display/1,
-        has_user_liked_post/2]).
+        has_user_liked_post/2,
+        react_to_post/3, remove_reaction_from_post/2, get_reactions_by_type/2,
+                 get_all_reactions/1, get_users_by_reaction_type/2, get_all_users_by_reactions/1,
+                 get_reaction_counts/1, has_user_reacted_with_type/3, get_user_reaction_type/2,
+                 react_to_comment/3, remove_reaction_from_comment/2,
+                          get_comment_reactions_by_type/2, get_all_comment_reactions/1,
+                          get_users_by_comment_reaction_type/2, get_all_users_by_comment_reactions/1,
+                          get_comment_reaction_counts/1, has_user_reacted_to_comment_with_type/3,
+                          get_user_comment_reaction_type/2]).
 
 -include("../records.hrl").
 -include_lib("stdlib/include/qlc.hrl").
@@ -1710,3 +1718,566 @@ get_comments_for_display(PostID) ->
                 {atomic, Result} -> Result;
                 {aborted, _Reason} -> false
             end.
+
+
+            react_to_post(UserID, PostId, ReactionType) ->
+                ValidReactions = [like, celebrate, support, love, insightful, funny],
+                case lists:member(ReactionType, ValidReactions) of
+                    false -> {error, invalid_reaction_type};
+                    true ->
+                        TargetPostId = case repostdb:get_target_post_for_interaction(PostId) of
+                            {ok, TargetId} -> TargetId;
+                            {error, _} -> PostId
+                        end,
+
+                        Fun = fun() ->
+                            case mnesia:read({post, TargetPostId}) of
+                                [] -> {error, post_not_found};
+                                [Post] ->
+                                    ExistingReaction = find_user_reaction_in_post(Post, UserID),
+
+                                    case ExistingReaction of
+                                        {found, OldType, OldLikeID} when OldType =:= ReactionType ->
+                                            Reactions = Post#post.reactions,
+                                            ReactionList = maps:get(OldType, Reactions, []),
+                                            UpdatedList = lists:delete(OldLikeID, ReactionList),
+                                            UpdatedReactions = maps:put(OldType, UpdatedList, Reactions),
+
+                                            ReactionCounts = Post#post.reaction_counts,
+                                            CurrentCount = maps:get(OldType, ReactionCounts, 0),
+                                            UpdatedCount = max(0, CurrentCount - 1),
+                                            UpdatedReactionCounts = maps:put(OldType, UpdatedCount, ReactionCounts),
+
+                                            mnesia:delete({like, OldLikeID}),
+
+                                            mnesia:write(Post#post{
+                                                reactions = UpdatedReactions,
+                                                reaction_counts = UpdatedReactionCounts
+                                            }),
+                                            {removed, OldType};
+                                        {found, OldType, OldLikeID} ->
+                                            Reactions = Post#post.reactions,
+                                            OldReactionList = maps:get(OldType, Reactions, []),
+                                            UpdatedOldList = lists:delete(OldLikeID, OldReactionList),
+                                            IntermediateReactions = maps:put(OldType, UpdatedOldList, Reactions),
+
+                                            ReactionCounts = Post#post.reaction_counts,
+                                            OldCount = maps:get(OldType, ReactionCounts, 0),
+                                            UpdatedOldCount = max(0, OldCount - 1),
+                                            IntermediateReactionCounts = maps:put(OldType, UpdatedOldCount, ReactionCounts),
+
+                                            mnesia:delete({like, OldLikeID}),
+
+                                            ID = nanoid:gen(),
+                                            mnesia:write(#like{
+                                                id = ID,
+                                                post = TargetPostId,
+                                                userID = UserID,
+                                                reaction_type = ReactionType,
+                                                date_created = calendar:universal_time()
+                                            }),
+
+                                            NewReactionList = maps:get(ReactionType, IntermediateReactions, []),
+                                            FinalReactions = maps:put(ReactionType, [ID | NewReactionList], IntermediateReactions),
+
+                                            NewCount = maps:get(ReactionType, IntermediateReactionCounts, 0),
+                                            FinalReactionCounts = maps:put(ReactionType, NewCount + 1, IntermediateReactionCounts),
+
+                                            mnesia:write(Post#post{
+                                                reactions = FinalReactions,
+                                                reaction_counts = FinalReactionCounts
+                                            }),
+                                            ID;
+                                        not_found ->
+                                            ID = nanoid:gen(),
+                                            mnesia:write(#like{
+                                                id = ID,
+                                                post = TargetPostId,
+                                                userID = UserID,
+                                                reaction_type = ReactionType,
+                                                date_created = calendar:universal_time()
+                                            }),
+
+                                            Reactions = Post#post.reactions,
+                                            ReactionList = maps:get(ReactionType, Reactions, []),
+                                            UpdatedReactions = maps:put(ReactionType, [ID | ReactionList], Reactions),
+
+                                            ReactionCounts = Post#post.reaction_counts,
+                                            CurrentCount = maps:get(ReactionType, ReactionCounts, 0),
+                                            UpdatedReactionCounts = maps:put(ReactionType, CurrentCount + 1, ReactionCounts),
+
+                                            mnesia:write(Post#post{
+                                                reactions = UpdatedReactions,
+                                                reaction_counts = UpdatedReactionCounts
+                                            }),
+                                            ID
+                                    end
+                            end
+                        end,
+                        case mnesia:transaction(Fun) of
+                            {atomic, Result} -> Result;
+                            {aborted, Reason} -> {error, {transaction_failed, Reason}}
+                        end
+                end.
+
+            find_user_reaction_in_post(Post, UserID) ->
+                Reactions = Post#post.reactions,
+                ReactionTypes = [like, celebrate, support, love, insightful, funny],
+                find_user_reaction_in_types(UserID, ReactionTypes, Reactions).
+
+            find_user_reaction_in_types(_UserID, [], _Reactions) ->
+                not_found;
+            find_user_reaction_in_types(UserID, [Type | Rest], Reactions) ->
+                ReactionList = maps:get(Type, Reactions, []),
+                case lists:any(fun(ID) ->
+                    case mnesia:read({like, ID}) of
+                        [Like] -> Like#like.userID =:= UserID;
+                        [] -> false
+                    end
+                end, ReactionList) of
+                    true ->
+                        LikeID = lists:foldl(fun(ID, Acc) ->
+                            case mnesia:read({like, ID}) of
+                                [Like] when Like#like.userID =:= UserID -> ID;
+                                _ -> Acc
+                            end
+                        end, undefined, ReactionList),
+                        {found, Type, LikeID};
+                    false ->
+                        find_user_reaction_in_types(UserID, Rest, Reactions)
+                end.
+
+            remove_reaction_from_post(LikeID, PostId) ->
+                TargetPostId = case repostdb:get_target_post_for_interaction(PostId) of
+                    {ok, TargetId} -> TargetId;
+                    {error, _} -> PostId
+                end,
+
+                Fun = fun() ->
+                    case mnesia:read({like, LikeID}) of
+                        [] -> {error, reaction_not_found};
+                        [Like] ->
+                            ReactionType = Like#like.reaction_type,
+
+                            case mnesia:read({post, TargetPostId}) of
+                                [] -> {error, post_not_found};
+                                [Post] ->
+                                    Reactions = Post#post.reactions,
+                                    ReactionList = maps:get(ReactionType, Reactions, []),
+                                    UpdatedReactionList = lists:delete(LikeID, ReactionList),
+                                    UpdatedReactions = maps:put(ReactionType, UpdatedReactionList, Reactions),
+
+                                    ReactionCounts = Post#post.reaction_counts,
+                                    CurrentCount = maps:get(ReactionType, ReactionCounts, 0),
+                                    NewCount = max(0, CurrentCount - 1),
+                                    UpdatedReactionCounts = maps:put(ReactionType, NewCount, ReactionCounts),
+
+                                    mnesia:write(Post#post{
+                                        reactions = UpdatedReactions,
+                                        reaction_counts = UpdatedReactionCounts,
+                                        date_created = calendar:universal_time()
+                                    }),
+
+                                    mnesia:delete({like, LikeID}),
+                                    ok
+                            end
+                    end
+                end,
+                case mnesia:transaction(Fun) of
+                    {atomic, Result} -> Result;
+                    {aborted, Reason} -> {error, {transaction_failed, Reason}}
+                end.
+
+            get_reactions_by_type(PostID, ReactionType) ->
+                TargetPostId = case repostdb:get_target_post_for_interaction(PostID) of
+                    {ok, TargetId} -> TargetId;
+                    {error, _} -> PostID
+                end,
+
+                Fun = fun() ->
+                    case mnesia:read({post, TargetPostId}) of
+                        [] -> [];
+                        [Post] ->
+                            Reactions = Post#post.reactions,
+                            ReactionList = maps:get(ReactionType, Reactions, []),
+                            lists:foldl(fun(ID, Acc) ->
+                                case mnesia:read({like, ID}) of
+                                    [Like] -> [Like | Acc];
+                                    [] -> Acc
+                                end
+                            end, [], ReactionList)
+                    end
+                end,
+                {atomic, Res} = mnesia:transaction(Fun),
+                Res.
+
+            get_all_reactions(PostID) ->
+                TargetPostId = case repostdb:get_target_post_for_interaction(PostID) of
+                    {ok, TargetId} -> TargetId;
+                    {error, _} -> PostID
+                end,
+
+                Fun = fun() ->
+                    case mnesia:read({post, TargetPostId}) of
+                        [] -> #{};
+                        [Post] ->
+                            Reactions = Post#post.reactions,
+                            maps:map(fun(_ReactionType, ReactionList) ->
+                                lists:foldl(fun(ID, Acc) ->
+                                    case mnesia:read({like, ID}) of
+                                        [Like] -> [Like | Acc];
+                                        [] -> Acc
+                                    end
+                                end, [], ReactionList)
+                            end, Reactions)
+                    end
+                end,
+                {atomic, Res} = mnesia:transaction(Fun),
+                Res.
+
+            get_users_by_reaction_type(PostID, ReactionType) ->
+                TargetPostId = case repostdb:get_target_post_for_interaction(PostID) of
+                    {ok, TargetId} -> TargetId;
+                    {error, _} -> PostID
+                end,
+
+                Fun = fun() ->
+                    case mnesia:read({post, TargetPostId}) of
+                        [] -> [];
+                        [Post] ->
+                            Reactions = Post#post.reactions,
+                            ReactionList = maps:get(ReactionType, Reactions, []),
+                            lists:foldl(fun(ID, Acc) ->
+                                case mnesia:read({like, ID}) of
+                                    [Like] ->
+                                        UserID = Like#like.userID,
+                                        case mnesia:read({user, UserID}) of
+                                            [User] -> [{User#user.username, Like#like.date_created} | Acc];
+                                            [] -> Acc
+                                        end;
+                                    [] -> Acc
+                                end
+                            end, [], ReactionList)
+                    end
+                end,
+                {atomic, Res} = mnesia:transaction(Fun),
+                Res.
+
+            get_all_users_by_reactions(PostID) ->
+                TargetPostId = case repostdb:get_target_post_for_interaction(PostID) of
+                    {ok, TargetId} -> TargetId;
+                    {error, _} -> PostID
+                end,
+
+                Fun = fun() ->
+                    case mnesia:read({post, TargetPostId}) of
+                        [] -> #{};
+                        [Post] ->
+                            Reactions = Post#post.reactions,
+                            maps:map(fun(_ReactionType, ReactionList) ->
+                                lists:foldl(fun(ID, Acc) ->
+                                    case mnesia:read({like, ID}) of
+                                        [Like] ->
+                                            UserID = Like#like.userID,
+                                            case mnesia:read({user, UserID}) of
+                                                [User] ->
+                                                    [{User#user.username, Like#like.date_created} | Acc];
+                                                [] -> Acc
+                                            end;
+                                        [] -> Acc
+                                    end
+                                end, [], ReactionList)
+                            end, Reactions)
+                    end
+                end,
+                {atomic, Res} = mnesia:transaction(Fun),
+                Res.
+
+            get_reaction_counts(PostID) ->
+                TargetPostId = case repostdb:get_target_post_for_interaction(PostID) of
+                    {ok, TargetId} -> TargetId;
+                    {error, _} -> PostID
+                end,
+
+                Fun = fun() ->
+                    case mnesia:read({post, TargetPostId}) of
+                        [] -> #{};
+                        [Post] -> Post#post.reaction_counts
+                    end
+                end,
+                {atomic, Res} = mnesia:transaction(Fun),
+                Res.
+
+            has_user_reacted_with_type(UserID, PostID, ReactionType) ->
+                TargetPostId = case repostdb:get_target_post_for_interaction(PostID) of
+                    {ok, TargetId} -> TargetId;
+                    {error, _} -> PostID
+                end,
+
+                Fun = fun() ->
+                    case mnesia:read({post, TargetPostId}) of
+                        [] -> false;
+                        [Post] ->
+                            Reactions = Post#post.reactions,
+                            ReactionList = maps:get(ReactionType, Reactions, []),
+                            lists:any(fun(ID) ->
+                                case mnesia:read({like, ID}) of
+                                    [Like] -> Like#like.userID =:= UserID;
+                                    [] -> false
+                                end
+                            end, ReactionList)
+                    end
+                end,
+
+                case mnesia:transaction(Fun) of
+                    {atomic, Result} -> Result;
+                    {aborted, _Reason} -> false
+                end.
+
+            get_user_reaction_type(UserID, PostID) ->
+                TargetPostId = case repostdb:get_target_post_for_interaction(PostID) of
+                    {ok, TargetId} -> TargetId;
+                    {error, _} -> PostID
+                end,
+
+                Fun = fun() ->
+                    case mnesia:read({post, TargetPostId}) of
+                        [] -> undefined;
+                        [Post] ->
+                            Reactions = Post#post.reactions,
+                            find_user_reaction(UserID, Reactions)
+                    end
+                end,
+
+                case mnesia:transaction(Fun) of
+                    {atomic, Result} -> Result;
+                    {aborted, _Reason} -> undefined
+                end.
+
+            find_user_reaction(UserID, Reactions) ->
+                ReactionTypes = [like, celebrate, support, love, insightful, funny],
+                find_user_reaction_in_types(UserID, ReactionTypes, Reactions).
+
+
+                react_to_comment(UserID, CommentId, ReactionType) ->
+                    ValidReactions = [like, celebrate, support, love, insightful, funny],
+                    case lists:member(ReactionType, ValidReactions) of
+                        false -> {error, invalid_reaction_type};
+                        true ->
+                            Fun = fun() ->
+                                case mnesia:read({comment, CommentId}) of
+                                    [] -> {error, comment_not_found};
+                                    [Comment] ->
+                                        ID = nanoid:gen(),
+                                        mnesia:write(#like{
+                                            id = ID,
+                                            comment = CommentId,
+                                            userID = UserID,
+                                            reaction_type = ReactionType,
+                                            date_created = calendar:universal_time()
+                                        }),
+
+                                        Reactions = Comment#comment.reactions,
+                                        ReactionList = maps:get(ReactionType, Reactions, []),
+                                        UpdatedReactions = maps:put(ReactionType, [ID | ReactionList], Reactions),
+
+                                        ReactionCounts = Comment#comment.reaction_counts,
+                                        CurrentCount = maps:get(ReactionType, ReactionCounts, 0),
+                                        UpdatedReactionCounts = maps:put(ReactionType, CurrentCount + 1, ReactionCounts),
+
+                                        mnesia:write(Comment#comment{
+                                            reactions = UpdatedReactions,
+                                            reaction_counts = UpdatedReactionCounts
+                                        }),
+                                        ID
+                                end
+                            end,
+                            case mnesia:transaction(Fun) of
+                                {atomic, Result} -> Result;
+                                {aborted, Reason} -> {error, {transaction_failed, Reason}}
+                            end
+                    end.
+
+                remove_reaction_from_comment(LikeID, CommentId) ->
+                    Fun = fun() ->
+                        case mnesia:read({like, LikeID}) of
+                            [] -> {error, reaction_not_found};
+                            [Like] ->
+                                ReactionType = Like#like.reaction_type,
+
+                                case mnesia:read({comment, CommentId}) of
+                                    [] -> {error, comment_not_found};
+                                    [Comment] ->
+                                        Reactions = Comment#comment.reactions,
+                                        ReactionList = maps:get(ReactionType, Reactions, []),
+                                        UpdatedReactionList = lists:delete(LikeID, ReactionList),
+                                        UpdatedReactions = maps:put(ReactionType, UpdatedReactionList, Reactions),
+
+                                        ReactionCounts = Comment#comment.reaction_counts,
+                                        CurrentCount = maps:get(ReactionType, ReactionCounts, 0),
+                                        NewCount = max(0, CurrentCount - 1),
+                                        UpdatedReactionCounts = maps:put(ReactionType, NewCount, ReactionCounts),
+
+                                        mnesia:write(Comment#comment{
+                                            reactions = UpdatedReactions,
+                                            reaction_counts = UpdatedReactionCounts
+                                        }),
+
+                                        mnesia:delete({like, LikeID}),
+                                        ok
+                                end
+                        end
+                    end,
+                    case mnesia:transaction(Fun) of
+                        {atomic, Result} -> Result;
+                        {aborted, Reason} -> {error, {transaction_failed, Reason}}
+                    end.
+
+                get_comment_reactions_by_type(CommentID, ReactionType) ->
+                    Fun = fun() ->
+                        case mnesia:read({comment, CommentID}) of
+                            [] -> [];
+                            [Comment] ->
+                                Reactions = Comment#comment.reactions,
+                                ReactionList = maps:get(ReactionType, Reactions, []),
+                                lists:foldl(fun(ID, Acc) ->
+                                    case mnesia:read({like, ID}) of
+                                        [Like] -> [Like | Acc];
+                                        [] -> Acc
+                                    end
+                                end, [], ReactionList)
+                        end
+                    end,
+                    {atomic, Res} = mnesia:transaction(Fun),
+                    Res.
+
+                get_all_comment_reactions(CommentID) ->
+                    Fun = fun() ->
+                        case mnesia:read({comment, CommentID}) of
+                            [] -> #{};
+                            [Comment] ->
+                                Reactions = Comment#comment.reactions,
+                                maps:map(fun(_ReactionType, ReactionList) ->
+                                    lists:foldl(fun(ID, Acc) ->
+                                        case mnesia:read({like, ID}) of
+                                            [Like] -> [Like | Acc];
+                                            [] -> Acc
+                                        end
+                                    end, [], ReactionList)
+                                end, Reactions)
+                        end
+                    end,
+                    {atomic, Res} = mnesia:transaction(Fun),
+                    Res.
+
+                get_users_by_comment_reaction_type(CommentID, ReactionType) ->
+                    Fun = fun() ->
+                        case mnesia:read({comment, CommentID}) of
+                            [] -> [];
+                            [Comment] ->
+                                Reactions = Comment#comment.reactions,
+                                ReactionList = maps:get(ReactionType, Reactions, []),
+                                lists:foldl(fun(ID, Acc) ->
+                                    case mnesia:read({like, ID}) of
+                                        [Like] ->
+                                            UserID = Like#like.userID,
+                                            case mnesia:read({user, UserID}) of
+                                                [User] -> [{User#user.username, Like#like.date_created} | Acc];
+                                                [] -> Acc
+                                            end;
+                                        [] -> Acc
+                                    end
+                                end, [], ReactionList)
+                        end
+                    end,
+                    {atomic, Res} = mnesia:transaction(Fun),
+                    Res.
+
+                get_all_users_by_comment_reactions(CommentID) ->
+                    Fun = fun() ->
+                        case mnesia:read({comment, CommentID}) of
+                            [] -> #{};
+                            [Comment] ->
+                                Reactions = Comment#comment.reactions,
+                                maps:map(fun(_ReactionType, ReactionList) ->
+                                    lists:foldl(fun(ID, Acc) ->
+                                        case mnesia:read({like, ID}) of
+                                            [Like] ->
+                                                UserID = Like#like.userID,
+                                                case mnesia:read({user, UserID}) of
+                                                    [User] ->
+                                                        [{User#user.username, Like#like.date_created} | Acc];
+                                                    [] -> Acc
+                                                end;
+                                            [] -> Acc
+                                        end
+                                    end, [], ReactionList)
+                                end, Reactions)
+                        end
+                    end,
+                    {atomic, Res} = mnesia:transaction(Fun),
+                    Res.
+
+                get_comment_reaction_counts(CommentID) ->
+                    Fun = fun() ->
+                        case mnesia:read({comment, CommentID}) of
+                            [] -> #{};
+                            [Comment] -> Comment#comment.reaction_counts
+                        end
+                    end,
+                    {atomic, Res} = mnesia:transaction(Fun),
+                    Res.
+
+                has_user_reacted_to_comment_with_type(UserID, CommentID, ReactionType) ->
+                    Fun = fun() ->
+                        case mnesia:read({comment, CommentID}) of
+                            [] -> false;
+                            [Comment] ->
+                                Reactions = Comment#comment.reactions,
+                                ReactionList = maps:get(ReactionType, Reactions, []),
+                                lists:any(fun(ID) ->
+                                    case mnesia:read({like, ID}) of
+                                        [Like] -> Like#like.userID =:= UserID;
+                                        [] -> false
+                                    end
+                                end, ReactionList)
+                        end
+                    end,
+
+                    case mnesia:transaction(Fun) of
+                        {atomic, Result} -> Result;
+                        {aborted, _Reason} -> false
+                    end.
+
+                get_user_comment_reaction_type(UserID, CommentID) ->
+                    Fun = fun() ->
+                        case mnesia:read({comment, CommentID}) of
+                            [] -> undefined;
+                            [Comment] ->
+                                Reactions = Comment#comment.reactions,
+                                find_user_comment_reaction(UserID, Reactions)
+                        end
+                    end,
+
+                    case mnesia:transaction(Fun) of
+                        {atomic, Result} -> Result;
+                        {aborted, _Reason} -> undefined
+                    end.
+
+                find_user_comment_reaction(UserID, Reactions) ->
+                    ReactionTypes = [like, celebrate, support, love, insightful, funny],
+                    find_user_comment_reaction_in_types(UserID, ReactionTypes, Reactions).
+
+                find_user_comment_reaction_in_types(_UserID, [], _Reactions) ->
+                    undefined;
+                find_user_comment_reaction_in_types(UserID, [Type | Rest], Reactions) ->
+                    ReactionList = maps:get(Type, Reactions, []),
+                    case lists:any(fun(ID) ->
+                        case mnesia:read({like, ID}) of
+                            [Like] -> Like#like.userID =:= UserID;
+                            [] -> false
+                        end
+                    end, ReactionList) of
+                        true -> Type;
+                        false -> find_user_comment_reaction_in_types(UserID, Rest, Reactions)
+                    end.

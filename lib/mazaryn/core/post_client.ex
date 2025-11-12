@@ -362,4 +362,77 @@ defmodule Core.PostClient do
   def get_comment_status(comment_id) do
     :post_server.get_comment_status(comment_id)
   end
+
+  # ValidReactions = [like, celebrate, support, love, insightful, funny]
+  def react_to_post(user_id, post_id, reaction_type) do
+    :postdb.react_to_post(user_id, post_id, reaction_type)
+  end
+
+  def remove_reaction_from_post(like_id, post_id) do
+    :postdb.remove_reaction_from_post(like_id, post_id)
+  end
+
+  def get_reactions_by_type(post_id, reaction_type) do
+    :postdb.get_reactions_by_type(post_id, reaction_type)
+  end
+
+  def get_all_reactions(post_id) do
+    :postdb.get_all_reactions(post_id)
+  end
+
+  def get_users_by_reaction_type(post_id, reaction_type) do
+    :postdb.get_users_by_reaction_type(post_id, reaction_type)
+  end
+
+  def get_all_users_by_reactions(post_id) do
+    :postdb.get_all_users_by_reactions(post_id)
+  end
+
+  def get_reaction_counts(post_id) do
+    :postdb.get_reaction_counts(post_id)
+  end
+
+  def has_user_reacted_with_type(user_id, post_id, reaction_type) do
+    :postdb.has_user_reacted_with_type(user_id, post_id, reaction_type)
+  end
+
+  def get_user_reaction_type(user_id, post_id) do
+    :postdb.get_user_reaction_type(user_id, post_id)
+  end
+
+  def react_to_comment(user_id, comment_id, reaction_type) do
+    :postdb.react_to_comment(user_id, comment_id, reaction_type)
+  end
+
+  def remove_reaction_from_comment(like_id, comment_id) do
+    :postdb.remove_reaction_from_comment(like_id, comment_id)
+  end
+
+  def get_comment_reactions_by_type(comment_id, reaction_type) do
+    :postdb.get_comment_reactions_by_type(comment_id, reaction_type)
+  end
+
+  def get_all_comment_reactions(comment_id) do
+    :postdb.get_all_comment_reactions(comment_id)
+  end
+
+  def get_users_by_comment_reaction_type(comment_id, reaction_type) do
+    :postdb.get_users_by_comment_reaction_type(comment_id, reaction_type)
+  end
+
+  def get_all_users_by_comment_reactions(comment_id) do
+    :postdb.get_all_users_by_comment_reactions(comment_id)
+  end
+
+  def get_comment_reaction_counts(comment_id) do
+    :postdb.get_comment_reaction_counts(comment_id)
+  end
+
+  def has_user_reacted_to_comment_with_type(user_id, comment_id, reaction_type) do
+    :postdb.has_user_reacted_to_comment_with_type(user_id, comment_id, reaction_type)
+  end
+
+  def get_user_comment_reaction_type(user_id, comment_id) do
+    :postdb.get_user_comment_reaction_type(user_id, comment_id)
+  end
 end

@@ -1,9 +1,4 @@
 defmodule Core.UserClient do
-  @moduledoc """
-  This module facilitates communication with Erlang functions using GenServer.
-  It provides functions for user registration, notification insertion and ...
-  """
-
   @doc """
       iex> Core.UserClient.register("my_username", "my_pass", "my_email")
       ~c"zKegB4mWRXP3PDVuntpnA"
@@ -67,8 +62,12 @@ defmodule Core.UserClient do
   ## Get User by UserID
   def get_user_by_id(id) do
     case id do
-      {:error, _reason} = error -> error
-      nil -> {:error, :invalid_id}
+      {:error, _reason} = error ->
+        error
+
+      nil ->
+        {:error, :invalid_id}
+
       _ ->
         charlist_id = if is_list(id), do: id, else: String.to_charlist(id)
 
@@ -202,28 +201,29 @@ defmodule Core.UserClient do
     :user_server.search_user_pattern(pattern)
   end
 
-  ## resport user using MyID, UserID, Report Type (Spam, Harassment, Violence ..) and Description
   def report_user(my_id, user_id, type, description) do
     :user_server.report_user(my_id, user_id, type, description)
   end
 
-  ## Make user profile private and only visible to current followers (default is public)
   def make_private(user_id) do
     :user_server.make_private(user_id)
   end
 
-  ## Make user profile public and visible to all users (default is public)
   def make_public(user_id) do
     :user_server.make_public(user_id)
   end
 
   def mark_notif_as_seen(notif_id) do
-  :mnesia.transaction(fn ->
-    case :mnesia.read({:notif, notif_id}) do
-      [_notif = {:notif, ^notif_id, actor, target, message, timestamp, metadata}] ->
-        updated_notif = {:notif, notif_id, actor, target, message, timestamp, Map.put(metadata, :seen, true)}
-        :mnesia.write(updated_notif)
-       [] -> :ok
+    :mnesia.transaction(fn ->
+      case :mnesia.read({:notif, notif_id}) do
+        [_notif = {:notif, ^notif_id, actor, target, message, timestamp, metadata}] ->
+          updated_notif =
+            {:notif, notif_id, actor, target, message, timestamp, Map.put(metadata, :seen, true)}
+
+          :mnesia.write(updated_notif)
+
+        [] ->
+          :ok
       end
     end)
   end
@@ -243,5 +243,4 @@ defmodule Core.UserClient do
   def mark_user_as_verified(user_id) do
     :user_server.mark_user_as_verified(user_id)
   end
-
 end

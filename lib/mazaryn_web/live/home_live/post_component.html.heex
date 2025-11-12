@@ -579,85 +579,201 @@
               </div>
             <% end %>
 
-    <div class="flex items-center justify-between mt-6 pt-4 border-t border-gray-100 dark:border-gray-700">
+  <div class="flex items-center justify-between mt-6 pt-4 border-t border-gray-100 dark:border-gray-700">
       <div class="flex items-center space-x-6">
-        <div class="flex items-center space-x-1">
-        <button
-          class="relative flex items-center space-x-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-white to-gray-50 dark:from-gray-800 dark:to-gray-750 border border-gray-200 dark:border-gray-700 hover:border-red-300 dark:hover:border-red-500 transition-all duration-300 group shadow-sm hover:shadow-md"
-          phx-click={@like_event}
-          phx-value-post-id={@post.id}
-          phx-target={@myself}
-          phx-value-action="like-post"
-        >
-          <%= if @like_icon == "heart" do %>
-            <div class="absolute inset-0 bg-gradient-to-r from-red-500/20 via-pink-500/20 to-red-500/20 rounded-xl blur-sm animate-pulse"></div>
-          <% end %>
+                  <div class="flex items-center space-x-1" x-data="{ showReactions: false }" @click.outside="showReactions = false">
+                  <div class="relative">
+                    <button
+                      @click="showReactions = !showReactions"
+                      class="relative flex items-center space-x-1.5 px-3 py-2 rounded-lg bg-gradient-to-r from-white to-gray-50 dark:from-gray-800 dark:to-gray-750 border border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-500 transition-all duration-300 group shadow-sm hover:shadow-md"
+                    >
+                  <%= if @user_reaction do %>
+                    <div class="absolute inset-0 bg-gradient-to-r from-blue-500/20 via-purple-500/20 to-blue-500/20 rounded-xl blur-sm animate-pulse"></div>
+                  <% end %>
 
-          <div class="relative z-10">
-            <svg
-              class={"h-6 w-6 transition-all duration-300 #{if @like_icon == "heart", do: "text-red-500 fill-current animate-[heartbeat_1s_ease-in-out]", else: "text-gray-400 group-hover:text-red-400 group-hover:scale-110"}"}
-              viewBox="0 0 24 24"
-              fill={if @like_icon == "heart", do: "currentColor", else: "none"}
-              stroke="currentColor"
-              stroke-width="2"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"
-              />
-            </svg>
+                  <div class="relative z-10">
+                  <%= case @user_reaction do %>
+                                      <% :like -> %>
+                                        <svg class="h-4 w-4 text-blue-500 fill-current" viewBox="0 0 24 24">
+                          <path d="M1 21h4V9H1v12zm22-11c0-1.1-.9-2-2-2h-6.31l.95-4.57.03-.32c0-.41-.17-.79-.44-1.06L14.17 1 7.59 7.59C7.22 7.95 7 8.45 7 9v10c0 1.1.9 2 2 2h9c.83 0 1.54-.5 1.84-1.22l3.02-7.05c.09-.23.14-.47.14-.73v-2z"/>
+                        </svg>
+                      <% :celebrate -> %>
+                        <svg class="h-4 w-4 text-green-500 fill-current" viewBox="0 0 24 24">
+                          <path d="M2 20h2c.55 0 1-.45 1-1v-9c0-.55-.45-1-1-1H2v11zm19.83-7.12c.11-.25.17-.52.17-.8V11c0-1.1-.9-2-2-2h-5.5l.92-4.65c.05-.22.02-.46-.08-.66-.23-.45-.52-.86-.88-1.22L14 2 7.59 8.41C7.21 8.79 7 9.3 7 9.83v7.84C7 18.95 8.05 20 9.34 20h8.11c.7 0 1.36-.37 1.72-.97l2.66-6.15z"/>
+                        </svg>
+                      <% :support -> %>
+                        <svg class="h-4 w-4 text-purple-500 fill-current" viewBox="0 0 24 24">
+                          <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                        </svg>
+                      <% :love -> %>
+                        <svg class="h-4 w-4 text-red-500 fill-current" viewBox="0 0 24 24">
+                          <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                        </svg>
+                      <% :insightful -> %>
+                        <svg class="h-4 w-4 text-yellow-500 fill-current" viewBox="0 0 24 24">
+                          <path d="M9 21c0 .55.45 1 1 1h4c.55 0 1-.45 1-1v-1H9v1zm3-19C8.14 2 5 5.14 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.86-3.14-7-7-7z"/>
+                        </svg>
+                      <% :funny -> %>
+                        <svg class="h-4 w-4 text-orange-500 fill-current" viewBox="0 0 24 24">
+                          <path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5 7.67 11 8.5 11zm3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z"/>
+                        </svg>
+                      <% _ -> %>
+                        <svg class="h-4 w-4 text-gray-400 group-hover:text-blue-400 transition-colors duration-200" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5"/>
+                        </svg>
+                    <% end %>
+                  </div>
 
-            <%= if @like_icon == "heart" do %>
-              <div class="absolute -top-2 left-1/2 -translate-x-1/2 pointer-events-none">
-                <svg class="h-3 w-3 text-red-400 animate-[float_2s_ease-in-out_infinite]" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/>
-                </svg>
-              </div>
-              <div class="absolute -top-1 left-0 pointer-events-none">
-                <svg class="h-2 w-2 text-pink-400 animate-[float_2.5s_ease-in-out_infinite_0.5s]" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/>
-                </svg>
-              </div>
-              <div class="absolute -top-1 right-0 pointer-events-none">
-                <svg class="h-2 w-2 text-rose-400 animate-[float_2s_ease-in-out_infinite_1s]" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/>
-                </svg>
-              </div>
-            <% end %>
-          </div>
+                  <span class="relative z-10 text-sm font-semibold transition-all duration-200 text-gray-600 dark:text-gray-400 group-hover:text-blue-500">
+                    <%= if @user_reaction, do: "Reacted", else: "React" %>
+                  </span>
+                </button>
 
-          <%= if @like_icon == "heart" do %>
-            <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
-              <div class="absolute w-1 h-1 bg-red-400 rounded-full animate-[particle1_1s_ease-out]"></div>
-              <div class="absolute w-1 h-1 bg-pink-400 rounded-full animate-[particle2_1s_ease-out]"></div>
-              <div class="absolute w-1 h-1 bg-rose-400 rounded-full animate-[particle3_1s_ease-out]"></div>
-              <div class="absolute w-1 h-1 bg-red-300 rounded-full animate-[particle4_1s_ease-out]"></div>
+                <div
+                                x-show="showReactions"
+                                x-transition:enter="transition ease-out duration-200"
+                                x-transition:enter-start="opacity-0 scale-95"
+                                x-transition:enter-end="opacity-100 scale-100"
+                                x-transition:leave="transition ease-in duration-150"
+                                x-transition:leave-start="opacity-100 scale-100"
+                                x-transition:leave-end="opacity-0 scale-95"
+                                class="absolute bottom-full left-0 mb-2 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 p-1.5 flex space-x-1.5 z-50"
+                                style="display: none;"
+                              >
+                                <button
+                                  phx-click="react_to_post"
+                                  phx-value-post-id={@post.id}
+                                  phx-value-reaction-type="like"
+                                  phx-target={@myself}
+                                  @click="showReactions = false"
+                                  class="p-1.5 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
+                                  title="Like"
+                                >
+                                  <svg class="h-4 w-4 text-blue-500" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M1 21h4V9H1v12zm22-11c0-1.1-.9-2-2-2h-6.31l.95-4.57.03-.32c0-.41-.17-.79-.44-1.06L14.17 1 7.59 7.59C7.22 7.95 7 8.45 7 9v10c0 1.1.9 2 2 2h9c.83 0 1.54-.5 1.84-1.22l3.02-7.05c.09-.23.14-.47.14-.73v-2z"/>
+                    </svg>
+                  </button>
+                  <button
+                    phx-click="react_to_post"
+                    phx-value-post-id={@post.id}
+                    phx-value-reaction-type="celebrate"
+                    phx-target={@myself}
+                    @click="showReactions = false"
+                    class="p-1.5 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-lg transition-colors"
+                    title="Celebrate"
+                  >
+                    <svg class="h-4 w-4 text-green-500" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M2 20h2c.55 0 1-.45 1-1v-9c0-.55-.45-1-1-1H2v11zm19.83-7.12c.11-.25.17-.52.17-.8V11c0-1.1-.9-2-2-2h-5.5l.92-4.65c.05-.22.02-.46-.08-.66-.23-.45-.52-.86-.88-1.22L14 2 7.59 8.41C7.21 8.79 7 9.3 7 9.83v7.84C7 18.95 8.05 20 9.34 20h8.11c.7 0 1.36-.37 1.72-.97l2.66-6.15z"/>
+                    </svg>
+                  </button>
+                  <button
+                    phx-click="react_to_post"
+                    phx-value-post-id={@post.id}
+                    phx-value-reaction-type="support"
+                    phx-target={@myself}
+                    @click="showReactions = false"
+                    class="p-1.5 hover:bg-purple-50 dark:hover:bg-purple-900/20 rounded-lg transition-colors"
+                    title="Support"
+                  >
+                    <svg class="h-4 w-4 text-purple-500" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                    </svg>
+                  </button>
+                  <button
+                    phx-click="react_to_post"
+                    phx-value-post-id={@post.id}
+                    phx-value-reaction-type="love"
+                    phx-target={@myself}
+                    @click="showReactions = false"
+                    class="p-1.5 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                    title="Love"
+                  >
+                    <svg class="h-4 w-4 text-red-500" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                    </svg>
+                  </button>
+                  <button
+                    phx-click="react_to_post"
+                    phx-value-post-id={@post.id}
+                    phx-value-reaction-type="insightful"
+                    phx-target={@myself}
+                    @click="showReactions = false"
+                    class="p-1.5 hover:bg-yellow-50 dark:hover:bg-yellow-900/20 rounded-lg transition-colors"
+                    title="Insightful"
+                  >
+                    <svg class="h-4 w-4 text-yellow-500" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M9 21c0 .55.45 1 1 1h4c.55 0 1-.45 1-1v-1H9v1zm3-19C8.14 2 5 5.14 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.86-3.14-7-7-7z"/>
+                    </svg>
+                  </button>
+                  <button
+                    phx-click="react_to_post"
+                    phx-value-post-id={@post.id}
+                    phx-value-reaction-type="funny"
+                    phx-target={@myself}
+                    @click="showReactions = false"
+                    class="p-1.5 hover:bg-orange-50 dark:hover:bg-orange-900/20 rounded-lg transition-colors"
+                    title="Funny"
+                  >
+                    <svg class="h-4 w-4 text-orange-500" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5 7.67 11 8.5 11zm3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z"/>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+
+              <%= if @total_reactions > 0 do %>
+                                            <div class="flex items-center space-x-2">
+                                              <%= for {reaction_type, count} <- @reaction_counts do %>
+                                                <%= if count > 0 do %>
+                                                  <button
+                                                    class="flex items-center space-x-1 px-2 py-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                                                    phx-click="open_reactions_modal"
+                                                    phx-value-post-id={@post.id}
+                                                    phx-value-reaction-type={reaction_type}
+                                                    phx-target={@myself}
+                                                    title={"View #{reaction_type} reactions"}
+                                                  >
+                                                    <%= case String.to_atom(reaction_type) do %>
+                                                      <% :like -> %>
+                                                        <svg class="h-3 w-3 text-blue-500 fill-current" viewBox="0 0 24 24">
+                                                          <path d="M1 21h4V9H1v12zm22-11c0-1.1-.9-2-2-2h-6.31l.95-4.57.03-.32c0-.41-.17-.79-.44-1.06L14.17 1 7.59 7.59C7.22 7.95 7 8.45 7 9v10c0 1.1.9 2 2 2h9c.83 0 1.54-.5 1.84-1.22l3.02-7.05c.09-.23.14-.47.14-.73v-2z"/>
+                                                        </svg>
+                                                      <% :celebrate -> %>
+                                                        <svg class="h-3 w-3 text-green-500 fill-current" viewBox="0 0 24 24">
+                                                          <path d="M2 20h2c.55 0 1-.45 1-1v-9c0-.55-.45-1-1-1H2v11zm19.83-7.12c.11-.25.17-.52.17-.8V11c0-1.1-.9-2-2-2h-5.5l.92-4.65c.05-.22.02-.46-.08-.66-.23-.45-.52-.86-.88-1.22L14 2 7.59 8.41C7.21 8.79 7 9.3 7 9.83v7.84C7 18.95 8.05 20 9.34 20h8.11c.7 0 1.36-.37 1.72-.97l2.66-6.15z"/>
+                                                        </svg>
+                                                      <% :support -> %>
+                                                        <svg class="h-3 w-3 text-purple-500 fill-current" viewBox="0 0 24 24">
+                                                          <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                                                        </svg>
+                                                      <% :love -> %>
+                                                        <svg class="h-3 w-3 text-red-500 fill-current" viewBox="0 0 24 24">
+                                                          <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                                                        </svg>
+                                                      <% :insightful -> %>
+                                                        <svg class="h-3 w-3 text-yellow-500 fill-current" viewBox="0 0 24 24">
+                                                          <path d="M9 21c0 .55.45 1 1 1h4c.55 0 1-.45 1-1v-1H9v1zm3-19C8.14 2 5 5.14 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.86-3.14-7-7-7z"/>
+                                                        </svg>
+                                                      <% :funny -> %>
+                                                        <svg class="h-3 w-3 text-orange-500 fill-current" viewBox="0 0 24 24">
+                                                          <path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5 7.67 11 8.5 11zm3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z"/>
+                                                        </svg>
+                                                      <% _ -> %>
+                                                        <span></span>
+                                                    <% end %>
+                                                    <span class="text-xs font-medium text-gray-600 dark:text-gray-400">
+                                                      <%= count %>
+                                                    </span>
+                                                  </button>
+                                                <% end %>
+                                              <% end %>
+                                            </div>
+                            <% else %>
+                <span class="text-sm font-medium text-gray-600 dark:text-gray-400 px-2 py-1">
+                  0 reactions
+                </span>
+              <% end %>
             </div>
-          <% end %>
-
-          <span class={"relative z-10 text-sm font-semibold transition-all duration-300 #{if @like_icon == "heart", do: "bg-gradient-to-r from-red-600 to-pink-600 bg-clip-text text-transparent", else: "text-gray-600 dark:text-gray-400 group-hover:text-red-500"}"}>
-            <%= if @like_icon == "heart", do: "Liked", else: "Like" %>
-          </span>
-        </button>
-
-          <%= if @likes_count > 0 do %>
-            <button
-              class="text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-red-500 hover:underline transition-colors duration-200 px-2 py-1 rounded"
-              phx-click="open_likes_modal"
-              phx-value-post-id={@post.id}
-              phx-target={@myself}
-              title="View who liked this post"
-            >
-              <%= @likes_count %> <%= if @likes_count == 1, do: "like", else: "likes" %>
-            </button>
-          <% else %>
-            <span class="text-sm font-medium text-gray-600 dark:text-gray-400 px-2 py-1">
-              0 likes
-            </span>
-          <% end %>
-        </div>
 
         <div class="flex items-center space-x-1">
           <%= if @post.author != @current_user.username do %>
@@ -1218,305 +1334,357 @@
     </div>
 
     <%= if @report_action or @like_action or assigns[:show_likes_modal] do %>
-      <div class="fixed inset-0 z-50 overflow-y-auto">
-        <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-          <div
-            class="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75"
-            phx-click="close_likes_modal"
-            phx-target={@myself}
-          ></div>
+          <div class="fixed inset-0 z-50 overflow-y-auto">
+            <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+              <div
+                class="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75"
+                phx-click="close_likes_modal"
+                phx-target={@myself}
+              ></div>
 
-          <span class="hidden sm:inline-block sm:align-middle sm:h-screen">&#8203;</span>
+              <span class="hidden sm:inline-block sm:align-middle sm:h-screen">&#8203;</span>
 
-          <div class="inline-block align-bottom bg-white dark:bg-gray-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+              <div class="inline-block align-bottom bg-white dark:bg-gray-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
 
-            <%= if @report_action do %>
-              <div class="bg-white dark:bg-gray-800 px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-                <div class="sm:flex sm:items-start">
-                  <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 dark:bg-red-900 sm:mx-0 sm:h-10 sm:w-10">
-                    <svg class="h-6 w-6 text-red-600 dark:text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
-                    </svg>
-                  </div>
-                  <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
-                    <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white">Report Post</h3>
-                    <div class="mt-2">
-                      <.live_component
-                        module={MazarynWeb.HomeLive.ReportPostsComponent}
-                        id={@post.id}
-                        current_user={@current_user}
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            <% end %>
-
-            <%= if assigns[:show_likes_modal] do %>
-              <div class="bg-white dark:bg-gray-800 px-4 pt-5 pb-4 sm:p-6">
-                <div class="flex items-center justify-between mb-4">
-                  <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white">
-                    Liked by
-                  </h3>
-                  <button
-                    phx-click="close_likes_modal"
-                    phx-target={@myself}
-                    class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
-                  >
-                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-                </div>
-
-                <div class="max-h-96 overflow-y-auto">
-                  <%= if assigns[:likes_loading] do %>
-                    <div class="text-center py-12">
-                      <div class="relative">
-                        <div class="animate-spin rounded-full h-12 w-12 border-4 border-gray-200 dark:border-gray-700 border-t-blue-600 mx-auto"></div>
-                        <div class="absolute inset-0 flex items-center justify-center">
-                          <svg class="h-6 w-6 text-blue-600 animate-pulse" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                          </svg>
-                        </div>
-                      </div>
-                      <p class="text-gray-600 dark:text-gray-300 mt-4 font-medium">Loading likes...</p>
-                      <p class="text-gray-400 dark:text-gray-500 text-sm mt-1">Finding who loved this post</p>
-                    </div>
-                  <% else %>
-                    <%= if assigns[:liked_users] && length(assigns[:liked_users] || []) > 0 do %>
-                      <div class="divide-y divide-gray-100 dark:divide-gray-700">
-                        <%= for user <- @liked_users do %>
-                          <div class="group p-4 hover:bg-gradient-to-r hover:from-gray-50 hover:to-blue-50 dark:hover:from-gray-800 dark:hover:to-blue-900/20 transition-all duration-200">
-                            <div class="flex items-center justify-between">
-
-                              <div class="flex items-center space-x-4 flex-1 min-w-0">
-
-                                <div class="relative group/avatar">
-                                  <div class="absolute inset-0 bg-gradient-to-br from-pink-500 to-violet-600 rounded-full blur-md opacity-20 group-hover/avatar:opacity-40 animate-pulse transition-opacity duration-300"></div>
-                                  <div class="relative h-12 w-12 rounded-full overflow-hidden border-3 border-white dark:border-gray-800 shadow-md ring-2 ring-pink-100/50 dark:ring-violet-900/30 bg-gradient-to-br from-pink-100 to-violet-100 dark:from-pink-900/20 dark:to-violet-900/20">
-                                    <%= if get_user_avatar(user.username) != "/images/default-avatar.png" do %>
-                                      <img
-                                        src={get_user_avatar(user.username)}
-                                        class="h-full w-full object-cover transition-transform duration-300 group-hover/avatar:scale-110"
-                                        alt={"#{user.username}'s avatar"}
-                                        onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
-                                      />
-                                      <div class="absolute inset-0 hidden items-center justify-center bg-gradient-to-br from-pink-500 to-violet-600 text-white text-lg font-bold">
-                                        <%= String.first(user.username || "U") |> String.upcase() %>
-                                      </div>
-                                    <% else %>
-                                      <div class="h-full w-full flex items-center justify-center bg-gradient-to-br from-pink-500 to-violet-600 text-white text-lg font-bold group-hover/avatar:from-pink-600 group-hover/avatar:to-violet-700 transition-all duration-300">
-                                        <%= String.first(user.username || "U") |> String.upcase() %>
-                                      </div>
-                                    <% end %>
-                                  </div>
-                                  <div class="absolute -bottom-1 -right-1 w-4 h-4 bg-green-400 border-2 border-white dark:border-gray-800 rounded-full"></div>
-                                </div>
-
-
-                                <div class="flex-1 min-w-0">
-                                  <div class="flex items-center space-x-2 mb-1">
-                                    <h4 class="text-base font-semibold text-gray-900 dark:text-white truncate group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                                      <%= user.username %>
-                                    </h4>
-                                    <%= if user.verified do %>
-                                      <div class="relative">
-                                        <img
-                                          alt="verified user"
-                                          src={Routes.static_path(@socket, "/images/verified.png")}
-                                          class="h-5 w-5"
-                                        />
-                                        <div class="absolute inset-0 bg-blue-500 rounded-full opacity-20 animate-ping"></div>
-                                      </div>
-                                    <% end %>
-                                    <%= if user.level && user.level > 1 do %>
-                                      <span class="inline-flex items-center px-2 py-1 text-xs font-medium bg-gradient-to-r from-purple-100 to-pink-100 dark:from-purple-900/30 dark:to-pink-900/30 text-purple-800 dark:text-purple-200 rounded-full">
-                                        Level <%= user.level %>
-                                      </span>
-                                    <% end %>
-                                  </div>
-
-                                  <%= if Map.get(user, :bio) do %>
-                                    <p class="text-sm text-gray-600 dark:text-gray-400 truncate leading-relaxed">
-                                      <%= user.bio %>
-                                    </p>
-                                  <% else %>
-                                    <p class="text-sm text-gray-500 dark:text-gray-500 italic">
-                                      No bio available
-                                    </p>
-                                  <% end %>
-
-
-                                  <div class="flex items-center space-x-4 mt-2 text-xs text-gray-500 dark:text-gray-400">
-                                    <span class="flex items-center space-x-1">
-                                      <svg class="h-3 w-3" fill="currentColor" viewBox="0 0 24 24">
-                                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.94-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
-                                      </svg>
-                                      <span>Active user</span>
-                                    </span>
-                                    <%= if user.country do %>
-                                      <span class="flex items-center space-x-1">
-                                        <svg class="h-3 w-3" fill="currentColor" viewBox="0 0 24 24">
-                                          <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
-                                        </svg>
-                                        <span><%= user.country %></span>
-                                      </span>
-                                    <% end %>
-                                  </div>
-                                </div>
-                              </div>
-
-
-                              <div class="flex items-center space-x-2 ml-4">
-
-                                <button
-                                  phx-click="view_profile"
-                                  phx-value-username={user.username}
-                                  phx-target={@myself}
-                                  class="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 hover:border-blue-300 dark:hover:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 group/btn"
-                                  title={"View #{user.username}'s profile"}
-                                >
-                                  <svg class="h-4 w-4 mr-2 text-gray-500 dark:text-gray-400 group-hover/btn:text-blue-500 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                                  </svg>
-                                  <span class="group-hover/btn:text-blue-600 dark:group-hover/btn:text-blue-400 transition-colors">
-                                    View Profile
-                                  </span>
-                                </button>
-                              </div>
-                            </div>
-                          </div>
-                        <% end %>
-                      </div>
-                    <% else %>
-                      <div class="text-center py-12">
-                        <div class="mx-auto h-24 w-24 text-gray-300 dark:text-gray-600 mb-4">
-                          <svg fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                          </svg>
-                        </div>
-                        <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">No likes yet</h3>
-                        <p class="text-gray-500 dark:text-gray-400">Be the first to show some love!</p>
-                      </div>
-                    <% end %>
-                  <% end %>
-                </div>
-              </div>
-            <% end %>
-
-            <%= if @like_action do %>
-              <div class="bg-white dark:bg-gray-800 px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-                <.live_component
-                  module={MazarynWeb.HomeLive.ShowLikersComponent}
-                  locale={@locale}
-                  id={@post.id}
-                />
-              </div>
-            <% end %>
-
-          </div>
-        </div>
-      </div>
-    <% end %>
-
-    <%= if @show_repost_modal do %>
-      <div class="fixed inset-0 z-50 overflow-y-auto">
-        <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-          <div
-            class="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75"
-            phx-click="close_repost_modal"
-            phx-target={@myself}
-          ></div>
-
-          <span class="hidden sm:inline-block sm:align-middle sm:h-screen">&#8203;</span>
-
-          <div class="inline-block align-bottom bg-white dark:bg-gray-800 rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
-            <div class="bg-white dark:bg-gray-800 px-6 pt-5 pb-4">
-              <div class="flex items-center justify-between mb-4">
-                <h3 class="text-xl font-bold text-gray-900 dark:text-white">
-                  Share this post
-                </h3>
-                <button
-                  phx-click="close_repost_modal"
-                  phx-target={@myself}
-                  class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors"
-                >
-                  <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              </div>
-
-              <div class="space-y-4">
-                <button
-                  phx-click="simple_repost"
-                  phx-value-post-id={@reposting_post_id}
-                  phx-target={@myself}
-                  class="w-full flex items-center space-x-4 p-4 rounded-xl border-2 border-gray-200 dark:border-gray-700 hover:border-green-500 dark:hover:border-green-500 hover:bg-green-50 dark:hover:bg-green-900/10 transition-all duration-200 group"
-                >
-                  <div class="flex-shrink-0">
-                    <div class="h-12 w-12 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center group-hover:bg-green-200 dark:group-hover:bg-green-900/50 transition-colors">
-                      <svg class="h-6 w-6 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/>
-                      </svg>
-                    </div>
-                  </div>
-                  <div class="flex-1 text-left">
-                    <h4 class="text-base font-semibold text-gray-900 dark:text-white group-hover:text-green-600 dark:group-hover:text-green-400 transition-colors">
-                      Quick Share
-                    </h4>
-                    <p class="text-sm text-gray-500 dark:text-gray-400">
-                      Share this post to your followers
-                    </p>
-                  </div>
-                </button>
-
-                <div class="p-4 rounded-xl border-2 border-gray-200 dark:border-gray-700 hover:border-blue-500 dark:hover:border-blue-500 transition-all duration-200 space-y-3">
-                  <div class="flex items-center space-x-4">
-                    <div class="flex-shrink-0">
-                      <div class="h-12 w-12 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
-                        <svg class="h-6 w-6 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                <%= if @report_action do %>
+                  <div class="bg-white dark:bg-gray-800 px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                    <div class="sm:flex sm:items-start">
+                      <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 dark:bg-red-900 sm:mx-0 sm:h-10 sm:w-10">
+                        <svg class="h-6 w-6 text-red-600 dark:text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
                         </svg>
                       </div>
-                    </div>
-                    <div class="flex-1 text-left">
-                      <h4 class="text-base font-semibold text-gray-900 dark:text-white">
-                        Share with your thoughts
-                      </h4>
-                      <p class="text-sm text-gray-500 dark:text-gray-400">
-                        Add a comment before sharing
-                      </p>
+                      <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white">Report Post</h3>
+                        <div class="mt-2">
+                          <.live_component
+                            module={MazarynWeb.HomeLive.ReportPostsComponent}
+                            id={@post.id}
+                            current_user={@current_user}
+                          />
+                        </div>
+                      </div>
                     </div>
                   </div>
+                <% end %>
 
-                  <.form
-                    :let={f}
-                    for={%{}}
-                    as={:repost}
-                    phx-change="validate_repost_comment"
-                    phx-submit="repost_with_comment_submit"
-                    phx-target={@myself}
-                  >
-                    <%= textarea(f, :comment,
-                      value: @repost_comment || "",
-                      placeholder: "Add your thoughts...",
-                      rows: "3",
-                      class: "w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 resize-none",
-                      required: true
-                    ) %>
+                <%= if assigns[:show_likes_modal] do %>
+                  <div class="bg-white dark:bg-gray-800 px-4 pt-5 pb-4 sm:p-6">
+                    <div class="flex items-center justify-between mb-4">
+                      <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white">
+                        Reactions
+                      </h3>
+                      <button
+                        phx-click="close_likes_modal"
+                        phx-target={@myself}
+                        class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+                      >
+                        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </div>
 
-                    <%= submit("Share with comment",
-                      disabled: String.trim(@repost_comment || "") == "",
-                      class: "w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white px-6 py-3 rounded-xl font-semibold transition-colors duration-200"
-                    ) %>
-                  </.form>
+                    <div class="max-h-96 overflow-y-auto" x-data={"{ activeTab: '#{@current_reaction_type}' }"}>
+                      <div class="flex space-x-2 border-b border-gray-200 dark:border-gray-700 mb-4 overflow-x-auto">
+                        <%= for reaction_type <- ["like", "celebrate", "support", "love", "insightful", "funny"] do %>
+                          <% count = Map.get(@all_reaction_users || %{}, reaction_type, []) |> length() %>
+                          <button
+                            @click={"activeTab = '#{reaction_type}'"}
+                            x-bind:class={"activeTab === '#{reaction_type}' ? 'border-blue-600 text-blue-600 dark:text-blue-400' : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'"}
+                            class="flex items-center space-x-1 px-3 py-2 text-sm font-medium transition-all duration-200 border-b-2 whitespace-nowrap"
+                          >
+                            <%= case String.to_atom(reaction_type) do %>
+                              <% :like -> %>
+                                <svg class="h-4 w-4 text-blue-500" fill="currentColor" viewBox="0 0 24 24">
+                                  <path d="M1 21h4V9H1v12zm22-11c0-1.1-.9-2-2-2h-6.31l.95-4.57.03-.32c0-.41-.17-.79-.44-1.06L14.17 1 7.59 7.59C7.22 7.95 7 8.45 7 9v10c0 1.1.9 2 2 2h9c.83 0 1.54-.5 1.84-1.22l3.02-7.05c.09-.23.14-.47.14-.73v-2z"/>
+                                </svg>
+                              <% :celebrate -> %>
+                                <svg class="h-4 w-4 text-green-500" fill="currentColor" viewBox="0 0 24 24">
+                                  <path d="M2 20h2c.55 0 1-.45 1-1v-9c0-.55-.45-1-1-1H2v11zm19.83-7.12c.11-.25.17-.52.17-.8V11c0-1.1-.9-2-2-2h-5.5l.92-4.65c.05-.22.02-.46-.08-.66-.23-.45-.52-.86-.88-1.22L14 2 7.59 8.41C7.21 8.79 7 9.3 7 9.83v7.84C7 18.95 8.05 20 9.34 20h8.11c.7 0 1.36-.37 1.72-.97l2.66-6.15z"/>
+                                </svg>
+                              <% :support -> %>
+                                <svg class="h-4 w-4 text-purple-500" fill="currentColor" viewBox="0 0 24 24">
+                                  <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                                </svg>
+                              <% :love -> %>
+                                <svg class="h-4 w-4 text-red-500" fill="currentColor" viewBox="0 0 24 24">
+                                  <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                                </svg>
+                              <% :insightful -> %>
+                                <svg class="h-4 w-4 text-yellow-500" fill="currentColor" viewBox="0 0 24 24">
+                                  <path d="M9 21c0 .55.45 1 1 1h4c.55 0 1-.45 1-1v-1H9v1zm3-19C8.14 2 5 5.14 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.86-3.14-7-7-7z"/>
+                                </svg>
+                              <% :funny -> %>
+                                <svg class="h-4 w-4 text-orange-500" fill="currentColor" viewBox="0 0 24 24">
+                                  <path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5 7.67 11 8.5 11zm3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z"/>
+                                </svg>
+                              <% _ -> %>
+                                <span></span>
+                            <% end %>
+                            <span><%= count %></span>
+                          </button>
+                        <% end %>
+                      </div>
+
+                      <%= for reaction_type <- ["like", "celebrate", "support", "love", "insightful", "funny"] do %>
+                        <div x-show={"activeTab === '#{reaction_type}'"} style="display: none;">
+                          <% users = Map.get(@all_reaction_users || %{}, reaction_type, []) %>
+                          <%= if length(users) > 0 do %>
+                            <div class="divide-y divide-gray-100 dark:divide-gray-700">
+                              <%= for user <- users do %>
+                                <div class="group p-4 hover:bg-gradient-to-r hover:from-gray-50 hover:to-blue-50 dark:hover:from-gray-800 dark:hover:to-blue-900/20 transition-all duration-200">
+                                  <div class="flex items-center justify-between">
+                                    <div class="flex items-center space-x-4 flex-1 min-w-0">
+                                      <div class="relative group/avatar">
+                                        <div class="absolute inset-0 bg-gradient-to-br from-pink-500 to-violet-600 rounded-full blur-md opacity-20 group-hover/avatar:opacity-40 animate-pulse transition-opacity duration-300"></div>
+                                        <div class="relative h-12 w-12 rounded-full overflow-hidden border-3 border-white dark:border-gray-800 shadow-md ring-2 ring-pink-100/50 dark:ring-violet-900/30 bg-gradient-to-br from-pink-100 to-violet-100 dark:from-pink-900/20 dark:to-violet-900/20">
+                                          <%= if get_user_avatar(user.username) != "/images/default-avatar.png" do %>
+                                            <img
+                                              src={get_user_avatar(user.username)}
+                                              class="h-full w-full object-cover transition-transform duration-300 group-hover/avatar:scale-110"
+                                              alt={"#{user.username}'s avatar"}
+                                              onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+                                            />
+                                            <div class="absolute inset-0 hidden items-center justify-center bg-gradient-to-br from-pink-500 to-violet-600 text-white text-lg font-bold">
+                                              <%= String.first(user.username || "U") |> String.upcase() %>
+                                            </div>
+                                          <% else %>
+                                            <div class="h-full w-full flex items-center justify-center bg-gradient-to-br from-pink-500 to-violet-600 text-white text-lg font-bold group-hover/avatar:from-pink-600 group-hover/avatar:to-violet-700 transition-all duration-300">
+                                              <%= String.first(user.username || "U") |> String.upcase() %>
+                                            </div>
+                                          <% end %>
+                                        </div>
+                                        <div class="absolute -bottom-1 -right-1 w-4 h-4 bg-green-400 border-2 border-white dark:border-gray-800 rounded-full"></div>
+                                      </div>
+
+                                      <div class="flex-1 min-w-0">
+                                        <div class="flex items-center space-x-2 mb-1">
+                                          <h4 class="text-base font-semibold text-gray-900 dark:text-white truncate group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                                            <%= user.username %>
+                                          </h4>
+                                          <%= if user.verified do %>
+                                            <div class="relative">
+                                              <img
+                                                alt="verified user"
+                                                src={Routes.static_path(@socket, "/images/verified.png")}
+                                                class="h-5 w-5"
+                                              />
+                                              <div class="absolute inset-0 bg-blue-500 rounded-full opacity-20 animate-ping"></div>
+                                            </div>
+                                          <% end %>
+                                          <%= if Map.get(user, :level) && user.level > 1 do %>
+                                            <span class="inline-flex items-center px-2 py-1 text-xs font-medium bg-gradient-to-r from-purple-100 to-pink-100 dark:from-purple-900/30 dark:to-pink-900/30 text-purple-800 dark:text-purple-200 rounded-full">
+                                              Level <%= user.level %>
+                                            </span>
+                                          <% end %>
+                                        </div>
+
+                                        <%= if Map.get(user, :bio) do %>
+                                          <p class="text-sm text-gray-600 dark:text-gray-400 truncate leading-relaxed">
+                                            <%= user.bio %>
+                                          </p>
+                                        <% else %>
+                                          <p class="text-sm text-gray-500 dark:text-gray-500 italic">
+                                            No bio available
+                                          </p>
+                                        <% end %>
+
+                                        <div class="flex items-center space-x-4 mt-2 text-xs text-gray-500 dark:text-gray-400">
+                                          <span class="flex items-center space-x-1">
+                                            <svg class="h-3 w-3" fill="currentColor" viewBox="0 0 24 24">
+                                              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.94-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
+                                            </svg>
+                                            <span>Active user</span>
+                                          </span>
+                                          <%= if Map.get(user, :country) do %>
+                                            <span class="flex items-center space-x-1">
+                                              <svg class="h-3 w-3" fill="currentColor" viewBox="0 0 24 24">
+                                                <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+                                              </svg>
+                                              <span><%= user.country %></span>
+                                            </span>
+                                          <% end %>
+                                        </div>
+                                      </div>
+                                    </div>
+
+                                    <div class="flex items-center space-x-2 ml-4">
+                                      <button
+                                        phx-click="view_profile"
+                                        phx-value-username={user.username}
+                                        phx-target={@myself}
+                                        class="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 hover:border-blue-300 dark:hover:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 group/btn"
+                                        title={"View #{user.username}'s profile"}
+                                      >
+                                        <svg class="h-4 w-4 mr-2 text-gray-500 dark:text-gray-400 group-hover/btn:text-blue-500 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                        </svg>
+                                        <span class="group-hover/btn:text-blue-600 dark:group-hover/btn:text-blue-400 transition-colors">
+                                          View Profile
+                                        </span>
+                                      </button>
+                                    </div>
+                                  </div>
+                                </div>
+                              <% end %>
+                            </div>
+                          <% else %>
+                            <div class="text-center py-12">
+                              <div class="mx-auto h-24 w-24 text-gray-300 dark:text-gray-600 mb-4">
+                                <%= case String.to_atom(reaction_type) do %>
+                                  <% :like -> %>
+                                    <svg fill="currentColor" viewBox="0 0 24 24">
+                                      <path d="M1 21h4V9H1v12zm22-11c0-1.1-.9-2-2-2h-6.31l.95-4.57.03-.32c0-.41-.17-.79-.44-1.06L14.17 1 7.59 7.59C7.22 7.95 7 8.45 7 9v10c0 1.1.9 2 2 2h9c.83 0 1.54-.5 1.84-1.22l3.02-7.05c.09-.23.14-.47.14-.73v-2z"/>
+                                    </svg>
+                                  <% :celebrate -> %>
+                                    <svg fill="currentColor" viewBox="0 0 24 24">
+                                      <path d="M2 20h2c.55 0 1-.45 1-1v-9c0-.55-.45-1-1-1H2v11zm19.83-7.12c.11-.25.17-.52.17-.8V11c0-1.1-.9-2-2-2h-5.5l.92-4.65c.05-.22.02-.46-.08-.66-.23-.45-.52-.86-.88-1.22L14 2 7.59 8.41C7.21 8.79 7 9.3 7 9.83v7.84C7 18.95 8.05 20 9.34 20h8.11c.7 0 1.36-.37 1.72-.97l2.66-6.15z"/>
+                                    </svg>
+                                  <% :support -> %>
+                                    <svg fill="currentColor" viewBox="0 0 24 24">
+                                      <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                                    </svg>
+                                  <% :love -> %>
+                                    <svg fill="currentColor" viewBox="0 0 24 24">
+                                      <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                                    </svg>
+                                  <% :insightful -> %>
+                                    <svg fill="currentColor" viewBox="0 0 24 24">
+                                      <path d="M9 21c0 .55.45 1 1 1h4c.55 0 1-.45 1-1v-1H9v1zm3-19C8.14 2 5 5.14 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.86-3.14-7-7-7z"/>
+                                    </svg>
+                                  <% :funny -> %>
+                                    <svg fill="currentColor" viewBox="0 0 24 24">
+                                      <path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5 7.67 11 8.5 11zm3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z"/>
+                                    </svg>
+                                  <% _ -> %>
+                                    <svg fill="currentColor" viewBox="0 0 24 24">
+                                      <path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                                    </svg>
+                                <% end %>
+                              </div>
+                              <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">No <%= reaction_type %> reactions yet</h3>
+                              <p class="text-gray-500 dark:text-gray-400">Be the first to react!</p>
+                            </div>
+                          <% end %>
+                        </div>
+                      <% end %>
+                    </div>
+                  </div>
+                <% end %>
+
+                <%= if @like_action do %>
+                  <div class="bg-white dark:bg-gray-800 px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                    <.live_component
+                      module={MazarynWeb.HomeLive.ShowLikersComponent}
+                      locale={@locale}
+                      id={@post.id}
+                    />
+                  </div>
+                <% end %>
+
+              </div>
+            </div>
+          </div>
+        <% end %>
+
+        <%= if @show_repost_modal do %>
+          <div class="fixed inset-0 z-50 overflow-y-auto">
+            <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+              <div
+                class="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75"
+                phx-click="close_repost_modal"
+                phx-target={@myself}
+              ></div>
+
+              <span class="hidden sm:inline-block sm:align-middle sm:h-screen">&#8203;</span>
+
+              <div class="inline-block align-bottom bg-white dark:bg-gray-800 rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                <div class="bg-white dark:bg-gray-800 px-6 pt-5 pb-4">
+                  <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-xl font-bold text-gray-900 dark:text-white">
+                      Share this post
+                    </h3>
+                    <button
+                      phx-click="close_repost_modal"
+                      phx-target={@myself}
+                      class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors"
+                    >
+                      <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
+
+                  <div class="space-y-4">
+                    <button
+                      phx-click="simple_repost"
+                      phx-value-post-id={@reposting_post_id}
+                      phx-target={@myself}
+                      class="w-full flex items-center space-x-4 p-4 rounded-xl border-2 border-gray-200 dark:border-gray-700 hover:border-green-500 dark:hover:border-green-500 hover:bg-green-50 dark:hover:bg-green-900/10 transition-all duration-200 group"
+                    >
+                      <div class="flex-shrink-0">
+                        <div class="h-12 w-12 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center group-hover:bg-green-200 dark:group-hover:bg-green-900/50 transition-colors">
+                          <svg class="h-6 w-6 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/>
+                          </svg>
+                        </div>
+                      </div>
+                      <div class="flex-1 text-left">
+                        <h4 class="text-base font-semibold text-gray-900 dark:text-white group-hover:text-green-600 dark:group-hover:text-green-400 transition-colors">
+                          Quick Share
+                        </h4>
+                        <p class="text-sm text-gray-500 dark:text-gray-400">
+                          Share this post to your followers
+                        </p>
+                      </div>
+                    </button>
+
+                    <div class="p-4 rounded-xl border-2 border-gray-200 dark:border-gray-700 hover:border-blue-500 dark:hover:border-blue-500 transition-all duration-200 space-y-3">
+                      <div class="flex items-center space-x-4">
+                        <div class="flex-shrink-0">
+                          <div class="h-12 w-12 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+                            <svg class="h-6 w-6 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                            </svg>
+                          </div>
+                        </div>
+                        <div class="flex-1 text-left">
+                          <h4 class="text-base font-semibold text-gray-900 dark:text-white">
+                            Share with your thoughts
+                          </h4>
+                          <p class="text-sm text-gray-500 dark:text-gray-400">
+                            Add a comment before sharing
+                          </p>
+                        </div>
+                      </div>
+
+                      <.form
+                        :let={f}
+                        for={%{}}
+                        as={:repost}
+                        phx-change="validate_repost_comment"
+                        phx-submit="repost_with_comment_submit"
+                        phx-target={@myself}
+                      >
+                        <%= textarea(f, :comment,
+                          value: @repost_comment || "",
+                          placeholder: "Add your thoughts...",
+                          rows: "3",
+                          class: "w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 resize-none",
+                          required: true
+                        ) %>
+
+                        <%= submit("Share with comment",
+                          disabled: String.trim(@repost_comment || "") == "",
+                          class: "w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white px-6 py-3 rounded-xl font-semibold transition-colors duration-200"
+                        ) %>
+                      </.form>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
+        <% end %>
       </div>
-    <% end %>
-  </div>

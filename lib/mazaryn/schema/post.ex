@@ -38,6 +38,8 @@ defmodule Mazaryn.Schema.Post do
     repost_comment
     repost_count
     reposted_by
+    reactions
+    reaction_counts
     data
   )a
 
@@ -77,13 +79,35 @@ defmodule Mazaryn.Schema.Post do
     field(:reposted_by, {:array, :map}, default: [])
 
     field(:data, :map)
+
+    field(:reactions, :map,
+      default: %{
+        "like" => [],
+        "celebrate" => [],
+        "support" => [],
+        "love" => [],
+        "insightful" => [],
+        "funny" => []
+      }
+    )
+
+    field(:reaction_counts, :map,
+      default: %{
+        "like" => 0,
+        "celebrate" => 0,
+        "support" => 0,
+        "love" => 0,
+        "insightful" => 0,
+        "funny" => 0
+      }
+    )
   end
 
   def erl_changeset(
         {:post, id, ai_post_id, user_id, business_id, content, ipns, emoji, comments, likes,
-         media, hashtag, mention, link_url, author, other, date_created, date_updated, report,
-         device_info, pin_info, is_repost, original_post_id, repost_type, repost_comment,
-         repost_count, reposted_by, data}
+         reactions, reaction_counts, media, hashtag, mention, link_url, author, other,
+         date_created, date_updated, report, device_info, pin_info, is_repost, original_post_id,
+         repost_type, repost_comment, repost_count, reposted_by, data}
       ) do
     IO.puts("📋 Post.erl_changeset called for post: #{inspect(id)}")
     IO.puts("📋 Media field: #{inspect(media)}")
@@ -199,6 +223,9 @@ defmodule Mazaryn.Schema.Post do
           []
       end
 
+    processed_reactions = process_reactions(reactions)
+    processed_reaction_counts = process_reaction_counts(reaction_counts)
+
     %__MODULE__{}
     |> change(%{
       id: id,
@@ -208,7 +235,7 @@ defmodule Mazaryn.Schema.Post do
       content: content,
       comments: preload_comments,
       likes: new_likes,
-      media: media,
+      media: processed_media,
       hashtag: hashtag,
       mention: mention,
       ipns: ipns,
@@ -227,6 +254,8 @@ defmodule Mazaryn.Schema.Post do
       repost_comment: repost_comment_value,
       repost_count: repost_count_value,
       reposted_by: reposted_by_value,
+      reactions: processed_reactions,
+      reaction_counts: processed_reaction_counts,
       data: data
     })
   end
@@ -371,4 +400,77 @@ defmodule Mazaryn.Schema.Post do
   end
 
   def get_original_author(_), do: nil
+
+  defp process_reactions(reactions) when is_map(reactions) do
+    Enum.reduce(reactions, %{}, fn {key, value}, acc ->
+      string_key = atom_to_string(key)
+
+      processed_value =
+        case value do
+          list when is_list(list) -> list
+          _ -> []
+        end
+
+      Map.put(acc, string_key, processed_value)
+    end)
+  end
+
+  defp process_reactions(_),
+    do: %{
+      "like" => [],
+      "celebrate" => [],
+      "support" => [],
+      "love" => [],
+      "insightful" => [],
+      "funny" => []
+    }
+
+  defp process_reaction_counts(reaction_counts) when is_map(reaction_counts) do
+    Enum.reduce(reaction_counts, %{}, fn {key, value}, acc ->
+      string_key = atom_to_string(key)
+
+      count =
+        case value do
+          num when is_integer(num) -> num
+          _ -> 0
+        end
+
+      Map.put(acc, string_key, count)
+    end)
+  end
+
+  defp process_reaction_counts(_),
+    do: %{
+      "like" => 0,
+      "celebrate" => 0,
+      "support" => 0,
+      "love" => 0,
+      "insightful" => 0,
+      "funny" => 0
+    }
+
+  def total_reactions(%__MODULE__{reaction_counts: counts}) when is_map(counts) do
+    counts
+    |> Map.values()
+    |> Enum.sum()
+  end
+
+  def total_reactions(_), do: 0
+
+  def user_reacted?(%__MODULE__{reactions: reactions}, user_id) when is_map(reactions) do
+    reactions
+    |> Map.values()
+    |> List.flatten()
+    |> Enum.any?(fn reaction_id -> reaction_id == user_id end)
+  end
+
+  def user_reacted?(_, _), do: false
+
+  def user_reaction_type(%__MODULE__{reactions: reactions}, user_id) when is_map(reactions) do
+    Enum.find_value(reactions, fn {type, reaction_list} ->
+      if Enum.member?(reaction_list, user_id), do: type
+    end)
+  end
+
+  def user_reaction_type(_, _), do: nil
 end

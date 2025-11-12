@@ -1,4 +1,3 @@
-%% TODO: change id order for testing, modify later
 -record(user, { id,
                 p2p_node_address,
                 ipfs_key,
@@ -61,6 +60,22 @@
                 emoji = [],
                 comments = [],
                 likes = [],
+                reactions = #{
+                    like => [],
+                    celebrate => [],
+                    support => [],
+                    love => [],
+                    insightful => [],
+                    funny => []
+                },
+                reaction_counts = #{
+                    like => 0,
+                    celebrate => 0,
+                    support => 0,
+                    love => 0,
+                    insightful => 0,
+                    funny => 0
+                },
                 media = [],
                 hashtag = [],
                 mention,
@@ -208,6 +223,22 @@
                   date_created,
                   ipns,
                   likes = [],
+                  reactions = #{
+                      like => [],
+                      celebrate => [],
+                      support => [],
+                      love => [],
+                      insightful => [],
+                      funny => []
+                  },
+                  reaction_counts = #{
+                      like => 0,
+                      celebrate => 0,
+                      support => 0,
+                      love => 0,
+                      insightful => 0,
+                      funny => 0
+                  },
                   replies = [],
                   data = #{} }).
 
@@ -222,6 +253,7 @@
                post,
                comment,
                userID,
+               reaction_type = like,
                date_created,
                data = #{} }).
 
@@ -307,7 +339,7 @@ date_created, date_updated, report = [], data = #{}}).
     engagement_metrics = #{},       % Metrics such as likes, comments, shares (e.g., #{likes => 100, comments => 50})
     content_preferences = #{},      % Preferences for types of content (e.g., #{video => 60, text => 30})
     personality_traits = #{},       % Traits derived from user interactions (e.g., #{introvert => true, extrovert => false})
-    social_graph_metrics = #{},     % Metrics related to the user’s social connections (e.g., #{connections_count => 150})
+    social_graph_metrics = #{},     % Metrics related to the user's social connections (e.g., #{connections_count => 150})
     content_creation_stats = #{},   % Statistics on user-generated content (e.g., #{posts_created => 50, likes_received => 200})
     feature_usage_stats = #{},      % Statistics on how different features of the platform are used (e.g., #{feature_x => 300, feature_y => 150})
     privacy_settings = #{},         % Privacy preferences and settings (e.g., #{profile_visibility => public, message_privacy => friends_only})

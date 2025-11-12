@@ -58,6 +58,13 @@ defmodule MazarynWeb.HomeLive.PostComponent do
   defdelegate get_save_icon(user_id, post_id), to: PCH
   defdelegate get_save_event(user_id, post_id), to: PCH
 
+  defdelegate like_icon(user_id, post_id), to: PCH
+  defdelegate like_event(user_id, post_id), to: PCH
+  defdelegate find_user_like(post_id, user_id), to: PCH
+  defdelegate find_user_reaction(post_id, user_id), to: PCH
+  defdelegate get_likes_count(post_id), to: PCH
+  defdelegate rebuild_post(post_id), to: PCH
+
   @supported_translation_langs Translator.supported_targets()
   @default_src_lang Translator.default_src()
 
@@ -72,6 +79,8 @@ defmodule MazarynWeb.HomeLive.PostComponent do
       ipns_id: nil,
       show_likes_modal: false,
       liked_users: [],
+      all_reaction_users: %{},
+      current_reaction_type: "like",
       likes_loading: false,
       likes_task: nil,
       likes_task_ref: nil,
@@ -82,7 +91,10 @@ defmodule MazarynWeb.HomeLive.PostComponent do
       reposting_post_id: nil,
       repost_comment: "",
       repost_count: 0,
-      user_has_reposted: false
+      user_has_reposted: false,
+      user_reaction: nil,
+      reaction_counts: %{like: 0, celebrate: 0, support: 0, love: 0, insightful: 0, funny: 0},
+      total_reactions: 0
     }
 
     assign(socket, default_assigns)
@@ -144,6 +156,8 @@ defmodule MazarynWeb.HomeLive.PostComponent do
      assign(socket, %{
        show_likes_modal: false,
        liked_users: [],
+       all_reaction_users: %{},
+       current_reaction_type: "like",
        likes_loading: false
      })}
   end
@@ -909,4 +923,176 @@ defmodule MazarynWeb.HomeLive.PostComponent do
 
   defp normalize_post_id(post_id),
     do: if(is_binary(post_id), do: :erlang.binary_to_list(post_id), else: post_id)
+
+  def handle_event(
+        "react_to_post",
+        %{"post-id" => post_id, "reaction-type" => reaction_type},
+        socket
+      ) do
+    try do
+      post_id_charlist = to_charlist(post_id)
+      user_id = socket.assigns.current_user.id
+      user_id_charlist = to_charlist(user_id)
+      reaction_atom = String.to_existing_atom(reaction_type)
+
+      result = PostClient.react_to_post(user_id_charlist, post_id_charlist, reaction_atom)
+
+      clear_content_cache({:likes_count, post_id_charlist})
+      clear_content_cache({:reactions, post_id_charlist})
+
+      Process.sleep(50)
+
+      post = rebuild_post(post_id_charlist)
+
+      raw_counts = PostClient.get_reaction_counts(post_id_charlist)
+      reaction_counts = normalize_reaction_counts(raw_counts)
+
+      user_reaction =
+        case PostClient.get_user_reaction_type(user_id_charlist, post_id_charlist) do
+          reaction when is_atom(reaction) and reaction != :undefined -> reaction
+          _ -> nil
+        end
+
+      total_reactions = Map.values(reaction_counts) |> Enum.sum()
+
+      {:noreply,
+       assign(socket, %{
+         post: post,
+         reaction_counts: reaction_counts,
+         user_reaction: user_reaction,
+         total_reactions: total_reactions
+       })}
+    rescue
+      e ->
+        Logger.error("Error in react_to_post: #{inspect(e)}")
+        {:noreply, put_flash(socket, :error, "Failed to react to post")}
+    end
+  end
+
+  defp normalize_reaction_counts(counts) when is_map(counts) do
+    IO.puts("🔧 normalize_reaction_counts input: #{inspect(counts)}")
+
+    result = %{
+      "like" => Map.get(counts, :like, Map.get(counts, "like", 0)),
+      "celebrate" => Map.get(counts, :celebrate, Map.get(counts, "celebrate", 0)),
+      "support" => Map.get(counts, :support, Map.get(counts, "support", 0)),
+      "love" => Map.get(counts, :love, Map.get(counts, "love", 0)),
+      "insightful" => Map.get(counts, :insightful, Map.get(counts, "insightful", 0)),
+      "funny" => Map.get(counts, :funny, Map.get(counts, "funny", 0))
+    }
+
+    IO.puts("🔧 normalize_reaction_counts output: #{inspect(result)}")
+    result
+  end
+
+  defp normalize_reaction_counts(nil) do
+    IO.puts("🔧 ⚠️ normalize_reaction_counts received nil!")
+    %{"like" => 0, "celebrate" => 0, "support" => 0, "love" => 0, "insightful" => 0, "funny" => 0}
+  end
+
+  defp normalize_reaction_counts(other) do
+    IO.puts("🔧 ⚠️ normalize_reaction_counts received unexpected: #{inspect(other)}")
+    %{"like" => 0, "celebrate" => 0, "support" => 0, "love" => 0, "insightful" => 0, "funny" => 0}
+  end
+
+  def handle_event("remove_reaction", %{"post-id" => post_id}, socket) do
+    try do
+      post_id_charlist = to_charlist(post_id)
+      user_id = socket.assigns.current_user.id
+      user_id_charlist = to_charlist(user_id)
+
+      like = find_user_reaction(post_id_charlist, user_id)
+
+      if like do
+        PostClient.remove_reaction_from_post(like.id, post_id_charlist)
+      end
+
+      clear_content_cache({:likes_count, post_id_charlist})
+      clear_content_cache({:reactions, post_id_charlist})
+
+      Process.sleep(50)
+
+      post = rebuild_post(post_id_charlist)
+
+      reaction_counts =
+        case PostClient.get_reaction_counts(post_id_charlist) do
+          counts when is_map(counts) ->
+            normalize_reaction_counts(counts)
+
+          _ ->
+            %{
+              "like" => 0,
+              "celebrate" => 0,
+              "support" => 0,
+              "love" => 0,
+              "insightful" => 0,
+              "funny" => 0
+            }
+        end
+
+      total_reactions = Map.values(reaction_counts) |> Enum.sum()
+
+      assigns = %{
+        post: post,
+        reaction_counts: reaction_counts,
+        user_reaction: nil,
+        total_reactions: total_reactions
+      }
+
+      {:noreply, assign(socket, assigns)}
+    rescue
+      e ->
+        Logger.error("Error in remove_reaction: #{inspect(e)}")
+        {:noreply, put_flash(socket, :error, "Failed to remove reaction")}
+    end
+  end
+
+  def handle_event(
+        "open_reactions_modal",
+        %{"post-id" => post_id, "reaction-type" => reaction_type},
+        socket
+      ) do
+    post_id_charlist = to_charlist(post_id)
+
+    all_reactions_map =
+      try do
+        PostClient.get_all_users_by_reactions(post_id_charlist)
+      rescue
+        e ->
+          IO.puts("❌ Error fetching all reactions: #{inspect(e)}")
+
+          %{
+            like: [],
+            celebrate: [],
+            support: [],
+            love: [],
+            insightful: [],
+            funny: []
+          }
+      end
+
+    grouped_users =
+      Enum.into(all_reactions_map, %{}, fn {type, user_list} ->
+        type_str = to_string(type)
+
+        users =
+          Enum.map(user_list, fn {username, _timestamp} ->
+            username_str = if is_list(username), do: List.to_string(username), else: username
+
+            case Users.one_by_username(username_str) do
+              {:ok, user} -> user
+              _ -> %{username: username_str, verified: false}
+            end
+          end)
+
+        {type_str, users}
+      end)
+
+    {:noreply,
+     socket
+     |> assign(:show_likes_modal, true)
+     |> assign(:likes_loading, false)
+     |> assign(:current_reaction_type, reaction_type)
+     |> assign(:all_reaction_users, grouped_users)}
+  end
 end

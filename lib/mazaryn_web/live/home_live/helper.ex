@@ -150,15 +150,17 @@ defmodule MazarynWeb.HomeLive.PostComponent.Helper do
   end
 
   def rebuild_post(post_id) do
+    IO.puts("🔨 rebuild_post called for: #{inspect(post_id)}")
+
     {:ok, post} =
       PostClient.get_by_id(post_id)
       |> Mazaryn.Schema.Post.erl_changeset()
       |> Mazaryn.Schema.Post.build()
 
+    IO.puts("🔨 Post rebuilt successfully")
     post
   end
 
-  # ============================ CONTENT PROCESSING =============================
   def activate_content_characters(post, socket) do
     process_start = :erlang.system_time(:millisecond)
     IO.puts("📝 Starting content processing for post #{post.id}")
@@ -429,6 +431,15 @@ defmodule MazarynWeb.HomeLive.PostComponent.Helper do
   end
 
   defp build_final_assigns(assigns, results, changesets) do
+    user_reaction =
+      case get_user_reaction_cached(assigns.current_user.id, assigns.post.id) do
+        reaction when is_atom(reaction) -> reaction
+        _ -> nil
+      end
+
+    reaction_counts = get_reaction_counts_cached(assigns.post.id)
+    total_reactions = get_total_reactions_cached(assigns.post.id)
+
     base_assigns = %{
       follow_event: follow_event(assigns.current_user.id, assigns.post.author),
       follow_text: follow_text(assigns.current_user.id, assigns.post.author),
@@ -442,7 +453,10 @@ defmodule MazarynWeb.HomeLive.PostComponent.Helper do
       user_has_reposted: has_user_reposted?(assigns.current_user.id, assigns.post.id),
       is_saved: is_post_saved?(assigns.current_user.id, assigns.post.id),
       save_icon: get_save_icon(assigns.current_user.id, assigns.post.id),
-      save_event: get_save_event(assigns.current_user.id, assigns.post.id)
+      save_event: get_save_event(assigns.current_user.id, assigns.post.id),
+      user_reaction: user_reaction,
+      reaction_counts: reaction_counts,
+      total_reactions: total_reactions
     }
 
     assigns |> Map.merge(base_assigns) |> Map.merge(results) |> Map.merge(changesets)
@@ -464,7 +478,10 @@ defmodule MazarynWeb.HomeLive.PostComponent.Helper do
       ipns_id: nil,
       likes_count: 0,
       post_content_cached: "Content loading...",
-      is_saved: false
+      is_saved: false,
+      user_reaction: nil,
+      reaction_counts: %{like: 0, celebrate: 0, support: 0, love: 0, insightful: 0, funny: 0},
+      total_reactions: 0
     }
   end
 
@@ -841,5 +858,202 @@ defmodule MazarynWeb.HomeLive.PostComponent.Helper do
 
   def get_save_event(user_id, post_id) do
     if is_post_saved?(user_id, post_id), do: "unsave_post", else: "save_post"
+  end
+
+  def find_user_reaction(post_id, user_id) do
+    IO.puts("🔍 find_user_reaction called")
+    IO.puts("🔍 Post ID: #{inspect(post_id)}")
+    IO.puts("🔍 User ID: #{inspect(user_id)}")
+
+    try do
+      all_reactions = PostClient.get_all_reactions(post_id)
+      IO.puts("🔍 All reactions: #{inspect(all_reactions)}")
+
+      result =
+        all_reactions
+        |> Map.values()
+        |> List.flatten()
+        |> Enum.find_value(fn reaction_tuple ->
+          case reaction_tuple |> Like.erl_changeset() |> Like.build() do
+            {:ok, like} when like.user_id == user_id -> like
+            _ -> nil
+          end
+        end)
+
+      IO.puts("🔍 Found reaction: #{inspect(result)}")
+      result
+    rescue
+      e ->
+        IO.puts("🔍 ❌ Error in find_user_reaction: #{inspect(e)}")
+        nil
+    end
+  end
+
+  def get_reaction_counts_cached(post_id) do
+    cache_key = {:reactions, post_id}
+
+    case :ets.lookup(@content_cache, cache_key) do
+      [{^cache_key, counts, timestamp}] ->
+        if cache_valid?(timestamp, @cache_ttl.likes) do
+          counts
+        else
+          spawn_reactions_refresh(post_id)
+          counts
+        end
+
+      [] ->
+        case get_reaction_counts_with_timeout(post_id, @timeouts.likes) do
+          counts when is_map(counts) ->
+            cache_reactions(cache_key, counts)
+            counts
+
+          _ ->
+            %{like: 0, celebrate: 0, support: 0, love: 0, insightful: 0, funny: 0}
+        end
+    end
+  end
+
+  def get_total_reactions_cached(post_id) do
+    reaction_counts = get_reaction_counts_cached(post_id)
+
+    if is_map(reaction_counts) do
+      Map.values(reaction_counts) |> Enum.sum()
+    else
+      0
+    end
+  end
+
+  defp get_reaction_counts_with_timeout(post_id, timeout) do
+    IO.puts("⏱️ get_reaction_counts_with_timeout called")
+    IO.puts("⏱️ Post ID: #{inspect(post_id)}")
+    IO.puts("⏱️ Timeout: #{timeout}ms")
+
+    task =
+      Task.async(fn ->
+        try do
+          IO.puts("⏱️ Task: Calling PostClient.get_reaction_counts...")
+          counts = post_id |> to_charlist() |> PostClient.get_reaction_counts()
+          IO.puts("⏱️ Task: Raw counts: #{inspect(counts)}")
+
+          case counts do
+            counts when is_map(counts) ->
+              normalized = normalize_reaction_counts_helper(counts)
+              IO.puts("⏱️ Task: Normalized counts: #{inspect(normalized)}")
+              normalized
+
+            nil ->
+              IO.puts("⏱️ Task: ⚠️ Counts is nil")
+
+              %{
+                "like" => 0,
+                "celebrate" => 0,
+                "support" => 0,
+                "love" => 0,
+                "insightful" => 0,
+                "funny" => 0
+              }
+
+            _ ->
+              IO.puts("⏱️ Task: ⚠️ Counts is unexpected type")
+
+              %{
+                "like" => 0,
+                "celebrate" => 0,
+                "support" => 0,
+                "love" => 0,
+                "insightful" => 0,
+                "funny" => 0
+              }
+          end
+        rescue
+          e ->
+            IO.puts("⏱️ Task: ❌ Exception: #{inspect(e)}")
+
+            %{
+              "like" => 0,
+              "celebrate" => 0,
+              "support" => 0,
+              "love" => 0,
+              "insightful" => 0,
+              "funny" => 0
+            }
+        end
+      end)
+
+    result =
+      case Task.yield(task, timeout) || Task.shutdown(task, :brutal_kill) do
+        {:ok, counts} ->
+          IO.puts("⏱️ Task completed successfully: #{inspect(counts)}")
+          counts
+
+        nil ->
+          IO.puts("⏱️ Task timed out")
+
+          %{
+            "like" => 0,
+            "celebrate" => 0,
+            "support" => 0,
+            "love" => 0,
+            "insightful" => 0,
+            "funny" => 0
+          }
+      end
+
+    IO.puts("⏱️ Final result: #{inspect(result)}")
+    result
+  end
+
+  defp normalize_reaction_counts_helper(counts) when is_map(counts) do
+    IO.puts("🔧 Helper normalize input: #{inspect(counts)}")
+
+    result = %{
+      "like" => Map.get(counts, :like, Map.get(counts, "like", 0)),
+      "celebrate" => Map.get(counts, :celebrate, Map.get(counts, "celebrate", 0)),
+      "support" => Map.get(counts, :support, Map.get(counts, "support", 0)),
+      "love" => Map.get(counts, :love, Map.get(counts, "love", 0)),
+      "insightful" => Map.get(counts, :insightful, Map.get(counts, "insightful", 0)),
+      "funny" => Map.get(counts, :funny, Map.get(counts, "funny", 0))
+    }
+
+    IO.puts("🔧 Helper normalize output: #{inspect(result)}")
+    result
+  end
+
+  defp normalize_reaction_counts_helper(nil) do
+    IO.puts("🔧 Helper ⚠️ received nil")
+    %{"like" => 0, "celebrate" => 0, "support" => 0, "love" => 0, "insightful" => 0, "funny" => 0}
+  end
+
+  defp normalize_reaction_counts_helper(other) do
+    IO.puts("🔧 Helper ⚠️ received unexpected: #{inspect(other)}")
+    %{"like" => 0, "celebrate" => 0, "support" => 0, "love" => 0, "insightful" => 0, "funny" => 0}
+  end
+
+  defp cache_reactions(cache_key, counts) do
+    timestamp = :erlang.system_time(:second)
+    normalized_counts = normalize_reaction_counts_helper(counts)
+    :ets.insert(@content_cache, {cache_key, normalized_counts, timestamp})
+  end
+
+  def get_user_reaction_cached(user_id, post_id) do
+    post_id_charlist = to_charlist(post_id)
+    user_id_charlist = to_charlist(user_id)
+
+    case PostClient.get_user_reaction_type(user_id_charlist, post_id_charlist) do
+      reaction when is_atom(reaction) and reaction != :undefined -> reaction
+      :undefined -> nil
+      _ -> nil
+    end
+  end
+
+  defp spawn_reactions_refresh(post_id) do
+    Task.start(fn ->
+      try do
+        counts = post_id |> to_charlist() |> PostClient.get_reaction_counts()
+        cache_reactions({:reactions, post_id}, counts)
+      rescue
+        _ -> :ok
+      end
+    end)
   end
 end
