@@ -1095,4 +1095,68 @@ defmodule MazarynWeb.HomeLive.PostComponent do
      |> assign(:current_reaction_type, reaction_type)
      |> assign(:all_reaction_users, grouped_users)}
   end
+
+  defp normalize_post_id(post_id) do
+    if is_binary(post_id) do
+      :erlang.binary_to_list(post_id)
+    else
+      post_id
+    end
+  end
+
+  defp extract_ipfs_hash(ipns_id) when is_binary(ipns_id) do
+    ipns_id
+    |> String.trim()
+    |> String.replace(~r/^ipns:\/\//, "")
+    |> String.replace(~r/\.ipns\.localhost.*$/, "")
+    |> String.split("/")
+    |> List.first()
+  end
+
+  defp extract_ipfs_hash(_), do: ""
+
+  def handle_event(
+        "react_to_post",
+        %{"post-id" => post_id, "reaction-type" => reaction_type},
+        socket
+      ) do
+    try do
+      post_id_charlist = to_charlist(post_id)
+      user_id = socket.assigns.current_user.id
+      user_id_charlist = to_charlist(user_id)
+      reaction_atom = String.to_existing_atom(reaction_type)
+
+      result = PostClient.react_to_post(user_id_charlist, post_id_charlist, reaction_atom)
+
+      clear_content_cache({:likes_count, post_id_charlist})
+      clear_content_cache({:reactions, post_id_charlist})
+
+      Process.sleep(50)
+
+      post = rebuild_post(post_id_charlist)
+
+      raw_counts = PostClient.get_reaction_counts(post_id_charlist)
+      reaction_counts = normalize_reaction_counts(raw_counts)
+
+      user_reaction =
+        case PostClient.get_user_reaction_type(user_id_charlist, post_id_charlist) do
+          reaction when is_atom(reaction) and reaction != :undefined -> reaction
+          _ -> nil
+        end
+
+      total_reactions = Map.values(reaction_counts) |> Enum.sum()
+
+      {:noreply,
+       assign(socket, %{
+         post: post,
+         reaction_counts: reaction_counts,
+         user_reaction: user_reaction,
+         total_reactions: total_reactions
+       })}
+    rescue
+      e ->
+        Logger.error("Error in react_to_post: #{inspect(e)}")
+        {:noreply, put_flash(socket, :error, "Failed to react to post")}
+    end
+  end
 end

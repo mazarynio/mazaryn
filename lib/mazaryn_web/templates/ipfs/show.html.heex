@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IPFS Content Viewer - Mazaryn</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .fade-in {
+      animation: fadeIn 0.5s ease-in;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body class="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 min-h-screen">
+  <div class="container mx-auto px-4 py-8 max-w-5xl">
+    <div class="bg-white rounded-3xl shadow-2xl overflow-hidden mb-6">
+      <div class="bg-gradient-to-r from-blue-600 to-purple-600 p-6 md:p-8">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center space-x-4">
+            <svg class="w-10 h-10 md:w-12 md:h-12 text-white" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+            </svg>
+            <div>
+              <h1 class="text-2xl md:text-3xl font-bold text-white">IPFS Content Viewer</h1>
+              <p class="text-blue-100 mt-1 text-sm md:text-base">Decentralized content storage</p>
+            </div>
+          </div>
+          <button onclick="window.history.back()" class="px-3 py-2 md:px-4 md:py-2 bg-white/20 hover:bg-white/30 rounded-lg text-white font-medium transition-colors duration-200 flex items-center space-x-2 backdrop-blur-sm">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+            </svg>
+            <span class="hidden md:inline">Back</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="p-6 md:p-8 space-y-6">
+        <div class="bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl p-4 md:p-6 border-2 border-blue-200">
+          <div class="flex items-start space-x-3">
+            <svg class="w-6 h-6 text-blue-600 flex-shrink-0 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center space-x-2 mb-2">
+                <h3 class="text-lg font-semibold text-gray-800">
+                  <%= if @hash_type == :ipns, do: "IPNS Hash", else: "IPFS Hash" %>
+                </h3>
+                <%= if @hash_type == :ipns do %>
+                  <span class="px-2 py-1 text-xs font-semibold rounded-full bg-purple-100 text-purple-700">
+                    IPNS
+                  </span>
+                <% else %>
+                  <span class="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-700">
+                    IPFS
+                  </span>
+                <% end %>
+              </div>
+              <div class="bg-white rounded-lg p-3 border border-blue-200 font-mono text-xs md:text-sm text-gray-700 break-all">
+                <%= @hash %>
+              </div>
+              <button onclick={"copyToClipboard('#{@hash}')"} class="mt-2 text-xs md:text-sm text-blue-600 hover:text-blue-800 font-medium flex items-center space-x-1">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                </svg>
+                <span>Copy Hash</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <%= if @gateway_url do %>
+          <div class="bg-gradient-to-r from-purple-50 to-pink-50 rounded-2xl p-4 md:p-6 border-2 border-purple-200">
+            <div class="flex items-start space-x-3">
+              <svg class="w-6 h-6 text-purple-600 flex-shrink-0 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/>
+              </svg>
+              <div class="flex-1 min-w-0">
+                <h3 class="text-lg font-semibold text-gray-800 mb-2">Gateway URL</h3>
+                <div class="bg-white rounded-lg p-3 border border-purple-200 font-mono text-xs md:text-sm text-gray-700 break-all">
+                  <%= @gateway_url %>
+                </div>
+                <button onclick={"copyToClipboard('#{@gateway_url}')"} class="mt-2 text-xs md:text-sm text-purple-600 hover:text-purple-800 font-medium flex items-center space-x-1">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                  </svg>
+                  <span>Copy URL</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    </div>
+
+    <div id="loading" class="bg-white rounded-3xl shadow-2xl p-8 md:p-12 text-center">
+      <div class="inline-block relative">
+        <div class="animate-spin rounded-full h-16 w-16 border-4 border-blue-200 border-t-blue-600"></div>
+        <svg class="absolute inset-0 m-auto w-8 h-8 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+        </svg>
+      </div>
+      <p class="text-gray-600 mt-6 text-lg">Loading content from IPFS...</p>
+      <p class="text-gray-500 mt-2 text-sm">This may take a few moments</p>
+    </div>
+
+    <div id="content" class="hidden space-y-6">
+      <div class="bg-white rounded-3xl shadow-2xl overflow-hidden fade-in">
+        <div class="bg-gradient-to-r from-green-500 to-emerald-600 p-4 md:p-6">
+          <div class="flex items-center space-x-3">
+            <svg class="w-6 h-6 md:w-7 md:h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+            </svg>
+            <h2 class="text-xl md:text-2xl font-bold text-white">Post Content</h2>
+          </div>
+        </div>
+
+        <div class="p-6 md:p-8">
+          <div id="post-content" class="bg-gradient-to-br from-gray-50 to-blue-50 rounded-2xl p-6 md:p-8 border-2 border-gray-200 min-h-[200px]">
+            <div class="prose prose-lg max-w-none">
+              <p id="text-content" class="text-gray-800 text-base md:text-lg leading-relaxed whitespace-pre-wrap"></p>
+            </div>
+          </div>
+
+          <div id="content-ipfs-info" class="mt-4 hidden">
+            <div class="flex items-center justify-between p-4 bg-blue-50 rounded-xl border border-blue-200">
+              <div class="flex items-center space-x-2 flex-1 min-w-0">
+                <svg class="w-5 h-5 text-blue-600 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+                </svg>
+                <span class="text-xs md:text-sm font-mono text-gray-700 truncate" id="content-ipfs-hash"></span>
+              </div>
+              <button onclick="copyContentHash()" class="ml-2 px-3 py-1 text-xs text-blue-600 hover:text-blue-800 font-medium whitespace-nowrap">
+                Copy
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="media-section" class="hidden bg-white rounded-3xl shadow-2xl overflow-hidden fade-in">
+        <div class="bg-gradient-to-r from-pink-500 to-rose-600 p-4 md:p-6">
+          <div class="flex items-center space-x-3">
+            <svg class="w-6 h-6 md:w-7 md:h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+            </svg>
+            <h3 class="text-xl md:text-2xl font-bold text-white">Media</h3>
+          </div>
+        </div>
+
+        <div class="p-6 md:p-8">
+          <div class="bg-gray-50 rounded-2xl p-4 border-2 border-gray-200">
+            <img id="media-image" class="w-full rounded-xl shadow-lg" alt="Post media"/>
+          </div>
+
+          <div id="media-ipfs-info" class="mt-4 hidden">
+            <div class="flex items-center justify-between p-4 bg-pink-50 rounded-xl border border-pink-200">
+              <div class="flex items-center space-x-2 flex-1 min-w-0">
+                <svg class="w-5 h-5 text-pink-600 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+                </svg>
+                <span class="text-xs md:text-sm font-mono text-gray-700 truncate" id="media-ipfs-hash"></span>
+              </div>
+              <button onclick="copyMediaHash()" class="ml-2 px-3 py-1 text-xs text-pink-600 hover:text-pink-800 font-medium whitespace-nowrap">
+                Copy
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <a href={@gateway_url} target="_blank" class="group bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-2xl p-6 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+              <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+              </svg>
+              <div>
+                <div class="font-semibold text-lg">View on Gateway</div>
+                <div class="text-blue-100 text-sm">Open raw <%= String.upcase(to_string(@hash_type)) %></div>
+              </div>
+            </div>
+            <svg class="w-6 h-6 transform group-hover:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+            </svg>
+          </div>
+        </a>
+
+        <a id="content-link" href="#" target="_blank" class="group hidden bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white rounded-2xl p-6 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+              <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+              </svg>
+              <div>
+                <div class="font-semibold text-lg">View Content IPFS</div>
+                <div class="text-green-100 text-sm">Direct content link</div>
+              </div>
+            </div>
+            <svg class="w-6 h-6 transform group-hover:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+            </svg>
+          </div>
+        </a>
+
+        <a id="media-link" href="#" target="_blank" class="group hidden bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white rounded-2xl p-6 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+              <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+              </svg>
+              <div>
+                <div class="font-semibold text-lg">View Media IPFS</div>
+                <div class="text-purple-100 text-sm">Direct media link</div>
+              </div>
+            </div>
+            <svg class="w-6 h-6 transform group-hover:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+            </svg>
+          </div>
+        </a>
+      </div>
+    </div>
+
+    <div id="error" class="hidden bg-white rounded-3xl shadow-2xl p-8 md:p-12 text-center">
+      <div class="inline-flex items-center justify-center w-16 h-16 bg-red-100 rounded-full mb-6">
+        <svg class="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+      </div>
+      <h3 class="text-xl md:text-2xl font-bold text-gray-800 mb-3">Failed to Load Content</h3>
+      <p class="text-gray-600 mb-6" id="error-message">The content could not be loaded from IPFS.</p>
+      <div class="space-y-3">
+        <button onclick="retryLoad()" class="inline-flex items-center px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold transition-colors duration-200 space-x-2">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+          </svg>
+          <span>Retry</span>
+        </button>
+        <p class="text-sm text-gray-500">or try accessing the gateway URL directly above</p>
+      </div>
+    </div>
+
+    <div class="mt-8 text-center">
+      <p class="text-gray-600 text-sm md:text-base">
+        Powered by
+        <a href="https://ipfs.io" target="_blank" class="text-blue-600 hover:text-blue-800 font-semibold">IPFS</a>
+        <span class="mx-2">•</span>
+        <a href="/" class="text-purple-600 hover:text-purple-800 font-semibold">Mazaryn</a>
+      </p>
+    </div>
+  </div>
+
+  <script>
+    const hash = '<%= @hash %>';
+    const hashType = '<%= @hash_type %>';
+    const gatewayUrl = '<%= @gateway_url %>';
+
+    let contentIpfsHash = '';
+    let mediaIpfsHash = '';
+
+    async function loadContent() {
+      try {
+        console.log('Loading content for hash:', hash, 'type:', hashType);
+
+        let fetchUrl;
+        if (hashType === 'ipns') {
+          fetchUrl = `http://${hash}.ipns.localhost:8080/`;
+        } else {
+          fetchUrl = `https://ipfs.io/ipfs/${hash}`;
+        }
+
+        console.log('Fetching from:', fetchUrl);
+
+        const response = await fetch(fetchUrl);
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        console.log('Received data:', data);
+
+        document.getElementById('loading').classList.add('hidden');
+        document.getElementById('content').classList.remove('hidden');
+
+        if (data.content && data.content.trim() !== '') {
+          try {
+            contentIpfsHash = extractIpfsHash(data.content);
+
+            if (contentIpfsHash) {
+              document.getElementById('content-ipfs-hash').textContent = contentIpfsHash;
+              document.getElementById('content-ipfs-info').classList.remove('hidden');
+            }
+
+            const contentResponse = await fetch(data.content);
+            const textContent = await contentResponse.text();
+            document.getElementById('text-content').textContent = textContent;
+            document.getElementById('content-link').href = data.content;
+            document.getElementById('content-link').classList.remove('hidden');
+          } catch (contentError) {
+            console.error('Error loading content:', contentError);
+            document.getElementById('text-content').textContent = 'Error loading content text';
+          }
+        } else {
+          document.getElementById('text-content').textContent = 'No content available';
+        }
+
+        if (data.media && data.media.trim() !== '') {
+          try {
+            mediaIpfsHash = extractIpfsHash(data.media);
+
+            if (mediaIpfsHash) {
+              document.getElementById('media-ipfs-hash').textContent = mediaIpfsHash;
+              document.getElementById('media-ipfs-info').classList.remove('hidden');
+            }
+
+            document.getElementById('media-section').classList.remove('hidden');
+            document.getElementById('media-image').src = data.media;
+            document.getElementById('media-link').href = data.media;
+            document.getElementById('media-link').classList.remove('hidden');
+          } catch (mediaError) {
+            console.error('Error loading media:', mediaError);
+          }
+        }
+
+      } catch (error) {
+        console.error('Error loading content:', error);
+        document.getElementById('loading').classList.add('hidden');
+        document.getElementById('error').classList.remove('hidden');
+        document.getElementById('error-message').textContent =
+          `Failed to load content: ${error.message}. Please check the ${hashType.toUpperCase()} hash and try again.`;
+      }
+    }
+
+    function extractIpfsHash(url) {
+      const match = url.match(/\/(Qm[a-zA-Z0-9]{44}|bafy[a-zA-Z0-9]+)/);
+      return match ? match[1] : '';
+    }
+
+    function copyToClipboard(text) {
+      navigator.clipboard.writeText(text).then(() => {
+        showToast('Copied to clipboard!');
+      }).catch(err => {
+        console.error('Failed to copy:', err);
+      });
+    }
+
+    function copyContentHash() {
+      if (contentIpfsHash) {
+        copyToClipboard(contentIpfsHash);
+      }
+    }
+
+    function copyMediaHash() {
+      if (mediaIpfsHash) {
+        copyToClipboard(mediaIpfsHash);
+      }
+    }
+
+    function showToast(message) {
+      const toast = document.createElement('div');
+      toast.className = 'fixed bottom-4 right-4 bg-gray-800 text-white px-6 py-3 rounded-lg shadow-lg z-50 fade-in';
+      toast.textContent = message;
+      document.body.appendChild(toast);
+
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateY(10px)';
+        setTimeout(() => toast.remove(), 300);
+      }, 2000);
+    }
+
+    function retryLoad() {
+      document.getElementById('error').classList.add('hidden');
+      document.getElementById('loading').classList.remove('hidden');
+      setTimeout(loadContent, 500);
+    }
+
+    loadContent();
+  </script>
+</body>
+</html>

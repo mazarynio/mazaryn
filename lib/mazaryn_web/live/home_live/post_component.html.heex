@@ -260,10 +260,9 @@
         <%= if @ipns_id do %>
           <div class="border-t border-gray-200 dark:border-gray-600 my-2"></div>
           <a
-            href={"https://ipfs.io/ipns/#{@ipns_id}"}
+            href={~p"/#{@locale}/ipfs/#{extract_ipfs_hash(@ipns_id)}"}
             target="_blank"
-            rel="noopener noreferrer"
-            class="w-full text-left px-4 py-3 text-sm text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors duration-200 flex items-center space-x-3"
+            class="w-full text-left px-4 py-3 text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors duration-200 flex items-center space-x-3"
             @click="open = false; tOpen = false"
           >
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -413,7 +412,6 @@
           phx-value-post-id={original_post.id}
           phx-target={@myself}
         >
-          <!-- Original Post Author -->
           <div class="flex items-center justify-between mb-2">
             <div class="flex items-center space-x-3">
               <div class="relative h-8 w-8 rounded-full overflow-hidden border-2 border-white dark:border-gray-700 shadow-sm">
@@ -461,18 +459,18 @@
           </p>
 
           <%= if post_has_media?(original_post.id) do %>
-                      <div class="mt-2">
-                        <% image_url = get_image_url(original_post.id) %>
-                        <%= if image_url do %>
-                          <img
-                            alt="Post image"
-                            class="w-full rounded-lg object-cover border border-gray-200 dark:border-gray-700"
-                            src={image_url}
-                          />
-                        <% end %>
-                      </div>
-                    <% end %>
-                  </div>
+            <div class="mt-2">
+              <% image_url = get_image_url(original_post.id) %>
+              <%= if image_url do %>
+                <img
+                  alt="Post image"
+                  class="w-full rounded-lg object-cover border border-gray-200 dark:border-gray-700"
+                  src={image_url}
+                />
+              <% end %>
+            </div>
+          <% end %>
+        </div>
       <% {:error, _} -> %>
         <div class="mt-1 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-200 dark:border-gray-700">
           <p class="text-sm text-gray-500 dark:text-gray-400 italic">
@@ -481,379 +479,380 @@
         </div>
     <% end %>
   <% end %>
+
   <%= if @editing_post do %>
-      <div class="mt-6">
-        <.form
-          :let={f}
-          for={@update_post_changeset}
-          phx-submit="update-post"
-          phx-target={@myself}
-          class="w-full"
-        >
-          <div class="space-y-4">
-            <%= textarea(f, :content,
-              class: "w-full border border-gray-300 dark:border-gray-600 rounded-xl p-4 focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-800 dark:text-white resize-none",
-              placeholder: "Edit your post...",
-              value: @editing_post,
-              rows: "4"
+    <div class="mt-6">
+      <.form
+        :let={f}
+        for={@update_post_changeset}
+        phx-submit="update-post"
+        phx-target={@myself}
+        class="w-full"
+      >
+        <div class="space-y-4">
+          <%= textarea(f, :content,
+            class: "w-full border border-gray-300 dark:border-gray-600 rounded-xl p-4 focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-800 dark:text-white resize-none",
+            placeholder: "Edit your post...",
+            value: @editing_post,
+            rows: "4"
+          ) %>
+          <div class="flex justify-end space-x-3">
+            <%= submit("Save Changes",
+              class: "bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-xl font-medium transition-colors duration-200"
             ) %>
-            <div class="flex justify-end space-x-3">
-              <%= submit("Save Changes",
-                class: "bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-xl font-medium transition-colors duration-200"
-              ) %>
+            <button
+              type="button"
+              phx-click="cancel-edit"
+              phx-target={@myself}
+              class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-2 rounded-xl font-medium transition-colors duration-200"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      </.form>
+    </div>
+  <% else %>
+    <div class="mt-4">
+
+      <%= if @translated_text do %>
+        <div class="mb-4 rounded-2xl border border-blue-200 dark:border-blue-900/40 bg-blue-50/60 dark:bg-blue-900/10 p-4 shadow-sm">
+          <div class="flex items-start justify-between">
+            <div class="flex items-center space-x-2">
+              <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-200">
+                <%= String.upcase(@translated_lang || "EN") %>
+              </span>
+              <span class="text-xs text-blue-700/80 dark:text-blue-200/80">
+                Translated from EN → <%= String.upcase(@translated_lang || "") %>
+              </span>
+            </div>
+            <div class="flex items-center space-x-2">
+              <div class="hidden sm:flex items-center space-x-1">
+                <%= for lang <- (assigns[:supported_translation_langs] || ["ru","it","es","az"]) do %>
+                  <button
+                    class={"px-2 py-1 rounded-md text-[10px] font-medium border transition-all #{if @translated_lang == lang, do: "bg-white dark:bg-blue-900/30 text-blue-700 dark:text-blue-200 border-blue-300 dark:border-blue-800 shadow", else: "text-blue-700/80 dark:text-blue-200/80 border-blue-200 dark:border-blue-800 hover:bg-white hover:shadow"}"}
+                    phx-click="translate-post"
+                    phx-value-post-id={@post.id}
+                    phx-value-target={lang}
+                    phx-target={@myself}
+                    title={"Translate to #{String.upcase(lang)}"}
+                  >
+                    <%= String.upcase(lang) %>
+                  </button>
+                <% end %>
+              </div>
               <button
-                type="button"
-                phx-click="cancel-edit"
+                class="ml-2 inline-flex items-center px-2.5 py-1.5 rounded-md text-xs font-medium bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition"
+                phx-click="clear-translation"
                 phx-target={@myself}
-                class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-2 rounded-xl font-medium transition-colors duration-200"
+                title="Clear translation"
               >
-                Cancel
+                Clear
               </button>
             </div>
           </div>
-        </.form>
-      </div>
-    <% else %>
-      <div class="mt-4">
+          <div class="mt-3">
+            <p class="text-gray-900 dark:text-gray-100 leading-relaxed">
+              <%= @translated_text %>
+            </p>
+          </div>
+        </div>
+      <% end %>
 
-        <%= if @translated_text do %>
-          <div class="mb-4 rounded-2xl border border-blue-200 dark:border-blue-900/40 bg-blue-50/60 dark:bg-blue-900/10 p-4 shadow-sm">
-            <div class="flex items-start justify-between">
-              <div class="flex items-center space-x-2">
-                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-200">
-                  <%= String.upcase(@translated_lang || "EN") %>
-                </span>
-                <span class="text-xs text-blue-700/80 dark:text-blue-200/80">
-                  Translated from EN → <%= String.upcase(@translated_lang || "") %>
-                </span>
-              </div>
-              <div class="flex items-center space-x-2">
-                <div class="hidden sm:flex items-center space-x-1">
-                  <%= for lang <- (assigns[:supported_translation_langs] || ["ru","it","es","az"]) do %>
-                    <button
-                      class={"px-2 py-1 rounded-md text-[10px] font-medium border transition-all #{if @translated_lang == lang, do: "bg-white dark:bg-blue-900/30 text-blue-700 dark:text-blue-200 border-blue-300 dark:border-blue-800 shadow", else: "text-blue-700/80 dark:text-blue-200/80 border-blue-200 dark:border-blue-800 hover:bg-white hover:shadow"}"}
-                      phx-click="translate-post"
-                      phx-value-post-id={@post.id}
-                      phx-value-target={lang}
-                      phx-target={@myself}
-                      title={"Translate to #{String.upcase(lang)}"}
-                    >
-                      <%= String.upcase(lang) %>
-                    </button>
-                  <% end %>
-                </div>
-                <button
-                  class="ml-2 inline-flex items-center px-2.5 py-1.5 rounded-md text-xs font-medium bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition"
-                  phx-click="clear-translation"
-                  phx-target={@myself}
-                  title="Clear translation"
-                >
-                  Clear
-                </button>
-              </div>
-            </div>
-            <div class="mt-3">
-              <p class="text-gray-900 dark:text-gray-100 leading-relaxed">
-                <%= @translated_text %>
-              </p>
-            </div>
+      <%= if !is_repost?(@post) do %>
+        <p class="text-gray-900 dark:text-white text-base leading-relaxed">
+          <%= raw(@post |> activate_content_characters(@socket)) %>
+          <span class="text-blue-600 dark:text-blue-400 text-sm font-medium ml-2"><%= Enum.join(@post.profile_tags, " ") %></span>
+        </p>
+
+        <%= if post_has_media?(@post.id) do %>
+          <div class="mt-4">
+            <img
+              alt="Post image"
+              class="w-full rounded-xl object-cover border border-gray-200 dark:border-gray-700"
+              src={get_image_url(@post.id)}
+            />
           </div>
         <% end %>
-
-        <%= if !is_repost?(@post) do %>
-          <p class="text-gray-900 dark:text-white text-base leading-relaxed">
-            <%= raw(@post |> activate_content_characters(@socket)) %>
-            <span class="text-blue-600 dark:text-blue-400 text-sm font-medium ml-2"><%= Enum.join(@post.profile_tags, " ") %></span>
-          </p>
-
-          <%= if post_has_media?(@post.id) do %>
-            <div class="mt-4">
-              <img
-                alt="Post image"
-                class="w-full rounded-xl object-cover border border-gray-200 dark:border-gray-700"
-                src={get_image_url(@post.id)}
-              />
-            </div>
-          <% end %>
-        <% end %>
-              </div>
-            <% end %>
+      <% end %>
+    </div>
+  <% end %>
 
   <div class="flex items-center justify-between mt-6 pt-4 border-t border-gray-100 dark:border-gray-700">
-      <div class="flex items-center space-x-6">
-                  <div class="flex items-center space-x-1" x-data="{ showReactions: false }" @click.outside="showReactions = false">
-                  <div class="relative">
-                    <button
-                      @click="showReactions = !showReactions"
-                      class="relative flex items-center space-x-1.5 px-3 py-2 rounded-lg bg-gradient-to-r from-white to-gray-50 dark:from-gray-800 dark:to-gray-750 border border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-500 transition-all duration-300 group shadow-sm hover:shadow-md"
-                    >
-                  <%= if @user_reaction do %>
-                    <div class="absolute inset-0 bg-gradient-to-r from-blue-500/20 via-purple-500/20 to-blue-500/20 rounded-xl blur-sm animate-pulse"></div>
-                  <% end %>
-
-                  <div class="relative z-10">
-                  <%= case @user_reaction do %>
-                                      <% :like -> %>
-                                        <svg class="h-4 w-4 text-blue-500 fill-current" viewBox="0 0 24 24">
-                          <path d="M1 21h4V9H1v12zm22-11c0-1.1-.9-2-2-2h-6.31l.95-4.57.03-.32c0-.41-.17-.79-.44-1.06L14.17 1 7.59 7.59C7.22 7.95 7 8.45 7 9v10c0 1.1.9 2 2 2h9c.83 0 1.54-.5 1.84-1.22l3.02-7.05c.09-.23.14-.47.14-.73v-2z"/>
-                        </svg>
-                      <% :celebrate -> %>
-                        <svg class="h-4 w-4 text-green-500 fill-current" viewBox="0 0 24 24">
-                          <path d="M2 20h2c.55 0 1-.45 1-1v-9c0-.55-.45-1-1-1H2v11zm19.83-7.12c.11-.25.17-.52.17-.8V11c0-1.1-.9-2-2-2h-5.5l.92-4.65c.05-.22.02-.46-.08-.66-.23-.45-.52-.86-.88-1.22L14 2 7.59 8.41C7.21 8.79 7 9.3 7 9.83v7.84C7 18.95 8.05 20 9.34 20h8.11c.7 0 1.36-.37 1.72-.97l2.66-6.15z"/>
-                        </svg>
-                      <% :support -> %>
-                        <svg class="h-4 w-4 text-purple-500 fill-current" viewBox="0 0 24 24">
-                          <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
-                        </svg>
-                      <% :love -> %>
-                        <svg class="h-4 w-4 text-red-500 fill-current" viewBox="0 0 24 24">
-                          <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
-                        </svg>
-                      <% :insightful -> %>
-                        <svg class="h-4 w-4 text-yellow-500 fill-current" viewBox="0 0 24 24">
-                          <path d="M9 21c0 .55.45 1 1 1h4c.55 0 1-.45 1-1v-1H9v1zm3-19C8.14 2 5 5.14 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.86-3.14-7-7-7z"/>
-                        </svg>
-                      <% :funny -> %>
-                        <svg class="h-4 w-4 text-orange-500 fill-current" viewBox="0 0 24 24">
-                          <path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5 7.67 11 8.5 11zm3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z"/>
-                        </svg>
-                      <% _ -> %>
-                        <svg class="h-4 w-4 text-gray-400 group-hover:text-blue-400 transition-colors duration-200" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                          <path stroke-linecap="round" stroke-linejoin="round" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5"/>
-                        </svg>
-                    <% end %>
-                  </div>
-
-                  <span class="relative z-10 text-sm font-semibold transition-all duration-200 text-gray-600 dark:text-gray-400 group-hover:text-blue-500">
-                    <%= if @user_reaction, do: "Reacted", else: "React" %>
-                  </span>
-                </button>
-
-                <div
-                                x-show="showReactions"
-                                x-transition:enter="transition ease-out duration-200"
-                                x-transition:enter-start="opacity-0 scale-95"
-                                x-transition:enter-end="opacity-100 scale-100"
-                                x-transition:leave="transition ease-in duration-150"
-                                x-transition:leave-start="opacity-100 scale-100"
-                                x-transition:leave-end="opacity-0 scale-95"
-                                class="absolute bottom-full left-0 mb-2 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 p-1.5 flex space-x-1.5 z-50"
-                                style="display: none;"
-                              >
-                                <button
-                                  phx-click="react_to_post"
-                                  phx-value-post-id={@post.id}
-                                  phx-value-reaction-type="like"
-                                  phx-target={@myself}
-                                  @click="showReactions = false"
-                                  class="p-1.5 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
-                                  title="Like"
-                                >
-                                  <svg class="h-4 w-4 text-blue-500" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M1 21h4V9H1v12zm22-11c0-1.1-.9-2-2-2h-6.31l.95-4.57.03-.32c0-.41-.17-.79-.44-1.06L14.17 1 7.59 7.59C7.22 7.95 7 8.45 7 9v10c0 1.1.9 2 2 2h9c.83 0 1.54-.5 1.84-1.22l3.02-7.05c.09-.23.14-.47.14-.73v-2z"/>
-                    </svg>
-                  </button>
-                  <button
-                    phx-click="react_to_post"
-                    phx-value-post-id={@post.id}
-                    phx-value-reaction-type="celebrate"
-                    phx-target={@myself}
-                    @click="showReactions = false"
-                    class="p-1.5 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-lg transition-colors"
-                    title="Celebrate"
-                  >
-                    <svg class="h-4 w-4 text-green-500" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M2 20h2c.55 0 1-.45 1-1v-9c0-.55-.45-1-1-1H2v11zm19.83-7.12c.11-.25.17-.52.17-.8V11c0-1.1-.9-2-2-2h-5.5l.92-4.65c.05-.22.02-.46-.08-.66-.23-.45-.52-.86-.88-1.22L14 2 7.59 8.41C7.21 8.79 7 9.3 7 9.83v7.84C7 18.95 8.05 20 9.34 20h8.11c.7 0 1.36-.37 1.72-.97l2.66-6.15z"/>
-                    </svg>
-                  </button>
-                  <button
-                    phx-click="react_to_post"
-                    phx-value-post-id={@post.id}
-                    phx-value-reaction-type="support"
-                    phx-target={@myself}
-                    @click="showReactions = false"
-                    class="p-1.5 hover:bg-purple-50 dark:hover:bg-purple-900/20 rounded-lg transition-colors"
-                    title="Support"
-                  >
-                    <svg class="h-4 w-4 text-purple-500" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
-                    </svg>
-                  </button>
-                  <button
-                    phx-click="react_to_post"
-                    phx-value-post-id={@post.id}
-                    phx-value-reaction-type="love"
-                    phx-target={@myself}
-                    @click="showReactions = false"
-                    class="p-1.5 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
-                    title="Love"
-                  >
-                    <svg class="h-4 w-4 text-red-500" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
-                    </svg>
-                  </button>
-                  <button
-                    phx-click="react_to_post"
-                    phx-value-post-id={@post.id}
-                    phx-value-reaction-type="insightful"
-                    phx-target={@myself}
-                    @click="showReactions = false"
-                    class="p-1.5 hover:bg-yellow-50 dark:hover:bg-yellow-900/20 rounded-lg transition-colors"
-                    title="Insightful"
-                  >
-                    <svg class="h-4 w-4 text-yellow-500" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M9 21c0 .55.45 1 1 1h4c.55 0 1-.45 1-1v-1H9v1zm3-19C8.14 2 5 5.14 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.86-3.14-7-7-7z"/>
-                    </svg>
-                  </button>
-                  <button
-                    phx-click="react_to_post"
-                    phx-value-post-id={@post.id}
-                    phx-value-reaction-type="funny"
-                    phx-target={@myself}
-                    @click="showReactions = false"
-                    class="p-1.5 hover:bg-orange-50 dark:hover:bg-orange-900/20 rounded-lg transition-colors"
-                    title="Funny"
-                  >
-                    <svg class="h-4 w-4 text-orange-500" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5 7.67 11 8.5 11zm3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z"/>
-                    </svg>
-                  </button>
-                </div>
-              </div>
-
-              <%= if @total_reactions > 0 do %>
-                                            <div class="flex items-center space-x-2">
-                                              <%= for {reaction_type, count} <- @reaction_counts do %>
-                                                <%= if count > 0 do %>
-                                                  <button
-                                                    class="flex items-center space-x-1 px-2 py-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-                                                    phx-click="open_reactions_modal"
-                                                    phx-value-post-id={@post.id}
-                                                    phx-value-reaction-type={reaction_type}
-                                                    phx-target={@myself}
-                                                    title={"View #{reaction_type} reactions"}
-                                                  >
-                                                    <%= case String.to_atom(reaction_type) do %>
-                                                      <% :like -> %>
-                                                        <svg class="h-3 w-3 text-blue-500 fill-current" viewBox="0 0 24 24">
-                                                          <path d="M1 21h4V9H1v12zm22-11c0-1.1-.9-2-2-2h-6.31l.95-4.57.03-.32c0-.41-.17-.79-.44-1.06L14.17 1 7.59 7.59C7.22 7.95 7 8.45 7 9v10c0 1.1.9 2 2 2h9c.83 0 1.54-.5 1.84-1.22l3.02-7.05c.09-.23.14-.47.14-.73v-2z"/>
-                                                        </svg>
-                                                      <% :celebrate -> %>
-                                                        <svg class="h-3 w-3 text-green-500 fill-current" viewBox="0 0 24 24">
-                                                          <path d="M2 20h2c.55 0 1-.45 1-1v-9c0-.55-.45-1-1-1H2v11zm19.83-7.12c.11-.25.17-.52.17-.8V11c0-1.1-.9-2-2-2h-5.5l.92-4.65c.05-.22.02-.46-.08-.66-.23-.45-.52-.86-.88-1.22L14 2 7.59 8.41C7.21 8.79 7 9.3 7 9.83v7.84C7 18.95 8.05 20 9.34 20h8.11c.7 0 1.36-.37 1.72-.97l2.66-6.15z"/>
-                                                        </svg>
-                                                      <% :support -> %>
-                                                        <svg class="h-3 w-3 text-purple-500 fill-current" viewBox="0 0 24 24">
-                                                          <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
-                                                        </svg>
-                                                      <% :love -> %>
-                                                        <svg class="h-3 w-3 text-red-500 fill-current" viewBox="0 0 24 24">
-                                                          <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
-                                                        </svg>
-                                                      <% :insightful -> %>
-                                                        <svg class="h-3 w-3 text-yellow-500 fill-current" viewBox="0 0 24 24">
-                                                          <path d="M9 21c0 .55.45 1 1 1h4c.55 0 1-.45 1-1v-1H9v1zm3-19C8.14 2 5 5.14 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.86-3.14-7-7-7z"/>
-                                                        </svg>
-                                                      <% :funny -> %>
-                                                        <svg class="h-3 w-3 text-orange-500 fill-current" viewBox="0 0 24 24">
-                                                          <path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5 7.67 11 8.5 11zm3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z"/>
-                                                        </svg>
-                                                      <% _ -> %>
-                                                        <span></span>
-                                                    <% end %>
-                                                    <span class="text-xs font-medium text-gray-600 dark:text-gray-400">
-                                                      <%= count %>
-                                                    </span>
-                                                  </button>
-                                                <% end %>
-                                              <% end %>
-                                            </div>
-                            <% else %>
-                <span class="text-sm font-medium text-gray-600 dark:text-gray-400 px-2 py-1">
-                  0 reactions
-                </span>
-              <% end %>
-            </div>
-
-        <div class="flex items-center space-x-1">
-          <%= if @post.author != @current_user.username do %>
-            <button
-              class="flex items-center space-x-2 px-3 py-2 rounded-xl hover:bg-green-50 dark:hover:bg-green-900/20 transition-all duration-200 group"
-              phx-click="open_repost_modal"
-              phx-value-post-id={@post.id}
-              phx-target={@myself}
-            >
-              <%= if @user_has_reposted do %>
-                <svg class="h-5 w-5 text-green-600 dark:text-green-400" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z"/>
-                </svg>
-              <% else %>
-                <svg class="h-5 w-5 text-gray-500 group-hover:text-green-500 transition-colors duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/>
-                </svg>
-              <% end %>
-              <span class={"text-sm font-medium transition-colors duration-200 #{if @user_has_reposted, do: "text-green-600 dark:text-green-400", else: "text-gray-600 dark:text-gray-400 group-hover:text-green-500"}"}>
-                <%= if @user_has_reposted, do: "Shared", else: "Share" %>
-              </span>
-            </button>
-
-            <%= if @repost_count > 0 do %>
-              <span class="text-sm font-medium text-gray-600 dark:text-gray-400 px-2">
-                <%= @repost_count %>
-              </span>
+    <div class="flex items-center space-x-6">
+      <div class="flex items-center space-x-1" x-data="{ showReactions: false }" @click.outside="showReactions = false">
+        <div class="relative">
+          <button
+            @click="showReactions = !showReactions"
+            class="relative flex items-center space-x-1.5 px-3 py-2 rounded-lg bg-gradient-to-r from-white to-gray-50 dark:from-gray-800 dark:to-gray-750 border border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-500 transition-all duration-300 group shadow-sm hover:shadow-md"
+          >
+            <%= if @user_reaction do %>
+              <div class="absolute inset-0 bg-gradient-to-r from-blue-500/20 via-purple-500/20 to-blue-500/20 rounded-xl blur-sm animate-pulse"></div>
             <% end %>
-          <% else %>
-            <div class="flex items-center space-x-2 px-3 py-2 rounded-xl bg-gray-100 dark:bg-gray-800 cursor-not-allowed opacity-50" title="You cannot share your own post">
-              <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/>
-              </svg>
-              <span class="text-sm font-medium text-gray-400">
-                Share
-              </span>
+
+            <div class="relative z-10">
+              <%= case @user_reaction do %>
+                <% :like -> %>
+                  <svg class="h-4 w-4 text-blue-500 fill-current" viewBox="0 0 24 24">
+                    <path d="M1 21h4V9H1v12zm22-11c0-1.1-.9-2-2-2h-6.31l.95-4.57.03-.32c0-.41-.17-.79-.44-1.06L14.17 1 7.59 7.59C7.22 7.95 7 8.45 7 9v10c0 1.1.9 2 2 2h9c.83 0 1.54-.5 1.84-1.22l3.02-7.05c.09-.23.14-.47.14-.73v-2z"/>
+                  </svg>
+                <% :celebrate -> %>
+                  <svg class="h-4 w-4 text-green-500 fill-current" viewBox="0 0 24 24">
+                    <path d="M2 20h2c.55 0 1-.45 1-1v-9c0-.55-.45-1-1-1H2v11zm19.83-7.12c.11-.25.17-.52.17-.8V11c0-1.1-.9-2-2-2h-5.5l.92-4.65c.05-.22.02-.46-.08-.66-.23-.45-.52-.86-.88-1.22L14 2 7.59 8.41C7.21 8.79 7 9.3 7 9.83v7.84C7 18.95 8.05 20 9.34 20h8.11c.7 0 1.36-.37 1.72-.97l2.66-6.15z"/>
+                  </svg>
+                <% :support -> %>
+                  <svg class="h-4 w-4 text-purple-500 fill-current" viewBox="0 0 24 24">
+                    <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                  </svg>
+                <% :love -> %>
+                  <svg class="h-4 w-4 text-red-500 fill-current" viewBox="0 0 24 24">
+                    <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                  </svg>
+                <% :insightful -> %>
+                  <svg class="h-4 w-4 text-yellow-500 fill-current" viewBox="0 0 24 24">
+                    <path d="M9 21c0 .55.45 1 1 1h4c.55 0 1-.45 1-1v-1H9v1zm3-19C8.14 2 5 5.14 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.86-3.14-7-7-7z"/>
+                  </svg>
+                <% :funny -> %>
+                  <svg class="h-4 w-4 text-orange-500 fill-current" viewBox="0 0 24 24">
+                    <path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5 7.67 11 8.5 11zm3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z"/>
+                  </svg>
+                <% _ -> %>
+                  <svg class="h-4 w-4 text-gray-400 group-hover:text-blue-400 transition-colors duration-200" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5"/>
+                  </svg>
+              <% end %>
             </div>
-          <% end %>
+
+            <span class="relative z-10 text-sm font-semibold transition-all duration-200 text-gray-600 dark:text-gray-400 group-hover:text-blue-500">
+              <%= if @user_reaction, do: "Reacted", else: "React" %>
+            </span>
+          </button>
+
+          <div
+            x-show="showReactions"
+            x-transition:enter="transition ease-out duration-200"
+            x-transition:enter-start="opacity-0 scale-95"
+            x-transition:enter-end="opacity-100 scale-100"
+            x-transition:leave="transition ease-in duration-150"
+            x-transition:leave-start="opacity-100 scale-100"
+            x-transition:leave-end="opacity-0 scale-95"
+            class="absolute bottom-full left-0 mb-2 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 p-1.5 flex space-x-1.5 z-50"
+            style="display: none;"
+          >
+            <button
+              phx-click="react_to_post"
+              phx-value-post-id={@post.id}
+              phx-value-reaction-type="like"
+              phx-target={@myself}
+              @click="showReactions = false"
+              class="p-1.5 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
+              title="Like"
+            >
+              <svg class="h-4 w-4 text-blue-500" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M1 21h4V9H1v12zm22-11c0-1.1-.9-2-2-2h-6.31l.95-4.57.03-.32c0-.41-.17-.79-.44-1.06L14.17 1 7.59 7.59C7.22 7.95 7 8.45 7 9v10c0 1.1.9 2 2 2h9c.83 0 1.54-.5 1.84-1.22l3.02-7.05c.09-.23.14-.47.14-.73v-2z"/>
+              </svg>
+            </button>
+            <button
+              phx-click="react_to_post"
+              phx-value-post-id={@post.id}
+              phx-value-reaction-type="celebrate"
+              phx-target={@myself}
+              @click="showReactions = false"
+              class="p-1.5 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-lg transition-colors"
+              title="Celebrate"
+            >
+              <svg class="h-4 w-4 text-green-500" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M2 20h2c.55 0 1-.45 1-1v-9c0-.55-.45-1-1-1H2v11zm19.83-7.12c.11-.25.17-.52.17-.8V11c0-1.1-.9-2-2-2h-5.5l.92-4.65c.05-.22.02-.46-.08-.66-.23-.45-.52-.86-.88-1.22L14 2 7.59 8.41C7.21 8.79 7 9.3 7 9.83v7.84C7 18.95 8.05 20 9.34 20h8.11c.7 0 1.36-.37 1.72-.97l2.66-6.15z"/>
+              </svg>
+            </button>
+            <button
+              phx-click="react_to_post"
+              phx-value-post-id={@post.id}
+              phx-value-reaction-type="support"
+              phx-target={@myself}
+              @click="showReactions = false"
+              class="p-1.5 hover:bg-purple-50 dark:hover:bg-purple-900/20 rounded-lg transition-colors"
+              title="Support"
+            >
+              <svg class="h-4 w-4 text-purple-500" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+              </svg>
+            </button>
+            <button
+              phx-click="react_to_post"
+              phx-value-post-id={@post.id}
+              phx-value-reaction-type="love"
+              phx-target={@myself}
+              @click="showReactions = false"
+              class="p-1.5 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+              title="Love"
+            >
+              <svg class="h-4 w-4 text-red-500" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+              </svg>
+            </button>
+            <button
+              phx-click="react_to_post"
+              phx-value-post-id={@post.id}
+              phx-value-reaction-type="insightful"
+              phx-target={@myself}
+              @click="showReactions = false"
+              class="p-1.5 hover:bg-yellow-50 dark:hover:bg-yellow-900/20 rounded-lg transition-colors"
+              title="Insightful"
+            >
+              <svg class="h-4 w-4 text-yellow-500" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M9 21c0 .55.45 1 1 1h4c.55 0 1-.45 1-1v-1H9v1zm3-19C8.14 2 5 5.14 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.86-3.14-7-7-7z"/>
+              </svg>
+            </button>
+            <button
+              phx-click="react_to_post"
+              phx-value-post-id={@post.id}
+              phx-value-reaction-type="funny"
+              phx-target={@myself}
+              @click="showReactions = false"
+              class="p-1.5 hover:bg-orange-50 dark:hover:bg-orange-900/20 rounded-lg transition-colors"
+              title="Funny"
+            >
+              <svg class="h-4 w-4 text-orange-500" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5 7.67 11 8.5 11zm3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z"/>
+              </svg>
+            </button>
+          </div>
         </div>
 
-        <button
-          class="flex items-center space-x-2 px-3 py-2 rounded-xl hover:bg-green-50 dark:hover:bg-green-900/20 transition-all duration-200 group"
-          phx-click={Phoenix.LiveView.JS.toggle(to: "#view-comments-#{@post.id}")}
-        >
-          <svg class="h-5 w-5 text-gray-500 group-hover:text-green-500 transition-colors duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
-          </svg>
-          <span class="text-sm font-medium text-gray-600 dark:text-gray-400 group-hover:text-green-500 transition-colors duration-200">
-                      <%= Enum.count(@comments) %>
-                    </span>
-                  </button>
-
-                  <button
-                    class="flex items-center space-x-2 px-3 py-2 rounded-xl hover:bg-yellow-50 dark:hover:bg-yellow-900/20 transition-all duration-200 group"
-                    phx-click={get_save_event(@current_user.id, @post.id)}
-                    phx-value-post-id={@post.id}
-                    phx-target={@myself}
-                  >
-                    <%= if @is_saved do %>
-                      <svg class="h-5 w-5 text-yellow-500 fill-current" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M17 3H7c-1.1 0-2 .9-2 2v16l7-3 7 3V5c0-1.1-.9-2-2-2z"/>
-                      </svg>
-                    <% else %>
-                      <svg class="h-5 w-5 text-gray-500 group-hover:text-yellow-500 transition-colors duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/>
-                      </svg>
-                    <% end %>
-                    <span class={"text-sm font-medium transition-colors duration-200 #{if @is_saved, do: "text-yellow-600 dark:text-yellow-400", else: "text-gray-600 dark:text-gray-400 group-hover:text-yellow-500"}"}>
-                      <%= if @is_saved, do: "Saved", else: "Save" %>
-                    </span>
-                  </button>
-                </div>
-
+        <%= if @total_reactions > 0 do %>
+          <div class="flex items-center space-x-2">
+            <%= for {reaction_type, count} <- @reaction_counts do %>
+              <%= if count > 0 do %>
                 <button
-        class="text-blue-600 dark:text-blue-400 text-sm font-medium hover:text-blue-700 dark:hover:text-blue-300 transition-colors duration-200"
+                  class="flex items-center space-x-1 px-2 py-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                  phx-click="open_reactions_modal"
+                  phx-value-post-id={@post.id}
+                  phx-value-reaction-type={reaction_type}
+                  phx-target={@myself}
+                  title={"View #{reaction_type} reactions"}
+                >
+                  <%= case String.to_atom(reaction_type) do %>
+                    <% :like -> %>
+                      <svg class="h-3 w-3 text-blue-500 fill-current" viewBox="0 0 24 24">
+                        <path d="M1 21h4V9H1v12zm22-11c0-1.1-.9-2-2-2h-6.31l.95-4.57.03-.32c0-.41-.17-.79-.44-1.06L14.17 1 7.59 7.59C7.22 7.95 7 8.45 7 9v10c0 1.1.9 2 2 2h9c.83 0 1.54-.5 1.84-1.22l3.02-7.05c.09-.23.14-.47.14-.73v-2z"/>
+                      </svg>
+                    <% :celebrate -> %>
+                      <svg class="h-3 w-3 text-green-500 fill-current" viewBox="0 0 24 24">
+                        <path d="M2 20h2c.55 0 1-.45 1-1v-9c0-.55-.45-1-1-1H2v11zm19.83-7.12c.11-.25.17-.52.17-.8V11c0-1.1-.9-2-2-2h-5.5l.92-4.65c.05-.22.02-.46-.08-.66-.23-.45-.52-.86-.88-1.22L14 2 7.59 8.41C7.21 8.79 7 9.3 7 9.83v7.84C7 18.95 8.05 20 9.34 20h8.11c.7 0 1.36-.37 1.72-.97l2.66-6.15z"/>
+                      </svg>
+                    <% :support -> %>
+                      <svg class="h-3 w-3 text-purple-500 fill-current" viewBox="0 0 24 24">
+                        <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                      </svg>
+                    <% :love -> %>
+                      <svg class="h-3 w-3 text-red-500 fill-current" viewBox="0 0 24 24">
+                        <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                      </svg>
+                    <% :insightful -> %>
+                      <svg class="h-3 w-3 text-yellow-500 fill-current" viewBox="0 0 24 24">
+                        <path d="M9 21c0 .55.45 1 1 1h4c.55 0 1-.45 1-1v-1H9v1zm3-19C8.14 2 5 5.14 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.86-3.14-7-7-7z"/>
+                      </svg>
+                    <% :funny -> %>
+                      <svg class="h-3 w-3 text-orange-500 fill-current" viewBox="0 0 24 24">
+                        <path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5 7.67 11 8.5 11zm3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z"/>
+                      </svg>
+                    <% _ -> %>
+                      <span></span>
+                  <% end %>
+                  <span class="text-xs font-medium text-gray-600 dark:text-gray-400">
+                    <%= count %>
+                  </span>
+                </button>
+              <% end %>
+            <% end %>
+          </div>
+        <% else %>
+          <span class="text-sm font-medium text-gray-600 dark:text-gray-400 px-2 py-1">
+            0 reactions
+          </span>
+        <% end %>
+      </div>
+
+      <div class="flex items-center space-x-1">
+        <%= if @post.author != @current_user.username do %>
+          <button
+            class="flex items-center space-x-2 px-3 py-2 rounded-xl hover:bg-green-50 dark:hover:bg-green-900/20 transition-all duration-200 group"
+            phx-click="open_repost_modal"
+            phx-value-post-id={@post.id}
+            phx-target={@myself}
+          >
+            <%= if @user_has_reposted do %>
+              <svg class="h-5 w-5 text-green-600 dark:text-green-400" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z"/>
+              </svg>
+            <% else %>
+              <svg class="h-5 w-5 text-gray-500 group-hover:text-green-500 transition-colors duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/>
+              </svg>
+            <% end %>
+            <span class={"text-sm font-medium transition-colors duration-200 #{if @user_has_reposted, do: "text-green-600 dark:text-green-400", else: "text-gray-600 dark:text-gray-400 group-hover:text-green-500"}"}>
+              <%= if @user_has_reposted, do: "Shared", else: "Share" %>
+            </span>
+          </button>
+
+          <%= if @repost_count > 0 do %>
+            <span class="text-sm font-medium text-gray-600 dark:text-gray-400 px-2">
+              <%= @repost_count %>
+            </span>
+          <% end %>
+        <% else %>
+          <div class="flex items-center space-x-2 px-3 py-2 rounded-xl bg-gray-100 dark:bg-gray-800 cursor-not-allowed opacity-50" title="You cannot share your own post">
+            <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/>
+            </svg>
+            <span class="text-sm font-medium text-gray-400">
+              Share
+            </span>
+          </div>
+        <% end %>
+      </div>
+
+      <button
+        class="flex items-center space-x-2 px-3 py-2 rounded-xl hover:bg-green-50 dark:hover:bg-green-900/20 transition-all duration-200 group"
         phx-click={Phoenix.LiveView.JS.toggle(to: "#view-comments-#{@post.id}")}
       >
-        View <%= @comments |> Enum.count() %> comments
+        <svg class="h-5 w-5 text-gray-500 group-hover:text-green-500 transition-colors duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+        </svg>
+        <span class="text-sm font-medium text-gray-600 dark:text-gray-400 group-hover:text-green-500 transition-colors duration-200">
+          <%= Enum.count(@comments) %>
+        </span>
+      </button>
+
+      <button
+        class="flex items-center space-x-2 px-3 py-2 rounded-xl hover:bg-yellow-50 dark:hover:bg-yellow-900/20 transition-all duration-200 group"
+        phx-click={get_save_event(@current_user.id, @post.id)}
+        phx-value-post-id={@post.id}
+        phx-target={@myself}
+      >
+        <%= if @is_saved do %>
+          <svg class="h-5 w-5 text-yellow-500 fill-current" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M17 3H7c-1.1 0-2 .9-2 2v16l7-3 7 3V5c0-1.1-.9-2-2-2z"/>
+          </svg>
+        <% else %>
+          <svg class="h-5 w-5 text-gray-500 group-hover:text-yellow-500 transition-colors duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/>
+          </svg>
+        <% end %>
+        <span class={"text-sm font-medium transition-colors duration-200 #{if @is_saved, do: "text-yellow-600 dark:text-yellow-400", else: "text-gray-600 dark:text-gray-400 group-hover:text-yellow-500"}"}>
+          <%= if @is_saved, do: "Saved", else: "Save" %>
+        </span>
       </button>
     </div>
+
+    <button
+      class="text-blue-600 dark:text-blue-400 text-sm font-medium hover:text-blue-700 dark:hover:text-blue-300 transition-colors duration-200"
+      phx-click={Phoenix.LiveView.JS.toggle(to: "#view-comments-#{@post.id}")}
+    >
+      View <%= @comments |> Enum.count() %> comments
+    </button>
+  </div>
 
     <div class="mt-6 pt-6 border-t border-gray-100 dark:border-gray-700">
       <.form

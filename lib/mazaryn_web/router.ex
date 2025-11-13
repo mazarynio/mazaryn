@@ -48,7 +48,7 @@ defmodule MazarynWeb.Router do
     forward("/", Absinthe.Plug, schema: MazarynWeb.Schema)
   end
 
-  get "/", MazarynWeb.PageController, :add_locale
+  get("/", MazarynWeb.PageController, :add_locale)
 
   scope "/:locale", MazarynWeb do
     pipe_through(:browser)
@@ -56,7 +56,8 @@ defmodule MazarynWeb.Router do
     get("/logout", LogoutController, :index)
     get("/confirm/:token", ConfirmAccountController, :index)
     get("/verify-email/:token", EmailVerificationController, :verify, as: :email_verification)
-    get "/2908017.txt", FileController, :serve_empty_file
+    get("/2908017.txt", FileController, :serve_empty_file)
+    get("/ipfs/:hash", IpfsController, :show)
 
     live_session :default,
       on_mount: [MazarynWeb.UserLiveAuth] do
@@ -119,7 +120,7 @@ defmodule MazarynWeb.Router do
       live("/notifications", NotificationLive.Index)
       live("/user_blog", UserBlog.Index)
       # hashtags
-      live "/hashtag/:hashtag_name", HashtagLive.Index
+      live("/hashtag/:hashtag_name", HashtagLive.Index)
       live("/:username", UserLive.Profile)
       live("/:username/:locale", UserLive.Profile)
     end
