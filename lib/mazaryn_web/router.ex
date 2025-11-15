@@ -25,17 +25,11 @@ defmodule MazarynWeb.Router do
   pipeline :admins do
     plug(:browser)
     plug(:check_if_admin)
-    # plug(:get_current_user_username)
   end
 
   pipeline :api do
     plug(:accepts, ["json"])
   end
-
-  # pipeline :liveview do
-  #   plug :ensure_user_authenticated
-  #   plug :ensure_user_confirmed
-  # end
 
   scope "/en/api" do
     pipe_through(:api)
@@ -100,44 +94,64 @@ defmodule MazarynWeb.Router do
       live("/videos", VideoLive.Index)
       live("/videos/:id", VideoLive.Show)
 
-      # CHATS
+      live("/ai", AiLive.Index)
+
+      live("/ai/datasets", AiLive.Datasets, :index)
+      live("/ai/datasets/new", AiLive.DatasetNew, :new)
+      live("/ai/datasets/:id", AiLive.DatasetShow, :show)
+      live("/ai/datasets/:id/edit", AiLive.DatasetEdit, :edit)
+      live("/ai/datasets/:id/versions", AiLive.DatasetVersions, :versions)
+      live("/ai/datasets/:id/collaborators", AiLive.DatasetCollaborators, :collaborators)
+
+      live("/ai/competitions", AiLive.Competitions, :index)
+      live("/ai/competitions/new", AiLive.CompetitionNew, :new)
+      live("/ai/competitions/:id", AiLive.CompetitionShow, :show)
+      live("/ai/competitions/:id/edit", AiLive.CompetitionEdit, :edit)
+      live("/ai/competitions/:id/leaderboard", AiLive.CompetitionLeaderboard, :leaderboard)
+      live("/ai/competitions/:id/submit", AiLive.CompetitionSubmit, :submit)
+      live("/ai/competitions/:id/teams", AiLive.CompetitionTeams, :teams)
+
+      live("/ai/notebooks", AiLive.Notebooks, :index)
+      live("/ai/notebooks/new", AiLive.NotebookNew, :new)
+      live("/ai/notebooks/:id", AiLive.NotebookShow, :show)
+      live("/ai/notebooks/:id/edit", AiLive.NotebookEditor, :edit)
+      live("/ai/notebooks/:id/fork", AiLive.NotebookFork, :fork)
+      live("/ai/notebooks/:id/versions", AiLive.NotebookVersions, :versions)
+
+      live("/ai/models", AiLive.Models, :index)
+      live("/ai/models/new", AiLive.ModelNew, :new)
+      live("/ai/models/:id", AiLive.ModelShow, :show)
+      live("/ai/models/:id/edit", AiLive.ModelEdit, :edit)
+      live("/ai/models/:id/deploy", AiLive.ModelDeploy, :deploy)
+      live("/ai/models/:id/api", AiLive.ModelApi, :api)
+
+      live("/ai/discussions", AiLive.Discussions, :index)
+      live("/ai/discussions/new", AiLive.DiscussionNew, :new)
+      live("/ai/discussions/:id", AiLive.DiscussionShow, :show)
+
       scope "/chats" do
         live("/", ChatsLive.Index, :index)
         live("/:recipient_id", ChatsLive.Index, :index)
       end
 
-      # Manage
       scope "/manage" do
         pipe_through(:admins)
         live("/", UserLive.Manage)
       end
 
-      # profile
       live("/search", SearchLive.Index)
       live("/posts", PostLive.Index)
       live("/dashboard", DashboardLive.Index)
       live("/dashboard/hedera-wallet", DashboardLive.Wallet.HederaWallet)
       live("/notifications", NotificationLive.Index)
       live("/user_blog", UserBlog.Index)
-      # hashtags
+
       live("/hashtag/:hashtag_name", HashtagLive.Index)
       live("/:username", UserLive.Profile)
       live("/:username/:locale", UserLive.Profile)
     end
   end
 
-  # Other scopes may use custom stacks.
-  # scope "/api", MazarynWeb do
-  #   pipe_through :api
-  # end
-
-  # Enables LiveDashboard only for development
-  #
-  # If you want to use the LiveDashboard in production, you should put
-  # it behind authentication and allow only admins to access it.
-  # If your application does not have an admins-only section yet,
-  # you can use Plug.BasicAuth to set up some basic authentication
-  # as long as you are also using SSL (which you should anyway).
   if Application.get_env(:mazaryn, :env) in [:dev, :test] do
     import Phoenix.LiveDashboard.Router
 
@@ -148,18 +162,6 @@ defmodule MazarynWeb.Router do
     end
   end
 
-  # if Mix.env == :dev do
-  #   # If using Phoenix
-  #   forward "/sent_emails", Bamboo.SentEmailViewerPlug
-
-  #   # If using Plug.Router, make sure to add the `to`
-  #   forward "/sent_emails", to: Bamboo.SentEmailViewerPlug
-  # end
-
-  # Enables the Swoosh mailbox preview in development.
-  #
-  # Note that preview only shows emails that were sent by the same
-  # node running the Phoenix server.
   if Application.get_env(:mazaryn, :env) == :dev do
     scope "/dev" do
       pipe_through(:browser)

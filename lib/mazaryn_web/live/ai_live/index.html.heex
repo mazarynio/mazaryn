@@ -1,0 +1,223 @@
+<.live_component
+  module={MazarynWeb.HomeLive.NavComponent}
+  id="navigation"
+  user={@user}
+  search={@search_query}
+  locale={@locale}
+/>
+
+<div class="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+  <div class="max-w-7xl mx-auto px-6 py-8">
+    <!-- Header -->
+    <div class="text-center mb-12">
+      <div class="flex items-center justify-center space-x-3 mb-4">
+        <div class="w-16 h-16 bg-gradient-to-br from-violet-600 to-indigo-600 rounded-2xl flex items-center justify-center">
+          <svg class="w-9 h-9 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+          </svg>
+        </div>
+      </div>
+      <h1 class="text-4xl font-bold text-slate-900 mb-2">Mazaryn AI Platform</h1>
+      <p class="text-lg text-slate-600 max-w-2xl mx-auto">
+        Your complete machine learning workspace. Manage datasets, compete in challenges, build models, and collaborate with the community.
+      </p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+      <!-- Datasets Card -->
+      <.link
+        navigate={~p"/#{@locale}/ai/datasets"}
+        class="group bg-white rounded-2xl shadow-sm border border-slate-200 p-8 hover:shadow-xl hover:border-blue-200 transition-all duration-300"
+      >
+        <div class="flex items-center space-x-4 mb-6">
+          <div class="w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+            <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4" />
+            </svg>
+          </div>
+          <div>
+            <h3 class="text-xl font-bold text-slate-900 group-hover:text-blue-600 transition-colors">Datasets</h3>
+            <p class="text-sm text-slate-500">Explore and manage data</p>
+          </div>
+        </div>
+        <p class="text-slate-600 mb-4">
+          Upload, version, and share datasets. Support for CSV, JSON, Parquet, and more formats with automatic schema detection.
+        </p>
+        <div class="flex items-center justify-between">
+          <span class="text-blue-600 font-medium group-hover:underline">Browse Datasets →</span>
+          <span class="px-3 py-1 bg-blue-50 text-blue-700 text-sm font-medium rounded-full">
+            <%= length(@datasets) %> datasets
+          </span>
+        </div>
+      </.link>
+
+      <!-- Competitions Card -->
+      <.link
+        navigate={~p"/#{@locale}/ai/competitions"}
+        class="group bg-white rounded-2xl shadow-sm border border-slate-200 p-8 hover:shadow-xl hover:border-green-200 transition-all duration-300"
+      >
+        <div class="flex items-center space-x-4 mb-6">
+          <div class="w-14 h-14 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+            <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+            </svg>
+          </div>
+          <div>
+            <h3 class="text-xl font-bold text-slate-900 group-hover:text-green-600 transition-colors">Competitions</h3>
+            <p class="text-sm text-slate-500">Challenge yourself</p>
+          </div>
+        </div>
+        <p class="text-slate-600 mb-4">
+          Join ML competitions, submit predictions, track your progress on leaderboards, and win prizes.
+        </p>
+        <div class="flex items-center justify-between">
+          <span class="text-green-600 font-medium group-hover:underline">View Competitions →</span>
+          <span class="px-3 py-1 bg-green-50 text-green-700 text-sm font-medium rounded-full">
+            <%= length(@competitions) %> active
+          </span>
+        </div>
+      </.link>
+
+      <!-- Notebooks Card -->
+      <.link
+        navigate={~p"/#{@locale}/ai/notebooks"}
+        class="group bg-white rounded-2xl shadow-sm border border-slate-200 p-8 hover:shadow-xl hover:border-purple-200 transition-all duration-300"
+      >
+        <div class="flex items-center space-x-4 mb-6">
+          <div class="w-14 h-14 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+            <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+            </svg>
+          </div>
+          <div>
+            <h3 class="text-xl font-bold text-slate-900 group-hover:text-purple-600 transition-colors">Notebooks</h3>
+            <p class="text-sm text-slate-500">Code and analyze</p>
+          </div>
+        </div>
+        <p class="text-slate-600 mb-4">
+          Create interactive notebooks, run experiments, and share your analysis with the community.
+        </p>
+        <div class="flex items-center justify-between">
+          <span class="text-purple-600 font-medium group-hover:underline">Open Notebooks →</span>
+          <span class="px-3 py-1 bg-purple-50 text-purple-700 text-sm font-medium rounded-full">
+            <%= length(@notebooks) %> notebooks
+          </span>
+        </div>
+      </.link>
+
+      <!-- Models Card -->
+      <.link
+        navigate={~p"/#{@locale}/ai/models"}
+        class="group bg-white rounded-2xl shadow-sm border border-slate-200 p-8 hover:shadow-xl hover:border-amber-200 transition-all duration-300"
+      >
+        <div class="flex items-center space-x-4 mb-6">
+          <div class="w-14 h-14 bg-gradient-to-br from-amber-500 to-amber-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+            <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+            </svg>
+          </div>
+          <div>
+            <h3 class="text-xl font-bold text-slate-900 group-hover:text-amber-600 transition-colors">Models</h3>
+            <p class="text-sm text-slate-500">Build and deploy</p>
+          </div>
+        </div>
+        <p class="text-slate-600 mb-4">
+          Train models, track experiments, and deploy to production with API endpoints.
+        </p>
+        <div class="flex items-center justify-between">
+          <span class="text-amber-600 font-medium group-hover:underline">Explore Models →</span>
+          <span class="px-3 py-1 bg-amber-50 text-amber-700 text-sm font-medium rounded-full">
+            New
+          </span>
+        </div>
+      </.link>
+
+      <!-- Discussions Card -->
+      <.link
+        navigate={~p"/#{@locale}/ai/discussions"}
+        class="group bg-white rounded-2xl shadow-sm border border-slate-200 p-8 hover:shadow-xl hover:border-rose-200 transition-all duration-300"
+      >
+        <div class="flex items-center space-x-4 mb-6">
+          <div class="w-14 h-14 bg-gradient-to-br from-rose-500 to-rose-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+            <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z" />
+            </svg>
+          </div>
+          <div>
+            <h3 class="text-xl font-bold text-slate-900 group-hover:text-rose-600 transition-colors">Discussions</h3>
+            <p class="text-sm text-slate-500">Community forum</p>
+          </div>
+        </div>
+        <p class="text-slate-600 mb-4">
+          Ask questions, share insights, and collaborate with other data scientists and ML engineers.
+        </p>
+        <div class="flex items-center justify-between">
+          <span class="text-rose-600 font-medium group-hover:underline">Join Discussions →</span>
+          <span class="px-3 py-1 bg-rose-50 text-rose-700 text-sm font-medium rounded-full">
+            Active
+          </span>
+        </div>
+      </.link>
+
+      <!-- Learning Card -->
+      <div class="group bg-gradient-to-br from-indigo-500 to-violet-600 rounded-2xl shadow-sm p-8 text-white">
+        <div class="flex items-center space-x-4 mb-6">
+          <div class="w-14 h-14 bg-white/20 rounded-xl flex items-center justify-center">
+            <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+            </svg>
+          </div>
+          <div>
+            <h3 class="text-xl font-bold">Learning Hub</h3>
+            <p class="text-sm text-white/80">Coming Soon</p>
+          </div>
+        </div>
+        <p class="text-white/90 mb-4">
+          Tutorials, courses, and learning paths to help you master machine learning and data science.
+        </p>
+        <div class="flex items-center justify-between">
+          <span class="text-white/80 font-medium">Stay tuned</span>
+          <span class="px-3 py-1 bg-white/20 text-white text-sm font-medium rounded-full">
+            Coming Soon
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-8 mb-8">
+      <h2 class="text-xl font-bold text-slate-900 mb-6">Your Activity</h2>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+        <div class="text-center">
+          <div class="text-3xl font-bold text-blue-600 mb-1"><%= length(@datasets) %></div>
+          <div class="text-sm text-slate-500">Datasets Created</div>
+        </div>
+        <div class="text-center">
+          <div class="text-3xl font-bold text-green-600 mb-1"><%= length(@competitions) %></div>
+          <div class="text-sm text-slate-500">Competition Entries</div>
+        </div>
+        <div class="text-center">
+          <div class="text-3xl font-bold text-purple-600 mb-1"><%= length(@notebooks) %></div>
+          <div class="text-sm text-slate-500">Notebooks</div>
+        </div>
+        <div class="text-center">
+          <div class="text-3xl font-bold text-amber-600 mb-1">42.5</div>
+          <div class="text-sm text-slate-500">GPU Hours Left</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Back to Home -->
+    <div class="text-center">
+      <.link
+        navigate={~p"/#{@locale}/home"}
+        class="inline-flex items-center space-x-2 text-slate-500 hover:text-violet-600 transition-colors"
+      >
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+        </svg>
+        <span class="font-medium">Back to Social Home</span>
+      </.link>
+    </div>
+  </div>
+</div>

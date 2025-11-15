@@ -1,0 +1,552 @@
+<.live_component
+  module={MazarynWeb.HomeLive.NavComponent}
+  id="navigation"
+  user={@user}
+  search={@search_query}
+  locale={@locale}
+/>
+
+<div class="min-h-screen bg-gradient-to-br from-slate-50 via-green-50 to-emerald-50">
+  <div class="max-w-7xl mx-auto px-6 py-8">
+    <!-- Header -->
+    <div class="flex items-center justify-between mb-8">
+      <div class="flex items-center space-x-4">
+        <.link
+          navigate={~p"/#{@locale}/ai"}
+          class="flex items-center space-x-2 text-slate-500 hover:text-green-600 transition-colors"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+          </svg>
+          <span class="font-medium">Back to AI Hub</span>
+        </.link>
+        <div class="w-px h-6 bg-slate-300"></div>
+        <div class="flex items-center space-x-3">
+          <div class="w-10 h-10 bg-gradient-to-br from-green-600 to-emerald-600 rounded-xl flex items-center justify-center">
+            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+            </svg>
+          </div>
+          <div>
+            <h1 class="text-2xl font-bold text-slate-900">Competitions</h1>
+            <p class="text-sm text-slate-500">Challenge yourself and compete</p>
+          </div>
+        </div>
+      </div>
+
+      <button
+        phx-click="open_create_modal"
+        class="flex items-center space-x-2 px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white font-medium rounded-xl hover:from-green-700 hover:to-emerald-700 transition-all shadow-lg shadow-green-200 hover:shadow-xl hover:shadow-green-300"
+      >
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+        </svg>
+        <span>Host Competition</span>
+      </button>
+    </div>
+
+    <!-- Stats Bar -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+      <div class="bg-white rounded-xl p-4 border border-slate-200">
+        <div class="flex items-center space-x-3">
+          <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+            <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+            </svg>
+          </div>
+          <div>
+            <div class="text-2xl font-bold text-slate-900"><%= length(@filtered_competitions) %></div>
+            <div class="text-xs text-slate-500">Total Competitions</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-xl p-4 border border-slate-200">
+        <div class="flex items-center space-x-3">
+          <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+            <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+            </svg>
+          </div>
+          <div>
+            <div class="text-2xl font-bold text-slate-900">
+              <%= @filtered_competitions |> Enum.map(&Mazaryn.Schema.Competition.participant_count/1) |> Enum.sum() %>
+            </div>
+            <div class="text-xs text-slate-500">Total Participants</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-xl p-4 border border-slate-200">
+        <div class="flex items-center space-x-3">
+          <div class="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center">
+            <svg class="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <div>
+            <div class="text-2xl font-bold text-slate-900">
+              $<%= @filtered_competitions |> Enum.map(& &1.reward_value) |> Enum.sum() |> Float.round(0) |> trunc() %>
+            </div>
+            <div class="text-xs text-slate-500">Total Prize Pool</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-xl p-4 border border-slate-200">
+        <div class="flex items-center space-x-3">
+          <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+            <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+            </svg>
+          </div>
+          <div>
+            <div class="text-2xl font-bold text-slate-900">
+              <%= @filtered_competitions |> Enum.map(&Mazaryn.Schema.Competition.submission_count/1) |> Enum.sum() %>
+            </div>
+            <div class="text-xs text-slate-500">Total Submissions</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Search and Filters -->
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-6">
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div class="relative flex-1 max-w-xl">
+          <input
+            type="text"
+            placeholder="Search competitions by title, description, or tags..."
+            value={@search_query}
+            phx-keyup="search"
+            phx-debounce="300"
+            class="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all"
+          />
+          <svg class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+        </div>
+
+        <div class="flex items-center space-x-3">
+          <select
+            phx-change="filter_change"
+            name="filter"
+            class="px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-green-500"
+          >
+            <option value="all" selected={@filter == "all"}>All Competitions</option>
+            <option value="active" selected={@filter == "active"}>Active</option>
+            <option value="upcoming" selected={@filter == "upcoming"}>Upcoming</option>
+            <option value="ended" selected={@filter == "ended"}>Ended</option>
+            <option value="featured" selected={@filter == "featured"}>Featured</option>
+            <option value="my" selected={@filter == "my"}>My Competitions</option>
+            <option value="participating" selected={@filter == "participating"}>Participating</option>
+            <option value="trending" selected={@filter == "trending"}>Trending</option>
+          </select>
+
+          <select
+            phx-change="sort_change"
+            name="sort"
+            class="px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-green-500"
+          >
+            <option value="deadline" selected={@sort_by == "deadline"}>Deadline</option>
+            <option value="popular" selected={@sort_by == "popular"}>Most Participants</option>
+            <option value="prize" selected={@sort_by == "prize"}>Highest Prize</option>
+            <option value="recent" selected={@sort_by == "recent"}>Most Recent</option>
+            <option value="submissions" selected={@sort_by == "submissions"}>Most Submissions</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Competition Grid -->
+    <%= if length(@filtered_competitions) == 0 do %>
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-12 text-center">
+        <div class="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+          <svg class="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+          </svg>
+        </div>
+        <h3 class="text-lg font-semibold text-slate-900 mb-2">No competitions found</h3>
+        <p class="text-slate-500 mb-6">
+          <%= if @search_query != "" do %>
+            No competitions match your search criteria. Try adjusting your filters.
+          <% else %>
+            Be the first to host a competition!
+          <% end %>
+        </p>
+        <button
+          phx-click="open_create_modal"
+          class="inline-flex items-center space-x-2 px-6 py-3 bg-green-600 text-white font-medium rounded-xl hover:bg-green-700 transition-colors"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+          </svg>
+          <span>Host Competition</span>
+        </button>
+      </div>
+    <% else %>
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <%= for competition <- @filtered_competitions do %>
+          <div class="bg-white rounded-2xl shadow-sm border border-slate-200 hover:shadow-lg transition-all duration-200 overflow-hidden">
+            <div class="p-6">
+              <div class="flex items-start justify-between mb-4">
+                <div class="flex-1">
+                  <div class="flex items-center space-x-2 mb-2">
+                    <%= if Mazaryn.Schema.Competition.is_featured?(competition) do %>
+                      <svg class="w-5 h-5 text-amber-500" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                      </svg>
+                    <% end %>
+                    <h3 class="text-xl font-bold text-slate-900 line-clamp-1">
+                      <%= competition.title %>
+                    </h3>
+                  </div>
+                  <div class="flex items-center space-x-2 flex-wrap gap-y-2">
+                    <%= case competition.status do %>
+                      <% "active" -> %>
+                        <span class="px-3 py-1 bg-green-100 text-green-700 text-xs font-semibold rounded-full flex items-center space-x-1">
+                          <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                          <span>Active</span>
+                        </span>
+                      <% "draft" -> %>
+                        <span class="px-3 py-1 bg-slate-100 text-slate-600 text-xs font-semibold rounded-full">Draft</span>
+                      <% "ended" -> %>
+                        <span class="px-3 py-1 bg-red-100 text-red-700 text-xs font-semibold rounded-full">Ended</span>
+                      <% "voting" -> %>
+                        <span class="px-3 py-1 bg-purple-100 text-purple-700 text-xs font-semibold rounded-full">Voting</span>
+                      <% "archived" -> %>
+                        <span class="px-3 py-1 bg-gray-100 text-gray-600 text-xs font-semibold rounded-full">Archived</span>
+                      <% _ -> %>
+                        <span class="px-3 py-1 bg-slate-100 text-slate-600 text-xs font-semibold rounded-full">Unknown</span>
+                    <% end %>
+
+                    <span class={"px-3 py-1 text-xs font-semibold rounded-full #{difficulty_color(competition.difficulty_level)}"}>
+                      <%= Mazaryn.Schema.Competition.difficulty_label(competition) %>
+                    </span>
+                  </div>
+                </div>
+                <div class="text-right ml-4">
+                  <div class="text-2xl font-bold text-green-600">
+                    <%= Mazaryn.Schema.Competition.format_reward(competition) %>
+                  </div>
+                  <div class="text-xs text-slate-500">Prize Pool</div>
+                </div>
+              </div>
+
+              <p class="text-slate-600 text-sm mb-4 line-clamp-2">
+                <%= competition.description || "No description available" %>
+              </p>
+
+              <div class="flex flex-wrap gap-2 mb-4">
+                <%= for tag <- Enum.take(competition.tags || [], 4) do %>
+                  <span class="px-2 py-1 bg-green-50 text-green-700 text-xs font-medium rounded-md">
+                    #<%= tag %>
+                  </span>
+                <% end %>
+                <%= if length(competition.tags || []) > 4 do %>
+                  <span class="px-2 py-1 bg-slate-100 text-slate-600 text-xs font-medium rounded-md">
+                    +<%= length(competition.tags) - 4 %> more
+                  </span>
+                <% end %>
+              </div>
+
+              <div class="grid grid-cols-3 gap-4 mb-4">
+                <div class="bg-slate-50 rounded-lg p-3 text-center">
+                  <div class="text-lg font-semibold text-slate-900">
+                    <%= Mazaryn.Schema.Competition.participant_count(competition) %>
+                  </div>
+                  <div class="text-xs text-slate-500">Participants</div>
+                </div>
+                <div class="bg-slate-50 rounded-lg p-3 text-center">
+                  <div class="text-lg font-semibold text-slate-900">
+                    <%= Mazaryn.Schema.Competition.team_count(competition) %>
+                  </div>
+                  <div class="text-xs text-slate-500">Teams</div>
+                </div>
+                <div class="bg-slate-50 rounded-lg p-3 text-center">
+                  <div class="text-lg font-semibold text-slate-900">
+                    <%= if Mazaryn.Schema.Competition.is_ended?(competition) or Mazaryn.Schema.Competition.has_ended?(competition) do %>
+                      Ended
+                    <% else %>
+                      <%= Mazaryn.Schema.Competition.days_remaining(competition) %>d
+                    <% end %>
+                  </div>
+                  <div class="text-xs text-slate-500">
+                    <%= if Mazaryn.Schema.Competition.is_ended?(competition), do: "Status", else: "Remaining" %>
+                  </div>
+                </div>
+              </div>
+
+              <div class="flex items-center justify-between pt-4 border-t border-slate-100">
+                <div class="flex items-center space-x-2">
+                  <.link
+                    navigate={~p"/#{@locale}/ai/competitions/#{competition.id}"}
+                    class="px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-colors"
+                  >
+                    View Details
+                  </.link>
+
+                  <%= if Mazaryn.Schema.Competition.is_active?(competition) do %>
+                    <%= if Mazaryn.Schema.Competition.is_participant?(competition, to_string(@user.id)) do %>
+                      <.link
+                        navigate={~p"/#{@locale}/ai/competitions/#{competition.id}/submit"}
+                        class="px-4 py-2 border border-green-600 text-green-600 text-sm font-medium rounded-lg hover:bg-green-50 transition-colors"
+                      >
+                        Submit
+                      </.link>
+                    <% else %>
+                      <button
+                        phx-click="join_competition"
+                        phx-value-id={competition.id}
+                        class="px-4 py-2 border border-green-600 text-green-600 text-sm font-medium rounded-lg hover:bg-green-50 transition-colors"
+                      >
+                        Join
+                      </button>
+                    <% end %>
+                  <% else %>
+                    <.link
+                      navigate={~p"/#{@locale}/ai/competitions/#{competition.id}/leaderboard"}
+                      class="px-4 py-2 border border-slate-300 text-slate-600 text-sm font-medium rounded-lg hover:bg-slate-50 transition-colors"
+                    >
+                      Leaderboard
+                    </.link>
+                  <% end %>
+                </div>
+
+                <%= if competition.creator_id == to_string(@user.id) do %>
+                  <div class="flex items-center space-x-1">
+                    <%= if competition.status == "draft" do %>
+                      <button
+                        phx-click="start_competition"
+                        phx-value-id={competition.id}
+                        class="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                        title="Start Competition"
+                      >
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                      </button>
+                    <% end %>
+                    <%= if competition.status == "active" do %>
+                      <button
+                        phx-click="end_competition"
+                        phx-value-id={competition.id}
+                        class="p-2 text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"
+                        title="End Competition"
+                      >
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z" />
+                        </svg>
+                      </button>
+                    <% end %>
+                    <button
+                      phx-click="delete_competition"
+                      phx-value-id={competition.id}
+                      data-confirm="Are you sure you want to delete this competition?"
+                      class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                      title="Delete"
+                    >
+                      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                    </button>
+                  </div>
+                <% end %>
+              </div>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+</div>
+
+<%= if @show_create_modal do %>
+  <div class="fixed inset-0 z-50 overflow-y-auto">
+    <div class="flex items-center justify-center min-h-screen px-4 py-8">
+      <div class="fixed inset-0 bg-black bg-opacity-50 transition-opacity" phx-click="close_create_modal"></div>
+
+      <div class="relative bg-white rounded-2xl shadow-xl max-w-3xl w-full p-8 transform transition-all max-h-[90vh] overflow-y-auto">
+        <div class="flex items-center justify-between mb-6">
+          <h2 class="text-2xl font-bold text-slate-900">Host New Competition</h2>
+          <button
+            phx-click="close_create_modal"
+            class="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+          >
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        <form phx-submit="create_competition" class="space-y-6">
+          <div>
+            <label class="block text-sm font-medium text-slate-700 mb-2">Competition Title *</label>
+            <input
+              type="text"
+              name="competition[title]"
+              required
+              placeholder="Enter competition title"
+              class="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500"
+            />
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-slate-700 mb-2">Description</label>
+            <textarea
+              name="competition[description]"
+              rows="4"
+              placeholder="Describe the competition challenge, objectives, and evaluation criteria..."
+              class="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 resize-none"
+            ></textarea>
+          </div>
+
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-slate-700 mb-2">Start Date & Time</label>
+              <input
+                type="datetime-local"
+                name="competition[start_time]"
+                class="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500"
+              />
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-slate-700 mb-2">End Date & Time *</label>
+              <input
+                type="datetime-local"
+                name="competition[end_time]"
+                required
+                class="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500"
+              />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-slate-700 mb-2">Reward Type</label>
+              <select
+                name="competition[reward_type]"
+                class="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500"
+              >
+                <option value="cash">Cash ($)</option>
+                <option value="token">Tokens</option>
+                <option value="points">Points</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-slate-700 mb-2">Reward Value</label>
+              <input
+                type="number"
+                step="0.01"
+                name="competition[reward_value]"
+                placeholder="1000"
+                class="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500"
+              />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-slate-700 mb-2">Evaluation Metric</label>
+              <select
+                name="competition[evaluation_metric]"
+                class="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500"
+              >
+                <option value="accuracy">Accuracy</option>
+                <option value="f1_score">F1 Score</option>
+                <option value="auc_roc">AUC-ROC</option>
+                <option value="mae">Mean Absolute Error</option>
+                <option value="mse">Mean Squared Error</option>
+                <option value="rmse">Root Mean Squared Error</option>
+                <option value="log_loss">Log Loss</option>
+                <option value="custom">Custom</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-slate-700 mb-2">Difficulty Level</label>
+              <select
+                name="competition[difficulty]"
+                class="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500"
+              >
+                <option value="beginner">Beginner</option>
+                <option value="intermediate" selected>Intermediate</option>
+                <option value="advanced">Advanced</option>
+                <option value="expert">Expert</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-slate-700 mb-2">Max Submissions per User</label>
+              <input
+                type="number"
+                name="competition[submission_limit]"
+                value="5"
+                min="1"
+                max="100"
+                class="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500"
+              />
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-slate-700 mb-2">Max Team Size</label>
+              <input
+                type="number"
+                name="competition[team_size_limit]"
+                value="5"
+                min="1"
+                max="10"
+                class="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-slate-700 mb-2">Competition Rules</label>
+            <textarea
+              name="competition[rules]"
+              rows="3"
+              placeholder="Define the rules and constraints for participants..."
+              class="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 resize-none"
+            ></textarea>
+          </div>
+
+          <div class="flex items-center space-x-3">
+            <input
+              type="checkbox"
+              id="external_data"
+              name="competition[external_data_allowed]"
+              value="true"
+              class="w-4 h-4 text-green-600 border-slate-300 rounded focus:ring-green-500"
+            />
+            <label for="external_data" class="text-sm text-slate-700">
+              Allow participants to use external datasets
+            </label>
+          </div>
+
+          <div class="flex items-center justify-end space-x-3 pt-4 border-t border-slate-200">
+            <button
+              type="button"
+              phx-click="close_create_modal"
+              class="px-6 py-3 text-slate-700 font-medium hover:bg-slate-100 rounded-xl transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              class="px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white font-medium rounded-xl hover:from-green-700 hover:to-emerald-700 transition-all shadow-lg"
+            >
+              Create Competition
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+<% end %>
