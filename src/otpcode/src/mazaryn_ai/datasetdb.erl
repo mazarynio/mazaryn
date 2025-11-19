@@ -95,27 +95,32 @@ create_dataset(CreatorId, Title, Description, Content, MetadataMap, License, Tag
     Fun = fun() ->
         Id = nanoid:gen(),
         Now = calendar:universal_time(),
-
         ContentToCache = if
             is_binary(Content) -> binary_to_list(Content);
             true -> Content
         end,
         ok = content_cache:set({dataset, Id}, ContentToCache),
-
         SizeBytes = calculate_content_size(ContentToCache),
+
+        TitleList = ensure_list(Title),
+        DescriptionList = ensure_list(Description),
+        LicenseList = ensure_list(License),
+        TagsList = [ensure_list(Tag) || Tag <- Tags],
+        VisibilityAtom = ensure_atom(Visibility),
+        CreatorIdList = ensure_list(CreatorId),
 
         Dataset = #dataset{
             id = Id,
-            title = Title,
-            description = Description,
-            creator_id = CreatorId,
+            title = TitleList,
+            description = DescriptionList,
+            creator_id = CreatorIdList,
             content_cid = {pending, Id},
             metadata_cid = undefined,
             size_bytes = SizeBytes,
-            license = License,
+            license = LicenseList,
             version = "1.0.0",
-            tags = Tags,
-            visibility = Visibility,
+            tags = TagsList,
+            visibility = VisibilityAtom,
             downloads = 0,
             ratings = [],
             pin_info = [],
@@ -137,10 +142,8 @@ create_dataset(CreatorId, Title, Description, Content, MetadataMap, License, Tag
             used_in_notebook_ids = [],
             used_in_model_ids = []
         },
-
         mnesia:write(Dataset),
-
-        case mnesia:read({user, CreatorId}) of
+        case mnesia:read({user, CreatorIdList}) of
             [User] ->
                 UserDatasets = User#user.datasets,
                 UpdatedDatasets = case UserDatasets of
@@ -150,12 +153,10 @@ create_dataset(CreatorId, Title, Description, Content, MetadataMap, License, Tag
                 end,
                 mnesia:write(User#user{datasets = UpdatedDatasets});
             [] ->
-                error_logger:warning_msg("User ~p not found when creating dataset", [CreatorId])
+                error_logger:warning_msg("User ~p not found when creating dataset", [CreatorIdList])
         end,
-
         {ok, Id, ContentToCache}
     end,
-
     case mnesia:transaction(Fun) of
         {atomic, {ok, Id, CachedContent}} ->
             spawn(fun() ->
@@ -235,111 +236,119 @@ create_dataset_concurrent(CreatorId, Title, Description, Content, MetadataMap, L
             {error, Reason}
     end.
 
-create_dataset_from_file(CreatorId, Title, Description, FilePath, License, Tags, Visibility) ->
-    case validate_dataset_file(FilePath) of
-        {error, Reason} ->
-            {error, Reason};
-        {ok, FileInfo} ->
-            case file:read_file(FilePath) of
-                {ok, FileContent} ->
-                    Metadata = extract_file_metadata(FilePath, FileInfo, FileContent),
-
-                    case filename:extension(FilePath) of
-                        ".zip" ->
-                            create_dataset_from_zip_content(
-                                CreatorId, Title, Description,
-                                FileContent, Metadata, License, Tags, Visibility
-                            );
-                        _ ->
-                            create_dataset_from_content(
-                                CreatorId, Title, Description,
-                                FileContent, Metadata, License, Tags, Visibility
-                            )
-                    end;
-                {error, Reason} ->
-                    {error, {file_read_error, Reason}}
-            end
-    end.
-
-create_dataset_from_zip(CreatorId, Title, Description, ZipFilePath, License, Tags, Visibility) ->
-    case filename:extension(ZipFilePath) of
-        ".zip" ->
-            create_dataset_from_file(CreatorId, Title, Description, ZipFilePath, License, Tags, Visibility);
-        _ ->
-            {error, not_a_zip_file}
-    end.
-
-create_dataset_from_content(CreatorId, Title, Description, FileContent, Metadata, License, Tags, Visibility) ->
-    Fun = fun() ->
-        Id = nanoid:gen(),
-        Now = calendar:universal_time(),
-
-        ok = content_cache:set({dataset_file, Id}, FileContent),
-
-        SizeBytes = byte_size(FileContent),
-
-        Dataset = #dataset{
-            id = Id,
-            title = Title,
-            description = Description,
-            creator_id = CreatorId,
-            content_cid = {pending, Id},
-            metadata_cid = undefined,
-            size_bytes = SizeBytes,
-            license = License,
-            version = "1.0.0",
-            tags = Tags,
-            visibility = Visibility,
-            downloads = 0,
-            ratings = [],
-            pin_info = [],
-            competition_ids = [],
-            date_created = Now,
-            date_updated = Now,
-            report = [],
-            metadata = Metadata,
-            version_history = [{1, "1.0.0", {pending, Id}, Now, "Initial version"}],
-            schema_cid = undefined,
-            sample_cid = undefined,
-            citation_count = 0,
-            doi = undefined,
-            related_dataset_ids = [],
-            data_quality_score = ?DEFAULT_QUALITY_SCORE,
-            update_frequency = static,
-            access_requests = [],
-            collaborators = [],
-            used_in_notebook_ids = [],
-            used_in_model_ids = []
-        },
-
-        mnesia:write(Dataset),
-
-        case mnesia:read({user, CreatorId}) of
-            [User] ->
-                UserDatasets = case User#user.datasets of
-                    undefined -> [Id];
-                    List when is_list(List) -> [Id | List];
-                    _ -> [Id]
-                end,
-                mnesia:write(User#user{datasets = UserDatasets});
-            [] ->
-                error_logger:warning_msg("User ~p not found when creating dataset", [CreatorId])
+    create_dataset_from_file(CreatorId, Title, Description, FilePath, License, Tags, Visibility) ->
+        Path = case is_binary(FilePath) of
+            true -> binary_to_list(FilePath);
+            false -> FilePath
         end,
+        case validate_dataset_file(Path) of
+            {error, Reason} ->
+                {error, Reason};
+            {ok, FileInfo} ->
+                case file:read_file(Path) of
+                    {ok, FileContent} ->
+                        Metadata = extract_file_metadata(Path, FileInfo, FileContent),
+                        case filename:extension(Path) of
+                            ".zip" ->
+                                create_dataset_from_zip_content(
+                                    CreatorId, Title, Description,
+                                    FileContent, Metadata, License, Tags, Visibility
+                                );
+                            _ ->
+                                create_dataset_from_content(
+                                    CreatorId, Title, Description,
+                                    FileContent, Metadata, License, Tags, Visibility
+                                )
+                        end;
+                    {error, Reason} ->
+                        {error, {file_read_error, Reason}}
+                end
+        end.
 
-        {ok, Id}
-    end,
+    create_dataset_from_zip(CreatorId, Title, Description, ZipFilePath, License, Tags, Visibility) ->
+        Path = case is_binary(ZipFilePath) of
+            true -> binary_to_list(ZipFilePath);
+            false -> ZipFilePath
+        end,
+        case filename:extension(Path) of
+            ".zip" ->
+                create_dataset_from_file(CreatorId, Title, Description, Path, License, Tags, Visibility);
+            _ ->
+                {error, not_a_zip_file}
+        end.
 
-    case mnesia:transaction(Fun) of
-        {atomic, {ok, Id}} ->
-            spawn(fun() ->
-                upload_binary_dataset_to_ipfs(Id, FileContent, Metadata)
-            end),
-            {ok, Id};
-        {atomic, {error, Reason}} ->
-            {error, Reason};
-        {aborted, Reason} ->
-            {error, {transaction_failed, Reason}}
-    end.
+        create_dataset_from_content(CreatorId, Title, Description, FileContent, Metadata, License, Tags, Visibility) ->
+            Fun = fun() ->
+                Id = nanoid:gen(),
+                Now = calendar:universal_time(),
+                ok = content_cache:set({dataset_file, Id}, FileContent),
+                SizeBytes = byte_size(FileContent),
+
+                TitleList = ensure_list(Title),
+                DescriptionList = ensure_list(Description),
+                LicenseList = ensure_list(License),
+                TagsList = [ensure_list(Tag) || Tag <- Tags],
+                VisibilityAtom = ensure_atom(Visibility),
+                CreatorIdList = ensure_list(CreatorId),
+
+                Dataset = #dataset{
+                    id = Id,
+                    title = TitleList,
+                    description = DescriptionList,
+                    creator_id = CreatorIdList,
+                    content_cid = {pending, Id},
+                    metadata_cid = undefined,
+                    size_bytes = SizeBytes,
+                    license = LicenseList,
+                    version = "1.0.0",
+                    tags = TagsList,
+                    visibility = VisibilityAtom,
+                    downloads = 0,
+                    ratings = [],
+                    pin_info = [],
+                    competition_ids = [],
+                    date_created = Now,
+                    date_updated = Now,
+                    report = [],
+                    metadata = Metadata,
+                    version_history = [{1, "1.0.0", {pending, Id}, Now, "Initial version"}],
+                    schema_cid = undefined,
+                    sample_cid = undefined,
+                    citation_count = 0,
+                    doi = undefined,
+                    related_dataset_ids = [],
+                    data_quality_score = ?DEFAULT_QUALITY_SCORE,
+                    update_frequency = static,
+                    access_requests = [],
+                    collaborators = [],
+                    used_in_notebook_ids = [],
+                    used_in_model_ids = []
+                },
+                mnesia:write(Dataset),
+                case mnesia:read({user, CreatorIdList}) of
+                    [User] ->
+                        UserDatasets = case User#user.datasets of
+                            undefined -> [Id];
+                            List when is_list(List) -> [Id | List];
+                            _ -> [Id]
+                        end,
+                        mnesia:write(User#user{datasets = UserDatasets});
+                    [] ->
+                        error_logger:warning_msg("User ~p not found when creating dataset", [CreatorIdList])
+                end,
+                {ok, Id}
+            end,
+            case mnesia:transaction(Fun) of
+                {atomic, {ok, Id}} ->
+                    spawn(fun() ->
+                        upload_binary_dataset_to_ipfs(Id, FileContent, Metadata)
+                    end),
+                    {ok, Id};
+                {atomic, {error, Reason}} ->
+                    {error, Reason};
+                {aborted, Reason} ->
+                    {error, {transaction_failed, Reason}}
+            end.
 
 create_dataset_from_zip_content(CreatorId, Title, Description, ZipContent, Metadata, License, Tags, Visibility) ->
     case extract_zip_metadata(ZipContent) of
@@ -1976,6 +1985,15 @@ upload_dataset_update(DatasetId, Content, Metadata) ->
     split_into_chunks(Binary, ChunkSize, Acc) ->
         <<Chunk:ChunkSize/binary, Rest/binary>> = Binary,
         split_into_chunks(Rest, ChunkSize, [Chunk | Acc]).
+
+        ensure_list(Value) when is_binary(Value) -> binary_to_list(Value);
+        ensure_list(Value) when is_list(Value) -> Value;
+        ensure_list(Value) when is_atom(Value) -> atom_to_list(Value);
+        ensure_list(Value) -> Value.
+
+        ensure_atom(Value) when is_binary(Value) -> binary_to_atom(Value, utf8);
+        ensure_atom(Value) when is_list(Value) -> list_to_atom(Value);
+        ensure_atom(Value) when is_atom(Value) -> Value.
 
     generate_sample_from_binary(BinaryContent, Metadata) ->
         Format = maps:get(format, Metadata, unknown),

@@ -24,6 +24,11 @@ defmodule MazarynWeb.AiLive.Datasets do
         |> assign(show_create_modal: false)
         |> assign(page: 1)
         |> assign(per_page: 12)
+        |> allow_upload(:dataset_file,
+          accept: ~w(.zip),
+          max_entries: 1,
+          max_file_size: 10_737_418_240
+        )
 
       {:ok, socket}
     else
@@ -54,6 +59,11 @@ defmodule MazarynWeb.AiLive.Datasets do
           |> assign(show_create_modal: false)
           |> assign(page: 1)
           |> assign(per_page: 12)
+          |> allow_upload(:dataset_file,
+            accept: ~w(.zip),
+            max_entries: 1,
+            max_file_size: 10_737_418_240
+          )
 
         {:ok, socket}
 
@@ -108,52 +118,90 @@ defmodule MazarynWeb.AiLive.Datasets do
   end
 
   @impl true
+  def handle_event("validate_upload", _params, socket) do
+    {:noreply, socket}
+  end
+
+  @impl true
+  def handle_event("cancel_upload", %{"ref" => ref}, socket) do
+    {:noreply, cancel_upload(socket, :dataset_file, ref)}
+  end
+
+  @impl true
   def handle_event("create_dataset", %{"dataset" => dataset_params}, socket) do
     user = socket.assigns.user
     user_id = to_string(user.id)
 
     title = Map.get(dataset_params, "title", "Untitled Dataset")
     description = Map.get(dataset_params, "description", "")
-    content = Map.get(dataset_params, "content", "")
     license = Map.get(dataset_params, "license", "MIT")
     tags = parse_tags(Map.get(dataset_params, "tags", ""))
     visibility = String.to_atom(Map.get(dataset_params, "visibility", "public"))
 
-    metadata = %{
-      "created_via" => "web_ui",
-      "user_agent" => "mazaryn_web"
-    }
+    uploaded_files =
+      consume_uploaded_entries(socket, :dataset_file, fn %{path: path}, entry ->
+        dest = Path.join(System.tmp_dir(), entry.client_name)
+        File.cp!(path, dest)
+        {:ok, dest}
+      end)
 
-    case DatasetClient.create_dataset(
-           user_id,
-           title,
-           description,
-           content,
-           metadata,
-           license,
-           tags,
-           visibility
-         ) do
-      {:error, reason} ->
-        Logger.error("Failed to create dataset: #{inspect(reason)}")
+    case uploaded_files do
+      [file_path] ->
+        file_path_charlist = String.to_charlist(file_path)
 
-        {:noreply,
-         socket
-         |> put_flash(:error, "Failed to create dataset: #{inspect(reason)}")}
+        Logger.info("Creating dataset from ZIP file: #{file_path}")
+        Logger.info("File path as charlist: #{inspect(file_path_charlist)}")
 
-      dataset_id when is_list(dataset_id) or is_binary(dataset_id) ->
-        Logger.info("Dataset created successfully with ID: #{dataset_id}")
+        result =
+          DatasetClient.create_dataset_from_file(
+            user_id,
+            title,
+            description,
+            file_path_charlist,
+            license,
+            tags,
+            visibility
+          )
 
-        datasets = load_datasets(user, socket.assigns.filter)
-        filtered = filter_datasets(datasets, socket.assigns.search_query, socket.assigns.filter)
-        sorted = sort_datasets(filtered, socket.assigns.sort_by)
+        File.rm(file_path)
 
-        {:noreply,
-         socket
-         |> assign(show_create_modal: false)
-         |> assign(datasets: datasets)
-         |> assign(filtered_datasets: sorted)
-         |> put_flash(:info, "Dataset created successfully!")}
+        case result do
+          {:ok, dataset_id} when is_binary(dataset_id) or is_list(dataset_id) ->
+            Logger.info("Dataset created successfully with ID: #{inspect(dataset_id)}")
+            datasets = load_datasets(user, socket.assigns.filter)
+            filtered = filter_datasets(datasets, socket.assigns.search_query, socket.assigns.filter)
+            sorted = sort_datasets(filtered, socket.assigns.sort_by)
+
+            {:noreply,
+             socket
+             |> assign(show_create_modal: false)
+             |> assign(datasets: datasets)
+             |> assign(filtered_datasets: sorted)
+             |> put_flash(:info, "Dataset created successfully!")}
+
+          dataset_id when is_binary(dataset_id) or is_list(dataset_id) ->
+            Logger.info("Dataset created successfully with ID: #{inspect(dataset_id)}")
+            datasets = load_datasets(user, socket.assigns.filter)
+            filtered = filter_datasets(datasets, socket.assigns.search_query, socket.assigns.filter)
+            sorted = sort_datasets(filtered, socket.assigns.sort_by)
+
+            {:noreply,
+             socket
+             |> assign(show_create_modal: false)
+             |> assign(datasets: datasets)
+             |> assign(filtered_datasets: sorted)
+             |> put_flash(:info, "Dataset created successfully!")}
+
+          {:error, reason} ->
+            Logger.error("Failed to create dataset: #{inspect(reason)}")
+
+            {:noreply,
+             socket
+             |> put_flash(:error, "Failed to create dataset: #{inspect(reason)}")}
+        end
+
+      [] ->
+        {:noreply, put_flash(socket, :error, "Please upload a ZIP file")}
     end
   end
 
@@ -162,7 +210,10 @@ defmodule MazarynWeb.AiLive.Datasets do
     user = socket.assigns.user
     user_id = to_string(user.id)
 
-    case DatasetClient.delete_dataset(dataset_id, user_id) do
+    dataset_id_charlist = String.to_charlist(dataset_id)
+    user_id_charlist = String.to_charlist(user_id)
+
+    case DatasetClient.delete_dataset(dataset_id_charlist, user_id_charlist) do
       :ok ->
         datasets = load_datasets(user, socket.assigns.filter)
         filtered = filter_datasets(datasets, socket.assigns.search_query, socket.assigns.filter)
@@ -364,4 +415,9 @@ defmodule MazarynWeb.AiLive.Datasets do
   end
 
   defp parse_tags(_), do: []
+
+  defp error_to_string(:too_large), do: "File is too large (max 10GB)"
+  defp error_to_string(:not_accepted), do: "Only ZIP files are accepted"
+  defp error_to_string(:too_many_files), do: "Only one file allowed"
+  defp error_to_string(err), do: "Upload error: #{inspect(err)}"
 end

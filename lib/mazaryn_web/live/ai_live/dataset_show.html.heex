@@ -1,0 +1,377 @@
+<.live_component
+  module={MazarynWeb.HomeLive.NavComponent}
+  id="navigation"
+  user={@user}
+  search={@search_query}
+  locale={@locale}
+/>
+
+<div class="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+  <div class="max-w-7xl mx-auto px-6 py-8">
+    <!-- Header -->
+    <div class="flex items-center space-x-4 mb-8">
+      <.link
+        navigate={~p"/#{@locale}/ai/datasets"}
+        class="flex items-center space-x-2 text-slate-500 hover:text-violet-600 transition-colors"
+      >
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+        </svg>
+        <span class="font-medium">Back to Datasets</span>
+      </.link>
+    </div>
+
+    <!-- Dataset Header Card -->
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-8 mb-6">
+      <div class="flex items-start justify-between mb-6">
+        <div class="flex-1">
+          <div class="flex items-center space-x-3 mb-2">
+            <h1 class="text-3xl font-bold text-slate-900"><%= @dataset.title %></h1>
+            <%= if Mazaryn.Schema.Dataset.is_public?(@dataset) do %>
+              <span class="px-3 py-1 bg-green-100 text-green-700 text-sm font-medium rounded-full">Public</span>
+            <% else %>
+              <span class="px-3 py-1 bg-slate-100 text-slate-700 text-sm font-medium rounded-full">Private</span>
+            <% end %>
+          </div>
+          <p class="text-slate-600 mb-4"><%= @dataset.description || "No description available" %></p>
+          <div class="flex items-center flex-wrap gap-4 text-sm text-slate-500">
+            <div class="flex items-center space-x-2">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span>Created <%= Mazaryn.Schema.Dataset.format_datetime(@dataset.date_created) %></span>
+            </div>
+            <div class="flex items-center space-x-2">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+              <span>Updated <%= Mazaryn.Schema.Dataset.format_datetime(@dataset.date_updated) %></span>
+            </div>
+            <div class="flex items-center space-x-2">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+              </svg>
+              <span>Version <%= @dataset.version %></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex items-center space-x-3">
+          <button
+            phx-click="download_dataset"
+            class="flex items-center space-x-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-medium rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all shadow-lg"
+          >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+            </svg>
+            <span>Download</span>
+          </button>
+
+          <%= if MazarynWeb.AiLive.DatasetShow.is_owner?(@dataset, @user) do %>
+            <button
+              phx-click="open_delete_modal"
+              class="p-3 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors"
+              title="Delete Dataset"
+            >
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+            </button>
+          <% end %>
+        </div>
+      </div>
+
+      <!-- Stats Grid -->
+      <div class="grid grid-cols-2 md:grid-cols-5 gap-4 pt-6 border-t border-slate-100">
+        <div class="text-center">
+          <div class="text-2xl font-bold text-slate-900"><%= @dataset.downloads %></div>
+          <div class="text-sm text-slate-500">Downloads</div>
+        </div>
+        <div class="text-center">
+          <div class="text-2xl font-bold text-slate-900">
+            <%= Float.round(Mazaryn.Schema.Dataset.average_rating(@dataset), 1) %>
+          </div>
+          <div class="text-sm text-slate-500">Rating</div>
+        </div>
+        <div class="text-center">
+          <div class="text-2xl font-bold text-slate-900">
+            <%= Mazaryn.Schema.Dataset.format_size(@dataset) %>
+          </div>
+          <div class="text-sm text-slate-500">Size</div>
+        </div>
+        <div class="text-center">
+          <div class="text-2xl font-bold text-slate-900"><%= @dataset.citation_count %></div>
+          <div class="text-sm text-slate-500">Citations</div>
+        </div>
+        <div class="text-center">
+          <div class="text-2xl font-bold text-slate-900">
+            <%= Float.round(@dataset.data_quality_score, 1) %>
+          </div>
+          <div class="text-sm text-slate-500">Quality Score</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 mb-6">
+      <div class="flex border-b border-slate-200">
+        <button
+          phx-click="change_tab"
+          phx-value-tab="overview"
+          class={"px-6 py-4 font-medium transition-colors #{if @active_tab == "overview", do: "text-blue-600 border-b-2 border-blue-600", else: "text-slate-600 hover:text-slate-900"}"}
+        >
+          Overview
+        </button>
+        <button
+          phx-click="change_tab"
+          phx-value-tab="metadata"
+          class={"px-6 py-4 font-medium transition-colors #{if @active_tab == "metadata", do: "text-blue-600 border-b-2 border-blue-600", else: "text-slate-600 hover:text-slate-900"}"}
+        >
+          Metadata
+        </button>
+        <button
+          phx-click="change_tab"
+          phx-value-tab="versions"
+          class={"px-6 py-4 font-medium transition-colors #{if @active_tab == "versions", do: "text-blue-600 border-b-2 border-blue-600", else: "text-slate-600 hover:text-slate-900"}"}
+        >
+          Versions
+        </button>
+        <button
+          phx-click="change_tab"
+          phx-value-tab="files"
+          class={"px-6 py-4 font-medium transition-colors #{if @active_tab == "files", do: "text-blue-600 border-b-2 border-blue-600", else: "text-slate-600 hover:text-slate-900"}"}
+        >
+          Files
+        </button>
+      </div>
+
+      <div class="p-6">
+        <%= if @active_tab == "overview" do %>
+          <div class="space-y-6">
+            <!-- License -->
+            <div>
+              <h3 class="text-lg font-semibold text-slate-900 mb-3">License</h3>
+              <span class="px-4 py-2 bg-blue-50 text-blue-700 font-medium rounded-lg">
+                <%= @dataset.license %>
+              </span>
+            </div>
+
+            <!-- Tags -->
+            <%= if length(@dataset.tags || []) > 0 do %>
+              <div>
+                <h3 class="text-lg font-semibold text-slate-900 mb-3">Tags</h3>
+                <div class="flex flex-wrap gap-2">
+                  <%= for tag <- @dataset.tags do %>
+                    <span class="px-3 py-1 bg-slate-100 text-slate-700 text-sm font-medium rounded-full">
+                      <%= tag %>
+                    </span>
+                  <% end %>
+                </div>
+              </div>
+            <% end %>
+
+            <!-- IPFS Info -->
+            <%= if @dataset.content_cid do %>
+              <div>
+                <h3 class="text-lg font-semibold text-slate-900 mb-3">IPFS Content</h3>
+                <div class="bg-slate-50 rounded-lg p-4 font-mono text-sm text-slate-600 break-all">
+                  <%= @dataset.content_cid %>
+                </div>
+              </div>
+            <% end %>
+
+            <%= if @dataset.ipns do %>
+              <div>
+                <h3 class="text-lg font-semibold text-slate-900 mb-3">IPNS</h3>
+                <div class="bg-slate-50 rounded-lg p-4 font-mono text-sm text-slate-600 break-all">
+                  <%= @dataset.ipns %>
+                </div>
+              </div>
+            <% end %>
+
+            <!-- Rating Section -->
+            <div>
+              <h3 class="text-lg font-semibold text-slate-900 mb-3">Rate this Dataset</h3>
+              <div class="flex items-center space-x-2">
+                <%= for rating <- 1..5 do %>
+                  <button
+                    phx-click="rate_dataset"
+                    phx-value-rating={rating}
+                    class="transition-transform hover:scale-110"
+                  >
+                    <%= if rating <= @user_rating do %>
+                      <svg class="w-8 h-8 text-yellow-400 fill-current" viewBox="0 0 24 24">
+                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                      </svg>
+                    <% else %>
+                      <svg class="w-8 h-8 text-slate-300 hover:text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                      </svg>
+                    <% end %>
+                  </button>
+                <% end %>
+                <span class="ml-4 text-slate-600">
+                  <%= if @user_rating > 0 do %>
+                    Your rating: <%= @user_rating %>/5
+                  <% else %>
+                    Click to rate
+                  <% end %>
+                </span>
+              </div>
+              <div class="mt-2 text-sm text-slate-500">
+                Average: <%= Float.round(Mazaryn.Schema.Dataset.average_rating(@dataset), 1) %>/5 from <%= Mazaryn.Schema.Dataset.rating_count(@dataset) %> ratings
+              </div>
+            </div>
+
+            <!-- DOI -->
+            <%= if Mazaryn.Schema.Dataset.has_doi?(@dataset) do %>
+              <div>
+                <h3 class="text-lg font-semibold text-slate-900 mb-3">Digital Object Identifier (DOI)</h3>
+                <div class="bg-slate-50 rounded-lg p-4">
+                  <a href={"https://doi.org/#{@dataset.doi}"} target="_blank" class="text-blue-600 hover:text-blue-700 font-mono text-sm">
+                    <%= @dataset.doi %>
+                  </a>
+                </div>
+              </div>
+            <% end %>
+          </div>
+        <% end %>
+
+        <%= if @active_tab == "metadata" do %>
+          <div class="space-y-4">
+            <%= if @dataset.metadata && map_size(@dataset.metadata) > 0 do %>
+              <%= for {key, value} <- @dataset.metadata do %>
+                <div class="flex items-start py-3 border-b border-slate-100 last:border-0">
+                  <div class="w-1/3 font-medium text-slate-700 break-words"><%= key %></div>
+                  <div class="w-2/3 text-slate-600">
+                    <%= cond do %>
+                      <% is_map(value) -> %>
+                        <pre class="text-sm bg-slate-50 p-3 rounded-lg overflow-x-auto whitespace-pre-wrap"><%= MazarynWeb.AiLive.DatasetShow.format_metadata_value(value) %></pre>
+                      <% is_list(value) -> %>
+                        <pre class="text-sm bg-slate-50 p-3 rounded-lg overflow-x-auto whitespace-pre-wrap"><%= MazarynWeb.AiLive.DatasetShow.format_metadata_value(value) %></pre>
+                      <% true -> %>
+                        <%= MazarynWeb.AiLive.DatasetShow.format_metadata_value(value) %>
+                    <% end %>
+                  </div>
+                </div>
+              <% end %>
+            <% else %>
+              <div class="text-center py-12">
+                <div class="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <svg class="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                </div>
+                <p class="text-slate-500">No metadata available</p>
+              </div>
+            <% end %>
+          </div>
+        <% end %>
+
+        <%= if @active_tab == "versions" do %>
+          <div class="space-y-4">
+            <%= if length(@dataset.version_history || []) > 0 do %>
+              <%= for version <- @dataset.version_history do %>
+                <div class="bg-slate-50 rounded-xl p-4 border border-slate-200">
+                  <div class="flex items-start justify-between">
+                    <div class="flex-1">
+                      <div class="flex items-center space-x-3 mb-2">
+                        <h4 class="font-semibold text-slate-900">Version <%= version.version %></h4>
+                        <span class="px-2 py-1 bg-blue-100 text-blue-700 text-xs font-medium rounded-full">
+                          #<%= version.version_num %>
+                        </span>
+                      </div>
+                      <p class="text-sm text-slate-600 mb-2"><%= version.description || "No description" %></p>
+                      <div class="flex items-center space-x-4 text-xs text-slate-500">
+                        <span><%= Mazaryn.Schema.Dataset.format_datetime(version.timestamp) %></span>
+                        <%= if version.cid do %>
+                          <span class="font-mono"><%= String.slice(version.cid, 0..12) %>...</span>
+                        <% end %>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              <% end %>
+            <% else %>
+              <div class="text-center py-12">
+                <div class="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <svg class="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <p class="text-slate-500">No version history available</p>
+              </div>
+            <% end %>
+          </div>
+        <% end %>
+
+        <%= if @active_tab == "files" do %>
+          <div class="space-y-4">
+            <%= if @dataset.metadata["files"] && is_list(@dataset.metadata["files"]) do %>
+              <div class="space-y-2">
+                <%= for file <- @dataset.metadata["files"] do %>
+                  <div class="flex items-center justify-between p-4 bg-slate-50 rounded-lg border border-slate-200">
+                    <div class="flex items-center space-x-3">
+                      <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                      </svg>
+                      <div>
+                        <div class="font-medium text-slate-900"><%= file %></div>
+                      </div>
+                    </div>
+                  </div>
+                <% end %>
+              </div>
+            <% else %>
+              <div class="text-center py-12">
+                <div class="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <svg class="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                  </svg>
+                </div>
+                <p class="text-slate-500">No file information available</p>
+              </div>
+            <% end %>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<%= if @show_delete_modal do %>
+  <div class="fixed inset-0 z-50 overflow-y-auto" phx-click="close_delete_modal">
+    <div class="flex items-center justify-center min-h-screen px-4">
+      <div class="fixed inset-0 bg-black bg-opacity-50 transition-opacity"></div>
+
+      <div class="relative bg-white rounded-2xl shadow-xl max-w-md w-full p-6" phx-click="stop_propagation">
+        <div class="flex items-center justify-center w-12 h-12 bg-red-100 rounded-full mx-auto mb-4">
+          <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+        </div>
+
+        <h3 class="text-lg font-semibold text-slate-900 text-center mb-2">Delete Dataset?</h3>
+        <p class="text-slate-600 text-center mb-6">
+          Are you sure you want to delete "<%= @dataset.title %>"? This action cannot be undone.
+        </p>
+
+        <div class="flex items-center space-x-3">
+          <button
+            phx-click="close_delete_modal"
+            class="flex-1 px-4 py-2 text-slate-700 font-medium hover:bg-slate-100 rounded-lg transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            phx-click="confirm_delete"
+            class="flex-1 px-4 py-2 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 transition-colors"
+          >
+            Delete
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+<% end %>

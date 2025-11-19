@@ -60,8 +60,8 @@ defmodule Mazaryn.Schema.Dataset do
     field(:ratings, {:array, :map}, default: [])
     field(:pin_info, {:array, :map}, default: [])
     field(:competition_ids, {:array, :string}, default: [])
-    field(:date_created, :utc_datetime)
-    field(:date_updated, :utc_datetime)
+    field(:date_created, :naive_datetime)
+    field(:date_updated, :naive_datetime)
     field(:report, {:array, :string}, default: [])
     field(:metadata, :map, default: %{})
     field(:version_history, {:array, :map}, default: [])
@@ -92,7 +92,7 @@ defmodule Mazaryn.Schema.Dataset do
     processed_schema_cid = process_cid(schema_cid)
     processed_sample_cid = process_cid(sample_cid)
 
-    processed_tags = process_list(tags)
+    processed_tags = process_string_list(tags)
     processed_visibility = atom_to_string(visibility)
     processed_ratings = process_ratings(ratings)
     processed_pin_info = process_list(pin_info)
@@ -149,7 +149,16 @@ defmodule Mazaryn.Schema.Dataset do
 
   defp handle_datetime(:undefined), do: nil
   defp handle_datetime(nil), do: nil
-  defp handle_datetime(datetime), do: Timex.to_naive_datetime(datetime)
+
+  defp handle_datetime({{year, month, day}, {hour, minute, second}}) do
+    case NaiveDateTime.new(year, month, day, hour, minute, second) do
+      {:ok, datetime} -> datetime
+      _ -> nil
+    end
+  end
+
+  defp handle_datetime(datetime) when is_struct(datetime, NaiveDateTime), do: datetime
+  defp handle_datetime(_), do: nil
 
   defp atom_to_string(atom) when is_atom(atom), do: Atom.to_string(atom)
   defp atom_to_string(string) when is_binary(string), do: string
@@ -165,6 +174,7 @@ defmodule Mazaryn.Schema.Dataset do
   defp process_cid({:pending, _id}), do: nil
   defp process_cid({:pending_update, _id}), do: nil
   defp process_cid({:pending_version, _id}), do: nil
+  defp process_cid({:error, _}), do: nil
   defp process_cid(:undefined), do: nil
   defp process_cid(nil), do: nil
   defp process_cid(cid) when is_binary(cid), do: cid
@@ -196,10 +206,28 @@ defmodule Mazaryn.Schema.Dataset do
         case key do
           k when is_atom(k) -> Atom.to_string(k)
           k when is_binary(k) -> k
+          k when is_list(k) -> to_string(k)
           k -> inspect(k)
         end
 
-      Map.put(acc, string_key, value)
+      processed_value =
+        case value do
+          v when is_list(v) ->
+            if Enum.all?(v, &is_integer/1) and length(v) > 0 do
+              try do
+                to_string(v)
+              rescue
+                _ -> v
+              end
+            else
+              v
+            end
+
+          v ->
+            v
+        end
+
+      Map.put(acc, string_key, processed_value)
     end)
   end
 
@@ -374,4 +402,20 @@ defmodule Mazaryn.Schema.Dataset do
   end
 
   def pending_access_requests(_), do: []
+
+  def format_datetime(nil), do: "N/A"
+
+  def format_datetime(%NaiveDateTime{} = datetime) do
+    Calendar.strftime(datetime, "%Y-%m-%d %H:%M:%S")
+  end
+
+  def format_datetime(_), do: "N/A"
+
+  def format_date(nil), do: "N/A"
+
+  def format_date(%NaiveDateTime{} = datetime) do
+    Calendar.strftime(datetime, "%B %d, %Y")
+  end
+
+  def format_date(_), do: "N/A"
 end

@@ -8,7 +8,6 @@
 
 <div class="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
   <div class="max-w-7xl mx-auto px-6 py-8">
-    <!-- Header -->
     <div class="flex items-center justify-between mb-8">
       <div class="flex items-center space-x-4">
         <.link
@@ -45,7 +44,6 @@
       </button>
     </div>
 
-    <!-- Search and Filters -->
     <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-6">
       <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div class="relative flex-1 max-w-xl">
@@ -89,7 +87,6 @@
       </div>
     </div>
 
-    <!-- Stats Bar -->
     <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
       <div class="bg-white rounded-xl p-4 border border-slate-200">
         <div class="flex items-center space-x-3">
@@ -154,7 +151,6 @@
       </div>
     </div>
 
-    <!-- Dataset Grid -->
     <%= if length(@filtered_datasets) == 0 do %>
       <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-12 text-center">
         <div class="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -279,13 +275,12 @@
   </div>
 </div>
 
-<!-- Create Dataset Modal -->
 <%= if @show_create_modal do %>
-  <div class="fixed inset-0 z-50 overflow-y-auto">
+  <div class="fixed inset-0 z-50 overflow-y-auto" phx-click="close_create_modal">
     <div class="flex items-center justify-center min-h-screen px-4">
-      <div class="fixed inset-0 bg-black bg-opacity-50 transition-opacity" phx-click="close_create_modal"></div>
+      <div class="fixed inset-0 bg-black bg-opacity-50 transition-opacity"></div>
 
-      <div class="relative bg-white rounded-2xl shadow-xl max-w-2xl w-full p-8 transform transition-all">
+      <div class="relative bg-white rounded-2xl shadow-xl max-w-2xl w-full p-8 transform transition-all" phx-click="stop_propagation">
         <div class="flex items-center justify-between mb-6">
           <h2 class="text-2xl font-bold text-slate-900">Create New Dataset</h2>
           <button
@@ -298,7 +293,7 @@
           </button>
         </div>
 
-        <form phx-submit="create_dataset" class="space-y-6">
+        <form phx-submit="create_dataset" phx-change="validate_upload" class="space-y-6">
           <div>
             <label class="block text-sm font-medium text-slate-700 mb-2">Title *</label>
             <input
@@ -321,13 +316,66 @@
           </div>
 
           <div>
-            <label class="block text-sm font-medium text-slate-700 mb-2">Content (CSV, JSON, or Text)</label>
-            <textarea
-              name="dataset[content]"
-              rows="6"
-              placeholder="Paste your dataset content here or leave empty to upload later..."
-              class="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none font-mono text-sm"
-            ></textarea>
+            <label class="block text-sm font-medium text-slate-700 mb-2">Upload ZIP File *</label>
+            <div
+              class="border-2 border-dashed border-slate-300 rounded-xl p-8 text-center hover:border-blue-400 transition-colors cursor-pointer"
+              phx-drop-target={@uploads.dataset_file.ref}
+            >
+              <label for={@uploads.dataset_file.ref} class="cursor-pointer">
+                <div class="space-y-3">
+                  <div class="mx-auto w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center">
+                    <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                    </svg>
+                  </div>
+                  <div>
+                    <span class="text-base font-medium text-blue-600 hover:text-blue-700">Click to upload</span>
+                    <span class="text-base text-slate-600"> or drag and drop</span>
+                  </div>
+                  <p class="text-sm text-slate-500">Only ZIP files are accepted (Max 10GB)</p>
+                </div>
+                <.live_file_input upload={@uploads.dataset_file} class="hidden" />
+              </label>
+
+              <%= for entry <- @uploads.dataset_file.entries do %>
+                <div class="mt-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-4 border border-blue-200">
+                  <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-4">
+                      <div class="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                        </svg>
+                      </div>
+                      <div class="text-left">
+                        <p class="text-sm font-semibold text-slate-900"><%= entry.client_name %></p>
+                        <p class="text-xs text-slate-600"><%= Float.round(entry.client_size / 1024 / 1024, 2) %> MB</p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      phx-click="cancel_upload"
+                      phx-value-ref={entry.ref}
+                      class="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                    >
+                      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
+                  <div class="mt-3">
+                    <div class="bg-white rounded-full h-2 overflow-hidden">
+                      <div class="bg-blue-600 h-2 transition-all duration-300" style={"width: #{entry.progress}%"}></div>
+                    </div>
+                    <p class="text-xs text-slate-600 mt-1 text-right"><%= entry.progress %>% uploaded</p>
+                  </div>
+                </div>
+                <%= for err <- upload_errors(@uploads.dataset_file, entry) do %>
+                  <div class="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg">
+                    <p class="text-sm text-red-600 font-medium"><%= error_to_string(err) %></p>
+                  </div>
+                <% end %>
+              <% end %>
+            </div>
           </div>
 
           <div class="grid grid-cols-2 gap-4">
@@ -368,7 +416,7 @@
             />
           </div>
 
-          <div class="flex items-center justify-end space-x-3 pt-4">
+          <div class="flex items-center justify-end space-x-3 pt-4 border-t border-slate-100">
             <button
               type="button"
               phx-click="close_create_modal"
@@ -378,7 +426,8 @@
             </button>
             <button
               type="submit"
-              class="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-medium rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all shadow-lg"
+              disabled={length(@uploads.dataset_file.entries) == 0}
+              class="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-medium rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Create Dataset
             </button>
