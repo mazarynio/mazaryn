@@ -122,8 +122,8 @@ defmodule MazarynWeb.Router do
       live("/ai/models/new", AiLive.ModelNew, :new)
       live("/ai/models/:id", AiLive.ModelShow, :show)
       live("/ai/models/:id/edit", AiLive.ModelEdit, :edit)
+      live("/ai/models/:id/versions", AiLive.ModelVersions, :versions)
       live("/ai/models/:id/deploy", AiLive.ModelDeploy, :deploy)
-      live("/ai/models/:id/api", AiLive.ModelApi, :api)
 
       live("/ai/discussions", AiLive.Discussions, :index)
       live("/ai/discussions/new", AiLive.DiscussionNew, :new)

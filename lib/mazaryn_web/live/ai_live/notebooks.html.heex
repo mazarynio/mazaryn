@@ -1,0 +1,494 @@
+<.live_component
+  module={MazarynWeb.HomeLive.NavComponent}
+  id="navigation"
+  user={@user}
+  search={@search_query}
+  locale={@locale}
+/>
+
+<div class="min-h-screen bg-gradient-to-br from-slate-50 via-purple-50 to-pink-50">
+  <div class="max-w-7xl mx-auto px-6 py-8">
+    <div class="flex items-center justify-between mb-8">
+      <div class="flex items-center space-x-4">
+        <.link
+          navigate={~p"/#{@locale}/ai"}
+          class="flex items-center space-x-2 text-slate-500 hover:text-purple-600 transition-colors"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+          </svg>
+          <span class="font-medium">Back to AI Hub</span>
+        </.link>
+        <div class="w-px h-6 bg-slate-300"></div>
+        <div class="flex items-center space-x-3">
+          <div class="w-10 h-10 bg-gradient-to-br from-purple-600 to-pink-600 rounded-xl flex items-center justify-center">
+            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+            </svg>
+          </div>
+          <div>
+            <h1 class="text-2xl font-bold text-slate-900">Notebooks</h1>
+            <p class="text-sm text-slate-500">Create and share interactive code</p>
+          </div>
+        </div>
+      </div>
+
+      <button
+        phx-click="open_create_modal"
+        class="flex items-center space-x-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-medium rounded-xl hover:from-purple-700 hover:to-pink-700 transition-all shadow-lg shadow-purple-200 hover:shadow-xl hover:shadow-purple-300"
+      >
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+        </svg>
+        <span>New Notebook</span>
+      </button>
+    </div>
+
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-6">
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div class="relative flex-1 max-w-xl">
+          <input
+            type="text"
+            placeholder="Search notebooks by title, description, or tags..."
+            value={@search_query}
+            phx-keyup="search"
+            phx-debounce="300"
+            class="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all"
+          />
+          <svg class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+        </div>
+
+        <div class="flex items-center space-x-3">
+          <select
+            phx-change="filter_change"
+            name="filter"
+            class="px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-purple-500"
+          >
+            <option value="all" selected={@filter == "all"}>All Notebooks</option>
+            <option value="my" selected={@filter == "my"}>My Notebooks</option>
+            <option value="public" selected={@filter == "public"}>Public</option>
+            <option value="trending" selected={@filter == "trending"}>Trending</option>
+            <option value="featured" selected={@filter == "featured"}>Featured</option>
+            <option value="most_liked" selected={@filter == "most_liked"}>Most Liked</option>
+            <option value="most_forked" selected={@filter == "most_forked"}>Most Forked</option>
+            <optgroup label="By Language">
+              <option value="python" selected={@filter == "python"}>Python</option>
+              <option value="r" selected={@filter == "r"}>R</option>
+              <option value="julia" selected={@filter == "julia"}>Julia</option>
+              <option value="scala" selected={@filter == "scala"}>Scala</option>
+              <option value="sql" selected={@filter == "sql"}>SQL</option>
+            </optgroup>
+            <optgroup label="By Type">
+              <option value="analysis" selected={@filter == "analysis"}>Analysis</option>
+              <option value="tutorial" selected={@filter == "tutorial"}>Tutorial</option>
+              <option value="research" selected={@filter == "research"}>Research</option>
+              <option value="competition_submission" selected={@filter == "competition_submission"}>Competition</option>
+            </optgroup>
+          </select>
+
+          <select
+            phx-change="sort_change"
+            name="sort"
+            class="px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-purple-500"
+          >
+            <option value="recent" selected={@sort_by == "recent"}>Most Recent</option>
+            <option value="popular" selected={@sort_by == "popular"}>Most Popular</option>
+            <option value="likes" selected={@sort_by == "likes"}>Most Liked</option>
+            <option value="forks" selected={@sort_by == "forks"}>Most Forked</option>
+            <option value="executions" selected={@sort_by == "executions"}>Most Executed</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+      <div class="bg-white rounded-xl p-4 border border-slate-200">
+        <div class="flex items-center space-x-3">
+          <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+            <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+            </svg>
+          </div>
+          <div>
+            <div class="text-2xl font-bold text-slate-900"><%= length(@filtered_notebooks) %></div>
+            <div class="text-xs text-slate-500">Total Notebooks</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-xl p-4 border border-slate-200">
+        <div class="flex items-center space-x-3">
+          <div class="w-10 h-10 bg-pink-100 rounded-lg flex items-center justify-center">
+            <svg class="w-5 h-5 text-pink-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+            </svg>
+          </div>
+          <div>
+            <div class="text-2xl font-bold text-slate-900">
+              <%= @filtered_notebooks |> Enum.map(&Mazaryn.Schema.Notebook.like_count/1) |> Enum.sum() %>
+            </div>
+            <div class="text-xs text-slate-500">Total Likes</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-xl p-4 border border-slate-200">
+        <div class="flex items-center space-x-3">
+          <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+            <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+            </svg>
+          </div>
+          <div>
+            <div class="text-2xl font-bold text-slate-900">
+              <%= @filtered_notebooks |> Enum.map(& &1.fork_count) |> Enum.sum() %>
+            </div>
+            <div class="text-xs text-slate-500">Total Forks</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-xl p-4 border border-slate-200">
+        <div class="flex items-center space-x-3">
+          <div class="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center">
+            <svg class="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
+          </div>
+          <div>
+            <div class="text-2xl font-bold text-slate-900">
+              <%= @filtered_notebooks |> Enum.map(& &1.execution_count) |> Enum.sum() %>
+            </div>
+            <div class="text-xs text-slate-500">Executions</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <%= if length(@filtered_notebooks) == 0 do %>
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-12 text-center">
+        <div class="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+          <svg class="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+          </svg>
+        </div>
+        <h3 class="text-lg font-semibold text-slate-900 mb-2">No notebooks found</h3>
+        <p class="text-slate-500 mb-6">
+          <%= if @search_query != "" do %>
+            No notebooks match your search criteria. Try adjusting your filters.
+          <% else %>
+            Get started by creating your first notebook!
+          <% end %>
+        </p>
+        <button
+          phx-click="open_create_modal"
+          class="inline-flex items-center space-x-2 px-6 py-3 bg-purple-600 text-white font-medium rounded-xl hover:bg-purple-700 transition-colors"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+          </svg>
+          <span>Create Notebook</span>
+        </button>
+      </div>
+    <% else %>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <%= for notebook <- @filtered_notebooks do %>
+          <div class="bg-white rounded-2xl shadow-sm border border-slate-200 hover:shadow-lg transition-all duration-200 overflow-hidden group">
+            <div class="p-6">
+              <div class="flex items-start justify-between mb-4">
+                <div class="flex-1">
+                  <h3 class="text-lg font-semibold text-slate-900 group-hover:text-purple-600 transition-colors line-clamp-1">
+                    <%= notebook.title %>
+                  </h3>
+                  <div class="flex items-center space-x-2 mt-2">
+                    <span class={"px-2 py-1 text-xs font-medium rounded-full #{MazarynWeb.AiLive.Notebooks.language_color(notebook.language)}"}>
+                      <%= Mazaryn.Schema.Notebook.language_label(notebook) %>
+                    </span>
+                    <span class={"px-2 py-1 text-xs font-medium rounded-full #{MazarynWeb.AiLive.Notebooks.type_color(notebook.notebook_type)}"}>
+                      <%= Mazaryn.Schema.Notebook.type_label(notebook) %>
+                    </span>
+                    <%= if Mazaryn.Schema.Notebook.is_public?(notebook) do %>
+                      <span class="px-2 py-1 bg-green-100 text-green-700 text-xs font-medium rounded-full">Public</span>
+                    <% else %>
+                      <span class="px-2 py-1 bg-slate-100 text-slate-700 text-xs font-medium rounded-full">Private</span>
+                    <% end %>
+                  </div>
+                </div>
+              </div>
+
+              <p class="text-slate-600 text-sm mb-4 line-clamp-2">
+                <%= notebook.description || "No description available" %>
+              </p>
+
+              <%= if length(Mazaryn.Schema.Notebook.tags(notebook)) > 0 do %>
+                <div class="flex flex-wrap gap-2 mb-4">
+                  <%= for tag <- Enum.take(Mazaryn.Schema.Notebook.tags(notebook), 3) do %>
+                    <span class="px-2 py-1 bg-purple-50 text-purple-700 text-xs font-medium rounded-md">
+                      #<%= tag %>
+                    </span>
+                  <% end %>
+                  <%= if length(Mazaryn.Schema.Notebook.tags(notebook)) > 3 do %>
+                    <span class="px-2 py-1 bg-slate-100 text-slate-600 text-xs font-medium rounded-md">
+                      +<%= length(Mazaryn.Schema.Notebook.tags(notebook)) - 3 %> more
+                    </span>
+                  <% end %>
+                </div>
+              <% end %>
+
+              <div class="grid grid-cols-4 gap-2 mb-4 text-center">
+                <div>
+                  <div class="text-base font-semibold text-slate-900">
+                    <%= Mazaryn.Schema.Notebook.like_count(notebook) %>
+                  </div>
+                  <div class="text-xs text-slate-500">Likes</div>
+                </div>
+                <div>
+                  <div class="text-base font-semibold text-slate-900">
+                    <%= notebook.fork_count %>
+                  </div>
+                  <div class="text-xs text-slate-500">Forks</div>
+                </div>
+                <div>
+                  <div class="text-base font-semibold text-slate-900">
+                    <%= notebook.execution_count %>
+                  </div>
+                  <div class="text-xs text-slate-500">Runs</div>
+                </div>
+                <div>
+                  <div class="text-base font-semibold text-slate-900">
+                    <%= Mazaryn.Schema.Notebook.comment_count(notebook) %>
+                  </div>
+                  <div class="text-xs text-slate-500">Comments</div>
+                </div>
+              </div>
+
+              <%= if Mazaryn.Schema.Notebook.is_fork?(notebook) do %>
+                <div class="flex items-center space-x-2 mb-4 text-xs text-slate-500">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                  </svg>
+                  <span>Forked from another notebook</span>
+                </div>
+              <% end %>
+
+              <div class="flex items-center justify-between pt-4 border-t border-slate-100">
+                <div class="flex items-center space-x-2">
+                  <.link
+                    navigate={~p"/#{@locale}/ai/notebooks/#{notebook.id}"}
+                    class="px-4 py-2 bg-purple-600 text-white text-sm font-medium rounded-lg hover:bg-purple-700 transition-colors"
+                  >
+                    Open
+                  </.link>
+
+                  <%= if Mazaryn.Schema.Notebook.has_user_liked?(notebook, to_string(@user.id)) do %>
+                    <button
+                      phx-click="unlike_notebook"
+                      phx-value-id={notebook.id}
+                      class="p-2 text-pink-600 bg-pink-50 hover:bg-pink-100 rounded-lg transition-colors"
+                      title="Unlike"
+                    >
+                      <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24">
+                        <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+                      </svg>
+                    </button>
+                  <% else %>
+                    <button
+                      phx-click="like_notebook"
+                      phx-value-id={notebook.id}
+                      class="p-2 text-slate-400 hover:text-pink-600 hover:bg-pink-50 rounded-lg transition-colors"
+                      title="Like"
+                    >
+                      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                      </svg>
+                    </button>
+                  <% end %>
+
+                  <button
+                    phx-click="fork_notebook"
+                    phx-value-id={notebook.id}
+                    class="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                    title="Fork"
+                  >
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                    </svg>
+                  </button>
+                </div>
+
+                <%= if notebook.creator_id == to_string(@user.id) do %>
+                  <button
+                    phx-click="delete_notebook"
+                    phx-value-id={notebook.id}
+                    data-confirm="Are you sure you want to delete this notebook?"
+                    class="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                    title="Delete"
+                  >
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                  </button>
+                <% end %>
+              </div>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+</div>
+
+<%= if @show_create_modal do %>
+  <div class="fixed inset-0 z-50 overflow-y-auto" phx-click="close_create_modal">
+    <div class="flex items-center justify-center min-h-screen px-4">
+      <div class="fixed inset-0 bg-black bg-opacity-50 transition-opacity"></div>
+
+      <div class="relative bg-white rounded-2xl shadow-xl max-w-2xl w-full p-8 transform transition-all" phx-click="stop_propagation">
+        <div class="flex items-center justify-between mb-6">
+          <h2 class="text-2xl font-bold text-slate-900">Create New Notebook</h2>
+          <button
+            phx-click="close_create_modal"
+            class="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+          >
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        <form phx-submit="create_notebook" class="space-y-6">
+          <div>
+            <label class="block text-sm font-medium text-slate-700 mb-2">Notebook Title *</label>
+            <input
+              type="text"
+              name="notebook[title]"
+              required
+              placeholder="Enter notebook title"
+              class="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+            />
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-slate-700 mb-2">Description</label>
+            <textarea
+              name="notebook[description]"
+              rows="3"
+              placeholder="Describe what this notebook does..."
+              class="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 resize-none"
+            ></textarea>
+          </div>
+
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-slate-700 mb-2">Language *</label>
+              <select
+                name="notebook[language]"
+                required
+                class="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+              >
+                <option value="python">Python</option>
+                <option value="r">R</option>
+                <option value="julia">Julia</option>
+                <option value="scala">Scala</option>
+                <option value="sql">SQL</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-slate-700 mb-2">Kernel *</label>
+              <select
+                name="notebook[kernel]"
+                required
+                class="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+              >
+                <option value="python3">Python 3</option>
+                <option value="ir">R</option>
+                <option value="ijulia">Julia</option>
+                <option value="scala">Scala</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-slate-700 mb-2">Notebook Type</label>
+              <select
+                name="notebook[type]"
+                class="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+              >
+                <option value="analysis" selected>Analysis</option>
+                <option value="tutorial">Tutorial</option>
+                <option value="research">Research</option>
+                <option value="competition_submission">Competition Submission</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-slate-700 mb-2">Visibility</label>
+              <select
+                name="notebook[visibility]"
+                class="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+              >
+                <option value="public" selected>Public</option>
+                <option value="private">Private</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-slate-700 mb-2">Python Version</label>
+            <select
+              name="notebook[python_version]"
+              class="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+            >
+              <option value="3.10" selected>Python 3.10</option>
+              <option value="3.11">Python 3.11</option>
+              <option value="3.12">Python 3.12</option>
+            </select>
+          </div>
+
+          <div class="flex items-center space-x-3">
+            <input
+              type="checkbox"
+              id="gpu_enabled"
+              name="notebook[gpu_enabled]"
+              value="true"
+              class="w-4 h-4 text-purple-600 border-slate-300 rounded focus:ring-purple-500"
+            />
+            <label for="gpu_enabled" class="text-sm text-slate-700">
+              Enable GPU acceleration (uses GPU quota)
+            </label>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-slate-700 mb-2">Tags (comma-separated)</label>
+            <input
+              type="text"
+              name="notebook[tags]"
+              placeholder="machine-learning, visualization, data-analysis"
+              class="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+            />
+          </div>
+
+          <div class="flex items-center justify-end space-x-3 pt-4 border-t border-slate-100">
+            <button
+              type="button"
+              phx-click="close_create_modal"
+              class="px-6 py-3 text-slate-700 font-medium hover:bg-slate-100 rounded-xl transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              class="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-medium rounded-xl hover:from-purple-700 hover:to-pink-700 transition-all shadow-lg"
+            >
+              Create Notebook
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+<% end %>

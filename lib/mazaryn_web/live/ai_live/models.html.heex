@@ -1,0 +1,519 @@
+<.live_component
+  module={MazarynWeb.HomeLive.NavComponent}
+  id="navigation"
+  user={@user}
+  search={@search_query}
+  locale={@locale}
+/>
+
+<div class="min-h-screen bg-gradient-to-br from-slate-50 via-amber-50 to-orange-50">
+  <div class="max-w-7xl mx-auto px-6 py-8">
+    <div class="flex items-center justify-between mb-8">
+      <div class="flex items-center space-x-4">
+        <.link
+          navigate={~p"/#{@locale}/ai"}
+          class="flex items-center space-x-2 text-slate-500 hover:text-orange-600 transition-colors"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+          </svg>
+          <span class="font-medium">Back to AI Hub</span>
+        </.link>
+        <div class="w-px h-6 bg-slate-300"></div>
+        <div class="flex items-center space-x-3">
+          <div class="w-10 h-10 bg-gradient-to-br from-orange-600 to-amber-600 rounded-xl flex items-center justify-center">
+            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+            </svg>
+          </div>
+          <div>
+            <h1 class="text-2xl font-bold text-slate-900">Models</h1>
+            <p class="text-sm text-slate-500">Train, deploy, and share AI models</p>
+          </div>
+        </div>
+      </div>
+
+      <button
+        phx-click="open_create_modal"
+        class="flex items-center space-x-2 px-6 py-3 bg-gradient-to-r from-orange-600 to-amber-600 text-white font-medium rounded-xl hover:from-orange-700 hover:to-amber-700 transition-all shadow-lg shadow-orange-200 hover:shadow-xl hover:shadow-orange-300"
+      >
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+        </svg>
+        <span>Upload Model</span>
+      </button>
+    </div>
+
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-6">
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div class="relative flex-1 max-w-xl">
+          <input
+            type="text"
+            placeholder="Search models by name, description, or tags..."
+            value={@search_query}
+            phx-keyup="search"
+            phx-debounce="300"
+            class="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all"
+          />
+          <svg class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+        </div>
+
+        <div class="flex items-center space-x-3">
+          <select
+            phx-change="filter_change"
+            name="filter"
+            class="px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-orange-500"
+          >
+            <option value="all" selected={@filter == "all"}>All Models</option>
+            <option value="my" selected={@filter == "my"}>My Models</option>
+            <option value="public" selected={@filter == "public"}>Public</option>
+            <option value="trending" selected={@filter == "trending"}>Trending</option>
+            <option value="featured" selected={@filter == "featured"}>Featured</option>
+            <optgroup label="By Framework">
+              <option value="tensorflow" selected={@filter == "tensorflow"}>TensorFlow</option>
+              <option value="pytorch" selected={@filter == "pytorch"}>PyTorch</option>
+              <option value="keras" selected={@filter == "keras"}>Keras</option>
+              <option value="scikit_learn" selected={@filter == "scikit_learn"}>Scikit-learn</option>
+              <option value="xgboost" selected={@filter == "xgboost"}>XGBoost</option>
+              <option value="onnx" selected={@filter == "onnx"}>ONNX</option>
+              <option value="huggingface" selected={@filter == "huggingface"}>HuggingFace</option>
+            </optgroup>
+            <optgroup label="By Task">
+              <option value="classification" selected={@filter == "classification"}>Classification</option>
+              <option value="regression" selected={@filter == "regression"}>Regression</option>
+              <option value="object_detection" selected={@filter == "object_detection"}>Object Detection</option>
+              <option value="segmentation" selected={@filter == "segmentation"}>Segmentation</option>
+              <option value="nlp" selected={@filter == "nlp"}>NLP</option>
+              <option value="generation" selected={@filter == "generation"}>Generation</option>
+              <option value="reinforcement_learning" selected={@filter == "reinforcement_learning"}>RL</option>
+            </optgroup>
+          </select>
+
+          <select
+            phx-change="sort_change"
+            name="sort"
+            class="px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-orange-500"
+          >
+            <option value="recent" selected={@sort_by == "recent"}>Most Recent</option>
+            <option value="popular" selected={@sort_by == "popular"}>Most Popular</option>
+            <option value="rating" selected={@sort_by == "rating"}>Highest Rated</option>
+            <option value="downloads" selected={@sort_by == "downloads"}>Most Downloads</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+      <div class="bg-white rounded-xl p-4 border border-slate-200">
+        <div class="flex items-center space-x-3">
+          <div class="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
+            <svg class="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+            </svg>
+          </div>
+          <div>
+            <div class="text-2xl font-bold text-slate-900"><%= length(@filtered_models) %></div>
+            <div class="text-xs text-slate-500">Total Models</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-xl p-4 border border-slate-200">
+        <div class="flex items-center space-x-3">
+          <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+            <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
+            </svg>
+          </div>
+          <div>
+            <div class="text-2xl font-bold text-slate-900">
+              <%= @filtered_models |> Enum.map(& &1.downloads) |> Enum.sum() %>
+            </div>
+            <div class="text-xs text-slate-500">Total Downloads</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-xl p-4 border border-slate-200">
+        <div class="flex items-center space-x-3">
+          <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+            <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+            </svg>
+          </div>
+          <div>
+            <div class="text-2xl font-bold text-slate-900">
+              <%= @filtered_models |> Enum.map(&Mazaryn.Schema.Model.average_rating/1) |> then(fn ratings -> if length(ratings) > 0, do: Float.round(Enum.sum(ratings) / length(ratings), 1), else: 0.0 end) %>
+            </div>
+            <div class="text-xs text-slate-500">Avg Rating</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-xl p-4 border border-slate-200">
+        <div class="flex items-center space-x-3">
+          <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+            <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01" />
+            </svg>
+          </div>
+          <div>
+            <div class="text-2xl font-bold text-slate-900">
+              <%= @filtered_models |> Enum.filter(&Mazaryn.Schema.Model.is_deployed?/1) |> length() %>
+            </div>
+            <div class="text-xs text-slate-500">Deployed</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <%= if length(@filtered_models) == 0 do %>
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-12 text-center">
+        <div class="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+          <svg class="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+          </svg>
+        </div>
+        <h3 class="text-lg font-semibold text-slate-900 mb-2">No models found</h3>
+        <p class="text-slate-500 mb-6">
+          <%= if @search_query != "" do %>
+            No models match your search criteria. Try adjusting your filters.
+          <% else %>
+            Get started by uploading your first model!
+          <% end %>
+        </p>
+        <button
+          phx-click="open_create_modal"
+          class="inline-flex items-center space-x-2 px-6 py-3 bg-orange-600 text-white font-medium rounded-xl hover:bg-orange-700 transition-colors"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+          </svg>
+          <span>Upload Model</span>
+        </button>
+      </div>
+    <% else %>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <%= for model <- @filtered_models do %>
+          <div class="bg-white rounded-2xl shadow-sm border border-slate-200 hover:shadow-lg transition-all duration-200 overflow-hidden group">
+            <div class="p-6">
+              <div class="flex items-start justify-between mb-4">
+                <div class="flex-1">
+                  <h3 class="text-lg font-semibold text-slate-900 group-hover:text-orange-600 transition-colors line-clamp-1">
+                    <%= model.title %>
+                  </h3>
+                  <div class="flex items-center space-x-2 mt-2">
+                    <span class={"px-2 py-1 text-xs font-medium rounded-full #{MazarynWeb.AiLive.Models.framework_color(model.framework)}"}>
+                      <%= String.replace(model.framework || "unknown", "_", " ") |> String.capitalize() %>
+                    </span>
+                    <span class={"px-2 py-1 text-xs font-medium rounded-full #{MazarynWeb.AiLive.Models.task_color(model.task_type)}"}>
+                      <%= String.replace(to_string(model.task_type || "unknown"), "_", " ") |> String.capitalize() %>
+                    </span>
+                  </div>
+                </div>
+                <div class="flex flex-col items-end space-y-2">
+                  <%= if Mazaryn.Schema.Model.is_public?(model) do %>
+                    <span class="px-2 py-1 bg-green-100 text-green-700 text-xs font-medium rounded-full">Public</span>
+                  <% else %>
+                    <span class="px-2 py-1 bg-slate-100 text-slate-700 text-xs font-medium rounded-full">Private</span>
+                  <% end %>
+                  <%= if Mazaryn.Schema.Model.is_deployed?(model) do %>
+                    <span class="px-2 py-1 bg-blue-100 text-blue-700 text-xs font-medium rounded-full flex items-center space-x-1">
+                      <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                        <circle cx="10" cy="10" r="3" />
+                      </svg>
+                      <span>Deployed</span>
+                    </span>
+                  <% end %>
+                </div>
+              </div>
+
+              <p class="text-slate-600 text-sm mb-4 line-clamp-2">
+                <%= model.description || "No description available" %>
+              </p>
+
+              <%= if length(model.tags || []) > 0 do %>
+                <div class="flex flex-wrap gap-2 mb-4">
+                  <%= for tag <- Enum.take(model.tags, 3) do %>
+                    <span class="px-2 py-1 bg-orange-50 text-orange-700 text-xs font-medium rounded-md">
+                      <%= tag %>
+                    </span>
+                  <% end %>
+                  <%= if length(model.tags) > 3 do %>
+                    <span class="px-2 py-1 bg-slate-100 text-slate-600 text-xs font-medium rounded-md">
+                      +<%= length(model.tags) - 3 %> more
+                    </span>
+                  <% end %>
+                </div>
+              <% end %>
+
+              <div class="grid grid-cols-3 gap-4 mb-4 text-center">
+                <div>
+                  <div class="text-lg font-semibold text-slate-900"><%= model.downloads %></div>
+                  <div class="text-xs text-slate-500">Downloads</div>
+                </div>
+                <div>
+                  <div class="text-lg font-semibold text-slate-900">
+                    <%= Float.round(Mazaryn.Schema.Model.average_rating(model), 1) %>
+                  </div>
+                  <div class="text-xs text-slate-500">Rating</div>
+                </div>
+                <div>
+                  <div class="text-lg font-semibold text-slate-900">
+                    <%= Mazaryn.Schema.Model.format_size(model) %>
+                  </div>
+                  <div class="text-xs text-slate-500">Size</div>
+                </div>
+              </div>
+
+              <%= if Mazaryn.Schema.Model.has_endpoint?(model) do %>
+                <div class="flex items-center space-x-2 mb-4 px-3 py-2 bg-blue-50 border border-blue-200 rounded-lg">
+                  <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  </svg>
+                  <span class="text-xs text-blue-700 font-medium">API Available</span>
+                </div>
+              <% end %>
+
+              <div class="flex items-center justify-between pt-4 border-t border-slate-100">
+                <div class="flex items-center space-x-2">
+                  <.link
+                    navigate={~p"/#{@locale}/ai/models/#{model.id}"}
+                    class="px-4 py-2 bg-orange-600 text-white text-sm font-medium rounded-lg hover:bg-orange-700 transition-colors"
+                  >
+                    View Details
+                  </.link>
+                  <button
+                    phx-click="download_model"
+                    phx-value-id={model.id}
+                    class="p-2 text-slate-400 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition-colors"
+                    title="Download"
+                  >
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                    </svg>
+                  </button>
+                </div>
+
+                <%= if model.creator_id == to_string(@user.id) do %>
+                  <button
+                    phx-click="delete_model"
+                    phx-value-id={model.id}
+                    data-confirm="Are you sure you want to delete this model?"
+                    class="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                    title="Delete"
+                  >
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                  </button>
+                <% end %>
+              </div>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+</div>
+
+<%= if @show_create_modal do %>
+  <div class="fixed inset-0 z-50 overflow-y-auto" phx-click="close_create_modal">
+    <div class="flex items-center justify-center min-h-screen px-4">
+      <div class="fixed inset-0 bg-black bg-opacity-50 transition-opacity"></div>
+
+      <div class="relative bg-white rounded-2xl shadow-xl max-w-2xl w-full p-8 transform transition-all" phx-click="stop_propagation">
+        <div class="flex items-center justify-between mb-6">
+          <h2 class="text-2xl font-bold text-slate-900">Upload New Model</h2>
+          <button
+            phx-click="close_create_modal"
+            class="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+          >
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        <form phx-submit="create_model" phx-change="validate_upload" class="space-y-6">
+          <div>
+            <label class="block text-sm font-medium text-slate-700 mb-2">Model Title *</label>
+            <input
+              type="text"
+              name="model[title]"
+              required
+              placeholder="Enter model title"
+              class="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+            />
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-slate-700 mb-2">Description</label>
+            <textarea
+              name="model[description]"
+              rows="4"
+              placeholder="Describe your model..."
+              class="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 resize-none"
+            ></textarea>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-slate-700 mb-2">Upload Model File *</label>
+            <div
+              class="border-2 border-dashed border-slate-300 rounded-xl p-8 text-center hover:border-orange-400 transition-colors cursor-pointer"
+              phx-drop-target={@uploads.model_file.ref}
+            >
+              <label for={@uploads.model_file.ref} class="cursor-pointer">
+                <div class="space-y-3">
+                  <div class="mx-auto w-16 h-16 bg-orange-50 rounded-full flex items-center justify-center">
+                    <svg class="w-8 h-8 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                    </svg>
+                  </div>
+                  <div>
+                    <span class="text-base font-medium text-orange-600 hover:text-orange-700">Click to upload</span>
+                    <span class="text-base text-slate-600"> or drag and drop</span>
+                  </div>
+                  <p class="text-sm text-slate-500">.h5, .pt, .pth, .pb, .onnx, .pkl, .joblib, .zip (Max 10GB)</p>
+                </div>
+                <.live_file_input upload={@uploads.model_file} class="hidden" />
+              </label>
+
+              <%= for entry <- @uploads.model_file.entries do %>
+                <div class="mt-6 bg-gradient-to-r from-orange-50 to-amber-50 rounded-xl p-4 border border-orange-200">
+                  <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-4">
+                      <div class="w-12 h-12 bg-orange-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                        </svg>
+                      </div>
+                      <div class="text-left">
+                        <p class="text-sm font-semibold text-slate-900"><%= entry.client_name %></p>
+                        <p class="text-xs text-slate-600"><%= Float.round(entry.client_size / 1024 / 1024, 2) %> MB</p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      phx-click="cancel_upload"
+                      phx-value-ref={entry.ref}
+                      class="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                    >
+                      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
+                  <div class="mt-3">
+                    <div class="bg-white rounded-full h-2 overflow-hidden">
+                      <div class="bg-orange-600 h-2 transition-all duration-300" style={"width: #{entry.progress}%"}></div>
+                    </div>
+                    <p class="text-xs text-slate-600 mt-1 text-right"><%= entry.progress %>% uploaded</p>
+                  </div>
+                </div>
+                <%= for err <- upload_errors(@uploads.model_file, entry) do %>
+                  <div class="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg">
+                    <p class="text-sm text-red-600 font-medium"><%= error_to_string(err) %></p>
+                  </div>
+                <% end %>
+              <% end %>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-slate-700 mb-2">Framework *</label>
+              <select
+                name="model[framework]"
+                required
+                class="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+              >
+                <option value="pytorch">PyTorch</option>
+                <option value="tensorflow">TensorFlow</option>
+                <option value="keras">Keras</option>
+                <option value="scikit_learn">Scikit-learn</option>
+                <option value="xgboost">XGBoost</option>
+                <option value="onnx">ONNX</option>
+                <option value="huggingface">HuggingFace</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-slate-700 mb-2">Task Type *</label>
+              <select
+                name="model[task_type]"
+                required
+                class="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+              >
+                <option value="classification">Classification</option>
+                <option value="regression">Regression</option>
+                <option value="object_detection">Object Detection</option>
+                <option value="segmentation">Segmentation</option>
+                <option value="nlp">NLP</option>
+                <option value="generation">Generation</option>
+                <option value="reinforcement_learning">Reinforcement Learning</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-slate-700 mb-2">License</label>
+              <select
+                name="model[license]"
+                class="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+              >
+                <option value="MIT">MIT License</option>
+                <option value="Apache-2.0">Apache 2.0</option>
+                <option value="GPL-3.0">GPL 3.0</option>
+                <option value="BSD-3-Clause">BSD 3-Clause</option>
+                <option value="CC-BY-4.0">CC BY 4.0</option>
+                <option value="proprietary">Proprietary</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-slate-700 mb-2">Visibility</label>
+              <select
+                name="model[visibility]"
+                class="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+              >
+                <option value="public">Public</option>
+                <option value="private">Private</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-slate-700 mb-2">Tags (comma-separated)</label>
+            <input
+              type="text"
+              name="model[tags]"
+              placeholder="machine-learning, image-classification, resnet"
+              class="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+            />
+          </div>
+
+          <div class="flex items-center justify-end space-x-3 pt-4 border-t border-slate-100">
+            <button
+              type="button"
+              phx-click="close_create_modal"
+              class="px-6 py-3 text-slate-700 font-medium hover:bg-slate-100 rounded-xl transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={length(@uploads.model_file.entries) == 0}
+              class="px-6 py-3 bg-gradient-to-r from-orange-600 to-amber-600 text-white font-medium rounded-xl hover:from-orange-700 hover:to-amber-700 transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Upload Model
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+<% end %>
