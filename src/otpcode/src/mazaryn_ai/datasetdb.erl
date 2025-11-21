@@ -20,7 +20,6 @@
     get_dataset_sample/1,
     get_dataset_schema/1,
     get_dataset_metadata/1,
-    download_dataset/2,
 
     create_dataset_version/4,
     get_dataset_versions/1,
@@ -70,7 +69,13 @@
 
     validate_dataset_file/1,
     get_supported_formats/0,
-    extract_zip_metadata/1
+    extract_zip_metadata/1,
+
+    download_dataset/2,
+    download_dataset/3,
+    schedule_dataset_download/3,
+    get_dataset_download_status/1,
+    cancel_dataset_download/1
 ]).
 
 -include("../ml_records.hrl").
@@ -676,10 +681,6 @@ get_dataset_metadata(DatasetId) ->
         {atomic, Result} -> Result;
         {aborted, Reason} -> {error, {transaction_failed, Reason}}
     end.
-
-download_dataset(DatasetId, _UserId) ->
-    increment_download_count(DatasetId),
-    get_dataset_content(DatasetId).
 
     create_dataset_version(DatasetId, UserId, NewContent, ChangeDescription) ->
         Fun = fun() ->
@@ -2027,3 +2028,57 @@ upload_dataset_update(DatasetId, Content, Metadata) ->
 
     generate_schema(_Content) ->
         "".
+
+        download_dataset(DatasetId, UserId) ->
+            download_dataset(DatasetId, UserId, #{}).
+
+        download_dataset(DatasetId, UserId, Options) ->
+            DestinationDir = maps:get(destination_dir, Options, "/tmp/mazaryn_downloads/" ++ UserId),
+
+            case download_manager_client:download_dataset(DatasetId, UserId, DestinationDir, Options) of
+                {ok, DownloadId} ->
+                    Fun = fun() ->
+                        case mnesia:read({dataset, DatasetId}) of
+                            [] -> {error, dataset_not_found};
+                            [Dataset] ->
+                                Metadata = Dataset#dataset.metadata,
+                                UpdatedMetadata = maps:put(last_download, #{
+                                    download_id => DownloadId,
+                                    user_id => UserId,
+                                    timestamp => calendar:universal_time()
+                                }, Metadata),
+
+                                mnesia:write(Dataset#dataset{
+                                    metadata = UpdatedMetadata,
+                                    downloads = Dataset#dataset.downloads + 1
+                                }),
+                                {ok, DownloadId}
+                        end
+                    end,
+
+                    case mnesia:transaction(Fun) of
+                        {atomic, Result} -> Result;
+                        {aborted, Reason} -> {error, {transaction_failed, Reason}}
+                    end;
+                Error ->
+                    Error
+            end.
+
+        schedule_dataset_download(DatasetId, UserId, ScheduleTime) ->
+            erlang:send_after(
+                calculate_delay(ScheduleTime),
+                self(),
+                {scheduled_download, DatasetId, UserId}
+            ),
+            ok.
+
+        get_dataset_download_status(DownloadId) ->
+            download_manager_client:get_download_status(DownloadId).
+
+        cancel_dataset_download(DownloadId) ->
+            download_manager_client:cancel_download(DownloadId).
+
+        calculate_delay(ScheduleTime) ->
+            Now = calendar:datetime_to_gregorian_seconds(calendar:universal_time()),
+            Schedule = calendar:datetime_to_gregorian_seconds(ScheduleTime),
+            max(0, (Schedule - Now) * 1000).

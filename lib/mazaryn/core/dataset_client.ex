@@ -159,10 +159,6 @@ defmodule Core.DatasetClient do
     :datasetdb.get_dataset_metadata(dataset_id)
   end
 
-  def download_dataset(dataset_id, user_id) do
-    :datasetdb.download_dataset(dataset_id, user_id)
-  end
-
   def create_dataset_version(dataset_id, user_id, new_content, change_description) do
     :datasetdb.create_dataset_version(dataset_id, user_id, new_content, change_description)
   end
@@ -317,5 +313,29 @@ defmodule Core.DatasetClient do
 
   def extract_zip_metadata(zip_content) do
     :datasetdb.extract_zip_metadata(zip_content)
+  end
+
+  def download_dataset(dataset_id, user_id) do
+    :datasetdb.download_dataset(dataset_id, user_id)
+  end
+
+  def download_dataset(dataset_id, user_id, options) do
+    :datasetdb.download_dataset(dataset_id, user_id, options)
+  end
+
+  def schedule_dataset_download(dataset_id, user_id, schedule_time) do
+    :datasetdb.schedule_dataset_download(dataset_id, user_id, schedule_time)
+  end
+
+  def get_dataset_download_status(download_id) do
+     :datasetdb.get_dataset_download_status(download_id)
+  end
+
+  def cancel_dataset_download(download_id) do
+    :datasetdb.cancel_dataset_download(download_id)
+  end
+
+  def calculate_dela(schedule_time) do
+    :datasetdb.calculate_dela(schedule_time)
   end
 end

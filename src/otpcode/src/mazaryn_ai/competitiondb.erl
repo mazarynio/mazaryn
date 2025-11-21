@@ -89,7 +89,12 @@
     get_user_competition_stats/1,
 
     link_notebook_to_submission/2,
-    get_submission_notebook/1
+    get_submission_notebook/1,
+
+    download_competition_datasets/2,
+    download_competition_datasets/3,
+    bulk_download_competition_datasets/2,
+    get_competition_download_progress/2
 ]).
 
 -include("../ml_records.hrl").
@@ -2183,3 +2188,68 @@ is_participant(CompetitionId, UserId) ->
             Seconds = calendar:datetime_to_gregorian_seconds(DateTime),
             NewSeconds = Seconds + (Days * 86400),
             calendar:gregorian_seconds_to_datetime(NewSeconds).
+
+            download_competition_datasets(CompetitionId, UserId) ->
+                download_competition_datasets(CompetitionId, UserId, #{}).
+
+            download_competition_datasets(CompetitionId, UserId, Options) ->
+                Fun = fun() ->
+                    case mnesia:read({competition, CompetitionId}) of
+                        [] ->
+                            {error, competition_not_found};
+                        [Competition] ->
+                            case lists:member(UserId, Competition#competition.participants) of
+                                false ->
+                                    {error, not_a_participant};
+                                true ->
+                                    DatasetIds = Competition#competition.dataset_ids,
+                                    {ok, DatasetIds}
+                            end
+                    end
+                end,
+
+                case mnesia:transaction(Fun) of
+                    {atomic, {ok, DatasetIds}} ->
+                        DestinationDir = maps:get(
+                            destination_dir,
+                            Options,
+                            "/tmp/mazaryn_downloads/" ++ UserId ++ "/" ++ CompetitionId
+                        ),
+
+                        Results = lists:map(fun(DatasetId) ->
+                            download_manager_client:download_competition_dataset(
+                                CompetitionId,
+                                DatasetId,
+                                UserId,
+                                DestinationDir,
+                                Options
+                            )
+                        end, DatasetIds),
+
+                        {ok, lists:zip(DatasetIds, Results)};
+                    {atomic, {error, Reason}} ->
+                        {error, Reason};
+                    {aborted, Reason} ->
+                        {error, {transaction_failed, Reason}}
+                end.
+
+            bulk_download_competition_datasets(CompetitionId, UserId) ->
+                case get_competition_datasets(CompetitionId) of
+                    Datasets when is_list(Datasets) ->
+                        DatasetIds = [D#dataset.id || D <- Datasets],
+                        download_manager_client:bulk_download_datasets(DatasetIds, UserId);
+                    Error ->
+                        Error
+                end.
+
+            get_competition_download_progress(CompetitionId, UserId) ->
+                case download_manager_client:list_user_downloads(UserId) of
+                    {ok, Downloads} ->
+                        CompetitionDownloads = lists:filter(fun(Info) ->
+                            maps:get(competition_id, Info, null) =:= CompetitionId
+                        end, Downloads),
+
+                        {ok, CompetitionDownloads};
+                    Error ->
+                        Error
+                end.

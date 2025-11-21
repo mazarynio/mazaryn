@@ -1,0 +1,580 @@
+<.live_component
+  module={MazarynWeb.HomeLive.NavComponent}
+  id="navigation"
+  user={@user}
+  search={@search_query}
+  locale={@locale}
+/>
+
+<div class="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+  <div class="max-w-7xl mx-auto px-6 py-8">
+    <div class="flex items-center justify-between mb-8">
+      <div class="flex items-center space-x-4">
+        <.link
+          navigate={~p"/#{@locale}/ai"}
+          class="flex items-center space-x-2 text-slate-500 hover:text-violet-600 transition-colors"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+          </svg>
+          <span class="font-medium">Back to AI Hub</span>
+        </.link>
+        <div class="w-px h-6 bg-slate-300"></div>
+        <div class="flex items-center space-x-3">
+          <div class="w-10 h-10 bg-gradient-to-br from-violet-600 to-purple-600 rounded-xl flex items-center justify-center">
+            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+            </svg>
+          </div>
+          <div>
+            <h1 class="text-2xl font-bold text-slate-900">Download Manager</h1>
+            <p class="text-sm text-slate-500">Manage your downloads efficiently</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-6">
+      <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+        <div class="relative flex-1 max-w-xl">
+          <input
+            type="text"
+            placeholder="Search downloads by name, dataset, or URL..."
+            value={@search_query}
+            phx-keyup="search"
+            phx-debounce="300"
+            class="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-violet-500 transition-all"
+          />
+          <svg class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+        </div>
+
+        <div class="flex items-center space-x-3">
+          <select
+            phx-change="filter_change"
+            name="filter"
+            class="px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-violet-500"
+          >
+            <option value="all" selected={@active_filter == "all"}>All Downloads</option>
+            <option value="active" selected={@active_filter == "active"}>Active</option>
+            <option value="completed" selected={@active_filter == "completed"}>Completed</option>
+            <option value="paused" selected={@active_filter == "paused"}>Paused</option>
+            <option value="failed" selected={@active_filter == "failed"}>Failed</option>
+          </select>
+
+          <select
+            phx-change="sort_change"
+            name="sort"
+            class="px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-violet-500"
+          >
+            <option value="recent" selected={@sort_by == "recent"}>Most Recent</option>
+            <option value="progress" selected={@sort_by == "progress"}>By Progress</option>
+            <option value="size" selected={@sort_by == "size"}>By Size</option>
+            <option value="speed" selected={@sort_by == "speed"}>By Speed</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <%= if length(@selected_downloads) > 0 do %>
+      <div class="bg-gradient-to-r from-violet-600 to-purple-600 rounded-2xl shadow-lg p-6 mb-6 animate-slideDown">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center space-x-4">
+            <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
+              <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+              </svg>
+            </div>
+            <div>
+              <h3 class="text-lg font-bold text-white"><%= length(@selected_downloads) %> downloads selected</h3>
+              <p class="text-sm text-white/80">Perform bulk actions on selected items</p>
+            </div>
+          </div>
+          <div class="flex items-center space-x-3">
+            <button
+              phx-click="bulk_pause"
+              class="px-4 py-2 bg-white/20 hover:bg-white/30 text-white font-medium rounded-lg transition-colors"
+            >
+              <span class="flex items-center space-x-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span>Pause</span>
+              </span>
+            </button>
+            <button
+              phx-click="bulk_cancel"
+              class="px-4 py-2 bg-white/20 hover:bg-white/30 text-white font-medium rounded-lg transition-colors"
+            >
+              <span class="flex items-center space-x-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+                <span>Cancel</span>
+              </span>
+            </button>
+            <button
+              phx-click="bulk_delete"
+              class="px-4 py-2 bg-red-500 hover:bg-red-600 text-white font-medium rounded-lg transition-colors"
+            >
+              <span class="flex items-center space-x-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+                <span>Delete</span>
+              </span>
+            </button>
+            <button
+              phx-click="deselect_all"
+              class="p-2 text-white/60 hover:text-white hover:bg-white/20 rounded-lg transition-colors"
+              title="Clear selection"
+            >
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    <% end %>
+
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+      <div class="bg-white rounded-xl p-4 border border-slate-200">
+        <div class="flex items-center space-x-3">
+          <div class="w-10 h-10 bg-violet-100 rounded-lg flex items-center justify-center">
+            <svg class="w-5 h-5 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+            </svg>
+          </div>
+          <div>
+            <div class="text-2xl font-bold text-slate-900"><%= length(@downloads) %></div>
+            <div class="text-xs text-slate-500">Total Downloads</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-xl p-4 border border-slate-200">
+        <div class="flex items-center space-x-3">
+          <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+            <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
+          </div>
+          <div>
+            <div class="text-2xl font-bold text-slate-900">
+              <%= Enum.count(@downloads, fn d -> d.status in ["Downloading", "Pending", "Queued"] end) %>
+            </div>
+            <div class="text-xs text-slate-500">Active</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-xl p-4 border border-slate-200">
+        <div class="flex items-center space-x-3">
+          <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+            <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <div>
+            <div class="text-2xl font-bold text-slate-900">
+              <%= Enum.count(@downloads, fn d -> d.status == "Completed" end) %>
+            </div>
+            <div class="text-xs text-slate-500">Completed</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-xl p-4 border border-slate-200">
+        <div class="flex items-center space-x-3">
+          <div class="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center">
+            <svg class="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+            </svg>
+          </div>
+          <div>
+            <div class="text-2xl font-bold text-slate-900">
+              <%= MazarynWeb.DownloadManagerLive.Index.format_bytes(Enum.reduce(@downloads, 0, fn d, acc -> acc + (d.downloaded_size || 0) end)) %>
+            </div>
+            <div class="text-xs text-slate-500">Total Downloaded</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <%= if length(@downloads) == 0 do %>
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-12 text-center">
+        <div class="w-20 h-20 bg-gradient-to-br from-violet-100 to-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+          <svg class="w-10 h-10 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+          </svg>
+        </div>
+        <h3 class="text-xl font-bold text-slate-900 mb-2">No downloads yet</h3>
+        <p class="text-slate-500 mb-6 max-w-md mx-auto">
+          <%= if @search_query != "" do %>
+            No downloads match your search criteria. Try adjusting your filters.
+          <% else %>
+            Start downloading datasets, competition files, or notebooks from the AI Hub!
+          <% end %>
+        </p>
+        <.link
+          navigate={~p"/#{@locale}/ai/datasets"}
+          class="inline-flex items-center space-x-2 px-6 py-3 bg-gradient-to-r from-violet-600 to-purple-600 text-white font-medium rounded-xl hover:from-violet-700 hover:to-purple-700 transition-all shadow-lg"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4" />
+          </svg>
+          <span>Browse Datasets</span>
+        </.link>
+      </div>
+    <% else %>
+      <div class="space-y-4">
+        <%= for download <- @downloads do %>
+          <% color = MazarynWeb.DownloadManagerLive.Index.status_color(download.status) %>
+          <div class={"bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden transition-all hover:shadow-md #{if Enum.member?(@selected_downloads, download.id), do: "ring-2 ring-#{color}-500"}"}>
+            <div class="p-6">
+              <div class="flex items-start gap-4">
+                <div class="flex-shrink-0 pt-1">
+                  <input
+                    type="checkbox"
+                    checked={Enum.member?(@selected_downloads, download.id)}
+                    phx-click="toggle_select"
+                    phx-value-id={download.id}
+                    class="w-5 h-5 text-violet-600 bg-slate-100 border-slate-300 rounded focus:ring-2 focus:ring-violet-500 cursor-pointer"
+                  />
+                </div>
+
+                <div class={"flex-shrink-0 w-14 h-14 bg-gradient-to-br from-#{color}-500 to-#{color}-600 rounded-xl flex items-center justify-center"}>
+                  <%= raw(MazarynWeb.DownloadManagerLive.Index.status_icon(download.status)) %>
+                </div>
+
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-start justify-between mb-2">
+                    <div class="flex-1 min-w-0">
+                      <h3 class="text-lg font-semibold text-slate-900 truncate">
+                        <%= MazarynWeb.DownloadManagerLive.Index.filename_from_destination(download.destination) %>
+                      </h3>
+                      <p class="text-sm text-slate-500 truncate"><%= download.destination %></p>
+                    </div>
+                    <span class={"ml-3 px-3 py-1 bg-#{color}-100 text-#{color}-700 text-xs font-medium rounded-full whitespace-nowrap"}>
+                      <%= download.status %>
+                    </span>
+                  </div>
+
+                  <%= if download.status == "Downloading" do %>
+                    <div class="mb-4">
+                      <div class="flex items-center justify-between text-sm mb-2">
+                        <span class="text-slate-600 font-medium"><%= Float.round(download.progress_percentage, 1) %>%</span>
+                        <div class="flex items-center space-x-4 text-xs text-slate-500">
+                          <span class="flex items-center space-x-1">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                            </svg>
+                            <span><%= MazarynWeb.DownloadManagerLive.Index.format_speed(download.speed_bps) %></span>
+                          </span>
+                          <span>•</span>
+                          <span class="flex items-center space-x-1">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span><%= MazarynWeb.DownloadManagerLive.Index.format_eta(download.eta_seconds) %></span>
+                          </span>
+                        </div>
+                      </div>
+                      <div class="relative h-2 bg-slate-200 rounded-full overflow-hidden">
+                        <div
+                          class={"absolute inset-y-0 left-0 bg-gradient-to-r from-#{color}-500 to-#{color}-600 rounded-full transition-all duration-500 ease-out"}
+                          style={"width: #{download.progress_percentage}%"}
+                        >
+                          <div class="absolute inset-0 bg-white/20 animate-pulse"></div>
+                        </div>
+                      </div>
+                    </div>
+                  <% end %>
+
+                  <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-4 text-sm text-slate-500">
+                      <span class="flex items-center space-x-1">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                        </svg>
+                        <span><%= MazarynWeb.DownloadManagerLive.Index.format_bytes(download.downloaded_size) %></span>
+                      </span>
+                      <%= if download.total_size do %>
+                        <span>/ <%= MazarynWeb.DownloadManagerLive.Index.format_bytes(download.total_size) %></span>
+                      <% end %>
+                    </div>
+
+                    <div class="flex items-center space-x-2">
+                      <%= if download.status == "Downloading" do %>
+                        <button
+                          phx-click="pause_download"
+                          phx-value-id={download.id}
+                          class="p-2 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"
+                          title="Pause"
+                        >
+                          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                        </button>
+                      <% end %>
+
+                      <%= if download.status == "Paused" do %>
+                        <button
+                          phx-click="resume_download"
+                          phx-value-id={download.id}
+                          class="p-2 text-slate-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                          title="Resume"
+                        >
+                          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                        </button>
+                      <% end %>
+
+                      <%= if download.status in ["Downloading", "Paused", "Pending", "Queued"] do %>
+                        <button
+                          phx-click="cancel_download"
+                          phx-value-id={download.id}
+                          class="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                          title="Cancel"
+                        >
+                          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                        </button>
+                      <% end %>
+
+                      <button
+                        phx-click="show_details"
+                        phx-value-id={download.id}
+                        class="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                        title="Details"
+                      >
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                      </button>
+
+                      <%= if download.status in ["Completed", "Failed", "Cancelled"] do %>
+                        <button
+                          phx-click="delete_download"
+                          phx-value-id={download.id}
+                          class="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                          title="Delete"
+                        >
+                          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                        </button>
+                      <% end %>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <%= if download.status == "Failed" && download.error do %>
+              <div class="px-6 pb-6">
+                <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+                  <div class="flex items-start space-x-3">
+                    <svg class="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <div>
+                      <p class="text-sm font-medium text-red-900 mb-1">Download Failed</p>
+                      <p class="text-sm text-red-700"><%= download.error %></p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            <% end %>
+          </div>
+        <% end %>
+      </div>
+
+      <%= if length(@downloads) > 0 do %>
+        <div class="flex items-center justify-between mt-6">
+          <button
+            phx-click="select_all"
+            class="text-sm text-violet-600 hover:text-violet-700 font-medium"
+          >
+            Select All
+          </button>
+          <div class="text-sm text-slate-500">
+            Showing <%= length(@downloads) %> download(s)
+          </div>
+        </div>
+      <% end %>
+    <% end %>
+  </div>
+</div>
+
+<%= if @show_details_modal && @selected_download do %>
+  <div class="fixed inset-0 z-50 overflow-y-auto animate-fadeIn" phx-click="close_details_modal">
+    <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+      <div class="fixed inset-0 bg-slate-900 bg-opacity-75 transition-opacity backdrop-blur-sm"></div>
+
+      <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+
+      <div
+        class="inline-block align-bottom bg-white rounded-2xl px-8 pt-6 pb-8 text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full animate-slideUp"
+        phx-click="stop_propagation"
+      >
+        <div class="flex items-center justify-between mb-6">
+          <h2 class="text-2xl font-bold text-slate-900">Download Details</h2>
+          <button
+            phx-click="close_details_modal"
+            class="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+          >
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        <div class="space-y-4">
+          <div class="bg-gradient-to-r from-slate-50 to-blue-50 border border-slate-200 rounded-xl p-4">
+            <div class="flex items-center space-x-3 mb-3">
+              <% color = MazarynWeb.DownloadManagerLive.Index.status_color(@selected_download.status) %>
+              <div class={"w-12 h-12 bg-gradient-to-br from-#{color}-500 to-#{color}-600 rounded-lg flex items-center justify-center"}>
+                <%= raw(MazarynWeb.DownloadManagerLive.Index.status_icon(@selected_download.status)) %>
+              </div>
+              <div>
+                <h3 class="font-semibold text-slate-900"><%= MazarynWeb.DownloadManagerLive.Index.filename_from_destination(@selected_download.destination) %></h3>
+                <span class={"px-2 py-1 bg-#{color}-100 text-#{color}-700 text-xs font-medium rounded-full"}>
+                  <%= @selected_download.status %>
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div class="space-y-3">
+            <div class="flex items-start py-3 border-b border-slate-100">
+              <div class="w-1/3 font-medium text-slate-700">Download ID</div>
+              <div class="w-2/3 text-slate-600 font-mono text-sm break-all"><%= @selected_download.id %></div>
+            </div>
+
+            <div class="flex items-start py-3 border-b border-slate-100">
+              <div class="w-1/3 font-medium text-slate-700">Destination</div>
+              <div class="w-2/3 text-slate-600 text-sm break-all"><%= @selected_download.destination %></div>
+            </div>
+
+            <div class="flex items-start py-3 border-b border-slate-100">
+              <div class="w-1/3 font-medium text-slate-700">URL</div>
+              <div class="w-2/3 text-slate-600 text-sm break-all"><%= @selected_download.url %></div>
+            </div>
+
+            <%= if @selected_download.dataset_id do %>
+              <div class="flex items-start py-3 border-b border-slate-100">
+                <div class="w-1/3 font-medium text-slate-700">Dataset ID</div>
+                <div class="w-2/3">
+                  <.link
+                    navigate={~p"/#{@locale}/ai/datasets/#{@selected_download.dataset_id}"}
+                    class="text-blue-600 hover:text-blue-700 text-sm break-all"
+                  >
+                    <%= @selected_download.dataset_id %>
+                  </.link>
+                </div>
+              </div>
+            <% end %>
+
+            <%= if @selected_download.competition_id do %>
+              <div class="flex items-start py-3 border-b border-slate-100">
+                <div class="w-1/3 font-medium text-slate-700">Competition ID</div>
+                <div class="w-2/3 text-slate-600 text-sm break-all"><%= @selected_download.competition_id %></div>
+              </div>
+            <% end %>
+
+            <div class="flex items-start py-3 border-b border-slate-100">
+              <div class="w-1/3 font-medium text-slate-700">Progress</div>
+              <div class="w-2/3 text-slate-600"><%= Float.round(@selected_download.progress_percentage, 2) %>%</div>
+            </div>
+
+            <div class="flex items-start py-3 border-b border-slate-100">
+              <div class="w-1/3 font-medium text-slate-700">Downloaded</div>
+              <div class="w-2/3 text-slate-600">
+                <%= MazarynWeb.DownloadManagerLive.Index.format_bytes(@selected_download.downloaded_size) %>
+                <%= if @selected_download.total_size do %>
+                  / <%= MazarynWeb.DownloadManagerLive.Index.format_bytes(@selected_download.total_size) %>
+                <% end %>
+              </div>
+            </div>
+
+            <%= if @selected_download.speed_bps && @selected_download.speed_bps > 0 do %>
+              <div class="flex items-start py-3 border-b border-slate-100">
+                <div class="w-1/3 font-medium text-slate-700">Speed</div>
+                <div class="w-2/3 text-slate-600"><%= MazarynWeb.DownloadManagerLive.Index.format_speed(@selected_download.speed_bps) %></div>
+              </div>
+            <% end %>
+
+            <%= if @selected_download.eta_seconds do %>
+              <div class="flex items-start py-3 border-b border-slate-100">
+                <div class="w-1/3 font-medium text-slate-700">ETA</div>
+                <div class="w-2/3 text-slate-600"><%= MazarynWeb.DownloadManagerLive.Index.format_eta(@selected_download.eta_seconds) %></div>
+              </div>
+            <% end %>
+
+            <%= if @selected_download.error do %>
+              <div class="flex items-start py-3">
+                <div class="w-1/3 font-medium text-red-700">Error</div>
+                <div class="w-2/3 text-red-600 text-sm"><%= @selected_download.error %></div>
+              </div>
+            <% end %>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-end space-x-3 mt-6 pt-6 border-t border-slate-100">
+          <button
+            phx-click="close_details_modal"
+            class="px-6 py-3 text-slate-700 font-medium bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors"
+          >
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <style>
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(1rem);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes slideDown {
+      from {
+        opacity: 0;
+        transform: translateY(-1rem);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .animate-fadeIn {
+      animation: fadeIn 0.2s ease-out;
+    }
+
+    .animate-slideUp {
+      animation: slideUp 0.3s ease-out;
+    }
+
+    .animate-slideDown {
+      animation: slideDown 0.3s ease-out;
+    }
+  </style>
+<% end %>

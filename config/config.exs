@@ -2,7 +2,6 @@ import Config
 
 if Mix.env() in [:dev, :test] do
   env_file = Path.join([File.cwd!(), ".env"])
-
   if File.exists?(env_file) do
     File.read!(env_file)
     |> String.split("\n", trim: true)
@@ -15,13 +14,23 @@ if Mix.env() in [:dev, :test] do
           key = String.trim(key)
           value = String.trim(value) |> String.trim("\"") |> String.trim("'")
           System.put_env(key, value)
-
         _ ->
           :ok
       end
     end)
   end
 end
+
+
+config :mime, :types, %{
+  "application/x-hdf" => ["h5", "hdf5"],
+  "application/x-pytorch" => ["pt", "pth"],
+  "application/x-tensorflow" => ["pb"],
+  "application/x-onnx" => ["onnx"],
+  "application/x-pickle" => ["pkl", "pickle"],
+  "application/x-joblib" => ["joblib"],
+  "application/zip" => ["zip"]
+}
 
 config :logger, level: :warning
 
@@ -76,6 +85,7 @@ config :logger, :console,
   metadata: [:request_id]
 
 config :phoenix, :json_library, Jason
+
 config :mnesia, dir: ~c"Mnesia/"
 
 config :mazaryn, Mazaryn.Gettext,

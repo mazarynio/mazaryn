@@ -1,0 +1,151 @@
+<div class={"fixed #{position_classes(@position)} z-40 #{if length(@downloads) > 0, do: "animate-slideIn", else: "hidden"}"}>
+  <%= if length(@downloads) > 0 do %>
+    <%= if @show_widget do %>
+      <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-96 max-h-[600px] overflow-hidden">
+        <div class="bg-gradient-to-r from-violet-600 to-purple-600 px-6 py-4">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+              <div class="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
+                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
+              </div>
+              <div>
+                <h3 class="text-white font-bold">Active Downloads</h3>
+                <p class="text-white/80 text-xs"><%= length(@downloads) %> in progress</p>
+              </div>
+            </div>
+            <button
+              phx-click="toggle_widget"
+              phx-target={@myself}
+              class="p-2 text-white/60 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+            >
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="max-h-[400px] overflow-y-auto p-4 space-y-3">
+          <%= for download <- @downloads do %>
+            <div class="bg-gradient-to-r from-slate-50 to-blue-50 rounded-xl p-4 border border-slate-200">
+              <div class="flex items-start justify-between mb-3">
+                <div class="flex-1 min-w-0">
+                  <h4 class="font-semibold text-slate-900 text-sm truncate mb-1">
+                    <%= filename_from_destination(download.destination) %>
+                  </h4>
+                  <div class="flex items-center space-x-2 text-xs text-slate-500">
+                    <span><%= format_bytes(download.downloaded_size) %></span>
+                    <%= if download.total_size do %>
+                      <span>/ <%= format_bytes(download.total_size) %></span>
+                    <% end %>
+                    <%= if download.speed_bps && download.speed_bps > 0 do %>
+                      <span>•</span>
+                      <span><%= format_speed(download.speed_bps) %></span>
+                    <% end %>
+                  </div>
+                </div>
+                <span class="ml-2 px-2 py-1 bg-blue-100 text-blue-700 text-xs font-medium rounded-full whitespace-nowrap">
+                  <%= download.status %>
+                </span>
+              </div>
+
+              <%= if download.status == "Downloading" do %>
+                <div class="mb-3">
+                  <div class="flex items-center justify-between text-xs mb-1.5">
+                    <span class="text-slate-600 font-medium"><%= Float.round(download.progress_percentage, 1) %>%</span>
+                  </div>
+                  <div class="relative h-1.5 bg-slate-200 rounded-full overflow-hidden">
+                    <div
+                      class="absolute inset-y-0 left-0 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full transition-all duration-500"
+                      style={"width: #{download.progress_percentage}%"}
+                    >
+                      <div class="absolute inset-0 bg-white/20 animate-pulse"></div>
+                    </div>
+                  </div>
+                </div>
+              <% end %>
+
+              <div class="flex items-center space-x-2">
+                <%= if download.status == "Downloading" do %>
+                  <button
+                    phx-click="pause_download"
+                    phx-value-id={download.id}
+                    phx-target={@myself}
+                    class="flex-1 px-3 py-1.5 bg-white hover:bg-slate-50 text-slate-700 text-xs font-medium rounded-lg transition-colors border border-slate-200"
+                  >
+                    Pause
+                  </button>
+                <% end %>
+
+                <%= if download.status == "Paused" do %>
+                  <button
+                    phx-click="resume_download"
+                    phx-value-id={download.id}
+                    phx-target={@myself}
+                    class="flex-1 px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white text-xs font-medium rounded-lg transition-colors"
+                  >
+                    Resume
+                  </button>
+                <% end %>
+
+                <button
+                  phx-click="cancel_download"
+                  phx-value-id={download.id}
+                  phx-target={@myself}
+                  class="flex-1 px-3 py-1.5 bg-white hover:bg-red-50 text-red-600 text-xs font-medium rounded-lg transition-colors border border-red-200"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          <% end %>
+        </div>
+
+        <div class="border-t border-slate-200 p-4">
+          <button
+            phx-click="view_all_downloads"
+            phx-target={@myself}
+            class="w-full px-4 py-2.5 bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white font-medium rounded-lg transition-all"
+          >
+            View All Downloads
+          </button>
+        </div>
+      </div>
+    <% else %>
+      <button
+        phx-click="toggle_widget"
+        phx-target={@myself}
+        class="bg-gradient-to-r from-violet-600 to-purple-600 text-white p-4 rounded-full shadow-2xl hover:shadow-violet-500/50 transition-all hover:scale-110"
+      >
+        <div class="relative">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+          </svg>
+          <span class="absolute -top-2 -right-2 w-5 h-5 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center">
+            <%= length(@downloads) %>
+          </span>
+          <span class="absolute inset-0 rounded-full bg-violet-400 animate-ping opacity-75"></span>
+        </div>
+      </button>
+    <% end %>
+
+    <style>
+      @keyframes slideIn {
+        from {
+          opacity: 0;
+          transform: translateY(1rem);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .animate-slideIn {
+        animation: slideIn 0.3s ease-out;
+      }
+    </style>
+  <% end %>
+</div>

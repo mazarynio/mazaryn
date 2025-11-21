@@ -22,6 +22,8 @@ defmodule MazarynWeb.AiLive.Datasets do
         |> assign(filter: "all")
         |> assign(sort_by: "recent")
         |> assign(show_create_modal: false)
+        |> assign(show_delete_modal: false)
+        |> assign(dataset_to_delete: nil)
         |> assign(page: 1)
         |> assign(per_page: 12)
         |> allow_upload(:dataset_file,
@@ -57,6 +59,8 @@ defmodule MazarynWeb.AiLive.Datasets do
           |> assign(filter: "all")
           |> assign(sort_by: "recent")
           |> assign(show_create_modal: false)
+          |> assign(show_delete_modal: false)
+          |> assign(dataset_to_delete: nil)
           |> assign(page: 1)
           |> assign(per_page: 12)
           |> allow_upload(:dataset_file,
@@ -110,6 +114,49 @@ defmodule MazarynWeb.AiLive.Datasets do
   @impl true
   def handle_event("close_create_modal", _params, socket) do
     {:noreply, assign(socket, show_create_modal: false)}
+  end
+
+  @impl true
+  def handle_event("open_delete_modal", %{"id" => dataset_id}, socket) do
+    dataset = Enum.find(socket.assigns.datasets, &(&1.id == dataset_id))
+    {:noreply, assign(socket, show_delete_modal: true, dataset_to_delete: dataset)}
+  end
+
+  @impl true
+  def handle_event("close_delete_modal", _params, socket) do
+    {:noreply, assign(socket, show_delete_modal: false, dataset_to_delete: nil)}
+  end
+
+  @impl true
+  def handle_event("confirm_delete_dataset", _params, socket) do
+    dataset = socket.assigns.dataset_to_delete
+    user = socket.assigns.user
+    user_id = to_string(user.id)
+
+    dataset_id_charlist = String.to_charlist(dataset.id)
+    user_id_charlist = String.to_charlist(user_id)
+
+    case DatasetClient.delete_dataset(dataset_id_charlist, user_id_charlist) do
+      :ok ->
+        datasets = load_datasets(user, socket.assigns.filter)
+        filtered = filter_datasets(datasets, socket.assigns.search_query, socket.assigns.filter)
+        sorted = sort_datasets(filtered, socket.assigns.sort_by)
+
+        {:noreply,
+         socket
+         |> assign(show_delete_modal: false)
+         |> assign(dataset_to_delete: nil)
+         |> assign(datasets: datasets)
+         |> assign(filtered_datasets: sorted)
+         |> put_flash(:info, "Dataset deleted successfully")}
+
+      {:error, reason} ->
+        {:noreply,
+         socket
+         |> assign(show_delete_modal: false)
+         |> assign(dataset_to_delete: nil)
+         |> put_flash(:error, "Failed to delete dataset: #{inspect(reason)}")}
+    end
   end
 
   @impl true
@@ -202,33 +249,6 @@ defmodule MazarynWeb.AiLive.Datasets do
 
       [] ->
         {:noreply, put_flash(socket, :error, "Please upload a ZIP file")}
-    end
-  end
-
-  @impl true
-  def handle_event("delete_dataset", %{"id" => dataset_id}, socket) do
-    user = socket.assigns.user
-    user_id = to_string(user.id)
-
-    dataset_id_charlist = String.to_charlist(dataset_id)
-    user_id_charlist = String.to_charlist(user_id)
-
-    case DatasetClient.delete_dataset(dataset_id_charlist, user_id_charlist) do
-      :ok ->
-        datasets = load_datasets(user, socket.assigns.filter)
-        filtered = filter_datasets(datasets, socket.assigns.search_query, socket.assigns.filter)
-        sorted = sort_datasets(filtered, socket.assigns.sort_by)
-
-        {:noreply,
-         socket
-         |> assign(datasets: datasets)
-         |> assign(filtered_datasets: sorted)
-         |> put_flash(:info, "Dataset deleted successfully")}
-
-      {:error, reason} ->
-        {:noreply,
-         socket
-         |> put_flash(:error, "Failed to delete dataset: #{inspect(reason)}")}
     end
   end
 

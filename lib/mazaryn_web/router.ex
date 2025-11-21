@@ -129,6 +129,8 @@ defmodule MazarynWeb.Router do
       live("/ai/discussions/new", AiLive.DiscussionNew, :new)
       live("/ai/discussions/:id", AiLive.DiscussionShow, :show)
 
+      live "/downloads", DownloadManagerLive.Index, :index
+
       scope "/chats" do
         live("/", ChatsLive.Index, :index)
         live("/:recipient_id", ChatsLive.Index, :index)
