@@ -1,21 +1,21 @@
 -module(ipfs_media).
 -author("Zaryn Technologies").
 -export([
-    upload_media/1, 
-    upload_media/2, 
-    get_media/1, 
-    get_media/2, 
-    get_media_binary/1, 
-    get_media_binary/2, 
-    merge_options/2, 
+    upload_media/1,
+    upload_media/2,
+    get_media/1,
+    get_media/2,
+    get_media_binary/1,
+    get_media_binary/2,
+    merge_options/2,
     ipfs_get_file/2
 ]).
 
 -define(RPC_API, "http://localhost:5001/api").
--define(DEFAULT_CHUNK_SIZE, 1048576). % 1MB chunks 
+-define(DEFAULT_CHUNK_SIZE, 1048576).
 
 -define(DEFAULT_ADD_OPTS, [
-    {pin, false},                
+    {pin, false},
     {cid_version, 1},
     {wrap_with_directory, false},
     {chunker, "size-" ++ integer_to_list(?DEFAULT_CHUNK_SIZE)}
@@ -23,15 +23,13 @@
 
 -define(DEFAULT_GET_OPTS, [
     {output, undefined},
-    {archive, true},             
-    {compress, true},           
+    {archive, true},
+    {compress, true},
     {progress, true}
 ]).
 
--define(LARGE_FILE_THRESHOLD, 536870912). % 512MB threshold 
--define(MAX_PARALLEL_UPLOADS, 5).    
-
-%%% Enhanced Upload Functions %%%
+-define(LARGE_FILE_THRESHOLD, 536870912).
+-define(MAX_PARALLEL_UPLOADS, 5).
 
 upload_media(FilePath) when is_list(FilePath) ->
     case io_lib:printable_list(FilePath) of
@@ -50,7 +48,7 @@ upload_media(FilePath) when is_binary(FilePath) ->
 
 upload_media(FilePath, CustomFilename) ->
     case filelib:file_size(FilePath) of
-        {error, Reason} -> 
+        {error, Reason} ->
             {error, {file_size_error, Reason}};
         Size when Size > ?LARGE_FILE_THRESHOLD ->
             case parallel_chunked_upload(FilePath, CustomFilename, Size) of
@@ -70,7 +68,7 @@ single_upload(FilePath, CustomFilename) ->
     case file:read_file(FilePath) of
         {ok, MediaData} ->
             case ipfs_add_file(CustomFilename, MediaData, ?DEFAULT_ADD_OPTS) of
-                {ok, CID} -> 
+                {ok, CID} ->
                     case ipfs_cluster:pin_to_cluster(CID) of
                         {ok, _} -> binary_to_list(CID);
                         Error -> Error
@@ -97,18 +95,18 @@ parallel_chunked_upload(FilePath, CustomFilename, FileSize) ->
     ChunkSize = optimal_chunk_size(FileSize),
     TotalChunks = ceiling(FileSize / ChunkSize),
     MonitorPid = spawn(fun() -> upload_monitor(TotalChunks) end),
-    
+
     case file:open(FilePath, [read, binary, raw]) of
         {ok, Fd} ->
             try
                 CoordinatorPid = self(),
                 Workers = lists:map(
-                    fun(_) -> 
-                        spawn_link(fun() -> 
-                            upload_worker(Fd, CustomFilename, ChunkSize, TotalChunks, CoordinatorPid) 
+                    fun(_) ->
+                        spawn_link(fun() ->
+                            upload_worker(Fd, CustomFilename, ChunkSize, TotalChunks, CoordinatorPid)
                         end)
                     end, lists:seq(1, ?MAX_PARALLEL_UPLOADS)),
-                
+
                 collect_results(TotalChunks, [], Workers, MonitorPid)
             after
                 file:close(Fd)
@@ -116,8 +114,6 @@ parallel_chunked_upload(FilePath, CustomFilename, FileSize) ->
         {error, Reason} ->
             {error, {file_open_error, Reason}}
     end.
-
-%%% GET MEDIA FUNCTIONS (FILE-BASED) %%%
 
 get_media(CID) ->
     get_media(CID, []).
@@ -127,50 +123,49 @@ get_media(CID, Options) ->
         true -> binary_to_list(CID);
         false -> CID
     end,
-    
+
     OutputPath = determine_output_path(NormalizedCID, Options),
-    
+
     case ipfs_get_file_local(NormalizedCID, OutputPath) of
-        {ok, LocalPath, Size} -> 
+        {ok, LocalPath, Size} ->
             {ok, LocalPath, Size};
         {error, _} ->
             case ipfs_cluster:get_pin_status(NormalizedCID) of
                 {ok, _} ->
                     case ipfs_get_file_cluster(NormalizedCID, OutputPath) of
-                        {ok, ClusterPath, ClusterSize} -> 
+                        {ok, ClusterPath, ClusterSize} ->
                             {ok, ClusterPath, ClusterSize};
-                        ClusterError -> 
+                        ClusterError ->
                             ClusterError
                     end;
-                StatusError -> 
+                StatusError ->
                     StatusError
             end
     end.
 
-%% @doc Get media as binary from IPFS using CID with default options
 get_media_binary(CID) ->
     get_media_binary(CID, []).
 
-get_media_binary(CID, _Options) -> 
+get_media_binary(CID, _Options) ->
     NormalizedCID = case is_binary(CID) of
         true -> binary_to_list(CID);
         false -> CID
     end,
-    
+
     case ipfs_get_binary_local(NormalizedCID) of
-        {ok, Binary} -> 
+        {ok, Binary} ->
             Binary;
         {error, _} ->
             case ipfs_cluster:get_pin_status(NormalizedCID) of
                 {ok, _} ->
                     case ipfs_cluster:recover_pin(NormalizedCID) of
                         {ok, _} ->
-                            timer:sleep(1000),  
+                            timer:sleep(1000),
                             ipfs_get_binary_local(NormalizedCID);
-                        Error -> 
+                        Error ->
                             Error
                     end;
-                StatusError -> 
+                StatusError ->
                     StatusError
             end
     end.
@@ -182,8 +177,8 @@ ipfs_get_binary_local(CID) ->
         {compress, false}
     ]),
     Url = ?RPC_API ++ "/v0/cat" ++ QueryString,
-    
-    case httpc:request(post, 
+
+    case httpc:request(post,
                      {Url, [], "application/json", ""},
                      [{timeout, 30000}],
                      [{body_format, binary}]) of
@@ -199,18 +194,18 @@ determine_output_path(CID, Options) ->
     case proplists:get_value(output, Options) of
         undefined ->
             case proplists:get_value(filename, Options) of
-                undefined -> 
+                undefined ->
                     "./" ++ CID;
-                Filename -> 
+                Filename ->
                     "./" ++ Filename
             end;
-        Path -> 
+        Path ->
             Path
     end.
 
 ipfs_get_file_local(CID, OutputPath) ->
     file:delete(OutputPath),
-    
+
     BaseName = filename:basename(OutputPath),
     QueryString = build_query_string([
         {arg, CID},
@@ -219,8 +214,8 @@ ipfs_get_file_local(CID, OutputPath) ->
         {compress, false}
     ]),
     Url = ?RPC_API ++ "/v0/get" ++ QueryString,
-    
-    case httpc:request(post, 
+
+    case httpc:request(post,
                      {Url, [], "application/json", ""},
                      [{timeout, 30000}],
                      [
@@ -264,19 +259,19 @@ ipfs_get_file(CID, Options) ->
     MergedOpts = merge_options(Options, ?DEFAULT_GET_OPTS),
     QueryString = build_query_string([{arg, CID}|MergedOpts]),
     Url = ?RPC_API ++ "/v0/get" ++ QueryString,
-    
+
     OutputPath = case proplists:get_value(output, Options) of
         undefined -> filename:join(["./", CID]);
         Path -> Path
     end,
-    
-    case httpc:request(post, 
+
+    case httpc:request(post,
                      {Url, [], "application/json", ""},
                      [],
                      [
                          {body_format, binary},
                          {stream, OutputPath},
-                         {timeout, 3600000} 
+                         {timeout, 3600000}
                      ]) of
         {ok, saved_to_file} -> verify_download(OutputPath);
         {ok, {{_, Status, _}, _, Body}} -> {error, {status_code, Status, Body}};
@@ -302,9 +297,9 @@ upload_worker(Fd, Filename, ChunkSize, TotalChunks, CoordinatorPid) ->
     case get_next_chunk(Fd, ChunkSize, TotalChunks) of
         {ok, Offset, Data} ->
             case ipfs_add_file(Filename, Data, ?DEFAULT_ADD_OPTS) of
-                {ok, CID} -> 
+                {ok, CID} ->
                     CoordinatorPid ! {chunk_complete, Offset, CID};
-                Error -> 
+                Error ->
                     CoordinatorPid ! {chunk_error, Offset, Error}
             end;
         eof ->
@@ -329,14 +324,14 @@ collect_results(TotalChunks, Acc, Workers, MonitorPid) ->
                     Error;
                 worker_done ->
                     case Workers -- [self()] of
-                        [] -> 
+                        [] ->
                             MonitorPid ! complete,
                             create_manifest(Acc, TotalChunks * ?DEFAULT_CHUNK_SIZE);
                         RemainingWorkers ->
                             collect_results(TotalChunks, Acc, RemainingWorkers, MonitorPid)
                     end
             after
-                3600000 -> % 1 hour timeout
+                3600000 ->
                     MonitorPid ! cancel,
                     {error, upload_timeout}
             end
@@ -352,7 +347,7 @@ create_manifest(ChunkCIDs, TotalSize) ->
     },
     ManifestBinary = jsx:encode(Manifest),
     case ipfs_add_file("manifest.json", ManifestBinary, ?DEFAULT_ADD_OPTS) of
-        {ok, ManifestCID} -> 
+        {ok, ManifestCID} ->
             ipfs_cluster:pin_to_cluster(ManifestCID),
             {ok, ManifestCID};
         Error -> Error
@@ -379,7 +374,7 @@ upload_monitor(TotalChunks) ->
         complete -> ok;
         cancel -> ok
     after
-        3600000 -> ok 
+        3600000 -> ok
     end.
 
 get_next_chunk(Fd, ChunkSize, TotalChunks) ->
@@ -401,9 +396,9 @@ merge_options(Options, Defaults) ->
 build_query_string(Params) ->
     "?" ++ string:join(
         lists:map(
-            fun({K, V}) -> 
-                io_lib:format("~s=~s", [K, uri_encode(V)]) 
-            end, 
+            fun({K, V}) ->
+                io_lib:format("~s=~s", [K, uri_encode(V)])
+            end,
             Params),
         "&").
 

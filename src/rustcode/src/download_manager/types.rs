@@ -16,6 +16,7 @@ pub struct DownloadRequest {
     pub chunk_size: Option<usize>,
     pub max_connections: Option<usize>,
     pub headers: Option<std::collections::HashMap<String, String>>,
+    pub expected_size: Option<u64>,
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord)]
@@ -33,7 +34,7 @@ pub enum ChecksumAlgorithm {
     MD5,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub enum DownloadStatus {
     Queued,
     Downloading,
@@ -88,7 +89,7 @@ pub struct DownloadConfig {
 impl Default for DownloadConfig {
     fn default() -> Self {
         Self {
-            default_chunk_size: 10 * 1024 * 1024, // 10 MB
+            default_chunk_size: 10 * 1024 * 1024,
             default_max_connections: 8,
             max_concurrent_downloads: 5,
             retry_attempts: 3,

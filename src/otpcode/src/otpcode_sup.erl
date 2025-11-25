@@ -16,7 +16,7 @@
 -define(TABLES, [post, notif, user, blog_post, comment, blog_comment, like, reply, chat, media, report, knode, business, ads, quantum,
  ai_user, ai_post, ai_chat, ai_media, ai_business, ai_ads, p2p_node,
  pin_info, pin_params, pin_history, bulk_operation, scheduled_job, rate_limiter_usage, pin_info_lookup, pin_health, storage_quota, presence,
- dataset, competition]).
+ dataset, competition, notebook, model, video, music, album, playlist, ai_video]).
 
 %% API
 start_link() ->
@@ -34,11 +34,11 @@ start_distributed() ->
         {error, {already_started, _}} -> ok;
         {error, Reason} -> error({net_kernel_start_failed, Reason})
     end,
-    
+
     [net_kernel:connect_node(Node) || Node <- ?CLUSTER_NODES],
-    
+
     case initialize() of
-        ok -> 
+        ok ->
             add_extra_nodes(?CLUSTER_NODES),
             create_tables_on_nodes(?CLUSTER_NODES),
             ok;
@@ -55,13 +55,13 @@ node_name() ->
 add_node(Node) ->
     logger:info("Adding node ~p to Mnesia schema", [Node]),
     case mnesia:change_config(extra_db_nodes, [Node]) of
-        {ok, [Node]} -> 
+        {ok, [Node]} ->
             mnesia:change_table_copy_type(schema, Node, disc_copies),
             ok;
-        {ok, []} -> 
+        {ok, []} ->
             logger:warning("Node ~p could not be added to Mnesia", [Node]),
             {error, node_not_added};
-        {error, Reason} -> 
+        {error, Reason} ->
             logger:error("Failed to add node: ~p", [Reason]),
             {error, Reason}
     end.
@@ -74,7 +74,6 @@ add_extra_nodes(Nodes) ->
         false -> {error, some_nodes_not_added}
     end.
 
-% Create the tables on all nodes in the cluster
 create_tables_on_nodes(Nodes) ->
     logger:info("Creating tables on nodes: ~p", [Nodes]),
     Results = [create_table_on_nodes(Table, Nodes) || Table <- ?TABLES],
@@ -86,7 +85,7 @@ create_tables_on_nodes(Nodes) ->
 create_table_on_nodes(Table, Nodes) ->
     Attributes = table_attributes(Table),
     TableNodes = [node() | [N || N <- Nodes, N =/= node()]],
-    
+
     TableInfo = mnesia:table_info(Table, all),
     case TableInfo of
         [{aborted, no_exists}] ->
@@ -95,10 +94,10 @@ create_table_on_nodes(Table, Nodes) ->
                 {disc_copies, TableNodes},
                 {type, ordered_set}
             ]) of
-                {atomic, ok} -> 
+                {atomic, ok} ->
                     logger:info("Table ~p created successfully on nodes ~p", [Table, TableNodes]),
                     ok;
-                {aborted, Reason} -> 
+                {aborted, Reason} ->
                     logger:error("Failed to create table ~p: ~p", [Table, Reason]),
                     {error, {create_table_failed, Table, Reason}}
             end;
@@ -109,13 +108,13 @@ create_table_on_nodes(Table, Nodes) ->
 
 add_table_copy(Table, Node) ->
     case mnesia:add_table_copy(Table, Node, disc_copies) of
-        {atomic, ok} -> 
+        {atomic, ok} ->
             logger:info("Added table ~p to node ~p", [Table, Node]),
             ok;
-        {aborted, {already_exists, Table, Node}} -> 
+        {aborted, {already_exists, Table, Node}} ->
             logger:info("Table ~p already exists on node ~p", [Table, Node]),
             ok;
-        {aborted, Reason} -> 
+        {aborted, Reason} ->
             logger:error("Failed to add table ~p to node ~p: ~p", [Table, Node, Reason]),
             {error, {add_table_copy_failed, Table, Node, Reason}}
     end.
@@ -181,7 +180,7 @@ set_mnesia_dir() ->
 create_mnesia_schema() ->
     case mnesia:create_schema([node()]) of
         ok -> ok;
-        {error, {_, {already_exists, _}}} -> 
+        {error, {_, {already_exists, _}}} ->
             logger:info("Mnesia schema already exists."),
             ok;
         {error, Reason} -> error({create_schema_failed, Reason})
@@ -210,7 +209,7 @@ create_tables() ->
     Results = [create_table(Table) || Table <- ?TABLES],
     case lists:all(fun(Result) -> Result == ok end, Results) of
         true -> ok;
-        false -> 
+        false ->
             logger:info("Some tables already exist or failed to be created: ~p", [Results]),
             ok
     end.
@@ -222,20 +221,20 @@ create_table(Table) ->
         {disc_copies, [node()]},
         {type, ordered_set}
     ]) of
-        {atomic, ok} -> 
+        {atomic, ok} ->
             logger:info("Table ~p created successfully", [Table]),
             ok;
-        {aborted, {already_exists, _}} -> 
+        {aborted, {already_exists, _}} ->
             logger:info("Table ~p already exists", [Table]),
             ok;
-        {aborted, Reason} -> 
+        {aborted, Reason} ->
             logger:error("Failed to create table ~p: ~p", [Table, Reason]),
             {error, {create_table_failed, Table, Reason}}
     end.
 
 wait_for_tables() ->
     case mnesia:wait_for_tables(?TABLES, 5000) of
-        ok -> 
+        ok ->
             logger:info("All tables are ready"),
             ok;
         {timeout, BadTables} ->
@@ -251,7 +250,7 @@ create_table_indexes() ->
     Results = [create_index(Table, Field) || {Table, Field} <- IndexesToCreate],
     case lists:all(fun(Result) -> Result == ok end, Results) of
         true -> ok;
-        false -> 
+        false ->
             logger:info("Some indexes already exist or couldn't be created: ~p", [Results]),
             ok
     end.
@@ -265,13 +264,13 @@ create_index(Table, Field) ->
             case lists:member(Field, Attributes) of
                 true ->
                     case mnesia:add_table_index(Table, Field) of
-                        {atomic, ok} -> 
+                        {atomic, ok} ->
                             logger:info("Index created on ~p.~p", [Table, Field]),
                             ok;
-                        {aborted, {already_exists, Table, _}} -> 
+                        {aborted, {already_exists, Table, _}} ->
                             logger:info("Index on ~p.~p already exists", [Table, Field]),
                             ok;
-                        {aborted, Reason} -> 
+                        {aborted, Reason} ->
                             logger:error("Failed to create index on ~p.~p: ~p", [Table, Field, Reason]),
                             {error, {create_index_failed, Table, Field, Reason}}
                     end;
@@ -314,4 +313,11 @@ table_attributes(pin_health) -> record_info(fields, pin_health);
 table_attributes(storage_quota) -> record_info(fields, storage_quota);
 table_attributes(presence) -> record_info(fields, presence);
 table_attributes(dataset) -> record_info(fields, dataset);
-table_attributes(competition) -> record_info(fields, competition).
+table_attributes(competition) -> record_info(fields, competition);
+table_attributes(notebook) -> record_info(fields, notebook);
+table_attributes(model) -> record_info(fields, model);
+table_attributes(video) -> record_info(fields, video);
+table_attributes(music) -> record_info(fields, music);
+table_attributes(album) -> record_info(fields, album);
+table_attributes(playlist) -> record_info(fields, playlist);
+table_attributes(ai_video) -> record_info(fields, ai_video).

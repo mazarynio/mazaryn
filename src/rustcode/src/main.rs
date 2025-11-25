@@ -1,41 +1,48 @@
-use actix_web::{web, App, HttpServer};
+use actix_cors::Cors;
+use actix_web::{middleware, web, App, HttpServer};
 use log::info;
 use std::sync::Arc;
 use tokio::main;
 use tokio::sync::Mutex;
-
 mod api;
 mod download_manager;
 mod sfu;
 mod signaling;
 mod webrtc;
-
 use crate::webrtc::RTCPeerConnection;
 use download_manager::{DownloadConfig, DownloadManager};
 
 #[main]
 async fn main() -> std::io::Result<()> {
-    env_logger::init();
+    env_logger::Builder::from_default_env()
+        .filter_level(log::LevelFilter::Info)
+        .init();
+
     info!("Starting rustcode service on port 2020");
 
     let peer_connection = Arc::new(Mutex::new(None::<Arc<RTCPeerConnection>>));
     let peer_connection_data = web::Data::new(peer_connection);
 
+    let storage_path = std::path::PathBuf::from("/tmp/mazaryn_downloads");
+    std::fs::create_dir_all(&storage_path).expect("Failed to create storage directory");
+
     let download_config = DownloadConfig {
-        default_chunk_size: 10 * 1024 * 1024, // 10 MB
+        default_chunk_size: 10 * 1024 * 1024,
         default_max_connections: 8,
         max_concurrent_downloads: 5,
         retry_attempts: 3,
         retry_delay_ms: 1000,
         timeout_seconds: 300,
         max_bandwidth_bps: None,
-        storage_path: std::path::PathBuf::from("/tmp/mazaryn_downloads"),
+        storage_path,
     };
 
     let download_manager = Arc::new(
         DownloadManager::new(download_config).expect("Failed to initialize download manager"),
     );
     let download_manager_data = web::Data::new(download_manager);
+
+    info!("Download manager initialized successfully");
 
     tokio::spawn(async {
         if let Err(e) = sfu::run_sfu().await {
@@ -50,7 +57,11 @@ async fn main() -> std::io::Result<()> {
     });
 
     HttpServer::new(move || {
+        let cors = Cors::permissive();
+
         App::new()
+            .wrap(cors)
+            .wrap(middleware::Logger::default())
             .app_data(peer_connection_data.clone())
             .service(api::initiate_call)
             .service(api::accept_call)
@@ -87,6 +98,10 @@ async fn main() -> std::io::Result<()> {
             .route(
                 "/downloads/user/{user_id}",
                 web::get().to(download_manager::api::list_user_downloads),
+            )
+            .route(
+                "/downloads/{id}/file",
+                web::get().to(download_manager::api::download_file),
             )
     })
     .bind("0.0.0.0:2020")?

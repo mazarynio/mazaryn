@@ -12,7 +12,7 @@ use sha2::{Digest, Sha256};
 use std::path::PathBuf;
 use std::sync::Arc;
 use tokio::fs::{File, OpenOptions};
-use tokio::io::AsyncReadExt;
+use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use uuid::Uuid;
 
 pub struct DownloadManager {
@@ -55,7 +55,7 @@ impl DownloadManager {
             competition_id: request.competition_id.clone(),
             user_id: request.user_id.clone(),
             status: DownloadStatus::Queued,
-            total_size: None,
+            total_size: request.expected_size,
             downloaded_size: 0,
             progress_percentage: 0.0,
             speed_bps: 0,
@@ -106,14 +106,33 @@ impl DownloadManager {
 
         let downloader = ChunkDownloader::new(request.url.clone(), max_connections);
 
-        let file_size = downloader
-            .get_file_size()
-            .await?
-            .ok_or_else(|| DownloadError::Failed("Could not determine file size".to_string()))?;
+        let file_size = if let Some(expected) = request.expected_size {
+            log::info!("Using expected file size: {} bytes", expected);
+            expected
+        } else {
+            match downloader.get_file_size().await {
+                Ok(Some(size)) => {
+                    log::info!("Download {} size: {} bytes", id, size);
+                    size
+                }
+                Ok(None) | Err(_) => {
+                    log::warn!("Could not determine file size, attempting download without size");
+
+                    let mut info = self.storage.load_download_info(&id).await?;
+                    info.status = DownloadStatus::Downloading;
+                    info.started_at = Some(Utc::now());
+                    self.storage.save_download_info(&info).await?;
+
+                    return self
+                        .execute_download_without_size(id, request, downloader)
+                        .await;
+                }
+            }
+        };
 
         log::info!("Download {} size: {} bytes", id, file_size);
 
-        let supports_range = downloader.supports_range_requests().await?;
+        let supports_range = downloader.supports_range_requests().await.unwrap_or(false);
 
         let chunks = if supports_range && file_size > chunk_size as u64 {
             ChunkDownloader::calculate_chunks(file_size, chunk_size)
@@ -222,6 +241,69 @@ impl DownloadManager {
         Ok(())
     }
 
+    async fn execute_download_without_size(
+        &self,
+        id: Uuid,
+        request: DownloadRequest,
+        downloader: ChunkDownloader,
+    ) -> Result<()> {
+        log::info!("Downloading without known size: {}", id);
+
+        let response = reqwest::Client::builder()
+            .timeout(std::time::Duration::from_secs(300))
+            .user_agent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
+            .build()?
+            .get(&request.url)
+            .send()
+            .await?;
+
+        if !response.status().is_success() {
+            return Err(DownloadError::Failed(format!(
+                "HTTP error: {}",
+                response.status()
+            )));
+        }
+
+        let mut file = OpenOptions::new()
+            .write(true)
+            .create(true)
+            .open(&request.destination)
+            .await?;
+
+        let mut stream = response.bytes_stream();
+        let mut downloaded = 0u64;
+        use futures::StreamExt;
+
+        while let Some(bytes_result) = stream.next().await {
+            let bytes = bytes_result?;
+            let len = bytes.len() as u64;
+
+            use tokio::io::AsyncWriteExt;
+            file.write_all(&bytes).await?;
+            downloaded += len;
+
+            if let Ok(mut info) = self.storage.load_download_info(&id).await {
+                info.downloaded_size = downloaded;
+                info.total_size = None;
+                let _ = self.storage.save_download_info(&info).await;
+            }
+        }
+
+        file.flush().await?;
+
+        let mut info = self.storage.load_download_info(&id).await?;
+        info.status = DownloadStatus::Completed;
+        info.completed_at = Some(Utc::now());
+        info.downloaded_size = downloaded;
+        info.total_size = Some(downloaded);
+        info.progress_percentage = 100.0;
+        self.storage.save_download_info(&info).await?;
+
+        log::info!("Download {} completed without known size", id);
+
+        Ok(())
+    }
+
     async fn preallocate_file(&self, path: &PathBuf, size: u64) -> Result<()> {
         let file = OpenOptions::new()
             .write(true)
@@ -236,7 +318,7 @@ impl DownloadManager {
     async fn calculate_checksum(&self, path: &PathBuf) -> Result<String> {
         let mut file = File::open(path).await?;
         let mut hasher = Sha256::new();
-        let mut buffer = vec![0u8; 1024 * 1024]; // 1MB buffer
+        let mut buffer = vec![0u8; 1024 * 1024];
 
         loop {
             let n = file.read(&mut buffer).await?;

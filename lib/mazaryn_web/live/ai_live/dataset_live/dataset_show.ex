@@ -262,4 +262,25 @@ defmodule MazarynWeb.AiLive.DatasetShow do
   def error_to_string(:not_accepted), do: "File type not accepted"
   def error_to_string(:too_many_files), do: "Too many files"
   def error_to_string(error), do: "Upload error: #{inspect(error)}"
+
+  defp check_dataset_ready_for_download(dataset_id) do
+    case :datasetdb.get_dataset_by_id(String.to_charlist(dataset_id)) do
+      {:error, _} ->
+        {:error, :not_found}
+      dataset_tuple ->
+        case dataset_tuple do
+          {:dataset, _, _, _, _, content_cid, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _} ->
+            case content_cid do
+              {:pending, _} -> {:error, :pending}
+              {:pending_update, _} -> {:error, :pending}
+              {:pending_version, _} -> {:error, :pending}
+              :undefined -> {:error, :no_content}
+              cid when is_list(cid) -> {:ok, cid}
+              cid when is_binary(cid) -> {:ok, cid}
+              _ -> {:error, :invalid_format}
+            end
+          _ -> {:error, :invalid_dataset}
+        end
+    end
+  end
 end

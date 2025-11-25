@@ -4,6 +4,9 @@ defmodule MazarynWeb.DownloadWidgetComponent do
 
   @impl true
   def mount(socket) do
+    if connected?(socket) do
+      :timer.send_interval(2000, self(), :refresh_widget)
+    end
     {:ok, socket}
   end
 
@@ -66,6 +69,12 @@ defmodule MazarynWeb.DownloadWidgetComponent do
     end
   rescue
     _ -> []
+  end
+
+  @impl true
+  def handle_info(:refresh_widget, socket) do
+    downloads = load_active_downloads(socket.assigns.user)
+    {:noreply, assign(socket, downloads: downloads)}
   end
 
   defp parse_download(download_map) when is_map(download_map) do

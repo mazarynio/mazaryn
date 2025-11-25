@@ -4,7 +4,6 @@ defmodule MazarynWeb.HomeLive.LeftSidebarComponent do
 
   def render(assigns) do
     current_user = assigns.user.username |> String.to_charlist()
-
     ~H"""
     <div>
       <div class="social-box w-full bg-white white:bg-gray-800 py-6 px-5 rounded-[20px]">
@@ -13,7 +12,7 @@ defmodule MazarynWeb.HomeLive.LeftSidebarComponent do
             <ul>
               <li class="flex align-center items-center mx-2 mb-7">
                 <%= live_redirect to: Routes.live_path(@socket, MazarynWeb.HomeLive.Home, @locale),
-                             replace: false, class: "group flex align-center items-start text-base text-gray-500 font-semibold hover:text-blue-500" do %>
+                               replace: false, class: "group flex align-center items-start text-base text-gray-500 font-semibold hover:text-blue-500" do %>
                   <i>
                     <svg
                       class="h-5 w-5 mr-3.5 group-hover:fill-[#4385F5]"
@@ -70,7 +69,6 @@ defmodule MazarynWeb.HomeLive.LeftSidebarComponent do
                   </div>
                 </.link>
               </li>
-
               <li class="flex align-center items-center mx-2 mb-7">
                 <a
                   href="home"
@@ -84,7 +82,31 @@ defmodule MazarynWeb.HomeLive.LeftSidebarComponent do
                   </div>
                 </a>
               </li>
-
+              <li class="flex align-center items-center mx-2 mb-7">
+                <.link
+                  navigate={~p"/#{@locale}/videos"}
+                  class="group flex items-start text-base text-gray-500 font-semibold hover:text-blue-500"
+                >
+                  <i>
+                    <svg
+                      class="h-5 w-5 mr-3.5 fill-[#60616D] group-hover:fill-[#4385F5]"
+                      width="20"
+                      height="20"
+                      viewBox="0 0 20 20"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        class="fill-[#60616D] group-hover:fill-[#4385F5]"
+                        d="M2 4C2 2.89543 2.89543 2 4 2H16C17.1046 2 18 2.89543 18 4V16C18 17.1046 17.1046 18 16 18H4C2.89543 18 2 17.1046 2 16V4ZM8 6L14 10L8 14V6Z"
+                      />
+                    </svg>
+                  </i>
+                  <div class="text-[#60616D] text-base leading-6 group-hover:text-[#4385F5]">
+                    <%= gettext("Videos") %>
+                  </div>
+                </.link>
+              </li>
               <li class="flex align-center items-center mx-2 mb-7">
                 <button
                   phx-click="open_weather"
@@ -114,7 +136,6 @@ defmodule MazarynWeb.HomeLive.LeftSidebarComponent do
                   </div>
                 </button>
               </li>
-
               <li class="flex align-center items-center mx-2">
                 <a
                   href="/home"
@@ -176,7 +197,6 @@ defmodule MazarynWeb.HomeLive.LeftSidebarComponent do
           </div>
         </div>
       </div>
-
       <div class="social-box w-full bg-white white:bg-gray-800 py-6 px-5 my-8 rounded-[20px]">
         <div class="flex justify-between align-center items-center">
           <div class="flex justify-center items-center">
@@ -206,7 +226,6 @@ defmodule MazarynWeb.HomeLive.LeftSidebarComponent do
                   </div>
                 </.link>
               </li>
-
               <li class="flex align-center items-center mx-2 mb-7">
                 <a
                   href="home"
@@ -232,9 +251,8 @@ defmodule MazarynWeb.HomeLive.LeftSidebarComponent do
                   </div>
                 </a>
               </li>
-
               <li class="flex align-center items-center mx-2 group">
-                <%= live_redirect to: Routes.live_path(@socket, MazarynWeb.UserLive.Profile,@locale,  @user.username), replace: false, class: "group flex items-center text-base text-[#60616D] font-semibold" do %>
+                <%= live_redirect to: Routes.live_path(@socket, MazarynWeb.UserLive.Profile,@locale, @user.username), replace: false, class: "group flex items-center text-base text-[#60616D] font-semibold" do %>
                   <%= if @user.avatar_url do %>
                     <img
                       src={Path.join(Mazaryn.config([:media, :ipfs_gateway]), @user.avatar_url)}
@@ -247,7 +265,6 @@ defmodule MazarynWeb.HomeLive.LeftSidebarComponent do
                       class="opacity-70 h-5 w-5 mr-3.5 rounded-full ring-blue-500 group-hover:ring"
                     />
                   <% end %>
-
                   <div class="leading-6 text-[#60616D] group-hover:text-[#4385F5]">
                     @<%= @user.username %>
                   </div>
@@ -257,7 +274,6 @@ defmodule MazarynWeb.HomeLive.LeftSidebarComponent do
           </div>
         </div>
       </div>
-
       <%= if Enum.member?(ManageUser.get_admin_list(), current_user) do %>
         <div class="social-box w-full bg-white white:bg-gray-800 py-6 px-5 my-8 rounded-[20px]">
           <div class="flex justify-between align-center items-center">
@@ -281,9 +297,7 @@ defmodule MazarynWeb.HomeLive.LeftSidebarComponent do
           </div>
         </div>
       <% end %>
-
       <div class="font-medium text-base leading-6 text-[#60616D]"><%= gettext("Explore") %></div>
-
       <div class="social-box w-full bg-white white:bg-gray-800 py-6 px-5 my-6 rounded-[20px]">
         <div class="flex justify-between align-center items-center">
           <div class="flex justify-center items-center">
@@ -310,7 +324,7 @@ defmodule MazarynWeb.HomeLive.LeftSidebarComponent do
                         class="fill-[#60616D] group-hover:fill-[#4385F5]"
                         d="M7 9C7 8.44772 7.44772 8 8 8H12C12.5523 8 13 8.44772 13 9C13 9.55228 12.5523 10 12 10H8C7.44772 10 7 9.55228 7 9Z"
                       />
-                    <path
+                      <path
                         class="fill-[#60616D] group-hover:fill-[#4385F5]"
                         d="M7 12C7 11.4477 7.44772 11 8 11H12C12.5523 11 13 11.4477 13 12C13 12.5523 12.5523 13 12 13H8C7.44772 13 7 12.5523 7 12Z"
                       />
@@ -321,8 +335,8 @@ defmodule MazarynWeb.HomeLive.LeftSidebarComponent do
                     </svg>
                   </i>
                   <div class="leading-6 text-[#60616D] group-hover:text-[#4385F5]">Blog</div>
-                  </a>
-                  </li>
+                </a>
+              </li>
               <li class="flex align-center items-center group mx-2 mb-7">
                 <a
                   href="home"
@@ -383,7 +397,7 @@ defmodule MazarynWeb.HomeLive.LeftSidebarComponent do
                   </div>
                 </a>
               </li>
-              <li class="flex align-center items-center  group mx-2 ">
+              <li class="flex align-center items-center group mx-2 ">
                 <a
                   href="home"
                   class="group flex items-start text-base text-gray-500 font-semibold group-hover:text-blue-500"

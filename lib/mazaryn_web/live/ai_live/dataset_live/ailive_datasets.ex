@@ -270,12 +270,35 @@ defmodule MazarynWeb.AiLive.Datasets do
   def handle_event("download_dataset", %{"id" => dataset_id}, socket) do
     user_id = to_string(socket.assigns.user.id)
 
-    case DatasetClient.download_dataset(dataset_id, user_id) do
-      {:error, reason} ->
-        {:noreply, put_flash(socket, :error, "Failed to download: #{inspect(reason)}")}
+    Logger.info("Download button clicked for dataset: #{dataset_id}")
+    Logger.info("User ID: #{user_id}")
 
-      _content ->
-        {:noreply, put_flash(socket, :info, "Download started")}
+    case :datasetdb.download_dataset_with_wait(String.to_charlist(dataset_id), String.to_charlist(user_id)) do
+      {:ok, download_id} ->
+        Logger.info("Download started with ID: #{inspect(download_id)}")
+        {:noreply,
+         socket
+         |> put_flash(:info, "Download started! Check the download manager.")
+         |> push_navigate(to: "/#{socket.assigns.locale}/downloads")}
+
+      {:ok, download_id, file_path} ->
+        Logger.info("Download completed immediately. File at: #{inspect(file_path)}")
+        {:noreply,
+         socket
+         |> put_flash(:info, "Download ready! File saved successfully.")
+         |> push_navigate(to: "/#{socket.assigns.locale}/downloads")}
+
+      {:error, reason} ->
+        Logger.error("Failed to start download: #{inspect(reason)}")
+        error_message = case reason do
+          :content_not_ready -> "Dataset content is still being uploaded to IPFS. Please try again in a few moments."
+          :content_not_available -> "Dataset content is not available. Please contact support."
+          :invalid_cid_format -> "Dataset has an invalid content identifier. Please contact support."
+          _ -> "Failed to start download: #{inspect(reason)}"
+        end
+        {:noreply,
+         socket
+         |> put_flash(:error, error_message)}
     end
   end
 
@@ -440,4 +463,25 @@ defmodule MazarynWeb.AiLive.Datasets do
   defp error_to_string(:not_accepted), do: "Only ZIP files are accepted"
   defp error_to_string(:too_many_files), do: "Only one file allowed"
   defp error_to_string(err), do: "Upload error: #{inspect(err)}"
+
+  defp check_dataset_ready_for_download(dataset_id) do
+    case :datasetdb.get_dataset_by_id(String.to_charlist(dataset_id)) do
+      {:error, _} ->
+        {:error, :not_found}
+      dataset_tuple ->
+        case dataset_tuple do
+          {:dataset, _, _, _, _, content_cid, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _} ->
+            case content_cid do
+              {:pending, _} -> {:error, :pending}
+              {:pending_update, _} -> {:error, :pending}
+              {:pending_version, _} -> {:error, :pending}
+              :undefined -> {:error, :no_content}
+              cid when is_list(cid) -> {:ok, cid}
+              cid when is_binary(cid) -> {:ok, cid}
+              _ -> {:error, :invalid_format}
+            end
+          _ -> {:error, :invalid_dataset}
+        end
+    end
+  end
 end

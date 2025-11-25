@@ -1,0 +1,140 @@
+<div class="video-page">
+  <.live_component
+    module={MazarynWeb.MediaLive.Video.HeaderComponent}
+    id="video-header"
+    user={@user}
+    search_query={@search_query}
+    socket={@socket}
+    locale={@locale}
+  />
+
+  <.live_component
+    module={MazarynWeb.MediaLive.Video.SidebarComponent}
+    id="video-sidebar"
+    active_section={@active_section}
+  />
+
+  <div class="frame-23">
+    <%!-- Live Carousel Section --%>
+    <div class="live-carousel">
+      <div class="carousel-button">
+        <svg class="rotate-180" width="12" height="18" viewBox="0 0 12 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M1.5 1.5L10.5 9L1.5 16.5" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+
+      <div class="carousel-content">
+        <div class="live-video-container">
+          <img src={Routes.static_path(@socket, "/images/thumbnails/video-1.jpg")} alt="Live video" />
+          <div class="live-controls">
+            <div class="flex items-center gap-5">
+              <Heroicons.play_circle solid class="w-4 h-4 text-white" />
+              <div class="flex items-center gap-1">
+                <div class="w-1.5 h-1.5 bg-blue-500 rounded-full"></div>
+                <span class="text-white text-base font-['Poppins']">Live</span>
+              </div>
+            </div>
+            <div class="flex items-center gap-5">
+              <Heroicons.cog_6_tooth outline class="w-5 h-5 text-white" />
+              <Heroicons.arrows_pointing_out outline class="w-4 h-4 text-white" />
+            </div>
+          </div>
+        </div>
+
+        <div class="live-info-card">
+          <div class="flex flex-col gap-1">
+            <img class="w-12 h-12 rounded-full" src={Routes.static_path(@socket, "/images/ellipse-36-3.png")} alt="Streamer" />
+            <div class="text-blue-500 text-xl font-semibold font-['Poppins']">Tazo</div>
+            <div class="text-white text-base font-semibold font-['Poppins']">3x more view on your<br/>channel</div>
+            <div class="text-gray-300 text-sm font-['Poppins']">344 viewers</div>
+          </div>
+          <div class="flex flex-col gap-3.5">
+            <div class="text-white text-base font-['Poppins']">Check out this stream from epicdan22!</div>
+            <div class="px-2.5 py-1 bg-zinc-700 rounded-[20px] inline-flex items-center gap-2.5 w-fit">
+              <span class="text-gray-300 text-sm font-['Poppins']">English</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="carousel-button">
+        <svg width="12" height="18" viewBox="0 0 12 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M1.5 1.5L10.5 9L1.5 16.5" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+    </div>
+
+    <%!-- Featured Section --%>
+    <div class="frame-24">
+      <div class="frame-25">
+        <div class="mingcute-star-fill">
+          <div class="vector-wrapper">
+            <svg width="25" height="25" viewBox="0 0 25 25" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path class="vector-19" d="M12.5 2.29297L15.59 8.55297L22.5 9.56297L17.5 14.4329L18.68 21.313L12.5 18.063L6.32 21.313L7.5 14.4329L2.5 9.56297L9.41 8.55297L12.5 2.29297Z" fill="#4385F5"/>
+            </svg>
+          </div>
+        </div>
+        <div class="text-wrapper-12">Featured</div>
+      </div>
+
+      <div class="frame-8">
+        <%= for video <- Enum.slice(@featured_videos, 0, 4) do %>
+          <.live_component
+            module={MazarynWeb.MediaLive.Video.CardComponent}
+            id={"featured-video-#{video.id}"}
+            video={video}
+          />
+        <% end %>
+      </div>
+
+      <div class="frame-8">
+        <%= for video <- Enum.slice(@featured_videos, 4, 4) do %>
+          <.live_component
+            module={MazarynWeb.MediaLive.Video.CardComponent}
+            id={"featured-video-#{video.id}"}
+            video={video}
+          />
+        <% end %>
+      </div>
+
+      <div class="frame-8">
+        <%= for video <- Enum.slice(@featured_videos, 8, 4) do %>
+          <.live_component
+            module={MazarynWeb.MediaLive.Video.CardComponent}
+            id={"featured-video-#{video.id}"}
+            video={video}
+          />
+        <% end %>
+      </div>
+
+      <div class="frame-43">
+        <div class="text-wrapper-16">View more</div>
+        <svg width="9" height="14" viewBox="0 0 9 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path class="vector-22" d="M1 1L7 7L1 13" stroke="#4385F5" stroke-width="2"/>
+        </svg>
+      </div>
+    </div>
+
+    <%!-- Artists Section --%>
+    <div class="frame-24">
+      <div class="frame-25">
+        <div class="mdi-art">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path class="vector-23" d="M18 3H6C4.9 3 4 3.9 4 5V19C4 20.1 4.9 21 6 21H18C19.1 21 20 20.1 20 19V5C20 3.9 19.1 3 18 3ZM18 19H6V5H18V19ZM8 15H10V17H8V15ZM12 15H14V17H12V15ZM16 15H18V17H16V15ZM8 11H10V13H8V11ZM12 11H14V13H12V11ZM16 11H18V13H16V11ZM8 7H10V9H8V7ZM12 7H14V9H12V7ZM16 7H18V9H16V7Z" fill="#4385F5"/>
+          </svg>
+        </div>
+        <div class="text-wrapper-12">Artists</div>
+      </div>
+
+      <div class="frame-8">
+        <%= for video <- @artist_videos do %>
+          <.live_component
+            module={MazarynWeb.MediaLive.Video.CardComponent}
+            id={"artist-video-#{video.id}"}
+            video={video}
+          />
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>

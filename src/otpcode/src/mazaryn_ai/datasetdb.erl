@@ -73,9 +73,21 @@
 
     download_dataset/2,
     download_dataset/3,
+    download_dataset_with_wait/2,
+    download_dataset_with_wait/3,
     schedule_dataset_download/3,
     get_dataset_download_status/1,
-    cancel_dataset_download/1
+    cancel_dataset_download/1,
+    download_dataset_to_browser/2,
+    download_dataset_to_browser/3,
+    get_dataset_download_url/1,
+
+    debug_dataset_info/1,
+    list_all_datasets_debug/0,
+
+    get_dataset_file_cid/1,
+    upload_dataset_file_to_ipfs/3,
+    get_dataset_cid/1
 ]).
 
 -include("../ml_records.hrl").
@@ -242,33 +254,237 @@ create_dataset_concurrent(CreatorId, Title, Description, Content, MetadataMap, L
     end.
 
     create_dataset_from_file(CreatorId, Title, Description, FilePath, License, Tags, Visibility) ->
-        Path = case is_binary(FilePath) of
-            true -> binary_to_list(FilePath);
-            false -> FilePath
-        end,
-        case validate_dataset_file(Path) of
-            {error, Reason} ->
-                {error, Reason};
-            {ok, FileInfo} ->
-                case file:read_file(Path) of
-                    {ok, FileContent} ->
-                        Metadata = extract_file_metadata(Path, FileInfo, FileContent),
-                        case filename:extension(Path) of
-                            ".zip" ->
-                                create_dataset_from_zip_content(
-                                    CreatorId, Title, Description,
-                                    FileContent, Metadata, License, Tags, Visibility
-                                );
-                            _ ->
-                                create_dataset_from_content(
-                                    CreatorId, Title, Description,
-                                    FileContent, Metadata, License, Tags, Visibility
-                                )
-                        end;
-                    {error, Reason} ->
-                        {error, {file_read_error, Reason}}
-                end
+        try
+            case validate_dataset_file(FilePath) of
+                {error, Reason} ->
+                    error_logger:error_msg("File validation failed: ~p", [Reason]),
+                    {error, Reason};
+                {ok, FileInfo} ->
+                    case file:read_file(FilePath) of
+                        {ok, FileContent} ->
+                            Metadata = extract_file_metadata(FilePath, FileInfo, FileContent),
+
+                            Fun = fun() ->
+                                DatasetId = nanoid:gen(),
+                                Date = calendar:universal_time(),
+
+                                ok = content_cache:set({dataset_file, DatasetId}, FileContent),
+
+                                PlaceholderCID = {dataset_file, DatasetId},
+
+                                TitleList = ensure_list(Title),
+                                DescriptionList = ensure_list(Description),
+                                LicenseList = ensure_list(License),
+                                TagsList = [ensure_list(Tag) || Tag <- Tags],
+                                VisibilityAtom = ensure_atom(Visibility),
+                                CreatorIdList = ensure_list(CreatorId),
+
+                                Dataset = #dataset{
+                                    id = DatasetId,
+                                    title = TitleList,
+                                    description = DescriptionList,
+                                    creator_id = CreatorIdList,
+                                    content_cid = PlaceholderCID,
+                                    license = LicenseList,
+                                    version = "1.0.0",
+                                    tags = TagsList,
+                                    visibility = VisibilityAtom,
+                                    size_bytes = byte_size(FileContent),
+                                    downloads = 0,
+                                    date_created = Date,
+                                    date_updated = Date,
+                                    metadata = Metadata,
+                                    version_history = [
+                                        {1, "1.0.0", {pending, DatasetId}, Date, "Initial version"}
+                                    ],
+                                    ratings = [],
+                                    pin_info = [],
+                                    competition_ids = [],
+                                    report = [],
+                                    schema_cid = undefined,
+                                    sample_cid = undefined,
+                                    metadata_cid = undefined,
+                                    citation_count = 0,
+                                    doi = undefined,
+                                    ipns = undefined,
+                                    related_dataset_ids = [],
+                                    data_quality_score = ?DEFAULT_QUALITY_SCORE,
+                                    update_frequency = static,
+                                    access_requests = [],
+                                    collaborators = [],
+                                    used_in_notebook_ids = [],
+                                    used_in_model_ids = []
+                                },
+
+                                mnesia:write(Dataset),
+
+                                case mnesia:read({user, CreatorIdList}) of
+                                    [User] ->
+                                        UserDatasets = case User#user.datasets of
+                                            undefined -> [DatasetId];
+                                            List when is_list(List) -> [DatasetId | List];
+                                            _ -> [DatasetId]
+                                        end,
+                                        mnesia:write(User#user{datasets = UserDatasets});
+                                    [] ->
+                                        error_logger:warning_msg("User ~p not found when creating dataset", [CreatorIdList])
+                                end,
+
+                                {ok, DatasetId}
+                            end,
+
+                            case mnesia:transaction(Fun) of
+                                {atomic, {ok, DatasetId}} ->
+                                    spawn(fun() ->
+                                        upload_dataset_file_to_ipfs(DatasetId, FileContent, Metadata)
+                                    end),
+                                    {ok, DatasetId};
+                                {atomic, {error, Reason}} ->
+                                    {error, Reason};
+                                {aborted, Reason} ->
+                                    {error, {transaction_failed, Reason}}
+                            end;
+                        {error, FileReadError} ->
+                            error_logger:error_msg("Failed to read file ~p: ~p", [FilePath, FileReadError]),
+                            {error, {file_read_error, FileReadError}}
+                    end
+            end
+        catch
+            Exception:Error:Stack ->
+                error_logger:error_msg(
+                    "Exception in create_dataset_from_file: ~p:~p~n~p",
+                    [Exception, Error, Stack]
+                ),
+                {error, {exception, Error}}
         end.
+
+        upload_dataset_file_to_ipfs(DatasetId, FileContent, Metadata) ->
+            error_logger:info_msg("Starting IPFS upload for dataset ~p, size: ~p bytes",
+                                  [DatasetId, byte_size(FileContent)]),
+            try
+                Size = byte_size(FileContent),
+                ContentCID = try
+                    if
+                        Size > ?CHUNK_SIZE ->
+                            error_logger:info_msg("Large file detected, using chunked upload via ipfs_dataset"),
+                            upload_large_file_chunked(FileContent);
+                        true ->
+                            error_logger:info_msg("Uploading dataset file to IPFS via ipfs_dataset"),
+                            case ipfs_dataset:upload_dataset(FileContent) of
+                                CID when is_list(CID) ->
+                                    error_logger:info_msg("Successfully uploaded dataset to IPFS: ~p", [CID]),
+                                    CID;
+                                CID when is_binary(CID) ->
+                                    error_logger:info_msg("Successfully uploaded dataset to IPFS: ~p", [CID]),
+                                    binary_to_list(CID);
+                                {error, Reason} ->
+                                    error_logger:error_msg("IPFS upload failed: ~p", [Reason]),
+                                    error;
+                                Other ->
+                                    error_logger:error_msg("Unexpected IPFS upload result: ~p", [Other]),
+                                    error
+                            end
+                    end
+                catch
+                    ErrorType:ErrorReason:Stack1 ->
+                        error_logger:error_msg("Exception during IPFS upload: ~p:~p~n~p",
+                                              [ErrorType, ErrorReason, Stack1]),
+                        error
+                end,
+                case ContentCID of
+                    error ->
+                        error_logger:error_msg("Failed to upload dataset content to IPFS for dataset ~p",
+                                              [DatasetId]),
+                        UpdateF = fun() ->
+                            case mnesia:read({dataset, DatasetId}) of
+                                [Dataset] ->
+                                    mnesia:write(Dataset#dataset{
+                                        content_cid = {error, ipfs_upload_failed}
+                                    });
+                                [] -> ok
+                            end
+                        end,
+                        mnesia:transaction(UpdateF);
+                    ValidCID ->
+                        error_logger:info_msg("Dataset content uploaded successfully: ~p", [ValidCID]),
+                        SampleCID = generate_sample_from_binary(FileContent, Metadata),
+                        MetadataJSON = jsx:encode(Metadata),
+                        MetadataCID = try
+                            ipfs_content:upload_text(binary_to_list(MetadataJSON))
+                        catch
+                            _:_ -> undefined
+                        end,
+                        UpdateF = fun() ->
+                            case mnesia:read({dataset, DatasetId}) of
+                                [Dataset] ->
+                                    UpdatedDataset = Dataset#dataset{
+                                        content_cid = ValidCID,
+                                        sample_cid = SampleCID,
+                                        metadata_cid = MetadataCID
+                                    },
+                                    mnesia:write(UpdatedDataset);
+                                [] -> ok
+                            end
+                        end,
+                        mnesia:transaction(UpdateF),
+                        content_cache:delete({dataset_file, DatasetId}),
+                        spawn(fun() ->
+                            timer:sleep(5000),
+                            try
+                                KeyName = "dataset_" ++ DatasetId,
+                                error_logger:info_msg("Generating IPNS key: ~p", [KeyName]),
+                                case ipfs_client_4:key_gen(KeyName) of
+                                    {ok, _KeyInfo} -> ok;
+                                    {error, _} -> ok
+                                end,
+                                PublishOptions = [
+                                    {key, KeyName},
+                                    {resolve, false},
+                                    {lifetime, "8760h0m0s"},
+                                    {ttl, "24h0m0s"},
+                                    {v1compat, true},
+                                    {ipns_base, "base36"},
+                                    {quieter, true},
+                                    {'allow-offline', true}
+                                ],
+                                error_logger:info_msg("Publishing to IPNS: /ipfs/~p", [ValidCID]),
+                                case ipfs_client_5:name_publish("/ipfs/" ++ ValidCID, PublishOptions) of
+                                    {ok, #{name := IPNSKey}} ->
+                                        error_logger:info_msg("IPNS publish successful: ~p", [IPNSKey]),
+                                        update_dataset_ipns(DatasetId, IPNSKey);
+                                    {error, PublishError} ->
+                                        error_logger:error_msg("IPNS publish failed: ~p", [PublishError])
+                                end
+                            catch
+                                Exception2:Error2:Stack2 ->
+                                    error_logger:error_msg(
+                                        "Exception while publishing to IPNS for dataset ~p: ~p:~p~n~p",
+                                        [DatasetId, Exception2, Error2, Stack2]
+                                    )
+                            end
+                        end),
+                        ok
+                end
+            catch
+                Exception3:Error3:Stack3 ->
+                    error_logger:error_msg(
+                        "Exception while uploading dataset ~p to IPFS: ~p:~p~n~p",
+                        [DatasetId, Exception3, Error3, Stack3]
+                    )
+            end.
+
+            get_dataset_file_cid(DatasetId) ->
+                Fun = fun() ->
+                    case mnesia:read({dataset, DatasetId}) of
+                        [] -> {error, dataset_not_found};
+                        [Dataset] -> {ok, Dataset#dataset.content_cid}
+                    end
+                end,
+                case mnesia:transaction(Fun) of
+                    {atomic, {ok, CID}} -> CID;
+                    {atomic, {error, Reason}} -> {error, Reason};
+                    {aborted, Reason} -> {error, {transaction_failed, Reason}}
+                end.
 
     create_dataset_from_zip(CreatorId, Title, Description, ZipFilePath, License, Tags, Visibility) ->
         Path = case is_binary(ZipFilePath) of
@@ -1477,32 +1693,32 @@ get_dataset_metadata(DatasetId) ->
             {aborted, Reason} -> {error, {transaction_failed, Reason}}
         end.
 
-    validate_dataset_file(FilePath) ->
-        case filelib:is_file(FilePath) of
-            false ->
-                {error, file_not_found};
-            true ->
-                case file:read_file_info(FilePath) of
-                    {ok, FileInfo} ->
-                        Size = FileInfo#file_info.size,
-                        if
-                            Size > ?MAX_FILE_SIZE ->
-                                {error, {file_too_large, Size, ?MAX_FILE_SIZE}};
-                            Size == 0 ->
-                                {error, empty_file};
-                            true ->
-                                Extension = string:to_lower(filename:extension(FilePath)),
-                                case lists:member(Extension, ?SUPPORTED_FORMATS) of
-                                    true ->
-                                        {ok, FileInfo};
-                                    false ->
-                                        {error, {unsupported_format, Extension}}
-                                end
-                        end;
-                    {error, Reason} ->
-                        {error, {file_info_error, Reason}}
-                end
-        end.
+        validate_dataset_file(FilePath) ->
+            case filelib:is_file(FilePath) of
+                false ->
+                    {error, file_not_found};
+                true ->
+                    case file:read_file_info(FilePath) of
+                        {ok, FileInfo} ->
+                            Size = FileInfo#file_info.size,
+                            if
+                                Size > ?MAX_FILE_SIZE ->
+                                    {error, {file_too_large, Size, ?MAX_FILE_SIZE}};
+                                Size == 0 ->
+                                    {error, empty_file};
+                                true ->
+                                    Extension = string:to_lower(filename:extension(FilePath)),
+                                    case lists:member(Extension, ?SUPPORTED_FORMATS) of
+                                        true ->
+                                            {ok, FileInfo};
+                                        false ->
+                                            {error, {unsupported_format, Extension}}
+                                    end
+                            end;
+                        {error, Reason} ->
+                            {error, {file_info_error, Reason}}
+                    end
+            end.
 
     get_supported_formats() ->
         ?SUPPORTED_FORMATS.
@@ -1515,9 +1731,10 @@ get_dataset_metadata(DatasetId) ->
 
             FormatStr = case Extension of
                 [] -> "";
-                [$.|Rest] -> Rest;
+                [$. | Rest] -> Rest;
                 Other -> Other
             end,
+
 
             BaseMetadata = #{
                 filename => FileName,
@@ -1858,19 +2075,15 @@ upload_dataset_update(DatasetId, Content, Metadata) ->
         upload_binary_dataset_to_ipfs(DatasetId, BinaryContent, Metadata) ->
             try
                 Size = byte_size(BinaryContent),
-
                 ContentCID = if
                     Size > ?CHUNK_SIZE ->
                         upload_large_file_chunked(BinaryContent);
                     true ->
-                        ipfs_media:upload_media(BinaryContent)
+                        ipfs_dataset:upload_dataset(BinaryContent)
                 end,
-
                 SampleCID = generate_sample_from_binary(BinaryContent, Metadata),
-
                 MetadataJSON = jsx:encode(Metadata),
                 MetadataCID = ipfs_content:upload_text(binary_to_list(MetadataJSON)),
-
                 UpdateF = fun() ->
                     case mnesia:read({dataset, DatasetId}) of
                         [Dataset] ->
@@ -1884,23 +2097,17 @@ upload_dataset_update(DatasetId, Content, Metadata) ->
                     end
                 end,
                 mnesia:transaction(UpdateF),
-
                 content_cache:delete({dataset_file, DatasetId}),
                 content_cache:delete({dataset_file_update, DatasetId}),
-
                 spawn(fun() ->
                     timer:sleep(15000),
-
                     case ContentCID of
-                        undefined ->
-                            error_logger:info_msg("No content to publish to IPNS for dataset ~p", [DatasetId]);
-                        "" ->
-                            error_logger:info_msg("Empty content, skipping IPNS publish for dataset ~p", [DatasetId]);
+                        undefined -> ok;
+                        "" -> ok;
                         _ ->
                             try
                                 KeyName = "dataset_" ++ DatasetId,
-                                {ok, #{id := _KeyID, name := _BinID}} = ipfs_client_4:key_gen(KeyName),
-
+                                {ok, _} = ipfs_client_4:key_gen(KeyName),
                                 PublishOptions = [
                                     {key, KeyName},
                                     {resolve, false},
@@ -1911,27 +2118,17 @@ upload_dataset_update(DatasetId, Content, Metadata) ->
                                     {quieter, true},
                                     {'allow-offline', true}
                                 ],
-
-                                case ipfs_client_5:name_publish(
-                                    "/ipfs/" ++ ContentCID,
-                                    PublishOptions
-                                ) of
+                                case ipfs_client_5:name_publish("/ipfs/" ++ ContentCID, PublishOptions) of
                                     {ok, #{name := IPNSKey}} ->
                                         update_dataset_ipns(DatasetId, IPNSKey);
                                     {error, _Reason} ->
-                                        error_logger:error_msg("IPNS publish failed for dataset ~p: ~p", [DatasetId, _Reason]),
-                                        err
+                                        error_logger:error_msg("IPNS publish failed for dataset ~p", [DatasetId])
                                 end
                             catch
-                                Exception:Error:Stacktrace ->
-                                    error_logger:error_msg(
-                                        "Exception while publishing to IPNS for dataset ~p: ~p:~p~n~p",
-                                        [DatasetId, Exception, Error, Stacktrace]
-                                    )
+                                _:_ -> ok
                             end
                     end
                 end),
-
                 ok
             catch
                 Exception:Error:Stacktrace ->
@@ -1963,18 +2160,16 @@ upload_dataset_update(DatasetId, Content, Metadata) ->
                     {error, {transaction_failed, Reason}}
             end.
 
-    upload_large_file_chunked(BinaryContent) ->
-        Chunks = split_into_chunks(BinaryContent, ?CHUNK_SIZE),
-        ChunkCIDs = [ipfs_media:upload_media(Chunk) || Chunk <- Chunks],
-
-        Manifest = #{
-            <<"type">> => <<"chunked">>,
-            <<"chunks">> => ChunkCIDs,
-            <<"total_size">> => byte_size(BinaryContent)
-        },
-
-        ManifestJSON = jsx:encode(Manifest),
-        ipfs_content:upload_text(binary_to_list(ManifestJSON)).
+            upload_large_file_chunked(BinaryContent) ->
+                Chunks = split_into_chunks(BinaryContent, ?CHUNK_SIZE),
+                ChunkCIDs = [ipfs_dataset:upload_dataset(Chunk) || Chunk <- Chunks],
+                Manifest = #{
+                    <<"type">> => <<"chunked">>,
+                    <<"chunks">> => ChunkCIDs,
+                    <<"total_size">> => byte_size(BinaryContent)
+                },
+                ManifestJSON = jsx:encode(Manifest),
+                ipfs_content:upload_text(binary_to_list(ManifestJSON)).
 
     split_into_chunks(Binary, ChunkSize) ->
         split_into_chunks(Binary, ChunkSize, []).
@@ -2033,34 +2228,102 @@ upload_dataset_update(DatasetId, Content, Metadata) ->
             download_dataset(DatasetId, UserId, #{}).
 
         download_dataset(DatasetId, UserId, Options) ->
-            DestinationDir = maps:get(destination_dir, Options, "/tmp/mazaryn_downloads/" ++ UserId),
+            error_logger:info_msg("Starting download for dataset ~p by user ~p", [DatasetId, UserId]),
 
-            case download_manager_client:download_dataset(DatasetId, UserId, DestinationDir, Options) of
-                {ok, DownloadId} ->
-                    Fun = fun() ->
-                        case mnesia:read({dataset, DatasetId}) of
-                            [] -> {error, dataset_not_found};
-                            [Dataset] ->
-                                Metadata = Dataset#dataset.metadata,
-                                UpdatedMetadata = maps:put(last_download, #{
-                                    download_id => DownloadId,
-                                    user_id => UserId,
-                                    timestamp => calendar:universal_time()
-                                }, Metadata),
+            DestinationDir = maps:get(destination_dir, Options, "/tmp/mazaryn_downloads/" ++ ensure_string(UserId)),
 
-                                mnesia:write(Dataset#dataset{
-                                    metadata = UpdatedMetadata,
-                                    downloads = Dataset#dataset.downloads + 1
-                                }),
-                                {ok, DownloadId}
-                        end
-                    end,
+            case filelib:ensure_dir(DestinationDir ++ "/") of
+                ok ->
+                    error_logger:info_msg("Destination directory ensured: ~p", [DestinationDir]);
+                {error, DirErr} ->
+                    error_logger:error_msg("Failed to create destination directory ~p: ~p", [DestinationDir, DirErr])
+            end,
 
-                    case mnesia:transaction(Fun) of
-                        {atomic, Result} -> Result;
-                        {aborted, Reason} -> {error, {transaction_failed, Reason}}
+            case get_dataset_by_id(DatasetId) of
+                {error, dataset_not_found} ->
+                    error_logger:error_msg("Dataset not found: ~p", [DatasetId]),
+                    {error, dataset_not_found};
+                #dataset{} = Dataset ->
+                    ContentCID = Dataset#dataset.content_cid,
+                    error_logger:info_msg("Dataset content CID: ~p", [ContentCID]),
+
+                    case validate_cid_for_download(ContentCID) of
+                        {error, Reason} ->
+                            error_logger:error_msg("CID validation failed: ~p", [Reason]),
+                            {error, Reason};
+                        {ok, ValidCID} ->
+                            error_logger:info_msg("Valid CID: ~p", [ValidCID]),
+
+                            Title = Dataset#dataset.title,
+                            Filename = sanitize_filename(Title) ++ ".dat",
+                            Destination = filename:join(DestinationDir, Filename),
+
+                            error_logger:info_msg("Download destination: ~p", [Destination]),
+
+                            Url = build_ipfs_gateway_url(ValidCID),
+                            error_logger:info_msg("IPFS Gateway URL: ~p", [Url]),
+
+                            SizeBytes = Dataset#dataset.size_bytes,
+
+                            Checksum = case Dataset#dataset.metadata of
+                                #{checksum := CS} -> CS;
+                                _ -> undefined
+                            end,
+
+                            OptionsWithMetadata = maps:merge(Options, #{
+                                checksum => Checksum,
+                                expected_size => SizeBytes,
+                                content_cid => ValidCID
+                            }),
+
+                            OptionsFiltered = maps:filter(fun(_, V) -> V =/= undefined end, OptionsWithMetadata),
+
+                            error_logger:info_msg("Calling download_manager_client with URL: ~p, Destination: ~p", [Url, Destination]),
+
+                            case download_manager_client:start_download(
+                                Url,
+                                Destination,
+                                ensure_string(UserId),
+                                DatasetId,
+                                undefined,
+                                high,
+                                OptionsFiltered
+                            ) of
+                                {ok, DownloadId} ->
+                                    error_logger:info_msg("Download started successfully with ID: ~p", [DownloadId]),
+
+                                    Fun = fun() ->
+                                        case mnesia:read({dataset, DatasetId}) of
+                                            [] -> {error, dataset_not_found};
+                                            [DS] ->
+                                                Metadata = DS#dataset.metadata,
+                                                UpdatedMetadata = maps:put(last_download, #{
+                                                    download_id => DownloadId,
+                                                    user_id => UserId,
+                                                    timestamp => calendar:universal_time()
+                                                }, Metadata),
+
+                                                mnesia:write(DS#dataset{
+                                                    metadata = UpdatedMetadata,
+                                                    downloads = DS#dataset.downloads + 1
+                                                }),
+                                                {ok, DownloadId}
+                                        end
+                                    end,
+
+                                    case mnesia:transaction(Fun) of
+                                        {atomic, Result} -> Result;
+                                        {aborted, Reason} ->
+                                            error_logger:error_msg("Transaction aborted: ~p", [Reason]),
+                                            {error, {transaction_failed, Reason}}
+                                    end;
+                                Error ->
+                                    error_logger:error_msg("Failed to start download: ~p", [Error]),
+                                    Error
+                            end
                     end;
                 Error ->
+                    error_logger:error_msg("Failed to get dataset: ~p", [Error]),
                     Error
             end.
 
@@ -2082,3 +2345,391 @@ upload_dataset_update(DatasetId, Content, Metadata) ->
             Now = calendar:datetime_to_gregorian_seconds(calendar:universal_time()),
             Schedule = calendar:datetime_to_gregorian_seconds(ScheduleTime),
             max(0, (Schedule - Now) * 1000).
+
+            validate_cid_for_download({dataset_file, _DatasetId}) ->
+                error_logger:error_msg("CID validation failed: content is still being uploaded (placeholder exists)"),
+                {error, content_not_ready};
+            validate_cid_for_download({error, _Reason}) ->
+                error_logger:error_msg("CID validation failed: stored as error tuple"),
+                {error, ipfs_upload_failed};
+            validate_cid_for_download({pending, _}) ->
+                error_logger:error_msg("CID validation failed: content is pending upload"),
+                {error, content_not_ready};
+            validate_cid_for_download({pending_update, _}) ->
+                error_logger:error_msg("CID validation failed: content is pending update"),
+                {error, content_updating};
+            validate_cid_for_download({pending_version, _}) ->
+                error_logger:error_msg("CID validation failed: version is pending"),
+                {error, version_pending};
+            validate_cid_for_download(undefined) ->
+                error_logger:error_msg("CID validation failed: CID is undefined"),
+                {error, no_content};
+            validate_cid_for_download(CID) when is_list(CID) ->
+                case string:length(CID) > 0 of
+                    true ->
+                        error_logger:info_msg("CID validation successful: ~p", [CID]),
+                        {ok, CID};
+                    false ->
+                        error_logger:error_msg("CID validation failed: empty CID string"),
+                        {error, invalid_cid}
+                end;
+            validate_cid_for_download(CID) when is_binary(CID) ->
+                validate_cid_for_download(binary_to_list(CID));
+            validate_cid_for_download(CID) ->
+                error_logger:error_msg("CID validation failed: invalid format ~p", [CID]),
+                {error, invalid_cid_format}.
+
+            build_ipfs_gateway_url(CID) ->
+                GatewayUrl = application:get_env(mazaryn, ipfs_gateway_url, "https://gateway.pinata.cloud/ipfs/"),
+                GatewayUrl ++ ensure_string(CID).
+
+            ensure_string(Value) when is_list(Value) -> Value;
+            ensure_string(Value) when is_binary(Value) -> binary_to_list(Value);
+            ensure_string(Value) when is_atom(Value) -> atom_to_list(Value);
+            ensure_string(Value) -> lists:flatten(io_lib:format("~p", [Value])).
+
+            sanitize_filename(Filename) when is_binary(Filename) ->
+                sanitize_filename(binary_to_list(Filename));
+            sanitize_filename(Filename) when is_list(Filename) ->
+                Re = "[^a-zA-Z0-9._-]",
+                re:replace(Filename, Re, "_", [global, {return, list}]);
+            sanitize_filename(Filename) ->
+                sanitize_filename(io_lib:format("~p", [Filename])).
+
+                download_dataset_to_browser(DatasetId, UserId) ->
+                    download_dataset_to_browser(DatasetId, UserId, #{}).
+
+                download_dataset_to_browser(DatasetId, UserId, Options) ->
+                    case download_dataset(DatasetId, UserId, Options) of
+                        {ok, DownloadId} ->
+                            case wait_for_download_completion(DownloadId, 300) of
+                                {ok, completed} ->
+                                    DownloadUrl = "http://localhost:2020/downloads/" ++ DownloadId ++ "/file",
+                                    {ok, #{
+                                        download_id => DownloadId,
+                                        download_url => DownloadUrl,
+                                        status => completed
+                                    }};
+                                {error, Reason} ->
+                                    {error, Reason}
+                            end;
+                        Error ->
+                            Error
+                    end.
+
+                wait_for_download_completion(DownloadId, TimeoutSecs) ->
+                    wait_for_download_completion(DownloadId, TimeoutSecs, 0).
+
+                wait_for_download_completion(DownloadId, TimeoutSecs, ElapsedSecs) when ElapsedSecs >= TimeoutSecs ->
+                    {error, timeout};
+                wait_for_download_completion(DownloadId, TimeoutSecs, ElapsedSecs) ->
+                    case download_manager_client:get_download_status(DownloadId) of
+                        {ok, Info} ->
+                            Status = maps:get(status, Info),
+                            case Status of
+                                <<"Completed">> ->
+                                    {ok, completed};
+                                <<"Failed">> ->
+                                    {error, maps:get(error, Info, <<"Unknown error">>)};
+                                _ ->
+                                    timer:sleep(2000),
+                                    wait_for_download_completion(DownloadId, TimeoutSecs, ElapsedSecs + 2)
+                            end;
+                        {error, Reason} ->
+                            {error, Reason}
+                    end.
+
+                    get_dataset_download_url(DatasetId) when is_list(DatasetId) ->
+                        case get_dataset_by_id(DatasetId) of
+                            {error, dataset_not_found} ->
+                                {error, dataset_not_found};
+                            #dataset{} = Dataset ->
+                                ContentCID = Dataset#dataset.content_cid,
+                                case validate_cid_for_download(ContentCID) of
+                                    {error, Reason} ->
+                                        {error, Reason};
+                                    {ok, ValidCID} ->
+                                        Url = build_ipfs_gateway_url(ValidCID),
+                                        {ok, Url}
+                                end;
+                            Error ->
+                                Error
+                        end;
+                    get_dataset_download_url(DatasetId) when is_binary(DatasetId) ->
+                        get_dataset_download_url(binary_to_list(DatasetId)).
+
+                        download_dataset_with_wait(DatasetId, UserId) ->
+                            download_dataset_with_wait(DatasetId, UserId, #{}).
+
+                        download_dataset_with_wait(DatasetId, UserId, Options) ->
+                            error_logger:info_msg("Starting download with wait for dataset ~p by user ~p", [DatasetId, UserId]),
+
+                            case get_dataset_by_id(DatasetId) of
+                                {error, dataset_not_found} ->
+                                    error_logger:error_msg("Dataset not found: ~p", [DatasetId]),
+                                    {error, dataset_not_found};
+                                #dataset{} = Dataset ->
+                                    ContentCID = Dataset#dataset.content_cid,
+                                    error_logger:info_msg("Dataset content CID: ~p", [ContentCID]),
+
+                                    case validate_cid_for_download(ContentCID) of
+                                        {ok, ValidCID} ->
+                                            do_download_dataset(Dataset, ValidCID, UserId, Options);
+                                        {error, content_not_ready} ->
+                                            error_logger:info_msg("Content not ready, checking cache for dataset ~p", [DatasetId]),
+                                            case content_cache:get({dataset_file, DatasetId}) of
+                                                undefined ->
+                                                    case content_cache:get({dataset, DatasetId}) of
+                                                        undefined ->
+                                                            error_logger:error_msg("No cached content available for dataset ~p", [DatasetId]),
+                                                            {error, content_not_available};
+                                                        CachedContent ->
+                                                            error_logger:info_msg("Found cached content, creating temporary file"),
+                                                            download_from_cache(Dataset, CachedContent, UserId, Options)
+                                                    end;
+                                                CachedContent ->
+                                                    error_logger:info_msg("Found cached file content, creating temporary file"),
+                                                    download_from_cache(Dataset, CachedContent, UserId, Options)
+                                            end;
+                                        {error, Reason} ->
+                                            error_logger:error_msg("CID validation failed: ~p", [Reason]),
+                                            {error, Reason}
+                                    end;
+                                Error ->
+                                    error_logger:error_msg("Failed to get dataset: ~p", [Error]),
+                                    Error
+                            end.
+
+                        download_from_cache(Dataset, CachedContent, UserId, Options) ->
+                            DatasetId = Dataset#dataset.id,
+                            DestinationDir = maps:get(destination_dir, Options, "/tmp/mazaryn_downloads/" ++ ensure_string(UserId)),
+
+                            case filelib:ensure_dir(DestinationDir ++ "/") of
+                                ok -> ok;
+                                {error, DirErr} ->
+                                    error_logger:error_msg("Failed to create destination directory: ~p", [DirErr])
+                            end,
+
+                            Title = Dataset#dataset.title,
+                            Filename = sanitize_filename(Title) ++ ".dat",
+                            TempDestination = filename:join(DestinationDir, Filename),
+
+                            error_logger:info_msg("Writing cached content to: ~p", [TempDestination]),
+
+                            BinaryContent = if
+                                is_binary(CachedContent) -> CachedContent;
+                                is_list(CachedContent) -> list_to_binary(CachedContent);
+                                true -> term_to_binary(CachedContent)
+                            end,
+
+                            case file:write_file(TempDestination, BinaryContent) of
+                                ok ->
+                                    error_logger:info_msg("Successfully wrote file to disk"),
+
+                                    DownloadId = nanoid:gen(),
+
+                                    Now = calendar:universal_time(),
+                                    DownloadInfo = #{
+                                        download_id => DownloadId,
+                                        user_id => UserId,
+                                        dataset_id => DatasetId,
+                                        destination => TempDestination,
+                                        status => completed,
+                                        timestamp => Now
+                                    },
+
+                                    Fun = fun() ->
+                                        case mnesia:read({dataset, DatasetId}) of
+                                            [] -> {error, dataset_not_found};
+                                            [DS] ->
+                                                Metadata = DS#dataset.metadata,
+                                                UpdatedMetadata = maps:put(last_download, DownloadInfo, Metadata),
+                                                mnesia:write(DS#dataset{
+                                                    metadata = UpdatedMetadata,
+                                                    downloads = DS#dataset.downloads + 1
+                                                }),
+                                                {ok, DownloadId, TempDestination}
+                                        end
+                                    end,
+
+                                    case mnesia:transaction(Fun) of
+                                        {atomic, {ok, DlId, Dest}} ->
+                                            error_logger:info_msg("Download from cache completed: ~p", [DlId]),
+                                            {ok, DlId, Dest};
+                                        {atomic, {error, Reason}} ->
+                                            {error, Reason};
+                                        {aborted, Reason} ->
+                                            error_logger:error_msg("Transaction aborted: ~p", [Reason]),
+                                            {error, {transaction_failed, Reason}}
+                                    end;
+                                {error, WriteError} ->
+                                    error_logger:error_msg("Failed to write file: ~p", [WriteError]),
+                                    {error, {file_write_failed, WriteError}}
+                            end.
+
+                        do_download_dataset(Dataset, ValidCID, UserId, Options) ->
+                            DatasetId = Dataset#dataset.id,
+                            DestinationDir = maps:get(destination_dir, Options, "/tmp/mazaryn_downloads/" ++ ensure_string(UserId)),
+
+                            case filelib:ensure_dir(DestinationDir ++ "/") of
+                                ok ->
+                                    error_logger:info_msg("Destination directory ensured: ~p", [DestinationDir]);
+                                {error, DirErr} ->
+                                    error_logger:error_msg("Failed to create destination directory ~p: ~p", [DestinationDir, DirErr])
+                            end,
+
+                            Title = Dataset#dataset.title,
+                            Filename = sanitize_filename(Title) ++ ".dat",
+                            Destination = filename:join(DestinationDir, Filename),
+
+                            error_logger:info_msg("Download destination: ~p", [Destination]),
+
+                            Url = build_ipfs_gateway_url(ValidCID),
+                            error_logger:info_msg("IPFS Gateway URL: ~p", [Url]),
+
+                            SizeBytes = Dataset#dataset.size_bytes,
+
+                            Checksum = case Dataset#dataset.metadata of
+                                #{checksum := CS} -> CS;
+                                _ -> undefined
+                            end,
+
+                            OptionsWithMetadata = maps:merge(Options, #{
+                                checksum => Checksum,
+                                expected_size => SizeBytes,
+                                content_cid => ValidCID
+                            }),
+
+                            OptionsFiltered = maps:filter(fun(_, V) -> V =/= undefined end, OptionsWithMetadata),
+
+                            error_logger:info_msg("Calling download_manager_client with URL: ~p, Destination: ~p", [Url, Destination]),
+
+                            case download_manager_client:start_download(
+                                Url,
+                                Destination,
+                                ensure_string(UserId),
+                                DatasetId,
+                                undefined,
+                                high,
+                                OptionsFiltered
+                            ) of
+                                {ok, DownloadId} ->
+                                    error_logger:info_msg("Download started successfully with ID: ~p", [DownloadId]),
+
+                                    Fun = fun() ->
+                                        case mnesia:read({dataset, DatasetId}) of
+                                            [] -> {error, dataset_not_found};
+                                            [DS] ->
+                                                Metadata = DS#dataset.metadata,
+                                                UpdatedMetadata = maps:put(last_download, #{
+                                                    download_id => DownloadId,
+                                                    user_id => UserId,
+                                                    timestamp => calendar:universal_time()
+                                                }, Metadata),
+
+                                                mnesia:write(DS#dataset{
+                                                    metadata = UpdatedMetadata,
+                                                    downloads = DS#dataset.downloads + 1
+                                                }),
+                                                {ok, DownloadId}
+                                        end
+                                    end,
+
+                                    case mnesia:transaction(Fun) of
+                                        {atomic, Result} -> Result;
+                                        {aborted, Reason} ->
+                                            error_logger:error_msg("Transaction aborted: ~p", [Reason]),
+                                            {error, {transaction_failed, Reason}}
+                                    end;
+                                Error ->
+                                    error_logger:error_msg("Failed to start download: ~p", [Error]),
+                                    Error
+                            end.
+
+
+                            debug_dataset_info(DatasetId) ->
+                                error_logger:info_msg("=== DEBUG: Dataset Info for ~p ===", [DatasetId]),
+                                case get_dataset_by_id(DatasetId) of
+                                    {error, Reason} ->
+                                        error_logger:error_msg("Failed to get dataset: ~p", [Reason]),
+                                        {error, Reason};
+                                    #dataset{} = Dataset ->
+                                        error_logger:info_msg("Dataset ID: ~p", [Dataset#dataset.id]),
+                                        error_logger:info_msg("Title: ~p", [Dataset#dataset.title]),
+                                        error_logger:info_msg("Content CID: ~p", [Dataset#dataset.content_cid]),
+                                        error_logger:info_msg("Content CID Type: ~p", [type_of(Dataset#dataset.content_cid)]),
+                                        error_logger:info_msg("IPNS: ~p", [Dataset#dataset.ipns]),
+                                        error_logger:info_msg("Size: ~p bytes", [Dataset#dataset.size_bytes]),
+                                        error_logger:info_msg("Metadata: ~p", [Dataset#dataset.metadata]),
+                                        error_logger:info_msg("Version History: ~p", [Dataset#dataset.version_history]),
+
+                                        error_logger:info_msg("Checking cache..."),
+                                        CacheKeys = [
+                                            {dataset, DatasetId},
+                                            {dataset_file, DatasetId},
+                                            {dataset_update, DatasetId},
+                                            {dataset_version, DatasetId}
+                                        ],
+                                        lists:foreach(fun(Key) ->
+                                            case content_cache:get(Key) of
+                                                undefined ->
+                                                    error_logger:info_msg("Cache ~p: NOT FOUND", [Key]);
+                                                Content ->
+                                                    ContentSize = if
+                                                        is_binary(Content) -> byte_size(Content);
+                                                        is_list(Content) -> length(Content);
+                                                        true -> 0
+                                                    end,
+                                                    error_logger:info_msg("Cache ~p: FOUND (~p bytes)", [Key, ContentSize])
+                                            end
+                                        end, CacheKeys),
+
+                                        {ok, Dataset}
+                                end.
+
+                            type_of(X) when is_list(X) -> list;
+                            type_of(X) when is_binary(X) -> binary;
+                            type_of(X) when is_atom(X) -> atom;
+                            type_of(X) when is_tuple(X) -> {tuple, tuple_size(X), element(1, X)};
+                            type_of(_) -> unknown.
+
+                            list_all_datasets_debug() ->
+                                error_logger:info_msg("=== Listing All Datasets ==="),
+                                Fun = fun() ->
+                                    mnesia:match_object(#dataset{_ = '_'})
+                                end,
+                                {atomic, Datasets} = mnesia:transaction(Fun),
+                                lists:foreach(fun(Dataset) ->
+                                    error_logger:info_msg("Dataset ~p: ~p (CID: ~p)",
+                                        [Dataset#dataset.id, Dataset#dataset.title, Dataset#dataset.content_cid])
+                                end, Datasets),
+                                {ok, length(Datasets)}.
+
+                                get_dataset_cid(DatasetId) ->
+                                    Fun = fun() ->
+                                        case mnesia:read({dataset, DatasetId}) of
+                                            [] ->
+                                                {error, dataset_not_found};
+                                            [Dataset] ->
+                                                ContentCID = Dataset#dataset.content_cid,
+                                                case is_final_cid(ContentCID) of
+                                                    true  -> {ok, ContentCID};
+                                                    false -> {error, content_not_ready}
+                                                end
+                                        end
+                                    end,
+                                    case mnesia:transaction(Fun) of
+                                        {atomic, {ok, CID}} -> CID;
+                                        {atomic, {error, Reason}} -> {error, Reason};
+                                        {aborted, Reason} -> {error, {transaction_failed, Reason}}
+                                    end.
+
+                                is_final_cid(undefined) -> false;
+                                is_final_cid({pending, _}) -> false;
+                                is_final_cid({pending_update, _}) -> false;
+                                is_final_cid({pending_version, _}) -> false;
+                                is_final_cid({dataset_file, _}) -> false;
+                                is_final_cid({error, _}) -> false;
+                                is_final_cid(CID) when is_list(CID), length(CID) > 0 -> true;
+                                is_final_cid(CID) when is_binary(CID), byte_size(CID) > 0 -> true;
+                                is_final_cid(_) -> false.

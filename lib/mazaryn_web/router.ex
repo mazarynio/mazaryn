@@ -72,7 +72,6 @@ defmodule MazarynWeb.Router do
     end
 
     get("/", PageController, :index)
-
     get("/contact", PageController, :contact)
     get("/about", PageController, :about)
     get("/privacy-policy", PageController, :privacy)
@@ -91,18 +90,18 @@ defmodule MazarynWeb.Router do
       live("/approve", HomeLive.Approve)
       live("/coins", CoinLive.Index)
       live("/notifications", HomeLive.Notification)
-      live("/videos", VideoLive.Index)
-      live("/videos/:id", VideoLive.Show)
+
+      live("/videos", MediaLive.Video.Index, :index)
+      live "/:locale/videos/:id", MediaLive.Video.Show, :show
+      live("/videos/:id", MediaLive.Video.Show)
 
       live("/ai", AiLive.Index)
-
       live("/ai/datasets", AiLive.Datasets, :index)
       live("/ai/datasets/new", AiLive.DatasetNew, :new)
       live("/ai/datasets/:id", AiLive.DatasetShow, :show)
       live("/ai/datasets/:id/edit", AiLive.DatasetEdit, :edit)
       live("/ai/datasets/:id/versions", AiLive.DatasetVersions, :versions)
       live("/ai/datasets/:id/collaborators", AiLive.DatasetCollaborators, :collaborators)
-
       live("/ai/competitions", AiLive.Competitions, :index)
       live("/ai/competitions/new", AiLive.CompetitionNew, :new)
       live("/ai/competitions/:id", AiLive.CompetitionShow, :show)
@@ -110,21 +109,18 @@ defmodule MazarynWeb.Router do
       live("/ai/competitions/:id/leaderboard", AiLive.CompetitionLeaderboard, :leaderboard)
       live("/ai/competitions/:id/submit", AiLive.CompetitionSubmit, :submit)
       live("/ai/competitions/:id/teams", AiLive.CompetitionTeams, :teams)
-
       live("/ai/notebooks", AiLive.Notebooks, :index)
       live("/ai/notebooks/new", AiLive.NotebookNew, :new)
       live("/ai/notebooks/:id", AiLive.NotebookShow, :show)
       live("/ai/notebooks/:id/edit", AiLive.NotebookEditor, :edit)
       live("/ai/notebooks/:id/fork", AiLive.NotebookFork, :fork)
       live("/ai/notebooks/:id/versions", AiLive.NotebookVersions, :versions)
-
       live("/ai/models", AiLive.Models, :index)
       live("/ai/models/new", AiLive.ModelNew, :new)
       live("/ai/models/:id", AiLive.ModelShow, :show)
       live("/ai/models/:id/edit", AiLive.ModelEdit, :edit)
       live("/ai/models/:id/versions", AiLive.ModelVersions, :versions)
       live("/ai/models/:id/deploy", AiLive.ModelDeploy, :deploy)
-
       live("/ai/discussions", AiLive.Discussions, :index)
       live("/ai/discussions/new", AiLive.DiscussionNew, :new)
       live("/ai/discussions/:id", AiLive.DiscussionShow, :show)
@@ -147,7 +143,6 @@ defmodule MazarynWeb.Router do
       live("/dashboard/hedera-wallet", DashboardLive.Wallet.HederaWallet)
       live("/notifications", NotificationLive.Index)
       live("/user_blog", UserBlog.Index)
-
       live("/hashtag/:hashtag_name", HashtagLive.Index)
       live("/:username", UserLive.Profile)
       live("/:username/:locale", UserLive.Profile)
@@ -159,7 +154,6 @@ defmodule MazarynWeb.Router do
 
     scope "/" do
       pipe_through(:browser)
-
       live_dashboard("/dashboard", metrics: MazarynWeb.Telemetry)
     end
   end
@@ -167,7 +161,6 @@ defmodule MazarynWeb.Router do
   if Application.get_env(:mazaryn, :env) == :dev do
     scope "/dev" do
       pipe_through(:browser)
-
       forward("/mailbox", Plug.Swoosh.MailboxPreview)
     end
   end

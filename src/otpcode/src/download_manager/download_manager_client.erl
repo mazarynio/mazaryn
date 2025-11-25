@@ -30,42 +30,64 @@
 start_download(Url, Destination, UserId, DatasetId, CompetitionId, Priority) ->
     start_download(Url, Destination, UserId, DatasetId, CompetitionId, Priority, #{}).
 
-start_download(Url, Destination, UserId, DatasetId, CompetitionId, Priority, Options) ->
-    RequestBody = #{
-        url => ensure_binary(Url),
-        destination => ensure_binary(Destination),
-        user_id => ensure_binary(UserId),
-        dataset_id => case DatasetId of
+    start_download(Url, Destination, UserId, DatasetId, CompetitionId, Priority, Options) ->
+        error_logger:info_msg("download_manager_client:start_download called with URL: ~p", [Url]),
+        error_logger:info_msg("Destination: ~p", [Destination]),
+        error_logger:info_msg("UserId: ~p", [UserId]),
+
+        DatasetIdValue = case DatasetId of
             undefined -> null;
             _ -> ensure_binary(DatasetId)
         end,
-        competition_id => case CompetitionId of
+
+        CompetitionIdValue = case CompetitionId of
             undefined -> null;
             _ -> ensure_binary(CompetitionId)
         end,
-        priority => priority_to_string(Priority),
-        chunk_size_mb => maps:get(chunk_size_mb, Options, 10),
-        max_connections => maps:get(max_connections, Options, 8),
-        checksum => maps:get(checksum, Options, null)
-    },
 
-    Json = jsx:encode(RequestBody),
-    ApiUrl = ?RUST_API_BASE ++ "/downloads/start",
+        ChecksumValue = maps:get(checksum, Options, null),
+        ExpectedSizeValue = maps:get(expected_size, Options, null),
 
-    case httpc:request(post, {ApiUrl, [], "application/json", Json},
-                      [{timeout, ?DEFAULT_TIMEOUT}], []) of
-        {ok, {{_, 200, _}, _, ResponseBody}} ->
-            case jsx:decode(list_to_binary(ResponseBody), [return_maps]) of
-                #{<<"download_id">> := DownloadId} ->
-                    {ok, binary_to_list(DownloadId)};
-                _ ->
-                    {error, invalid_response}
-            end;
-        {ok, {{_, StatusCode, _}, _, ErrorBody}} ->
-            {error, {http_error, StatusCode, ErrorBody}};
-        {error, Reason} ->
-            {error, Reason}
-    end.
+        RequestBody = #{
+            url => ensure_binary(Url),
+            destination => ensure_binary(Destination),
+            user_id => ensure_binary(UserId),
+            dataset_id => DatasetIdValue,
+            competition_id => CompetitionIdValue,
+            priority => priority_to_string(Priority),
+            chunk_size_mb => maps:get(chunk_size_mb, Options, 10),
+            max_connections => maps:get(max_connections, Options, 8),
+            checksum => ChecksumValue,
+            expected_size => ExpectedSizeValue
+        },
+
+        error_logger:info_msg("Request body: ~p", [RequestBody]),
+
+        Json = jsx:encode(RequestBody),
+        ApiUrl = ?RUST_API_BASE ++ "/downloads/start",
+
+        error_logger:info_msg("Sending POST request to: ~p", [ApiUrl]),
+        error_logger:info_msg("Request JSON: ~p", [Json]),
+
+        case httpc:request(post, {ApiUrl, [], "application/json", Json},
+                          [{timeout, ?DEFAULT_TIMEOUT}], []) of
+            {ok, {{_, 200, _}, _, ResponseBody}} ->
+                error_logger:info_msg("Received response: ~p", [ResponseBody]),
+                case jsx:decode(list_to_binary(ResponseBody), [return_maps]) of
+                    #{<<"download_id">> := DownloadId} ->
+                        error_logger:info_msg("Download ID: ~p", [DownloadId]),
+                        {ok, binary_to_list(DownloadId)};
+                    _ ->
+                        error_logger:error_msg("Invalid response format"),
+                        {error, invalid_response}
+                end;
+            {ok, {{_, StatusCode, _}, _, ErrorBody}} ->
+                error_logger:error_msg("HTTP error ~p: ~p", [StatusCode, ErrorBody]),
+                {error, {http_error, StatusCode, ErrorBody}};
+            {error, Reason} ->
+                error_logger:error_msg("Request failed: ~p", [Reason]),
+                {error, Reason}
+        end.
 
 get_download_status(DownloadId) ->
     ApiUrl = ?RUST_API_BASE ++ "/downloads/" ++ ensure_string(DownloadId),
@@ -168,7 +190,7 @@ download_dataset(DatasetId, UserId, DestinationDir, Options) ->
             Filename = sanitize_filename(Title) ++ ".dat",
             Destination = filename:join(DestinationDir, Filename),
 
-            Url = "https://ipfs.io/ipfs/" ++ ensure_string(ContentCID),
+            Url = "https://gateway.pinata.cloud/ipfs/" ++ ensure_string(ContentCID),
 
             Checksum = case Dataset#dataset.metadata of
                 #{checksum := CS} -> CS;
@@ -292,7 +314,6 @@ wait_for_completion_loop(DownloadId, Timeout, StartTime) ->
             {error, Reason}
     end.
 
-
 priority_to_string(low) -> <<"low">>;
 priority_to_string(normal) -> <<"normal">>;
 priority_to_string(high) -> <<"high">>;
@@ -302,6 +323,7 @@ priority_to_string(_) -> <<"normal">>.
 ensure_binary(Value) when is_binary(Value) -> Value;
 ensure_binary(Value) when is_list(Value) -> list_to_binary(Value);
 ensure_binary(Value) when is_atom(Value) -> atom_to_binary(Value, utf8);
+ensure_binary(Value) when is_integer(Value) -> integer_to_binary(Value);
 ensure_binary(Value) -> list_to_binary(io_lib:format("~p", [Value])).
 
 ensure_string(Value) when is_list(Value) -> Value;
