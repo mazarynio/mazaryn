@@ -22,16 +22,61 @@ pub struct DownloadManager {
     storage: Arc<StorageManager>,
 }
 
+struct ManagerWorker {
+    config: DownloadConfig,
+    active_downloads: Arc<DashMap<Uuid, Arc<ProgressTracker>>>,
+    storage: Arc<StorageManager>,
+}
+
 impl DownloadManager {
     pub fn new(config: DownloadConfig) -> Result<Self> {
         let storage = StorageManager::new(config.storage_path.clone())?;
 
-        Ok(Self {
+        let manager = Self {
             queue: Arc::new(DownloadQueue::new(config.max_concurrent_downloads)),
             active_downloads: Arc::new(DashMap::new()),
             storage: Arc::new(storage),
             config,
-        })
+        };
+
+        let queue_clone = manager.queue.clone();
+        let active_clone = manager.active_downloads.clone();
+        let storage_clone = manager.storage.clone();
+        let config_clone = manager.config.clone();
+
+        tokio::spawn(async move {
+            loop {
+                while let Some((id, request)) = queue_clone.dequeue().await {
+                    let active_ref = active_clone.clone();
+                    let storage_ref = storage_clone.clone();
+                    let cfg = config_clone.clone();
+
+                    tokio::spawn(async move {
+                        let mgr = ManagerWorker {
+                            config: cfg,
+                            active_downloads: active_ref.clone(),
+                            storage: storage_ref.clone(),
+                        };
+
+                        if let Err(e) = mgr.execute_download(id, request).await {
+                            log::error!("Download {} failed: {}", id, e);
+
+                            if let Some(tracker) = active_ref.get(&id) {
+                                let mut info = tracker.get_info();
+                                info.status = DownloadStatus::Failed;
+                                info.error = Some(e.to_string());
+                                let _ = storage_ref.save_download_info(&info).await;
+                            }
+                        }
+
+                        active_ref.remove(&id);
+                    });
+                }
+                tokio::time::sleep(tokio::time::Duration::from_millis(500)).await;
+            }
+        });
+
+        Ok(manager)
     }
 
     pub async fn start_download(&self, request: DownloadRequest) -> Result<Uuid> {
@@ -65,39 +110,95 @@ impl DownloadManager {
             error: None,
             chunks_completed: 0,
             chunks_total: 0,
+            is_erlang_binary: request.is_erlang_binary,
         };
 
         self.storage.save_download_info(&info).await?;
 
         self.queue.enqueue(id, request);
 
-        let manager = self.clone_arc();
-        tokio::spawn(async move {
-            manager.process_queue().await;
-        });
-
         Ok(id)
     }
 
-    async fn process_queue(&self) {
-        while let Some((id, request)) = self.queue.dequeue().await {
-            if let Err(e) = self.execute_download(id, request).await {
-                log::error!("Download {} failed: {}", id, e);
+    pub async fn pause_download(&self, id: &Uuid) -> Result<()> {
+        if let Some(tracker) = self.active_downloads.get(id) {
+            let mut info = tracker.get_info();
+            info.status = DownloadStatus::Paused;
+            self.storage.save_download_info(&info).await?;
 
-                if let Some(tracker) = self.active_downloads.get(&id) {
-                    let mut info = tracker.get_info();
-                    info.status = DownloadStatus::Failed;
-                    info.error = Some(e.to_string());
-                    let _ = self.storage.save_download_info(&info).await;
-                }
-            }
+            self.active_downloads.remove(id);
 
-            self.active_downloads.remove(&id);
+            Ok(())
+        } else {
+            Err(DownloadError::NotFound(id.to_string()))
         }
     }
 
+    pub async fn resume_download(&self, id: &Uuid) -> Result<()> {
+        let request = self
+            .queue
+            .get(id)
+            .ok_or_else(|| DownloadError::NotFound(id.to_string()))?;
+
+        let mut info = self.storage.load_download_info(id).await?;
+        info.status = DownloadStatus::Queued;
+        self.storage.save_download_info(&info).await?;
+
+        self.queue.enqueue(*id, request);
+
+        Ok(())
+    }
+
+    pub async fn cancel_download(&self, id: &Uuid) -> Result<()> {
+        self.queue.remove(id);
+
+        self.active_downloads.remove(id);
+
+        if let Ok(mut info) = self.storage.load_download_info(id).await {
+            info.status = DownloadStatus::Failed;
+            info.error = Some("Cancelled by user".to_string());
+            self.storage.save_download_info(&info).await?;
+        }
+
+        Ok(())
+    }
+
+    pub async fn get_download_info(&self, id: &Uuid) -> Result<DownloadInfo> {
+        if let Some(tracker) = self.active_downloads.get(id) {
+            return Ok(tracker.get_info());
+        }
+
+        self.storage.load_download_info(id).await
+    }
+
+    pub async fn list_downloads(&self, user_id: Option<&str>) -> Result<Vec<DownloadInfo>> {
+        self.storage.list_downloads(user_id).await
+    }
+
+    pub async fn get_user_downloads(&self, user_id: &str) -> Result<Vec<DownloadInfo>> {
+        self.storage.list_downloads(Some(user_id)).await
+    }
+
+    pub async fn delete_download(&self, id: &Uuid) -> Result<()> {
+        let _ = self.cancel_download(id).await;
+
+        if let Ok(info) = self.storage.load_download_info(id).await {
+            let _ = tokio::fs::remove_file(&info.destination).await;
+        }
+
+        self.storage.delete_download_info(id).await
+    }
+}
+
+impl ManagerWorker {
     async fn execute_download(&self, id: Uuid, request: DownloadRequest) -> Result<()> {
         log::info!("Starting download {}: {}", id, request.url);
+
+        let is_erlang = request.is_erlang_binary.unwrap_or(false);
+
+        if is_erlang {
+            return self.execute_erlang_binary_download(id, request).await;
+        }
 
         let chunk_size = request.chunk_size.unwrap_or(self.config.default_chunk_size);
         let max_connections = request
@@ -241,11 +342,104 @@ impl DownloadManager {
         Ok(())
     }
 
+    async fn execute_erlang_binary_download(
+        &self,
+        id: Uuid,
+        request: DownloadRequest,
+    ) -> Result<()> {
+        log::info!("Starting Erlang binary download {}", id);
+
+        let mut info = self.storage.load_download_info(&id).await?;
+        info.status = DownloadStatus::Downloading;
+        info.started_at = Some(Utc::now());
+        self.storage.save_download_info(&info).await?;
+
+        let dataset_id = request.dataset_id.as_ref().ok_or_else(|| {
+            DownloadError::Failed("dataset_id required for Erlang binary download".to_string())
+        })?;
+
+        let user_id = &request.user_id;
+
+        let erlang_endpoint = format!(
+            "{}/api/datasets/{}/download?user_id={}",
+            self.config.erlang_http_endpoint, dataset_id, user_id
+        );
+
+        log::info!("Fetching from Erlang endpoint: {}", erlang_endpoint);
+
+        let client = reqwest::Client::new();
+        let response = client.get(&erlang_endpoint).send().await?;
+
+        if !response.status().is_success() {
+            return Err(DownloadError::Failed(format!(
+                "Erlang endpoint returned status: {}",
+                response.status()
+            )));
+        }
+
+        let total_size = response
+            .content_length()
+            .ok_or_else(|| DownloadError::Failed("No content length".to_string()))?;
+
+        info.total_size = Some(total_size);
+        self.storage.save_download_info(&info).await?;
+
+        let tracker = Arc::new(ProgressTracker::new(
+            info.clone(),
+            vec![ChunkInfo {
+                index: 0,
+                start: 0,
+                end: total_size - 1,
+                downloaded: 0,
+                completed: false,
+            }],
+        ));
+        self.active_downloads.insert(id, tracker.clone());
+
+        let mut file = OpenOptions::new()
+            .write(true)
+            .create(true)
+            .open(&request.destination)
+            .await?;
+
+        use futures::StreamExt;
+        let mut stream = response.bytes_stream();
+        let mut downloaded = 0u64;
+
+        while let Some(bytes_result) = stream.next().await {
+            let bytes = bytes_result?;
+            let len = bytes.len() as u64;
+
+            file.write_all(&bytes).await?;
+            downloaded += len;
+
+            tracker.update_chunk_progress(0, downloaded);
+
+            let info = tracker.get_info();
+            let storage_ref = self.storage.clone();
+            tokio::spawn(async move {
+                let _ = storage_ref.save_download_info(&info).await;
+            });
+        }
+
+        file.flush().await?;
+
+        let mut info = tracker.get_info();
+        info.status = DownloadStatus::Completed;
+        info.completed_at = Some(Utc::now());
+        info.progress_percentage = 100.0;
+        self.storage.save_download_info(&info).await?;
+
+        log::info!("Erlang binary download {} completed", id);
+
+        Ok(())
+    }
+
     async fn execute_download_without_size(
         &self,
         id: Uuid,
         request: DownloadRequest,
-        downloader: ChunkDownloader,
+        _downloader: ChunkDownloader,
     ) -> Result<()> {
         log::info!("Downloading without known size: {}", id);
 
@@ -278,7 +472,6 @@ impl DownloadManager {
             let bytes = bytes_result?;
             let len = bytes.len() as u64;
 
-            use tokio::io::AsyncWriteExt;
             file.write_all(&bytes).await?;
             downloaded += len;
 
@@ -329,88 +522,5 @@ impl DownloadManager {
         }
 
         Ok(hex::encode(hasher.finalize()))
-    }
-
-    pub async fn pause_download(&self, id: &Uuid) -> Result<()> {
-        if let Some(tracker) = self.active_downloads.get(id) {
-            let mut info = tracker.get_info();
-            info.status = DownloadStatus::Paused;
-            self.storage.save_download_info(&info).await?;
-
-            self.active_downloads.remove(id);
-
-            Ok(())
-        } else {
-            Err(DownloadError::NotFound(id.to_string()))
-        }
-    }
-
-    pub async fn resume_download(&self, id: &Uuid) -> Result<()> {
-        let request = self
-            .queue
-            .get(id)
-            .ok_or_else(|| DownloadError::NotFound(id.to_string()))?;
-
-        let mut info = self.storage.load_download_info(id).await?;
-        info.status = DownloadStatus::Queued;
-        self.storage.save_download_info(&info).await?;
-
-        self.queue.enqueue(*id, request);
-
-        let manager = self.clone_arc();
-        tokio::spawn(async move {
-            manager.process_queue().await;
-        });
-
-        Ok(())
-    }
-
-    pub async fn cancel_download(&self, id: &Uuid) -> Result<()> {
-        self.queue.remove(id);
-
-        self.active_downloads.remove(id);
-
-        if let Ok(mut info) = self.storage.load_download_info(id).await {
-            info.status = DownloadStatus::Failed;
-            info.error = Some("Cancelled by user".to_string());
-            self.storage.save_download_info(&info).await?;
-        }
-
-        Ok(())
-    }
-
-    pub async fn get_download_info(&self, id: &Uuid) -> Result<DownloadInfo> {
-        if let Some(tracker) = self.active_downloads.get(id) {
-            return Ok(tracker.get_info());
-        }
-
-        self.storage.load_download_info(id).await
-    }
-
-    pub async fn list_downloads(&self, user_id: Option<&str>) -> Result<Vec<DownloadInfo>> {
-        self.storage.list_downloads(user_id).await
-    }
-
-    pub async fn get_user_downloads(&self, user_id: &str) -> Result<Vec<DownloadInfo>> {
-        self.storage.list_downloads(Some(user_id)).await
-    }
-
-    pub async fn delete_download(&self, id: &Uuid) -> Result<()> {
-        let _ = self.cancel_download(id).await;
-
-        if let Ok(info) = self.storage.load_download_info(id).await {
-            let _ = tokio::fs::remove_file(&info.destination).await;
-        }
-
-        self.storage.delete_download_info(id).await
-    }
-
-    fn clone_arc(&self) -> Arc<Self> {
-        Arc::new(Self {
-            config: self.config.clone(),
-            queue: self.queue.clone(),
-            active_downloads: self.active_downloads.clone(),
-            storage: self.storage.clone(),
-        })
     }
 }

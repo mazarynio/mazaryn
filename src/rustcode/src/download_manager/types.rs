@@ -17,6 +17,8 @@ pub struct DownloadRequest {
     pub max_connections: Option<usize>,
     pub headers: Option<std::collections::HashMap<String, String>>,
     pub expected_size: Option<u64>,
+    pub is_erlang_binary: Option<bool>,
+    pub erlang_binary_id: Option<String>,
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord)]
@@ -63,6 +65,7 @@ pub struct DownloadInfo {
     pub error: Option<String>,
     pub chunks_completed: usize,
     pub chunks_total: usize,
+    pub is_erlang_binary: Option<bool>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -84,6 +87,7 @@ pub struct DownloadConfig {
     pub timeout_seconds: u64,
     pub max_bandwidth_bps: Option<u64>,
     pub storage_path: PathBuf,
+    pub erlang_http_endpoint: String,
 }
 
 impl Default for DownloadConfig {
@@ -97,6 +101,7 @@ impl Default for DownloadConfig {
             timeout_seconds: 300,
             max_bandwidth_bps: None,
             storage_path: PathBuf::from("/tmp/downloads"),
+            erlang_http_endpoint: String::from("http://localhost:4000"),
         }
     }
 }

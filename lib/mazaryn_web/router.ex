@@ -31,6 +31,16 @@ defmodule MazarynWeb.Router do
     plug(:accepts, ["json"])
   end
 
+  pipeline :api_binary do
+    plug(:accepts, ["json", "zip", "octet-stream"])
+  end
+
+  scope "/api", MazarynWeb do
+    pipe_through(:api_binary)
+
+    get("/datasets/:dataset_id/download", DatasetDownloadController, :download)
+  end
+
   scope "/en/api" do
     pipe_through(:api)
 
@@ -81,6 +91,8 @@ defmodule MazarynWeb.Router do
 
   scope "/:locale", MazarynWeb do
     pipe_through(:restricted)
+
+    get("/downloads/:id/file", DownloadController, :download_file)
 
     live_session :restricted,
       on_mount: [{MazarynWeb.UserLiveAuth, :restricted}, {MazarynWeb.UserLiveAuth, :default}] do

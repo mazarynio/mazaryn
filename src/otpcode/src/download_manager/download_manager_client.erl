@@ -17,7 +17,12 @@
     bulk_download_datasets/2,
     monitor_download/1,
     wait_for_completion/1,
-    wait_for_completion/2
+    wait_for_completion/2,
+    download_dataset_async/3,
+    download_dataset_async/4,
+
+    start_erlang_binary_download/4,
+    start_erlang_binary_download/5
 ]).
 
 -include("../records.hrl").
@@ -30,64 +35,63 @@
 start_download(Url, Destination, UserId, DatasetId, CompetitionId, Priority) ->
     start_download(Url, Destination, UserId, DatasetId, CompetitionId, Priority, #{}).
 
-    start_download(Url, Destination, UserId, DatasetId, CompetitionId, Priority, Options) ->
-        error_logger:info_msg("download_manager_client:start_download called with URL: ~p", [Url]),
-        error_logger:info_msg("Destination: ~p", [Destination]),
-        error_logger:info_msg("UserId: ~p", [UserId]),
+start_download(Url, Destination, UserId, DatasetId, CompetitionId, Priority, Options) ->
+    error_logger:info_msg("download_manager_client:start_download called with URL: ~p", [Url]),
+    error_logger:info_msg("Destination: ~p", [Destination]),
+    error_logger:info_msg("UserId: ~p", [UserId]),
 
-        DatasetIdValue = case DatasetId of
-            undefined -> null;
-            _ -> ensure_binary(DatasetId)
-        end,
+    DatasetIdValue = case DatasetId of
+        undefined -> null;
+        _ -> ensure_binary(DatasetId)
+    end,
 
-        CompetitionIdValue = case CompetitionId of
-            undefined -> null;
-            _ -> ensure_binary(CompetitionId)
-        end,
+    CompetitionIdValue = case CompetitionId of
+        undefined -> null;
+        _ -> ensure_binary(CompetitionId)
+    end,
 
-        ChecksumValue = maps:get(checksum, Options, null),
-        ExpectedSizeValue = maps:get(expected_size, Options, null),
+    ChecksumValue = maps:get(checksum, Options, null),
+    ExpectedSizeValue = maps:get(expected_size, Options, null),
 
-        RequestBody = #{
-            url => ensure_binary(Url),
-            destination => ensure_binary(Destination),
-            user_id => ensure_binary(UserId),
-            dataset_id => DatasetIdValue,
-            competition_id => CompetitionIdValue,
-            priority => priority_to_string(Priority),
-            chunk_size_mb => maps:get(chunk_size_mb, Options, 10),
-            max_connections => maps:get(max_connections, Options, 8),
-            checksum => ChecksumValue,
-            expected_size => ExpectedSizeValue
-        },
+    RequestBody = #{
+        url => ensure_binary(Url),
+        destination => ensure_binary(Destination),
+        user_id => ensure_binary(UserId),
+        dataset_id => DatasetIdValue,
+        competition_id => CompetitionIdValue,
+        priority => priority_to_string(Priority),
+        chunk_size_mb => maps:get(chunk_size_mb, Options, 10),
+        max_connections => maps:get(max_connections, Options, 8),
+        checksum => ChecksumValue,
+        expected_size => ExpectedSizeValue
+    },
 
-        error_logger:info_msg("Request body: ~p", [RequestBody]),
+    error_logger:info_msg("Request body: ~p", [RequestBody]),
 
-        Json = jsx:encode(RequestBody),
-        ApiUrl = ?RUST_API_BASE ++ "/downloads/start",
+    Json = jsx:encode(RequestBody),
+    ApiUrl = ?RUST_API_BASE ++ "/downloads/start",
 
-        error_logger:info_msg("Sending POST request to: ~p", [ApiUrl]),
-        error_logger:info_msg("Request JSON: ~p", [Json]),
+    error_logger:info_msg("Sending POST request to: ~p", [ApiUrl]),
 
-        case httpc:request(post, {ApiUrl, [], "application/json", Json},
-                          [{timeout, ?DEFAULT_TIMEOUT}], []) of
-            {ok, {{_, 200, _}, _, ResponseBody}} ->
-                error_logger:info_msg("Received response: ~p", [ResponseBody]),
-                case jsx:decode(list_to_binary(ResponseBody), [return_maps]) of
-                    #{<<"download_id">> := DownloadId} ->
-                        error_logger:info_msg("Download ID: ~p", [DownloadId]),
-                        {ok, binary_to_list(DownloadId)};
-                    _ ->
-                        error_logger:error_msg("Invalid response format"),
-                        {error, invalid_response}
-                end;
-            {ok, {{_, StatusCode, _}, _, ErrorBody}} ->
-                error_logger:error_msg("HTTP error ~p: ~p", [StatusCode, ErrorBody]),
-                {error, {http_error, StatusCode, ErrorBody}};
-            {error, Reason} ->
-                error_logger:error_msg("Request failed: ~p", [Reason]),
-                {error, Reason}
-        end.
+    case httpc:request(post, {ApiUrl, [], "application/json", Json},
+                      [{timeout, ?DEFAULT_TIMEOUT}], []) of
+        {ok, {{_, 200, _}, _, ResponseBody}} ->
+            error_logger:info_msg("Received response: ~p", [ResponseBody]),
+            case jsx:decode(list_to_binary(ResponseBody), [return_maps]) of
+                #{<<"download_id">> := DownloadId} ->
+                    error_logger:info_msg("Download ID: ~p", [DownloadId]),
+                    {ok, binary_to_list(DownloadId)};
+                _ ->
+                    error_logger:error_msg("Invalid response format"),
+                    {error, invalid_response}
+            end;
+        {ok, {{_, StatusCode, _}, _, ErrorBody}} ->
+            error_logger:error_msg("HTTP error ~p: ~p", [StatusCode, ErrorBody]),
+            {error, {http_error, StatusCode, ErrorBody}};
+        {error, Reason} ->
+            error_logger:error_msg("Request failed: ~p", [Reason]),
+            {error, Reason}
+    end.
 
 get_download_status(DownloadId) ->
     ApiUrl = ?RUST_API_BASE ++ "/downloads/" ++ ensure_string(DownloadId),
@@ -215,6 +219,17 @@ download_dataset(DatasetId, UserId, DestinationDir, Options) ->
             Error
     end.
 
+download_dataset_async(DatasetId, UserId, DestinationDir) ->
+    download_dataset_async(DatasetId, UserId, DestinationDir, #{}).
+
+download_dataset_async(DatasetId, UserId, DestinationDir, Options) ->
+    Self = self(),
+    spawn(fun() ->
+        Result = download_dataset(DatasetId, UserId, DestinationDir, Options),
+        Self ! {download_async_result, DatasetId, Result}
+    end),
+    {ok, async_started}.
+
 download_competition_dataset(CompetitionId, DatasetId, UserId, DestinationDir) ->
     download_competition_dataset(CompetitionId, DatasetId, UserId, DestinationDir, #{}).
 
@@ -244,9 +259,9 @@ bulk_download_datasets(DatasetIds, UserId) ->
     ok = filelib:ensure_dir(DestinationDir ++ "/"),
 
     Results = lists:map(fun(DatasetId) ->
-        case download_dataset(DatasetId, UserId, DestinationDir) of
-            {ok, DownloadId} ->
-                {DatasetId, {ok, DownloadId}};
+        case download_dataset_async(DatasetId, UserId, DestinationDir, #{}) of
+            {ok, async_started} ->
+                {DatasetId, {ok, async_started}};
             {error, Reason} ->
                 {DatasetId, {error, Reason}}
         end
@@ -339,13 +354,15 @@ parse_download_info(Info) ->
         status => maps:get(<<"status">>, Info),
         progress_percentage => maps:get(<<"progress_percentage">>, Info, 0.0),
         speed_bps => maps:get(<<"speed_bps">>, Info, 0),
-        eta_seconds => maps:get(<<"eta_seconds">>, Info, null),
+        eta_seconds => maps:get(<<"eta_seconds">>, Info, nil),
         downloaded_size => maps:get(<<"downloaded_size">>, Info, 0),
-        total_size => maps:get(<<"total_size">>, Info, null),
+        total_size => maps:get(<<"total_size">>, Info, nil),
         user_id => maps:get(<<"user_id">>, Info),
-        dataset_id => maps:get(<<"dataset_id">>, Info, null),
-        competition_id => maps:get(<<"competition_id">>, Info, null),
-        error => maps:get(<<"error">>, Info, null)
+        dataset_id => maps:get(<<"dataset_id">>, Info, nil),
+        competition_id => maps:get(<<"competition_id">>, Info, nil),
+        error => maps:get(<<"error">>, Info, nil),
+        chunks_completed => maps:get(<<"chunks_completed">>, Info, 0),
+        chunks_total => maps:get(<<"chunks_total">>, Info, 0)
     }.
 
 sanitize_filename(Filename) when is_binary(Filename) ->
@@ -387,3 +404,53 @@ format_time(Seconds) when is_integer(Seconds) ->
     end;
 format_time(_) ->
     "N/A".
+
+    start_erlang_binary_download(DatasetId, Destination, UserId, Priority) ->
+        start_erlang_binary_download(DatasetId, Destination, UserId, Priority, #{}).
+
+        start_erlang_binary_download(DatasetId, Destination, UserId, Priority, Options) ->
+            error_logger:info_msg("=== START ERLANG BINARY DOWNLOAD ==="),
+            error_logger:info_msg("DatasetId: ~p", [DatasetId]),
+            error_logger:info_msg("Destination: ~p", [Destination]),
+            error_logger:info_msg("UserId: ~p", [UserId]),
+            error_logger:info_msg("Priority: ~p", [Priority]),
+            error_logger:info_msg("Options: ~p", [Options]),
+
+            RequestBody = #{
+                destination => ensure_binary(Destination),
+                user_id => ensure_binary(UserId),
+                dataset_id => ensure_binary(DatasetId),
+                priority => priority_to_string(Priority),
+                is_erlang_binary => true,
+                erlang_binary_id => ensure_binary(DatasetId),
+                chunk_size_mb => maps:get(chunk_size_mb, Options, 10),
+                max_connections => maps:get(max_connections, Options, 8)
+            },
+
+            error_logger:info_msg("Request body: ~p", [RequestBody]),
+
+            Json = jsx:encode(RequestBody),
+            ApiUrl = ?RUST_API_BASE ++ "/downloads/start",
+
+            error_logger:info_msg("Sending POST request to: ~p", [ApiUrl]),
+            error_logger:info_msg("Request JSON: ~p", [Json]),
+
+            case httpc:request(post, {ApiUrl, [], "application/json", Json},
+                              [{timeout, ?DEFAULT_TIMEOUT}], []) of
+                {ok, {{_, 200, _}, _, ResponseBody}} ->
+                    error_logger:info_msg("Received 200 response: ~p", [ResponseBody]),
+                    case jsx:decode(list_to_binary(ResponseBody), [return_maps]) of
+                        #{<<"download_id">> := DownloadId} ->
+                            error_logger:info_msg("Download ID extracted: ~p", [DownloadId]),
+                            {ok, binary_to_list(DownloadId)};
+                        Other ->
+                            error_logger:error_msg("Invalid response format: ~p", [Other]),
+                            {error, invalid_response}
+                    end;
+                {ok, {{_, StatusCode, _}, _, ErrorBody}} ->
+                    error_logger:error_msg("HTTP error ~p: ~p", [StatusCode, ErrorBody]),
+                    {error, {http_error, StatusCode, ErrorBody}};
+                {error, Reason} ->
+                    error_logger:error_msg("Request failed: ~p", [Reason]),
+                    {error, Reason}
+            end.

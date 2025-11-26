@@ -36,17 +36,20 @@
                     <%= filename_from_destination(download.destination) %>
                   </h4>
                   <div class="flex items-center space-x-2 text-xs text-slate-500">
-                    <span><%= format_bytes(download.downloaded_size) %></span>
-                    <%= if download.total_size do %>
+                    <span><%= format_bytes(Map.get(download, :downloaded_size, 0)) %></span>
+                    <%= if Map.get(download, :total_size) do %>
                       <span>/ <%= format_bytes(download.total_size) %></span>
                     <% end %>
-                    <%= if download.speed_bps && download.speed_bps > 0 do %>
+                    <%= if Map.get(download, :speed_bps, 0) > 0 do %>
                       <span>•</span>
                       <span><%= format_speed(download.speed_bps) %></span>
                     <% end %>
                   </div>
                 </div>
-                <span class="ml-2 px-2 py-1 bg-blue-100 text-blue-700 text-xs font-medium rounded-full whitespace-nowrap">
+                <span class={[
+                  "ml-2 px-2 py-1 text-xs font-medium rounded-full whitespace-nowrap",
+                  download_status_class(download.status)
+                ]}>
                   <%= download.status %>
                 </span>
               </div>
@@ -54,12 +57,15 @@
               <%= if download.status == "Downloading" do %>
                 <div class="mb-3">
                   <div class="flex items-center justify-between text-xs mb-1.5">
-                    <span class="text-slate-600 font-medium"><%= Float.round(download.progress_percentage, 1) %>%</span>
+                    <span class="text-slate-600 font-medium"><%= Float.round(Map.get(download, :progress_percentage, 0.0), 1) %>%</span>
+                    <%= if Map.get(download, :eta_seconds) do %>
+                      <span class="text-slate-500"><%= format_eta(download.eta_seconds) %></span>
+                    <% end %>
                   </div>
                   <div class="relative h-1.5 bg-slate-200 rounded-full overflow-hidden">
                     <div
                       class="absolute inset-y-0 left-0 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full transition-all duration-500"
-                      style={"width: #{download.progress_percentage}%"}
+                      style={"width: #{Map.get(download, :progress_percentage, 0.0)}%"}
                     >
                       <div class="absolute inset-0 bg-white/20 animate-pulse"></div>
                     </div>
@@ -67,7 +73,20 @@
                 </div>
               <% end %>
 
-              <div class="flex items-center space-x-2">
+              <div class="flex items-center gap-2">
+                <%= if download.status == "Completed" do %>
+                  <a
+                    href={"/#{@locale}/downloads/#{download.id}/file"}
+                    download
+                    class="flex-1 px-3 py-1.5 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white text-xs font-medium rounded-lg transition-all text-center inline-flex items-center justify-center gap-1"
+                  >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                    </svg>
+                    Download File
+                  </a>
+                <% end %>
+
                 <%= if download.status == "Downloading" do %>
                   <button
                     phx-click="pause_download"
@@ -75,6 +94,9 @@
                     phx-target={@myself}
                     class="flex-1 px-3 py-1.5 bg-white hover:bg-slate-50 text-slate-700 text-xs font-medium rounded-lg transition-colors border border-slate-200"
                   >
+                    <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6" />
+                    </svg>
                     Pause
                   </button>
                 <% end %>
@@ -84,20 +106,27 @@
                     phx-click="resume_download"
                     phx-value-id={download.id}
                     phx-target={@myself}
-                    class="flex-1 px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white text-xs font-medium rounded-lg transition-colors"
+                    class="flex-1 px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white text-xs font-medium rounded-lg transition-colors inline-flex items-center justify-center gap-1"
                   >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                    </svg>
                     Resume
                   </button>
                 <% end %>
 
-                <button
-                  phx-click="cancel_download"
-                  phx-value-id={download.id}
-                  phx-target={@myself}
-                  class="flex-1 px-3 py-1.5 bg-white hover:bg-red-50 text-red-600 text-xs font-medium rounded-lg transition-colors border border-red-200"
-                >
-                  Cancel
-                </button>
+                <%= if download.status != "Completed" do %>
+                  <button
+                    phx-click="cancel_download"
+                    phx-value-id={download.id}
+                    phx-target={@myself}
+                    class="px-3 py-1.5 bg-white hover:bg-red-50 text-red-600 text-xs font-medium rounded-lg transition-colors border border-red-200"
+                  >
+                    <svg class="w-4 h-4 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                <% end %>
               </div>
             </div>
           <% end %>

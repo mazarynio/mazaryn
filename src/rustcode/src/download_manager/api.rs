@@ -1,6 +1,7 @@
 use crate::download_manager::types::DownloadStatus;
 use crate::download_manager::{DownloadManager, DownloadRequest};
 use actix_files::NamedFile;
+use actix_web::http::header::{ContentDisposition, DispositionParam, DispositionType};
 use actix_web::HttpRequest;
 use actix_web::{web, HttpResponse, Responder};
 use serde::{Deserialize, Serialize};
@@ -9,7 +10,7 @@ use uuid::Uuid;
 
 #[derive(Deserialize)]
 pub struct StartDownloadRequest {
-    pub url: String,
+    pub url: Option<String>,
     pub destination: String,
     pub dataset_id: Option<String>,
     pub competition_id: Option<String>,
@@ -19,6 +20,8 @@ pub struct StartDownloadRequest {
     pub chunk_size_mb: Option<usize>,
     pub max_connections: Option<usize>,
     pub expected_size: Option<u64>,
+    pub is_erlang_binary: Option<bool>,
+    pub erlang_binary_id: Option<String>,
 }
 
 #[derive(Serialize)]
@@ -36,9 +39,25 @@ pub async fn start_download(
     manager: web::Data<Arc<DownloadManager>>,
     req: web::Json<StartDownloadRequest>,
 ) -> impl Responder {
-    log::info!("Received download request for URL: {}", req.url);
+    log::info!("Received download request");
     log::info!("Destination: {}", req.destination);
     log::info!("User ID: {}", req.user_id);
+    log::info!("Is Erlang Binary: {:?}", req.is_erlang_binary);
+
+    let is_erlang = req.is_erlang_binary.unwrap_or(false);
+    let url = if is_erlang {
+        req.erlang_binary_id.clone().unwrap_or_default()
+    } else {
+        req.url.clone().unwrap_or_default()
+    };
+
+    if url.is_empty() {
+        return HttpResponse::BadRequest().json(ErrorResponse {
+            error: "URL or erlang_binary_id is required".to_string(),
+        });
+    }
+
+    log::info!("Download URL/ID: {}", url);
 
     let priority = match req.priority.as_deref() {
         Some("low") => crate::download_manager::types::DownloadPriority::Low,
@@ -48,7 +67,7 @@ pub async fn start_download(
     };
 
     let download_request = DownloadRequest {
-        url: req.url.clone(),
+        url: url.clone(),
         destination: std::path::PathBuf::from(&req.destination),
         dataset_id: req.dataset_id.clone(),
         competition_id: req.competition_id.clone(),
@@ -60,6 +79,8 @@ pub async fn start_download(
         max_connections: req.max_connections,
         headers: None,
         expected_size: req.expected_size,
+        is_erlang_binary: Some(is_erlang),
+        erlang_binary_id: req.erlang_binary_id.clone(),
     };
 
     log::info!("Starting download with manager...");
@@ -273,4 +294,40 @@ pub async fn delete_download(
             error: e.to_string(),
         }),
     }
+}
+
+pub async fn get_download_file(
+    manager: web::Data<Arc<DownloadManager>>,
+    id: web::Path<String>,
+) -> Result<impl Responder, actix_web::Error> {
+    let download_id = Uuid::parse_str(&id)
+        .map_err(|e| actix_web::error::ErrorBadRequest(format!("Invalid UUID: {}", e)))?;
+
+    let info = manager
+        .get_download_info(&download_id)
+        .await
+        .map_err(|e| actix_web::error::ErrorNotFound(format!("Download not found: {}", e)))?;
+
+    if info.status != DownloadStatus::Completed {
+        return Err(actix_web::error::ErrorBadRequest(
+            "Download not completed yet",
+        ));
+    }
+
+    let file = NamedFile::open(&info.destination)
+        .map_err(|e| actix_web::error::ErrorNotFound(format!("File not found: {}", e)))?;
+
+    let filename = info
+        .destination
+        .file_name()
+        .and_then(|n| n.to_str())
+        .unwrap_or("download")
+        .to_string();
+
+    Ok(file
+        .use_last_modified(true)
+        .set_content_disposition(ContentDisposition {
+            disposition: DispositionType::Attachment,
+            parameters: vec![DispositionParam::Filename(filename)],
+        }))
 }

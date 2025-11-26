@@ -4,11 +4,13 @@ use log::info;
 use std::sync::Arc;
 use tokio::main;
 use tokio::sync::Mutex;
+
 mod api;
 mod download_manager;
 mod sfu;
 mod signaling;
 mod webrtc;
+
 use crate::webrtc::RTCPeerConnection;
 use download_manager::{DownloadConfig, DownloadManager};
 
@@ -35,6 +37,7 @@ async fn main() -> std::io::Result<()> {
         timeout_seconds: 300,
         max_bandwidth_bps: None,
         storage_path,
+        erlang_http_endpoint: String::from("http://localhost:4000"),
     };
 
     let download_manager = Arc::new(

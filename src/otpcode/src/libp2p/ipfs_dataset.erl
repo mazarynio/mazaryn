@@ -2,7 +2,8 @@
 -author("Zaryn Technologies").
 -export([
     upload_dataset/1,
-    upload_dataset/2
+    upload_dataset/2,
+    get_dataset/1
 ]).
 
 -define(RPC_API, "http://localhost:5001/api").
@@ -224,3 +225,73 @@ ipfs_add_file(Filename, Data, Opts) ->
             end;
         Error -> Error
     end.
+
+    get_dataset(CID) when is_binary(CID) ->
+        get_dataset(binary_to_list(CID));
+    get_dataset(CID) when is_list(CID) ->
+        case ipfs_client_1:cat(CID) of
+            {ok, Binary} when is_binary(Binary) ->
+                case is_manifest(Binary) of
+                    true ->
+                        reconstruct_from_manifest(Binary);
+                    false ->
+                        {ok, Binary}
+                end;
+            Binary when is_binary(Binary) ->
+                case is_manifest(Binary) of
+                    true ->
+                        reconstruct_from_manifest(Binary);
+                    false ->
+                        {ok, Binary}
+                end;
+            {error, Reason} ->
+                {error, {ipfs_cat_error, Reason}};
+            Other ->
+                error_logger:error_msg("Unexpected IPFS cat response: ~p", [Other]),
+                {error, {unexpected_response, Other}}
+        end.
+
+    is_manifest(Binary) ->
+        try
+            jsx:decode(Binary, [return_maps]) of
+                #{<<"chunks">> := _} -> true;
+                _ -> false
+        catch
+            _:_ -> false
+        end.
+
+    reconstruct_from_manifest(Binary) ->
+        try
+            Manifest = jsx:decode(Binary, [return_maps]),
+            Chunks = maps:get(<<"chunks">>, Manifest, []),
+            TotalSize = maps:get(<<"total_size">>, Manifest, 0),
+            ChunkList = case Chunks of
+                [] -> [];
+                _ when is_list(Chunks) -> Chunks;
+                _ -> []
+            end,
+            Result = reconstruct_chunks(ChunkList, <<>>),
+            case byte_size(Result) of
+                TotalSize -> {ok, Result};
+                _ -> {error, size_mismatch}
+            end
+        catch
+            _:_ -> {error, invalid_manifest}
+        end.
+
+    reconstruct_chunks([], Acc) ->
+        Acc;
+    reconstruct_chunks([CID | Rest], Acc) when is_binary(CID) ->
+        case ipfs_client_1:cat(binary_to_list(CID)) of
+            {ok, Data} when is_binary(Data) -> reconstruct_chunks(Rest, <<Acc/binary, Data/binary>>);
+            Data when is_binary(Data) -> reconstruct_chunks(Rest, <<Acc/binary, Data/binary>>);
+            _ -> <<Acc/binary>>
+        end;
+    reconstruct_chunks([CID | Rest], Acc) when is_list(CID) ->
+        case ipfs_client_1:cat(CID) of
+            {ok, Data} when is_binary(Data) -> reconstruct_chunks(Rest, <<Acc/binary, Data/binary>>);
+            Data when is_binary(Data) -> reconstruct_chunks(Rest, <<Acc/binary, Data/binary>>);
+            _ -> <<Acc/binary>>
+        end;
+    reconstruct_chunks([_ | Rest], Acc) ->
+        reconstruct_chunks(Rest, Acc).

@@ -132,4 +132,36 @@ defmodule MazarynWeb.DownloadWidgetComponent do
   defp position_classes("top-right"), do: "top-6 right-6"
   defp position_classes("top-left"), do: "top-6 left-6"
   defp position_classes(_), do: "bottom-6 right-6"
+
+  defp download_status_class("Completed"), do: "bg-green-100 text-green-700"
+  defp download_status_class("Downloading"), do: "bg-blue-100 text-blue-700"
+  defp download_status_class("Paused"), do: "bg-yellow-100 text-yellow-700"
+  defp download_status_class("Failed"), do: "bg-red-100 text-red-700"
+  defp download_status_class("Queued"), do: "bg-gray-100 text-gray-700"
+  defp download_status_class(_), do: "bg-gray-100 text-gray-700"
+
+  defp format_eta(nil), do: ""
+  defp format_eta(seconds) when seconds < 60, do: "#{seconds}s"
+  defp format_eta(seconds) when seconds < 3600 do
+    minutes = div(seconds, 60)
+    "#{minutes}m"
+  end
+  defp format_eta(seconds) do
+    hours = div(seconds, 3600)
+    minutes = div(rem(seconds, 3600), 60)
+    "#{hours}h #{minutes}m"
+  end
+
+  defp format_eta(nil), do: ""
+  defp format_eta(seconds) when is_integer(seconds) and seconds < 60, do: "#{seconds}s"
+  defp format_eta(seconds) when is_integer(seconds) and seconds < 3600 do
+    minutes = div(seconds, 60)
+    "#{minutes}m"
+  end
+  defp format_eta(seconds) when is_integer(seconds) do
+    hours = div(seconds, 3600)
+    minutes = div(rem(seconds, 3600), 60)
+    "#{hours}h #{minutes}m"
+  end
+  defp format_eta(_), do: ""
 end

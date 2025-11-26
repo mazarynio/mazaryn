@@ -266,40 +266,150 @@ defmodule MazarynWeb.AiLive.Datasets do
     end
   end
 
-  @impl true
   def handle_event("download_dataset", %{"id" => dataset_id}, socket) do
     user_id = to_string(socket.assigns.user.id)
 
-    Logger.info("Download button clicked for dataset: #{dataset_id}")
-    Logger.info("User ID: #{user_id}")
+    IO.puts("=== DOWNLOAD DATASET DEBUG ===")
+    IO.puts("Dataset ID: #{dataset_id}")
+    IO.puts("User ID: #{user_id}")
 
-    case :datasetdb.download_dataset_with_wait(String.to_charlist(dataset_id), String.to_charlist(user_id)) do
-      {:ok, download_id} ->
-        Logger.info("Download started with ID: #{inspect(download_id)}")
-        {:noreply,
-         socket
-         |> put_flash(:info, "Download started! Check the download manager.")
-         |> push_navigate(to: "/#{socket.assigns.locale}/downloads")}
+    destination_dir = "/tmp/mazaryn_downloads/#{user_id}"
 
-      {:ok, download_id, file_path} ->
-        Logger.info("Download completed immediately. File at: #{inspect(file_path)}")
-        {:noreply,
-         socket
-         |> put_flash(:info, "Download ready! File saved successfully.")
-         |> push_navigate(to: "/#{socket.assigns.locale}/downloads")}
+    case File.mkdir_p(destination_dir) do
+      :ok ->
+        IO.puts("Created destination directory: #{destination_dir}")
+      {:error, reason} ->
+        IO.puts("Failed to create directory: #{inspect(reason)}")
+    end
+
+    dataset_id_charlist = String.to_charlist(dataset_id)
+    IO.puts("Dataset ID as charlist: #{inspect(dataset_id_charlist)}")
+
+    case :datasetdb.get_dataset_by_id(dataset_id_charlist) do
+      {:error, :dataset_not_found} ->
+        IO.puts("ERROR: Dataset not found")
+        {:noreply, put_flash(socket, :error, "Dataset not found")}
+
+      dataset when is_tuple(dataset) ->
+        IO.puts("Dataset found: #{inspect(elem(dataset, 0))}")
+        dataset_title = extract_dataset_title(dataset)
+        IO.puts("Dataset title: #{dataset_title}")
+
+        filename = sanitize_filename(dataset_title) <> ".zip"
+        destination = Path.join(destination_dir, filename)
+        IO.puts("Destination path: #{destination}")
+
+        user_id_charlist = String.to_charlist(user_id)
+        dataset_id_charlist = String.to_charlist(dataset_id)
+        destination_charlist = String.to_charlist(destination)
+
+        IO.puts("Calling download_manager_client with:")
+        IO.puts("  dataset_id: #{inspect(dataset_id_charlist)}")
+        IO.puts("  destination: #{inspect(destination_charlist)}")
+        IO.puts("  user_id: #{inspect(user_id_charlist)}")
+
+        case :download_manager_client.start_erlang_binary_download(
+          dataset_id_charlist,
+          destination_charlist,
+          user_id_charlist,
+          :high,
+          %{}
+        ) do
+          {:ok, download_id} ->
+            download_id_str = if is_list(download_id), do: to_string(download_id), else: download_id
+            IO.puts("Download started successfully with ID: #{download_id_str}")
+
+            Process.send_after(self(), {:check_download_result, download_id_str}, 2000)
+
+            {:noreply,
+             socket
+             |> put_flash(:info, "Download started with ID: #{download_id_str}")
+             |> assign(:downloading_dataset, dataset_id)}
+
+          {:error, reason} ->
+            IO.puts("ERROR: Download failed to start: #{inspect(reason)}")
+            {:noreply, put_flash(socket, :error, "Download failed: #{inspect(reason)}")}
+        end
+
+      error ->
+        IO.puts("ERROR: Unexpected result from get_dataset_by_id: #{inspect(error)}")
+        {:noreply, put_flash(socket, :error, "Failed to get dataset: #{inspect(error)}")}
+    end
+  end
+
+  def handle_info({:check_download_result, download_id}, socket) do
+    download_id_str = if is_list(download_id), do: to_string(download_id), else: download_id
+
+    IO.puts("=== CHECK DOWNLOAD RESULT ===")
+    IO.puts("Download ID: #{download_id_str}")
+
+    case :download_manager_client.get_download_status(download_id_str) do
+      {:ok, info} when is_map(info) ->
+        status = Map.get(info, :status) |> to_string()
+        progress = Map.get(info, :progress_percentage, 0.0)
+
+        IO.puts("Status: #{status}")
+        IO.puts("Progress: #{progress}%")
+
+        cond do
+          status == "Completed" ->
+            IO.puts("Download completed! Redirecting to file...")
+            locale = socket.assigns.locale
+
+            {:noreply,
+             socket
+             |> put_flash(:success, "Download complete! Your file will download shortly...")
+             |> redirect(to: "/#{locale}/downloads/#{download_id_str}/file")
+             |> assign(:downloading_dataset, nil)}
+
+          status == "Failed" ->
+            error_msg = Map.get(info, :error, "Unknown error")
+            IO.puts("Download failed: #{error_msg}")
+            {:noreply,
+             socket
+             |> put_flash(:error, "Download failed: #{error_msg}")
+             |> assign(:downloading_dataset, nil)}
+
+          progress < 100 ->
+            IO.puts("Download in progress (#{progress}%), checking again in 2 seconds...")
+            if Map.get(socket.assigns, :downloading_dataset) do
+              Process.send_after(self(), {:check_download_result, download_id_str}, 2000)
+            end
+
+            {:noreply,
+             socket
+             |> put_flash(:info, "Downloading... #{Float.round(progress, 1)}%")}
+
+          true ->
+            IO.puts("Download status unclear, checking again...")
+            Process.send_after(self(), {:check_download_result, download_id_str}, 2000)
+            {:noreply, socket}
+        end
 
       {:error, reason} ->
-        Logger.error("Failed to start download: #{inspect(reason)}")
-        error_message = case reason do
-          :content_not_ready -> "Dataset content is still being uploaded to IPFS. Please try again in a few moments."
-          :content_not_available -> "Dataset content is not available. Please contact support."
-          :invalid_cid_format -> "Dataset has an invalid content identifier. Please contact support."
-          _ -> "Failed to start download: #{inspect(reason)}"
+        IO.puts("ERROR: Failed to get download status: #{inspect(reason)}")
+        if Map.get(socket.assigns, :downloading_dataset) do
+          IO.puts("Retrying status check in 2 seconds...")
+          Process.send_after(self(), {:check_download_result, download_id_str}, 2000)
         end
-        {:noreply,
-         socket
-         |> put_flash(:error, error_message)}
+        {:noreply, socket}
     end
+  end
+
+  defp extract_dataset_title(dataset_tuple) do
+    case dataset_tuple do
+      {:dataset, _, title, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _}
+        when is_binary(title) -> title
+      {:dataset, _, title, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _}
+        when is_list(title) -> to_string(title)
+      _ -> "dataset"
+    end
+  end
+
+  defp sanitize_filename(filename) do
+    filename
+    |> String.replace(~r/[^a-zA-Z0-9._-]/, "_")
+    |> String.slice(0, 200)
   end
 
   @impl true
