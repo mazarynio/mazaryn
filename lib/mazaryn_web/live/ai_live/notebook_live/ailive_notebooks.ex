@@ -37,6 +37,7 @@ defmodule MazarynWeb.AiLive.Notebooks do
         |> assign(show_create_modal: false)
         |> assign(page: 1)
         |> assign(per_page: 12)
+        |> assign(locale: "en")
 
       {:ok, socket}
     else
@@ -67,6 +68,7 @@ defmodule MazarynWeb.AiLive.Notebooks do
           |> assign(show_create_modal: false)
           |> assign(page: 1)
           |> assign(per_page: 12)
+          |> assign(locale: "en")
 
         {:ok, socket}
 
@@ -129,7 +131,7 @@ defmodule MazarynWeb.AiLive.Notebooks do
     description = Map.get(notebook_params, "description", "")
     language = String.to_atom(Map.get(notebook_params, "language", "python"))
     kernel_type = String.to_atom(Map.get(notebook_params, "kernel", "python3"))
-    notebook_type = String.to_atom(Map.get(notebook_params, "type", "analysis"))
+    _notebook_type = String.to_atom(Map.get(notebook_params, "type", "analysis"))
     visibility = String.to_atom(Map.get(notebook_params, "visibility", "public"))
 
     environment = %{

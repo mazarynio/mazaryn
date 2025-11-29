@@ -1,0 +1,287 @@
+<.live_component
+  module={MazarynWeb.HomeLive.NavComponent}
+  id="navigation"
+  user={@user}
+  locale={@locale}
+/>
+
+<div class="min-h-screen bg-slate-50">
+  <div class="border-b border-slate-200 bg-white sticky top-0 z-40 shadow-sm">
+    <div class="max-w-7xl mx-auto px-6 py-4">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center space-x-4">
+          <.link
+            navigate={~p"/#{@locale}/ai/notebooks"}
+            class="p-2 text-slate-500 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors"
+          >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+          </.link>
+
+          <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 bg-gradient-to-br from-purple-600 to-pink-600 rounded-lg flex items-center justify-center">
+              <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+              </svg>
+            </div>
+            <div>
+              <h1 class="text-lg font-bold text-slate-900"><%= @notebook.title %></h1>
+              <div class="flex items-center space-x-2 text-xs text-slate-500">
+                <span class={"px-2 py-0.5 rounded-full #{MazarynWeb.AiLive.Notebooks.language_color(@notebook.language)}"}>
+                  <%= Mazaryn.Schema.Notebook.language_label(@notebook) %>
+                </span>
+                <span>•</span>
+                <span><%= if @kernel_status == :busy, do: "Running...", else: "Ready" %></span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex items-center space-x-2">
+          <button
+            phx-click="run_all_cells"
+            class="flex items-center space-x-2 px-4 py-2 bg-purple-600 text-white text-sm font-medium rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={@kernel_status == :busy}
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span>Run All</span>
+          </button>
+
+          <button
+            phx-click="save_notebook"
+            class="flex items-center space-x-2 px-4 py-2 bg-white border border-slate-300 text-slate-700 text-sm font-medium rounded-lg hover:bg-slate-50 transition-colors"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+            </svg>
+            <span>Save</span>
+          </button>
+
+          <%= if Mazaryn.Schema.Notebook.can_edit?(@notebook, to_string(@user.id)) do %>
+            <div class="relative group">
+              <button class="p-2 text-slate-500 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
+                </svg>
+              </button>
+              <div class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-slate-200 py-1 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all">
+                <.link
+                  navigate={~p"/#{@locale}/ai/notebooks/#{@notebook.id}/versions"}
+                  class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50"
+                >
+                  Version History
+                </.link>
+                <.link
+                  navigate={~p"/#{@locale}/ai/notebooks/#{@notebook.id}/fork"}
+                  class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50"
+                >
+                  Fork Notebook
+                </.link>
+                <button class="block w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">
+                  Export as .ipynb
+                </button>
+                <button class="block w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">
+                  Share
+                </button>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="max-w-5xl mx-auto px-6 py-8">
+    <div class="space-y-2">
+      <%= for {cell, index} <- Enum.with_index(@cells) do %>
+        <div class="relative group">
+          <div class={[
+            "bg-white rounded-xl border-2 transition-all",
+            @selected_cell == cell.id && "border-purple-400 shadow-lg shadow-purple-100",
+            @selected_cell != cell.id && "border-slate-200 hover:border-slate-300"
+          ]}
+          phx-click="select_cell"
+          phx-value-cell_id={cell.id}>
+            <div class="flex items-start">
+              <div class="flex-shrink-0 w-16 flex flex-col items-center pt-4 pb-4 border-r border-slate-100">
+                <%= if cell.type == :code do %>
+                  <%= if MapSet.member?(@executing_cells, cell.id) do %>
+                    <div class="w-8 h-8 flex items-center justify-center">
+                      <div class="w-5 h-5 border-2 border-purple-600 border-t-transparent rounded-full animate-spin"></div>
+                    </div>
+                  <% else %>
+                    <button
+                      phx-click="execute_cell"
+                      phx-value-cell_id={cell.id}
+                      class="w-8 h-8 flex items-center justify-center text-slate-400 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
+                      title="Run cell (Shift+Enter)"
+                    >
+                      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </button>
+                  <% end %>
+                  <%= if cell.execution_count do %>
+                    <span class="text-xs text-slate-400 mt-1">[<%= cell.execution_count %>]</span>
+                  <% end %>
+                <% else %>
+                  <div class="w-8 h-8 flex items-center justify-center text-slate-300">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                    </svg>
+                  </div>
+                <% end %>
+              </div>
+
+              <div class="flex-1 min-w-0">
+                <%= if cell.type == :code do %>
+                  <div class="relative">
+                    <textarea
+                      id={"cell-#{cell.id}"}
+                      phx-hook="CodeEditor"
+                      phx-blur="update_cell"
+                      phx-value-cell_id={cell.id}
+                      class="w-full px-4 py-4 font-mono text-sm bg-slate-50 focus:bg-white border-0 focus:ring-0 resize-none overflow-hidden"
+                      style="min-height: 60px;"
+                      placeholder="Write your code here..."
+                      spellcheck="false"
+                    ><%= cell.content %></textarea>
+                  </div>
+
+                  <%= if length(cell.outputs) > 0 do %>
+                    <div class="border-t border-slate-100 bg-white">
+                      <%= for output <- cell.outputs do %>
+                        <div class="px-4 py-3">
+                          <%= case output.data.type do %>
+                            <% :text -> %>
+                              <pre class="font-mono text-sm text-slate-700 whitespace-pre-wrap"><%= output.data.value %></pre>
+                            <% :html -> %>
+                              <div class="prose prose-sm max-w-none">
+                                <%= raw(output.data.value) %>
+                              </div>
+                            <% :json -> %>
+                              <pre class="font-mono text-xs text-slate-600 bg-slate-50 p-3 rounded-lg overflow-x-auto"><%= Jason.encode!(output.data.value, pretty: true) %></pre>
+                            <% _ -> %>
+                              <pre class="font-mono text-xs text-slate-500"><%= output.data.value %></pre>
+                          <% end %>
+                        </div>
+                      <% end %>
+                    </div>
+                  <% end %>
+                <% else %>
+                  <div class="px-4 py-4">
+                    <textarea
+                      id={"cell-#{cell.id}"}
+                      phx-blur="update_cell"
+                      phx-value-cell_id={cell.id}
+                      class="w-full border-0 focus:ring-0 resize-none text-slate-700"
+                      style="min-height: 60px;"
+                      placeholder="Write markdown here..."
+                    ><%= cell.content %></textarea>
+                  </div>
+                <% end %>
+              </div>
+
+              <div class="flex-shrink-0 w-12 flex flex-col items-center justify-center space-y-1 opacity-0 group-hover:opacity-100 transition-opacity pt-2">
+                <button
+                  phx-click="move_cell_up"
+                  phx-value-cell_id={cell.id}
+                  class="p-1 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded"
+                  disabled={index == 0}
+                >
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
+                  </svg>
+                </button>
+                <button
+                  phx-click="move_cell_down"
+                  phx-value-cell_id={cell.id}
+                  class="p-1 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded"
+                  disabled={index == length(@cells) - 1}
+                >
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+                <button
+                  phx-click="delete_cell"
+                  phx-value-cell_id={cell.id}
+                  class="p-1 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded"
+                  data-confirm="Delete this cell?"
+                >
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="h-8 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+            <div class="relative">
+              <button
+                phx-click="toggle_add_cell_menu"
+                phx-value-position={to_string(index + 1)}
+                class="px-3 py-1 bg-white border border-slate-200 text-slate-500 text-xs font-medium rounded-lg hover:bg-slate-50 hover:border-purple-300 hover:text-purple-600 transition-all shadow-sm"
+              >
+                + Add Cell
+              </button>
+
+              <%= if @show_add_cell_menu && @add_cell_position == index + 1 do %>
+                <div class="absolute top-full mt-1 left-1/2 -translate-x-1/2 bg-white rounded-lg shadow-lg border border-slate-200 py-1 z-10">
+                  <button
+                    phx-click="add_cell"
+                    phx-value-type="code"
+                    phx-value-position={to_string(index + 1)}
+                    class="flex items-center space-x-2 w-full px-4 py-2 text-sm text-slate-700 hover:bg-slate-50"
+                  >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+                    </svg>
+                    <span>Code Cell</span>
+                  </button>
+                  <button
+                    phx-click="add_cell"
+                    phx-value-type="markdown"
+                    phx-value-position={to_string(index + 1)}
+                    class="flex items-center space-x-2 w-full px-4 py-2 text-sm text-slate-700 hover:bg-slate-50"
+                  >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                    </svg>
+                    <span>Markdown Cell</span>
+                  </button>
+                </div>
+              <% end %>
+            </div>
+          </div>
+        </div>
+      <% end %>
+
+      <%= if length(@cells) == 0 do %>
+        <div class="bg-white rounded-xl border-2 border-dashed border-slate-300 p-12 text-center">
+          <div class="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg class="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            </svg>
+          </div>
+          <h3 class="text-lg font-semibold text-slate-900 mb-2">No cells yet</h3>
+          <p class="text-slate-500 mb-4">Add your first cell to get started</p>
+          <button
+            phx-click="add_cell"
+            phx-value-type="code"
+            phx-value-position="0"
+            class="px-6 py-3 bg-purple-600 text-white font-medium rounded-lg hover:bg-purple-700 transition-colors"
+          >
+            Add Code Cell
+          </button>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

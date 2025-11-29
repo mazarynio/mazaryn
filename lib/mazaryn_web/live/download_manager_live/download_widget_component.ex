@@ -85,7 +85,8 @@ defmodule MazarynWeb.DownloadWidgetComponent do
       progress_percentage: Map.get(download_map, :progress_percentage, 0.0),
       speed_bps: Map.get(download_map, :speed_bps, 0),
       downloaded_size: Map.get(download_map, :downloaded_size, 0),
-      total_size: Map.get(download_map, :total_size)
+      total_size: Map.get(download_map, :total_size),
+      dataset_id: binary_to_string(Map.get(download_map, :dataset_id))
     }
   end
 

@@ -6,6 +6,8 @@ defmodule MazarynWeb.Router do
 
   import MazarynWeb.Plug.CheckAllowedUser
 
+  @env Application.get_env(:mazaryn, :env)
+
   pipeline :browser do
     plug(:accepts, ["html"])
     plug(:fetch_session)
@@ -93,6 +95,7 @@ defmodule MazarynWeb.Router do
     pipe_through(:restricted)
 
     get("/downloads/:id/file", DownloadController, :download_file)
+    get("/ai/datasets/:dataset_id/zip", DatasetZipController, :serve)
 
     live_session :restricted,
       on_mount: [{MazarynWeb.UserLiveAuth, :restricted}, {MazarynWeb.UserLiveAuth, :default}] do
@@ -104,7 +107,7 @@ defmodule MazarynWeb.Router do
       live("/notifications", HomeLive.Notification)
 
       live("/videos", MediaLive.Video.Index, :index)
-      live "/:locale/videos/:id", MediaLive.Video.Show, :show
+      live("/:locale/videos/:id", MediaLive.Video.Show, :show)
       live("/videos/:id", MediaLive.Video.Show)
 
       live("/ai", AiLive.Index)
@@ -121,12 +124,10 @@ defmodule MazarynWeb.Router do
       live("/ai/competitions/:id/leaderboard", AiLive.CompetitionLeaderboard, :leaderboard)
       live("/ai/competitions/:id/submit", AiLive.CompetitionSubmit, :submit)
       live("/ai/competitions/:id/teams", AiLive.CompetitionTeams, :teams)
+
       live("/ai/notebooks", AiLive.Notebooks, :index)
-      live("/ai/notebooks/new", AiLive.NotebookNew, :new)
       live("/ai/notebooks/:id", AiLive.NotebookShow, :show)
-      live("/ai/notebooks/:id/edit", AiLive.NotebookEditor, :edit)
-      live("/ai/notebooks/:id/fork", AiLive.NotebookFork, :fork)
-      live("/ai/notebooks/:id/versions", AiLive.NotebookVersions, :versions)
+
       live("/ai/models", AiLive.Models, :index)
       live("/ai/models/new", AiLive.ModelNew, :new)
       live("/ai/models/:id", AiLive.ModelShow, :show)
@@ -137,7 +138,7 @@ defmodule MazarynWeb.Router do
       live("/ai/discussions/new", AiLive.DiscussionNew, :new)
       live("/ai/discussions/:id", AiLive.DiscussionShow, :show)
 
-      live "/downloads", DownloadManagerLive.Index, :index
+      live("/downloads", DownloadManagerLive.Index, :index)
 
       scope "/chats" do
         live("/", ChatsLive.Index, :index)
@@ -161,7 +162,7 @@ defmodule MazarynWeb.Router do
     end
   end
 
-  if Application.get_env(:mazaryn, :env) in [:dev, :test] do
+  if @env in [:dev, :test] do
     import Phoenix.LiveDashboard.Router
 
     scope "/" do
@@ -170,7 +171,7 @@ defmodule MazarynWeb.Router do
     end
   end
 
-  if Application.get_env(:mazaryn, :env) == :dev do
+  if @env == :dev do
     scope "/dev" do
       pipe_through(:browser)
       forward("/mailbox", Plug.Swoosh.MailboxPreview)

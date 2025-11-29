@@ -12,6 +12,7 @@ window.Alpine = Alpine;
 Alpine.start();
 
 import VideoCallHook from "./video_call";
+import NotebookHooks from "./hooks/notebook_hooks";
 
 let csrfToken = document
   .querySelector("meta[name='csrf-token']")
@@ -477,6 +478,8 @@ let Hooks = {
   },
 
   VideoCall: VideoCallHook,
+
+  ...NotebookHooks,
 };
 
 topbar.config({ barColors: { 0: "#29d" }, shadowColor: "rgba(0, 0, 0, .3)" });

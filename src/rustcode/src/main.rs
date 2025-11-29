@@ -7,12 +7,14 @@ use tokio::sync::Mutex;
 
 mod api;
 mod download_manager;
+mod notebook;
 mod sfu;
 mod signaling;
 mod webrtc;
 
 use crate::webrtc::RTCPeerConnection;
 use download_manager::{DownloadConfig, DownloadManager};
+use notebook::{types::KernelConfig, KernelManager};
 
 #[main]
 async fn main() -> std::io::Result<()> {
@@ -45,7 +47,23 @@ async fn main() -> std::io::Result<()> {
     );
     let download_manager_data = web::Data::new(download_manager);
 
-    info!("Download manager initialized successfully");
+    let workspace_path = std::path::PathBuf::from("/tmp/mazaryn_notebooks");
+    std::fs::create_dir_all(&workspace_path).expect("Failed to create workspace directory");
+
+    let kernel_config = KernelConfig {
+        max_execution_time: 300,
+        max_memory_mb: 4096,
+        enable_gpu: false,
+        python_packages: vec![],
+        r_packages: vec![],
+        workspace_dir: workspace_path,
+    };
+
+    let kernel_manager =
+        Arc::new(KernelManager::new(kernel_config).expect("Failed to initialize kernel manager"));
+    let kernel_manager_data = web::Data::new(kernel_manager);
+
+    info!("Kernel manager initialized successfully");
 
     tokio::spawn(async {
         if let Err(e) = sfu::run_sfu().await {
@@ -105,6 +123,27 @@ async fn main() -> std::io::Result<()> {
             .route(
                 "/downloads/{id}/file",
                 web::get().to(download_manager::api::download_file),
+            )
+            .app_data(kernel_manager_data.clone())
+            .route(
+                "/notebooks/sessions",
+                web::post().to(notebook::api::create_session),
+            )
+            .route(
+                "/notebooks/execute",
+                web::post().to(notebook::api::execute_code),
+            )
+            .route(
+                "/notebooks/sessions/{session_id}",
+                web::get().to(notebook::api::get_session_status),
+            )
+            .route(
+                "/notebooks/sessions/{session_id}",
+                web::delete().to(notebook::api::close_session),
+            )
+            .route(
+                "/ws/notebooks/{session_id}",
+                web::get().to(notebook::websocket::notebook_ws),
             )
     })
     .bind("0.0.0.0:2020")?

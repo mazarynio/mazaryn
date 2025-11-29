@@ -2810,16 +2810,25 @@ upload_dataset_update(DatasetId, Content, Metadata) ->
 
                                         -spec get_dataset_zip_by_id(binary(), binary()) -> {ok, binary()} | {error, any()}.
                                         get_dataset_zip_by_id(DatasetId, UserId) ->
-                                            case get_dataset_by_id(DatasetId) of
+                                            DatasetIdCL = case is_binary(DatasetId) of
+                                                true -> binary_to_list(DatasetId);
+                                                false -> DatasetId
+                                            end,
+                                            UserIdCL = case is_binary(UserId) of
+                                                true -> binary_to_list(UserId);
+                                                false -> UserId
+                                            end,
+
+                                            case get_dataset_by_id(DatasetIdCL) of
                                                 {error, _} = Err -> Err;
                                                 #dataset{visibility = Visibility, creator_id = CreatorId, collaborators = Collabs} = DS ->
                                                     HasAccess = (Visibility =:= public)
-                                                                orelse (CreatorId =:= UserId)
-                                                                orelse lists:member(UserId, Collabs),
+                                                                orelse (CreatorId =:= UserIdCL)
+                                                                orelse lists:member(UserIdCL, Collabs),
                                                     case HasAccess of
                                                         false -> {error, access_denied};
                                                         true ->
-                                                            case get_dataset_content(DatasetId) of
+                                                            case get_dataset_content(DatasetIdCL) of
                                                                 {error, _} = Err2 -> Err2;
                                                                 Content when is_binary(Content) ->
                                                                     case is_zip_binary(Content) of

@@ -26,7 +26,6 @@
             </button>
           </div>
         </div>
-
         <div class="max-h-[400px] overflow-y-auto p-4 space-y-3">
           <%= for download <- @downloads do %>
             <div class="bg-gradient-to-r from-slate-50 to-blue-50 rounded-xl p-4 border border-slate-200">
@@ -53,7 +52,6 @@
                   <%= download.status %>
                 </span>
               </div>
-
               <%= if download.status == "Downloading" do %>
                 <div class="mb-3">
                   <div class="flex items-center justify-between text-xs mb-1.5">
@@ -72,21 +70,24 @@
                   </div>
                 </div>
               <% end %>
-
               <div class="flex items-center gap-2">
-                <%= if download.status == "Completed" do %>
-                  <a
-                    href={"/#{@locale}/downloads/#{download.id}/file"}
-                    download
-                    class="flex-1 px-3 py-1.5 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white text-xs font-medium rounded-lg transition-all text-center inline-flex items-center justify-center gap-1"
-                  >
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                    </svg>
-                    Download File
-                  </a>
-                <% end %>
-
+              <%= if download.dataset_id do %>
+                <a
+                  href={"/#{@locale}/ai/datasets/#{download.dataset_id}/zip"}
+                  download
+                  class="flex-1 px-3 py-1.5 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white text-xs font-medium rounded-lg transition-all text-center inline-flex items-center justify-center gap-1"
+                >
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  Direct ZIP
+                </a>
+              <% else %>
+                <!-- fallback for non-dataset downloads -->
+                <a href={"/#{@locale}/downloads/#{download.id}/file"} ...>
+                  Download File
+                </a>
+              <% end %>
                 <%= if download.status == "Downloading" do %>
                   <button
                     phx-click="pause_download"
@@ -100,7 +101,6 @@
                     Pause
                   </button>
                 <% end %>
-
                 <%= if download.status == "Paused" do %>
                   <button
                     phx-click="resume_download"
@@ -114,7 +114,6 @@
                     Resume
                   </button>
                 <% end %>
-
                 <%= if download.status != "Completed" do %>
                   <button
                     phx-click="cancel_download"
@@ -131,7 +130,6 @@
             </div>
           <% end %>
         </div>
-
         <div class="border-t border-slate-200 p-4">
           <button
             phx-click="view_all_downloads"
@@ -159,7 +157,6 @@
         </div>
       </button>
     <% end %>
-
     <style>
       @keyframes slideIn {
         from {
@@ -171,7 +168,6 @@
           transform: translateY(0);
         }
       }
-
       .animate-slideIn {
         animation: slideIn 0.3s ease-out;
       }
