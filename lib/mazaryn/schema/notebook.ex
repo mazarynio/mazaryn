@@ -557,5 +557,15 @@ defmodule Mazaryn.Schema.Notebook do
     Enum.max_by(versions, fn v -> Map.get(v, :version_num, 0) end, fn -> nil end)
   end
 
+  def is_owner?(%__MODULE__{} = notebook, user_id) when is_binary(user_id) do
+    notebook.creator_id == user_id
+  end
+
+  def is_owner?(%__MODULE__{} = notebook, user_id) when is_list(user_id) do
+    notebook.creator_id == to_string(user_id)
+  end
+
+  def is_owner?(_, _), do: false
+
   def latest_version(_), do: nil
 end

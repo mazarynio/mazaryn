@@ -5,14 +5,14 @@
   locale={@locale}
 />
 
-<div class="min-h-screen bg-slate-50">
-  <div class="border-b border-slate-200 bg-white sticky top-0 z-40 shadow-sm">
-    <div class="max-w-7xl mx-auto px-6 py-4">
+<div class="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+  <div class="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-slate-200/60 shadow-sm">
+    <div class="max-w-7xl mx-auto px-6 py-3">
       <div class="flex items-center justify-between">
         <div class="flex items-center space-x-4">
           <.link
             navigate={~p"/#{@locale}/ai/notebooks"}
-            class="p-2 text-slate-500 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors"
+            class="p-2 text-slate-500 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-all"
           >
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
@@ -20,19 +20,44 @@
           </.link>
 
           <div class="flex items-center space-x-3">
-            <div class="w-10 h-10 bg-gradient-to-br from-purple-600 to-pink-600 rounded-lg flex items-center justify-center">
+            <div class="w-10 h-10 bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-200">
               <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
               </svg>
             </div>
             <div>
-              <h1 class="text-lg font-bold text-slate-900"><%= @notebook.title %></h1>
-              <div class="flex items-center space-x-2 text-xs text-slate-500">
-                <span class={"px-2 py-0.5 rounded-full #{MazarynWeb.AiLive.Notebooks.language_color(@notebook.language)}"}>
+              <h1 class="text-lg font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                <%= @notebook.title %>
+              </h1>
+              <div class="flex items-center space-x-2 text-xs">
+                <span class={"px-2 py-0.5 rounded-full font-medium #{language_badge_color(@notebook.language)}"}>
                   <%= Mazaryn.Schema.Notebook.language_label(@notebook) %>
                 </span>
-                <span>•</span>
-                <span><%= if @kernel_status == :busy, do: "Running...", else: "Ready" %></span>
+                <span class="text-slate-400">•</span>
+                <%= if @kernel_status == :busy do %>
+                  <span class="flex items-center space-x-1 text-amber-600">
+                    <span class="relative flex h-2 w-2">
+                      <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                      <span class="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+                    </span>
+                    <span class="font-medium">Running</span>
+                  </span>
+                <% else %>
+                  <span class="flex items-center space-x-1 text-emerald-600">
+                    <span class="h-2 w-2 bg-emerald-500 rounded-full"></span>
+                    <span class="font-medium">Ready</span>
+                  </span>
+                <% end %>
+                <%= if @unsaved_changes do %>
+                  <span class="text-slate-400">•</span>
+                  <span class="text-amber-600 font-medium">Unsaved</span>
+                <% end %>
+                <%= if @last_saved do %>
+                  <span class="text-slate-400">•</span>
+                  <span class="text-slate-500">
+                    Saved <%= Timex.from_now(@last_saved) %>
+                  </span>
+                <% end %>
               </div>
             </div>
           </div>
@@ -41,19 +66,34 @@
         <div class="flex items-center space-x-2">
           <button
             phx-click="run_all_cells"
-            class="flex items-center space-x-2 px-4 py-2 bg-purple-600 text-white text-sm font-medium rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            class="group relative flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white text-sm font-medium rounded-lg hover:from-indigo-700 hover:to-purple-700 transition-all shadow-lg shadow-indigo-200 hover:shadow-xl hover:shadow-indigo-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-lg"
             disabled={@kernel_status == :busy}
           >
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
+            <%= if @kernel_status == :busy do %>
+              <div class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+            <% else %>
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            <% end %>
             <span>Run All</span>
           </button>
 
           <button
+            phx-click="clear_all_outputs"
+            class="flex items-center space-x-2 px-4 py-2 bg-white border border-slate-300 text-slate-700 text-sm font-medium rounded-lg hover:bg-slate-50 hover:border-slate-400 transition-all"
+            title="Clear all outputs"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+            <span>Clear</span>
+          </button>
+
+          <button
             phx-click="save_notebook"
-            class="flex items-center space-x-2 px-4 py-2 bg-white border border-slate-300 text-slate-700 text-sm font-medium rounded-lg hover:bg-slate-50 transition-colors"
+            class="flex items-center space-x-2 px-4 py-2 bg-white border border-slate-300 text-slate-700 text-sm font-medium rounded-lg hover:bg-slate-50 hover:border-slate-400 transition-all"
           >
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
@@ -61,63 +101,86 @@
             <span>Save</span>
           </button>
 
-          <%= if Mazaryn.Schema.Notebook.can_edit?(@notebook, to_string(@user.id)) do %>
-            <div class="relative group">
-              <button class="p-2 text-slate-500 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
+          <div class="relative group">
+            <button class="p-2 text-slate-500 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-all">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
+              </svg>
+            </button>
+            <div class="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-xl border border-slate-200 py-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all">
+              <button
+                phx-click="toggle_share_modal"
+                class="flex items-center space-x-3 w-full px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
+              >
+                <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
                 </svg>
+                <span>Share Notebook</span>
               </button>
-              <div class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-slate-200 py-1 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all">
-                <.link
-                  navigate={~p"/#{@locale}/ai/notebooks/#{@notebook.id}/versions"}
-                  class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50"
-                >
-                  Version History
-                </.link>
-                <.link
-                  navigate={~p"/#{@locale}/ai/notebooks/#{@notebook.id}/fork"}
-                  class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50"
-                >
-                  Fork Notebook
-                </.link>
-                <button class="block w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">
-                  Export as .ipynb
-                </button>
-                <button class="block w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">
-                  Share
-                </button>
-              </div>
+              <button
+                phx-click="toggle_export_modal"
+                class="flex items-center space-x-3 w-full px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
+              >
+                <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
+                <span>Export as .ipynb</span>
+              </button>
+              <.link
+                navigate={~p"/#{@locale}/ai/notebooks/#{@notebook.id}/versions"}
+                class="flex items-center space-x-3 w-full px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
+              >
+                <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span>Version History</span>
+              </.link>
+              <div class="border-t border-slate-100 my-2"></div>
+              <button
+                phx-click="toggle_settings"
+                class="flex items-center space-x-3 w-full px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
+              >
+                <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                <span>Settings</span>
+              </button>
             </div>
-          <% end %>
+          </div>
         </div>
       </div>
     </div>
   </div>
 
-  <div class="max-w-5xl mx-auto px-6 py-8">
-    <div class="space-y-2">
+  <div class="max-w-6xl mx-auto px-6 py-8">
+    <div class="space-y-3">
       <%= for {cell, index} <- Enum.with_index(@cells) do %>
-        <div class="relative group">
+        <div
+          class="relative group"
+          phx-hook="CellFocus"
+          data-cell-id={cell.id}
+          id={"cell-container-#{cell.id}"}
+        >
           <div class={[
-            "bg-white rounded-xl border-2 transition-all",
-            @selected_cell == cell.id && "border-purple-400 shadow-lg shadow-purple-100",
-            @selected_cell != cell.id && "border-slate-200 hover:border-slate-300"
+            "bg-white rounded-2xl border-2 transition-all duration-200 overflow-hidden",
+            @selected_cell == cell.id && "border-indigo-400 shadow-2xl shadow-indigo-100 ring-4 ring-indigo-50",
+            @selected_cell != cell.id && "border-slate-200 hover:border-slate-300 hover:shadow-lg"
           ]}
           phx-click="select_cell"
           phx-value-cell_id={cell.id}>
             <div class="flex items-start">
-              <div class="flex-shrink-0 w-16 flex flex-col items-center pt-4 pb-4 border-r border-slate-100">
+              <div class="flex-shrink-0 w-20 flex flex-col items-center pt-4 pb-4 border-r border-slate-100 bg-gradient-to-b from-slate-50 to-white">
                 <%= if cell.type == :code do %>
                   <%= if MapSet.member?(@executing_cells, cell.id) do %>
-                    <div class="w-8 h-8 flex items-center justify-center">
-                      <div class="w-5 h-5 border-2 border-purple-600 border-t-transparent rounded-full animate-spin"></div>
+                    <div class="w-10 h-10 flex items-center justify-center">
+                      <div class="w-6 h-6 border-3 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
                     </div>
                   <% else %>
                     <button
                       phx-click="execute_cell"
                       phx-value-cell_id={cell.id}
-                      class="w-8 h-8 flex items-center justify-center text-slate-400 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
+                      class="group/run w-10 h-10 flex items-center justify-center text-slate-400 hover:text-white hover:bg-gradient-to-br hover:from-indigo-600 hover:to-purple-600 rounded-xl transition-all shadow-sm hover:shadow-lg hover:shadow-indigo-200"
                       title="Run cell (Shift+Enter)"
                     >
                       <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -127,10 +190,14 @@
                     </button>
                   <% end %>
                   <%= if cell.execution_count do %>
-                    <span class="text-xs text-slate-400 mt-1">[<%= cell.execution_count %>]</span>
+                    <span class="text-xs font-mono text-indigo-600 font-semibold mt-1">
+                      [<%= cell.execution_count %>]
+                    </span>
+                  <% else %>
+                    <span class="text-xs font-mono text-slate-300 mt-1">[ ]</span>
                   <% end %>
                 <% else %>
-                  <div class="w-8 h-8 flex items-center justify-center text-slate-300">
+                  <div class="w-10 h-10 flex items-center justify-center text-slate-300">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
                     </svg>
@@ -146,9 +213,10 @@
                       phx-hook="CodeEditor"
                       phx-blur="update_cell"
                       phx-value-cell_id={cell.id}
-                      class="w-full px-4 py-4 font-mono text-sm bg-slate-50 focus:bg-white border-0 focus:ring-0 resize-none overflow-hidden"
-                      style="min-height: 60px;"
-                      placeholder="Write your code here..."
+                      class="w-full px-6 py-4 font-mono text-sm bg-slate-50/50 focus:bg-white border-0 focus:ring-0 resize-none overflow-hidden transition-colors"
+                      style="min-height: 80px; tab-size: 4;"
+                      placeholder="# Write your code here...
+# Press Shift+Enter to execute"
                       spellcheck="false"
                     ><%= cell.content %></textarea>
                   </div>
@@ -156,105 +224,173 @@
                   <%= if length(cell.outputs) > 0 do %>
                     <div class="border-t border-slate-100 bg-white">
                       <%= for output <- cell.outputs do %>
-                        <div class="px-4 py-3">
+                        <div class="px-6 py-4">
                           <%= case output.data.type do %>
                             <% :text -> %>
-                              <pre class="font-mono text-sm text-slate-700 whitespace-pre-wrap"><%= output.data.value %></pre>
+                              <pre class="font-mono text-sm text-slate-700 whitespace-pre-wrap leading-relaxed"><%= output.data.value %></pre>
                             <% :html -> %>
-                              <div class="prose prose-sm max-w-none">
+                              <div class="prose prose-sm max-w-none prose-indigo">
                                 <%= raw(output.data.value) %>
                               </div>
                             <% :json -> %>
-                              <pre class="font-mono text-xs text-slate-600 bg-slate-50 p-3 rounded-lg overflow-x-auto"><%= Jason.encode!(output.data.value, pretty: true) %></pre>
+                              <pre class="font-mono text-xs text-slate-600 bg-slate-50 p-4 rounded-xl overflow-x-auto border border-slate-200"><%= Jason.encode!(output.data.value, pretty: true) %></pre>
                             <% _ -> %>
-                              <pre class="font-mono text-xs text-slate-500"><%= output.data.value %></pre>
+                              <pre class="font-mono text-xs text-slate-500 bg-slate-50 p-4 rounded-xl"><%= output.data.value %></pre>
                           <% end %>
                         </div>
                       <% end %>
                     </div>
                   <% end %>
                 <% else %>
-                  <div class="px-4 py-4">
+                  <div class="px-6 py-4">
                     <textarea
                       id={"cell-#{cell.id}"}
                       phx-blur="update_cell"
                       phx-value-cell_id={cell.id}
-                      class="w-full border-0 focus:ring-0 resize-none text-slate-700"
-                      style="min-height: 60px;"
-                      placeholder="Write markdown here..."
+                      class="w-full border-0 focus:ring-0 resize-none text-slate-700 placeholder:text-slate-400"
+                      style="min-height: 80px;"
+                      placeholder="# Write markdown here...
+
+**Bold text**, *italic text*, `code`"
                     ><%= cell.content %></textarea>
                   </div>
                 <% end %>
               </div>
 
-              <div class="flex-shrink-0 w-12 flex flex-col items-center justify-center space-y-1 opacity-0 group-hover:opacity-100 transition-opacity pt-2">
-                <button
-                  phx-click="move_cell_up"
-                  phx-value-cell_id={cell.id}
-                  class="p-1 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded"
-                  disabled={index == 0}
-                >
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
-                  </svg>
-                </button>
-                <button
-                  phx-click="move_cell_down"
-                  phx-value-cell_id={cell.id}
-                  class="p-1 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded"
-                  disabled={index == length(@cells) - 1}
-                >
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                  </svg>
-                </button>
-                <button
-                  phx-click="delete_cell"
-                  phx-value-cell_id={cell.id}
-                  class="p-1 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded"
-                  data-confirm="Delete this cell?"
-                >
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                  </svg>
-                </button>
+              <div class={[
+                "flex-shrink-0 w-14 flex flex-col items-center justify-start space-y-1 pt-3 transition-opacity duration-200",
+                @selected_cell == cell.id && "opacity-100",
+                @selected_cell != cell.id && "opacity-0 group-hover:opacity-100"
+              ]}>
+                <div class="relative group/dropdown">
+                  <button
+                    class="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all"
+                    title="More options"
+                  >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h.01M12 12h.01M19 12h.01M6 12a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0z" />
+                    </svg>
+                  </button>
+                  <div class="absolute right-full mr-2 top-0 w-48 bg-white rounded-xl shadow-xl border border-slate-200 py-1 opacity-0 invisible group-hover/dropdown:opacity-100 group-hover/dropdown:visible transition-all z-10">
+                    <%= if cell.type == :code do %>
+                      <button
+                        phx-click="run_cells_above"
+                        phx-value-cell_id={cell.id}
+                        class="flex items-center space-x-2 w-full px-3 py-2 text-xs text-slate-700 hover:bg-slate-50"
+                      >
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
+                        </svg>
+                        <span>Run Cells Above</span>
+                      </button>
+                      <button
+                        phx-click="run_cells_below"
+                        phx-value-cell_id={cell.id}
+                        class="flex items-center space-x-2 w-full px-3 py-2 text-xs text-slate-700 hover:bg-slate-50"
+                      >
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                        <span>Run Cells Below</span>
+                      </button>
+                      <button
+                        phx-click="clear_cell_output"
+                        phx-value-cell_id={cell.id}
+                        class="flex items-center space-x-2 w-full px-3 py-2 text-xs text-slate-700 hover:bg-slate-50"
+                      >
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                        <span>Clear Output</span>
+                      </button>
+                      <div class="border-t border-slate-100 my-1"></div>
+                    <% end %>
+                    <button
+                      phx-click="move_cell_up"
+                      phx-value-cell_id={cell.id}
+                      disabled={index == 0}
+                      class="flex items-center space-x-2 w-full px-3 py-2 text-xs text-slate-700 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
+                      </svg>
+                      <span>Move Up</span>
+                    </button>
+                    <button
+                      phx-click="move_cell_down"
+                      phx-value-cell_id={cell.id}
+                      disabled={index == length(@cells) - 1}
+                      class="flex items-center space-x-2 w-full px-3 py-2 text-xs text-slate-700 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                      </svg>
+                      <span>Move Down</span>
+                    </button>
+                    <div class="border-t border-slate-100 my-1"></div>
+                    <button
+                      phx-click="delete_cell"
+                      phx-value-cell_id={cell.id}
+                      data-confirm="Delete this cell?"
+                      class="flex items-center space-x-2 w-full px-3 py-2 text-xs text-red-600 hover:bg-red-50"
+                    >
+                      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                      <span>Delete Cell</span>
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
 
-          <div class="h-8 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+          <div class="h-10 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
             <div class="relative">
               <button
                 phx-click="toggle_add_cell_menu"
                 phx-value-position={to_string(index + 1)}
-                class="px-3 py-1 bg-white border border-slate-200 text-slate-500 text-xs font-medium rounded-lg hover:bg-slate-50 hover:border-purple-300 hover:text-purple-600 transition-all shadow-sm"
+                class="flex items-center space-x-2 px-4 py-1.5 bg-white border-2 border-slate-200 text-slate-500 text-xs font-medium rounded-full hover:bg-gradient-to-r hover:from-indigo-50 hover:to-purple-50 hover:border-indigo-300 hover:text-indigo-600 transition-all shadow-sm hover:shadow-md"
               >
-                + Add Cell
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                </svg>
+                <span>Add Cell</span>
               </button>
 
               <%= if @show_add_cell_menu && @add_cell_position == index + 1 do %>
-                <div class="absolute top-full mt-1 left-1/2 -translate-x-1/2 bg-white rounded-lg shadow-lg border border-slate-200 py-1 z-10">
+                <div class="absolute top-full mt-2 left-1/2 -translate-x-1/2 bg-white rounded-xl shadow-2xl border border-slate-200 py-2 z-20 min-w-[200px]">
                   <button
                     phx-click="add_cell"
                     phx-value-type="code"
                     phx-value-position={to_string(index + 1)}
-                    class="flex items-center space-x-2 w-full px-4 py-2 text-sm text-slate-700 hover:bg-slate-50"
+                    class="flex items-center space-x-3 w-full px-4 py-2.5 text-sm text-slate-700 hover:bg-indigo-50 hover:text-indigo-700 transition-colors group/item"
                   >
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
-                    </svg>
-                    <span>Code Cell</span>
+                    <div class="w-8 h-8 bg-indigo-100 group-hover/item:bg-indigo-200 rounded-lg flex items-center justify-center transition-colors">
+                      <svg class="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+                      </svg>
+                    </div>
+                    <div class="text-left">
+                      <div class="font-medium">Code Cell</div>
+                      <div class="text-xs text-slate-500 group-hover/item:text-indigo-600">Write executable code</div>
+                    </div>
                   </button>
                   <button
                     phx-click="add_cell"
                     phx-value-type="markdown"
                     phx-value-position={to_string(index + 1)}
-                    class="flex items-center space-x-2 w-full px-4 py-2 text-sm text-slate-700 hover:bg-slate-50"
+                    class="flex items-center space-x-3 w-full px-4 py-2.5 text-sm text-slate-700 hover:bg-purple-50 hover:text-purple-700 transition-colors group/item"
                   >
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-                    </svg>
-                    <span>Markdown Cell</span>
+                    <div class="w-8 h-8 bg-purple-100 group-hover/item:bg-purple-200 rounded-lg flex items-center justify-center transition-colors">
+                      <svg class="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                      </svg>
+                    </div>
+                    <div class="text-left">
+                      <div class="font-medium">Markdown Cell</div>
+                      <div class="text-xs text-slate-500 group-hover/item:text-purple-600">Add formatted text</div>
+                    </div>
                   </button>
                 </div>
               <% end %>
@@ -264,24 +400,370 @@
       <% end %>
 
       <%= if length(@cells) == 0 do %>
-        <div class="bg-white rounded-xl border-2 border-dashed border-slate-300 p-12 text-center">
-          <div class="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <svg class="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div class="bg-white rounded-2xl border-2 border-dashed border-slate-300 p-16 text-center">
+          <div class="w-20 h-20 bg-gradient-to-br from-indigo-100 to-purple-100 rounded-full flex items-center justify-center mx-auto mb-6">
+            <svg class="w-10 h-10 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
             </svg>
           </div>
-          <h3 class="text-lg font-semibold text-slate-900 mb-2">No cells yet</h3>
-          <p class="text-slate-500 mb-4">Add your first cell to get started</p>
-          <button
-            phx-click="add_cell"
-            phx-value-type="code"
-            phx-value-position="0"
-            class="px-6 py-3 bg-purple-600 text-white font-medium rounded-lg hover:bg-purple-700 transition-colors"
-          >
-            Add Code Cell
-          </button>
+          <h3 class="text-xl font-bold text-slate-900 mb-2">Empty Notebook</h3>
+          <p class="text-slate-500 mb-6 max-w-md mx-auto">
+            Start building your analysis by adding your first cell
+          </p>
+          <div class="flex items-center justify-center space-x-3">
+            <button
+              phx-click="add_cell"
+              phx-value-type="code"
+              phx-value-position="0"
+              class="flex items-center space-x-2 px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-medium rounded-xl hover:from-indigo-700 hover:to-purple-700 transition-all shadow-lg shadow-indigo-200"
+            >
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+              </svg>
+              <span>Add Code Cell</span>
+            </button>
+            <button
+              phx-click="add_cell"
+              phx-value-type="markdown"
+              phx-value-position="0"
+              class="flex items-center space-x-2 px-6 py-3 bg-white border-2 border-slate-300 text-slate-700 font-medium rounded-xl hover:border-purple-300 hover:bg-purple-50 transition-all"
+            >
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+              <span>Add Markdown Cell</span>
+            </button>
+          </div>
         </div>
       <% end %>
     </div>
   </div>
 </div>
+
+<%= if @show_share_modal do %>
+  <div class="fixed inset-0 z-50 overflow-y-auto" phx-click="toggle_share_modal">
+    <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:p-0">
+      <div class="fixed inset-0 transition-opacity bg-slate-900 bg-opacity-75 backdrop-blur-sm" aria-hidden="true"></div>
+
+      <div class="relative inline-block px-4 pt-5 pb-4 overflow-hidden text-left align-bottom transition-all transform bg-white rounded-2xl shadow-2xl sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full sm:p-8 animate-modal-appear" phx-click="stop_propagation">
+        <div class="absolute top-0 right-0 pt-4 pr-4">
+          <button
+            phx-click="toggle_share_modal"
+            class="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-all"
+          >
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        <div class="sm:flex sm:items-start">
+          <div class="flex items-center justify-center flex-shrink-0 w-12 h-12 mx-auto bg-gradient-to-br from-indigo-100 to-purple-100 rounded-xl sm:mx-0 sm:h-14 sm:w-14">
+            <svg class="w-7 h-7 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+            </svg>
+          </div>
+          <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left flex-1">
+            <h3 class="text-2xl font-bold leading-6 text-slate-900">
+              Share Notebook
+            </h3>
+            <p class="mt-2 text-sm text-slate-500">
+              Share this notebook with collaborators or make it public
+            </p>
+
+            <div class="mt-6 space-y-6">
+              <div>
+                <label class="block text-sm font-medium text-slate-700 mb-2">Share Link</label>
+                <div class="flex items-center space-x-2">
+                  <input
+                    type="text"
+                    readonly
+                    value={"#{MazarynWeb.Endpoint.url()}/#{@locale}/ai/notebooks/#{@notebook.id}"}
+                    class="flex-1 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-mono text-slate-700 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    id="share-link-input"
+                  />
+                  <button
+                    onclick="navigator.clipboard.writeText(document.getElementById('share-link-input').value); this.innerHTML = '<svg class=\'w-5 h-5\' fill=\'none\' stroke=\'currentColor\' viewBox=\'0 0 24 24\'><path stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'2\' d=\'M5 13l4 4L19 7\'></path></svg>'; setTimeout(() => this.innerHTML = '<svg class=\'w-5 h-5\' fill=\'none\' stroke=\'currentColor\' viewBox=\'0 0 24 24\'><path stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'2\' d=\'M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z\'></path></svg>', 2000)"
+                    class="px-4 py-3 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-all"
+                  >
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+
+              <div class="border-t border-slate-200 pt-6">
+                <h4 class="text-sm font-semibold text-slate-900 mb-4">Visibility Settings</h4>
+                <div class="space-y-3">
+                  <label class="flex items-start p-4 border-2 border-slate-200 rounded-xl cursor-pointer hover:border-indigo-300 hover:bg-indigo-50/50 transition-all">
+                    <input
+                      type="radio"
+                      name="visibility"
+                      value="public"
+                      checked={@notebook.visibility == "public"}
+                      class="mt-1 w-4 h-4 text-indigo-600 border-slate-300 focus:ring-indigo-500"
+                    />
+                    <div class="ml-3">
+                      <div class="flex items-center space-x-2">
+                        <svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span class="text-sm font-medium text-slate-900">Public</span>
+                      </div>
+                      <p class="text-xs text-slate-500 mt-1">Anyone on the internet can view this notebook</p>
+                    </div>
+                  </label>
+
+                  <label class="flex items-start p-4 border-2 border-slate-200 rounded-xl cursor-pointer hover:border-indigo-300 hover:bg-indigo-50/50 transition-all">
+                    <input
+                      type="radio"
+                      name="visibility"
+                      value="private"
+                      checked={@notebook.visibility == "private"}
+                      class="mt-1 w-4 h-4 text-indigo-600 border-slate-300 focus:ring-indigo-500"
+                    />
+                    <div class="ml-3">
+                      <div class="flex items-center space-x-2">
+                        <svg class="w-5 h-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                        </svg>
+                        <span class="text-sm font-medium text-slate-900">Private</span>
+                      </div>
+                      <p class="text-xs text-slate-500 mt-1">Only you and collaborators can access</p>
+                    </div>
+                  </label>
+                </div>
+              </div>
+
+              <div class="border-t border-slate-200 pt-6">
+                <h4 class="text-sm font-semibold text-slate-900 mb-4">Share via Social Media</h4>
+                <div class="flex items-center space-x-3">
+                  <button class="flex items-center justify-center w-10 h-10 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-all">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-1.29 2.213-.669 5.108 1.523 6.574-.806-.026-1.566-.247-2.229-.616-.054 2.281 1.581 4.415 3.949 4.89-.693.188-1.452.232-2.224.084.626 1.956 2.444 3.379 4.6 3.419-2.07 1.623-4.678 2.348-7.29 2.04 2.179 1.397 4.768 2.212 7.548 2.212 9.142 0 14.307-7.721 13.995-14.646.962-.695 1.797-1.562 2.457-2.549z"/>
+                    </svg>
+                  </button>
+                  <button class="flex items-center justify-center w-10 h-10 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M9 8h-3v4h3v12h5v-12h3.642l.358-4h-4v-1.667c0-.955.192-1.333 1.115-1.333h2.885v-5h-3.808c-3.596 0-5.192 1.583-5.192 4.615v3.385z"/>
+                    </svg>
+                  </button>
+                  <button class="flex items-center justify-center w-10 h-10 bg-blue-700 text-white rounded-lg hover:bg-blue-800 transition-all">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
+                    </svg>
+                  </button>
+                  <button class="flex items-center justify-center w-10 h-10 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-all">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+
+              <div class="border-t border-slate-200 pt-6">
+                <h4 class="text-sm font-semibold text-slate-900 mb-4">Add Collaborators</h4>
+                <div class="flex items-center space-x-2">
+                  <input
+                    type="email"
+                    placeholder="Enter email address"
+                    class="flex-1 px-4 py-3 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  />
+                  <button class="px-6 py-3 bg-indigo-600 text-white text-sm font-medium rounded-xl hover:bg-indigo-700 transition-all">
+                    Invite
+                  </button>
+                </div>
+                <%= if length(@notebook.collaborators) > 0 do %>
+                  <div class="mt-4 space-y-2">
+                    <%= for collaborator_id <- @notebook.collaborators do %>
+                      <div class="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                        <div class="flex items-center space-x-3">
+                          <div class="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-full flex items-center justify-center text-white text-xs font-semibold">
+                            <%= String.first(collaborator_id) %>
+                          </div>
+                          <span class="text-sm text-slate-700"><%= collaborator_id %></span>
+                        </div>
+                        <button class="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all">
+                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        </button>
+                      </div>
+                    <% end %>
+                  </div>
+                <% end %>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-6 sm:mt-6 sm:flex sm:flex-row-reverse">
+          <button
+            phx-click="toggle_share_modal"
+            class="inline-flex justify-center w-full px-6 py-3 text-base font-medium text-white bg-gradient-to-r from-indigo-600 to-purple-600 border border-transparent rounded-xl shadow-sm hover:from-indigo-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:ml-3 sm:w-auto sm:text-sm transition-all"
+          >
+            Done
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+<% end %>
+
+<%= if @show_export_modal do %>
+  <div class="fixed inset-0 z-50 overflow-y-auto" phx-click="toggle_export_modal">
+    <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:p-0">
+      <div class="fixed inset-0 transition-opacity bg-slate-900 bg-opacity-75 backdrop-blur-sm" aria-hidden="true"></div>
+
+      <div class="relative inline-block px-4 pt-5 pb-4 overflow-hidden text-left align-bottom transition-all transform bg-white rounded-2xl shadow-2xl sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-8 animate-modal-appear" phx-click="stop_propagation">
+        <div class="absolute top-0 right-0 pt-4 pr-4">
+          <button
+            phx-click="toggle_export_modal"
+            class="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-all"
+          >
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        <div class="sm:flex sm:items-start">
+          <div class="flex items-center justify-center flex-shrink-0 w-12 h-12 mx-auto bg-gradient-to-br from-green-100 to-emerald-100 rounded-xl sm:mx-0 sm:h-14 sm:w-14">
+            <svg class="w-7 h-7 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+            </svg>
+          </div>
+          <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left flex-1">
+            <h3 class="text-2xl font-bold leading-6 text-slate-900">
+              Export Notebook
+            </h3>
+            <p class="mt-2 text-sm text-slate-500">
+              Choose your preferred export format
+            </p>
+
+            <div class="mt-6 space-y-3">
+              <button class="w-full flex items-center justify-between p-4 border-2 border-slate-200 rounded-xl hover:border-indigo-300 hover:bg-indigo-50/50 transition-all group">
+                <div class="flex items-center space-x-4">
+                  <div class="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center group-hover:bg-orange-200 transition-all">
+                    <svg class="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                  </div>
+                  <div class="text-left">
+                    <div class="text-sm font-semibold text-slate-900">Jupyter Notebook (.ipynb)</div>
+                    <div class="text-xs text-slate-500">Compatible with Jupyter, VS Code, and more</div>
+                  </div>
+                </div>
+                <svg class="w-5 h-5 text-slate-400 group-hover:text-indigo-600 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+
+              <button class="w-full flex items-center justify-between p-4 border-2 border-slate-200 rounded-xl hover:border-indigo-300 hover:bg-indigo-50/50 transition-all group">
+                <div class="flex items-center space-x-4">
+                  <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center group-hover:bg-blue-200 transition-all">
+                    <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+                    </svg>
+                  </div>
+                  <div class="text-left">
+                    <div class="text-sm font-semibold text-slate-900">Python Script (.py)</div>
+                    <div class="text-xs text-slate-500">Executable Python code only</div>
+                  </div>
+                </div>
+                <svg class="w-5 h-5 text-slate-400 group-hover:text-indigo-600 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+
+              <button class="w-full flex items-center justify-between p-4 border-2 border-slate-200 rounded-xl hover:border-indigo-300 hover:bg-indigo-50/50 transition-all group">
+                <div class="flex items-center space-x-4">
+                  <div class="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center group-hover:bg-red-200 transition-all">
+                    <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                    </svg>
+                  </div>
+                  <div class="text-left">
+                    <div class="text-sm font-semibold text-slate-900">PDF Document (.pdf)</div>
+                    <div class="text-xs text-slate-500">Formatted document with outputs</div>
+                  </div>
+                </div>
+                <svg class="w-5 h-5 text-slate-400 group-hover:text-indigo-600 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+
+              <button class="w-full flex items-center justify-between p-4 border-2 border-slate-200 rounded-xl hover:border-indigo-300 hover:bg-indigo-50/50 transition-all group">
+                <div class="flex items-center space-x-4">
+                  <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center group-hover:bg-purple-200 transition-all">
+                    <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                  </div>
+                  <div class="text-left">
+                    <div class="text-sm font-semibold text-slate-900">HTML Page (.html)</div>
+                    <div class="text-xs text-slate-500">Standalone web page</div>
+                  </div>
+                </div>
+                <svg class="w-5 h-5 text-slate-400 group-hover:text-indigo-600 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+
+              <button class="w-full flex items-center justify-between p-4 border-2 border-slate-200 rounded-xl hover:border-indigo-300 hover:bg-indigo-50/50 transition-all group">
+                <div class="flex items-center space-x-4">
+                  <div class="w-12 h-12 bg-slate-100 rounded-lg flex items-center justify-center group-hover:bg-slate-200 transition-all">
+                    <svg class="w-6 h-6 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                    </svg>
+                  </div>
+                  <div class="text-left">
+                    <div class="text-sm font-semibold text-slate-900">Markdown (.md)</div>
+                    <div class="text-xs text-slate-500">Text format with code blocks</div>
+                  </div>
+                </div>
+                <svg class="w-5 h-5 text-slate-400 group-hover:text-indigo-600 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+            </div>
+
+            <div class="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-xl">
+              <div class="flex items-start space-x-3">
+                <svg class="w-5 h-5 text-blue-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <div class="text-xs text-blue-800">
+                  <p class="font-semibold mb-1">Export Tips</p>
+                  <ul class="space-y-1 list-disc list-inside">
+                    <li>Save your notebook before exporting</li>
+                    <li>Run all cells for complete output</li>
+                    <li>Large outputs may increase file size</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+<% end %>
+
+<style>
+@keyframes modal-appear {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.animate-modal-appear {
+  animation: modal-appear 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+</style>

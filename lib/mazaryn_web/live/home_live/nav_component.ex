@@ -10,7 +10,11 @@ defmodule MazarynWeb.HomeLive.NavComponent do
     notifs_count = Core.NotifEvent.count_unread(user.id)
 
     {:ok,
-     socket |> assign(assigns) |> assign(notifs_count: notifs_count) |> assign(current_path: "")}
+     socket
+     |> assign(assigns)
+     |> assign(notifs_count: notifs_count)
+     |> assign(current_path: "")
+     |> assign_new(:search, fn -> "" end)}
   end
 
   def handle_path(socket) do

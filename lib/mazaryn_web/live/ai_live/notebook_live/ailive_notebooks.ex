@@ -35,6 +35,9 @@ defmodule MazarynWeb.AiLive.Notebooks do
         |> assign(filter: "all")
         |> assign(sort_by: "recent")
         |> assign(show_create_modal: false)
+        |> assign(show_delete_modal: false)
+        |> assign(delete_notebook_id: nil)
+        |> assign(delete_notebook_title: "")
         |> assign(page: 1)
         |> assign(per_page: 12)
         |> assign(locale: "en")
@@ -46,6 +49,72 @@ defmodule MazarynWeb.AiLive.Notebooks do
          socket
          |> put_flash(:error, "Session expired")
          |> redirect(to: "/en/login")}
+    end
+  end
+
+  @impl true
+  def handle_event("open_delete_modal", %{"id" => notebook_id, "title" => title}, socket) do
+    {:noreply,
+     socket
+     |> assign(show_delete_modal: true)
+     |> assign(delete_notebook_id: notebook_id)
+     |> assign(delete_notebook_title: title)}
+  end
+
+  @impl true
+  def handle_event("close_delete_modal", _params, socket) do
+    {:noreply,
+     socket
+     |> assign(show_delete_modal: false)
+     |> assign(delete_notebook_id: nil)
+     |> assign(delete_notebook_title: "")}
+  end
+
+  @impl true
+  def handle_event("confirm_delete", _params, socket) do
+    notebook_id = socket.assigns.delete_notebook_id
+
+    Logger.info("=== Confirm Delete Notebook ===")
+    Logger.info("Notebook ID: #{inspect(notebook_id)}")
+
+    user_id = to_string(socket.assigns.user.id)
+    user_id_charlist = String.to_charlist(user_id)
+    notebook_id_charlist = String.to_charlist(notebook_id)
+
+    Logger.info("User ID charlist: #{inspect(user_id_charlist)}")
+    Logger.info("Notebook ID charlist: #{inspect(notebook_id_charlist)}")
+
+    case NotebookClient.delete_notebook(notebook_id_charlist, user_id_charlist) do
+      :ok ->
+        Logger.info("Notebook deleted successfully")
+        notebooks = load_notebooks(socket.assigns.user, socket.assigns.filter)
+        filtered = filter_notebooks(notebooks, socket.assigns.search_query, socket.assigns.filter)
+        sorted = sort_notebooks(filtered, socket.assigns.sort_by)
+
+        {:noreply,
+         socket
+         |> assign(notebooks: notebooks)
+         |> assign(filtered_notebooks: sorted)
+         |> assign(show_delete_modal: false)
+         |> assign(delete_notebook_id: nil)
+         |> assign(delete_notebook_title: "")
+         |> put_flash(:info, "Notebook deleted successfully")}
+
+      {:error, :unauthorized} ->
+        Logger.error("User not authorized to delete notebook")
+
+        {:noreply,
+         socket
+         |> assign(show_delete_modal: false)
+         |> put_flash(:error, "You are not authorized to delete this notebook")}
+
+      {:error, reason} ->
+        Logger.error("Failed to delete notebook: #{inspect(reason)}")
+
+        {:noreply,
+         socket
+         |> assign(show_delete_modal: false)
+         |> put_flash(:error, "Failed to delete notebook: #{inspect(reason)}")}
     end
   end
 
@@ -126,6 +195,7 @@ defmodule MazarynWeb.AiLive.Notebooks do
   def handle_event("create_notebook", %{"notebook" => notebook_params}, socket) do
     user = socket.assigns.user
     user_id = to_string(user.id)
+    user_id_charlist = String.to_charlist(user_id)
 
     title = Map.get(notebook_params, "title", "Untitled Notebook")
     description = Map.get(notebook_params, "description", "")
@@ -142,7 +212,7 @@ defmodule MazarynWeb.AiLive.Notebooks do
     tags = parse_tags(Map.get(notebook_params, "tags", ""))
 
     case NotebookClient.create_notebook(
-           user_id,
+           user_id_charlist,
            title,
            description,
            language,
@@ -178,10 +248,21 @@ defmodule MazarynWeb.AiLive.Notebooks do
 
   @impl true
   def handle_event("delete_notebook", %{"id" => notebook_id}, socket) do
-    user_id = to_string(socket.assigns.user.id)
+    Logger.info("=== Delete Notebook Requested ===")
+    Logger.info("Notebook ID: #{inspect(notebook_id)}")
+    Logger.info("User struct: #{inspect(socket.assigns.user)}")
 
-    case NotebookClient.delete_notebook(notebook_id, user_id) do
+    user_id = to_string(socket.assigns.user.id)
+    user_id_charlist = String.to_charlist(user_id)
+    notebook_id_charlist = String.to_charlist(notebook_id)
+
+    Logger.info("User ID string: #{user_id}")
+    Logger.info("User ID charlist: #{inspect(user_id_charlist)}")
+    Logger.info("Notebook ID charlist: #{inspect(notebook_id_charlist)}")
+
+    case NotebookClient.delete_notebook(notebook_id_charlist, user_id_charlist) do
       :ok ->
+        Logger.info("Notebook deleted successfully")
         notebooks = load_notebooks(socket.assigns.user, socket.assigns.filter)
         filtered = filter_notebooks(notebooks, socket.assigns.search_query, socket.assigns.filter)
         sorted = sort_notebooks(filtered, socket.assigns.sort_by)
@@ -192,7 +273,16 @@ defmodule MazarynWeb.AiLive.Notebooks do
          |> assign(filtered_notebooks: sorted)
          |> put_flash(:info, "Notebook deleted successfully")}
 
+      {:error, :unauthorized} ->
+        Logger.error("User not authorized to delete notebook")
+
+        {:noreply,
+         socket
+         |> put_flash(:error, "You are not authorized to delete this notebook")}
+
       {:error, reason} ->
+        Logger.error("Failed to delete notebook: #{inspect(reason)}")
+
         {:noreply,
          socket
          |> put_flash(:error, "Failed to delete notebook: #{inspect(reason)}")}
