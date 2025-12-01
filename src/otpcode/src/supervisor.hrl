@@ -186,3 +186,57 @@
     type => worker,
     modules => [content_cache]
 }).
+
+-define(VIDEO_SERVER, #{
+    id => video_server,
+    start => {video_server, start_link, []},
+    restart => permanent,
+    shutdown => 5000,
+    type => worker,
+    modules => [video_server]
+}).
+
+-define(DATASET_SERVER, #{
+    id => dataset_server,
+    start => {dataset_server, start_link, []},
+    restart => permanent,
+    shutdown => 5000,
+    type => worker,
+    modules => [dataset_server]
+}).
+
+-define(NOTEBOOK_SERVER, #{
+    id => notebook_server,
+    start => {notebook_server, start_link, []},
+    restart => permanent,
+    shutdown => 5000,
+    type => worker,
+    modules => [notebook_server]
+}).
+
+-define(MODEL_SERVER, #{
+    id => model_server,
+    start => {model_server, start_link, []},
+    restart => permanent,
+    shutdown => 5000,
+    type => worker,
+    modules => [model_server]
+}).
+
+-define(COMPETITION_SERVER, #{
+    id => competition_server,
+    start => {competition_server, start_link, []},
+    restart => permanent,
+    shutdown => 5000,
+    type => worker,
+    modules => [competition_server]
+}).
+
+-define(LEADERBOARD_SERVER, #{
+    id => leaderboard_server,
+    start => {leaderboard_server, start_link, []},
+    restart => permanent,
+    shutdown => 5000,
+    type => worker,
+    modules => [leaderboard_server]
+}).

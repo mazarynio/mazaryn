@@ -130,6 +130,7 @@
 ]).
 
 -include("../records.hrl").
+-include("../media_records.hrl").
 -include_lib("stdlib/include/qlc.hrl").
 -include_lib("kernel/include/file.hrl").
 

@@ -2,6 +2,7 @@
 
 -include("records.hrl").
 -include("ml_records.hrl").
+-include("media_records.hrl").
 -include("kademlia/kademlia.hrl").
 -include("supervisor.hrl").
 
