@@ -126,7 +126,22 @@
     remove_simulcast_destination/2,
 
     calculate_trending_score/1,
-    update_analytics/1
+    update_analytics/1,
+
+    create_video_with_rust/10,
+    start_live_stream_with_rust/4,
+    track_video_playback/3,
+    update_playback_position/2,
+    get_video_analytics/1,
+    export_video_analytics/1,
+    detect_video_format/1,
+    get_video_info_from_rust/1,
+    get_video_cid/1,
+    get_transcoding_status/1,
+    get_available_qualities/1,
+    update_video_ipns/2,
+    get_video/1,
+    generate_stream_key/0
 ]).
 
 -include("../records.hrl").
@@ -2656,3 +2671,405 @@ upload_video_version(VideoId, VideoFile) ->
             end;
         write_video_with_retry(_Video, _UserId, 0) ->
             {error, max_retries_exceeded}.
+
+            create_video_with_rust(CreatorId, Title, Description, VideoFile, Duration, Privacy, Tags, AllowComments, AllowDownloads, Monetized) ->
+                Fun = fun() ->
+                    Id = nanoid:gen(),
+                    Now = calendar:universal_time(),
+                    AI_Video_ID = ai_videodb:insert_in_transaction(Id),
+
+                    ok = content_cache:set({video_file, Id}, VideoFile),
+                    SizeBytes = calculate_content_size(VideoFile),
+
+                    Video = #video{
+                        id = Id,
+                        ai_video_id = AI_Video_ID,
+                        user_id = CreatorId,
+                        file_url = {pending, Id},
+                        ipfs_cid = {pending, Id},
+                        status = processing,
+                        title = Title,
+                        description = Description,
+                        duration_seconds = Duration,
+                        privacy = Privacy,
+                        hashtags = Tags,
+                        allow_comments = AllowComments,
+                        allow_downloads = AllowDownloads,
+                        monetized = Monetized,
+                        file_size_bytes = SizeBytes,
+                        date_created = Now,
+                        date_updated = Now,
+                        views = 0,
+                        unique_views = 0,
+                        likes = [],
+                        reactions = #{
+                            like => [],
+                            love => [],
+                            wow => [],
+                            haha => [],
+                            fire => []
+                        },
+                        reaction_counts = #{
+                            like => 0,
+                            love => 0,
+                            wow => 0,
+                            haha => 0,
+                            fire => 0
+                        },
+                        comments = [],
+                        shares = 0,
+                        saves = 0
+                    },
+
+                    mnesia:write(Video),
+
+                    case mnesia:read({user, CreatorId}) of
+                        [User] ->
+                            mnesia:write(User#user{media = [Id | User#user.media]});
+                        [] ->
+                            error_logger:warning_msg("User ~p not found when creating video", [CreatorId])
+                    end,
+
+                    {ok, Id}
+                end,
+
+                case mnesia:transaction(Fun) of
+                    {atomic, {ok, Id}} ->
+                        spawn(fun() ->
+                            upload_video_to_ipfs_with_rust(Id, VideoFile)
+                        end),
+                        Id;
+                    {atomic, {error, Reason}} ->
+                        {error, Reason};
+                    {aborted, Reason} ->
+                        {error, {transaction_failed, Reason}}
+                end.
+
+            upload_video_to_ipfs_with_rust(VideoId, VideoFile) ->
+                try
+                    Size = byte_size(VideoFile),
+
+                    VideoCID = if
+                        Size > ?CHUNK_SIZE ->
+                            upload_large_file_chunked(VideoFile);
+                        true ->
+                            ipfs_media:upload_media(VideoFile)
+                    end,
+
+                    VideoInfo = case media_video_client:upload_video(VideoFile) of
+                        {ok, Info} -> Info;
+                        {error, _} -> #{}
+                    end,
+
+                    Metadata = #{
+                        duration => maps:get(duration, VideoInfo, 0),
+                        resolution => maps:get(resolution, VideoInfo, "unknown"),
+                        codec => maps:get(codec, VideoInfo, "unknown"),
+                        bitrate => maps:get(bitrate, VideoInfo, 0),
+                        frame_rate => maps:get(frame_rate, VideoInfo, 0)
+                    },
+
+                    UpdateF = fun() ->
+                        case mnesia:read({video, VideoId}) of
+                            [Video] ->
+                                UpdatedVideo = Video#video{
+                                    ipfs_cid = VideoCID,
+                                    file_url = VideoCID,
+                                    status = ready,
+                                    data = maps:merge(Video#video.data, Metadata)
+                                },
+                                mnesia:write(UpdatedVideo);
+                            [] -> ok
+                        end
+                    end,
+                    mnesia:transaction(UpdateF),
+
+                    content_cache:delete({video_file, VideoId}),
+
+                    spawn(fun() ->
+                        timer:sleep(5000),
+                        case mnesia:read({video, VideoId}) of
+                            [Video] ->
+                                case Video#video.ipfs_cid of
+                                    CID when is_list(CID) ->
+                                        Qualities = ["1080p", "720p", "480p", "360p"],
+                                        case media_video_client:create_transcoding_job(
+                                            VideoId,
+                                            CID,
+                                            Qualities
+                                        ) of
+                                            {ok, JobId} ->
+                                                error_logger:info_msg("Transcoding job created: ~p for video ~p", [JobId, VideoId]),
+                                                UpdateTranscodingF = fun() ->
+                                                    case mnesia:read({video, VideoId}) of
+                                                        [V] ->
+                                                            CurrentData = V#video.data,
+                                                            UpdatedData = maps:put(transcoding_job_id, JobId, CurrentData),
+                                                            mnesia:write(V#video{data = UpdatedData});
+                                                        [] -> ok
+                                                    end
+                                                end,
+                                                mnesia:transaction(UpdateTranscodingF);
+                                            {error, Reason} ->
+                                                error_logger:error_msg("Failed to create transcoding job for video ~p: ~p", [VideoId, Reason])
+                                        end;
+                                    _ ->
+                                        error_logger:warning_msg("Video CID not ready for transcoding: ~p", [VideoId])
+                                end;
+                            [] ->
+                                error_logger:warning_msg("Video not found for transcoding: ~p", [VideoId])
+                        end
+                    end),
+
+                    spawn(fun() ->
+                        timer:sleep(10000),
+                        try
+                            KeyName = "video_" ++ VideoId,
+                            {ok, #{id := _KeyID, name := _BinID}} = ipfs_client_4:key_gen(KeyName),
+
+                            PublishOptions = [
+                                {key, KeyName},
+                                {resolve, false},
+                                {lifetime, "168h0m0s"},
+                                {ttl, "15m0s"},
+                                {v1compat, true},
+                                {ipns_base, "base36"},
+                                {quieter, true},
+                                {'allow-offline', true}
+                            ],
+
+                            case ipfs_client_5:name_publish("/ipfs/" ++ VideoCID, PublishOptions) of
+                                {ok, #{name := IPNSKey}} ->
+                                    update_video_ipns(VideoId, IPNSKey);
+                                {error, Reason} ->
+                                    error_logger:error_msg("IPNS publish failed for video ~p: ~p", [VideoId, Reason])
+                            end
+                        catch
+                            Exception:Error:Stacktrace ->
+                                error_logger:error_msg(
+                                    "Exception while publishing to IPNS for video ~p: ~p:~p~n~p",
+                                    [VideoId, Exception, Error, Stacktrace]
+                                )
+                        end
+                    end),
+
+                    ok
+                catch
+                    Exception:Error:Stacktrace ->
+                        error_logger:error_msg(
+                            "Exception while uploading video ~p to IPFS: ~p:~p~n~p",
+                            [VideoId, Exception, Error, Stacktrace]
+                        ),
+
+                        UpdateStatusF = fun() ->
+                            case mnesia:read({video, VideoId}) of
+                                [Video] ->
+                                    mnesia:write(Video#video{status = failed});
+                                [] -> ok
+                            end
+                        end,
+                        mnesia:transaction(UpdateStatusF)
+                end.
+
+            update_video_ipns(VideoId, IPNSKey) ->
+                UpdateF = fun() ->
+                    case mnesia:read({video, VideoId}) of
+                        [Video] ->
+                            CurrentData = Video#video.data,
+                            UpdatedData = maps:put(ipns, IPNSKey, CurrentData),
+                            mnesia:write(Video#video{data = UpdatedData}),
+                            ok;
+                        [] ->
+                            {error, not_found}
+                    end
+                end,
+
+                case mnesia:transaction(UpdateF) of
+                    {atomic, ok} ->
+                        ok;
+                    {atomic, {error, Reason}} ->
+                        error_logger:error_msg("Failed to update video ~p with IPNS: ~p", [VideoId, Reason]),
+                        {error, Reason};
+                    {aborted, Reason} ->
+                        error_logger:error_msg("Transaction aborted while updating video ~p with IPNS: ~p", [VideoId, Reason]),
+                        {error, {transaction_failed, Reason}}
+                end.
+
+                start_live_stream_with_rust(VideoId, StreamerId, Title, LatencyMode) ->
+                    case get_video(VideoId) of
+                        {ok, Video} ->
+                            StreamKey = generate_stream_key(),
+
+                            ReqBody = jsx:encode(#{
+                                video_id => VideoId,
+                                streamer_id => StreamerId,
+                                title => Title,
+                                latency_mode => atom_to_binary(LatencyMode, utf8)
+                            }),
+
+                            case httpc:request(post,
+                                {"http://127.0.0.1:8080/media/streams",
+                                 [{"content-type", "application/json"}],
+                                 "application/json",
+                                 ReqBody
+                                }, [], []) of
+                                {ok, {{_, 200, _}, _, ResponseBody}} ->
+                                    Response = jsx:decode(list_to_binary(ResponseBody), [return_maps]),
+                                    StreamId = maps:get(<<"stream_id">>, Response),
+                                    IngestUrl = maps:get(<<"ingest_url">>, Response),
+                                    PlaybackUrl = maps:get(<<"playback_url">>, Response),
+
+                                    LiveStream = #live_stream{
+                                        id = binary_to_list(StreamId),
+                                        video_id = VideoId,
+                                        streamer_id = StreamerId,
+                                        stream_key = StreamKey,
+                                        ingest_url = binary_to_list(IngestUrl),
+                                        playback_url = binary_to_list(PlaybackUrl),
+                                        protocol = <<"RTMP">>,
+                                        latency_mode = LatencyMode,
+                                        status = created,
+                                        current_viewers = 0,
+                                        peak_viewers = 0,
+                                        total_unique_viewers = 0,
+                                        viewer_timeline = [],
+                                        donations_enabled = true,
+                                        super_chat_messages = [],
+                                        simulcast_platforms = [],
+                                        auto_record = true,
+                                        highlights = [],
+                                        subscription_only = false,
+                                        donations_total = 0.0,
+                                        dropped_frames = 0,
+                                        data = #{}
+                                    },
+
+                                    mnesia:transaction(fun() ->
+                                        mnesia:write(LiveStream)
+                                    end),
+
+                                    UpdatedVideo = Video#video{
+                                        is_live = true,
+                                        live_stream_url = binary_to_list(PlaybackUrl)
+                                    },
+                                    mnesia:transaction(fun() ->
+                                        mnesia:write(UpdatedVideo)
+                                    end),
+
+                                    {ok, StreamId, StreamKey, IngestUrl, PlaybackUrl};
+                                {ok, {{_, StatusCode, _}, _, ErrorBody}} ->
+                                    {error, {http_error, StatusCode, ErrorBody}};
+                                {error, Reason} ->
+                                    {error, Reason}
+                            end;
+                        {error, Reason} ->
+                            {error, Reason}
+                    end.
+
+            track_video_playback(VideoId, UserId, Quality) ->
+                case media_video_client:create_session(VideoId, UserId, Quality) of
+                    {ok, SessionId, _, _} ->
+                        increment_view_count(VideoId, UserId),
+                        {ok, SessionId};
+                    {error, Reason} ->
+                        {error, Reason}
+                end.
+
+                get_video(VideoId) ->
+                    case mnesia:transaction(fun() ->
+                        mnesia:read(video, VideoId)
+                    end) of
+                        {atomic, [Video]} -> {ok, Video};
+                        {atomic, []} -> {error, not_found};
+                        {aborted, Reason} -> {error, Reason}
+                    end.
+
+                generate_stream_key() ->
+                    binary_to_list(base64:encode(crypto:strong_rand_bytes(32))).
+
+            update_playback_position(SessionId, Position) ->
+                media_video_client:update_position(SessionId, Position).
+
+            get_video_analytics(VideoId) ->
+                case media_video_client:get_video_metrics(VideoId) of
+                    {ok, Metrics} ->
+                        case get_view_stats(VideoId) of
+                            {ok, MnesiaStats} ->
+                                {ok, maps:merge(Metrics, MnesiaStats)};
+                            _ ->
+                                {ok, Metrics}
+                        end;
+                    Error ->
+                        Error
+                end.
+
+            export_video_analytics(VideoId) ->
+                media_video_client:get_analytics_report(VideoId).
+
+            detect_video_format(FilePath) ->
+                Extension = string:to_lower(filename:extension(FilePath)),
+                case Extension of
+                    ".mp4" -> mp4;
+                    ".webm" -> webm;
+                    ".mkv" -> mkv;
+                    ".mov" -> mov;
+                    ".avi" -> avi;
+                    ".flv" -> flv;
+                    ".wmv" -> wmv;
+                    ".m4v" -> m4v;
+                    ".mpg" -> mpg;
+                    ".mpeg" -> mpeg;
+                    _ -> unknown
+                end.
+
+            get_video_info_from_rust(FilePath) ->
+                media_video_client:get_video_info(FilePath).
+
+            get_video_cid(VideoId) ->
+                Fun = fun() ->
+                    case mnesia:read({video, VideoId}) of
+                        [] -> {error, video_not_found};
+                        [Video] -> {ok, Video#video.ipfs_cid}
+                    end
+                end,
+
+                case mnesia:transaction(Fun) of
+                    {atomic, {ok, CID}} -> CID;
+                    {atomic, {error, Reason}} -> {error, Reason};
+                    {aborted, Reason} -> {error, {transaction_failed, Reason}}
+                end.
+
+            get_transcoding_status(VideoId) ->
+                Fun = fun() ->
+                    case mnesia:read({video, VideoId}) of
+                        [] -> {error, video_not_found};
+                        [Video] ->
+                            case maps:get(transcoding_job_id, Video#video.data, undefined) of
+                                undefined -> {error, no_transcoding_job};
+                                JobId -> {ok, JobId}
+                            end
+                    end
+                end,
+
+                case mnesia:transaction(Fun) of
+                    {atomic, {ok, JobId}} ->
+                        media_video_client:get_transcoding_job(JobId);
+                    {atomic, {error, Reason}} ->
+                        {error, Reason};
+                    {aborted, Reason} ->
+                        {error, {transaction_failed, Reason}}
+                end.
+
+            get_available_qualities(VideoId) ->
+                case get_transcoding_status(VideoId) of
+                    {ok, JobInfo} ->
+                        case maps:get(status, JobInfo, undefined) of
+                            <<"Completed">> ->
+                                Qualities = maps:get(qualities, JobInfo, []),
+                                {ok, Qualities};
+                            _ ->
+                                {error, transcoding_in_progress}
+                        end;
+                    Error ->
+                        Error
+                end.

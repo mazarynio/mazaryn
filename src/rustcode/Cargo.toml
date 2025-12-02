@@ -4,32 +4,32 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-webrtc = "0.12.0"
-tokio = { version = "1.44.2", features = ["full"] }
-serde = { version = "1.0.219", features = ["derive"] }
-serde_json = "1.0.140"
-log = "0.4.27"
-env_logger = "0.11.8"
 actix-web = "4.10.2"
 actix-web-actors = "4.3.1"
 actix = "0.13.5"
 actix-cors = "0.7"
+actix-files = "0.6"
+webrtc = "0.12.0"
 sdp = "0.7.0"
-reqwest = { version = "0.12", features = ["stream", "json"] }
+tokio = { version = "1.44.2", features = ["full"] }
 futures = "0.3"
-bytes = "1.5"
-sha2 = "0.10"
-hex = "0.4"
+serde = { version = "1.0.219", features = ["derive"] }
+serde_json = "1.0.140"
+reqwest = { version = "0.12", features = ["stream", "json", "multipart"] }
 uuid = { version = "1.6", features = ["v4", "serde"] }
+chrono = { version = "0.4", features = ["serde"] }
+base64 = "0.21"
+hex = "0.4"
+regex = "1.10"
 dashmap = "5.5"
-indicatif = "0.17"
+parking_lot = "0.12"
 thiserror = "1.0"
 anyhow = "1.0"
-chrono = { version = "0.4", features = ["serde"] }
-parking_lot = "0.12"
-actix-files = "0.6"
+log = "0.4.27"
+env_logger = "0.11.8"
+bytes = "1.5"
+sha2 = "0.10"
+indicatif = "0.17"
 tempfile = "3.8"
 tar = "0.4"
 flate2 = "1.0"
-regex = "1.10"
-base64 = "0.21"

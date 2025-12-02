@@ -7,6 +7,7 @@ use tokio::sync::Mutex;
 
 mod api;
 mod download_manager;
+mod media_video;
 mod notebook;
 mod sfu;
 mod signaling;
@@ -14,6 +15,10 @@ mod webrtc;
 
 use crate::webrtc::RTCPeerConnection;
 use download_manager::{DownloadConfig, DownloadManager};
+use media_video::{
+    api::MediaVideoState, AnalyticsManager, MediaPlayer, MediaPlayerConfig, MediaStorage,
+    StreamManager, TranscodingManager,
+};
 use notebook::{types::KernelConfig, KernelManager};
 
 #[main]
@@ -64,6 +69,37 @@ async fn main() -> std::io::Result<()> {
     let kernel_manager_data = web::Data::new(kernel_manager);
 
     info!("Kernel manager initialized successfully");
+
+    let video_storage_path = std::path::PathBuf::from("/tmp/mazaryn_videos");
+    std::fs::create_dir_all(&video_storage_path).expect("Failed to create video storage directory");
+
+    let media_player_config = MediaPlayerConfig::default();
+    let media_player = Arc::new(MediaPlayer::new(media_player_config));
+
+    let stream_manager = Arc::new(StreamManager::new());
+
+    let media_storage = Arc::new(MediaStorage::new(
+        video_storage_path.clone(),
+        "https://ipfs.io".to_string(),
+        "http://localhost:5001".to_string(),
+    ));
+
+    let analytics_manager = Arc::new(AnalyticsManager::new());
+
+    let transcoding_manager = Arc::new(TranscodingManager::new(
+        "ffmpeg".to_string(),
+        video_storage_path.join("temp"),
+    ));
+
+    let media_video_state = web::Data::new(MediaVideoState {
+        player: media_player,
+        stream_manager,
+        storage: media_storage,
+        analytics: analytics_manager,
+        transcoding: transcoding_manager,
+    });
+
+    info!("Media video system initialized successfully");
 
     tokio::spawn(async {
         if let Err(e) = sfu::run_sfu().await {
@@ -144,6 +180,111 @@ async fn main() -> std::io::Result<()> {
             .route(
                 "/ws/notebooks/{session_id}",
                 web::get().to(notebook::websocket::notebook_ws),
+            )
+            .app_data(media_video_state.clone())
+            .route(
+                "/media/sessions",
+                web::post().to(media_video::api::create_session),
+            )
+            .route(
+                "/media/sessions/active",
+                web::get().to(media_video::api::get_all_sessions),
+            )
+            .route(
+                "/media/sessions/{session_id}",
+                web::get().to(media_video::api::get_session),
+            )
+            .route(
+                "/media/sessions/{session_id}",
+                web::delete().to(media_video::api::close_session),
+            )
+            .route(
+                "/media/sessions/position",
+                web::post().to(media_video::api::update_position),
+            )
+            .route(
+                "/media/sessions/quality",
+                web::post().to(media_video::api::update_quality),
+            )
+            .route(
+                "/media/sessions/rate",
+                web::post().to(media_video::api::set_playback_rate),
+            )
+            .route(
+                "/media/sessions/volume",
+                web::post().to(media_video::api::set_volume),
+            )
+            .route(
+                "/media/sessions/cleanup",
+                web::post().to(media_video::api::cleanup_sessions),
+            )
+            .route(
+                "/media/streams",
+                web::post().to(media_video::api::create_stream),
+            )
+            .route(
+                "/media/streams/live",
+                web::get().to(media_video::api::list_live_streams),
+            )
+            .route(
+                "/media/streams/{stream_id}",
+                web::get().to(media_video::api::get_stream),
+            )
+            .route(
+                "/media/streams/{stream_id}/start",
+                web::post().to(media_video::api::start_stream),
+            )
+            .route(
+                "/media/streams/{stream_id}/end",
+                web::post().to(media_video::api::end_stream),
+            )
+            .route(
+                "/media/streams/{stream_id}/stats",
+                web::get().to(media_video::api::get_stream_stats),
+            )
+            .route(
+                "/media/streams/join",
+                web::post().to(media_video::api::join_stream),
+            )
+            .route(
+                "/media/streams/leave",
+                web::post().to(media_video::api::leave_stream),
+            )
+            .route(
+                "/media/streams/stats",
+                web::post().to(media_video::api::update_stream_stats),
+            )
+            .route(
+                "/media/analytics/{video_id}",
+                web::get().to(media_video::api::get_video_metrics),
+            )
+            .route(
+                "/media/analytics/{video_id}/report",
+                web::get().to(media_video::api::get_analytics_report),
+            )
+            .route(
+                "/media/transcoding",
+                web::post().to(media_video::api::create_transcoding_job),
+            )
+            .route(
+                "/media/transcoding/{job_id}",
+                web::get().to(media_video::api::get_transcoding_job),
+            )
+            .route(
+                "/media/upload",
+                web::post().to(media_video::api::upload_video),
+            )
+            .route(
+                "/media/info",
+                web::post().to(media_video::api::get_video_info),
+            )
+            .route(
+                "/media/health",
+                web::get().to(media_video::api::health_check),
+            )
+            .route(
+                "/media/stats",
+                web::get().to(media_video::api::get_system_stats),
             )
     })
     .bind("0.0.0.0:2020")?
