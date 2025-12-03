@@ -1,4 +1,5 @@
 import "../css/app.css";
+import { VideoPlayer } from "./hooks/video_hooks";
 
 import "phoenix_html";
 
@@ -478,6 +479,7 @@ let Hooks = {
   },
 
   VideoCall: VideoCallHook,
+  VideoPlayer: VideoPlayer,
 
   ...NotebookHooks,
 };

@@ -1,130 +1,154 @@
-<.live_component
-  module={MazarynWeb.MediaLive.Video.HeaderComponent}
-  id="video-header"
-  user={@user}
-  search_query=""
-  socket={@socket}
-  locale={@locale}
-/>
+<div class="min-h-screen bg-[#27282e]">
+  <div class="fixed top-0 left-0 right-0 z-50 h-16 bg-gradient-to-b from-[#151620] to-[#151620] shadow-lg">
+    <div class="flex items-center justify-between h-full px-16 max-w-[1440px] mx-auto">
+      <.link navigate={~p"/#{@locale}/home"} class="flex items-center gap-3">
+        <span class="text-white text-4xl font-bold font-['Poppins']">Mazaryn</span>
+        <div class="flex gap-3">
+          <div class="w-2 h-2 bg-blue-500 rounded-full"></div>
+          <div class="w-2 h-2 bg-blue-500 rounded-full"></div>
+        </div>
+      </.link>
 
-<div class="w-full min-h-screen bg-zinc-800">
-  <div class="flex max-w-[1440px] mx-auto">
-    <%!-- Sidebar --%>
-    <.live_component
-      module={MazarynWeb.MediaLive.Video.SidebarComponent}
-      id="video-sidebar"
-      active_section="home"
-    />
+      <div class="flex items-center gap-5">
+        <.link
+          navigate={~p"/#{@locale}/videos"}
+          class="text-[#aaaaaa] hover:text-white transition-colors"
+        >
+          <Heroicons.arrow_left class="w-6 h-6" />
+        </.link>
+      </div>
 
-    <%!-- Main Content --%>
-    <div class="flex-1 px-8 py-6">
-      <div class="flex gap-8">
-        <%!-- Video Player and Details --%>
-        <div class="flex-1 max-w-[641px]">
-          <%!-- Video Player --%>
-          <div class="relative">
+      <div class="flex items-center gap-5">
+        <%= if @user do %>
+          <div class="flex items-center gap-3 px-4 h-10 bg-[#323340] rounded-lg">
             <img
-              class="w-full h-80 rounded-[20px] object-cover"
-              src={Routes.static_path(@socket, @video.thumbnail)}
-              alt={@video.title}
+              src={@user.avatar_url || "/images/default-avatar.png"}
+              class="w-8 h-8 rounded-full object-cover"
+              alt={@user.username}
             />
+            <span class="text-white text-base font-['Poppins']"><%= @user.username %></span>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  </div>
 
-            <%!-- Video Controls Overlay --%>
-            <div class="absolute bottom-0 left-0 right-0 h-14 bg-gradient-to-t from-black/50 to-transparent rounded-bl-[20px] rounded-br-[20px]">
-              <div class="px-5 py-2.5 flex flex-col gap-[5px]">
-                <%!-- Progress Bar --%>
-                <div class="relative h-[3px] bg-neutral-700/70 rounded-[999px]">
-                  <div class="absolute left-0 top-0 w-3/5 h-full bg-blue-500 rounded-[999px]"></div>
-                </div>
+  <div class="flex max-w-[1440px] mx-auto pt-20">
+    <aside class="fixed left-16 top-24 w-60">
+      <div class="space-y-6">
+        <h2 class="text-[#c5c7c8] text-xl font-semibold font-['Poppins']">Video</h2>
 
-                <%!-- Controls --%>
-                <div class="flex justify-between items-center">
-                  <div class="flex items-center gap-5 text-white">
-                    <Heroicons.play_circle solid class="w-5 h-5 cursor-pointer hover:text-blue-500" />
-                    <Heroicons.speaker_wave solid class="w-5 h-5 cursor-pointer hover:text-blue-500" />
-                    <span class="text-base font-['Poppins']">6:56 / <%= @video.duration %></span>
-                  </div>
+        <div class="bg-[#323340] rounded-[20px] shadow-lg p-7 space-y-7">
+          <.link
+            navigate={~p"/#{@locale}/videos"}
+            class="flex items-center gap-5 text-[#c5c7c8] hover:text-white hover:translate-x-1 transition-all"
+          >
+            <Heroicons.home solid class="w-5 h-5" />
+            <span class="text-xl font-semibold font-['Poppins']">Home</span>
+          </.link>
 
-                  <div class="flex items-center gap-5 text-white">
-                    <Heroicons.cog_6_tooth outline class="w-5 h-5 cursor-pointer hover:text-blue-500" />
-                    <Heroicons.tv outline class="w-6 h-6 cursor-pointer hover:text-blue-500" />
-                    <Heroicons.computer_desktop outline class="w-6 h-6 cursor-pointer hover:text-blue-500" />
-                    <Heroicons.arrows_pointing_out outline class="w-4 h-4 cursor-pointer hover:text-blue-500" />
-                  </div>
-                </div>
-              </div>
-            </div>
+          <.link
+            navigate={~p"/#{@locale}/videos/my-videos"}
+            class="flex items-center gap-5 text-[#c5c7c8] hover:text-white hover:translate-x-1 transition-all"
+          >
+            <Heroicons.video_camera solid class="w-5 h-5" />
+            <span class="text-xl font-semibold font-['Poppins']">Your videos</span>
+          </.link>
+        </div>
+      </div>
+    </aside>
+
+    <main class="ml-80 mr-16 flex-1 py-8">
+      <div class="flex gap-8">
+        <div class="flex-1 max-w-[641px]">
+          <div class="relative rounded-[20px] overflow-hidden mb-4">
+            <%= if @video.video_url do %>
+              <video
+                id="main-video-player"
+                class="w-full aspect-video bg-black"
+                controls
+                phx-hook="VideoPlayer"
+              >
+                <source src={@video.video_url} type="video/mp4" />
+                Your browser does not support the video tag.
+              </video>
+            <% else %>
+              <img
+                src={@video.thumbnail_url}
+                class="w-full aspect-video object-cover"
+                alt={@video.title}
+              />
+            <% end %>
           </div>
 
-          <%!-- Video Title --%>
-          <h1 class="mt-4 text-white text-xl font-semibold font-['Poppins']">
+          <h1 class="text-white text-xl font-semibold font-['Poppins'] mb-4">
             <%= @video.title %>
           </h1>
 
-          <%!-- Video Stats and Actions --%>
-          <div class="mt-4 flex justify-between items-center">
+          <div class="flex justify-between items-center mb-7">
             <div class="text-white text-sm font-semibold font-['Poppins']">
-              <%= @video.views %> views <%= @video.uploaded_at %>
+              <%= @video.views %> views • <%= @video.created_at %>
             </div>
 
             <div class="flex gap-2">
-              <%!-- Like/Dislike --%>
-              <div class="px-4 py-1.5 bg-zinc-700 rounded-[999px] flex items-center gap-2">
-                <button phx-click="like_video" class="flex items-center gap-1 hover:text-blue-500 transition-colors">
+              <div class="px-4 py-1.5 bg-[#323340] rounded-full flex items-center gap-2">
+                <button
+                  phx-click="like_video"
+                  class={"flex items-center gap-1 #{if @is_liked, do: "text-blue-500", else: "text-white"}"}
+                >
                   <Heroicons.hand_thumb_up
-                    {if @is_liked, do: [solid: true], else: [outline: true]}
-                    class="w-6 h-6 text-white"
+                    solid={@is_liked}
+                    outline={!@is_liked}
+                    class="w-6 h-6"
                   />
-                  <span class="text-white text-sm font-semibold font-['Poppins']">
-                    <%= format_number(@likes) %>
+                  <span class="text-sm font-semibold font-['Poppins']">
+                    <%= format_number(@video.likes) %>
                   </span>
                 </button>
 
-                <div class="w-6 h-0 border-l border-zinc-300"></div>
+                <div class="w-px h-6 bg-zinc-300"></div>
 
-                <button phx-click="dislike_video" class="flex items-center gap-1 hover:text-blue-500 transition-colors">
+                <button
+                  phx-click="dislike_video"
+                  class={"#{if @is_disliked, do: "text-blue-500", else: "text-white"}"}
+                >
                   <Heroicons.hand_thumb_down
-                    {if @is_disliked, do: [solid: true], else: [outline: true]}
-                    class="w-6 h-6 text-white"
+                    solid={@is_disliked}
+                    outline={!@is_disliked}
+                    class="w-6 h-6"
                   />
                 </button>
               </div>
 
-              <%!-- Share --%>
-              <button class="px-4 py-1.5 bg-zinc-700 rounded-[999px] flex items-center gap-1 hover:bg-zinc-600 transition-colors">
-                <Heroicons.share outline class="w-6 h-6 text-white" />
-                <span class="text-white text-sm font-semibold font-['Poppins']">Share</span>
+              <button
+                phx-click="share_video"
+                class="px-4 py-1.5 bg-[#323340] rounded-full flex items-center gap-1 text-white hover:bg-[#3a3b4a] transition-colors"
+              >
+                <Heroicons.share outline class="w-6 h-6" />
+                <span class="text-sm font-semibold font-['Poppins']">Share</span>
               </button>
 
-              <%!-- Save --%>
-              <button phx-click="save_video" class="px-4 py-1.5 bg-zinc-700 rounded-[999px] flex items-center gap-2 hover:bg-zinc-600 transition-colors">
-                <Heroicons.bookmark
-                  {if @is_saved, do: [solid: true], else: [outline: true]}
-                  class={"w-6 h-6 #{if @is_saved, do: "text-blue-500", else: "text-white"}"}
-                />
-                <span class="text-white text-sm font-semibold font-['Poppins']">
+              <button
+                phx-click="save_video"
+                class={"px-4 py-1.5 bg-[#323340] rounded-full flex items-center gap-2 hover:bg-[#3a3b4a] transition-colors #{if @is_saved, do: "text-blue-500", else: "text-white"}"}
+              >
+                <Heroicons.bookmark solid={@is_saved} outline={!@is_saved} class="w-6 h-6" />
+                <span class="text-sm font-semibold font-['Poppins']">
                   <%= if @is_saved, do: "Saved", else: "Save" %>
                 </span>
-              </button>
-
-              <%!-- More --%>
-              <button class="w-9 h-9 bg-zinc-700 rounded-full flex items-center justify-center hover:bg-zinc-600 transition-colors">
-                <Heroicons.ellipsis_horizontal outline class="w-4 h-4 text-white" />
               </button>
             </div>
           </div>
 
-          <%!-- Channel Info --%>
-          <div class="mt-7 p-5 bg-zinc-700 rounded-[20px]">
-            <div class="flex justify-between items-center">
+          <div class="p-5 bg-[#323340] rounded-[20px] mb-6">
+            <div class="flex justify-between items-center mb-5">
               <div class="flex gap-2.5">
-                <%= if @video.creator_avatar do %>
-                  <img class="w-12 h-12 rounded-full" src={Routes.static_path(@socket, @video.creator_avatar)} alt={@video.creator} />
-                <% else %>
-                  <div class="w-12 h-12 rounded-full bg-gray-500"></div>
-                <% end %>
-
-                <div class="flex flex-col">
+                <img
+                  src={@video.creator_avatar}
+                  class="w-12 h-12 rounded-full object-cover"
+                  alt={@video.creator}
+                />
+                <div>
                   <div class="text-gray-300 text-sm font-semibold font-['Poppins']">
                     <%= @video.creator %>
                   </div>
@@ -142,54 +166,32 @@
               </button>
             </div>
 
-            <div class="mt-5 flex flex-col gap-2.5">
-              <div class="text-white text-sm font-['Poppins'] whitespace-pre-line">
-                <%= @video.description %>
-              </div>
-              <button class="text-white text-sm font-semibold font-['Poppins'] text-left hover:underline">
-                ...more
-              </button>
+            <div class="text-white text-sm font-['Poppins'] whitespace-pre-line">
+              <%= @video.description %>
             </div>
           </div>
 
-          <%!-- Comments Section --%>
-          <div class="mt-6 pt-6 pb-8">
+          <div class="pt-6 pb-8">
             <div class="flex justify-between items-center mb-6">
-              <div class="flex items-center gap-2">
-                <span class="text-white text-base font-['Poppins']">
-                  <%= length(@comments) %>
-                </span>
-                <span class="text-white text-base font-['Poppins']">Comments</span>
-              </div>
-
-              <div class="flex items-center gap-2.5">
-                <Heroicons.bars_3 outline class="w-6 h-6 text-white" />
-                <span class="text-white text-sm font-semibold font-['Poppins']">Sort by</span>
+              <div class="text-white text-base font-['Poppins']">
+                <%= length(@comments) %> Comments
               </div>
             </div>
 
-            <%!-- Add Comment --%>
             <div class="flex gap-2.5 mb-6">
-              <div class="w-10 h-10 rounded-full overflow-hidden flex-shrink-0">
-                <%= if @user.avatar_url do %>
-                  <img
-                    class="w-full h-full object-cover"
-                    src={Path.join(Mazaryn.config([:media, :ipfs_gateway]), @user.avatar_url)}
-                    alt={@user.username}
-                  />
-                <% else %>
-                  <div class="w-full h-full bg-gray-500"></div>
-                <% end %>
-              </div>
+              <img
+                src={@user.avatar_url || "/images/default-avatar.png"}
+                class="w-10 h-10 rounded-full object-cover flex-shrink-0"
+                alt={@user.username}
+              />
 
               <form phx-submit="add_comment" class="flex gap-2.5 flex-1">
                 <input
                   type="text"
                   name="comment"
                   value={@comment_text}
-                  phx-change="update_comment"
                   placeholder="Add a public comment..."
-                  class="flex-1 px-5 py-2 bg-zinc-700 rounded-[10px] text-neutral-400 text-sm font-['Poppins'] outline-none focus:outline-blue-500"
+                  class="flex-1 px-5 py-2 bg-[#323340] rounded-[10px] text-neutral-400 text-sm font-['Poppins'] outline-none focus:outline-blue-500"
                 />
                 <button
                   type="submit"
@@ -200,53 +202,27 @@
               </form>
             </div>
 
-            <%!-- Comments List --%>
-            <div class="flex flex-col gap-3.5">
+            <div class="space-y-3.5">
               <%= for comment <- @comments do %>
                 <div class="flex gap-2.5">
-                  <div class="w-10 h-10 rounded-full overflow-hidden flex-shrink-0">
-                    <%= if comment.author_avatar do %>
-                      <img
-                        class="w-full h-full object-cover"
-                        src={Path.join(Mazaryn.config([:media, :ipfs_gateway]), comment.author_avatar)}
-                        alt={comment.author}
-                      />
-                    <% else %>
-                      <div class="w-full h-full bg-gray-500"></div>
-                    <% end %>
-                  </div>
+                  <img
+                    src={comment.author_avatar}
+                    class="w-10 h-10 rounded-full object-cover flex-shrink-0"
+                    alt={comment.author}
+                  />
 
-                  <div class="flex flex-col gap-[5px] flex-1">
-                    <div class="flex items-center gap-2">
+                  <div class="flex-1">
+                    <div class="flex items-center gap-2 mb-1">
                       <span class="text-white text-sm font-semibold font-['Poppins']">
                         <%= comment.author %>
                       </span>
                       <span class="text-neutral-400 text-xs font-['Poppins']">
-                        <%= comment.timestamp %>
+                        <%= comment.created_at %>
                       </span>
                     </div>
 
-                    <div class="text-white text-sm font-['Poppins']">
+                    <div class="text-white text-sm font-['Poppins'] mb-2">
                       <%= comment.text %>
-                    </div>
-
-                    <div class="flex items-center gap-2.5">
-                      <div class="px-4 py-1.5 bg-zinc-700 rounded-[999px] flex items-center gap-2">
-                        <div class="flex items-center gap-1">
-                          <Heroicons.hand_thumb_up outline class="w-5 h-5 text-neutral-400" />
-                          <span class="text-neutral-400 text-xs font-['Poppins']">
-                            <%= comment.likes %>
-                          </span>
-                        </div>
-
-                        <div class="w-5 h-0 border-l border-neutral-400"></div>
-
-                        <Heroicons.hand_thumb_down outline class="w-5 h-5 text-neutral-400" />
-                      </div>
-
-                      <span class="text-neutral-400 text-sm font-['Poppins'] cursor-pointer hover:underline">
-                        reply
-                      </span>
                     </div>
                   </div>
                 </div>
@@ -255,46 +231,42 @@
           </div>
         </div>
 
-        <%!-- Related Videos Sidebar --%>
-        <div class="w-[457px] flex flex-col gap-5">
+        <div class="w-[457px] space-y-5">
           <%= for video <- @related_videos do %>
-            <.link
-              navigate={Routes.live_path(@socket, __MODULE__, @locale, video.id)}
-              class="flex gap-2.5 hover:bg-zinc-700/50 rounded-md transition-colors p-2"
+            <div
+              phx-click="play_related_video"
+              phx-value-id={video.id}
+              class="flex gap-2.5 hover:bg-[#323340]/50 rounded-md transition-colors p-2 cursor-pointer"
             >
               <div class="relative w-56 h-36 flex-shrink-0">
                 <img
+                  src={video.thumbnail_url}
                   class="w-full h-full rounded-md object-cover"
-                  src={Routes.static_path(@socket, video.thumbnail)}
                   alt={video.title}
                 />
 
-                <%= if video.chat_count do %>
-                  <div class="absolute bottom-2 right-2 p-[5px] bg-black/50 rounded-[30px] flex items-center gap-[5px]">
-                    <Heroicons.chat_bubble_left solid class="w-3.5 h-3.5 text-white" />
-                    <div class="px-[5px] bg-blue-500 rounded-[20px] flex items-center gap-[5px]">
-                      <span class="text-white text-base font-['Poppins']"><%= video.chat_count %></span>
-                      <Heroicons.user_group solid class="w-5 h-5 text-white" />
-                    </div>
+                <%= if video.duration do %>
+                  <div class="absolute bottom-2 right-2 px-2 py-1 bg-black/70 rounded-full">
+                    <span class="text-white text-sm font-['Poppins']"><%= video.duration %></span>
                   </div>
                 <% end %>
               </div>
 
-              <div class="flex flex-col flex-1">
-                <div class="text-white text-base font-semibold font-['Poppins'] line-clamp-2">
+              <div class="flex-1">
+                <h3 class="text-white text-base font-semibold font-['Poppins'] line-clamp-2 mb-1">
                   <%= video.title %>
-                </div>
-                <div class="text-gray-300 text-sm font-['Poppins']">
+                </h3>
+                <p class="text-gray-300 text-sm font-['Poppins']">
                   <%= video.creator %>
-                </div>
-                <div class="text-gray-300 text-sm font-['Poppins']">
-                  <%= video.views %> views <%= video.time_ago %>
-                </div>
+                </p>
+                <p class="text-gray-300 text-sm font-['Poppins']">
+                  <%= video.views %> views • <%= video.created_at %>
+                </p>
               </div>
-            </.link>
+            </div>
           <% end %>
         </div>
       </div>
-    </div>
+    </main>
   </div>
 </div>

@@ -1,0 +1,508 @@
+<div class="min-h-screen bg-[#27282e]">
+  <div class="fixed top-0 left-0 right-0 z-50 h-16 bg-gradient-to-b from-[#151620] to-[#151620] shadow-lg">
+    <div class="flex items-center justify-between h-full px-16 max-w-[1440px] mx-auto">
+      <.link navigate={~p"/#{@locale}/home"} class="flex items-center gap-3">
+        <span class="text-white text-4xl font-bold font-['Poppins']">Mazaryn</span>
+        <div class="flex gap-3">
+          <div class="w-2 h-2 bg-blue-500 rounded-full"></div>
+          <div class="w-2 h-2 bg-blue-500 rounded-full"></div>
+        </div>
+      </.link>
+
+      <div class="flex items-center gap-5">
+        <%= if @user do %>
+          <div class="flex items-center gap-3 px-4 h-10 bg-[#323340] rounded-lg">
+            <img
+              src={@user.avatar_url || "/images/default-avatar.png"}
+              class="w-8 h-8 rounded-full object-cover"
+              alt={@user.username}
+            />
+            <span class="text-white text-base font-['Poppins']"><%= @user.username %></span>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  </div>
+
+  <div class="flex max-w-[1440px] mx-auto pt-20">
+    <aside class="fixed left-16 top-24 w-60">
+      <div class="space-y-6">
+        <h2 class="text-[#c5c7c8] text-xl font-semibold font-['Poppins']">Video</h2>
+
+        <div class="bg-[#323340] rounded-[20px] shadow-lg p-7 space-y-7">
+          <.link
+            navigate={~p"/#{@locale}/videos"}
+            class="flex items-center gap-5 text-[#c5c7c8] hover:text-white hover:translate-x-1 transition-all"
+          >
+            <Heroicons.home solid class="w-5 h-5" />
+            <span class="text-xl font-semibold font-['Poppins']">Home</span>
+          </.link>
+
+          <.link
+            navigate={~p"/#{@locale}/videos/my-videos"}
+            class="flex items-center gap-5 text-[#c5c7c8] hover:text-white hover:translate-x-1 transition-all"
+          >
+            <Heroicons.video_camera solid class="w-5 h-5" />
+            <span class="text-xl font-semibold font-['Poppins']">Your videos</span>
+          </.link>
+        </div>
+      </div>
+    </aside>
+
+    <main class="ml-80 mr-16 flex-1 py-8">
+      <%= if @step == :upload do %>
+        <div class="space-y-8">
+          <div class="space-y-5">
+            <div class="flex items-center gap-2.5">
+              <div class="w-10 h-10 bg-[#323340] rounded-full flex items-center justify-center">
+                <Heroicons.arrow_up_tray solid class="w-5 h-5 text-white" />
+              </div>
+              <h1 class="text-white text-xl font-semibold font-['Poppins']">Upload a file</h1>
+            </div>
+
+            <div class="p-5 bg-[#323340] rounded-[20px] space-y-5">
+              <form phx-change="validate_video" phx-submit="proceed_to_confirm">
+                <div class="flex gap-2.5">
+                  <div
+                    class="flex-1 px-5 py-2 bg-[#27282e] rounded-lg text-white text-base font-['Poppins'] flex items-center"
+                    phx-drop-target={@uploads.video.ref}
+                  >
+                    <%= if @uploads.video.entries != [] do %>
+                      <%= for entry <- @uploads.video.entries do %>
+                        <span><%= entry.client_name %></span>
+                      <% end %>
+                    <% else %>
+                      <span class="text-white">Select video, audio or image file to upload</span>
+                    <% end %>
+                  </div>
+
+                  <label class="px-8 py-2 bg-blue-500 rounded-lg text-white text-base font-semibold font-['Poppins'] cursor-pointer hover:bg-blue-600 transition-colors">
+                    Browse
+                    <input
+                      type="file"
+                      name="video"
+                      accept=".mp4,.webm,.mov,.avi,.mkv"
+                      class="hidden"
+                      phx-change="validate_video"
+                      data-phx-upload-ref={@uploads.video.ref}
+                    />
+                  </label>
+                </div>
+
+                <div class="flex items-start gap-2.5 mt-5">
+                  <Heroicons.information_circle class="w-6 h-6 text-white flex-shrink-0 mt-1" />
+                  <p class="text-white text-sm font-['Poppins'] leading-6">
+                    For video content, use MP4s in H264/AAC format and a friendly bitrate (under 8 Mbps) for more reliable streaming. Mazaryn uploads are restricted to 16 GB.
+                  </p>
+                </div>
+              </form>
+
+              <div class="space-y-2.5">
+                <div class="flex justify-between items-center">
+                  <label class="text-white text-base font-semibold font-['Poppins']">Title</label>
+                  <span class="text-neutral-400 text-base font-semibold font-['Poppins']">
+                    <%= 200 - String.length(@title) %>
+                  </span>
+                </div>
+                <input
+                  type="text"
+                  value={@title}
+                  phx-change="update_title"
+                  phx-debounce="300"
+                  name="value"
+                  placeholder="Descriptive titles work best"
+                  maxlength="200"
+                  class="w-full px-5 py-2 bg-[#27282e] rounded-lg border-2 border-blue-500 text-white placeholder-neutral-400 outline-none focus:border-blue-400"
+                />
+              </div>
+
+              <div class="space-y-2.5">
+                <label class="text-white text-base font-semibold font-['Poppins']">URL</label>
+                <div class="flex items-center bg-[#27282e] rounded-lg overflow-hidden">
+                  <div class="px-4 py-2 bg-blue-500 text-white text-base font-semibold font-['Poppins']">
+                    mazaryn.xyz/
+                  </div>
+                  <input
+                    type="text"
+                    value={@url_slug}
+                    phx-change="update_url"
+                    phx-debounce="300"
+                    name="value"
+                    class="flex-1 px-4 py-2 bg-transparent text-white outline-none"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="space-y-5">
+            <h2 class="text-white text-xl font-semibold font-['Poppins']">Description</h2>
+
+            <div class="p-5 bg-[#323340] rounded-[20px]">
+              <textarea
+                value={@description}
+                phx-change="update_description"
+                phx-debounce="300"
+                name="value"
+                placeholder="What is your content about?"
+                rows="4"
+                class="w-full px-5 py-2 bg-[#27282e] rounded-lg text-white placeholder-neutral-400 outline-none focus:border-2 focus:border-blue-500 resize-none"
+              ><%= @description %></textarea>
+            </div>
+          </div>
+
+          <div class="space-y-5">
+            <h2 class="text-white text-xl font-semibold font-['Poppins']">Thumbnail</h2>
+
+            <div class="p-5 bg-[#323340] rounded-[20px] flex items-center gap-5">
+              <div class="w-56 h-36 bg-zinc-700 rounded-md flex items-center justify-center">
+                <%= if @uploads.thumbnail.entries != [] do %>
+                  <div class="w-full h-full bg-zinc-600 rounded-md flex items-center justify-center">
+                    <span class="text-white text-sm">Thumbnail Selected</span>
+                  </div>
+                <% else %>
+                  <Heroicons.photo class="w-14 h-14 text-neutral-400" />
+                <% end %>
+              </div>
+
+              <div class="flex-1 space-y-5">
+                <form phx-change="validate_thumbnail" class="flex gap-2.5">
+                  <div class="flex-1 px-5 py-2 bg-[#27282e] rounded-lg text-white text-base font-['Poppins'] flex items-center">
+                    Choose an enticing thumbnail
+                  </div>
+
+                  <label class="px-8 py-2 bg-blue-500 rounded-lg text-white text-base font-semibold font-['Poppins'] cursor-pointer hover:bg-blue-600 transition-colors">
+                    Browse
+                    <input
+                      type="file"
+                      name="thumbnail"
+                      accept=".jpg,.jpeg,.png,.webp"
+                      class="hidden"
+                      phx-change="validate_thumbnail"
+                      data-phx-upload-ref={@uploads.thumbnail.ref}
+                    />
+                  </label>
+                </form>
+
+                <p class="text-white text-sm font-['Poppins']">
+                  Upload your thumbnail. Recommended ratio is 16:9, 5MB max.
+                </p>
+
+                <div class="flex gap-2.5">
+                  <button
+                    phx-click="select_thumbnail_method"
+                    phx-value-method="url"
+                    class="px-4 py-2 bg-[#27282e] rounded-lg text-blue-500 text-base font-['Poppins'] hover:bg-[#323340] transition-colors"
+                  >
+                    Enter a thumbnail URL
+                  </button>
+
+                  <button
+                    phx-click="select_thumbnail_method"
+                    phx-value-method="snapshot"
+                    class="px-4 py-2 bg-[#27282e] rounded-lg text-blue-500 text-base font-['Poppins'] hover:bg-[#323340] transition-colors"
+                  >
+                    Take a snapshot from your video
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="space-y-5">
+            <h2 class="text-white text-xl font-semibold font-['Poppins']">Visibility</h2>
+
+            <div class="p-5 bg-[#323340] rounded-[20px] space-y-5">
+              <label class="flex items-start gap-2.5 cursor-pointer">
+                <input
+                  type="radio"
+                  name="visibility"
+                  value="public"
+                  checked={@visibility == "public"}
+                  phx-click="select_visibility"
+                  phx-value-visibility="public"
+                  class="mt-1 w-4 h-4"
+                />
+                <div>
+                  <div class="text-white text-base font-semibold font-['Poppins']">Public</div>
+                  <div class="text-white text-sm font-['Poppins']">Content is visible to everyone.</div>
+                </div>
+              </label>
+
+              <label class="flex items-start gap-2.5 cursor-pointer">
+                <input
+                  type="radio"
+                  name="visibility"
+                  value="private"
+                  checked={@visibility == "private"}
+                  phx-click="select_visibility"
+                  phx-value-visibility="private"
+                  class="mt-1 w-4 h-4"
+                />
+                <div>
+                  <div class="text-white text-base font-semibold font-['Poppins']">Private</div>
+                  <div class="text-white text-sm font-['Poppins']">
+                    Only you and people you chose can view this content
+                  </div>
+                </div>
+              </label>
+
+              <label class="flex items-start gap-2.5 cursor-pointer">
+                <input
+                  type="radio"
+                  name="visibility"
+                  value="scheduled"
+                  checked={@visibility == "scheduled"}
+                  phx-click="select_visibility"
+                  phx-value-visibility="scheduled"
+                  class="mt-1 w-4 h-4"
+                />
+                <div>
+                  <div class="text-white text-base font-semibold font-['Poppins']">Scheduled</div>
+                  <div class="text-white text-sm font-['Poppins']">
+                    Set a date to make the content public.
+                  </div>
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <div class="space-y-5">
+            <h2 class="text-white text-xl font-semibold font-['Poppins']">Tags</h2>
+
+            <div class="p-5 bg-[#323340] rounded-[20px] space-y-5">
+              <div class="text-white text-base font-semibold font-['Poppins']">
+                Selected Tags (<%= 5 - length(@tags) %> left)
+              </div>
+
+              <div class="flex flex-wrap gap-2">
+                <%= for tag <- @tags do %>
+                  <div class="px-3 py-1.5 bg-[#27282e] rounded-lg flex items-center gap-2">
+                    <span class="text-white text-sm font-['Poppins']"><%= tag %></span>
+                    <button
+                      phx-click="remove_tag"
+                      phx-value-tag={tag}
+                      class="text-neutral-400 hover:text-white"
+                    >
+                      <Heroicons.x_mark class="w-4 h-4" />
+                    </button>
+                  </div>
+                <% end %>
+              </div>
+
+              <form phx-submit="add_tag" class="space-y-2.5">
+                <label class="text-white text-base font-semibold font-['Poppins']">Add Tags</label>
+                <div class="flex gap-2.5">
+                  <input
+                    type="text"
+                    name="tag"
+                    value={@tag_input}
+                    placeholder="Crypto, Gaming"
+                    class="flex-1 px-5 py-2 bg-[#27282e] rounded-lg text-white placeholder-neutral-400 outline-none focus:border-2 focus:border-blue-500"
+                  />
+                  <button
+                    type="submit"
+                    class="px-6 py-2 bg-blue-500 rounded-lg text-white text-base font-semibold font-['Poppins'] hover:bg-blue-600 transition-colors"
+                  >
+                    Add
+                  </button>
+                </div>
+              </form>
+
+              <div>
+                <div class="text-white text-base font-semibold font-['Poppins'] mb-3">Known Tags</div>
+                <div class="flex flex-wrap gap-1.5">
+                  <%= for tag <- ["Art", "Bitcoin", "Culture", "Education", "Comedy"] do %>
+                    <button
+                      phx-click="add_tag"
+                      phx-value-tag={tag}
+                      class="px-3 py-1.5 bg-[#27282e] rounded-lg text-white text-sm font-['Poppins'] hover:bg-blue-500 transition-colors"
+                    >
+                      <%= tag %>
+                    </button>
+                  <% end %>
+                </div>
+              </div>
+
+              <p class="text-white text-sm font-['Poppins']">
+                Add tags that are relevant to your content so those who're looking for it can find it more easily.
+              </p>
+            </div>
+          </div>
+
+          <div class="space-y-5">
+            <h2 class="text-white text-xl font-semibold font-['Poppins']">Additional options</h2>
+
+            <div class="p-5 bg-[#323340] rounded-[20px] space-y-2.5">
+              <label class="text-white text-base font-semibold font-['Poppins']">Language</label>
+              <select
+                phx-change="update_language"
+                name="value"
+                class="w-full px-5 py-2 bg-[#27282e] rounded-lg text-gray-300 text-base font-['Poppins'] outline-none focus:border-2 focus:border-blue-500"
+              >
+                <option value="en">English</option>
+                <option value="es">Spanish</option>
+                <option value="fr">French</option>
+                <option value="de">German</option>
+              </select>
+            </div>
+
+            <button
+              phx-click="proceed_to_confirm"
+              disabled={!valid_for_confirmation?(assigns)}
+              class={"px-8 py-2 rounded-lg text-white text-base font-semibold font-['Poppins'] transition-colors #{if valid_for_confirmation?(assigns), do: "bg-blue-500 hover:bg-blue-600", else: "bg-gray-600 cursor-not-allowed"}"}
+            >
+              Upload
+            </button>
+
+            <p class="text-white text-sm font-['Poppins']">
+              By continuing, you accept the
+              <a href="#" class="text-blue-500 underline">Mazaryn Terms of Service</a>
+              and
+              <a href="#" class="text-blue-500 underline">Community Guidelines</a>.
+            </p>
+          </div>
+        </div>
+      <% end %>
+
+      <%= if @step == :confirm do %>
+        <div class="max-w-2xl mx-auto">
+          <div class="p-7 bg-[#27282e] rounded-[20px] shadow-lg space-y-9">
+            <div class="flex justify-between items-center">
+              <h1 class="text-white text-xl font-semibold font-['Poppins']">Confirm upload</h1>
+              <button
+                phx-click="back_to_upload"
+                class="w-10 h-10 bg-[#27282e] rounded-full flex items-center justify-center hover:bg-[#323340] transition-colors"
+              >
+                <Heroicons.x_mark class="w-5 h-5 text-white" />
+              </button>
+            </div>
+
+            <div class="space-y-5">
+              <div class="py-2.5 border-b-2 border-gray-600 flex justify-between">
+                <span class="text-white text-base font-semibold font-['Poppins']">File</span>
+                <span class="text-white text-base font-semibold font-['Poppins']">
+                  <%= if @uploads.video.entries != [], do: hd(@uploads.video.entries).client_name, else: "No file" %>
+                </span>
+              </div>
+
+              <div class="py-2.5 border-b-2 border-gray-600 flex justify-between">
+                <span class="text-white text-base font-semibold font-['Poppins']">Title</span>
+                <span class="text-white text-base font-semibold font-['Poppins']"><%= @title %></span>
+              </div>
+
+              <div class="py-2.5 border-b-2 border-gray-600 flex justify-between">
+                <span class="text-white text-base font-semibold font-['Poppins']">Description</span>
+                <span class="text-white text-base font-semibold font-['Poppins']">
+                  <%= if @description == "", do: "-", else: @description %>
+                </span>
+              </div>
+
+              <div class="py-2.5 border-b-2 border-gray-600 flex justify-between">
+                <span class="text-white text-base font-semibold font-['Poppins']">URL</span>
+                <span class="text-white text-base font-semibold font-['Poppins']">
+                  mazaryn.xyz://<%= @url_slug %>
+                </span>
+              </div>
+
+              <div class="py-2.5 border-b-2 border-gray-600 flex justify-between">
+                <span class="text-white text-base font-semibold font-['Poppins']">Language</span>
+                <span class="text-white text-base font-semibold font-['Poppins']">
+                  <%= String.upcase(@language) %>
+                </span>
+              </div>
+
+              <div class="py-2.5 border-b-2 border-gray-600 flex justify-between">
+                <span class="text-white text-base font-semibold font-['Poppins']">Tags</span>
+                <div class="flex gap-1.5">
+                  <%= for tag <- @tags do %>
+                    <div class="px-3 py-1.5 bg-[#27282e] rounded-lg">
+                      <span class="text-white text-sm font-['Poppins']"><%= tag %></span>
+                    </div>
+                  <% end %>
+                </div>
+              </div>
+            </div>
+
+            <div class="flex gap-2.5">
+              <button
+                phx-click="confirm_upload"
+                disabled={@uploading}
+                class={"px-8 py-2 rounded-lg text-white text-base font-semibold font-['Poppins'] transition-colors #{if @uploading, do: "bg-gray-600 cursor-not-allowed", else: "bg-blue-500 hover:bg-blue-600"}"}
+              >
+                <%= if @uploading, do: "Uploading...", else: "Confirm" %>
+              </button>
+
+              <button
+                phx-click="cancel_upload"
+                disabled={@uploading}
+                class="px-8 py-2 bg-[#323340] rounded-lg text-white text-base font-['Poppins'] hover:bg-[#3a3b4a] transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+
+            <%= if @uploading do %>
+              <div class="space-y-2">
+                <div class="text-white text-sm font-['Poppins']">
+                  Uploading... <%= @upload_progress %>%
+                </div>
+                <div class="w-full h-2 bg-[#323340] rounded-full overflow-hidden">
+                  <div
+                    class="h-full bg-blue-500 transition-all duration-300"
+                    style={"width: #{@upload_progress}%"}
+                  ></div>
+                </div>
+              </div>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+
+      <%= if @step == :success do %>
+        <div class="max-w-2xl mx-auto">
+          <div class="p-7 bg-[#27282e] rounded-[20px] shadow-lg space-y-7">
+            <div class="space-y-2.5">
+              <div class="flex justify-between items-center">
+                <h1 class="text-white text-xl font-semibold font-['Poppins']">Success</h1>
+                <button
+                  phx-click="view_my_videos"
+                  class="w-10 h-10 bg-[#27282e] rounded-full flex items-center justify-center hover:bg-[#323340] transition-colors"
+                >
+                  <Heroicons.x_mark class="w-5 h-5 text-white" />
+                </button>
+              </div>
+              <p class="text-white text-sm font-['Poppins']">Your video will be live shortly.</p>
+            </div>
+
+            <div class="flex gap-5">
+              <div class="w-64 h-40 bg-zinc-700 rounded-md flex items-center justify-center">
+                <Heroicons.video_camera class="w-16 h-16 text-neutral-400" />
+              </div>
+              <div class="flex-1 space-y-2.5">
+                <h3 class="text-white text-base font-semibold font-['Poppins']"><%= @title %></h3>
+                <p class="text-gray-300 text-sm font-['Poppins']">Processing...</p>
+              </div>
+            </div>
+
+            <div class="flex gap-2.5">
+              <button
+                phx-click="view_my_videos"
+                class="px-8 py-2 bg-blue-500 rounded-lg text-white text-base font-semibold font-['Poppins'] hover:bg-blue-600 transition-colors"
+              >
+                View my videos
+              </button>
+
+              <.link
+                navigate={~p"/#{@locale}/videos"}
+                class="px-8 py-2 bg-[#323340] rounded-lg text-white text-base font-['Poppins'] hover:bg-[#3a3b4a] transition-colors inline-flex items-center"
+              >
+                Cancel
+              </.link>
+            </div>
+          </div>
+        </div>
+      <% end %>
+    </main>
+  </div>
+</div>

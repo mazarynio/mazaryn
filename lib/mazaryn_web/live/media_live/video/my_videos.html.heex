@@ -1,0 +1,221 @@
+<div class="min-h-screen bg-[#27282e]">
+  <div class="fixed top-0 left-0 right-0 z-50 h-16 bg-gradient-to-b from-[#151620] to-[#151620] shadow-lg">
+    <div class="flex items-center justify-between h-full px-16 max-w-[1440px] mx-auto">
+      <.link navigate={~p"/#{@locale}/home"} class="flex items-center gap-3">
+        <span class="text-white text-4xl font-bold font-['Poppins']">Mazaryn</span>
+        <div class="flex gap-3">
+          <div class="w-2 h-2 bg-blue-500 rounded-full"></div>
+          <div class="w-2 h-2 bg-blue-500 rounded-full"></div>
+        </div>
+      </.link>
+
+      <div class="flex items-center gap-5">
+        <form class="w-[548px]">
+          <div class="relative">
+            <input
+              type="text"
+              placeholder="Search"
+              class="w-full px-5 py-2 pl-12 bg-[#323340] rounded-lg text-white placeholder-[#aaaaaa] focus:outline-none focus:border-2 focus:border-blue-500"
+            />
+            <Heroicons.magnifying_glass class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#aaaaaa]" />
+          </div>
+        </form>
+
+        <button
+          phx-click="navigate_to_upload"
+          class="w-10 h-10 bg-[#323340] rounded-full flex items-center justify-center hover:bg-[#3a3b4a] transition-colors"
+        >
+          <Heroicons.arrow_up_tray solid class="w-5 h-5 text-white" />
+        </button>
+
+        <.link
+          navigate={~p"/#{@locale}/notifications"}
+          class="w-10 h-10 bg-[#323340] rounded-full flex items-center justify-center hover:bg-[#3a3b4a] transition-colors"
+        >
+          <Heroicons.bell solid class="w-5 h-5 text-white" />
+        </.link>
+      </div>
+
+      <div class="flex items-center gap-5">
+        <%= if @user do %>
+          <div class="flex items-center gap-3 px-4 h-10 bg-[#323340] rounded-lg">
+            <img
+              src={@user.avatar_url || "/images/default-avatar.png"}
+              class="w-8 h-8 rounded-full object-cover"
+              alt={@user.username}
+            />
+            <span class="text-white text-base font-['Poppins']"><%= @user.username %></span>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  </div>
+
+  <div class="flex max-w-[1440px] mx-auto pt-20">
+    <aside class="fixed left-16 top-24 w-60">
+      <div class="space-y-6">
+        <h2 class="text-[#c5c7c8] text-xl font-semibold font-['Poppins']">Video</h2>
+
+        <div class="bg-[#323340] rounded-[20px] shadow-lg p-7 space-y-7">
+          <.link
+            navigate={~p"/#{@locale}/videos"}
+            class="flex items-center gap-5 text-[#c5c7c8] hover:text-white hover:translate-x-1 transition-all"
+          >
+            <Heroicons.home solid class="w-5 h-5" />
+            <span class="text-xl font-semibold font-['Poppins']">Home</span>
+          </.link>
+
+          <.link
+            navigate={~p"/#{@locale}/videos/my-videos"}
+            class="flex items-center gap-5 text-blue-500 hover:translate-x-1 transition-transform"
+          >
+            <Heroicons.video_camera solid class="w-5 h-5" />
+            <span class="text-xl font-semibold font-['Poppins']">Your videos</span>
+          </.link>
+
+          <.link
+            navigate={~p"/#{@locale}/videos/discover"}
+            class="flex items-center gap-5 text-[#c5c7c8] hover:text-white hover:translate-x-1 transition-all"
+          >
+            <Heroicons.globe_alt solid class="w-5 h-5" />
+            <span class="text-xl font-semibold font-['Poppins']">Discover</span>
+          </.link>
+
+          <.link
+            navigate={~p"/#{@locale}/videos/trending"}
+            class="flex items-center gap-5 text-[#c5c7c8] hover:text-white hover:translate-x-1 transition-all"
+          >
+            <Heroicons.arrow_trending_up solid class="w-5 h-5" />
+            <span class="text-xl font-semibold font-['Poppins']">Trending</span>
+          </.link>
+        </div>
+
+        <div class="bg-[#323340] rounded-[20px] shadow-lg p-7">
+          <.link
+            navigate={~p"/#{@locale}/settings"}
+            class="flex items-center gap-5 text-[#c5c7c8] hover:text-white hover:translate-x-1 transition-all"
+          >
+            <Heroicons.cog_6_tooth solid class="w-5 h-5" />
+            <span class="text-xl font-semibold font-['Poppins']">Settings</span>
+          </.link>
+        </div>
+      </div>
+    </aside>
+
+    <main class="ml-80 mr-16 flex-1 py-8 space-y-5">
+      <%= if Enum.any?(@uploaded_videos, &(&1.status == "processing")) do %>
+        <div class="space-y-5">
+          <h2 class="text-white text-xl font-semibold font-['Poppins']">Currently Uploading</h2>
+          <p class="text-white text-sm font-['Poppins']">Leave the app running until upload is complete</p>
+
+          <%= for video <- Enum.filter(@uploads, &(&1.status == "processing")) do %>
+            <div class="p-5 bg-[#323340] rounded-[20px] flex gap-5">
+              <img
+                src={video.thumbnail_url}
+                class="w-64 h-44 rounded-md object-cover"
+                alt={video.title}
+              />
+
+              <div class="flex-1 space-y-5">
+                <div class="space-y-2.5">
+                  <h3 class="text-white text-base font-semibold font-['Poppins']"><%= video.title %></h3>
+                  <p class="text-neutral-400 text-base font-['Poppins']"><%= video.url_slug %></p>
+                </div>
+
+                <div class="space-y-2.5">
+                  <div class="w-full h-10 bg-[#27282e] rounded-lg overflow-hidden relative">
+                    <div
+                      class="absolute top-0 left-0 h-full bg-blue-500 rounded-lg transition-all duration-300"
+                      style={"width: #{video.upload_progress}%"}
+                    ></div>
+                    <div class="absolute inset-0 flex items-center justify-center">
+                      <span class="text-white text-base font-['Poppins']">
+                        Uploading... (<%= video.upload_progress %>%)
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      <% end %>
+
+      <div class="px-2.5 py-3 bg-[#323340] rounded-[20px] shadow-lg inline-flex gap-2.5">
+        <button
+          phx-click="switch_tab"
+          phx-value-tab="all"
+          class={"px-4 py-2 rounded-lg uppercase text-base font-['Poppins'] transition-colors #{if @active_tab == "all", do: "bg-[#27282e] text-white", else: "text-gray-300 hover:text-white"}"}
+        >
+          ALL
+        </button>
+
+        <button
+          phx-click="switch_tab"
+          phx-value-tab="uploads"
+          class={"px-4 py-2 rounded-lg uppercase text-base font-['Poppins'] transition-colors #{if @active_tab == "uploads", do: "bg-[#27282e] text-white", else: "text-gray-300 hover:text-white"}"}
+        >
+          UPLOADS
+        </button>
+
+        <button
+          phx-click="switch_tab"
+          phx-value-tab="live"
+          class={"px-4 py-2 rounded-lg uppercase text-base font-['Poppins'] transition-colors #{if @active_tab == "live", do: "bg-[#27282e] text-white", else: "text-gray-300 hover:text-white"}"}
+        >
+          LIVE
+        </button>
+
+        <button
+          phx-click="switch_tab"
+          phx-value-tab="scheduled"
+          class={"px-4 py-2 rounded-lg uppercase text-base font-['Poppins'] transition-colors #{if @active_tab == "scheduled", do: "bg-[#27282e] text-white", else: "text-gray-300 hover:text-white"}"}
+        >
+          SCHEDULED
+        </button>
+      </div>
+
+      <div class="space-y-5">
+        <%= if @active_tab == "all" do %>
+          <%= for video <- @videos do %>
+            <.video_card video={video} locale={@locale} />
+          <% end %>
+        <% end %>
+
+        <%= if @active_tab == "uploads" do %>
+          <%= for video <- @uploads do %>
+            <.video_card video={video} locale={@locale} />
+          <% end %>
+        <% end %>
+
+        <%= if @active_tab == "live" do %>
+          <%= for video <- @live_streams do %>
+            <.video_card video={video} locale={@locale} />
+          <% end %>
+        <% end %>
+
+        <%= if @active_tab == "scheduled" do %>
+          <%= for video <- @scheduled do %>
+            <.video_card video={video} locale={@locale} />
+          <% end %>
+        <% end %>
+
+        <%= if ((@active_tab == "all" and @videos == []) or
+              (@active_tab == "uploads" and @uploads == []) or
+              (@active_tab == "live" and @live_streams == []) or
+              (@active_tab == "scheduled" and @scheduled == [])) do %>
+          <div class="text-center py-16">
+            <Heroicons.video_camera class="w-16 h-16 text-gray-600 mx-auto mb-4" />
+            <p class="text-gray-400 text-lg font-['Poppins']">No videos found</p>
+            <button
+              phx-click="navigate_to_upload"
+              class="mt-4 px-6 py-2 bg-blue-500 rounded-lg text-white font-semibold hover:bg-blue-600 transition-colors"
+            >
+              Upload your first video
+            </button>
+          </div>
+        <% end %>
+      </div>
+    </main>
+  </div>
+</div>

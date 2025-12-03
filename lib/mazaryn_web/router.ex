@@ -107,8 +107,9 @@ defmodule MazarynWeb.Router do
       live("/notifications", HomeLive.Notification)
 
       live("/videos", MediaLive.Video.Index, :index)
-      live("/:locale/videos/:id", MediaLive.Video.Show, :show)
-      live("/videos/:id", MediaLive.Video.Show)
+      live("/videos/upload", MediaLive.Video.Upload, :upload)
+      live("/videos/my-videos", MediaLive.Video.MyVideos, :my_videos)
+      live("/videos/:id", MediaLive.Video.Show, :show)
 
       live("/ai", AiLive.Index)
       live("/ai/datasets", AiLive.Datasets, :index)

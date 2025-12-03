@@ -573,20 +573,6 @@
     data = #{}
 }).
 
--record(media_view, {
-    id,
-    media_id,
-    media_type,
-    user_id,
-    view_duration,
-    completion_percentage,
-    date_viewed,
-    device_info,
-    location,
-    referral_source,
-    data = #{}
-}).
-
 -record(media_analytics, {
     media_id,
     media_type,
@@ -1069,4 +1055,18 @@
     id,
     video_id,
     date_created
+}).
+
+-record(media_view, {
+    id,
+    media_id,
+    media_type,
+    user_id,
+    view_duration,
+    completion_percentage,
+    date_viewed,
+    device_info,
+    location,
+    referral_source,
+    data = #{}
 }).

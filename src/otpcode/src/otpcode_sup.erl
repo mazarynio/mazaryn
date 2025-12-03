@@ -17,7 +17,7 @@
 -define(TABLES, [post, notif, user, blog_post, comment, blog_comment, like, reply, chat, media, report, knode, business, ads, quantum,
  ai_user, ai_post, ai_chat, ai_media, ai_business, ai_ads, p2p_node,
  pin_info, pin_params, pin_history, bulk_operation, scheduled_job, rate_limiter_usage, pin_info_lookup, pin_health, storage_quota, presence,
- dataset, competition, notebook, model, video, music, album, playlist, ai_video]).
+ dataset, competition, notebook, model, video, music, album, playlist, ai_video, media_view]).
 
 %% API
 start_link() ->
@@ -321,4 +321,5 @@ table_attributes(video) -> record_info(fields, video);
 table_attributes(music) -> record_info(fields, music);
 table_attributes(album) -> record_info(fields, album);
 table_attributes(playlist) -> record_info(fields, playlist);
-table_attributes(ai_video) -> record_info(fields, ai_video).
+table_attributes(ai_video) -> record_info(fields, ai_video);
+table_attributes(media_view) -> record_info(fields, media_view).
