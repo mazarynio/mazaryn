@@ -13,11 +13,13 @@
         <%= if @user do %>
           <div class="flex items-center gap-3 px-4 h-10 bg-[#323340] rounded-lg">
             <img
-              src={@user.avatar_url || "/images/default-avatar.png"}
+              src={if is_tuple(@user), do: elem(@user, 6) || "/images/default-avatar.png", else: "/images/default-avatar.png"}
               class="w-8 h-8 rounded-full object-cover"
-              alt={@user.username}
+              alt={if is_tuple(@user), do: elem(@user, 2), else: "User"}
             />
-            <span class="text-white text-base font-['Poppins']"><%= @user.username %></span>
+            <span class="text-white text-base font-['Poppins']">
+              <%= if is_tuple(@user), do: elem(@user, 2), else: "User" %>
+            </span>
           </div>
         <% end %>
       </div>
@@ -52,6 +54,7 @@
     <main class="ml-80 mr-16 flex-1 py-8">
       <%= if @step == :upload do %>
         <div class="space-y-8">
+          <!-- VIDEO UPLOAD SECTION -->
           <div class="space-y-5">
             <div class="flex items-center gap-2.5">
               <div class="w-10 h-10 bg-[#323340] rounded-full flex items-center justify-center">
@@ -61,45 +64,67 @@
             </div>
 
             <div class="p-5 bg-[#323340] rounded-[20px] space-y-5">
-              <form phx-change="validate_video" phx-submit="proceed_to_confirm">
-                <div class="flex gap-2.5">
-                  <div
-                    class="flex-1 px-5 py-2 bg-[#27282e] rounded-lg text-white text-base font-['Poppins'] flex items-center"
-                    phx-drop-target={@uploads.video.ref}
-                  >
-                    <%= if @uploads.video.entries != [] do %>
-                      <%= for entry <- @uploads.video.entries do %>
-                        <span><%= entry.client_name %></span>
-                      <% end %>
-                    <% else %>
-                      <span class="text-white">Select video, audio or image file to upload</span>
-                    <% end %>
+              <div
+                class="border-2 border-dashed border-[#4385F5] rounded-lg p-8 text-center hover:border-blue-400 transition-colors cursor-pointer"
+                phx-drop-target={@uploads.video.ref}
+              >
+                <label for={@uploads.video.ref} class="cursor-pointer">
+                  <div class="space-y-3">
+                    <div class="mx-auto w-16 h-16 bg-blue-500 bg-opacity-20 rounded-full flex items-center justify-center">
+                      <Heroicons.arrow_up_tray class="w-8 h-8 text-blue-500" />
+                    </div>
+                    <div>
+                      <span class="text-base font-medium text-blue-500 hover:text-blue-400">Click to upload</span>
+                      <span class="text-base text-white"> or drag and drop</span>
+                    </div>
+                    <p class="text-sm text-neutral-400">MP4, WebM, MOV, AVI, MKV (Max 16GB)</p>
                   </div>
+                  <form phx-change="validate_video">
+                    <.live_file_input upload={@uploads.video} class="hidden" />
+                  </form>
+                </label>
 
-                  <label class="px-8 py-2 bg-blue-500 rounded-lg text-white text-base font-semibold font-['Poppins'] cursor-pointer hover:bg-blue-600 transition-colors">
-                    Browse
-                    <input
-                      type="file"
-                      name="video"
-                      accept=".mp4,.webm,.mov,.avi,.mkv"
-                      class="hidden"
-                      phx-change="validate_video"
-                      data-phx-upload-ref={@uploads.video.ref}
-                    />
-                  </label>
-                </div>
+                <%= for entry <- @uploads.video.entries do %>
+                  <div class="mt-6 bg-[#27282e] rounded-lg p-4 border border-blue-500">
+                    <div class="flex items-center justify-between">
+                      <div class="flex items-center space-x-4">
+                        <div class="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center flex-shrink-0">
+                          <Heroicons.video_camera class="w-6 h-6 text-white" />
+                        </div>
+                        <div class="text-left">
+                          <p class="text-sm font-semibold text-white"><%= entry.client_name %></p>
+                          <p class="text-xs text-neutral-400"><%= Float.round(entry.client_size / 1024 / 1024, 2) %> MB</p>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        phx-click="cancel_video_upload"
+                        phx-value-ref={entry.ref}
+                        class="p-2 text-neutral-400 hover:text-red-500 hover:bg-red-500 hover:bg-opacity-10 rounded-lg transition-colors"
+                      >
+                        <Heroicons.x_mark class="w-5 h-5" />
+                      </button>
+                    </div>
+                    <div class="mt-3">
+                      <div class="bg-[#323340] rounded-full h-2 overflow-hidden">
+                        <div class="bg-blue-500 h-2 transition-all duration-300" style={"width: #{entry.progress}%"}></div>
+                      </div>
+                      <p class="text-xs text-neutral-400 mt-1 text-right"><%= entry.progress %>% uploaded</p>
+                    </div>
+                  </div>
+                <% end %>
+              </div>
 
-                <div class="flex items-start gap-2.5 mt-5">
-                  <Heroicons.information_circle class="w-6 h-6 text-white flex-shrink-0 mt-1" />
-                  <p class="text-white text-sm font-['Poppins'] leading-6">
-                    For video content, use MP4s in H264/AAC format and a friendly bitrate (under 8 Mbps) for more reliable streaming. Mazaryn uploads are restricted to 16 GB.
-                  </p>
-                </div>
-              </form>
+              <div class="flex items-start gap-2.5">
+                <Heroicons.information_circle class="w-6 h-6 text-white flex-shrink-0 mt-1" />
+                <p class="text-white text-sm font-['Poppins'] leading-6">
+                  For video content, use MP4s in H264/AAC format and a friendly bitrate (under 8 Mbps) for more reliable streaming. Mazaryn uploads are restricted to 16 GB.
+                </p>
+              </div>
 
               <div class="space-y-2.5">
                 <div class="flex justify-between items-center">
-                  <label class="text-white text-base font-semibold font-['Poppins']">Title</label>
+                  <label class="text-white text-base font-semibold font-['Poppins']">Title *</label>
                   <span class="text-neutral-400 text-base font-semibold font-['Poppins']">
                     <%= 200 - String.length(@title) %>
                   </span>
@@ -107,7 +132,7 @@
                 <input
                   type="text"
                   value={@title}
-                  phx-change="update_title"
+                  phx-keyup="update_title"
                   phx-debounce="300"
                   name="value"
                   placeholder="Descriptive titles work best"
@@ -115,33 +140,17 @@
                   class="w-full px-5 py-2 bg-[#27282e] rounded-lg border-2 border-blue-500 text-white placeholder-neutral-400 outline-none focus:border-blue-400"
                 />
               </div>
-
-              <div class="space-y-2.5">
-                <label class="text-white text-base font-semibold font-['Poppins']">URL</label>
-                <div class="flex items-center bg-[#27282e] rounded-lg overflow-hidden">
-                  <div class="px-4 py-2 bg-blue-500 text-white text-base font-semibold font-['Poppins']">
-                    mazaryn.xyz/
-                  </div>
-                  <input
-                    type="text"
-                    value={@url_slug}
-                    phx-change="update_url"
-                    phx-debounce="300"
-                    name="value"
-                    class="flex-1 px-4 py-2 bg-transparent text-white outline-none"
-                  />
-                </div>
-              </div>
             </div>
           </div>
 
+          <!-- DESCRIPTION SECTION -->
           <div class="space-y-5">
             <h2 class="text-white text-xl font-semibold font-['Poppins']">Description</h2>
 
             <div class="p-5 bg-[#323340] rounded-[20px]">
               <textarea
                 value={@description}
-                phx-change="update_description"
+                phx-keyup="update_description"
                 phx-debounce="300"
                 name="value"
                 placeholder="What is your content about?"
@@ -151,64 +160,59 @@
             </div>
           </div>
 
+          <!-- THUMBNAIL SECTION -->
           <div class="space-y-5">
-            <h2 class="text-white text-xl font-semibold font-['Poppins']">Thumbnail</h2>
+            <div class="flex items-center justify-between">
+              <h2 class="text-white text-xl font-semibold font-['Poppins']">Thumbnail</h2>
+              <span class="text-neutral-400 text-sm font-['Poppins']">(Optional)</span>
+            </div>
 
             <div class="p-5 bg-[#323340] rounded-[20px] flex items-center gap-5">
               <div class="w-56 h-36 bg-zinc-700 rounded-md flex items-center justify-center">
                 <%= if @uploads.thumbnail.entries != [] do %>
-                  <div class="w-full h-full bg-zinc-600 rounded-md flex items-center justify-center">
-                    <span class="text-white text-sm">Thumbnail Selected</span>
-                  </div>
+                  <%= for entry <- @uploads.thumbnail.entries do %>
+                    <div class="relative w-full h-full bg-zinc-600 rounded-md flex items-center justify-center group">
+                      <div class="text-center">
+                        <Heroicons.photo class="w-10 h-10 text-white mx-auto mb-2" />
+                        <span class="text-white text-xs block"><%= entry.client_name %></span>
+                      </div>
+                      <button
+                        type="button"
+                        phx-click="cancel_thumbnail_upload"
+                        phx-value-ref={entry.ref}
+                        class="absolute top-2 right-2 p-1 bg-red-500 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <Heroicons.x_mark class="w-4 h-4 text-white" />
+                      </button>
+                    </div>
+                  <% end %>
                 <% else %>
                   <Heroicons.photo class="w-14 h-14 text-neutral-400" />
                 <% end %>
               </div>
 
               <div class="flex-1 space-y-5">
-                <form phx-change="validate_thumbnail" class="flex gap-2.5">
+                <div class="flex gap-2.5">
                   <div class="flex-1 px-5 py-2 bg-[#27282e] rounded-lg text-white text-base font-['Poppins'] flex items-center">
-                    Choose an enticing thumbnail
+                    <%= if @uploads.thumbnail.entries != [], do: "Thumbnail selected", else: "Choose an enticing thumbnail (optional)" %>
                   </div>
 
                   <label class="px-8 py-2 bg-blue-500 rounded-lg text-white text-base font-semibold font-['Poppins'] cursor-pointer hover:bg-blue-600 transition-colors">
                     Browse
-                    <input
-                      type="file"
-                      name="thumbnail"
-                      accept=".jpg,.jpeg,.png,.webp"
-                      class="hidden"
-                      phx-change="validate_thumbnail"
-                      data-phx-upload-ref={@uploads.thumbnail.ref}
-                    />
+                    <form phx-change="validate_thumbnail">
+                      <.live_file_input upload={@uploads.thumbnail} class="hidden" />
+                    </form>
                   </label>
-                </form>
+                </div>
 
                 <p class="text-white text-sm font-['Poppins']">
-                  Upload your thumbnail. Recommended ratio is 16:9, 5MB max.
+                  Upload a thumbnail (optional). Recommended ratio is 16:9, 5MB max.
                 </p>
-
-                <div class="flex gap-2.5">
-                  <button
-                    phx-click="select_thumbnail_method"
-                    phx-value-method="url"
-                    class="px-4 py-2 bg-[#27282e] rounded-lg text-blue-500 text-base font-['Poppins'] hover:bg-[#323340] transition-colors"
-                  >
-                    Enter a thumbnail URL
-                  </button>
-
-                  <button
-                    phx-click="select_thumbnail_method"
-                    phx-value-method="snapshot"
-                    class="px-4 py-2 bg-[#27282e] rounded-lg text-blue-500 text-base font-['Poppins'] hover:bg-[#323340] transition-colors"
-                  >
-                    Take a snapshot from your video
-                  </button>
-                </div>
               </div>
             </div>
           </div>
 
+          <!-- VISIBILITY SECTION -->
           <div class="space-y-5">
             <h2 class="text-white text-xl font-semibold font-['Poppins']">Visibility</h2>
 
@@ -267,6 +271,7 @@
             </div>
           </div>
 
+          <!-- TAGS SECTION -->
           <div class="space-y-5">
             <h2 class="text-white text-xl font-semibold font-['Poppins']">Tags</h2>
 
@@ -330,6 +335,7 @@
             </div>
           </div>
 
+          <!-- ADDITIONAL OPTIONS SECTION -->
           <div class="space-y-5">
             <h2 class="text-white text-xl font-semibold font-['Poppins']">Additional options</h2>
 
@@ -347,12 +353,14 @@
               </select>
             </div>
 
+            <!-- SUBMIT BUTTON -->
             <button
               phx-click="proceed_to_confirm"
-              disabled={!valid_for_confirmation?(assigns)}
-              class={"px-8 py-2 rounded-lg text-white text-base font-semibold font-['Poppins'] transition-colors #{if valid_for_confirmation?(assigns), do: "bg-blue-500 hover:bg-blue-600", else: "bg-gray-600 cursor-not-allowed"}"}
+              type="button"
+              disabled={String.trim(@title) == "" || length(@uploads.video.entries) == 0}
+              class={"w-full px-8 py-3 rounded-lg text-white text-base font-semibold font-['Poppins'] transition-all duration-200 #{if String.trim(@title) != "" && length(@uploads.video.entries) > 0, do: "bg-blue-500 hover:bg-blue-600 cursor-pointer hover:shadow-lg", else: "bg-gray-600 cursor-not-allowed opacity-50"}"}
             >
-              Upload
+              Continue to Confirm
             </button>
 
             <p class="text-white text-sm font-['Poppins']">
@@ -372,7 +380,7 @@
               <h1 class="text-white text-xl font-semibold font-['Poppins']">Confirm upload</h1>
               <button
                 phx-click="back_to_upload"
-                class="w-10 h-10 bg-[#27282e] rounded-full flex items-center justify-center hover:bg-[#323340] transition-colors"
+                class="w-10 h-10 bg-[#323340] rounded-full flex items-center justify-center hover:bg-[#3a3b4a] transition-colors"
               >
                 <Heroicons.x_mark class="w-5 h-5 text-white" />
               </button>
@@ -399,9 +407,9 @@
               </div>
 
               <div class="py-2.5 border-b-2 border-gray-600 flex justify-between">
-                <span class="text-white text-base font-semibold font-['Poppins']">URL</span>
+                <span class="text-white text-base font-semibold font-['Poppins']">Thumbnail</span>
                 <span class="text-white text-base font-semibold font-['Poppins']">
-                  mazaryn.xyz://<%= @url_slug %>
+                  <%= if @uploads.thumbnail.entries != [], do: "Included", else: "Not included" %>
                 </span>
               </div>
 
@@ -415,10 +423,14 @@
               <div class="py-2.5 border-b-2 border-gray-600 flex justify-between">
                 <span class="text-white text-base font-semibold font-['Poppins']">Tags</span>
                 <div class="flex gap-1.5">
-                  <%= for tag <- @tags do %>
-                    <div class="px-3 py-1.5 bg-[#27282e] rounded-lg">
-                      <span class="text-white text-sm font-['Poppins']"><%= tag %></span>
-                    </div>
+                  <%= if @tags != [] do %>
+                    <%= for tag <- @tags do %>
+                      <div class="px-3 py-1.5 bg-[#323340] rounded-lg">
+                        <span class="text-white text-sm font-['Poppins']"><%= tag %></span>
+                      </div>
+                    <% end %>
+                  <% else %>
+                    <span class="text-white text-sm font-['Poppins']">-</span>
                   <% end %>
                 </div>
               </div>
@@ -430,13 +442,13 @@
                 disabled={@uploading}
                 class={"px-8 py-2 rounded-lg text-white text-base font-semibold font-['Poppins'] transition-colors #{if @uploading, do: "bg-gray-600 cursor-not-allowed", else: "bg-blue-500 hover:bg-blue-600"}"}
               >
-                <%= if @uploading, do: "Uploading...", else: "Confirm" %>
+                <%= if @uploading, do: "Uploading...", else: "Upload Video" %>
               </button>
 
               <button
                 phx-click="cancel_upload"
                 disabled={@uploading}
-                class="px-8 py-2 bg-[#323340] rounded-lg text-white text-base font-['Poppins'] hover:bg-[#3a3b4a] transition-colors"
+                class="px-8 py-2 bg-[#323340] rounded-lg text-white text-base font-['Poppins'] hover:bg-[#3a3b4a] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Cancel
               </button>
@@ -467,7 +479,7 @@
                 <h1 class="text-white text-xl font-semibold font-['Poppins']">Success</h1>
                 <button
                   phx-click="view_my_videos"
-                  class="w-10 h-10 bg-[#27282e] rounded-full flex items-center justify-center hover:bg-[#323340] transition-colors"
+                  class="w-10 h-10 bg-[#323340] rounded-full flex items-center justify-center hover:bg-[#3a3b4a] transition-colors"
                 >
                   <Heroicons.x_mark class="w-5 h-5 text-white" />
                 </button>

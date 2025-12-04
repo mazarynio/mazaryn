@@ -2,6 +2,7 @@ import Config
 
 if Mix.env() in [:dev, :test] do
   env_file = Path.join([File.cwd!(), ".env"])
+
   if File.exists?(env_file) do
     File.read!(env_file)
     |> String.split("\n", trim: true)
@@ -14,13 +15,13 @@ if Mix.env() in [:dev, :test] do
           key = String.trim(key)
           value = String.trim(value) |> String.trim("\"") |> String.trim("'")
           System.put_env(key, value)
+
         _ ->
           :ok
       end
     end)
   end
 end
-
 
 config :mime, :types, %{
   "application/x-hdf" => ["h5", "hdf5"],
@@ -29,7 +30,9 @@ config :mime, :types, %{
   "application/x-onnx" => ["onnx"],
   "application/x-pickle" => ["pkl", "pickle"],
   "application/x-joblib" => ["joblib"],
-  "application/zip" => ["zip"]
+  "application/zip" => ["zip"],
+  "video/x-matroska" => ["mkv"],
+  "video/x-msvideo" => ["avi"]
 }
 
 config :logger, level: :warning
