@@ -10,25 +10,30 @@
       </.link>
 
       <div class="flex items-center gap-5">
-        <.link
-          navigate={~p"/#{@locale}/videos"}
-          class="text-[#aaaaaa] hover:text-white transition-colors"
-        >
-          <Heroicons.arrow_left class="w-6 h-6" />
-        </.link>
-      </div>
-
-      <div class="flex items-center gap-5">
-        <%= if @user do %>
-          <div class="flex items-center gap-3 px-4 h-10 bg-[#323340] rounded-lg">
-            <img
-              src={@user.avatar_url || "/images/default-avatar.png"}
-              class="w-8 h-8 rounded-full object-cover"
-              alt={@user.username}
+        <form class="w-[548px]">
+          <div class="relative">
+            <input
+              type="text"
+              placeholder="Search videos"
+              class="w-full px-5 py-2 pl-12 bg-[#323340] rounded-lg text-white placeholder-[#aaaaaa] focus:outline-none focus:border-2 focus:border-blue-500"
             />
-            <span class="text-white text-base font-['Poppins']"><%= @user.username %></span>
+            <Heroicons.magnifying_glass class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#aaaaaa]" />
           </div>
-        <% end %>
+        </form>
+
+        <.link
+          navigate={~p"/#{@locale}/videos/upload"}
+          class="w-10 h-10 bg-[#323340] rounded-full flex items-center justify-center hover:bg-[#3a3b4a] transition-colors"
+        >
+          <Heroicons.arrow_up_tray solid class="w-5 h-5 text-white" />
+        </.link>
+
+        <.link
+          navigate={~p"/#{@locale}/notifications"}
+          class="w-10 h-10 bg-[#323340] rounded-full flex items-center justify-center hover:bg-[#3a3b4a] transition-colors"
+        >
+          <Heroicons.bell solid class="w-5 h-5 text-white" />
+        </.link>
       </div>
     </div>
   </div>
@@ -54,218 +59,287 @@
             <Heroicons.video_camera solid class="w-5 h-5" />
             <span class="text-xl font-semibold font-['Poppins']">Your videos</span>
           </.link>
+
+          <.link
+            navigate={~p"/#{@locale}/videos/discover"}
+            class="flex items-center gap-5 text-[#c5c7c8] hover:text-white hover:translate-x-1 transition-all"
+          >
+            <Heroicons.globe_alt solid class="w-5 h-5" />
+            <span class="text-xl font-semibold font-['Poppins']">Discover</span>
+          </.link>
+
+          <.link
+            navigate={~p"/#{@locale}/videos/trending"}
+            class="flex items-center gap-5 text-[#c5c7c8] hover:text-white hover:translate-x-1 transition-all"
+          >
+            <Heroicons.arrow_trending_up solid class="w-5 h-5" />
+            <span class="text-xl font-semibold font-['Poppins']">Trending</span>
+          </.link>
+        </div>
+
+        <div class="bg-[#323340] rounded-[20px] shadow-lg p-7">
+          <.link
+            navigate={~p"/#{@locale}/settings"}
+            class="flex items-center gap-5 text-[#c5c7c8] hover:text-white hover:translate-x-1 transition-all"
+          >
+            <Heroicons.cog_6_tooth solid class="w-5 h-5" />
+            <span class="text-xl font-semibold font-['Poppins']">Settings</span>
+          </.link>
         </div>
       </div>
     </aside>
 
-    <main class="ml-80 mr-16 flex-1 py-8">
-      <div class="flex gap-8">
-        <div class="flex-1 max-w-[641px]">
-          <div class="relative rounded-[20px] overflow-hidden mb-4">
-            <%= if @video.video_url do %>
-              <video
-                id="main-video-player"
-                class="w-full aspect-video bg-black"
-                controls
-                phx-hook="VideoPlayer"
-              >
-                <source src={@video.video_url} type="video/mp4" />
-                Your browser does not support the video tag.
-              </video>
-            <% else %>
-              <img
-                src={@video.thumbnail_url}
-                class="w-full aspect-video object-cover"
-                alt={@video.title}
-              />
+    <main class="ml-80 flex-1 py-8 space-y-4 pr-4">
+      <div class="flex gap-5">
+        <div class="flex-1 space-y-4">
+          <div class="relative w-full bg-black rounded-[20px] overflow-hidden" style="aspect-ratio: 16/9;">
+            <%= cond do %>
+              <% @video.ipfs_cid && @video.ipfs_cid != "" && !is_tuple(@video.ipfs_cid) -> %>
+                <%
+                  cid = if is_list(@video.ipfs_cid),
+                          do: List.to_string(@video.ipfs_cid),
+                          else: @video.ipfs_cid
+
+                  primary_gateway = "https://ipfs.io/ipfs/#{cid}"
+                  fallback_gateway = "https://dweb.link/ipfs/#{cid}"
+                  cloudflare_gateway = "https://cloudflare-ipfs.com/ipfs/#{cid}"
+                %>
+
+                <video
+                  id="video-player"
+                  class="w-full h-full"
+                  controls
+                  preload="metadata"
+                  poster={@video.thumbnail_url}
+                  phx-hook="VideoPlayer"
+                  data-video-id={@video.id}
+                >
+                  <source src={primary_gateway} type="video/webm" />
+                  <source src={primary_gateway} type="video/mp4" />
+                  <source src={fallback_gateway} type="video/webm" />
+                  <source src={fallback_gateway} type="video/mp4" />
+                  <source src={cloudflare_gateway} type="video/webm" />
+                  <source src={cloudflare_gateway} type="video/mp4" />
+
+                  <p class="text-white p-4">
+                    Your browser does not support the video tag.
+                    <a href={primary_gateway} class="text-blue-500 underline" target="_blank">
+                      Download the video
+                    </a>
+                  </p>
+                </video>
+
+                <div id="video-loading" class="absolute inset-0 bg-black bg-opacity-75 flex items-center justify-center" style="display: none;">
+                  <div class="text-center">
+                    <div class="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-500 mx-auto mb-4"></div>
+                    <p class="text-gray-400 text-lg font-['Poppins']">Loading video from IPFS...</p>
+                    <p class="text-gray-500 text-sm font-['Poppins'] mt-2">This may take a moment</p>
+                  </div>
+                </div>
+
+              <% is_tuple(@video.ipfs_cid) -> %>
+                <div class="w-full h-full flex items-center justify-center bg-gray-900">
+                  <div class="text-center">
+                    <div class="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-500 mx-auto mb-4"></div>
+                    <p class="text-gray-400 text-lg font-['Poppins']">Video is processing...</p>
+                    <p class="text-gray-500 text-sm font-['Poppins'] mt-2">
+                      <%= case @video.ipfs_cid do %>
+                        <% {status, _id} when status in [:pending, :pending_update, :pending_version] -> %>
+                          Uploading to IPFS network
+                        <% {:error, _reason} -> %>
+                          Upload failed. Please try again.
+                        <% _ -> %>
+                          Processing...
+                      <% end %>
+                    </p>
+                    <script>
+                      setTimeout(() => window.location.reload(), 5000);
+                    </script>
+                  </div>
+                </div>
+
+              <% true -> %>
+                <div class="w-full h-full flex items-center justify-center bg-gray-900">
+                  <div class="text-center">
+                    <Heroicons.exclamation_triangle class="w-16 h-16 text-yellow-600 mx-auto mb-4" />
+                    <p class="text-gray-400 text-lg font-['Poppins']">Video not available</p>
+                    <p class="text-gray-500 text-sm font-['Poppins'] mt-2">The video content could not be loaded</p>
+                  </div>
+                </div>
             <% end %>
           </div>
 
-          <h1 class="text-white text-xl font-semibold font-['Poppins'] mb-4">
+          <div class="text-white text-xl font-semibold font-['Poppins']">
             <%= @video.title %>
-          </h1>
+          </div>
 
-          <div class="flex justify-between items-center mb-7">
+          <div class="flex justify-between items-center">
             <div class="text-white text-sm font-semibold font-['Poppins']">
-              <%= @video.views %> views • <%= @video.created_at %>
+              <%= format_views(@video.views) %> views • <%= format_time_ago(@video.created_at) %>
             </div>
 
             <div class="flex gap-2">
               <div class="px-4 py-1.5 bg-[#323340] rounded-full flex items-center gap-2">
-                <button
-                  phx-click="like_video"
-                  class={"flex items-center gap-1 #{if @is_liked, do: "text-blue-500", else: "text-white"}"}
-                >
-                  <Heroicons.hand_thumb_up
-                    solid={@is_liked}
-                    outline={!@is_liked}
-                    class="w-6 h-6"
-                  />
-                  <span class="text-sm font-semibold font-['Poppins']">
-                    <%= format_number(@video.likes) %>
+                <button phx-click="react" phx-value-type="like" class="flex items-center gap-1">
+                  <Heroicons.hand_thumb_up class="w-6 h-6 text-white" />
+                  <span class="text-white text-sm font-semibold font-['Poppins']">
+                    <%= Map.get(@video.reaction_counts, :like, 0) %>
                   </span>
                 </button>
-
                 <div class="w-px h-6 bg-zinc-300"></div>
-
-                <button
-                  phx-click="dislike_video"
-                  class={"#{if @is_disliked, do: "text-blue-500", else: "text-white"}"}
-                >
-                  <Heroicons.hand_thumb_down
-                    solid={@is_disliked}
-                    outline={!@is_disliked}
-                    class="w-6 h-6"
-                  />
+                <button phx-click="react" phx-value-type="love" class="flex items-center gap-1">
+                  <Heroicons.heart class="w-6 h-6 text-white" />
                 </button>
               </div>
 
               <button
-                phx-click="share_video"
-                class="px-4 py-1.5 bg-[#323340] rounded-full flex items-center gap-1 text-white hover:bg-[#3a3b4a] transition-colors"
+                phx-click="share"
+                class="px-4 py-1.5 bg-[#323340] rounded-full flex items-center gap-1 hover:bg-[#3a3b4a] transition-colors"
               >
-                <Heroicons.share outline class="w-6 h-6" />
-                <span class="text-sm font-semibold font-['Poppins']">Share</span>
+                <Heroicons.share class="w-6 h-6 text-white" />
+                <span class="text-white text-sm font-semibold font-['Poppins']">Share</span>
               </button>
 
               <button
-                phx-click="save_video"
-                class={"px-4 py-1.5 bg-[#323340] rounded-full flex items-center gap-2 hover:bg-[#3a3b4a] transition-colors #{if @is_saved, do: "text-blue-500", else: "text-white"}"}
+                phx-click="save"
+                class="px-4 py-1.5 bg-[#323340] rounded-full flex items-center gap-2 hover:bg-[#3a3b4a] transition-colors"
               >
-                <Heroicons.bookmark solid={@is_saved} outline={!@is_saved} class="w-6 h-6" />
-                <span class="text-sm font-semibold font-['Poppins']">
-                  <%= if @is_saved, do: "Saved", else: "Save" %>
-                </span>
+                <Heroicons.bookmark class="w-6 h-6 text-white" />
+                <span class="text-white text-sm font-semibold font-['Poppins']">Save</span>
               </button>
             </div>
           </div>
 
-          <div class="p-5 bg-[#323340] rounded-[20px] mb-6">
-            <div class="flex justify-between items-center mb-5">
-              <div class="flex gap-2.5">
+          <div class="p-5 bg-[#323340] rounded-[20px] space-y-5">
+            <div class="flex justify-between items-center">
+              <div class="flex items-center gap-2.5">
                 <img
-                  src={@video.creator_avatar}
+                  src={@creator.avatar}
                   class="w-12 h-12 rounded-full object-cover"
-                  alt={@video.creator}
+                  alt={@creator.username}
                 />
-                <div>
+                <div class="flex flex-col">
                   <div class="text-gray-300 text-sm font-semibold font-['Poppins']">
-                    <%= @video.creator %>
+                    <%= @creator.username %>
                   </div>
-                  <div class="text-gray-300 text-sm font-['Poppins']">
-                    <%= @video.subscribers %> subscribers
+                  <div class="text-gray-300 text-sm font-normal font-['Poppins']">
+                    <%= @creator.subscribers %> subscribers
                   </div>
                 </div>
               </div>
 
               <button
+                :if={!@is_subscribed}
                 phx-click="subscribe"
-                class={"px-5 py-2.5 rounded-[10px] font-bold text-sm transition-colors #{if @is_subscribed, do: "bg-zinc-600 text-white hover:bg-zinc-500", else: "bg-blue-500 text-white hover:bg-blue-600"}"}
+                class="px-5 py-2.5 bg-blue-500 rounded-lg hover:bg-blue-600 transition-colors"
               >
-                <%= if @is_subscribed, do: "Subscribed", else: "Subscribe" %>
+                <span class="text-white text-sm font-bold font-['Roboto']">Subscribe</span>
               </button>
+
+              <div :if={@is_subscribed} class="px-5 py-2.5 bg-gray-600 rounded-lg">
+                <span class="text-white text-sm font-bold font-['Roboto']">Subscribed</span>
+              </div>
             </div>
 
-            <div class="text-white text-sm font-['Poppins'] whitespace-pre-line">
-              <%= @video.description %>
+            <div class="space-y-2.5">
+              <p class="text-white text-sm font-normal font-['Poppins']">
+                <%= @video.description %>
+              </p>
             </div>
           </div>
 
-          <div class="pt-6 pb-8">
-            <div class="flex justify-between items-center mb-6">
-              <div class="text-white text-base font-['Poppins']">
+          <div class="pt-6 space-y-6">
+            <div class="flex items-center justify-between">
+              <div class="text-white text-base font-normal font-['Poppins']">
                 <%= length(@comments) %> Comments
               </div>
             </div>
 
-            <div class="flex gap-2.5 mb-6">
+            <div class="flex gap-2.5">
               <img
-                src={@user.avatar_url || "/images/default-avatar.png"}
-                class="w-10 h-10 rounded-full object-cover flex-shrink-0"
-                alt={@user.username}
+                src={if @user, do: "/images/default-avatar.png", else: "/images/default-avatar.png"}
+                class="w-10 h-10 rounded-full object-cover"
+                alt="Your avatar"
               />
-
-              <form phx-submit="add_comment" class="flex gap-2.5 flex-1">
+              <div class="flex-1 flex gap-2.5">
                 <input
                   type="text"
-                  name="comment"
+                  phx-change="update_comment"
                   value={@comment_text}
                   placeholder="Add a public comment..."
-                  class="flex-1 px-5 py-2 bg-[#323340] rounded-[10px] text-neutral-400 text-sm font-['Poppins'] outline-none focus:outline-blue-500"
+                  class="flex-1 px-5 py-2 bg-[#323340] rounded-lg text-white placeholder-[#aaaaaa] focus:outline-none focus:border-2 focus:border-blue-500"
                 />
                 <button
-                  type="submit"
-                  class="px-8 py-2 bg-blue-500 rounded-[10px] text-white text-base font-['Poppins'] hover:bg-blue-600 transition-colors"
+                  phx-click="add_comment"
+                  phx-value-comment={@comment_text}
+                  class="px-8 py-2 bg-blue-500 rounded-lg hover:bg-blue-600 transition-colors"
                 >
-                  Send
+                  <span class="text-white text-base font-normal font-['Poppins']">Send</span>
                 </button>
-              </form>
+              </div>
             </div>
 
-            <div class="space-y-3.5">
-              <%= for comment <- @comments do %>
-                <div class="flex gap-2.5">
-                  <img
-                    src={comment.author_avatar}
-                    class="w-10 h-10 rounded-full object-cover flex-shrink-0"
-                    alt={comment.author}
-                  />
-
-                  <div class="flex-1">
-                    <div class="flex items-center gap-2 mb-1">
-                      <span class="text-white text-sm font-semibold font-['Poppins']">
-                        <%= comment.author %>
-                      </span>
-                      <span class="text-neutral-400 text-xs font-['Poppins']">
-                        <%= comment.created_at %>
-                      </span>
-                    </div>
-
-                    <div class="text-white text-sm font-['Poppins'] mb-2">
-                      <%= comment.text %>
+            <div class="space-y-5">
+              <%= if @comments == [] do %>
+                <div class="text-center py-8">
+                  <p class="text-gray-400 text-sm font-['Poppins']">No comments yet. Be the first to comment!</p>
+                </div>
+              <% else %>
+                <%= for comment <- @comments do %>
+                  <div class="flex gap-2.5">
+                    <img
+                      src="/images/default-avatar.png"
+                      class="w-10 h-10 rounded-full object-cover"
+                      alt="Commenter"
+                    />
+                    <div class="flex-1 space-y-1">
+                      <div class="flex items-center gap-2">
+                        <span class="text-white text-sm font-semibold font-['Poppins']">User</span>
+                        <span class="text-neutral-400 text-xs font-normal font-['Poppins']">Just now</span>
+                      </div>
+                      <p class="text-white text-sm font-normal font-['Poppins']">
+                        <%= comment %>
+                      </p>
                     </div>
                   </div>
-                </div>
+                <% end %>
               <% end %>
             </div>
           </div>
         </div>
 
-        <div class="w-[457px] space-y-5">
+        <aside class="w-[437px] space-y-5">
           <%= for video <- @related_videos do %>
             <div
-              phx-click="play_related_video"
+              phx-click="play_related"
               phx-value-id={video.id}
-              class="flex gap-2.5 hover:bg-[#323340]/50 rounded-md transition-colors p-2 cursor-pointer"
+              class="flex gap-2.5 cursor-pointer hover:bg-[#323340] p-2 rounded-lg transition-colors"
             >
-              <div class="relative w-56 h-36 flex-shrink-0">
+              <div class="w-56 h-36 relative flex-shrink-0">
                 <img
                   src={video.thumbnail_url}
                   class="w-full h-full rounded-md object-cover"
                   alt={video.title}
                 />
-
-                <%= if video.duration do %>
-                  <div class="absolute bottom-2 right-2 px-2 py-1 bg-black/70 rounded-full">
-                    <span class="text-white text-sm font-['Poppins']"><%= video.duration %></span>
-                  </div>
-                <% end %>
+                <div class="absolute bottom-2 right-2 px-2 py-1 bg-black/50 rounded text-white text-xs">
+                  <%= video.duration %>
+                </div>
               </div>
 
-              <div class="flex-1">
-                <h3 class="text-white text-base font-semibold font-['Poppins'] line-clamp-2 mb-1">
+              <div class="flex-1 space-y-1">
+                <h3 class="text-white text-base font-semibold font-['Poppins'] line-clamp-2">
                   <%= video.title %>
                 </h3>
-                <p class="text-gray-300 text-sm font-['Poppins']">
+                <p class="text-gray-300 text-sm font-normal font-['Poppins']">
                   <%= video.creator %>
                 </p>
-                <p class="text-gray-300 text-sm font-['Poppins']">
+                <p class="text-gray-300 text-sm font-normal font-['Poppins']">
                   <%= video.views %> views • <%= video.created_at %>
                 </p>
               </div>
             </div>
           <% end %>
-        </div>
+        </aside>
       </div>
     </main>
   </div>

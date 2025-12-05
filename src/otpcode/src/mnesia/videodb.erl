@@ -129,6 +129,7 @@
     update_analytics/1,
 
     create_video_with_rust/10,
+    upload_video_to_ipfs_simple/2,
     start_live_stream_with_rust/4,
     track_video_playback/3,
     update_playback_position/2,
@@ -476,39 +477,34 @@ get_videos_by_tag(Tag) ->
     {atomic, Res} = mnesia:transaction(Fun),
     Res.
 
-get_video_content(VideoId) ->
-    Fun = fun() ->
-        case mnesia:read({video, VideoId}) of
-            [] -> {error, video_not_found};
-            [Video] ->
-                IPFSCID = Video#video.ipfs_cid,
-                case IPFSCID of
-                    {pending, Id} when Id =:= VideoId ->
-                        case content_cache:get({video_file, Id}) of
-                            undefined -> {error, content_not_ready};
-                            CachedContent -> {ok, CachedContent}
-                        end;
-                    {pending_update, Id} when Id =:= VideoId ->
-                        case content_cache:get({video_file_update, Id}) of
-                            undefined -> {error, content_not_ready};
-                            CachedContent -> {ok, CachedContent}
-                        end;
-                    _ ->
-                        try
-                            ActualContent = ipfs_media:get_media_binary(IPFSCID),
-                            {ok, ActualContent}
-                        catch
-                            _:Error -> {error, Error}
-                        end
-                end
-        end
-    end,
+    get_video_content(VideoId) ->
+        Fun = fun() ->
+            case mnesia:read({video, VideoId}) of
+                [] -> {error, video_not_found};
+                [Video] ->
+                    IPFSCID = Video#video.ipfs_cid,
+                    case IPFSCID of
+                        {pending, Id} when Id =:= VideoId ->
+                            case content_cache:get({video_file, Id}) of
+                                undefined -> {error, content_not_ready};
+                                CachedContent -> {ok, CachedContent}
+                            end;
+                        _ ->
+                            try
+                                ActualContent = ipfs_video:get_video_binary(IPFSCID),
+                                {ok, ActualContent}
+                            catch
+                                _:Error -> {error, Error}
+                            end
+                    end
+            end
+        end,
 
-    case mnesia:transaction(Fun) of
-        {atomic, {ok, Content}} -> Content;
-        {atomic, {error, Reason}} -> {error, Reason};
-        Error -> Error
-    end.
+        case mnesia:transaction(Fun) of
+            {atomic, {ok, Content}} -> Content;
+            {atomic, {error, Reason}} -> {error, Reason};
+            Error -> Error
+        end.
 
 get_video_metadata(VideoId) ->
     Fun = fun() ->
@@ -2681,23 +2677,33 @@ upload_video_version(VideoId, VideoFile) ->
         write_video_with_retry(_Video, _UserId, 0) ->
             {error, max_retries_exceeded}.
 
-            create_video_with_rust(CreatorId, Title, Description, VideoFile, Duration, Privacy, Tags, AllowComments, AllowDownloads, Monetized) ->
-                VideoData = if
-                    is_binary(VideoFile) andalso byte_size(VideoFile) < 1000 ->
-                        case file:read_file(VideoFile) of
-                            {ok, Content} -> Content;
-                            {error, _} -> VideoFile
-                        end;
-                    true -> VideoFile
-                end,
-
+            create_video_with_rust(CreatorId, Title, Description, VideoFileOrPath, Duration, Privacy, Tags, AllowComments, AllowDownloads, Monetized) ->
                 Fun = fun() ->
                     Id = nanoid:gen(),
                     Now = calendar:universal_time(),
                     AI_Video_ID = ai_videodb:insert_in_transaction(Id),
 
-                    ok = content_cache:set({video_file, Id}, VideoData),
-                    SizeBytes = calculate_content_size(VideoData),
+                    {SizeBytes, IsFilePath} = case VideoFileOrPath of
+                        Path when is_list(Path) ->
+                            case filelib:is_file(Path) of
+                                true ->
+                                    case file:read_file_info(Path) of
+                                        {ok, FileInfo} -> {FileInfo#file_info.size, true};
+                                        _ -> {0, false}
+                                    end;
+                                false ->
+                                    {length(Path), false}
+                            end;
+                        Binary when is_binary(Binary) ->
+                            {byte_size(Binary), false}
+                    end,
+
+                    if
+                        IsFilePath ->
+                            ok = content_cache:set({video_file_path, Id}, VideoFileOrPath);
+                        true ->
+                            ok = content_cache:set({video_file, Id}, VideoFileOrPath)
+                    end,
 
                     Video = #video{
                         id = Id,
@@ -2720,6 +2726,13 @@ upload_video_version(VideoId, VideoFile) ->
                         views = 0,
                         unique_views = 0,
                         likes = [],
+                        thumbnail_url = undefined,
+                        original_resolution = undefined,
+                        codec = undefined,
+                        bitrate = undefined,
+                        frame_rate = undefined,
+                        subtitles = [],
+                        available_qualities = [],
                         reactions = #{
                             like => [],
                             love => [],
@@ -2736,14 +2749,20 @@ upload_video_version(VideoId, VideoFile) ->
                         },
                         comments = [],
                         shares = 0,
-                        saves = 0
+                        saves = 0,
+                        data = #{is_file_path => IsFilePath}
                     },
 
                     mnesia:write(Video),
 
                     case mnesia:read({user, CreatorId}) of
                         [User] ->
-                            mnesia:write(User#user{media = [Id | User#user.media]});
+                            CurrentMedia = case User#user.media of
+                                undefined -> [Id];
+                                List when is_list(List) -> [Id | List];
+                                _ -> [Id]
+                            end,
+                            mnesia:write(User#user{media = CurrentMedia});
                         [] ->
                             error_logger:warning_msg("User ~p not found when creating video", [CreatorId])
                     end,
@@ -2754,7 +2773,7 @@ upload_video_version(VideoId, VideoFile) ->
                 case mnesia:transaction(Fun) of
                     {atomic, {ok, Id}} ->
                         spawn(fun() ->
-                            upload_video_to_ipfs_with_rust(Id, VideoData)
+                            upload_video_to_ipfs_simple(Id, VideoFileOrPath)
                         end),
                         Id;
                     {atomic, {error, Reason}} ->
@@ -2763,144 +2782,317 @@ upload_video_version(VideoId, VideoFile) ->
                         {error, {transaction_failed, Reason}}
                 end.
 
-                upload_video_to_ipfs_with_rust(VideoId, VideoFile) when is_binary(VideoFile) ->
+
+                upload_video_to_ipfs_simple(VideoId, VideoFileOrPath) ->
                     try
-                        Size = byte_size(VideoFile),
-
-                        VideoCID = if
-                            Size > ?CHUNK_SIZE ->
-                                upload_large_file_chunked(VideoFile);
-                            true ->
-                                ipfs_media:upload_media(VideoFile)
+                        {InputType, Size} = case VideoFileOrPath of
+                            Path when is_list(Path) ->
+                                case filelib:is_file(Path) of
+                                    true ->
+                                        case filelib:file_size(Path) of
+                                            {error, _} -> {binary, byte_size(list_to_binary(Path))};
+                                            FileSize -> {file_path, FileSize}
+                                        end;
+                                    false ->
+                                        {binary, length(Path)}
+                                end;
+                            Binary when is_binary(Binary) ->
+                                {binary, byte_size(Binary)}
                         end,
 
-                        TempFilePath = "/tmp/mazaryn_video_" ++ VideoId ++ ".tmp",
-                        ok = file:write_file(TempFilePath, VideoFile),
+                        error_logger:info_msg("Starting IPFS upload for video ~p, type: ~p, size: ~p bytes",
+                                              [VideoId, InputType, Size]),
 
-                        VideoInfo = case media_video_client:get_video_info(TempFilePath) of
-                            {ok, Info} -> Info;
-                            {error, InfoReason} ->
-                                error_logger:warning_msg("Failed to get video info: ~p", [InfoReason]),
-                                #{}
-                        end,
-
-                        file:delete(TempFilePath),
-
-                        Duration = maps:get(duration, VideoInfo, 0.0),
-                        Resolution = case maps:get(resolution, VideoInfo, undefined) of
-                            #{width := W, height := H} ->
-                                integer_to_list(W) ++ "x" ++ integer_to_list(H);
-                            _ -> "unknown"
-                        end,
-                        Codec = maps:get(codec, VideoInfo, "unknown"),
-                        Bitrate = maps:get(bitrate, VideoInfo, 0),
-                        FrameRate = maps:get(frame_rate, VideoInfo, 0.0),
-
-                        UpdateF = fun() ->
-                            case mnesia:read({video, VideoId}) of
-                                [Video] ->
-                                    UpdatedVideo = Video#video{
-                                        ipfs_cid = VideoCID,
-                                        file_url = VideoCID,
-                                        status = ready,
-                                        duration_seconds = Duration,
-                                        original_resolution = Resolution,
-                                        codec = Codec,
-                                        bitrate = Bitrate,
-                                        frame_rate = FrameRate
-                                    },
-                                    mnesia:write(UpdatedVideo);
-                                [] -> ok
-                            end
-                        end,
-                        mnesia:transaction(UpdateF),
-
-                        content_cache:delete({video_file, VideoId}),
-
-                        spawn(fun() ->
-                            timer:sleep(5000),
-                            case mnesia:read({video, VideoId}) of
-                                [Video] ->
-                                    case Video#video.ipfs_cid of
-                                        CID when is_list(CID) ->
-                                            Qualities = ["1080p", "720p", "480p", "360p"],
-                                            case media_video_client:create_transcoding_job(
-                                                VideoId,
-                                                CID,
-                                                Qualities
-                                            ) of
-                                                {ok, JobId} ->
-                                                    error_logger:info_msg("Transcoding job created: ~p for video ~p", [JobId, VideoId]),
-                                                    UpdateTranscodingF = fun() ->
-                                                        case mnesia:read({video, VideoId}) of
-                                                            [V] ->
-                                                                CurrentData = V#video.data,
-                                                                UpdatedData = maps:put(transcoding_job_id, JobId, CurrentData),
-                                                                mnesia:write(V#video{data = UpdatedData});
-                                                            [] -> ok
-                                                        end
-                                                    end,
-                                                    mnesia:transaction(UpdateTranscodingF);
-                                                {error, TranscodingReason} ->
-                                                    error_logger:error_msg("Failed to create transcoding job for video ~p: ~p", [VideoId, TranscodingReason])
-                                            end;
-                                        _ ->
-                                            error_logger:warning_msg("Video CID not ready for transcoding: ~p", [VideoId])
-                                    end;
-                                [] ->
-                                    error_logger:warning_msg("Video not found for transcoding: ~p", [VideoId])
-                            end
-                        end),
-
-                        spawn(fun() ->
-                            timer:sleep(10000),
-                            try
-                                KeyName = "video_" ++ VideoId,
-                                {ok, #{id := _KeyID, name := _BinID}} = ipfs_client_4:key_gen(KeyName),
-
-                                PublishOptions = [
-                                    {key, KeyName},
-                                    {resolve, false},
-                                    {lifetime, "168h0m0s"},
-                                    {ttl, "15m0s"},
-                                    {v1compat, true},
-                                    {ipns_base, "base36"},
-                                    {quieter, true},
-                                    {'allow-offline', true}
-                                ],
-
-                                case ipfs_client_5:name_publish("/ipfs/" ++ VideoCID, PublishOptions) of
-                                    {ok, #{name := IPNSKey}} ->
-                                        update_video_ipns(VideoId, IPNSKey);
-                                    {error, IPNSReason} ->
-                                        error_logger:error_msg("IPNS publish failed for video ~p: ~p", [VideoId, IPNSReason])
+                        VideoCID = case InputType of
+                            file_path ->
+                                error_logger:info_msg("Uploading video from file path: ~p", [VideoFileOrPath]),
+                                case ipfs_video:upload_video(VideoFileOrPath) of
+                                    {error, Reason} ->
+                                        error_logger:error_msg("IPFS upload failed: ~p", [Reason]),
+                                        error;
+                                    CID when is_list(CID) ->
+                                        error_logger:info_msg("Successfully uploaded video to IPFS: ~p", [CID]),
+                                        CID;
+                                    CID when is_binary(CID) ->
+                                        error_logger:info_msg("Successfully uploaded video to IPFS: ~p", [CID]),
+                                        binary_to_list(CID);
+                                    Other ->
+                                        error_logger:error_msg("Unexpected IPFS upload result: ~p", [Other]),
+                                        error
+                                end;
+                            binary ->
+                                if
+                                    Size > ?CHUNK_SIZE ->
+                                        error_logger:info_msg("Large video binary detected, using chunked upload"),
+                                        upload_large_file_chunked(VideoFileOrPath);
+                                    true ->
+                                        error_logger:info_msg("Uploading video binary to IPFS via ipfs_video"),
+                                        case ipfs_video:upload_video(VideoFileOrPath) of
+                                            {error, Reason} ->
+                                                error_logger:error_msg("IPFS upload failed: ~p", [Reason]),
+                                                error;
+                                            CID when is_list(CID) ->
+                                                error_logger:info_msg("Successfully uploaded video to IPFS: ~p", [CID]),
+                                                CID;
+                                            CID when is_binary(CID) ->
+                                                error_logger:info_msg("Successfully uploaded video to IPFS: ~p", [CID]),
+                                                binary_to_list(CID);
+                                            Other ->
+                                                error_logger:error_msg("Unexpected IPFS upload result: ~p", [Other]),
+                                                error
+                                        end
                                 end
-                            catch
-                                IPNSException:IPNSError:IPNSStacktrace ->
-                                    error_logger:error_msg(
-                                        "Exception while publishing to IPNS for video ~p: ~p:~p~n~p",
-                                        [VideoId, IPNSException, IPNSError, IPNSStacktrace]
-                                    )
-                            end
-                        end),
+                        end,
 
-                        ok
+                        case VideoCID of
+                            error ->
+                                error_logger:error_msg("Failed to upload video content to IPFS for video ~p", [VideoId]),
+                                UpdateF = fun() ->
+                                    case mnesia:read({video, VideoId}) of
+                                        [Video] ->
+                                            mnesia:write(Video#video{
+                                                ipfs_cid = {error, ipfs_upload_failed},
+                                                file_url = {error, ipfs_upload_failed},
+                                                status = failed
+                                            });
+                                        [] -> ok
+                                    end
+                                end,
+                                mnesia:transaction(UpdateF);
+                            ValidCID ->
+                                error_logger:info_msg("Video content uploaded successfully: ~p", [ValidCID]),
+
+                                UpdateF = fun() ->
+                                    case mnesia:read({video, VideoId}) of
+                                        [Video] ->
+                                            UpdatedVideo = Video#video{
+                                                ipfs_cid = ValidCID,
+                                                file_url = ValidCID,
+                                                status = ready
+                                            },
+                                            mnesia:write(UpdatedVideo);
+                                        [] -> ok
+                                    end
+                                end,
+                                mnesia:transaction(UpdateF),
+
+                                content_cache:delete({video_file, VideoId}),
+                                content_cache:delete({video_file_path, VideoId}),
+
+                                spawn(fun() ->
+                                    timer:sleep(10000),
+                                    try
+                                        KeyName = "video_" ++ VideoId,
+                                        error_logger:info_msg("Generating IPNS key: ~p", [KeyName]),
+                                        {ok, #{id := _KeyID, name := _BinID}} = ipfs_client_4:key_gen(KeyName),
+
+                                        PublishOptions = [
+                                            {key, KeyName},
+                                            {resolve, false},
+                                            {lifetime, "168h0m0s"},
+                                            {ttl, "15m0s"},
+                                            {v1compat, true},
+                                            {ipns_base, "base36"},
+                                            {quieter, true},
+                                            {'allow-offline', true}
+                                        ],
+
+                                        error_logger:info_msg("Publishing to IPNS: /ipfs/~p", [ValidCID]),
+                                        case ipfs_client_5:name_publish("/ipfs/" ++ ValidCID, PublishOptions) of
+                                            {ok, #{name := IPNSKey}} ->
+                                                error_logger:info_msg("IPNS publish successful: ~p", [IPNSKey]),
+                                                update_video_ipns(VideoId, IPNSKey);
+                                            {error, IPNSReason} ->
+                                                error_logger:error_msg("IPNS publish failed for video ~p: ~p", [VideoId, IPNSReason])
+                                        end
+                                    catch
+                                        Exception:Error:Stacktrace ->
+                                            error_logger:error_msg(
+                                                "Exception while publishing to IPNS for video ~p: ~p:~p~n~p",
+                                                [VideoId, Exception, Error, Stacktrace]
+                                            )
+                                    end
+                                end),
+
+                                ok
+                        end
                     catch
                         Exception:Error:Stacktrace ->
                             error_logger:error_msg(
                                 "Exception while uploading video ~p to IPFS: ~p:~p~n~p",
                                 [VideoId, Exception, Error, Stacktrace]
                             ),
-
                             UpdateStatusF = fun() ->
                                 case mnesia:read({video, VideoId}) of
                                     [Video] ->
-                                        mnesia:write(Video#video{status = failed});
+                                        mnesia:write(Video#video{
+                                            status = failed,
+                                            ipfs_cid = {error, ipfs_upload_failed}
+                                        });
                                     [] -> ok
                                 end
                             end,
                             mnesia:transaction(UpdateStatusF)
                     end.
+
+                    upload_video_to_ipfs_with_rust(VideoId, VideoFile) when is_binary(VideoFile) ->
+                        try
+                            Size = byte_size(VideoFile),
+
+                            VideoCID = if
+                                Size > ?CHUNK_SIZE ->
+                                    upload_large_file_chunked(VideoFile);
+                                true ->
+                                    ipfs_media:upload_media(VideoFile)
+                            end,
+                            TempDir = "/tmp",
+                            filelib:ensure_dir(TempDir ++ "/"),
+                            TempFilePath = TempDir ++ "/mazaryn_video_" ++ VideoId ++ ".webm",
+
+                            case file:write_file(TempFilePath, VideoFile) of
+                                ok ->
+                                    VideoInfo = case media_video_client:get_video_info(TempFilePath) of
+                                        {ok, Info} -> Info;
+                                        {error, InfoReason} ->
+                                            error_logger:warning_msg("Failed to get video info: ~p", [InfoReason]),
+                                            #{}
+                                    end,
+
+                                    file:delete(TempFilePath),
+
+                                    Duration = maps:get(duration, VideoInfo, 0.0),
+                                    Resolution = case maps:get(resolution, VideoInfo, undefined) of
+                                        #{width := W, height := H} ->
+                                            integer_to_list(W) ++ "x" ++ integer_to_list(H);
+                                        _ -> "unknown"
+                                    end,
+                                    Codec = maps:get(codec, VideoInfo, "unknown"),
+                                    Bitrate = maps:get(bitrate, VideoInfo, 0),
+                                    FrameRate = maps:get(frame_rate, VideoInfo, 0.0),
+
+                                    UpdateF = fun() ->
+                                        case mnesia:read({video, VideoId}) of
+                                            [Video] ->
+                                                UpdatedVideo = Video#video{
+                                                    ipfs_cid = VideoCID,
+                                                    file_url = VideoCID,
+                                                    status = ready,
+                                                    duration_seconds = Duration,
+                                                    original_resolution = Resolution,
+                                                    codec = Codec,
+                                                    bitrate = Bitrate,
+                                                    frame_rate = FrameRate
+                                                },
+                                                mnesia:write(UpdatedVideo);
+                                            [] -> ok
+                                        end
+                                    end,
+                                    mnesia:transaction(UpdateF),
+
+                                    content_cache:delete({video_file, VideoId}),
+
+                                    spawn(fun() ->
+                                        timer:sleep(5000),
+                                        case mnesia:read({video, VideoId}) of
+                                            [Video] ->
+                                                case Video#video.ipfs_cid of
+                                                    CID when is_list(CID) ->
+                                                        Qualities = ["1080p", "720p", "480p", "360p"],
+                                                        case media_video_client:create_transcoding_job(
+                                                            VideoId,
+                                                            CID,
+                                                            Qualities
+                                                        ) of
+                                                            {ok, JobId} ->
+                                                                error_logger:info_msg("Transcoding job created: ~p for video ~p", [JobId, VideoId]),
+                                                                UpdateTranscodingF = fun() ->
+                                                                    case mnesia:read({video, VideoId}) of
+                                                                        [V] ->
+                                                                            CurrentData = V#video.data,
+                                                                            UpdatedData = maps:put(transcoding_job_id, JobId, CurrentData),
+                                                                            mnesia:write(V#video{data = UpdatedData});
+                                                                        [] -> ok
+                                                                    end
+                                                                end,
+                                                                mnesia:transaction(UpdateTranscodingF);
+                                                            {error, TranscodingReason} ->
+                                                                error_logger:error_msg("Failed to create transcoding job for video ~p: ~p", [VideoId, TranscodingReason])
+                                                        end;
+                                                    _ ->
+                                                        error_logger:warning_msg("Video CID not ready for transcoding: ~p", [VideoId])
+                                                end;
+                                            [] ->
+                                                error_logger:warning_msg("Video not found for transcoding: ~p", [VideoId])
+                                        end
+                                    end),
+
+                                    spawn(fun() ->
+                                        timer:sleep(20000),
+                                        try
+                                            KeyName = "video_" ++ VideoId,
+                                            {ok, #{id := _KeyID, name := _BinID}} = ipfs_client_4:key_gen(KeyName),
+
+                                            PublishOptions = [
+                                                {key, KeyName},
+                                                {resolve, false},
+                                                {lifetime, "168h0m0s"},
+                                                {ttl, "15m0s"},
+                                                {v1compat, true},
+                                                {ipns_base, "base36"},
+                                                {quieter, true},
+                                                {'allow-offline', true}
+                                            ],
+
+                                            case ipfs_client_5:name_publish("/ipfs/" ++ VideoCID, PublishOptions) of
+                                                {ok, #{name := IPNSKey}} ->
+                                                    update_video_ipns(VideoId, IPNSKey);
+                                                {error, IPNSReason} ->
+                                                    error_logger:error_msg("IPNS publish failed for video ~p: ~p", [VideoId, IPNSReason])
+                                            end
+                                        catch
+                                            IPNSException:IPNSError:IPNSStacktrace ->
+                                                error_logger:error_msg(
+                                                    "Exception while publishing to IPNS for video ~p: ~p:~p~n~p",
+                                                    [VideoId, IPNSException, IPNSError, IPNSStacktrace]
+                                                )
+                                        end
+                                    end),
+
+                                    ok;
+                                {error, WriteReason} ->
+                                    error_logger:error_msg("Failed to write temp file for video ~p: ~p", [VideoId, WriteReason]),
+
+                                    UpdateF = fun() ->
+                                        case mnesia:read({video, VideoId}) of
+                                            [Video] ->
+                                                UpdatedVideo = Video#video{
+                                                    ipfs_cid = VideoCID,
+                                                    file_url = VideoCID,
+                                                    status = ready
+                                                },
+                                                mnesia:write(UpdatedVideo);
+                                            [] -> ok
+                                        end
+                                    end,
+                                    mnesia:transaction(UpdateF),
+                                    content_cache:delete({video_file, VideoId})
+                            end
+                        catch
+                            Exception:Error:Stacktrace ->
+                                error_logger:error_msg(
+                                    "Exception while uploading video ~p to IPFS: ~p:~p~n~p",
+                                    [VideoId, Exception, Error, Stacktrace]
+                                ),
+
+                                UpdateStatusF = fun() ->
+                                    case mnesia:read({video, VideoId}) of
+                                        [Video] ->
+                                            mnesia:write(Video#video{status = failed});
+                                        [] -> ok
+                                    end
+                                end,
+                                mnesia:transaction(UpdateStatusF)
+                        end.
 
             update_video_ipns(VideoId, IPNSKey) ->
                 UpdateF = fun() ->

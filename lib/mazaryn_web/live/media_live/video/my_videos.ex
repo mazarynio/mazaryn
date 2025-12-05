@@ -4,7 +4,10 @@ defmodule MazarynWeb.MediaLive.Video.MyVideos do
 
   @impl true
   def mount(_params, session, socket) do
+    Logger.info("===== MY_VIDEOS MOUNT: Session keys: #{inspect(Map.keys(session))} =====")
+
     user = get_user_from_session(session)
+    Logger.info("===== MY_VIDEOS MOUNT: User: #{inspect(user)} =====")
 
     {:ok,
      socket
@@ -34,6 +37,10 @@ defmodule MazarynWeb.MediaLive.Video.MyVideos do
   def handle_event("delete_video", %{"id" => video_id}, socket) do
     user_id = get_user_id(socket.assigns.user)
 
+    Logger.info(
+      "===== DELETE_VIDEO: Deleting video #{video_id} for user #{inspect(user_id)} ====="
+    )
+
     case :videodb.delete_video(video_id, user_id) do
       {:ok, _} ->
         {:noreply,
@@ -59,6 +66,37 @@ defmodule MazarynWeb.MediaLive.Video.MyVideos do
   @impl true
   def handle_event("navigate_to_upload", _params, socket) do
     {:noreply, push_navigate(socket, to: ~p"/#{socket.assigns.locale}/videos/upload")}
+  end
+
+  @impl true
+  def handle_info({:view_video, video_id}, socket) do
+    Logger.info("===== VIEW_VIDEO INFO: Navigating to video #{video_id} =====")
+    video_id_string = to_string(video_id)
+    {:noreply, push_navigate(socket, to: ~p"/#{socket.assigns.locale}/videos/#{video_id_string}")}
+  end
+
+  @impl true
+  def handle_info({:edit_video, video_id}, socket) do
+    Logger.info("===== EDIT_VIDEO INFO: Navigating to edit #{video_id} =====")
+    {:noreply, push_navigate(socket, to: ~p"/#{socket.assigns.locale}/videos/#{video_id}/edit")}
+  end
+
+  @impl true
+  def handle_info({:delete_video, video_id}, socket) do
+    Logger.info("===== DELETE_VIDEO INFO: Deleting video #{video_id} =====")
+
+    user_id = get_user_id(socket.assigns.user)
+
+    case :videodb.delete_video(video_id, user_id) do
+      {:ok, _} ->
+        {:noreply,
+         socket
+         |> put_flash(:info, "Video deleted successfully")
+         |> load_user_videos()}
+
+      _ ->
+        {:noreply, put_flash(socket, :error, "Failed to delete video")}
+    end
   end
 
   defp video_card(assigns) do
@@ -143,58 +181,146 @@ defmodule MazarynWeb.MediaLive.Video.MyVideos do
     """
   end
 
+  defp get_user_from_session(%{"session_uuid" => session_uuid}) when session_uuid != nil do
+    Logger.info("===== GET_USER_FROM_SESSION: Using session_uuid: #{session_uuid} =====")
+
+    case Account.Users.get_by_session_uuid(session_uuid) do
+      {:ok, user} ->
+        Logger.info("===== GET_USER_FROM_SESSION: User found via session_uuid =====")
+        user
+
+      {:error, reason} ->
+        Logger.error(
+          "===== GET_USER_FROM_SESSION: Error with session_uuid: #{inspect(reason)} ====="
+        )
+
+        nil
+
+      other ->
+        Logger.error(
+          "===== GET_USER_FROM_SESSION: Unknown session_uuid response: #{inspect(other)} ====="
+        )
+
+        nil
+    end
+  end
+
   defp get_user_from_session(%{"user_id" => user_id}) when user_id != nil do
-    case Core.UserClient.get_user_by_id(user_id) do
-      {:error, _} -> nil
-      user_tuple when is_tuple(user_tuple) -> user_tuple
-      _ -> nil
+    Logger.info("===== GET_USER_FROM_SESSION: Using user_id: #{user_id} =====")
+
+    charlist_id = if is_list(user_id), do: user_id, else: String.to_charlist(user_id)
+
+    case Core.UserClient.get_user_by_id(charlist_id) do
+      {:error, reason} ->
+        Logger.error("===== GET_USER_FROM_SESSION: Error with user_id: #{inspect(reason)} =====")
+        nil
+
+      :user_not_exist ->
+        Logger.error("===== GET_USER_FROM_SESSION: User does not exist =====")
+        nil
+
+      user_tuple when is_tuple(user_tuple) ->
+        Logger.info("===== GET_USER_FROM_SESSION: User tuple found =====")
+        user_tuple
+
+      other ->
+        Logger.error(
+          "===== GET_USER_FROM_SESSION: Unknown user_id response: #{inspect(other)} ====="
+        )
+
+        nil
     end
   end
 
-  defp get_user_from_session(%{"session_uuid" => _session_uuid, "user_id" => user_id})
-       when user_id != nil do
-    case Core.UserClient.get_user_by_id(user_id) do
-      {:error, _} -> nil
-      user_tuple when is_tuple(user_tuple) -> user_tuple
-      _ -> nil
-    end
+  defp get_user_from_session(session) do
+    Logger.error("===== GET_USER_FROM_SESSION: No valid session keys found =====")
+    Logger.error("===== GET_USER_FROM_SESSION: Session keys: #{inspect(Map.keys(session))} =====")
+    nil
   end
 
-  defp get_user_from_session(_), do: nil
+  defp get_user_id(%{id: db_id} = _user) when not is_nil(db_id) do
+    Logger.info("===== GET_USER_ID: Got Ecto struct with database ID: #{db_id} =====")
+    charlist_id = String.to_charlist(to_string(db_id))
+    Logger.info("===== GET_USER_ID: Looking up user with charlist: #{inspect(charlist_id)} =====")
+
+    case Core.UserClient.get_user_by_id(charlist_id) do
+      user_tuple when is_tuple(user_tuple) ->
+        Logger.info("===== GET_USER_ID: Got user tuple =====")
+        user_id = elem(user_tuple, 1)
+        Logger.info("===== GET_USER_ID: Extracted user_id: #{inspect(user_id)} =====")
+        user_id
+
+      {:error, reason} ->
+        Logger.error("===== GET_USER_ID: Error getting user tuple: #{inspect(reason)} =====")
+        nil
+
+      :user_not_exist ->
+        Logger.error("===== GET_USER_ID: User does not exist =====")
+        nil
+
+      other ->
+        Logger.error("===== GET_USER_ID: Unexpected response: #{inspect(other)} =====")
+        nil
+    end
+  end
 
   defp get_user_id(user_tuple) when is_tuple(user_tuple) do
-    elem(user_tuple, 1)
+    Logger.info("===== GET_USER_ID: Extracting from tuple =====")
+    user_id = elem(user_tuple, 1)
+    Logger.info("===== GET_USER_ID: User ID: #{inspect(user_id)} =====")
+    user_id
   end
 
-  defp get_user_id(_), do: nil
+  defp get_user_id(user) do
+    Logger.error("===== GET_USER_ID: Invalid user format: #{inspect(user)} =====")
+    nil
+  end
 
   defp load_user_videos(socket) do
     user_id = get_user_id(socket.assigns.user)
+    Logger.info("===== LOAD_USER_VIDEOS: Loading videos for user: #{inspect(user_id)} =====")
 
-    case :videodb.get_videos_by_creator(user_id) do
-      videos when is_list(videos) ->
-        formatted_videos = Enum.map(videos, &format_video/1)
+    if is_nil(user_id) do
+      Logger.error("===== LOAD_USER_VIDEOS: No user_id found =====")
 
-        all_videos = formatted_videos
+      socket
+      |> assign(:videos, [])
+      |> assign(:uploaded_videos, [])
+      |> assign(:live_streams, [])
+      |> assign(:scheduled, [])
+    else
+      case :videodb.get_videos_by_creator(user_id) do
+        videos when is_list(videos) ->
+          Logger.info("===== LOAD_USER_VIDEOS: Found #{length(videos)} videos =====")
+          formatted_videos = Enum.map(videos, &format_video/1)
 
-        uploaded_videos =
-          Enum.filter(formatted_videos, &(&1.status in ["ready", "processing", "failed"]))
+          all_videos = formatted_videos
 
-        live_streams = Enum.filter(formatted_videos, & &1.is_live)
-        scheduled = Enum.filter(formatted_videos, &(&1.visibility == "scheduled"))
+          uploaded_videos =
+            Enum.filter(formatted_videos, &(&1.status in ["ready", "processing", "failed"]))
 
-        socket
-        |> assign(:videos, all_videos)
-        |> assign(:uploaded_videos, uploaded_videos)
-        |> assign(:live_streams, live_streams)
-        |> assign(:scheduled, scheduled)
+          live_streams = Enum.filter(formatted_videos, & &1.is_live)
+          scheduled = Enum.filter(formatted_videos, &(&1.visibility == "scheduled"))
 
-      _ ->
-        socket
-        |> assign(:videos, [])
-        |> assign(:uploaded_videos, [])
-        |> assign(:live_streams, [])
-        |> assign(:scheduled, [])
+          Logger.info(
+            "===== LOAD_USER_VIDEOS: All: #{length(all_videos)}, Uploaded: #{length(uploaded_videos)}, Live: #{length(live_streams)}, Scheduled: #{length(scheduled)} ====="
+          )
+
+          socket
+          |> assign(:videos, all_videos)
+          |> assign(:uploaded_videos, uploaded_videos)
+          |> assign(:live_streams, live_streams)
+          |> assign(:scheduled, scheduled)
+
+        error ->
+          Logger.error("===== LOAD_USER_VIDEOS: Error loading videos: #{inspect(error)} =====")
+
+          socket
+          |> assign(:videos, [])
+          |> assign(:uploaded_videos, [])
+          |> assign(:live_streams, [])
+          |> assign(:scheduled, [])
+      end
     end
   end
 
@@ -206,31 +332,67 @@ defmodule MazarynWeb.MediaLive.Video.MyVideos do
       title: video.changes.title || "Untitled",
       description: video.changes.description || "No description available",
       thumbnail_url: get_thumbnail_url(video.changes),
-      url_slug: video.changes.file_url || "mazaryn.xyz://#{video.changes.id}",
+      url_slug: Map.get(video.changes, :file_url, "mazaryn.xyz://#{video.changes.id}"),
       duration: format_duration(video.changes.duration_seconds),
-      views: video.changes.views || 0,
-      status: Atom.to_string(video.changes.status || :ready),
-      visibility: Atom.to_string(video.changes.privacy || :public),
+      views: Map.get(video.changes, :views, 0),
+      status: to_string_safe(video.changes.status, "ready"),
+      visibility: to_string_safe(video.changes.privacy, "public"),
       created_at: format_time_ago(video.changes.date_created),
-      is_live: video.changes.is_live || false,
+      is_live: Map.get(video.changes, :is_live, false),
       upload_progress: get_upload_progress(video.changes)
     }
   end
 
+  defp to_string_safe(value, _default) when is_binary(value), do: value
+
+  defp to_string_safe(value, _default) when is_atom(value) and not is_nil(value),
+    do: Atom.to_string(value)
+
+  defp to_string_safe(_value, default), do: default
+
+  defp normalize_to_string(value, default) when is_atom(value) do
+    Atom.to_string(value)
+  end
+
+  defp normalize_to_string(value, _default) when is_binary(value) do
+    value
+  end
+
+  defp normalize_to_string(_value, default) do
+    default
+  end
+
   defp get_thumbnail_url(video) do
     cond do
-      video.thumbnail_url ->
+      Map.has_key?(video, :thumbnail_url) && video.thumbnail_url && video.thumbnail_url != "" ->
         video.thumbnail_url
 
-      is_list(video.thumbnail_cids) and length(video.thumbnail_cids) > 0 ->
-        "https://ipfs.io/ipfs/#{List.first(video.thumbnail_cids)}"
+      Map.has_key?(video, :thumbnail_cid) && video.thumbnail_cid && video.thumbnail_cid != "" ->
+        cid =
+          if is_list(video.thumbnail_cid),
+            do: List.to_string(video.thumbnail_cid),
+            else: video.thumbnail_cid
+
+        "https://ipfs.io/ipfs/#{cid}"
+
+      Map.has_key?(video, :thumbnail_cids) && is_list(video.thumbnail_cids) &&
+          length(video.thumbnail_cids) > 0 ->
+        first_cid = List.first(video.thumbnail_cids)
+        cid_string = if is_list(first_cid), do: List.to_string(first_cid), else: first_cid
+        "https://ipfs.io/ipfs/#{cid_string}"
 
       true ->
         "/images/default-thumbnail.jpg"
     end
   end
 
-  defp format_duration(nil), do: nil
+  defp format_duration(nil), do: "00:00"
+  defp format_duration(0), do: "00:00"
+  defp format_duration(0.0), do: "00:00"
+
+  defp format_duration(seconds) when is_float(seconds) do
+    format_duration(round(seconds))
+  end
 
   defp format_duration(seconds) when is_integer(seconds) do
     minutes = div(seconds, 60)
@@ -239,7 +401,7 @@ defmodule MazarynWeb.MediaLive.Video.MyVideos do
     "#{String.pad_leading(Integer.to_string(minutes), 2, "0")}:#{String.pad_leading(Integer.to_string(secs), 2, "0")}"
   end
 
-  defp format_duration(_), do: nil
+  defp format_duration(_), do: "00:00"
 
   defp format_time_ago(nil), do: "Just now"
 
@@ -257,7 +419,9 @@ defmodule MazarynWeb.MediaLive.Video.MyVideos do
   end
 
   defp get_upload_progress(video) do
-    case video.status do
+    status = Map.get(video, :status, :ready)
+
+    case status do
       :processing -> 50
       :ready -> 100
       :failed -> 0

@@ -540,6 +540,13 @@ pub async fn get_video_info(
     use std::path::PathBuf;
 
     let path = PathBuf::from(&req.file_path);
+
+    if !path.exists() {
+        return Ok(HttpResponse::NotFound().json(json!({
+            "error": "File not found"
+        })));
+    }
+
     match state.transcoding.get_video_info(path).await {
         Ok(info) => Ok(HttpResponse::Ok().json(info)),
         Err(e) => Ok(HttpResponse::BadRequest().json(json!({

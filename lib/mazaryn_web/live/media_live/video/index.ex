@@ -4,6 +4,7 @@ defmodule MazarynWeb.MediaLive.Video.Index do
 
   @impl true
   def mount(_params, session, socket) do
+    Logger.info("===== VIDEO INDEX MOUNT =====")
     user = get_user_from_session(session)
 
     {:ok,
@@ -34,6 +35,14 @@ defmodule MazarynWeb.MediaLive.Video.Index do
 
   @impl true
   def handle_event("play_video", %{"id" => video_id}, socket) do
+    Logger.info("===== PLAY_VIDEO: Navigating to video #{video_id} =====")
+    video_id_string = to_string(video_id)
+    {:noreply, push_navigate(socket, to: ~p"/#{socket.assigns.locale}/videos/#{video_id_string}")}
+  end
+
+  @impl true
+  def handle_info({:play_video, video_id}, socket) do
+    Logger.info("===== PLAY_VIDEO INFO: Navigating to video #{video_id} =====")
     {:noreply, push_navigate(socket, to: ~p"/#{socket.assigns.locale}/videos/#{video_id}")}
   end
 
@@ -88,28 +97,45 @@ defmodule MazarynWeb.MediaLive.Video.Index do
       title: video.changes.title || "Untitled",
       thumbnail_url: get_thumbnail_url(video.changes),
       duration: format_duration(video.changes.duration_seconds),
-      views: format_views(video.changes.views),
+      views: format_views(Map.get(video.changes, :views, 0)),
       created_at: format_time_ago(video.changes.date_created),
       creator: get_creator_name(video.changes.user_id),
       creator_avatar: get_creator_avatar(video.changes.user_id),
-      is_live: video.changes.is_live || false
+      is_live: Map.get(video.changes, :is_live, false)
     }
   end
 
   defp get_thumbnail_url(video) do
     cond do
-      video.thumbnail_url ->
+      Map.has_key?(video, :thumbnail_url) && video.thumbnail_url && video.thumbnail_url != "" ->
         video.thumbnail_url
 
-      is_list(video.thumbnail_cids) and length(video.thumbnail_cids) > 0 ->
-        "https://ipfs.io/ipfs/#{List.first(video.thumbnail_cids)}"
+      Map.has_key?(video, :thumbnail_cid) && video.thumbnail_cid && video.thumbnail_cid != "" ->
+        cid =
+          if is_list(video.thumbnail_cid),
+            do: List.to_string(video.thumbnail_cid),
+            else: video.thumbnail_cid
+
+        "https://ipfs.io/ipfs/#{cid}"
+
+      Map.has_key?(video, :thumbnail_cids) && is_list(video.thumbnail_cids) &&
+          length(video.thumbnail_cids) > 0 ->
+        first_cid = List.first(video.thumbnail_cids)
+        cid_string = if is_list(first_cid), do: List.to_string(first_cid), else: first_cid
+        "https://ipfs.io/ipfs/#{cid_string}"
 
       true ->
         "/images/default-thumbnail.jpg"
     end
   end
 
-  defp format_duration(nil), do: nil
+  defp format_duration(nil), do: "00:00"
+  defp format_duration(0), do: "00:00"
+  defp format_duration(0.0), do: "00:00"
+
+  defp format_duration(seconds) when is_float(seconds) do
+    format_duration(round(seconds))
+  end
 
   defp format_duration(seconds) when is_integer(seconds) do
     minutes = div(seconds, 60)
@@ -118,7 +144,7 @@ defmodule MazarynWeb.MediaLive.Video.Index do
     "#{String.pad_leading(Integer.to_string(minutes), 2, "0")}:#{String.pad_leading(Integer.to_string(secs), 2, "0")}"
   end
 
-  defp format_duration(_), do: nil
+  defp format_duration(_), do: "00:00"
 
   defp format_views(views) when is_integer(views) and views >= 1_000_000 do
     "#{Float.round(views / 1_000_000, 1)}M"
@@ -146,6 +172,10 @@ defmodule MazarynWeb.MediaLive.Video.Index do
     end
   end
 
+  defp get_creator_name(user_id) when is_binary(user_id) do
+    get_creator_name(String.to_charlist(user_id))
+  end
+
   defp get_creator_name(user_id) do
     case Core.UserClient.get_user_by_id(user_id) do
       {:error, _} ->
@@ -163,6 +193,10 @@ defmodule MazarynWeb.MediaLive.Video.Index do
     end
   end
 
+  defp get_creator_avatar(user_id) when is_binary(user_id) do
+    get_creator_avatar(String.to_charlist(user_id))
+  end
+
   defp get_creator_avatar(user_id) do
     case Core.UserClient.get_user_by_id(user_id) do
       {:error, _} ->
@@ -170,7 +204,12 @@ defmodule MazarynWeb.MediaLive.Video.Index do
 
       user_tuple when is_tuple(user_tuple) ->
         avatar_url = elem(user_tuple, 6)
-        if avatar_url && avatar_url != "", do: avatar_url, else: "/images/default-avatar.png"
+
+        cond do
+          is_binary(avatar_url) && avatar_url != "" -> avatar_url
+          is_list(avatar_url) && length(avatar_url) > 0 -> List.to_string(avatar_url)
+          true -> "/images/default-avatar.png"
+        end
 
       _ ->
         "/images/default-avatar.png"

@@ -40,11 +40,11 @@
         <%= if @user do %>
           <div class="flex items-center gap-3 px-4 h-10 bg-[#323340] rounded-lg">
             <img
-              src={@user.avatar_url || "/images/default-avatar.png"}
+              src="/images/default-avatar.png"
               class="w-8 h-8 rounded-full object-cover"
-              alt={@user.username}
+              alt="User"
             />
-            <span class="text-white text-base font-['Poppins']"><%= @user.username %></span>
+            <span class="text-white text-base font-['Poppins']">My Videos</span>
           </div>
         <% end %>
       </div>
@@ -108,7 +108,7 @@
           <h2 class="text-white text-xl font-semibold font-['Poppins']">Currently Uploading</h2>
           <p class="text-white text-sm font-['Poppins']">Leave the app running until upload is complete</p>
 
-          <%= for video <- Enum.filter(@uploads, &(&1.status == "processing")) do %>
+          <%= for video <- Enum.filter(@uploaded_videos, &(&1.status == "processing")) do %>
             <div class="p-5 bg-[#323340] rounded-[20px] flex gap-5">
               <img
                 src={video.thumbnail_url}
@@ -183,7 +183,7 @@
         <% end %>
 
         <%= if @active_tab == "uploads" do %>
-          <%= for video <- @uploads do %>
+          <%= for video <- @uploaded_videos do %>
             <.video_card video={video} locale={@locale} />
           <% end %>
         <% end %>
@@ -201,7 +201,7 @@
         <% end %>
 
         <%= if ((@active_tab == "all" and @videos == []) or
-              (@active_tab == "uploads" and @uploads == []) or
+              (@active_tab == "uploads" and @uploaded_videos == []) or
               (@active_tab == "live" and @live_streams == []) or
               (@active_tab == "scheduled" and @scheduled == [])) do %>
           <div class="text-center py-16">

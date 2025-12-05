@@ -606,9 +606,9 @@ defmodule Mazaryn.Schema.Video do
   defp process_string(value) when is_list(value), do: to_string(value)
   defp process_string(_), do: nil
 
-  defp process_cid({:pending, _id}), do: nil
-  defp process_cid({:pending_update, _id}), do: nil
-  defp process_cid({:pending_version, _id}), do: nil
+  defp process_cid({:pending, _id}), do: "processing"
+  defp process_cid({:pending_update, _id}), do: "processing"
+  defp process_cid({:pending_version, _id}), do: "processing"
   defp process_cid({:error, _}), do: nil
   defp process_cid(:undefined), do: nil
   defp process_cid(nil), do: nil

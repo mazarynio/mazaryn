@@ -402,33 +402,28 @@ upload_video(VideoId, FilePath) ->
             {error, {file_read_error, Reason}}
     end.
 
-get_video_info(FilePath) ->
-    ApiUrl = ?RUST_API_BASE ++ "/media/info",
+    get_video_info(FilePath) ->
+        RequestBody = #{
+            file_path => ensure_binary(FilePath)
+        },
 
-    case file:read_file(FilePath) of
-        {ok, FileContent} ->
-            Boundary = "----WebKitFormBoundary" ++ nanoid:gen(),
-            ContentType = "multipart/form-data; boundary=" ++ Boundary,
+        Json = jsx:encode(RequestBody),
+        ApiUrl = ?RUST_API_BASE ++ "/media/info",
 
-            Body = create_multipart_body(Boundary, "temp", FilePath, FileContent),
-
-            case httpc:request(post, {ApiUrl, [], ContentType, Body},
-                              [{timeout, 60000}], []) of
-                {ok, {{_, 200, _}, _, ResponseBody}} ->
-                    case jsx:decode(list_to_binary(ResponseBody), [return_maps]) of
-                        Info when is_map(Info) ->
-                            {ok, parse_video_info(Info)};
-                        _ ->
-                            {error, invalid_response}
-                    end;
-                {ok, {{_, StatusCode, _}, _, ErrorBody}} ->
-                    {error, {http_error, StatusCode, ErrorBody}};
-                {error, Reason} ->
-                    {error, Reason}
-            end;
-        {error, Reason} ->
-            {error, {file_read_error, Reason}}
-    end.
+        case httpc:request(post, {ApiUrl, [], "application/json", Json},
+                          [{timeout, 60000}], []) of
+            {ok, {{_, 200, _}, _, ResponseBody}} ->
+                case jsx:decode(list_to_binary(ResponseBody), [return_maps]) of
+                    Info when is_map(Info) ->
+                        {ok, parse_video_info(Info)};
+                    _ ->
+                        {error, invalid_response}
+                end;
+            {ok, {{_, StatusCode, _}, _, ErrorBody}} ->
+                {error, {http_error, StatusCode, ErrorBody}};
+            {error, Reason} ->
+                {error, Reason}
+        end.
 
 create_multipart_body(Boundary, VideoId, FilePath, FileContent) ->
     FileName = filename:basename(FilePath),

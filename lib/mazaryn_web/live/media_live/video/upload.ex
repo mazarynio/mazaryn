@@ -27,16 +27,38 @@ defmodule MazarynWeb.MediaLive.Video.Upload do
         accept: ~w(video/mp4 video/webm video/quicktime video/x-msvideo video/x-matroska),
         max_entries: 1,
         max_file_size: 16_000_000_000,
-        auto_upload: false
+        auto_upload: true,
+        progress: &handle_progress/3
       )
       |> allow_upload(:thumbnail,
         accept: ~w(image/jpeg image/png image/webp),
         max_entries: 1,
         max_file_size: 5_000_000,
-        auto_upload: false
+        auto_upload: true,
+        progress: &handle_progress/3
       )
 
     {:ok, socket}
+  end
+
+  defp handle_progress(:video, entry, socket) do
+    Logger.info("===== PROGRESS: Video upload progress: #{entry.progress}% =====")
+
+    if entry.done? do
+      Logger.info("===== PROGRESS: Video upload complete =====")
+    end
+
+    {:noreply, socket}
+  end
+
+  defp handle_progress(:thumbnail, entry, socket) do
+    Logger.info("===== PROGRESS: Thumbnail upload progress: #{entry.progress}% =====")
+
+    if entry.done? do
+      Logger.info("===== PROGRESS: Thumbnail upload complete =====")
+    end
+
+    {:noreply, socket}
   end
 
   @impl true
@@ -140,12 +162,25 @@ defmodule MazarynWeb.MediaLive.Video.Upload do
     Logger.info("===== PROCEED_TO_CONFIRM: Title valid: #{title != ""} =====")
     Logger.info("===== PROCEED_TO_CONFIRM: Has file: #{has_file} =====")
 
-    if title != "" && has_file do
-      Logger.info("===== PROCEED_TO_CONFIRM: ✅ Proceeding to confirm step =====")
-      {:noreply, assign(socket, :step, :confirm)}
-    else
-      Logger.warning("===== PROCEED_TO_CONFIRM: ❌ Validation failed =====")
-      {:noreply, put_flash(socket, :error, "Please fill in the title and select a video file")}
+    video_uploaded =
+      Enum.all?(socket.assigns.uploads.video.entries, fn entry ->
+        entry.done?
+      end)
+
+    Logger.info("===== PROCEED_TO_CONFIRM: Video uploaded: #{video_uploaded} =====")
+
+    cond do
+      title == "" || !has_file ->
+        Logger.warning("===== PROCEED_TO_CONFIRM: ❌ Validation failed =====")
+        {:noreply, put_flash(socket, :error, "Please fill in the title and select a video file")}
+
+      !video_uploaded ->
+        Logger.warning("===== PROCEED_TO_CONFIRM: ❌ Video still uploading =====")
+        {:noreply, put_flash(socket, :info, "Please wait for the video to finish uploading")}
+
+      true ->
+        Logger.info("===== PROCEED_TO_CONFIRM: ✅ Proceeding to confirm step =====")
+        {:noreply, assign(socket, :step, :confirm)}
     end
   end
 
@@ -163,85 +198,127 @@ defmodule MazarynWeb.MediaLive.Video.Upload do
     user_id = get_user_id(socket.assigns.user)
     Logger.info("===== CONFIRM_UPLOAD: User ID: #{inspect(user_id)} =====")
 
+    Logger.info(
+      "===== CONFIRM_UPLOAD: User ID type: charlist=#{is_list(user_id)}, binary=#{is_binary(user_id)} ====="
+    )
+
     if is_nil(user_id) do
       Logger.error("===== CONFIRM_UPLOAD: No user ID found =====")
       {:noreply, put_flash(socket, :error, "User session expired. Please login again.")}
     else
-      socket = assign(socket, uploading: true, upload_progress: 0)
+      video_ready = Enum.all?(socket.assigns.uploads.video.entries, fn entry -> entry.done? end)
 
-      Logger.info("===== CONFIRM_UPLOAD: Starting to consume video entries =====")
+      Logger.info("===== CONFIRM_UPLOAD: Video ready: #{video_ready} =====")
 
-      video_result =
-        consume_uploaded_entries(socket, :video, fn %{path: path}, entry ->
-          Logger.info("===== CONFIRM_UPLOAD: Processing video file: #{entry.client_name} =====")
-          Logger.info("===== CONFIRM_UPLOAD: Video file path: #{path} =====")
+      if !video_ready do
+        Logger.error("===== CONFIRM_UPLOAD: Video not ready for consumption =====")
+        {:noreply, put_flash(socket, :error, "Please wait for the video to finish uploading")}
+      else
+        socket = assign(socket, uploading: true, upload_progress: 0)
 
-          case File.read(path) do
-            {:ok, video_content} ->
-              Logger.info(
-                "===== CONFIRM_UPLOAD: Video file size: #{byte_size(video_content)} bytes ====="
-              )
+        Logger.info("===== CONFIRM_UPLOAD: Starting to consume video entries =====")
 
-              {:ok, video_content}
+        video_result =
+          consume_uploaded_entries(socket, :video, fn %{path: path}, entry ->
+            Logger.info("===== CONFIRM_UPLOAD: Processing video file: #{entry.client_name} =====")
+            Logger.info("===== CONFIRM_UPLOAD: Video file path: #{path} =====")
 
-            {:error, reason} ->
-              Logger.error(
-                "===== CONFIRM_UPLOAD: Failed to read video file: #{inspect(reason)} ====="
-              )
+            case File.read(path) do
+              {:ok, video_content} ->
+                Logger.info(
+                  "===== CONFIRM_UPLOAD: Video file size: #{byte_size(video_content)} bytes ====="
+                )
 
-              {:error, reason}
-          end
-        end)
+                {:ok, video_content}
 
-      Logger.info("===== CONFIRM_UPLOAD: Starting to consume thumbnail entries =====")
+              {:error, reason} ->
+                Logger.error(
+                  "===== CONFIRM_UPLOAD: Failed to read video file: #{inspect(reason)} ====="
+                )
 
-      thumbnail_result =
-        consume_uploaded_entries(socket, :thumbnail, fn %{path: path}, entry ->
-          Logger.info(
-            "===== CONFIRM_UPLOAD: Processing thumbnail file: #{entry.client_name} ====="
-          )
-
-          Logger.info("===== CONFIRM_UPLOAD: Thumbnail file path: #{path} =====")
-
-          case File.read(path) do
-            {:ok, thumbnail_content} ->
-              Logger.info(
-                "===== CONFIRM_UPLOAD: Thumbnail file size: #{byte_size(thumbnail_content)} bytes ====="
-              )
-
-              {:ok, thumbnail_content}
-
-            {:error, reason} ->
-              Logger.error(
-                "===== CONFIRM_UPLOAD: Failed to read thumbnail file: #{inspect(reason)} ====="
-              )
-
-              {:error, reason}
-          end
-        end)
-
-      Logger.info(
-        "===== CONFIRM_UPLOAD: Video result: #{inspect(length(video_result))} files ====="
-      )
-
-      Logger.info(
-        "===== CONFIRM_UPLOAD: Thumbnail result: #{inspect(length(thumbnail_result))} files ====="
-      )
-
-      case video_result do
-        [{:ok, video_content}] ->
-          Logger.info("===== CONFIRM_UPLOAD: Video content loaded successfully =====")
-
-          thumbnail_content =
-            case thumbnail_result do
-              [{:ok, content}] ->
-                Logger.info("===== CONFIRM_UPLOAD: Thumbnail content loaded successfully =====")
-                content
-
-              _ ->
-                Logger.info("===== CONFIRM_UPLOAD: No thumbnail provided =====")
-                nil
+                {:postpone, reason}
             end
+          end)
+
+        Logger.info(
+          "===== CONFIRM_UPLOAD: Video result type: #{inspect(is_list(video_result))} ====="
+        )
+
+        Logger.info("===== CONFIRM_UPLOAD: Video result length: #{length(video_result)} =====")
+
+        video_content =
+          case video_result do
+            [{:ok, content}] ->
+              Logger.info("===== CONFIRM_UPLOAD: Got video with :ok tuple =====")
+              content
+
+            [content] when is_binary(content) ->
+              Logger.info("===== CONFIRM_UPLOAD: Got raw binary video =====")
+              content
+
+            other ->
+              Logger.error(
+                "===== CONFIRM_UPLOAD: Unexpected video result format: #{inspect(other)} ====="
+              )
+
+              nil
+          end
+
+        Logger.info("===== CONFIRM_UPLOAD: Starting to consume thumbnail entries =====")
+
+        thumbnail_result =
+          consume_uploaded_entries(socket, :thumbnail, fn %{path: path}, entry ->
+            Logger.info(
+              "===== CONFIRM_UPLOAD: Processing thumbnail file: #{entry.client_name} ====="
+            )
+
+            Logger.info("===== CONFIRM_UPLOAD: Thumbnail file path: #{path} =====")
+
+            case File.read(path) do
+              {:ok, thumbnail_content} ->
+                Logger.info(
+                  "===== CONFIRM_UPLOAD: Thumbnail file size: #{byte_size(thumbnail_content)} bytes ====="
+                )
+
+                {:ok, thumbnail_content}
+
+              {:error, reason} ->
+                Logger.error(
+                  "===== CONFIRM_UPLOAD: Failed to read thumbnail file: #{inspect(reason)} ====="
+                )
+
+                {:postpone, reason}
+            end
+          end)
+
+        Logger.info(
+          "===== CONFIRM_UPLOAD: Thumbnail result: #{inspect(length(thumbnail_result))} files ====="
+        )
+
+        thumbnail_content =
+          case thumbnail_result do
+            [{:ok, content}] ->
+              Logger.info("===== CONFIRM_UPLOAD: Thumbnail content loaded (tuple format) =====")
+              content
+
+            [content] when is_binary(content) ->
+              Logger.info("===== CONFIRM_UPLOAD: Thumbnail content loaded (binary format) =====")
+              content
+
+            [] ->
+              Logger.info("===== CONFIRM_UPLOAD: No thumbnail provided =====")
+              nil
+
+            other ->
+              Logger.warning(
+                "===== CONFIRM_UPLOAD: Unexpected thumbnail format: #{inspect(other)} ====="
+              )
+
+              nil
+          end
+
+        if video_content do
+          Logger.info("===== CONFIRM_UPLOAD: Video content ready, proceeding to create =====")
 
           title = socket.assigns.title
           description = socket.assigns.description
@@ -251,7 +328,7 @@ defmodule MazarynWeb.MediaLive.Video.Upload do
           Logger.info("===== CONFIRM_UPLOAD: Calling videodb:create_video_with_rust =====")
 
           Logger.info(
-            "===== CONFIRM_UPLOAD: Parameters - user_id: #{user_id}, title: #{title} ====="
+            "===== CONFIRM_UPLOAD: Parameters - user_id: #{inspect(user_id)}, title: #{title} ====="
           )
 
           result =
@@ -270,45 +347,65 @@ defmodule MazarynWeb.MediaLive.Video.Upload do
 
           Logger.info("===== CONFIRM_UPLOAD: videodb result: #{inspect(result)} =====")
 
-          case result do
-            {:ok, video_id} ->
-              Logger.info("===== CONFIRM_UPLOAD: Video created with ID: #{video_id} =====")
+          Logger.info(
+            "===== CONFIRM_UPLOAD: videodb result type: tuple=#{is_tuple(result)}, list=#{is_list(result)}, binary=#{is_binary(result)} ====="
+          )
 
-              if thumbnail_content do
-                spawn(fn ->
-                  upload_thumbnail_to_ipfs(video_id, thumbnail_content)
-                end)
-              end
+          video_id =
+            case result do
+              {:ok, vid} ->
+                Logger.info("===== CONFIRM_UPLOAD: Got {:ok, video_id} format =====")
+                vid
 
-              {:noreply,
-               socket
-               |> assign(uploading: false, upload_progress: 100, step: :success)
-               |> put_flash(:info, "Video uploaded successfully!")}
+              vid when is_list(vid) ->
+                Logger.info("===== CONFIRM_UPLOAD: Got charlist video_id directly =====")
+                vid
 
-            {:error, reason} ->
-              Logger.error("===== CONFIRM_UPLOAD: Upload failed: #{inspect(reason)} =====")
+              vid when is_binary(vid) ->
+                Logger.info("===== CONFIRM_UPLOAD: Got binary video_id directly =====")
+                vid
 
-              {:noreply,
-               socket
-               |> assign(uploading: false)
-               |> put_flash(:error, "Upload failed: #{inspect(reason)}")}
+              {:error, reason} ->
+                Logger.error("===== CONFIRM_UPLOAD: Got error: #{inspect(reason)} =====")
+                nil
+
+              other ->
+                Logger.error(
+                  "===== CONFIRM_UPLOAD: Unknown result format: #{inspect(other)} ====="
+                )
+
+                nil
+            end
+
+          if video_id do
+            Logger.info("===== CONFIRM_UPLOAD: Video created with ID: #{inspect(video_id)} =====")
+
+            if thumbnail_content do
+              spawn(fn ->
+                upload_thumbnail_to_ipfs(video_id, thumbnail_content)
+              end)
+            end
+
+            {:noreply,
+             socket
+             |> assign(uploading: false, upload_progress: 100, step: :success)
+             |> put_flash(:info, "Video uploaded successfully!")}
+          else
+            Logger.error("===== CONFIRM_UPLOAD: Upload failed =====")
+
+            {:noreply,
+             socket
+             |> assign(uploading: false)
+             |> put_flash(:error, "Upload failed")}
           end
-
-        [] ->
-          Logger.error("===== CONFIRM_UPLOAD: No video file found =====")
-
-          {:noreply,
-           socket
-           |> assign(uploading: false)
-           |> put_flash(:error, "No video file selected")}
-
-        error ->
-          Logger.error("===== CONFIRM_UPLOAD: Upload error: #{inspect(error)} =====")
+        else
+          Logger.error("===== CONFIRM_UPLOAD: No video content found =====")
 
           {:noreply,
            socket
            |> assign(uploading: false)
            |> put_flash(:error, "Failed to process video file")}
+        end
       end
     end
   end
@@ -336,16 +433,7 @@ defmodule MazarynWeb.MediaLive.Video.Upload do
     case Account.Users.get_by_session_uuid(session_uuid) do
       {:ok, user} ->
         Logger.info("===== GET_USER_FROM_SESSION: User found via session_uuid =====")
-
-        case user do
-          %{id: id} when not is_nil(id) ->
-            Logger.info("===== GET_USER_FROM_SESSION: User ID from struct: #{id} =====")
-            user
-
-          _ ->
-            Logger.error("===== GET_USER_FROM_SESSION: Invalid user struct =====")
-            nil
-        end
+        user
 
       {:error, reason} ->
         Logger.error(
@@ -396,20 +484,38 @@ defmodule MazarynWeb.MediaLive.Video.Upload do
     nil
   end
 
-  defp get_user_id(%{id: id}) when not is_nil(id) do
-    Logger.info("===== GET_USER_ID: Extracting from Ecto struct =====")
-    to_string(id)
+  defp get_user_id(%{id: db_id} = _user) when not is_nil(db_id) do
+    Logger.info("===== GET_USER_ID: Got Ecto struct with database ID: #{db_id} =====")
+
+    charlist_id = String.to_charlist(to_string(db_id))
+    Logger.info("===== GET_USER_ID: Looking up user with charlist: #{inspect(charlist_id)} =====")
+
+    case Core.UserClient.get_user_by_id(charlist_id) do
+      user_tuple when is_tuple(user_tuple) ->
+        Logger.info("===== GET_USER_ID: Got user tuple: #{inspect(user_tuple)} =====")
+        user_id = elem(user_tuple, 1)
+        Logger.info("===== GET_USER_ID: Extracted user_id from tuple: #{inspect(user_id)} =====")
+        user_id
+
+      {:error, reason} ->
+        Logger.error("===== GET_USER_ID: Error getting user tuple: #{inspect(reason)} =====")
+        nil
+
+      :user_not_exist ->
+        Logger.error("===== GET_USER_ID: User does not exist =====")
+        nil
+
+      other ->
+        Logger.error("===== GET_USER_ID: Unexpected response: #{inspect(other)} =====")
+        nil
+    end
   end
 
   defp get_user_id(user_tuple) when is_tuple(user_tuple) do
     Logger.info("===== GET_USER_ID: Extracting from tuple =====")
     user_id = elem(user_tuple, 1)
-
-    if is_list(user_id) do
-      to_string(user_id)
-    else
-      user_id
-    end
+    Logger.info("===== GET_USER_ID: Tuple user_id: #{inspect(user_id)} =====")
+    user_id
   end
 
   defp get_user_id(user) do
@@ -417,14 +523,10 @@ defmodule MazarynWeb.MediaLive.Video.Upload do
     nil
   end
 
-  defp can_proceed?(title, video_entries) do
-    title_valid = title != "" && String.trim(title) != ""
-    file_valid = length(video_entries) > 0
-    title_valid && file_valid
-  end
-
   defp upload_thumbnail_to_ipfs(video_id, thumbnail_content) do
-    Logger.info("===== UPLOAD_THUMBNAIL: Starting thumbnail upload for video #{video_id} =====")
+    Logger.info(
+      "===== UPLOAD_THUMBNAIL: Starting thumbnail upload for video #{inspect(video_id)} ====="
+    )
 
     try do
       case :ipfs_content.upload_binary(thumbnail_content) do
