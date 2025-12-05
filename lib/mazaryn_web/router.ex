@@ -43,6 +43,12 @@ defmodule MazarynWeb.Router do
     get("/datasets/:dataset_id/download", DatasetDownloadController, :download)
   end
 
+  scope "/api", MazarynWeb do
+    pipe_through(:api)
+
+    get("/videos/:id/stream", VideoController, :stream)
+  end
+
   scope "/en/api" do
     pipe_through(:api)
 

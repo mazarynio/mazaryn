@@ -20,6 +20,8 @@ defmodule MazarynWeb.MediaLive.Video.MyVideos do
      |> assign(:uploaded_videos, [])
      |> assign(:live_streams, [])
      |> assign(:scheduled, [])
+     |> assign(:show_delete_modal, false)
+     |> assign(:video_to_delete, nil)
      |> load_user_videos()}
   end
 
@@ -34,22 +36,103 @@ defmodule MazarynWeb.MediaLive.Video.MyVideos do
   end
 
   @impl true
-  def handle_event("delete_video", %{"id" => video_id}, socket) do
+  def handle_event("show_delete_modal", %{"id" => video_id}, socket) do
+    Logger.info("===== SHOW_DELETE_MODAL: Video #{video_id} =====")
+    {:noreply, socket |> assign(:show_delete_modal, true) |> assign(:video_to_delete, video_id)}
+  end
+
+  @impl true
+  def handle_event("hide_delete_modal", _params, socket) do
+    {:noreply, socket |> assign(:show_delete_modal, false) |> assign(:video_to_delete, nil)}
+  end
+
+  @impl true
+  def handle_event("confirm_delete_video", _params, socket) do
+    Logger.info("===== CONFIRM_DELETE_VIDEO: Starting =====")
+
     user_id = get_user_id(socket.assigns.user)
+    video_id = socket.assigns.video_to_delete
 
-    Logger.info(
-      "===== DELETE_VIDEO: Deleting video #{video_id} for user #{inspect(user_id)} ====="
-    )
+    Logger.info("===== CONFIRM_DELETE_VIDEO: User ID: #{inspect(user_id)} =====")
+    Logger.info("===== CONFIRM_DELETE_VIDEO: Video ID: #{inspect(video_id)} =====")
 
-    case :videodb.delete_video(video_id, user_id) do
-      {:ok, _} ->
-        {:noreply,
-         socket
-         |> put_flash(:info, "Video deleted successfully")
-         |> load_user_videos()}
+    if is_nil(user_id) or is_nil(video_id) do
+      Logger.error("===== CONFIRM_DELETE_VIDEO: Missing user ID or video ID =====")
 
-      _ ->
-        {:noreply, put_flash(socket, :error, "Failed to delete video")}
+      {:noreply,
+       socket
+       |> assign(:show_delete_modal, false)
+       |> assign(:video_to_delete, nil)
+       |> put_flash(:error, "Unable to delete video")}
+    else
+      charlist_video_id = if is_binary(video_id), do: String.to_charlist(video_id), else: video_id
+
+      case :videodb.delete_video(charlist_video_id, user_id) do
+        :ok ->
+          Logger.info("===== CONFIRM_DELETE_VIDEO: Success =====")
+
+          try do
+            video_id_str = if is_list(video_id), do: List.to_string(video_id), else: video_id
+
+            case :ets.lookup(:video_path_cache, video_id_str) do
+              [{^video_id_str, local_path, _timestamp}] ->
+                Logger.info("===== CONFIRM_DELETE_VIDEO: Found in cache =====")
+
+                spawn(fn ->
+                  if File.exists?(local_path) do
+                    File.rm(local_path)
+                    Logger.info("===== CONFIRM_DELETE_VIDEO: Local file deleted =====")
+                  end
+                end)
+
+                :ets.delete(:video_path_cache, video_id_str)
+
+              [] ->
+                Logger.info("===== CONFIRM_DELETE_VIDEO: Not in cache =====")
+            end
+          rescue
+            error ->
+              Logger.error(
+                "===== CONFIRM_DELETE_VIDEO: Cache cleanup error: #{inspect(error)} ====="
+              )
+
+              :ok
+          end
+
+          {:noreply,
+           socket
+           |> assign(:show_delete_modal, false)
+           |> assign(:video_to_delete, nil)
+           |> put_flash(:info, "Video deleted successfully")
+           |> load_user_videos()}
+
+        {:error, :unauthorized} ->
+          Logger.error("===== CONFIRM_DELETE_VIDEO: Unauthorized =====")
+
+          {:noreply,
+           socket
+           |> assign(:show_delete_modal, false)
+           |> assign(:video_to_delete, nil)
+           |> put_flash(:error, "You are not authorized to delete this video")}
+
+        {:error, :video_not_found} ->
+          Logger.error("===== CONFIRM_DELETE_VIDEO: Video not found =====")
+
+          {:noreply,
+           socket
+           |> assign(:show_delete_modal, false)
+           |> assign(:video_to_delete, nil)
+           |> put_flash(:error, "Video not found")}
+
+        {:error, reason} ->
+          Logger.error("===== CONFIRM_DELETE_VIDEO: Error: #{inspect(reason)} =====")
+
+          {:noreply,
+           socket
+           |> assign(:show_delete_modal, false)
+           |> assign(:video_to_delete, nil)
+           |> put_flash(:error, "Failed to delete video")}
+      end
     end
   end
 
@@ -79,24 +162,6 @@ defmodule MazarynWeb.MediaLive.Video.MyVideos do
   def handle_info({:edit_video, video_id}, socket) do
     Logger.info("===== EDIT_VIDEO INFO: Navigating to edit #{video_id} =====")
     {:noreply, push_navigate(socket, to: ~p"/#{socket.assigns.locale}/videos/#{video_id}/edit")}
-  end
-
-  @impl true
-  def handle_info({:delete_video, video_id}, socket) do
-    Logger.info("===== DELETE_VIDEO INFO: Deleting video #{video_id} =====")
-
-    user_id = get_user_id(socket.assigns.user)
-
-    case :videodb.delete_video(video_id, user_id) do
-      {:ok, _} ->
-        {:noreply,
-         socket
-         |> put_flash(:info, "Video deleted successfully")
-         |> load_user_videos()}
-
-      _ ->
-        {:noreply, put_flash(socket, :error, "Failed to delete video")}
-    end
   end
 
   defp video_card(assigns) do
@@ -165,9 +230,8 @@ defmodule MazarynWeb.MediaLive.Video.MyVideos do
               </button>
 
               <button
-                phx-click="delete_video"
+                phx-click="show_delete_modal"
                 phx-value-id={@video.id}
-                data-confirm="Are you sure you want to delete this video?"
                 class="p-2 rounded-lg bg-[#27282e] hover:bg-red-500 transition-colors group"
                 title="Delete video"
               >
@@ -271,6 +335,8 @@ defmodule MazarynWeb.MediaLive.Video.MyVideos do
     user_id
   end
 
+  defp get_user_id(nil), do: nil
+
   defp get_user_id(user) do
     Logger.error("===== GET_USER_ID: Invalid user format: #{inspect(user)} =====")
     nil
@@ -349,18 +415,6 @@ defmodule MazarynWeb.MediaLive.Video.MyVideos do
     do: Atom.to_string(value)
 
   defp to_string_safe(_value, default), do: default
-
-  defp normalize_to_string(value, default) when is_atom(value) do
-    Atom.to_string(value)
-  end
-
-  defp normalize_to_string(value, _default) when is_binary(value) do
-    value
-  end
-
-  defp normalize_to_string(_value, default) do
-    default
-  end
 
   defp get_thumbnail_url(video) do
     cond do

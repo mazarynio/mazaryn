@@ -2782,22 +2782,23 @@ upload_video_version(VideoId, VideoFile) ->
                         {error, {transaction_failed, Reason}}
                 end.
 
-
                 upload_video_to_ipfs_simple(VideoId, VideoFileOrPath) ->
                     try
-                        {InputType, Size} = case VideoFileOrPath of
+                        {InputType, Size, ActualPath} = case VideoFileOrPath of
                             Path when is_list(Path) ->
                                 case filelib:is_file(Path) of
                                     true ->
-                                        case filelib:file_size(Path) of
-                                            {error, _} -> {binary, byte_size(list_to_binary(Path))};
-                                            FileSize -> {file_path, FileSize}
+                                        case file:read_file_info(Path) of
+                                            {ok, FileInfo} ->
+                                                {file_path, FileInfo#file_info.size, Path};
+                                            {error, _} ->
+                                                {binary, 0, undefined}
                                         end;
                                     false ->
-                                        {binary, length(Path)}
+                                        {binary, length(Path), undefined}
                                 end;
                             Binary when is_binary(Binary) ->
-                                {binary, byte_size(Binary)}
+                                {binary, byte_size(Binary), undefined}
                         end,
 
                         error_logger:info_msg("Starting IPFS upload for video ~p, type: ~p, size: ~p bytes",
@@ -2805,8 +2806,8 @@ upload_video_version(VideoId, VideoFile) ->
 
                         VideoCID = case InputType of
                             file_path ->
-                                error_logger:info_msg("Uploading video from file path: ~p", [VideoFileOrPath]),
-                                case ipfs_video:upload_video(VideoFileOrPath) of
+                                error_logger:info_msg("Uploading video from file path: ~p", [ActualPath]),
+                                case ipfs_video:upload_video(ActualPath) of
                                     {error, Reason} ->
                                         error_logger:error_msg("IPFS upload failed: ~p", [Reason]),
                                         error;
@@ -2821,26 +2822,23 @@ upload_video_version(VideoId, VideoFile) ->
                                         error
                                 end;
                             binary ->
-                                if
-                                    Size > ?CHUNK_SIZE ->
-                                        error_logger:info_msg("Large video binary detected, using chunked upload"),
-                                        upload_large_file_chunked(VideoFileOrPath);
-                                    true ->
-                                        error_logger:info_msg("Uploading video binary to IPFS via ipfs_video"),
-                                        case ipfs_video:upload_video(VideoFileOrPath) of
-                                            {error, Reason} ->
-                                                error_logger:error_msg("IPFS upload failed: ~p", [Reason]),
-                                                error;
-                                            CID when is_list(CID) ->
-                                                error_logger:info_msg("Successfully uploaded video to IPFS: ~p", [CID]),
-                                                CID;
-                                            CID when is_binary(CID) ->
-                                                error_logger:info_msg("Successfully uploaded video to IPFS: ~p", [CID]),
-                                                binary_to_list(CID);
-                                            Other ->
-                                                error_logger:error_msg("Unexpected IPFS upload result: ~p", [Other]),
-                                                error
-                                        end
+                                if Size > ?CHUNK_SIZE ->
+                                    error_logger:info_msg("Large video binary detected, using chunked upload"),
+                                    upload_large_file_chunked(VideoFileOrPath);
+                                true ->
+                                    error_logger:info_msg("Uploading video binary to IPFS"),
+                                    case ipfs_video:upload_video(VideoFileOrPath) of
+                                        {error, Reason} ->
+                                            error_logger:error_msg("IPFS upload failed: ~p", [Reason]),
+                                            error;
+                                        CID when is_list(CID) ->
+                                            CID;
+                                        CID when is_binary(CID) ->
+                                            binary_to_list(CID);
+                                        Other ->
+                                            error_logger:error_msg("Unexpected IPFS upload result: ~p", [Other]),
+                                            error
+                                    end
                                 end
                         end,
 
@@ -2878,6 +2876,28 @@ upload_video_version(VideoId, VideoFile) ->
 
                                 content_cache:delete({video_file, VideoId}),
                                 content_cache:delete({video_file_path, VideoId}),
+
+                                case InputType of
+                                    file_path when is_list(ActualPath) ->
+                                        spawn(fun() ->
+                                            timer:sleep(30000),
+                                            try
+                                                case filelib:is_file(ActualPath) of
+                                                    true ->
+                                                        file:delete(ActualPath),
+                                                        error_logger:info_msg("Cleaned up temp video file: ~p", [ActualPath]);
+                                                    false ->
+                                                        ok
+                                                end
+                                            catch
+                                                Exception:Error ->
+                                                    error_logger:warning_msg("Failed to cleanup temp video ~p: ~p:~p",
+                                                                           [ActualPath, Exception, Error])
+                                            end
+                                        end);
+                                    _ ->
+                                        ok
+                                end,
 
                                 spawn(fun() ->
                                     timer:sleep(10000),

@@ -1,6 +1,7 @@
+show.html.heex
 <div class="min-h-screen bg-[#27282e]">
   <div class="fixed top-0 left-0 right-0 z-50 h-16 bg-gradient-to-b from-[#151620] to-[#151620] shadow-lg">
-    <div class="flex items-center justify-between h-full px-16 max-w-[1440px] mx-auto">
+    <div class="flex items-center justify-between h-full px-16 max-w-[1920px] mx-auto">
       <.link navigate={~p"/#{@locale}/home"} class="flex items-center gap-3">
         <span class="text-white text-4xl font-bold font-['Poppins']">Mazaryn</span>
         <div class="flex gap-3">
@@ -8,7 +9,6 @@
           <div class="w-2 h-2 bg-blue-500 rounded-full"></div>
         </div>
       </.link>
-
       <div class="flex items-center gap-5">
         <form class="w-[548px]">
           <div class="relative">
@@ -20,14 +20,12 @@
             <Heroicons.magnifying_glass class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#aaaaaa]" />
           </div>
         </form>
-
         <.link
           navigate={~p"/#{@locale}/videos/upload"}
           class="w-10 h-10 bg-[#323340] rounded-full flex items-center justify-center hover:bg-[#3a3b4a] transition-colors"
         >
           <Heroicons.arrow_up_tray solid class="w-5 h-5 text-white" />
         </.link>
-
         <.link
           navigate={~p"/#{@locale}/notifications"}
           class="w-10 h-10 bg-[#323340] rounded-full flex items-center justify-center hover:bg-[#3a3b4a] transition-colors"
@@ -37,12 +35,10 @@
       </div>
     </div>
   </div>
-
-  <div class="flex max-w-[1440px] mx-auto pt-20">
-    <aside class="fixed left-16 top-24 w-60">
+  <div class="flex max-w-[1920px] mx-auto pt-20 px-6">
+    <aside class="fixed left-6 top-24 w-60 z-40">
       <div class="space-y-6">
         <h2 class="text-[#c5c7c8] text-xl font-semibold font-['Poppins']">Video</h2>
-
         <div class="bg-[#323340] rounded-[20px] shadow-lg p-7 space-y-7">
           <.link
             navigate={~p"/#{@locale}/videos"}
@@ -51,7 +47,6 @@
             <Heroicons.home solid class="w-5 h-5" />
             <span class="text-xl font-semibold font-['Poppins']">Home</span>
           </.link>
-
           <.link
             navigate={~p"/#{@locale}/videos/my-videos"}
             class="flex items-center gap-5 text-[#c5c7c8] hover:text-white hover:translate-x-1 transition-all"
@@ -59,7 +54,6 @@
             <Heroicons.video_camera solid class="w-5 h-5" />
             <span class="text-xl font-semibold font-['Poppins']">Your videos</span>
           </.link>
-
           <.link
             navigate={~p"/#{@locale}/videos/discover"}
             class="flex items-center gap-5 text-[#c5c7c8] hover:text-white hover:translate-x-1 transition-all"
@@ -67,7 +61,6 @@
             <Heroicons.globe_alt solid class="w-5 h-5" />
             <span class="text-xl font-semibold font-['Poppins']">Discover</span>
           </.link>
-
           <.link
             navigate={~p"/#{@locale}/videos/trending"}
             class="flex items-center gap-5 text-[#c5c7c8] hover:text-white hover:translate-x-1 transition-all"
@@ -76,7 +69,6 @@
             <span class="text-xl font-semibold font-['Poppins']">Trending</span>
           </.link>
         </div>
-
         <div class="bg-[#323340] rounded-[20px] shadow-lg p-7">
           <.link
             navigate={~p"/#{@locale}/settings"}
@@ -88,205 +80,166 @@
         </div>
       </div>
     </aside>
-
-    <main class="ml-80 flex-1 py-8 space-y-4 pr-4">
-      <div class="flex gap-5">
-        <div class="flex-1 space-y-4">
-          <div class="relative w-full bg-black rounded-[20px] overflow-hidden" style="aspect-ratio: 16/9;">
-            <%= cond do %>
-              <% @video.ipfs_cid && @video.ipfs_cid != "" && !is_tuple(@video.ipfs_cid) -> %>
-                <%
-                  cid = if is_list(@video.ipfs_cid),
-                          do: List.to_string(@video.ipfs_cid),
-                          else: @video.ipfs_cid
-
-                  primary_gateway = "https://ipfs.io/ipfs/#{cid}"
-                  fallback_gateway = "https://dweb.link/ipfs/#{cid}"
-                  cloudflare_gateway = "https://cloudflare-ipfs.com/ipfs/#{cid}"
-                %>
-
-                <video
-                  id="video-player"
-                  class="w-full h-full"
-                  controls
-                  preload="metadata"
-                  poster={@video.thumbnail_url}
-                  phx-hook="VideoPlayer"
-                  data-video-id={@video.id}
-                >
-                  <source src={primary_gateway} type="video/webm" />
-                  <source src={primary_gateway} type="video/mp4" />
-                  <source src={fallback_gateway} type="video/webm" />
-                  <source src={fallback_gateway} type="video/mp4" />
-                  <source src={cloudflare_gateway} type="video/webm" />
-                  <source src={cloudflare_gateway} type="video/mp4" />
-
-                  <p class="text-white p-4">
-                    Your browser does not support the video tag.
-                    <a href={primary_gateway} class="text-blue-500 underline" target="_blank">
-                      Download the video
-                    </a>
-                  </p>
-                </video>
-
-                <div id="video-loading" class="absolute inset-0 bg-black bg-opacity-75 flex items-center justify-center" style="display: none;">
-                  <div class="text-center">
-                    <div class="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-500 mx-auto mb-4"></div>
-                    <p class="text-gray-400 text-lg font-['Poppins']">Loading video from IPFS...</p>
-                    <p class="text-gray-500 text-sm font-['Poppins'] mt-2">This may take a moment</p>
-                  </div>
-                </div>
-
-              <% is_tuple(@video.ipfs_cid) -> %>
-                <div class="w-full h-full flex items-center justify-center bg-gray-900">
-                  <div class="text-center">
-                    <div class="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-500 mx-auto mb-4"></div>
-                    <p class="text-gray-400 text-lg font-['Poppins']">Video is processing...</p>
-                    <p class="text-gray-500 text-sm font-['Poppins'] mt-2">
-                      <%= case @video.ipfs_cid do %>
-                        <% {status, _id} when status in [:pending, :pending_update, :pending_version] -> %>
-                          Uploading to IPFS network
-                        <% {:error, _reason} -> %>
-                          Upload failed. Please try again.
-                        <% _ -> %>
-                          Processing...
-                      <% end %>
-                    </p>
-                    <script>
-                      setTimeout(() => window.location.reload(), 5000);
-                    </script>
-                  </div>
-                </div>
-
-              <% true -> %>
-                <div class="w-full h-full flex items-center justify-center bg-gray-900">
-                  <div class="text-center">
-                    <Heroicons.exclamation_triangle class="w-16 h-16 text-yellow-600 mx-auto mb-4" />
-                    <p class="text-gray-400 text-lg font-['Poppins']">Video not available</p>
-                    <p class="text-gray-500 text-sm font-['Poppins'] mt-2">The video content could not be loaded</p>
-                  </div>
-                </div>
-            <% end %>
+    <main class="ml-72 flex-1 py-8 pr-6">
+      <div class="flex gap-6 max-w-[1600px] mx-auto">
+        <div class="flex-1 space-y-5">
+          <div class="video-player-container">
+            <%
+              local_stream_url = "/api/videos/#{@video.id}/stream"
+              ipfs_url = if @video.ipfs_cid && !is_tuple(@video.ipfs_cid) do
+                cid = if is_list(@video.ipfs_cid), do: List.to_string(@video.ipfs_cid), else: @video.ipfs_cid
+                "https://ipfs.io/ipfs/#{cid}"
+              else
+                nil
+              end
+            %>
+            <video
+              id="video-player"
+              phx-hook="VideoPlayer"
+              data-video-id={@video.id}
+              preload="metadata"
+              poster={@video.thumbnail_url}
+              playsinline
+              class="w-full h-[500px] md:h-[600px] lg:h-[700px] object-cover rounded-[20px]"
+            >
+              <source src={local_stream_url} type="video/webm" />
+              <source src={local_stream_url} type="video/mp4" />
+              <%= if ipfs_url do %>
+                <source src={ipfs_url} type="video/webm" />
+                <source src={ipfs_url} type="video/mp4" />
+              <% end %>
+              Your browser does not support the video tag.
+            </video>
+            <div id="video-loading">
+              <div class="loading-spinner"></div>
+              <div class="loading-text">Loading video...</div>
+            </div>
+            <div class="video-title-overlay">
+              <%= @video.title %>
+            </div>
           </div>
-
-          <div class="text-white text-xl font-semibold font-['Poppins']">
+          <div class="text-white text-2xl font-bold font-['Poppins'] leading-tight">
             <%= @video.title %>
           </div>
-
-          <div class="flex justify-between items-center">
-            <div class="text-white text-sm font-semibold font-['Poppins']">
+          <div class="flex flex-wrap justify-between items-center gap-4">
+            <div class="text-white text-base font-medium font-['Poppins']">
               <%= format_views(@video.views) %> views • <%= format_time_ago(@video.created_at) %>
             </div>
-
-            <div class="flex gap-2">
-              <div class="px-4 py-1.5 bg-[#323340] rounded-full flex items-center gap-2">
-                <button phx-click="react" phx-value-type="like" class="flex items-center gap-1">
-                  <Heroicons.hand_thumb_up class="w-6 h-6 text-white" />
+            <div class="flex flex-wrap gap-2">
+              <div class="px-4 py-2 bg-[#323340] rounded-full flex items-center gap-2 hover:bg-[#3a3b4a] transition-all">
+                <button phx-click="react" phx-value-type="like" class="flex items-center gap-2 hover:scale-110 transition-transform">
+                  <Heroicons.hand_thumb_up class="w-5 h-5 text-white" />
                   <span class="text-white text-sm font-semibold font-['Poppins']">
                     <%= Map.get(@video.reaction_counts, :like, 0) %>
                   </span>
                 </button>
-                <div class="w-px h-6 bg-zinc-300"></div>
-                <button phx-click="react" phx-value-type="love" class="flex items-center gap-1">
-                  <Heroicons.heart class="w-6 h-6 text-white" />
+                <div class="w-px h-6 bg-zinc-600"></div>
+                <button phx-click="react" phx-value-type="love" class="flex items-center gap-2 hover:scale-110 transition-transform">
+                  <Heroicons.heart class="w-5 h-5 text-white" />
                 </button>
               </div>
-
               <button
                 phx-click="share"
-                class="px-4 py-1.5 bg-[#323340] rounded-full flex items-center gap-1 hover:bg-[#3a3b4a] transition-colors"
+                class="px-4 py-2 bg-[#323340] rounded-full flex items-center gap-2 hover:bg-[#3a3b4a] hover:scale-105 transition-all"
               >
-                <Heroicons.share class="w-6 h-6 text-white" />
+                <Heroicons.share class="w-5 h-5 text-white" />
                 <span class="text-white text-sm font-semibold font-['Poppins']">Share</span>
               </button>
-
               <button
                 phx-click="save"
-                class="px-4 py-1.5 bg-[#323340] rounded-full flex items-center gap-2 hover:bg-[#3a3b4a] transition-colors"
+                class="px-4 py-2 bg-[#323340] rounded-full flex items-center gap-2 hover:bg-[#3a3b4a] hover:scale-105 transition-all"
               >
-                <Heroicons.bookmark class="w-6 h-6 text-white" />
+                <Heroicons.bookmark class="w-5 h-5 text-white" />
                 <span class="text-white text-sm font-semibold font-['Poppins']">Save</span>
               </button>
+              <%= if @user && get_user_id(@user) == @video.user_id do %>
+                <button
+                  phx-click="show_delete_modal"
+                  class="px-4 py-2 bg-red-500 rounded-full flex items-center gap-2 hover:bg-red-600 hover:scale-105 transition-all"
+                >
+                  <Heroicons.trash class="w-5 h-5 text-white" />
+                  <span class="text-white text-sm font-semibold font-['Poppins']">Delete</span>
+                </button>
+              <% end %>
             </div>
           </div>
-
-          <div class="p-5 bg-[#323340] rounded-[20px] space-y-5">
+          <div class="p-5 bg-[#323340] rounded-[20px] space-y-4">
             <div class="flex justify-between items-center">
-              <div class="flex items-center gap-2.5">
+              <div class="flex items-center gap-3">
                 <img
                   src={@creator.avatar}
-                  class="w-12 h-12 rounded-full object-cover"
+                  class="w-12 h-12 rounded-full object-cover ring-2 ring-blue-500"
                   alt={@creator.username}
                 />
                 <div class="flex flex-col">
-                  <div class="text-gray-300 text-sm font-semibold font-['Poppins']">
+                  <div class="text-white text-base font-bold font-['Poppins']">
                     <%= @creator.username %>
                   </div>
-                  <div class="text-gray-300 text-sm font-normal font-['Poppins']">
-                    <%= @creator.subscribers %> subscribers
+                  <div class="text-gray-400 text-sm font-normal font-['Poppins']">
+                    Content Creator
                   </div>
                 </div>
               </div>
-
-              <button
-                :if={!@is_subscribed}
-                phx-click="subscribe"
-                class="px-5 py-2.5 bg-blue-500 rounded-lg hover:bg-blue-600 transition-colors"
-              >
-                <span class="text-white text-sm font-bold font-['Roboto']">Subscribe</span>
-              </button>
-
-              <div :if={@is_subscribed} class="px-5 py-2.5 bg-gray-600 rounded-lg">
-                <span class="text-white text-sm font-bold font-['Roboto']">Subscribed</span>
-              </div>
+              <%= if @user && get_user_id(@user) != @video.user_id do %>
+                <button
+                  :if={!@is_subscribed}
+                  phx-click="subscribe"
+                  class="px-5 py-2.5 bg-blue-500 rounded-lg hover:bg-blue-600 hover:scale-105 transition-all shadow-lg"
+                >
+                  <span class="text-white text-sm font-bold font-['Roboto']">Subscribe</span>
+                </button>
+                <div :if={@is_subscribed} class="px-5 py-2.5 bg-gray-600 rounded-lg shadow-lg">
+                  <span class="text-white text-sm font-bold font-['Roboto']">Subscribed</span>
+                </div>
+              <% end %>
             </div>
-
-            <div class="space-y-2.5">
-              <p class="text-white text-sm font-normal font-['Poppins']">
+            <div class="space-y-2">
+              <p class="text-white text-sm font-normal font-['Poppins'] leading-relaxed">
                 <%= @video.description %>
               </p>
             </div>
           </div>
-
-          <div class="pt-6 space-y-6">
+          <div class="pt-6 space-y-5">
             <div class="flex items-center justify-between">
-              <div class="text-white text-base font-normal font-['Poppins']">
+              <div class="text-white text-lg font-bold font-['Poppins']">
                 <%= length(@comments) %> Comments
               </div>
             </div>
-
-            <div class="flex gap-2.5">
+            <div class="flex gap-3">
               <img
                 src={if @user, do: "/images/default-avatar.png", else: "/images/default-avatar.png"}
                 class="w-10 h-10 rounded-full object-cover"
                 alt="Your avatar"
               />
-              <div class="flex-1 flex gap-2.5">
+              <div class="flex-1 flex gap-2">
                 <input
                   type="text"
                   phx-change="update_comment"
                   value={@comment_text}
                   placeholder="Add a public comment..."
-                  class="flex-1 px-5 py-2 bg-[#323340] rounded-lg text-white placeholder-[#aaaaaa] focus:outline-none focus:border-2 focus:border-blue-500"
+                  class="flex-1 px-4 py-2.5 bg-[#323340] rounded-lg text-white text-sm placeholder-[#aaaaaa] focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
                 />
                 <button
                   phx-click="add_comment"
                   phx-value-comment={@comment_text}
-                  class="px-8 py-2 bg-blue-500 rounded-lg hover:bg-blue-600 transition-colors"
+                  class="px-6 py-2.5 bg-blue-500 rounded-lg hover:bg-blue-600 hover:scale-105 transition-all shadow-lg"
                 >
-                  <span class="text-white text-base font-normal font-['Poppins']">Send</span>
+                  <span class="text-white text-sm font-semibold font-['Poppins']">Send</span>
                 </button>
               </div>
             </div>
-
-            <div class="space-y-5">
+            <div class="space-y-4">
               <%= if @comments == [] do %>
-                <div class="text-center py-8">
-                  <p class="text-gray-400 text-sm font-['Poppins']">No comments yet. Be the first to comment!</p>
+                <div class="text-center py-10 bg-[#323340] rounded-[20px]">
+                  <div class="w-14 h-14 bg-[#27282e] rounded-full flex items-center justify-center mx-auto mb-3">
+                    <Heroicons.chat_bubble_left_right class="w-7 h-7 text-gray-500" />
+                  </div>
+                  <p class="text-gray-400 text-base font-['Poppins']">No comments yet</p>
+                  <p class="text-gray-500 text-sm font-['Poppins'] mt-1">Be the first to comment!</p>
                 </div>
               <% else %>
                 <%= for comment <- @comments do %>
-                  <div class="flex gap-2.5">
+                  <div class="flex gap-3 p-3 hover:bg-[#323340] rounded-lg transition-colors">
                     <img
                       src="/images/default-avatar.png"
                       class="w-10 h-10 rounded-full object-cover"
@@ -297,7 +250,7 @@
                         <span class="text-white text-sm font-semibold font-['Poppins']">User</span>
                         <span class="text-neutral-400 text-xs font-normal font-['Poppins']">Just now</span>
                       </div>
-                      <p class="text-white text-sm font-normal font-['Poppins']">
+                      <p class="text-white text-sm font-normal font-['Poppins'] leading-relaxed">
                         <%= comment %>
                       </p>
                     </div>
@@ -307,34 +260,33 @@
             </div>
           </div>
         </div>
-
-        <aside class="w-[437px] space-y-5">
+        <aside class="w-[400px] space-y-3">
+          <h3 class="text-white text-base font-bold font-['Poppins'] px-2">Up Next</h3>
           <%= for video <- @related_videos do %>
             <div
               phx-click="play_related"
               phx-value-id={video.id}
-              class="flex gap-2.5 cursor-pointer hover:bg-[#323340] p-2 rounded-lg transition-colors"
+              class="flex gap-2 cursor-pointer hover:bg-[#323340] p-2 rounded-xl transition-all hover:scale-[1.01]"
             >
-              <div class="w-56 h-36 relative flex-shrink-0">
+              <div class="w-40 h-[90px] relative flex-shrink-0">
                 <img
                   src={video.thumbnail_url}
-                  class="w-full h-full rounded-md object-cover"
+                  class="w-full h-full rounded-lg object-cover"
                   alt={video.title}
                 />
-                <div class="absolute bottom-2 right-2 px-2 py-1 bg-black/50 rounded text-white text-xs">
+                <div class="absolute bottom-1 right-1 px-1.5 py-0.5 bg-black/80 rounded text-white text-xs font-semibold">
                   <%= video.duration %>
                 </div>
               </div>
-
-              <div class="flex-1 space-y-1">
-                <h3 class="text-white text-base font-semibold font-['Poppins'] line-clamp-2">
+              <div class="flex-1 space-y-1 min-w-0">
+                <h3 class="text-white text-sm font-semibold font-['Poppins'] leading-tight line-clamp-2">
                   <%= video.title %>
                 </h3>
-                <p class="text-gray-300 text-sm font-normal font-['Poppins']">
+                <p class="text-gray-400 text-xs font-normal font-['Poppins'] truncate">
                   <%= video.creator %>
                 </p>
-                <p class="text-gray-300 text-sm font-normal font-['Poppins']">
-                  <%= video.views %> views • <%= video.created_at %>
+                <p class="text-gray-400 text-xs font-normal font-['Poppins']">
+                  <%= video.views %> views
                 </p>
               </div>
             </div>
@@ -343,4 +295,33 @@
       </div>
     </main>
   </div>
+  <%= if @show_delete_modal do %>
+    <div class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 backdrop-blur-sm" phx-click="hide_delete_modal">
+      <div class="bg-[#323340] rounded-[20px] p-7 max-w-md w-full mx-4 shadow-2xl transform transition-all" phx-click="ignore">
+        <div class="flex items-center gap-3 mb-5">
+          <div class="w-11 h-11 bg-red-500/20 rounded-full flex items-center justify-center">
+            <Heroicons.exclamation_triangle class="w-6 h-6 text-red-500" />
+          </div>
+          <h2 class="text-white text-lg font-bold font-['Poppins']">Delete Video</h2>
+        </div>
+        <p class="text-gray-300 text-sm font-['Poppins'] leading-relaxed mb-6">
+          Are you sure you want to delete this video? This action cannot be undone and all data will be permanently removed.
+        </p>
+        <div class="flex gap-3 justify-end">
+          <button
+            phx-click="hide_delete_modal"
+            class="px-5 py-2.5 bg-[#27282e] rounded-lg text-white hover:bg-[#1f2028] transition-all font-semibold"
+          >
+            Cancel
+          </button>
+          <button
+            phx-click="delete_video"
+            class="px-5 py-2.5 bg-red-500 rounded-lg text-white hover:bg-red-600 transition-all font-semibold shadow-lg hover:shadow-red-500/50"
+          >
+            Delete Video
+          </button>
+        </div>
+      </div>
+    </div>
+  <% end %>
 </div>
