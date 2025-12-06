@@ -212,33 +212,43 @@ check_username_email_concurrent(Username, Email) ->
         _ -> {error, check_failed}
     end.
 
-receive_result({Pid, Ref}) ->
-    receive
-        {'DOWN', Ref, process, Pid, {result, Result}} ->
-            Result;
-        {'DOWN', Ref, process, Pid, Reason} ->
-            error_logger:error_msg("Process ~p failed: ~p", [Pid, Reason]),
-            exit({concurrent_operation_failed, Reason})
-    after 10000 ->
-        exit(Pid, kill),
-        exit(timeout)
-    end.
+    receive_result({Pid, Ref}) ->
+        receive
+            {'DOWN', Ref, process, Pid, {result, Result}} ->
+                Result;
+            {'DOWN', Ref, process, Pid, Reason} ->
+                error_logger:error_msg("~n~n===== CONCURRENT OPERATION FAILED =====~nProcess ~p failed with reason: ~p~n~n", [Pid, Reason]),
+                exit({concurrent_operation_failed, Reason})
+        after 10000 ->
+            error_logger:error_msg("~n~n===== CONCURRENT OPERATION TIMEOUT =====~nProcess ~p timed out after 10 seconds~n~n", [Pid]),
+            exit(Pid, kill),
+            exit(timeout)
+        end.
 
-write_user_with_retry(User, RetriesLeft) when RetriesLeft > 0 ->
-    try
-        mnesia:dirty_write(User),
-        ok
-    catch
-        error:Reason ->
-            error_logger:warning_msg("User write failed (retries left: ~p): ~p",
-                                     [RetriesLeft, Reason]),
-            timer:sleep(?BACKOFF_TIME * ((?MAX_RETRIES - RetriesLeft) + 1)),
-            write_user_with_retry(User, RetriesLeft - 1);
-        _:_ ->
-            {error, unexpected_error}
-    end;
-write_user_with_retry(_User, 0) ->
-    {error, max_retries_exceeded}.
+    write_user_with_retry(User, RetriesLeft) when RetriesLeft > 0 ->
+        try
+            mnesia:dirty_write(User),
+            ok
+        catch
+            error:Reason:Stacktrace ->
+                error_logger:error_msg("User write FAILED (error:Reason) - retries left: ~p~nReason: ~p~nStacktrace: ~p~n",
+                                       [RetriesLeft, Reason, Stacktrace]),
+                timer:sleep(?BACKOFF_TIME * ((?MAX_RETRIES - RetriesLeft) + 1)),
+                write_user_with_retry(User, RetriesLeft - 1);
+            throw:Reason:Stacktrace ->
+                error_logger:error_msg("User write FAILED (throw) - retries left: ~p~nReason: ~p~nStacktrace: ~p~n",
+                                       [RetriesLeft, Reason, Stacktrace]),
+                timer:sleep(?BACKOFF_TIME * ((?MAX_RETRIES - RetriesLeft) + 1)),
+                write_user_with_retry(User, RetriesLeft - 1);
+            exit:Reason:Stacktrace ->
+                error_logger:error_msg("User write FAILED (exit) - retries left: ~p~nReason: ~p~nStacktrace: ~p~n",
+                                       [RetriesLeft, Reason, Stacktrace]),
+                {error, {process_died, Reason}}
+        end;
+    write_user_with_retry(_User, 0) ->
+        error_logger:error_msg("User write FAILED - MAX RETRIES EXCEEDED~n", []),
+        {error, max_retries_exceeded}.
+
 
 insert_media(Id, Type, Url) ->
     Fun = fun() ->
