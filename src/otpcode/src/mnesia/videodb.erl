@@ -36,6 +36,12 @@
 
     add_video_comment/3,
     get_video_comments/1,
+    get_video_comment_content/1,
+    update_video_comment/2,
+    delete_video_comment/2,
+    react_to_video_comment/3,
+    get_comment_reactions/1,
+    get_user_comment_reaction/2,
     get_comment_count/1,
 
     increment_view_count/2,
@@ -957,8 +963,458 @@ find_user_reaction_type_in_types(UserID, [Type | Rest], Reactions) ->
         false -> find_user_reaction_type_in_types(UserID, Rest, Reactions)
     end.
 
-add_video_comment(Author, VideoId, Content) ->
-    postdb:add_comment(Author, VideoId, Content).
+    add_video_comment(Author, VideoId, Content) ->
+        Fun = fun() ->
+            Id = nanoid:gen(),
+            Date = calendar:universal_time(),
+            UserID = userdb:get_user_id(Author),
+            ContentToCache = if
+                is_binary(Content) -> binary_to_list(Content);
+                true -> Content
+            end,
+            ok = content_cache:set(Id, ContentToCache),
+            PlaceholderContent = Id,
+            case mnesia:read({video, VideoId}) of
+                [] ->
+                    {error, video_not_found};
+                [Video] ->
+                    case Video#video.allow_comments of
+                        false -> {error, comments_disabled};
+                        true ->
+                            Comment = #comment{
+                                id = Id,
+                                user_id = UserID,
+                                post = VideoId,
+                                author = Author,
+                                content = PlaceholderContent,
+                                date_created = Date,
+                                content_status = processing
+                            },
+                            mnesia:write(Comment),
+                            CurrentComments = case Video#video.comments of
+                                undefined -> [];
+                                L when is_list(L) -> L;
+                                _ -> []
+                            end,
+                            UpdatedComments = [Id | CurrentComments],
+                            mnesia:write(Video#video{comments = UpdatedComments}),
+                            case update_user_activity(Author, Date) of
+                                {error, Reason} ->
+                                    error_logger:warning_msg("Failed to update activity for ~p: ~p", [Author, Reason]),
+                                    ok;
+                                _ -> ok
+                            end,
+                            {ok, Id}
+                    end
+            end
+        end,
+        case mnesia:transaction(Fun) of
+            {atomic, {ok, Id}} ->
+                spawn(fun() ->
+                    ContentToUse = content_cache:get(Id),
+                    CIDString = case ContentToUse of
+                        "" -> "";
+                        _ -> ipfs_content:upload_text(ContentToUse)
+                    end,
+                    UpdateF = fun() ->
+                        case mnesia:read({comment, Id}) of
+                            [CommentToUpdate] ->
+                                UpdatedComment = CommentToUpdate#comment{
+                                    content = CIDString,
+                                    content_status = ready
+                                },
+                                mnesia:write(UpdatedComment);
+                            [] -> ok
+                        end
+                    end,
+                    mnesia:transaction(UpdateF),
+                    content_cache:delete(Id),
+                    spawn(fun() ->
+                        timer:sleep(5000),
+                        case CIDString of
+                            "" ->
+                                ok;
+                            _ ->
+                                try
+                                    {ok, #{id := _KeyID, name := _}} = ipfs_client_4:key_gen("video_comment_" ++ Id),
+                                    PublishOptions = [
+                                        {key, "video_comment_" ++ Id},
+                                        {resolve, true},
+                                        {lifetime, "12h0m0s"},
+                                        {ttl, "1m0s"},
+                                        {v1compat, true},
+                                        {ipns_base, "base36"}
+                                    ],
+                                    case ipfs_client_5:name_publish("/ipfs/" ++ CIDString, PublishOptions) of
+                                        {ok, #{name := IPNSKey}} ->
+                                            update_comment_ipns(Id, IPNSKey);
+                                        {error, _} ->
+                                            ok
+                                    end
+                                catch
+                                    _:_ -> ok
+                                end
+                        end
+                    end)
+                end),
+                Id;
+            {atomic, {error, Reason}} ->
+                {error, Reason};
+            {aborted, Reason} ->
+                {error, {transaction_failed, Reason}}
+        end.
+
+    get_video_comment_content(CommentID) ->
+        Parent = self(),
+        Ref = make_ref(),
+        spawn(fun() ->
+            Result = read_comment_and_fetch_content(CommentID),
+            Parent ! {Ref, Result}
+        end),
+        receive
+            {Ref, {ok, Content}} -> Content;
+            {Ref, OtherResult} -> OtherResult
+        after 10000 ->
+            {error, timeout}
+        end.
+
+    read_comment_and_fetch_content(CommentID) ->
+        ReadFun = fun() ->
+            case mnesia:read({comment, CommentID}) of
+                [] ->
+                    {error, comment_not_found};
+                [Comment] ->
+                    {ok, Comment}
+            end
+        end,
+        case mnesia:transaction(ReadFun) of
+            {atomic, {error, Reason}} ->
+                {error, Reason};
+            {atomic, {ok, Comment}} ->
+                Content = Comment#comment.content,
+                ContentStatus = case Comment#comment.content_status of
+                    undefined -> processing;
+                    Status -> Status
+                end,
+                fetch_comment_content(Content, CommentID, ContentStatus);
+            Error ->
+                Error
+        end.
+
+    fetch_comment_content(Content, CommentID, processing) ->
+        case content_cache:get(CommentID) of
+            undefined ->
+                timer:sleep(1000),
+                case content_cache:get(CommentID) of
+                    undefined -> {error, content_processing};
+                    CachedContent -> {ok, CachedContent}
+                end;
+            CachedContent -> {ok, CachedContent}
+        end;
+    fetch_comment_content(Content, CommentID, ready) when Content =:= CommentID ->
+        case content_cache:get(CommentID) of
+            undefined -> {error, content_cache_missing};
+            CachedContent -> {ok, CachedContent}
+        end;
+    fetch_comment_content(Content, _CommentID, ready) ->
+        IpfsRef = make_ref(),
+        Parent = self(),
+        IpfsWorker = spawn(fun() ->
+            try
+                Result = ipfs_content:get_text_content(Content),
+                Parent ! {IpfsRef, {ok, Result}}
+            catch
+                _:Error ->
+                    Parent ! {IpfsRef, {error, Error}}
+            end
+        end),
+        MonitorRef = monitor(process, IpfsWorker),
+        receive
+            {IpfsRef, Result} ->
+                demonitor(MonitorRef, [flush]),
+                Result;
+            {'DOWN', MonitorRef, process, IpfsWorker, normal} ->
+                {error, ipfs_missing_result};
+            {'DOWN', MonitorRef, process, IpfsWorker, Reason} ->
+                {error, {ipfs_worker_crashed, Reason}}
+        after 15000 ->
+            exit(IpfsWorker, kill),
+            demonitor(MonitorRef, [flush]),
+            {error, ipfs_timeout}
+        end;
+    fetch_comment_content(Content, CommentID, _Status) ->
+        fetch_comment_content(Content, CommentID, ready).
+
+    update_user_activity(Author, Date) ->
+        case userdb:get_user(Author) of
+            [] -> {error, user_not_found};
+            User when is_record(User, user) ->
+                userdb:update_last_activity(User#user.id, Date);
+            _ -> {error, invalid_user}
+        end.
+
+    update_comment_ipns(CommentId, IPNSKey) ->
+        UpdateF = fun() ->
+            case mnesia:read({comment, CommentId}) of
+                [Comment] ->
+                    UpdatedComment = Comment#comment{ipns = IPNSKey},
+                    mnesia:write(UpdatedComment),
+                    ok;
+                [] ->
+                    {error, not_found}
+            end
+        end,
+        case mnesia:transaction(UpdateF) of
+            {atomic, ok} -> ok;
+            {atomic, {error, Reason}} ->
+                error_logger:error_msg("Failed to update comment ~p with IPNS: ~p", [CommentId, Reason]),
+                {error, Reason};
+            {aborted, Reason} ->
+                error_logger:error_msg("Transaction aborted while updating comment ~p with IPNS: ~p", [CommentId, Reason]),
+                {error, {transaction_failed, Reason}}
+        end.
+
+        update_video_comment(CommentID, NewContent) ->
+            Fun = fun() ->
+                case mnesia:read({comment, CommentID}) of
+                    [] ->
+                        {error, comment_not_found};
+                    [Comment] ->
+                        VideoId = Comment#comment.post,
+                        case mnesia:read({video, VideoId}) of
+                            [] ->
+                                {error, invalid_comment_target};
+                            [_Video] ->
+                                ProcessingComment = Comment#comment{
+                                    content = CommentID,
+                                    content_status = processing
+                                },
+                                mnesia:write(ProcessingComment),
+                                ContentToCache = case is_binary(NewContent) of
+                                    true  -> binary_to_list(NewContent);
+                                    false -> NewContent
+                                end,
+                                ok = content_cache:set(CommentID, ContentToCache),
+                                spawn(fun() ->
+                                    CIDString = case ContentToCache of
+                                        "" -> "";
+                                        _  -> ipfs_content:upload_text(ContentToCache)
+                                    end,
+                                    UpdateF = fun() ->
+                                        case mnesia:read({comment, CommentID}) of
+                                            [CommentToUpdate] ->
+                                                FinalComment = CommentToUpdate#comment{
+                                                    content = CIDString,
+                                                    content_status = ready
+                                                },
+                                                mnesia:write(FinalComment);
+                                            [] -> ok
+                                        end
+                                    end,
+                                    mnesia:transaction(UpdateF),
+                                    content_cache:delete(CommentID)
+                                end),
+                                {ok, CommentID}
+                        end
+                end
+            end,
+            case mnesia:transaction(Fun) of
+                {atomic, Result} -> Result;
+                {aborted, Reason} -> {error, {transaction_failed, Reason}}
+            end.
+
+            delete_video_comment(CommentID, VideoId) ->
+                Fun = fun() ->
+                    case mnesia:read({video, VideoId}) of
+                        [] ->
+                            {error, video_not_found};
+                        [Video] ->
+                            case lists:member(CommentID, Video#video.comments) of
+                                false ->
+                                    {error, comment_not_found};
+                                true ->
+                                    UpdatedComments = lists:delete(CommentID, Video#video.comments),
+                                    mnesia:write(Video#video{comments = UpdatedComments}),
+
+                                    mnesia:delete({comment, CommentID}),
+
+                                    {ok, comment_deleted}
+                            end
+                    end
+                end,
+                case mnesia:transaction(Fun) of
+                    {atomic, {ok, comment_deleted}} ->
+                        {ok, comment_deleted};
+                    {atomic, {error, Reason}} ->
+                        {error, Reason};
+                    {aborted, Reason} ->
+                        {error, {transaction_failed, Reason}}
+                end.
+
+                react_to_video_comment(UserID, CommentId, ReactionType) ->
+                    ValidReactions = [like, love, wow, haha, fire, celebrate, support, insightful, funny],
+                    case lists:member(ReactionType, ValidReactions) of
+                        false -> {error, invalid_reaction_type};
+                        true ->
+                            Fun = fun() ->
+                                case mnesia:read({comment, CommentId}) of
+                                    [] -> {error, comment_not_found};
+                                    [Comment] ->
+                                        ExistingReaction = find_user_reaction_in_comment(Comment, UserID),
+
+                                        case ExistingReaction of
+                                            {found, OldType, OldLikeID} when OldType =:= ReactionType ->
+                                                Reactions = Comment#comment.reactions,
+                                                ReactionList = maps:get(OldType, Reactions, []),
+                                                UpdatedList = lists:delete(OldLikeID, ReactionList),
+                                                UpdatedReactions = maps:put(OldType, UpdatedList, Reactions),
+
+                                                ReactionCounts = Comment#comment.reaction_counts,
+                                                CurrentCount = maps:get(OldType, ReactionCounts, 0),
+                                                UpdatedCount = max(0, CurrentCount - 1),
+                                                UpdatedReactionCounts = maps:put(OldType, UpdatedCount, ReactionCounts),
+
+                                                mnesia:delete({like, OldLikeID}),
+
+                                                mnesia:write(Comment#comment{
+                                                    reactions = UpdatedReactions,
+                                                    reaction_counts = UpdatedReactionCounts
+                                                }),
+                                                {removed, OldType};
+                                            {found, OldType, OldLikeID} ->
+                                                Reactions = Comment#comment.reactions,
+                                                OldReactionList = maps:get(OldType, Reactions, []),
+                                                UpdatedOldList = lists:delete(OldLikeID, OldReactionList),
+                                                IntermediateReactions = maps:put(OldType, UpdatedOldList, Reactions),
+
+                                                ReactionCounts = Comment#comment.reaction_counts,
+                                                OldCount = maps:get(OldType, ReactionCounts, 0),
+                                                UpdatedOldCount = max(0, OldCount - 1),
+                                                IntermediateReactionCounts = maps:put(OldType, UpdatedOldCount, ReactionCounts),
+
+                                                mnesia:delete({like, OldLikeID}),
+
+                                                ID = nanoid:gen(),
+                                                mnesia:write(#like{
+                                                    id = ID,
+                                                    comment = CommentId,
+                                                    userID = UserID,
+                                                    reaction_type = ReactionType,
+                                                    date_created = calendar:universal_time()
+                                                }),
+
+                                                NewReactionList = maps:get(ReactionType, IntermediateReactions, []),
+                                                FinalReactions = maps:put(ReactionType, [ID | NewReactionList], IntermediateReactions),
+
+                                                NewCount = maps:get(ReactionType, IntermediateReactionCounts, 0),
+                                                FinalReactionCounts = maps:put(ReactionType, NewCount + 1, IntermediateReactionCounts),
+
+                                                mnesia:write(Comment#comment{
+                                                    reactions = FinalReactions,
+                                                    reaction_counts = FinalReactionCounts
+                                                }),
+                                                ID;
+                                            not_found ->
+                                                ID = nanoid:gen(),
+                                                mnesia:write(#like{
+                                                    id = ID,
+                                                    comment = CommentId,
+                                                    userID = UserID,
+                                                    reaction_type = ReactionType,
+                                                    date_created = calendar:universal_time()
+                                                }),
+
+                                                Reactions = Comment#comment.reactions,
+                                                ReactionList = maps:get(ReactionType, Reactions, []),
+                                                UpdatedReactions = maps:put(ReactionType, [ID | ReactionList], Reactions),
+
+                                                ReactionCounts = Comment#comment.reaction_counts,
+                                                CurrentCount = maps:get(ReactionType, ReactionCounts, 0),
+                                                UpdatedReactionCounts = maps:put(ReactionType, CurrentCount + 1, ReactionCounts),
+
+                                                mnesia:write(Comment#comment{
+                                                    reactions = UpdatedReactions,
+                                                    reaction_counts = UpdatedReactionCounts
+                                                }),
+                                                ID
+                                        end
+                                end
+                            end,
+                            case mnesia:transaction(Fun) of
+                                {atomic, Result} -> Result;
+                                {aborted, Reason} -> {error, {transaction_failed, Reason}}
+                            end
+                    end.
+
+                find_user_reaction_in_comment(Comment, UserID) ->
+                    Reactions = Comment#comment.reactions,
+                    ReactionTypes = [like, love, wow, haha, fire, celebrate, support, insightful, funny],
+                    find_user_reaction_in_comment_types(UserID, ReactionTypes, Reactions).
+
+                find_user_reaction_in_comment_types(_UserID, [], _Reactions) ->
+                    not_found;
+                find_user_reaction_in_comment_types(UserID, [Type | Rest], Reactions) ->
+                    ReactionList = maps:get(Type, Reactions, []),
+                    case lists:any(fun(ID) ->
+                        case mnesia:read({like, ID}) of
+                            [Like] -> Like#like.userID =:= UserID;
+                            [] -> false
+                        end
+                    end, ReactionList) of
+                        true ->
+                            LikeID = lists:foldl(fun(ID, Acc) ->
+                                case mnesia:read({like, ID}) of
+                                    [Like] when Like#like.userID =:= UserID -> ID;
+                                    _ -> Acc
+                                end
+                            end, undefined, ReactionList),
+                            {found, Type, LikeID};
+                        false ->
+                            find_user_reaction_in_comment_types(UserID, Rest, Reactions)
+                    end.
+
+                get_comment_reactions(CommentId) ->
+                    Fun = fun() ->
+                        case mnesia:read({comment, CommentId}) of
+                            [] -> #{};
+                            [Comment] -> Comment#comment.reaction_counts
+                        end
+                    end,
+                    {atomic, Res} = mnesia:transaction(Fun),
+                    Res.
+
+                get_user_comment_reaction(UserID, CommentId) ->
+                    Fun = fun() ->
+                        case mnesia:read({comment, CommentId}) of
+                            [] -> undefined;
+                            [Comment] ->
+                                Reactions = Comment#comment.reactions,
+                                find_user_comment_reaction_type(UserID, Reactions)
+                        end
+                    end,
+
+                    case mnesia:transaction(Fun) of
+                        {atomic, Result} -> Result;
+                        {aborted, _Reason} -> undefined
+                    end.
+
+                find_user_comment_reaction_type(UserID, Reactions) ->
+                    ReactionTypes = [like, love, wow, haha, fire, celebrate, support, insightful, funny],
+                    find_user_comment_reaction_type_in_types(UserID, ReactionTypes, Reactions).
+
+                find_user_comment_reaction_type_in_types(_UserID, [], _Reactions) ->
+                    undefined;
+                find_user_comment_reaction_type_in_types(UserID, [Type | Rest], Reactions) ->
+                    ReactionList = maps:get(Type, Reactions, []),
+                    case lists:any(fun(ID) ->
+                        case mnesia:read({like, ID}) of
+                            [Like] -> Like#like.userID =:= UserID;
+                            [] -> false
+                        end
+                    end, ReactionList) of
+                        true -> Type;
+                        false -> find_user_comment_reaction_type_in_types(UserID, Rest, Reactions)
+                    end.
 
 get_video_comments(VideoId) ->
     Fun = fun() ->

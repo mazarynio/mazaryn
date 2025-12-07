@@ -1,4 +1,3 @@
-show.html.heex
 <div class="min-h-screen bg-[#27282e]">
   <div class="fixed top-0 left-0 right-0 z-50 h-16 bg-gradient-to-b from-[#151620] to-[#151620] shadow-lg">
     <div class="flex items-center justify-between h-full px-16 max-w-[1920px] mx-auto">
@@ -86,9 +85,8 @@ show.html.heex
           <div class="video-player-container">
             <%
               local_stream_url = "/api/videos/#{@video.id}/stream"
-              ipfs_url = if @video.ipfs_cid && !is_tuple(@video.ipfs_cid) do
-                cid = if is_list(@video.ipfs_cid), do: List.to_string(@video.ipfs_cid), else: @video.ipfs_cid
-                "https://ipfs.io/ipfs/#{cid}"
+              ipfs_url = if @video.ipfs_cid && is_binary(@video.ipfs_cid) do
+                "https://ipfs.io/ipfs/#{@video.ipfs_cid}"
               else
                 nil
               end
@@ -103,10 +101,8 @@ show.html.heex
               class="w-full h-[500px] md:h-[600px] lg:h-[700px] object-cover rounded-[20px]"
             >
               <source src={local_stream_url} type="video/webm" />
-              <source src={local_stream_url} type="video/mp4" />
               <%= if ipfs_url do %>
                 <source src={ipfs_url} type="video/webm" />
-                <source src={ipfs_url} type="video/mp4" />
               <% end %>
               Your browser does not support the video tag.
             </video>
@@ -136,6 +132,9 @@ show.html.heex
                 <div class="w-px h-6 bg-zinc-600"></div>
                 <button phx-click="react" phx-value-type="love" class="flex items-center gap-2 hover:scale-110 transition-transform">
                   <Heroicons.heart class="w-5 h-5 text-white" />
+                  <span class="text-white text-sm font-semibold font-['Poppins']">
+                    <%= Map.get(@video.reaction_counts, :love, 0) %>
+                  </span>
                 </button>
               </div>
               <button
@@ -212,13 +211,14 @@ show.html.heex
                 alt="Your avatar"
               />
               <div class="flex-1 flex gap-2">
-                <input
-                  type="text"
-                  phx-change="update_comment"
-                  value={@comment_text}
-                  placeholder="Add a public comment..."
-                  class="flex-1 px-4 py-2.5 bg-[#323340] rounded-lg text-white text-sm placeholder-[#aaaaaa] focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
-                />
+              <input
+                type="text"
+                phx-keyup="update_comment"
+                phx-debounce="100"
+                value={@comment_text}
+                placeholder="Add a public comment..."
+                class="flex-1 px-4 py-2.5 bg-[#323340] rounded-lg text-white text-sm placeholder-[#aaaaaa] focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+              />
                 <button
                   phx-click="add_comment"
                   phx-value-comment={@comment_text}
@@ -229,7 +229,7 @@ show.html.heex
               </div>
             </div>
             <div class="space-y-4">
-              <%= if @comments == [] do %>
+              <%= if Enum.empty?(@comments) do %>
                 <div class="text-center py-10 bg-[#323340] rounded-[20px]">
                   <div class="w-14 h-14 bg-[#27282e] rounded-full flex items-center justify-center mx-auto mb-3">
                     <Heroicons.chat_bubble_left_right class="w-7 h-7 text-gray-500" />
@@ -246,12 +246,26 @@ show.html.heex
                       alt="Commenter"
                     />
                     <div class="flex-1 space-y-1">
-                      <div class="flex items-center gap-2">
-                        <span class="text-white text-sm font-semibold font-['Poppins']">User</span>
-                        <span class="text-neutral-400 text-xs font-normal font-['Poppins']">Just now</span>
+                      <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                          <span class="text-white text-sm font-semibold font-['Poppins']">
+                            <%= comment.author %>
+                          </span>
+                          <span class="text-neutral-400 text-xs font-normal font-['Poppins']">Just now</span>
+                        </div>
+                        <%= if @user && comment.author == @user.username do %>
+                          <button
+                            phx-click="delete_comment"
+                            phx-value-comment-id={comment.id}
+                            class="text-red-500 hover:text-red-400"
+                            title="Delete comment"
+                          >
+                            <Heroicons.trash class="w-4 h-4" />
+                          </button>
+                        <% end %>
                       </div>
                       <p class="text-white text-sm font-normal font-['Poppins'] leading-relaxed">
-                        <%= comment %>
+                        <%= comment.content %>
                       </p>
                     </div>
                   </div>

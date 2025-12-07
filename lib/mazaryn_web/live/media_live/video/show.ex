@@ -124,15 +124,40 @@ defmodule MazarynWeb.MediaLive.Video.Show do
 
   @impl true
   def handle_event("add_comment", %{"comment" => comment_text}, socket) do
-    user_id = get_user_id(socket.assigns.user)
+    Logger.info("===== ADD_COMMENT: Received text: '#{comment_text}' =====")
+
+    username =
+      case socket.assigns.user do
+        %{username: uname} when is_binary(uname) ->
+          uname
+
+        %{username: uname} when is_list(uname) ->
+          List.to_string(uname)
+
+        user_tuple when is_tuple(user_tuple) ->
+          author = elem(user_tuple, 2)
+          if is_list(author), do: List.to_string(author), else: author
+
+        _ ->
+          nil
+      end
+
+    Logger.info("===== ADD_COMMENT: Username extracted: #{inspect(username)} =====")
+
     video_id = socket.assigns.video.id
+    charlist_video_id = if is_binary(video_id), do: String.to_charlist(video_id), else: video_id
 
-    if String.trim(comment_text) != "" do
-      charlist_video_id = if is_binary(video_id), do: String.to_charlist(video_id), else: video_id
+    if username && String.trim(comment_text) != "" do
+      Logger.info(
+        "===== ADD_COMMENT: Calling videodb:add_video_comment(#{inspect(username)}, #{inspect(charlist_video_id)}, #{inspect(comment_text)}) ====="
+      )
 
-      case :videodb.add_video_comment(user_id, charlist_video_id, comment_text) do
+      case :videodb.add_video_comment(username, charlist_video_id, comment_text) do
         comment_id when is_binary(comment_id) or is_list(comment_id) ->
+          Logger.info("===== ADD_COMMENT: Success! Comment ID: #{inspect(comment_id)} =====")
+
           comments = load_comments(charlist_video_id)
+          Logger.info("===== ADD_COMMENT: Loaded #{length(comments)} comments =====")
 
           {:noreply,
            socket
@@ -141,14 +166,18 @@ defmodule MazarynWeb.MediaLive.Video.Show do
            |> put_flash(:info, "Comment added successfully")}
 
         {:error, reason} ->
-          Logger.error("===== ADD_COMMENT: Error: #{inspect(reason)} =====")
+          Logger.error("===== ADD_COMMENT: Backend error: #{inspect(reason)} =====")
           {:noreply, put_flash(socket, :error, "Failed to add comment")}
 
         other ->
-          Logger.error("===== ADD_COMMENT: Unexpected: #{inspect(other)} =====")
+          Logger.error("===== ADD_COMMENT: Unexpected return: #{inspect(other)} =====")
           {:noreply, put_flash(socket, :error, "Failed to add comment")}
       end
     else
+      Logger.warn(
+        "===== ADD_COMMENT: Skipped – username: #{inspect(username)}, text empty: #{String.trim(comment_text) == ""} ====="
+      )
+
       {:noreply, socket}
     end
   end
@@ -156,6 +185,33 @@ defmodule MazarynWeb.MediaLive.Video.Show do
   @impl true
   def handle_event("update_comment", %{"value" => text}, socket) do
     {:noreply, assign(socket, :comment_text, text)}
+  end
+
+  @impl true
+  def handle_event("delete_comment", %{"comment-id" => comment_id}, socket) do
+    video_id = socket.assigns.video.id
+    charlist_video_id = if is_binary(video_id), do: String.to_charlist(video_id), else: video_id
+
+    charlist_comment_id =
+      if is_binary(comment_id), do: String.to_charlist(comment_id), else: comment_id
+
+    case :videodb.delete_video_comment(charlist_comment_id, charlist_video_id) do
+      {:ok, :comment_deleted} ->
+        comments = load_comments(charlist_video_id)
+
+        {:noreply,
+         socket
+         |> assign(:comments, comments)
+         |> put_flash(:info, "Comment deleted")}
+
+      {:error, reason} ->
+        Logger.error("===== DELETE_COMMENT: Error: #{inspect(reason)} =====")
+        {:noreply, put_flash(socket, :error, "Failed to delete comment")}
+
+      other ->
+        Logger.error("===== DELETE_COMMENT: Unexpected: #{inspect(other)} =====")
+        {:noreply, put_flash(socket, :error, "Failed to delete comment")}
+    end
   end
 
   @impl true
@@ -635,5 +691,68 @@ defmodule MazarynWeb.MediaLive.Video.Show do
     end
   end
 
-  defp load_comments(_video_id), do: []
+  defp load_comments(video_id) do
+    Logger.info("===== LOAD_COMMENTS: Loading for video ID: #{inspect(video_id)} =====")
+    charlist_id = if is_binary(video_id), do: String.to_charlist(video_id), else: video_id
+
+    case :videodb.get_video_comments(charlist_id) do
+      comments when is_list(comments) ->
+        result =
+          Enum.map(comments, fn comment_tuple ->
+            comment_id = elem(comment_tuple, 1)
+            user_id = elem(comment_tuple, 2)
+
+            content =
+              case :videodb.get_video_comment_content(comment_id) do
+                {error, reason} ->
+                  Logger.error("===== LOAD_COMMENTS: Failed to load content for comment ~p: ~p", [
+                    comment_id,
+                    reason
+                  ])
+
+                  "[Content unavailable]"
+
+                binary_content when is_binary(binary_content) ->
+                  binary_content
+
+                list_content when is_list(list_content) ->
+                  List.to_string(list_content)
+
+                _ ->
+                  "[Content loading...]"
+              end
+
+            username =
+              case Core.UserClient.get_user_by_id(user_id) do
+                {:error, _} ->
+                  "Anonymous"
+
+                user_tuple when is_tuple(user_tuple) and tuple_size(user_tuple) >= 8 ->
+                  raw_username = elem(user_tuple, 8)
+
+                  case raw_username do
+                    u when is_list(u) and length(u) > 0 -> List.to_string(u)
+                    u when is_binary(u) and u != "" -> u
+                    _ -> "Anonymous"
+                  end
+
+                _ ->
+                  "Anonymous"
+              end
+
+            %{
+              id: if(is_list(comment_id), do: List.to_string(comment_id), else: comment_id),
+              author: username,
+              content: content
+            }
+          end)
+
+        Logger.info("===== LOAD_COMMENTS: Returning #{length(result)} formatted comments =====")
+        result
+
+      other ->
+        Logger.warning("===== LOAD_COMMENTS: videodb returned: #{inspect(other)} =====")
+        []
+    end
+  end
 end
