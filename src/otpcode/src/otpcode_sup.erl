@@ -85,6 +85,7 @@ create_tables_on_nodes(Nodes) ->
 
 create_table_on_nodes(Table, Nodes) ->
     Attributes = table_attributes(Table),
+    TableType = table_type(Table),
     TableNodes = [node() | [N || N <- Nodes, N =/= node()]],
 
     TableInfo = mnesia:table_info(Table, all),
@@ -93,10 +94,10 @@ create_table_on_nodes(Table, Nodes) ->
             case mnesia:create_table(Table, [
                 {attributes, Attributes},
                 {disc_copies, TableNodes},
-                {type, ordered_set}
+                {type, TableType}
             ]) of
                 {atomic, ok} ->
-                    logger:info("Table ~p created successfully on nodes ~p", [Table, TableNodes]),
+                    logger:info("Table ~p created successfully on nodes ~p with type ~p", [Table, TableNodes, TableType]),
                     ok;
                 {aborted, Reason} ->
                     logger:error("Failed to create table ~p: ~p", [Table, Reason]),
@@ -217,13 +218,14 @@ create_tables() ->
 
 create_table(Table) ->
     Attributes = table_attributes(Table),
+    TableType = table_type(Table),
     case mnesia:create_table(Table, [
         {attributes, Attributes},
         {disc_copies, [node()]},
-        {type, ordered_set}
+        {type, TableType}
     ]) of
         {atomic, ok} ->
-            logger:info("Table ~p created successfully", [Table]),
+            logger:info("Table ~p created successfully with type ~p", [Table, TableType]),
             ok;
         {aborted, {already_exists, _}} ->
             logger:info("Table ~p already exists", [Table]),
@@ -280,6 +282,10 @@ create_index(Table, Field) ->
                     {error, {field_not_found, Table, Field}}
             end
     end.
+
+table_type(post) -> ordered_set;
+table_type(blog_post) -> ordered_set;
+table_type(_) -> set.
 
 table_attributes(post) -> record_info(fields, post);
 table_attributes(notif) -> record_info(fields, notif);
