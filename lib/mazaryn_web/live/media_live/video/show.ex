@@ -2,7 +2,6 @@ defmodule MazarynWeb.MediaLive.Video.Show do
   use MazarynWeb, :live_view
   require Logger
 
-  @impl true
   def mount(params, session, socket) do
     user = get_user_from_session(session)
 
@@ -18,8 +17,15 @@ defmodule MazarynWeb.MediaLive.Video.Show do
      |> assign(:comment_text, "")
      |> assign(:is_subscribed, false)
      |> assign(:user_reaction, nil)
+     |> assign(:reaction_counts, %{"like" => 0, "love" => 0, "wow" => 0, "haha" => 0, "fire" => 0})
+     |> assign(:total_reactions, 0)
+     |> assign(:show_reactions_modal, false)
+     |> assign(:all_reaction_users, %{})
+     |> assign(:current_reaction_type, "like")
      |> assign(:watch_time_total, 0)
-     |> assign(:show_delete_modal, false)}
+     |> assign(:show_delete_modal, false)
+     |> assign(:is_owner, false)
+     |> assign(:search_query, "")}
   rescue
     error ->
       Logger.error("===== VIDEO SHOW MOUNT: Exception: #{inspect(error)} =====")
@@ -30,7 +36,6 @@ defmodule MazarynWeb.MediaLive.Video.Show do
        |> push_navigate(to: ~p"/en/videos")}
   end
 
-  @impl true
   def handle_params(%{"id" => video_id} = params, url, socket) do
     Logger.info("===== VIDEO SHOW: Loading video #{video_id} =====")
 
@@ -51,13 +56,24 @@ defmodule MazarynWeb.MediaLive.Video.Show do
       {:ok, video, creator, related_videos, comments} ->
         Logger.info("===== VIDEO SHOW: Video loaded successfully =====")
 
+        user_reaction = get_user_video_reaction(user, video.id)
+        reaction_counts = normalize_reaction_counts(video.reaction_counts)
+        total_reactions = Map.values(reaction_counts) |> Enum.sum()
+
+        is_owner = user && get_user_id(user) == video.user_id
+
         {:noreply,
          socket
          |> assign(:page_title, video.title)
          |> assign(:video, video)
          |> assign(:creator, creator)
          |> assign(:related_videos, related_videos)
-         |> assign(:comments, comments)}
+         |> assign(:comments, comments)
+         |> assign(:user_reaction, user_reaction)
+         |> assign(:reaction_counts, reaction_counts)
+         |> assign(:total_reactions, total_reactions)
+         |> assign(:show_delete_modal, false)
+         |> assign(:is_owner, is_owner)}
 
       {:error, reason} ->
         Logger.error("===== VIDEO SHOW: Error: #{inspect(reason)} =====")
@@ -66,6 +82,46 @@ defmodule MazarynWeb.MediaLive.Video.Show do
          socket
          |> put_flash(:error, "Video not found")
          |> push_navigate(to: ~p"/#{socket.assigns.locale}/videos")}
+    end
+  end
+
+  @impl true
+  def handle_event("ignore", _params, socket) do
+    {:noreply, socket}
+  end
+
+  @impl true
+  def handle_event("view_profile", %{"username" => username}, socket) do
+    Logger.info("===== VIEW_PROFILE: Received username: #{inspect(username)} =====")
+
+    locale = socket.assigns.locale || "en"
+
+    username_str =
+      case username do
+        u when is_binary(u) and byte_size(u) > 0 ->
+          Logger.info("===== VIEW_PROFILE: Username is binary: #{u} =====")
+          u
+
+        u when is_list(u) and length(u) > 0 ->
+          str = List.to_string(u)
+          Logger.info("===== VIEW_PROFILE: Username was list, converted to: #{str} =====")
+          str
+
+        _ ->
+          Logger.error("===== VIEW_PROFILE: Invalid username format: #{inspect(username)} =====")
+          nil
+      end
+
+    if username_str && username_str != "" && !String.starts_with?(username_str, ["/ip4", "/ip6"]) do
+      Logger.info("===== VIEW_PROFILE: Navigating to profile for: #{username_str} =====")
+
+      profile_path = Routes.live_path(socket, MazarynWeb.UserLive.Profile, locale, username_str)
+      Logger.info("===== VIEW_PROFILE: Profile path: #{profile_path} =====")
+
+      {:noreply, push_navigate(socket, to: profile_path)}
+    else
+      Logger.error("===== VIEW_PROFILE: Invalid username, not navigating =====")
+      {:noreply, put_flash(socket, :error, "Invalid user profile")}
     end
   end
 
@@ -215,38 +271,217 @@ defmodule MazarynWeb.MediaLive.Video.Show do
   end
 
   @impl true
-  def handle_event("react", %{"type" => reaction_type}, socket) do
+  def handle_event("react_to_video", %{"reaction-type" => reaction_type}, socket) do
     user_id = get_user_id(socket.assigns.user)
     video_id = socket.assigns.video.id
-    reaction_atom = String.to_atom(reaction_type)
 
+    if user_id do
+      try do
+        reaction_atom = String.to_existing_atom(reaction_type)
+
+        charlist_video_id =
+          if is_binary(video_id), do: String.to_charlist(video_id), else: video_id
+
+        charlist_user_id = if is_binary(user_id), do: String.to_charlist(user_id), else: user_id
+
+        result = :videodb.react_to_video(charlist_user_id, charlist_video_id, reaction_atom)
+
+        Process.sleep(50)
+
+        video = reload_video(charlist_video_id)
+
+        user_reaction =
+          case :videodb.get_user_reaction_type(charlist_user_id, charlist_video_id) do
+            reaction when is_atom(reaction) and reaction != :undefined -> reaction
+            _ -> nil
+          end
+
+        reaction_counts = normalize_reaction_counts(video.reaction_counts)
+        total_reactions = Map.values(reaction_counts) |> Enum.sum()
+
+        {:noreply,
+         socket
+         |> assign(:video, video)
+         |> assign(:user_reaction, user_reaction)
+         |> assign(:reaction_counts, reaction_counts)
+         |> assign(:total_reactions, total_reactions)}
+      rescue
+        e ->
+          Logger.error("Error in react_to_video: #{inspect(e)}")
+          {:noreply, put_flash(socket, :error, "Failed to react to video")}
+      end
+    else
+      {:noreply, put_flash(socket, :error, "Please login to react")}
+    end
+  end
+
+  @impl true
+  def handle_event("open_reactions_modal", %{"reaction-type" => reaction_type}, socket) do
+    Logger.info("===== OPEN_REACTIONS_MODAL: Starting for reaction type: #{reaction_type} =====")
+
+    video_id = socket.assigns.video.id
     charlist_video_id = if is_binary(video_id), do: String.to_charlist(video_id), else: video_id
 
-    case :videodb.react_to_video(user_id, charlist_video_id, reaction_atom) do
-      reaction_id when is_binary(reaction_id) or is_list(reaction_id) ->
-        video = reload_video(charlist_video_id)
+    all_reactions_map =
+      try do
+        :videodb.get_all_reactions(charlist_video_id)
+      rescue
+        e ->
+          Logger.error(
+            "===== OPEN_REACTIONS_MODAL: Error fetching reactions: #{inspect(e)} ====="
+          )
 
-        {:noreply,
-         socket
-         |> assign(:video, video)
-         |> assign(:user_reaction, reaction_type)}
+          %{like: [], love: [], wow: [], haha: [], fire: []}
+      end
 
-      {:removed, _type} ->
-        video = reload_video(charlist_video_id)
+    Logger.info(
+      "===== OPEN_REACTIONS_MODAL: Got reactions map: #{inspect(Map.keys(all_reactions_map))} ====="
+    )
 
-        {:noreply,
-         socket
-         |> assign(:video, video)
-         |> assign(:user_reaction, nil)}
+    grouped_users =
+      Enum.into(all_reactions_map, %{}, fn {type, reactions_list} ->
+        type_str = to_string(type)
 
-      {:error, reason} ->
-        Logger.error("===== REACT: Error: #{inspect(reason)} =====")
-        {:noreply, socket}
+        Logger.info(
+          "===== OPEN_REACTIONS_MODAL: Processing #{type_str} reactions, count: #{length(reactions_list)} ====="
+        )
 
-      other ->
-        Logger.error("===== REACT: Unexpected: #{inspect(other)} =====")
-        {:noreply, socket}
-    end
+        users =
+          Enum.map(reactions_list, fn reaction ->
+            user_id =
+              case reaction do
+                %{userID: uid} -> uid
+                {_, _, _, _, uid, _, _, _} -> uid
+                _ -> nil
+              end
+
+            Logger.info(
+              "===== OPEN_REACTIONS_MODAL: Processing user_id: #{inspect(user_id)} ====="
+            )
+
+            if user_id do
+              charlist_user_id =
+                if is_binary(user_id), do: String.to_charlist(user_id), else: user_id
+
+              case Core.UserClient.get_user_by_id(charlist_user_id) do
+                {:error, reason} ->
+                  Logger.error(
+                    "===== OPEN_REACTIONS_MODAL: Error getting user: #{inspect(reason)} ====="
+                  )
+
+                  %{username: "Anonymous", avatar: "/images/default-avatar.png", verified: false}
+
+                user_tuple when is_tuple(user_tuple) and tuple_size(user_tuple) >= 9 ->
+                  username = elem(user_tuple, 8)
+                  avatar = elem(user_tuple, 6)
+
+                  Logger.info(
+                    "===== OPEN_REACTIONS_MODAL: Raw username: #{inspect(username)} ====="
+                  )
+
+                  Logger.info("===== OPEN_REACTIONS_MODAL: Raw avatar: #{inspect(avatar)} =====")
+
+                  username_str =
+                    case username do
+                      u when is_list(u) and length(u) > 0 ->
+                        str = List.to_string(u)
+
+                        Logger.info(
+                          "===== OPEN_REACTIONS_MODAL: Converted username from list: #{str} ====="
+                        )
+
+                        if String.starts_with?(str, ["/ip4", "/ip6"]), do: "Anonymous", else: str
+
+                      u when is_binary(u) and u != "" ->
+                        Logger.info("===== OPEN_REACTIONS_MODAL: Username is binary: #{u} =====")
+                        if String.starts_with?(u, ["/ip4", "/ip6"]), do: "Anonymous", else: u
+
+                      _ ->
+                        Logger.warn(
+                          "===== OPEN_REACTIONS_MODAL: Username format unknown, defaulting to Anonymous ====="
+                        )
+
+                        "Anonymous"
+                    end
+
+                  avatar_str =
+                    case avatar do
+                      a when is_list(a) and length(a) > 0 ->
+                        str = List.to_string(a)
+
+                        if String.starts_with?(str, ["/ip4", "/ip6", "http"]) and
+                             not String.contains?(str, "ipfs.io") do
+                          "/images/default-avatar.png"
+                        else
+                          str
+                        end
+
+                      a when is_binary(a) and a != "" ->
+                        if String.starts_with?(a, ["/ip4", "/ip6"]) do
+                          "/images/default-avatar.png"
+                        else
+                          a
+                        end
+
+                      _ ->
+                        "/images/default-avatar.png"
+                    end
+
+                  Logger.info("===== OPEN_REACTIONS_MODAL: Final username: #{username_str} =====")
+                  Logger.info("===== OPEN_REACTIONS_MODAL: Final avatar: #{avatar_str} =====")
+
+                  %{
+                    username: username_str,
+                    avatar: avatar_str,
+                    verified: false
+                  }
+
+                _ ->
+                  Logger.warn("===== OPEN_REACTIONS_MODAL: User tuple invalid or too small =====")
+                  %{username: "Unknown", avatar: "/images/default-avatar.png", verified: false}
+              end
+            else
+              Logger.warn("===== OPEN_REACTIONS_MODAL: No user_id found in reaction =====")
+              %{username: "Unknown", avatar: "/images/default-avatar.png", verified: false}
+            end
+          end)
+          |> Enum.filter(fn user ->
+            keep = user.username not in ["Anonymous", "Unknown"]
+
+            if !keep do
+              Logger.info(
+                "===== OPEN_REACTIONS_MODAL: Filtering out user: #{user.username} ====="
+              )
+            end
+
+            keep
+          end)
+
+        Logger.info(
+          "===== OPEN_REACTIONS_MODAL: Final user count for #{type_str}: #{length(users)} ====="
+        )
+
+        {type_str, users}
+      end)
+
+    Logger.info(
+      "===== OPEN_REACTIONS_MODAL: Grouped users summary: #{inspect(Enum.map(grouped_users, fn {k, v} -> {k, length(v)} end))} ====="
+    )
+
+    {:noreply,
+     socket
+     |> assign(:show_reactions_modal, true)
+     |> assign(:current_reaction_type, reaction_type)
+     |> assign(:all_reaction_users, grouped_users)}
+  end
+
+  @impl true
+  def handle_event("close_reactions_modal", _params, socket) do
+    {:noreply,
+     socket
+     |> assign(:show_reactions_modal, false)
+     |> assign(:all_reaction_users, %{})
+     |> assign(:current_reaction_type, "like")}
   end
 
   @impl true
@@ -287,14 +522,38 @@ defmodule MazarynWeb.MediaLive.Video.Show do
     {:noreply, push_navigate(socket, to: ~p"/#{socket.assigns.locale}/videos/#{video_id}")}
   end
 
-  @impl true
   def handle_event("show_delete_modal", _params, socket) do
-    {:noreply, assign(socket, :show_delete_modal, true)}
+    Logger.info("🗑 Showing delete video modal")
+    {:noreply, assign(socket, show_delete_modal: true)}
   end
 
-  @impl true
   def handle_event("hide_delete_modal", _params, socket) do
-    {:noreply, assign(socket, :show_delete_modal, false)}
+    Logger.info("🚫 Hiding delete video modal")
+    {:noreply, assign(socket, show_delete_modal: false)}
+  end
+
+  def handle_event("confirm_delete_video", %{"id" => video_id}, socket) do
+    delete_start = :erlang.system_time(:millisecond)
+    Logger.info("🗑 Starting confirm_delete_video for video #{video_id}")
+
+    Task.start(fn ->
+      try do
+        :videodb.delete_video(String.to_charlist(video_id))
+        Logger.info("✅ Video #{video_id} deleted successfully")
+      rescue
+        error -> Logger.error("Error deleting video: #{inspect(error)}")
+      end
+    end)
+
+    socket =
+      socket
+      |> assign(show_delete_modal: false)
+      |> put_flash(:info, "Video deleted successfully")
+      |> push_navigate(to: ~p"/#{socket.assigns.locale}/videos")
+
+    delete_end = :erlang.system_time(:millisecond)
+    Logger.info("🗑 confirm_delete_video completed in #{delete_end - delete_start}ms")
+    {:noreply, socket}
   end
 
   @impl true
@@ -725,20 +984,37 @@ defmodule MazarynWeb.MediaLive.Video.Show do
             username =
               case Core.UserClient.get_user_by_id(user_id) do
                 {:error, _} ->
+                  Logger.warn("===== LOAD_COMMENTS: Could not get user for comment =====")
                   "Anonymous"
 
-                user_tuple when is_tuple(user_tuple) and tuple_size(user_tuple) >= 8 ->
+                user_tuple when is_tuple(user_tuple) and tuple_size(user_tuple) >= 9 ->
                   raw_username = elem(user_tuple, 8)
 
+                  Logger.info(
+                    "===== LOAD_COMMENTS: Raw username from tuple: #{inspect(raw_username)} ====="
+                  )
+
                   case raw_username do
-                    u when is_list(u) and length(u) > 0 -> List.to_string(u)
-                    u when is_binary(u) and u != "" -> u
-                    _ -> "Anonymous"
+                    u when is_list(u) and length(u) > 0 ->
+                      str = List.to_string(u)
+                      Logger.info("===== LOAD_COMMENTS: Converted username: #{str} =====")
+                      str
+
+                    u when is_binary(u) and u != "" ->
+                      Logger.info("===== LOAD_COMMENTS: Username is binary: #{u} =====")
+                      u
+
+                    _ ->
+                      Logger.warn("===== LOAD_COMMENTS: Username format unknown =====")
+                      "Anonymous"
                   end
 
                 _ ->
+                  Logger.warn("===== LOAD_COMMENTS: User tuple invalid =====")
                   "Anonymous"
               end
+
+            Logger.info("===== LOAD_COMMENTS: Final username for comment: #{username} =====")
 
             %{
               id: if(is_list(comment_id), do: List.to_string(comment_id), else: comment_id),
@@ -754,5 +1030,35 @@ defmodule MazarynWeb.MediaLive.Video.Show do
         Logger.warning("===== LOAD_COMMENTS: videodb returned: #{inspect(other)} =====")
         []
     end
+  end
+
+  defp get_user_video_reaction(user, video_id) do
+    user_id = get_user_id(user)
+
+    if user_id do
+      charlist_video_id = if is_binary(video_id), do: String.to_charlist(video_id), else: video_id
+      charlist_user_id = if is_binary(user_id), do: String.to_charlist(user_id), else: user_id
+
+      case :videodb.get_user_reaction_type(charlist_user_id, charlist_video_id) do
+        reaction when is_atom(reaction) and reaction != :undefined -> reaction
+        _ -> nil
+      end
+    else
+      nil
+    end
+  end
+
+  defp normalize_reaction_counts(counts) when is_map(counts) do
+    %{
+      "like" => Map.get(counts, :like, Map.get(counts, "like", 0)),
+      "love" => Map.get(counts, :love, Map.get(counts, "love", 0)),
+      "wow" => Map.get(counts, :wow, Map.get(counts, "wow", 0)),
+      "haha" => Map.get(counts, :haha, Map.get(counts, "haha", 0)),
+      "fire" => Map.get(counts, :fire, Map.get(counts, "fire", 0))
+    }
+  end
+
+  defp normalize_reaction_counts(_) do
+    %{"like" => 0, "love" => 0, "wow" => 0, "haha" => 0, "fire" => 0}
   end
 end

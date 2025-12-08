@@ -47,11 +47,19 @@
         <%= if @user do %>
           <div class="relative" x-data="{ open: false }">
             <button @click="open = !open" class="flex items-center gap-3 px-4 h-10 bg-[#323340] rounded-lg hover:bg-[#3a3b4a] transition-colors">
-              <img
-                src={@user.avatar_url || "/images/default-avatar.png"}
-                class="w-8 h-8 rounded-full object-cover"
-                alt={@user.username}
-              />
+              <%= if @user.avatar_url && @user.avatar_url != "" && !String.starts_with?(@user.avatar_url, "/images/default") do %>
+                <img
+                  src={@user.avatar_url}
+                  class="w-8 h-8 rounded-full object-cover"
+                  alt={@user.username}
+                />
+              <% else %>
+                <div class="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center">
+                  <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
+                  </svg>
+                </div>
+              <% end %>
               <span class="text-white text-base font-['Poppins']"><%= @user.username %></span>
               <Heroicons.chevron_down class="w-4 h-4 text-[#aaaaaa]" />
             </button>
@@ -146,11 +154,19 @@
               </div>
 
               <div class="flex gap-3">
-                <img
-                  src={video.creator_avatar}
-                  class="w-12 h-12 rounded-full object-cover flex-shrink-0"
-                  alt={video.creator}
-                />
+                <%= if video.creator_avatar && video.creator_avatar != "" && !String.starts_with?(video.creator_avatar, "/images/default") do %>
+                  <img
+                    src={video.creator_avatar}
+                    class="w-12 h-12 rounded-full object-cover flex-shrink-0"
+                    alt={video.creator}
+                  />
+                <% else %>
+                  <div class="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center flex-shrink-0 shadow-lg">
+                    <svg class="w-7 h-7 text-white" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
+                    </svg>
+                  </div>
+                <% end %>
                 <div class="flex-1 min-w-0">
                   <h3 class="text-white text-base font-semibold font-['Poppins'] leading-6 line-clamp-2">
                     <%= video.title %>

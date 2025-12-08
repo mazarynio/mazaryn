@@ -34,6 +34,97 @@
       </div>
     </div>
   </div>
+
+  <!-- Delete Video Confirmation Modal -->
+  <%= if @show_delete_modal do %>
+    <div class="fixed inset-0 z-[60] overflow-y-auto" phx-click="hide_delete_modal">
+      <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+        <div class="fixed inset-0 bg-black bg-opacity-75 transition-opacity"></div>
+
+        <div class="inline-block align-middle bg-[#1e1f2b] rounded-2xl px-6 pt-6 pb-4 text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:max-w-md sm:w-full sm:p-8 border border-[#323340]"
+             phx-click={JS.exec("event.stopPropagation()")}>
+
+          <!-- Icon -->
+          <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-red-900/20 mb-6 border-2 border-red-500/50">
+            <svg class="h-8 w-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+          </div>
+
+          <!-- Content -->
+          <div class="text-center">
+            <h3 class="text-2xl font-bold text-white mb-3">
+              Delete This Video?
+            </h3>
+            <p class="text-sm text-gray-400 mb-2">
+              Are you sure you want to permanently delete
+            </p>
+            <p class="text-base text-white font-semibold mb-6">
+              "<%= @video.title %>"?
+            </p>
+
+            <!-- Warning Box -->
+            <div class="bg-red-900/10 border-l-4 border-red-500 p-4 mb-6 text-left rounded-lg">
+              <div class="flex items-start">
+                <svg class="w-5 h-5 text-red-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                </svg>
+                <div class="text-sm">
+                  <p class="font-medium text-red-400 mb-2">This will permanently delete:</p>
+                  <ul class="text-gray-400 space-y-1.5 text-xs">
+                    <li class="flex items-center">
+                      <span class="w-1.5 h-1.5 bg-red-500 rounded-full mr-2"></span>
+                      The video and all its content
+                    </li>
+                    <li class="flex items-center">
+                      <span class="w-1.5 h-1.5 bg-red-500 rounded-full mr-2"></span>
+                      All comments and reactions
+                    </li>
+                    <li class="flex items-center">
+                      <span class="w-1.5 h-1.5 bg-red-500 rounded-full mr-2"></span>
+                      Video statistics and analytics
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="flex flex-col-reverse sm:flex-row sm:justify-center sm:space-x-4 space-y-3 space-y-reverse sm:space-y-0">
+            <button
+              phx-click="hide_delete_modal"
+              type="button"
+              class="w-full sm:w-auto inline-flex justify-center items-center px-6 py-3 border border-[#323340] shadow-sm text-base font-medium rounded-xl text-gray-300 bg-[#27282e] hover:bg-[#323340] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200"
+            >
+              <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+              Keep Video
+            </button>
+
+            <button
+              phx-click="delete_video"
+              type="button"
+              class="w-full sm:w-auto inline-flex justify-center items-center px-6 py-3 border border-transparent text-base font-medium rounded-xl text-white bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-all duration-200 shadow-lg hover:shadow-red-500/50"
+            >
+              <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+              Yes, Delete Forever
+            </button>
+          </div>
+
+          <p class="text-xs text-gray-500 text-center mt-6">
+            This action cannot be undone
+          </p>
+        </div>
+      </div>
+    </div>
+  <% end %>
+
   <div class="flex max-w-[1920px] mx-auto pt-20 px-6">
     <aside class="fixed left-6 top-24 w-60 z-40">
       <div class="space-y-6">
@@ -122,21 +213,162 @@
               <%= format_views(@video.views) %> views • <%= format_time_ago(@video.created_at) %>
             </div>
             <div class="flex flex-wrap gap-2">
-              <div class="px-4 py-2 bg-[#323340] rounded-full flex items-center gap-2 hover:bg-[#3a3b4a] transition-all">
-                <button phx-click="react" phx-value-type="like" class="flex items-center gap-2 hover:scale-110 transition-transform">
-                  <Heroicons.hand_thumb_up class="w-5 h-5 text-white" />
+              <div x-data="{ showReactions: false }" @click.outside="showReactions = false" class="relative">
+                <button
+                  @click="showReactions = !showReactions"
+                  class="px-4 py-2 bg-[#323340] rounded-full flex items-center gap-2 hover:bg-[#3a3b4a] transition-all"
+                >
+                  <%= if @user_reaction do %>
+                    <%= case @user_reaction do %>
+                      <% :like -> %>
+                        <svg class="w-5 h-5 text-blue-500" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M1 21h4V9H1v12zm22-11c0-1.1-.9-2-2-2h-6.31l.95-4.57.03-.32c0-.41-.17-.79-.44-1.06L14.17 1 7.59 7.59C7.22 7.95 7 8.45 7 9v10c0 1.1.9 2 2 2h9c.83 0 1.54-.5 1.84-1.22l3.02-7.05c.09-.23.14-.47.14-.73v-2z"/>
+                        </svg>
+                      <% :love -> %>
+                        <svg class="w-5 h-5 text-red-500" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                        </svg>
+                      <% :wow -> %>
+                        <svg class="w-5 h-5 text-yellow-500" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm0-14c-2.21 0-4 1.79-4 4h2c0-1.1.9-2 2-2s2 .9 2 2c0 2-3 1.75-3 5h2c0-2.25 3-2.5 3-5 0-2.21-1.79-4-4-4z"/>
+                        </svg>
+                      <% :haha -> %>
+                        <svg class="w-5 h-5 text-purple-500" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5 7.67 11 8.5 11zm3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z"/>
+                        </svg>
+                      <% :fire -> %>
+                        <svg class="w-5 h-5 text-orange-500" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M13.5.67s.74 2.65.74 4.8c0 2.06-1.35 3.73-3.41 3.73-2.07 0-3.63-1.67-3.63-3.73l.03-.36C5.21 7.51 4 10.62 4 14c0 4.42 3.58 8 8 8s8-3.58 8-8C20 8.61 17.41 3.8 13.5.67zM11.71 19c-1.78 0-3.22-1.4-3.22-3.14 0-1.62 1.05-2.76 2.81-3.12 1.77-.36 3.6-1.21 4.62-2.58.39 1.29.59 2.65.59 4.04 0 2.65-2.15 4.8-4.8 4.8z"/>
+                        </svg>
+                      <% _ -> %>
+                        <Heroicons.hand_thumb_up class="w-5 h-5 text-white" />
+                    <% end %>
+                  <% else %>
+                    <Heroicons.hand_thumb_up class="w-5 h-5 text-white" />
+                  <% end %>
                   <span class="text-white text-sm font-semibold font-['Poppins']">
-                    <%= Map.get(@video.reaction_counts, :like, 0) %>
+                    <%= if @user_reaction, do: "Reacted", else: "React" %>
                   </span>
+                  <%= if @total_reactions > 0 do %>
+                    <div class="w-px h-6 bg-zinc-600"></div>
+                    <span class="text-white text-sm font-semibold font-['Poppins']">
+                      <%= @total_reactions %>
+                    </span>
+                  <% end %>
                 </button>
-                <div class="w-px h-6 bg-zinc-600"></div>
-                <button phx-click="react" phx-value-type="love" class="flex items-center gap-2 hover:scale-110 transition-transform">
-                  <Heroicons.heart class="w-5 h-5 text-white" />
-                  <span class="text-white text-sm font-semibold font-['Poppins']">
-                    <%= Map.get(@video.reaction_counts, :love, 0) %>
-                  </span>
-                </button>
+
+                <div
+                  x-show="showReactions"
+                  x-transition:enter="transition ease-out duration-200"
+                  x-transition:enter-start="opacity-0 scale-95"
+                  x-transition:enter-end="opacity-100 scale-100"
+                  x-transition:leave="transition ease-in duration-150"
+                  x-transition:leave-start="opacity-100 scale-100"
+                  x-transition:leave-end="opacity-0 scale-95"
+                  class="absolute bottom-full left-0 mb-2 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 p-1.5 flex space-x-1.5 z-50"
+                  style="display: none;"
+                >
+                  <button
+                    phx-click="react_to_video"
+                    phx-value-reaction-type="like"
+                    @click="showReactions = false"
+                    class="p-1.5 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
+                    title="Like"
+                  >
+                    <svg class="h-5 w-5 text-blue-500" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M1 21h4V9H1v12zm22-11c0-1.1-.9-2-2-2h-6.31l.95-4.57.03-.32c0-.41-.17-.79-.44-1.06L14.17 1 7.59 7.59C7.22 7.95 7 8.45 7 9v10c0 1.1.9 2 2 2h9c.83 0 1.54-.5 1.84-1.22l3.02-7.05c.09-.23.14-.47.14-.73v-2z"/>
+                    </svg>
+                  </button>
+                  <button
+                    phx-click="react_to_video"
+                    phx-value-reaction-type="love"
+                    @click="showReactions = false"
+                    class="p-1.5 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                    title="Love"
+                  >
+                    <svg class="h-5 w-5 text-red-500" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                    </svg>
+                  </button>
+                  <button
+                    phx-click="react_to_video"
+                    phx-value-reaction-type="wow"
+                    @click="showReactions = false"
+                    class="p-1.5 hover:bg-yellow-50 dark:hover:bg-yellow-900/20 rounded-lg transition-colors"
+                    title="Wow"
+                  >
+                    <svg class="h-5 w-5 text-yellow-500" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm0-14c-2.21 0-4 1.79-4 4h2c0-1.1.9-2 2-2s2 .9 2 2c0 2-3 1.75-3 5h2c0-2.25 3-2.5 3-5 0-2.21-1.79-4-4-4z"/>
+                    </svg>
+                  </button>
+                  <button
+                    phx-click="react_to_video"
+                    phx-value-reaction-type="haha"
+                    @click="showReactions = false"
+                    class="p-1.5 hover:bg-purple-50 dark:hover:bg-purple-900/20 rounded-lg transition-colors"
+                    title="Haha"
+                  >
+                    <svg class="h-5 w-5 text-purple-500" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5 7.67 11 8.5 11zm3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z"/>
+                    </svg>
+                  </button>
+                  <button
+                    phx-click="react_to_video"
+                    phx-value-reaction-type="fire"
+                    @click="showReactions = false"
+                    class="p-1.5 hover:bg-orange-50 dark:hover:bg-orange-900/20 rounded-lg transition-colors"
+                    title="Fire"
+                  >
+                    <svg class="h-5 w-5 text-orange-500" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M13.5.67s.74 2.65.74 4.8c0 2.06-1.35 3.73-3.41 3.73-2.07 0-3.63-1.67-3.63-3.73l.03-.36C5.21 7.51 4 10.62 4 14c0 4.42 3.58 8 8 8s8-3.58 8-8C20 8.61 17.41 3.8 13.5.67zM11.71 19c-1.78 0-3.22-1.4-3.22-3.14 0-1.62 1.05-2.76 2.81-3.12 1.77-.36 3.6-1.21 4.62-2.58.39 1.29.59 2.65.59 4.04 0 2.65-2.15 4.8-4.8 4.8z"/>
+                    </svg>
+                  </button>
+                </div>
               </div>
+
+              <%= if @total_reactions > 0 do %>
+                <div class="flex items-center space-x-2">
+                  <%= for {reaction_type, count} <- @reaction_counts do %>
+                    <%= if count > 0 do %>
+                      <button
+                        class="flex items-center space-x-1 px-2 py-1 rounded-lg hover:bg-[#3a3b4a] transition-colors"
+                        phx-click="open_reactions_modal"
+                        phx-value-reaction-type={reaction_type}
+                        title={"View #{reaction_type} reactions"}
+                      >
+                        <%= case String.to_atom(reaction_type) do %>
+                          <% :like -> %>
+                            <svg class="h-4 w-4 text-blue-500 fill-current" viewBox="0 0 24 24">
+                              <path d="M1 21h4V9H1v12zm22-11c0-1.1-.9-2-2-2h-6.31l.95-4.57.03-.32c0-.41-.17-.79-.44-1.06L14.17 1 7.59 7.59C7.22 7.95 7 8.45 7 9v10c0 1.1.9 2 2 2h9c.83 0 1.54-.5 1.84-1.22l3.02-7.05c.09-.23.14-.47.14-.73v-2z"/>
+                            </svg>
+                          <% :love -> %>
+                            <svg class="h-4 w-4 text-red-500 fill-current" viewBox="0 0 24 24">
+                              <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                            </svg>
+                          <% :wow -> %>
+                            <svg class="h-4 w-4 text-yellow-500 fill-current" viewBox="0 0 24 24">
+                              <path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm0-14c-2.21 0-4 1.79-4 4h2c0-1.1.9-2 2-2s2 .9 2 2c0 2-3 1.75-3 5h2c0-2.25 3-2.5 3-5 0-2.21-1.79-4-4-4z"/>
+                            </svg>
+                          <% :haha -> %>
+                            <svg class="h-4 w-4 text-purple-500 fill-current" viewBox="0 0 24 24">
+                              <path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5 7.67 11 8.5 11zm3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z"/>
+                            </svg>
+                          <% :fire -> %>
+                            <svg class="h-4 w-4 text-orange-500 fill-current" viewBox="0 0 24 24">
+                              <path d="M13.5.67s.74 2.65.74 4.8c0 2.06-1.35 3.73-3.41 3.73-2.07 0-3.63-1.67-3.63-3.73l.03-.36C5.21 7.51 4 10.62 4 14c0 4.42 3.58 8 8 8s8-3.58 8-8C20 8.61 17.41 3.8 13.5.67zM11.71 19c-1.78 0-3.22-1.4-3.22-3.14 0-1.62 1.05-2.76 2.81-3.12 1.77-.36 3.6-1.21 4.62-2.58.39 1.29.59 2.65.59 4.04 0 2.65-2.15 4.8-4.8 4.8z"/>
+                            </svg>
+                          <% _ -> %>
+                            <span></span>
+                        <% end %>
+                        <span class="text-xs font-medium text-white">
+                          <%= count %>
+                        </span>
+                      </button>
+                    <% end %>
+                  <% end %>
+                </div>
+              <% end %>
+
               <button
                 phx-click="share"
                 class="px-4 py-2 bg-[#323340] rounded-full flex items-center gap-2 hover:bg-[#3a3b4a] hover:scale-105 transition-all"
@@ -151,13 +383,17 @@
                 <Heroicons.bookmark class="w-5 h-5 text-white" />
                 <span class="text-white text-sm font-semibold font-['Poppins']">Save</span>
               </button>
-              <%= if @user && get_user_id(@user) == @video.user_id do %>
+              <%= if @is_owner do %>
                 <button
                   phx-click="show_delete_modal"
-                  class="px-4 py-2 bg-red-500 rounded-full flex items-center gap-2 hover:bg-red-600 hover:scale-105 transition-all"
+                  class="px-4 py-2 bg-red-900/20 hover:bg-red-900/40 rounded-full flex items-center gap-2 border border-red-500/30 hover:border-red-500/50 transition-all group"
+                  title="Delete video"
                 >
-                  <Heroicons.trash class="w-5 h-5 text-white" />
-                  <span class="text-white text-sm font-semibold font-['Poppins']">Delete</span>
+                  <svg class="w-5 h-5 text-red-500 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                  <span class="text-red-500 text-sm font-semibold font-['Poppins']">Delete</span>
                 </button>
               <% end %>
             </div>
@@ -165,15 +401,24 @@
           <div class="p-5 bg-[#323340] rounded-[20px] space-y-4">
             <div class="flex justify-between items-center">
               <div class="flex items-center gap-3">
-                <img
-                  src={@creator.avatar}
-                  class="w-12 h-12 rounded-full object-cover ring-2 ring-blue-500"
-                  alt={@creator.username}
-                />
-                <div class="flex flex-col">
-                  <div class="text-white text-base font-bold font-['Poppins']">
-                    <%= @creator.username %>
+                <%= if @creator.avatar && @creator.avatar != "" && !String.starts_with?(@creator.avatar, "/images/default") do %>
+                  <img
+                    src={@creator.avatar}
+                    class="w-12 h-12 rounded-full object-cover ring-2 ring-blue-500"
+                    alt={@creator.username}
+                  />
+                <% else %>
+                  <div class="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center ring-2 ring-blue-500 shadow-lg">
+                    <svg class="w-7 h-7 text-white" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
+                    </svg>
                   </div>
+                <% end %>
+                <div class="flex flex-col">
+                  <%= live_redirect to: Routes.live_path(@socket, MazarynWeb.UserLive.Profile, @locale, @creator.username),
+                      class: "text-white text-base font-bold font-['Poppins'] hover:text-blue-400 transition-colors" do %>
+                    <%= @creator.username %>
+                  <% end %>
                   <div class="text-gray-400 text-sm font-normal font-['Poppins']">
                     Content Creator
                   </div>
@@ -205,20 +450,36 @@
               </div>
             </div>
             <div class="flex gap-3">
-              <img
-                src={if @user, do: "/images/default-avatar.png", else: "/images/default-avatar.png"}
-                class="w-10 h-10 rounded-full object-cover"
-                alt="Your avatar"
-              />
+              <%= if @user do %>
+                <%= if @user.avatar_url && @user.avatar_url != "" && !String.starts_with?(@user.avatar_url, "/images/default") do %>
+                  <img
+                    src={@user.avatar_url}
+                    class="w-10 h-10 rounded-full object-cover"
+                    alt="Your avatar"
+                  />
+                <% else %>
+                  <div class="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center shadow-lg">
+                    <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
+                    </svg>
+                  </div>
+                <% end %>
+              <% else %>
+                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center shadow-lg">
+                  <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
+                  </svg>
+                </div>
+              <% end %>
               <div class="flex-1 flex gap-2">
-              <input
-                type="text"
-                phx-keyup="update_comment"
-                phx-debounce="100"
-                value={@comment_text}
-                placeholder="Add a public comment..."
-                class="flex-1 px-4 py-2.5 bg-[#323340] rounded-lg text-white text-sm placeholder-[#aaaaaa] focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
-              />
+                <input
+                  type="text"
+                  phx-keyup="update_comment"
+                  phx-debounce="100"
+                  value={@comment_text}
+                  placeholder="Add a public comment..."
+                  class="flex-1 px-4 py-2.5 bg-[#323340] rounded-lg text-white text-sm placeholder-[#aaaaaa] focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                />
                 <button
                   phx-click="add_comment"
                   phx-value-comment={@comment_text}
@@ -240,27 +501,33 @@
               <% else %>
                 <%= for comment <- @comments do %>
                   <div class="flex gap-3 p-3 hover:bg-[#323340] rounded-lg transition-colors">
-                    <img
-                      src="/images/default-avatar.png"
-                      class="w-10 h-10 rounded-full object-cover"
-                      alt="Commenter"
-                    />
+                    <%= live_redirect to: Routes.live_path(@socket, MazarynWeb.UserLive.Profile, @locale, comment.author),
+                        class: "flex-shrink-0" do %>
+                      <div class="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center shadow-lg">
+                        <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                          <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
+                        </svg>
+                      </div>
+                    <% end %>
                     <div class="flex-1 space-y-1">
                       <div class="flex items-center justify-between">
                         <div class="flex items-center gap-2">
-                          <span class="text-white text-sm font-semibold font-['Poppins']">
+                          <%= live_redirect to: Routes.live_path(@socket, MazarynWeb.UserLive.Profile, @locale, comment.author),
+                              class: "text-white text-sm font-semibold font-['Poppins'] hover:text-blue-400 transition-colors" do %>
                             <%= comment.author %>
-                          </span>
+                          <% end %>
                           <span class="text-neutral-400 text-xs font-normal font-['Poppins']">Just now</span>
                         </div>
                         <%= if @user && comment.author == @user.username do %>
                           <button
                             phx-click="delete_comment"
                             phx-value-comment-id={comment.id}
-                            class="text-red-500 hover:text-red-400"
+                            class="text-red-500 hover:text-red-400 transition-colors p-1"
                             title="Delete comment"
                           >
-                            <Heroicons.trash class="w-4 h-4" />
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
                           </button>
                         <% end %>
                       </div>
@@ -309,31 +576,97 @@
       </div>
     </main>
   </div>
-  <%= if @show_delete_modal do %>
-    <div class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 backdrop-blur-sm" phx-click="hide_delete_modal">
-      <div class="bg-[#323340] rounded-[20px] p-7 max-w-md w-full mx-4 shadow-2xl transform transition-all" phx-click="ignore">
-        <div class="flex items-center gap-3 mb-5">
-          <div class="w-11 h-11 bg-red-500/20 rounded-full flex items-center justify-center">
-            <Heroicons.exclamation_triangle class="w-6 h-6 text-red-500" />
-          </div>
-          <h2 class="text-white text-lg font-bold font-['Poppins']">Delete Video</h2>
+
+  <%= if @show_reactions_modal do %>
+    <div class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 backdrop-blur-sm" phx-click="close_reactions_modal">
+      <div class="bg-[#323340] rounded-[20px] p-7 max-w-2xl w-full mx-4 shadow-2xl max-h-[80vh] overflow-hidden flex flex-col" phx-click="ignore">
+        <div class="flex items-center justify-between mb-5">
+          <h2 class="text-white text-lg font-bold font-['Poppins']">Reactions</h2>
+          <button phx-click="close_reactions_modal" class="text-gray-400 hover:text-white transition-colors">
+            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+          </button>
         </div>
-        <p class="text-gray-300 text-sm font-['Poppins'] leading-relaxed mb-6">
-          Are you sure you want to delete this video? This action cannot be undone and all data will be permanently removed.
-        </p>
-        <div class="flex gap-3 justify-end">
-          <button
-            phx-click="hide_delete_modal"
-            class="px-5 py-2.5 bg-[#27282e] rounded-lg text-white hover:bg-[#1f2028] transition-all font-semibold"
-          >
-            Cancel
-          </button>
-          <button
-            phx-click="delete_video"
-            class="px-5 py-2.5 bg-red-500 rounded-lg text-white hover:bg-red-600 transition-all font-semibold shadow-lg hover:shadow-red-500/50"
-          >
-            Delete Video
-          </button>
+
+        <div x-data={"{ activeTab: '#{@current_reaction_type}' }"} class="flex-1 overflow-hidden flex flex-col">
+          <div class="flex space-x-2 border-b border-gray-700 mb-4 overflow-x-auto pb-2">
+            <%= for reaction_type <- ["like", "love", "wow", "haha", "fire"] do %>
+              <% count = Map.get(@all_reaction_users || %{}, reaction_type, []) |> length() %>
+              <button
+                @click={"activeTab = '#{reaction_type}'"}
+                x-bind:class={"activeTab === '#{reaction_type}' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-400 hover:text-gray-300'"}
+                class="flex items-center space-x-1 px-3 py-2 text-sm font-medium transition-all duration-200 border-b-2 whitespace-nowrap"
+              >
+                <%= case String.to_atom(reaction_type) do %>
+                  <% :like -> %>
+                    <svg class="h-4 w-4 text-blue-500" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M1 21h4V9H1v12zm22-11c0-1.1-.9-2-2-2h-6.31l.95-4.57.03-.32c0-.41-.17-.79-.44-1.06L14.17 1 7.59 7.59C7.22 7.95 7 8.45 7 9v10c0 1.1.9 2 2 2h9c.83 0 1.54-.5 1.84-1.22l3.02-7.05c.09-.23.14-.47.14-.73v-2z"/>
+                    </svg>
+                  <% :love -> %>
+                    <svg class="h-4 w-4 text-red-500" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                    </svg>
+                  <% :wow -> %>
+                    <svg class="h-4 w-4 text-yellow-500" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm0-14c-2.21 0-4 1.79-4 4h2c0-1.1.9-2 2-2s2 .9 2 2c0 2-3 1.75-3 5h2c0-2.25 3-2.5 3-5 0-2.21-1.79-4-4-4z"/>
+                    </svg>
+                  <% :haha -> %>
+                    <svg class="h-4 w-4 text-purple-500" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5 7.67 11 8.5 11zm3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z"/>
+                    </svg>
+                  <% :fire -> %>
+                    <svg class="h-4 w-4 text-orange-500" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M13.5.67s.74 2.65.74 4.8c0 2.06-1.35 3.73-3.41 3.73-2.07 0-3.63-1.67-3.63-3.73l.03-.36C5.21 7.51 4 10.62 4 14c0 4.42 3.58 8 8 8s8-3.58 8-8C20 8.61 17.41 3.8 13.5.67zM11.71 19c-1.78 0-3.22-1.4-3.22-3.14 0-1.62 1.05-2.76 2.81-3.12 1.77-.36 3.6-1.21 4.62-2.58.39 1.29.59 2.65.59 4.04 0 2.65-2.15 4.8-4.8 4.8z"/>
+                    </svg>
+                  <% _ -> %>
+                    <span></span>
+                <% end %>
+                <span><%= count %></span>
+              </button>
+            <% end %>
+          </div>
+
+          <div class="flex-1 overflow-y-auto">
+          <%= for reaction_type <- ["like", "love", "wow", "haha", "fire"] do %>
+            <div x-show={"activeTab === '#{reaction_type}'"} style="display: none;">
+              <% users = Map.get(@all_reaction_users || %{}, reaction_type, []) %>
+              <%= if length(users) > 0 do %>
+                <div class="divide-y divide-gray-700">
+                  <%= for user <- users do %>
+                    <div class="p-4 hover:bg-[#27282e] transition-colors">
+                      <div class="flex items-center gap-3">
+                        <%= if user.avatar && user.avatar != "" && !String.starts_with?(user.avatar, "/images/default") do %>
+                          <img
+                            src={user.avatar}
+                            class="w-10 h-10 rounded-full object-cover"
+                            alt={user.username}
+                          />
+                        <% else %>
+                          <div class="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center shadow-lg">
+                            <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                              <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
+                            </svg>
+                          </div>
+                        <% end %>
+                        <div class="flex-1">
+                          <%= live_redirect to: Routes.live_path(@socket, MazarynWeb.UserLive.Profile, @locale, user.username),
+                              class: "text-white text-sm font-semibold hover:text-blue-400 transition-colors" do %>
+                            <%= user.username %>
+                          <% end %>
+                        </div>
+                      </div>
+                    </div>
+                  <% end %>
+                </div>
+              <% else %>
+                <div class="text-center py-12">
+                  <p class="text-gray-400">No <%= reaction_type %> reactions yet</p>
+                </div>
+              <% end %>
+            </div>
+          <% end %>
+          </div>
         </div>
       </div>
     </div>

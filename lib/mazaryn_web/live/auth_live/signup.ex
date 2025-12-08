@@ -174,7 +174,7 @@ defmodule MazarynWeb.AuthLive.Signup do
         Logger.error("✗ User registration FAILED - username: #{username}, email: #{email}")
 
         try do
-          Logger.error("Error reason type: #{inspect(reason.__struct__)}")
+          Logger.error("Error reason type: #{inspect(reason.__struct__())}")
         rescue
           _ -> Logger.error("Error reason: #{inspect(reason)}")
         end

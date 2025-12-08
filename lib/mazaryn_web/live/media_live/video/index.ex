@@ -177,18 +177,46 @@ defmodule MazarynWeb.MediaLive.Video.Index do
   end
 
   defp get_creator_name(user_id) do
+    Logger.info("===== GET_CREATOR_NAME: Getting name for user: #{inspect(user_id)} =====")
+
     case Core.UserClient.get_user_by_id(user_id) do
-      {:error, _} ->
+      {:error, reason} ->
+        Logger.error("===== GET_CREATOR_NAME: Error: #{inspect(reason)} =====")
         "Unknown"
 
-      user_tuple when is_tuple(user_tuple) ->
-        case elem(user_tuple, 2) do
-          username when is_binary(username) -> username
-          username when is_list(username) -> List.to_string(username)
-          _ -> "Unknown"
-        end
+      user_tuple when is_tuple(user_tuple) and tuple_size(user_tuple) >= 9 ->
+        Logger.info(
+          "===== GET_CREATOR_NAME: User tuple received, size: #{tuple_size(user_tuple)} ====="
+        )
+
+        username = elem(user_tuple, 8)
+
+        Logger.info("===== GET_CREATOR_NAME: Raw username: #{inspect(username)} =====")
+
+        username_str =
+          case username do
+            u when is_list(u) and length(u) > 0 ->
+              str = List.to_string(u)
+              Logger.info("===== GET_CREATOR_NAME: Converted from list: #{str} =====")
+              if String.starts_with?(str, ["/ip4", "/ip6"]), do: "Unknown", else: str
+
+            u when is_binary(u) and u != "" ->
+              Logger.info("===== GET_CREATOR_NAME: Username is binary: #{u} =====")
+              if String.starts_with?(u, ["/ip4", "/ip6"]), do: "Unknown", else: u
+
+            _ ->
+              Logger.warn(
+                "===== GET_CREATOR_NAME: Username format unknown, defaulting to Unknown ====="
+              )
+
+              "Unknown"
+          end
+
+        Logger.info("===== GET_CREATOR_NAME: Final username: #{username_str} =====")
+        username_str
 
       _ ->
+        Logger.warn("===== GET_CREATOR_NAME: User tuple invalid or too small =====")
         "Unknown"
     end
   end
@@ -198,20 +226,48 @@ defmodule MazarynWeb.MediaLive.Video.Index do
   end
 
   defp get_creator_avatar(user_id) do
+    Logger.info("===== GET_CREATOR_AVATAR: Getting avatar for user: #{inspect(user_id)} =====")
+
     case Core.UserClient.get_user_by_id(user_id) do
-      {:error, _} ->
+      {:error, reason} ->
+        Logger.error("===== GET_CREATOR_AVATAR: Error: #{inspect(reason)} =====")
         "/images/default-avatar.png"
 
-      user_tuple when is_tuple(user_tuple) ->
-        avatar_url = elem(user_tuple, 6)
+      user_tuple when is_tuple(user_tuple) and tuple_size(user_tuple) >= 9 ->
+        Logger.info("===== GET_CREATOR_AVATAR: User tuple received =====")
 
-        cond do
-          is_binary(avatar_url) && avatar_url != "" -> avatar_url
-          is_list(avatar_url) && length(avatar_url) > 0 -> List.to_string(avatar_url)
-          true -> "/images/default-avatar.png"
-        end
+        avatar = elem(user_tuple, 6)
+
+        Logger.info("===== GET_CREATOR_AVATAR: Raw avatar: #{inspect(avatar)} =====")
+
+        avatar_str =
+          case avatar do
+            a when is_list(a) and length(a) > 0 ->
+              str = List.to_string(a)
+
+              if String.starts_with?(str, ["/ip4", "/ip6", "http"]) and
+                   not String.contains?(str, "ipfs.io") do
+                "/images/default-avatar.png"
+              else
+                str
+              end
+
+            a when is_binary(a) and a != "" ->
+              if String.starts_with?(a, ["/ip4", "/ip6"]) do
+                "/images/default-avatar.png"
+              else
+                a
+              end
+
+            _ ->
+              "/images/default-avatar.png"
+          end
+
+        Logger.info("===== GET_CREATOR_AVATAR: Final avatar: #{avatar_str} =====")
+        avatar_str
 
       _ ->
+        Logger.warn("===== GET_CREATOR_AVATAR: User tuple invalid =====")
         "/images/default-avatar.png"
     end
   end
