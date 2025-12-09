@@ -443,29 +443,38 @@
               </p>
             </div>
           </div>
+
           <div class="pt-6 space-y-5">
             <div class="flex items-center justify-between">
               <div class="text-white text-lg font-bold font-['Poppins']">
                 <%= length(@comments) %> Comments
               </div>
             </div>
+
             <div class="flex gap-3">
               <%= if @user do %>
-                <%= if @user.avatar_url && @user.avatar_url != "" && !String.starts_with?(@user.avatar_url, "/images/default") do %>
+                <% user_avatar = MazarynWeb.Live.Helper.handle_avatar(@user) %>
+                <%= if user_avatar && user_avatar != "" && user_avatar != "/images/default-avatar.png" do %>
                   <img
-                    src={@user.avatar_url}
-                    class="w-10 h-10 rounded-full object-cover"
+                    src={user_avatar}
+                    class="w-10 h-10 rounded-full object-cover flex-shrink-0"
                     alt="Your avatar"
+                    onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
                   />
+                  <div class="hidden w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 items-center justify-center flex-shrink-0 shadow-lg">
+                    <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
+                    </svg>
+                  </div>
                 <% else %>
-                  <div class="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center shadow-lg">
+                  <div class="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center flex-shrink-0 shadow-lg">
                     <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
                       <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
                     </svg>
                   </div>
                 <% end %>
               <% else %>
-                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center shadow-lg">
+                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center flex-shrink-0 shadow-lg">
                   <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
                     <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
                   </svg>
@@ -489,6 +498,7 @@
                 </button>
               </div>
             </div>
+
             <div class="space-y-4">
               <%= if Enum.empty?(@comments) do %>
                 <div class="text-center py-10 bg-[#323340] rounded-[20px]">
@@ -500,47 +510,62 @@
                 </div>
               <% else %>
                 <%= for comment <- @comments do %>
-                  <div class="flex gap-3 p-3 hover:bg-[#323340] rounded-lg transition-colors">
-                    <%= live_redirect to: Routes.live_path(@socket, MazarynWeb.UserLive.Profile, @locale, comment.author),
-                        class: "flex-shrink-0" do %>
-                      <div class="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center shadow-lg">
-                        <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
-                          <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
-                        </svg>
-                      </div>
-                    <% end %>
-                    <div class="flex-1 space-y-1">
-                      <div class="flex items-center justify-between">
-                        <div class="flex items-center gap-2">
-                          <%= live_redirect to: Routes.live_path(@socket, MazarynWeb.UserLive.Profile, @locale, comment.author),
-                              class: "text-white text-sm font-semibold font-['Poppins'] hover:text-blue-400 transition-colors" do %>
-                            <%= comment.author %>
-                          <% end %>
-                          <span class="text-neutral-400 text-xs font-normal font-['Poppins']">Just now</span>
+                  <div class="flex gap-3 p-4 bg-[#323340] rounded-lg hover:bg-[#2a2b35] transition-colors">
+                    <%= if comment.author_avatar && comment.author_avatar != "" && comment.author_avatar != "/images/default-avatar.png" do %>
+                      <.link navigate={~p"/#{@locale}/#{comment.author}"} class="flex-shrink-0">
+                        <img
+                          src={comment.author_avatar}
+                          class="w-10 h-10 rounded-full object-cover"
+                          alt={comment.author}
+                          onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+                        />
+                        <div class="hidden w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 items-center justify-center shadow-lg">
+                          <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
+                          </svg>
                         </div>
-                        <%= if @user && comment.author == @user.username do %>
-                          <button
-                            phx-click="delete_comment"
-                            phx-value-comment-id={comment.id}
-                            class="text-red-500 hover:text-red-400 transition-colors p-1"
-                            title="Delete comment"
-                          >
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                            </svg>
-                          </button>
-                        <% end %>
+                      </.link>
+                    <% else %>
+                      <.link navigate={~p"/#{@locale}/#{comment.author}"} class="flex-shrink-0">
+                        <div class="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center shadow-lg">
+                          <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
+                          </svg>
+                        </div>
+                      </.link>
+                    <% end %>
+
+                    <div class="flex-1 min-w-0">
+                      <div class="flex items-center gap-2 mb-2">
+                        <.link navigate={~p"/#{@locale}/#{comment.author}"} class="text-white font-semibold hover:text-blue-400 transition-colors">
+                          <%= comment.author %>
+                        </.link>
+                        <span class="text-[#c5c7c8] text-xs">• just now</span>
                       </div>
-                      <p class="text-white text-sm font-normal font-['Poppins'] leading-relaxed">
+                      <p class="text-[#c5c7c8] text-sm leading-relaxed">
                         <%= comment.content %>
                       </p>
                     </div>
+
+                    <%= if @user && (get_user_id(@user) == @video.user_id || comment.author == get_username(@user)) do %>
+                      <button
+                        phx-click="delete_comment"
+                        phx-value-comment-id={comment.id}
+                        class="text-gray-500 hover:text-red-500 transition-colors p-2 flex-shrink-0"
+                        title="Delete comment"
+                      >
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      </button>
+                    <% end %>
                   </div>
                 <% end %>
               <% end %>
             </div>
           </div>
         </div>
+
         <aside class="w-[400px] space-y-3">
           <h3 class="text-white text-base font-bold font-['Poppins'] px-2">Up Next</h3>
           <%= for video <- @related_videos do %>

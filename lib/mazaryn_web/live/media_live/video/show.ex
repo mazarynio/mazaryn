@@ -212,6 +212,8 @@ defmodule MazarynWeb.MediaLive.Video.Show do
         comment_id when is_binary(comment_id) or is_list(comment_id) ->
           Logger.info("===== ADD_COMMENT: Success! Comment ID: #{inspect(comment_id)} =====")
 
+          Process.sleep(100)
+
           comments = load_comments(charlist_video_id)
           Logger.info("===== ADD_COMMENT: Loaded #{length(comments)} comments =====")
 
@@ -230,7 +232,7 @@ defmodule MazarynWeb.MediaLive.Video.Show do
           {:noreply, put_flash(socket, :error, "Failed to add comment")}
       end
     else
-      Logger.warn(
+      Logger.warning(
         "===== ADD_COMMENT: Skipped – username: #{inspect(username)}, text empty: #{String.trim(comment_text) == ""} ====="
       )
 
@@ -397,7 +399,7 @@ defmodule MazarynWeb.MediaLive.Video.Show do
                         if String.starts_with?(u, ["/ip4", "/ip6"]), do: "Anonymous", else: u
 
                       _ ->
-                        Logger.warn(
+                        Logger.warning(
                           "===== OPEN_REACTIONS_MODAL: Username format unknown, defaulting to Anonymous ====="
                         )
 
@@ -437,11 +439,14 @@ defmodule MazarynWeb.MediaLive.Video.Show do
                   }
 
                 _ ->
-                  Logger.warn("===== OPEN_REACTIONS_MODAL: User tuple invalid or too small =====")
+                  Logger.warning(
+                    "===== OPEN_REACTIONS_MODAL: User tuple invalid or too small ====="
+                  )
+
                   %{username: "Unknown", avatar: "/images/default-avatar.png", verified: false}
               end
             else
-              Logger.warn("===== OPEN_REACTIONS_MODAL: No user_id found in reaction =====")
+              Logger.warning("===== OPEN_REACTIONS_MODAL: No user_id found in reaction =====")
               %{username: "Unknown", avatar: "/images/default-avatar.png", verified: false}
             end
           end)
@@ -961,6 +966,10 @@ defmodule MazarynWeb.MediaLive.Video.Show do
             comment_id = elem(comment_tuple, 1)
             user_id = elem(comment_tuple, 2)
 
+            Logger.info(
+              "===== LOAD_COMMENTS: Processing comment #{inspect(comment_id)} for user #{inspect(user_id)} ====="
+            )
+
             content =
               case :videodb.get_video_comment_content(comment_id) do
                 {error, reason} ->
@@ -981,44 +990,91 @@ defmodule MazarynWeb.MediaLive.Video.Show do
                   "[Content loading...]"
               end
 
-            username =
+            user_data =
               case Core.UserClient.get_user_by_id(user_id) do
-                {:error, _} ->
-                  Logger.warn("===== LOAD_COMMENTS: Could not get user for comment =====")
-                  "Anonymous"
+                {:error, reason} ->
+                  Logger.warning(
+                    "===== LOAD_COMMENTS: Could not get user for comment: #{inspect(reason)} ====="
+                  )
+
+                  %{username: "Anonymous", avatar: "/images/default-avatar.png"}
 
                 user_tuple when is_tuple(user_tuple) and tuple_size(user_tuple) >= 9 ->
                   raw_username = elem(user_tuple, 8)
+                  raw_avatar = elem(user_tuple, 6)
 
                   Logger.info(
                     "===== LOAD_COMMENTS: Raw username from tuple: #{inspect(raw_username)} ====="
                   )
 
-                  case raw_username do
-                    u when is_list(u) and length(u) > 0 ->
-                      str = List.to_string(u)
-                      Logger.info("===== LOAD_COMMENTS: Converted username: #{str} =====")
-                      str
+                  Logger.info(
+                    "===== LOAD_COMMENTS: Raw avatar from tuple: #{inspect(raw_avatar)} ====="
+                  )
 
-                    u when is_binary(u) and u != "" ->
-                      Logger.info("===== LOAD_COMMENTS: Username is binary: #{u} =====")
-                      u
+                  username_str =
+                    case raw_username do
+                      u when is_list(u) and length(u) > 0 ->
+                        str = List.to_string(u)
+                        Logger.info("===== LOAD_COMMENTS: Converted username: #{str} =====")
+                        str
 
-                    _ ->
-                      Logger.warn("===== LOAD_COMMENTS: Username format unknown =====")
-                      "Anonymous"
-                  end
+                      u when is_binary(u) and u != "" ->
+                        Logger.info("===== LOAD_COMMENTS: Username is binary: #{u} =====")
+                        u
+
+                      _ ->
+                        Logger.warning("===== LOAD_COMMENTS: Username format unknown =====")
+                        "Anonymous"
+                    end
+
+                  avatar_str =
+                    case raw_avatar do
+                      a when is_list(a) and length(a) > 0 ->
+                        str = List.to_string(a)
+
+                        Logger.info(
+                          "===== LOAD_COMMENTS: Converted avatar from list: #{str} ====="
+                        )
+
+                        if String.starts_with?(str, ["/ip4", "/ip6", "http"]) and
+                             not String.contains?(str, "ipfs.io") do
+                          Logger.info("===== LOAD_COMMENTS: Avatar rejected, using default =====")
+                          "/images/default-avatar.png"
+                        else
+                          Logger.info("===== LOAD_COMMENTS: Avatar accepted: #{str} =====")
+                          str
+                        end
+
+                      a when is_binary(a) and a != "" ->
+                        Logger.info("===== LOAD_COMMENTS: Avatar is binary: #{a} =====")
+
+                        if String.starts_with?(a, ["/ip4", "/ip6"]) do
+                          Logger.info("===== LOAD_COMMENTS: Avatar rejected, using default =====")
+                          "/images/default-avatar.png"
+                        else
+                          Logger.info("===== LOAD_COMMENTS: Avatar accepted: #{a} =====")
+                          a
+                        end
+
+                      _ ->
+                        Logger.info("===== LOAD_COMMENTS: No avatar found, using default =====")
+                        "/images/default-avatar.png"
+                    end
+
+                  Logger.info("===== LOAD_COMMENTS: Final username: #{username_str} =====")
+                  Logger.info("===== LOAD_COMMENTS: Final avatar: #{avatar_str} =====")
+
+                  %{username: username_str, avatar: avatar_str}
 
                 _ ->
-                  Logger.warn("===== LOAD_COMMENTS: User tuple invalid =====")
-                  "Anonymous"
+                  Logger.warning("===== LOAD_COMMENTS: User tuple invalid =====")
+                  %{username: "Anonymous", avatar: "/images/default-avatar.png"}
               end
-
-            Logger.info("===== LOAD_COMMENTS: Final username for comment: #{username} =====")
 
             %{
               id: if(is_list(comment_id), do: List.to_string(comment_id), else: comment_id),
-              author: username,
+              author: user_data.username,
+              author_avatar: user_data.avatar,
               content: content
             }
           end)
@@ -1061,4 +1117,13 @@ defmodule MazarynWeb.MediaLive.Video.Show do
   defp normalize_reaction_counts(_) do
     %{"like" => 0, "love" => 0, "wow" => 0, "haha" => 0, "fire" => 0}
   end
+
+  defp get_username(%{username: username}) when is_binary(username), do: username
+
+  defp get_username(user_tuple) when is_tuple(user_tuple) do
+    username = elem(user_tuple, 2)
+    if is_list(username), do: List.to_string(username), else: username
+  end
+
+  defp get_username(_), do: nil
 end
