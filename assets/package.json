@@ -1,18 +1,19 @@
 {
   "scripts": {
-    "deploy": "esbuild js/app.js --bundle --minify --target=es2017 --outdir=../priv/static/assets",
-    "watch": "esbuild js/app.js --bundle --target=es2017 --outdir=../priv/static/assets --watch"
+    "deploy": "esbuild js/app.js --bundle --minify --target=es2017 --outdir=../priv/static/assets --external:/fonts/* --external:/images/*",
+    "watch": "esbuild js/app.js --bundle --target=es2017 --outdir=../priv/static/assets --watch --external:/fonts/* --external:/images/*"
   },
   "devDependencies": {
     "@tailwindcss/forms": "^0.5.7",
     "daisyui": "^4.12.10",
+    "esbuild": "^0.27.1",
     "tailwindcss": "^3.4.10"
   },
   "dependencies": {
     "alpinejs": "^3.14.9",
     "phoenix": "^1.8.1",
     "phoenix_html": "^4.3.0",
-    "phoenix_live_view": "^1.0.14",
+    "phoenix_live_view": "^1.1.18",
     "topbar": "^3.0.0"
   }
 }
