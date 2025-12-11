@@ -17,11 +17,11 @@
               onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
             />
             <div class="absolute inset-0 hidden items-center justify-center bg-gradient-to-br from-blue-500 to-purple-600 text-white text-lg font-bold">
-              <%= String.first(@post.author || "U") |> String.upcase() %>
+              <%= String.first(to_string(@post.author) || "U") |> String.upcase() %>
             </div>
           <% else %>
             <div class="h-full w-full flex items-center justify-center bg-gradient-to-br from-blue-500 to-purple-600 text-white text-lg font-bold group-hover:from-blue-600 group-hover:to-purple-700 transition-all duration-300">
-              <%= String.first(@post.author || "U") |> String.upcase() %>
+              <%= String.first(to_string(@post.author) || "U") |> String.upcase() %>
             </div>
           <% end %>
         </div>
@@ -32,12 +32,12 @@
       </div>
 
       <div class="flex flex-col">
-        <%= live_redirect(to: Routes.live_path(@socket, MazarynWeb.UserLive.Profile, @locale, @post.author),
+        <%= live_redirect(to: Routes.live_path(@socket, MazarynWeb.UserLive.Profile, @locale, to_string(@post.author)),
           class: "group"
         )  do %>
           <div class="flex items-center space-x-2">
             <span class="text-gray-900 dark:text-white text-base font-semibold group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-200 cursor-pointer">
-              <%= @post.author %>
+              <%= to_string(@post.author) %>
             </span>
             <%= if verified?(@post.author)  do %>
               <img
@@ -55,8 +55,8 @@
     </div>
 
     <div class="relative">
-          <%= if !is_repost?(@post) do %>
-            <button
+          <%= if !is_repost?(@post) && !PostHelpers.is_video_share_post?(@post) do %>
+              <button
               phx-click="view_post_details"
               phx-value-post-id={@post.id}
               phx-target={@myself}
@@ -111,9 +111,9 @@
           </button>
 
           <button
-            class="w-full text-left px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-orange-50 dark:hover:bg-orange-900/20 hover:text-orange-600 dark:hover:text-orange-400 transition-colors duration-200 flex items-center space-x-3"
-            phx-click={JS.push("open_modal") |> open_modal()}
-            phx-value-action="report-post"
+                      class="w-full text-left px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-orange-50 dark:hover:bg-orange-900/20 hover:text-orange-600 dark:hover:text-orange-400 transition-colors duration-200 flex items-center space-x-3"
+                      phx-click="open_modal"
+                      phx-value-action="report-post"
             phx-target={@myself}
             @click="open = false"
           >
@@ -380,107 +380,126 @@
   </div>
 
   <%= if is_repost?(@post) do %>
-    <div class="mt-2 mb-1 flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400">
-      <svg class="h-4 w-4 text-green-600 dark:text-green-400" fill="currentColor" viewBox="0 0 24 24">
-        <path d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z"/>
-      </svg>
-      <span class="font-medium">
-        <%= if @post.user_id == @current_user.id do %>
-          You shared this
-        <% else %>
-          <%= @post.author %> shared this
-        <% end %>
-      </span>
-    </div>
-
-    <%= if @post.repost_type == "with_comment" do %>
-      <% repost_comment = get_repost_comment_content(@post) %>
-      <%= if repost_comment && String.trim(repost_comment) != "" do %>
-        <div class="mt-1 mb-2 p-2 bg-gray-50 dark:bg-gray-800/50 rounded-xl">
-          <p class="text-base font-semibold text-gray-900 dark:text-white leading-relaxed whitespace-pre-wrap">
-            <%= repost_comment %>
-          </p>
+        <div class="mt-2 mb-1 flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400">
+          <svg class="h-4 w-4 text-green-600 dark:text-green-400" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z"/>
+          </svg>
+          <span class="font-medium">
+            <%= if @post.user_id == @current_user.id do %>
+              You shared this
+            <% else %>
+              <%= to_string(@post.author) %> shared this
+            <% end %>
+          </span>
         </div>
-      <% end %>
-    <% end %>
 
-    <%= case get_original_post(@post) do %>
-      <% {:ok, original_post} -> %>
-        <div
-          class="mt-1 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-xl border-2 border-gray-200 dark:border-gray-700 hover:border-blue-400 dark:hover:border-blue-500 transition-all duration-200 cursor-pointer group"
-          phx-click="view_original_post"
-          phx-value-post-id={original_post.id}
-          phx-target={@myself}
-        >
-          <div class="flex items-center justify-between mb-2">
-            <div class="flex items-center space-x-3">
-              <div class="relative h-8 w-8 rounded-full overflow-hidden border-2 border-white dark:border-gray-700 shadow-sm">
-                <%= if get_user_avatar(original_post.author) != "/images/default-avatar.png" do %>
-                  <img
-                    src={get_user_avatar(original_post.author)}
-                    class="h-full w-full object-cover"
-                    alt={"#{original_post.author}'s avatar"}
-                  />
-                <% else %>
-                  <div class="h-full w-full flex items-center justify-center bg-gradient-to-br from-purple-500 to-pink-600 text-white text-xs font-bold">
-                    <%= String.first(original_post.author || "U") |> String.upcase() %>
-                  </div>
-                <% end %>
-              </div>
-              <div>
-                <div class="flex items-center space-x-2">
-                  <span class="text-sm font-semibold text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                    <%= original_post.author %>
-                  </span>
-                  <%= if verified?(original_post.author) do %>
-                    <img
-                      alt="verified user"
-                      src={Routes.static_path(@socket, "/images/verified.png")}
-                      class="h-4 w-4"
-                    />
-                  <% end %>
-                </div>
-                <span class="text-xs text-gray-500 dark:text-gray-400">
-                  <%= Timex.from_now(original_post.date_created) %>
-                </span>
-              </div>
-            </div>
-
-            <div class="flex items-center space-x-1 text-xs text-blue-600 dark:text-blue-400 opacity-0 group-hover:opacity-100 transition-opacity">
-              <span class="font-medium">View original</span>
-              <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-              </svg>
-            </div>
-          </div>
-
-          <p class="text-sm text-gray-800 dark:text-white leading-relaxed whitespace-pre-wrap">
-            <%= raw(original_post |> activate_content_characters(@socket)) %>
-          </p>
-
-          <%= if post_has_media?(original_post.id) do %>
-            <div class="mt-2">
-              <% image_url = get_image_url(original_post.id) %>
-              <%= if image_url do %>
-                <img
-                  alt="Post image"
-                  class="w-full rounded-lg object-cover border border-gray-200 dark:border-gray-700"
-                  src={image_url}
-                />
-              <% end %>
+        <%= if @post.repost_type == "with_comment" do %>
+          <% repost_comment = get_repost_comment_content(@post) %>
+          <%= if repost_comment && String.trim(repost_comment) != "" do %>
+            <div class="mt-1 mb-2 p-2 bg-gray-50 dark:bg-gray-800/50 rounded-xl">
+              <p class="text-base font-semibold text-gray-900 dark:text-white leading-relaxed whitespace-pre-wrap">
+                <%= repost_comment %>
+              </p>
             </div>
           <% end %>
-        </div>
-      <% {:error, _} -> %>
-        <div class="mt-1 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-200 dark:border-gray-700">
-          <p class="text-sm text-gray-500 dark:text-gray-400 italic">
-            Original post unavailable
-          </p>
-        </div>
-    <% end %>
-  <% end %>
+        <% end %>
 
-  <%= if @editing_post do %>
+        <%= case get_original_post(@post) do %>
+          <% {:ok, original_post} -> %>
+            <div
+              class="mt-1 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-xl border-2 border-gray-200 dark:border-gray-700 hover:border-blue-400 dark:hover:border-blue-500 transition-all duration-200 cursor-pointer group"
+              phx-click="view_original_post"
+              phx-value-post-id={original_post.id}
+              phx-target={@myself}
+            >
+              ...existing repost content...
+            </div>
+          <% {:error, _} -> %>
+            <div class="mt-1 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-200 dark:border-gray-700">
+              <p class="text-sm text-gray-500 dark:text-gray-400 italic">
+                Original post unavailable
+              </p>
+            </div>
+        <% end %>
+      <% end %>
+
+        <%= if PostHelpers.is_video_share_post?(@post) do %>
+          <% video_data = PostHelpers.parse_video_share_content(@post) %>
+
+          <div class="mt-3 mb-2">
+            <div class="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400 mb-3">
+              <svg class="h-4 w-4 text-blue-600 dark:text-blue-400" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z"/>
+              </svg>
+              <span class="font-medium">
+                <%= if @post.user_id == @current_user.id do %>
+                  You shared a video
+                <% else %>
+                  <%= to_string(@post.author) %> shared a video
+                <% end %>
+              </span>
+            </div>
+
+            <%= if video_data.description && String.trim(video_data.description) != "" do %>
+              <div class="mb-3 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-xl">
+                <p class="text-sm text-gray-800 dark:text-white leading-relaxed whitespace-pre-wrap">
+                  <%= video_data.description %>
+                </p>
+              </div>
+            <% end %>
+
+            <%= if video_data.video_id do %>
+              <a href={"/#{@locale}/videos/#{video_data.video_id}"} class="block group">
+                <div class="relative overflow-hidden rounded-xl border-2 border-gray-200 dark:border-gray-700 hover:border-blue-400 dark:hover:border-blue-500 transition-all duration-200 bg-gray-900">
+                  <div class="relative aspect-video w-full">
+                    <img
+                      src={PostHelpers.get_video_thumbnail(@post)}
+                      alt={video_data.title}
+                      class="w-full h-full object-cover"
+                      onerror="this.src='/images/default-video-thumbnail.svg'"
+                    />
+
+                    <div class="absolute inset-0 bg-black/30 group-hover:bg-black/40 transition-all duration-200 flex items-center justify-center">
+                      <div class="w-16 h-16 rounded-full bg-white/90 group-hover:bg-white group-hover:scale-110 transition-all duration-200 flex items-center justify-center shadow-lg">
+                        <svg class="w-8 h-8 text-gray-900 ml-1" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M8 5v14l11-7z"/>
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="p-4 bg-white dark:bg-gray-800">
+                    <h3 class="text-base font-semibold text-gray-900 dark:text-white line-clamp-2 mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                      <%= video_data.title %>
+                    </h3>
+
+                    <div class="flex items-center justify-between">
+                      <div class="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400">
+                        <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z"/>
+                        </svg>
+                        <span>Watch video</span>
+                      </div>
+
+                      <div class="opacity-0 group-hover:opacity-100 transition-opacity flex items-center space-x-1 text-sm text-blue-600 dark:text-blue-400">
+                        <span class="font-medium">Watch</span>
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </a>
+            <% else %>
+              <div class="p-4 bg-gray-100 dark:bg-gray-800 rounded-xl text-center">
+                <p class="text-gray-500 dark:text-gray-400">Video unavailable</p>
+              </div>
+            <% end %>
+          </div>
+        <% end %>
+
+      <%= if @editing_post do %>
     <div class="mt-6">
       <.form
         :let={f}
@@ -557,11 +576,11 @@
             </p>
           </div>
         </div>
-      <% end %>
+        <% end %>
 
-      <%= if !is_repost?(@post) do %>
-        <p class="text-gray-900 dark:text-white text-base leading-relaxed">
-          <%= raw(@post |> activate_content_characters(@socket)) %>
+      <%= if !is_repost?(@post) && !PostHelpers.is_video_share_post?(@post) do %>
+              <p class="text-gray-900 dark:text-white text-base leading-relaxed whitespace-pre-wrap">
+                <%= raw(@post |> activate_content_characters(@socket)) %>
           <span class="text-blue-600 dark:text-blue-400 text-sm font-medium ml-2"><%= Enum.join(@post.profile_tags, " ") %></span>
         </p>
 

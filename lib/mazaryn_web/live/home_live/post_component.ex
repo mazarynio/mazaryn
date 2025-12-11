@@ -4,6 +4,7 @@ defmodule MazarynWeb.HomeLive.PostComponent do
   require Logger
 
   import MazarynWeb.Live.Helper
+  alias MazarynWeb.HomeLive.PostHelpers
   alias MazarynWeb.Router.Helpers, as: Routes
 
   alias Account.Users

@@ -5,31 +5,39 @@ defmodule MazarynWeb.MediaLive.Video.Show do
   def mount(params, session, socket) do
     user = get_user_from_session(session)
 
-    {:ok,
-     socket
-     |> assign(:user, user)
-     |> assign(:current_user, user)
-     |> assign(:locale, session["locale"] || "en")
-     |> assign(:video, nil)
-     |> assign(:creator, nil)
-     |> assign(:related_videos, [])
-     |> assign(:comments, [])
-     |> assign(:comment_text, "")
-     |> assign(:is_subscribed, false)
-     |> assign(:user_reaction, nil)
-     |> assign(:reaction_counts, %{"like" => 0, "love" => 0, "wow" => 0, "haha" => 0, "fire" => 0})
-     |> assign(:total_reactions, 0)
-     |> assign(:show_reactions_modal, false)
-     |> assign(:all_reaction_users, %{})
-     |> assign(:current_reaction_type, "like")
-     |> assign(:watch_time_total, 0)
-     |> assign(:show_delete_modal, false)
-     |> assign(:is_owner, false)
-     |> assign(:search_query, "")}
+    socket =
+      socket
+      |> assign(:user, user)
+      |> assign(:current_user, user)
+      |> assign(:locale, session["locale"] || "en")
+      |> assign(:video, nil)
+      |> assign(:creator, nil)
+      |> assign(:related_videos, [])
+      |> assign(:comments, [])
+      |> assign(:comment_text, "")
+      |> assign(:is_subscribed, false)
+      |> assign(:user_reaction, nil)
+      |> assign(:reaction_counts, %{
+        "like" => 0,
+        "love" => 0,
+        "wow" => 0,
+        "haha" => 0,
+        "fire" => 0
+      })
+      |> assign(:total_reactions, 0)
+      |> assign(:show_reactions_modal, false)
+      |> assign(:all_reaction_users, %{})
+      |> assign(:current_reaction_type, "like")
+      |> assign(:watch_time_total, 0)
+      |> assign(:show_delete_modal, false)
+      |> assign(:is_owner, false)
+      |> assign(:search_query, "")
+      |> assign(:show_share_modal, false)
+      |> assign(:share_description, "")
+
+    {:ok, socket}
   rescue
     error ->
-      Logger.error("===== VIDEO SHOW MOUNT: Exception: #{inspect(error)} =====")
-
       {:ok,
        socket
        |> put_flash(:error, "Failed to load video")
@@ -37,8 +45,6 @@ defmodule MazarynWeb.MediaLive.Video.Show do
   end
 
   def handle_params(%{"id" => video_id} = params, url, socket) do
-    Logger.info("===== VIDEO SHOW: Loading video #{video_id} =====")
-
     user = socket.assigns.user
 
     normalized_id =
@@ -54,8 +60,6 @@ defmodule MazarynWeb.MediaLive.Video.Show do
 
     case load_video(normalized_id, user) do
       {:ok, video, creator, related_videos, comments} ->
-        Logger.info("===== VIDEO SHOW: Video loaded successfully =====")
-
         user_reaction = get_user_video_reaction(user, video.id)
         reaction_counts = normalize_reaction_counts(video.reaction_counts)
         total_reactions = Map.values(reaction_counts) |> Enum.sum()
@@ -76,8 +80,6 @@ defmodule MazarynWeb.MediaLive.Video.Show do
          |> assign(:is_owner, is_owner)}
 
       {:error, reason} ->
-        Logger.error("===== VIDEO SHOW: Error: #{inspect(reason)} =====")
-
         {:noreply,
          socket
          |> put_flash(:error, "Video not found")
@@ -92,35 +94,26 @@ defmodule MazarynWeb.MediaLive.Video.Show do
 
   @impl true
   def handle_event("view_profile", %{"username" => username}, socket) do
-    Logger.info("===== VIEW_PROFILE: Received username: #{inspect(username)} =====")
-
     locale = socket.assigns.locale || "en"
 
     username_str =
       case username do
         u when is_binary(u) and byte_size(u) > 0 ->
-          Logger.info("===== VIEW_PROFILE: Username is binary: #{u} =====")
           u
 
         u when is_list(u) and length(u) > 0 ->
           str = List.to_string(u)
-          Logger.info("===== VIEW_PROFILE: Username was list, converted to: #{str} =====")
           str
 
         _ ->
-          Logger.error("===== VIEW_PROFILE: Invalid username format: #{inspect(username)} =====")
           nil
       end
 
     if username_str && username_str != "" && !String.starts_with?(username_str, ["/ip4", "/ip6"]) do
-      Logger.info("===== VIEW_PROFILE: Navigating to profile for: #{username_str} =====")
-
       profile_path = Routes.live_path(socket, MazarynWeb.UserLive.Profile, locale, username_str)
-      Logger.info("===== VIEW_PROFILE: Profile path: #{profile_path} =====")
 
       {:noreply, push_navigate(socket, to: profile_path)}
     else
-      Logger.error("===== VIEW_PROFILE: Invalid username, not navigating =====")
       {:noreply, put_flash(socket, :error, "Invalid user profile")}
     end
   end
@@ -137,7 +130,7 @@ defmodule MazarynWeb.MediaLive.Video.Show do
           :videodb.track_watch_time(charlist_video_id, user_id, seconds)
         catch
           error_type, error ->
-            Logger.error("===== TRACK_WATCH_TIME: Error #{error_type}: #{inspect(error)} =====")
+            nil
         end
       end)
 
@@ -150,8 +143,63 @@ defmodule MazarynWeb.MediaLive.Video.Show do
 
   @impl true
   def handle_event("video_play", %{"video_id" => video_id}, socket) do
-    Logger.info("===== VIDEO_PLAY: Video #{video_id} started =====")
     {:noreply, socket}
+  end
+
+  @impl true
+  def handle_event("show_share_modal", _params, socket) do
+    {:noreply, assign(socket, :show_share_modal, true)}
+  end
+
+  @impl true
+  def handle_event("hide_share_modal", _params, socket) do
+    {:noreply, assign(socket, show_share_modal: false, share_description: "")}
+  end
+
+  @impl true
+  def handle_event("update_share_description", %{"value" => description}, socket) do
+    limited_description = String.slice(description, 0, 500)
+
+    {:noreply, assign(socket, :share_description, limited_description)}
+  end
+
+  @impl true
+  def handle_event("confirm_share_video", _params, socket) do
+    user_id = get_user_id(socket.assigns.user)
+    video_id = socket.assigns.video.id
+    description = socket.assigns.share_description
+
+    if user_id do
+      charlist_video_id = if is_binary(video_id), do: String.to_charlist(video_id), else: video_id
+      charlist_user_id = if is_binary(user_id), do: String.to_charlist(user_id), else: user_id
+
+      charlist_description =
+        if is_binary(description) && description != "",
+          do: String.to_charlist(description),
+          else: ''
+
+      case :videodb.share_video(charlist_video_id, charlist_user_id, charlist_description) do
+        {:ok, post_id} ->
+          {:noreply,
+           socket
+           |> assign(:show_share_modal, false)
+           |> assign(:share_description, "")
+           |> put_flash(:info, "Video shared to your feed!")
+           |> push_navigate(to: ~p"/#{socket.assigns.locale}/home")}
+
+        {:error, reason} ->
+          {:noreply,
+           socket
+           |> put_flash(:error, "Failed to share video: #{inspect(reason)}")}
+
+        other ->
+          {:noreply,
+           socket
+           |> put_flash(:error, "Unexpected response from share video")}
+      end
+    else
+      {:noreply, put_flash(socket, :error, "Please login to share videos")}
+    end
   end
 
   @impl true
@@ -165,7 +213,6 @@ defmodule MazarynWeb.MediaLive.Video.Show do
 
   @impl true
   def handle_event("video_ended", %{"video_id" => video_id}, socket) do
-    Logger.info("===== VIDEO_ENDED: Video #{video_id} finished =====")
     {:noreply, socket}
   end
 
@@ -180,8 +227,6 @@ defmodule MazarynWeb.MediaLive.Video.Show do
 
   @impl true
   def handle_event("add_comment", %{"comment" => comment_text}, socket) do
-    Logger.info("===== ADD_COMMENT: Received text: '#{comment_text}' =====")
-
     username =
       case socket.assigns.user do
         %{username: uname} when is_binary(uname) ->
@@ -198,24 +243,15 @@ defmodule MazarynWeb.MediaLive.Video.Show do
           nil
       end
 
-    Logger.info("===== ADD_COMMENT: Username extracted: #{inspect(username)} =====")
-
     video_id = socket.assigns.video.id
     charlist_video_id = if is_binary(video_id), do: String.to_charlist(video_id), else: video_id
 
     if username && String.trim(comment_text) != "" do
-      Logger.info(
-        "===== ADD_COMMENT: Calling videodb:add_video_comment(#{inspect(username)}, #{inspect(charlist_video_id)}, #{inspect(comment_text)}) ====="
-      )
-
       case :videodb.add_video_comment(username, charlist_video_id, comment_text) do
         comment_id when is_binary(comment_id) or is_list(comment_id) ->
-          Logger.info("===== ADD_COMMENT: Success! Comment ID: #{inspect(comment_id)} =====")
-
           Process.sleep(100)
 
           comments = load_comments(charlist_video_id)
-          Logger.info("===== ADD_COMMENT: Loaded #{length(comments)} comments =====")
 
           {:noreply,
            socket
@@ -224,18 +260,12 @@ defmodule MazarynWeb.MediaLive.Video.Show do
            |> put_flash(:info, "Comment added successfully")}
 
         {:error, reason} ->
-          Logger.error("===== ADD_COMMENT: Backend error: #{inspect(reason)} =====")
           {:noreply, put_flash(socket, :error, "Failed to add comment")}
 
         other ->
-          Logger.error("===== ADD_COMMENT: Unexpected return: #{inspect(other)} =====")
           {:noreply, put_flash(socket, :error, "Failed to add comment")}
       end
     else
-      Logger.warning(
-        "===== ADD_COMMENT: Skipped – username: #{inspect(username)}, text empty: #{String.trim(comment_text) == ""} ====="
-      )
-
       {:noreply, socket}
     end
   end
@@ -336,17 +366,9 @@ defmodule MazarynWeb.MediaLive.Video.Show do
           %{like: [], love: [], wow: [], haha: [], fire: []}
       end
 
-    Logger.info(
-      "===== OPEN_REACTIONS_MODAL: Got reactions map: #{inspect(Map.keys(all_reactions_map))} ====="
-    )
-
     grouped_users =
       Enum.into(all_reactions_map, %{}, fn {type, reactions_list} ->
         type_str = to_string(type)
-
-        Logger.info(
-          "===== OPEN_REACTIONS_MODAL: Processing #{type_str} reactions, count: #{length(reactions_list)} ====="
-        )
 
         users =
           Enum.map(reactions_list, fn reaction ->
@@ -356,10 +378,6 @@ defmodule MazarynWeb.MediaLive.Video.Show do
                 {_, _, _, _, uid, _, _, _} -> uid
                 _ -> nil
               end
-
-            Logger.info(
-              "===== OPEN_REACTIONS_MODAL: Processing user_id: #{inspect(user_id)} ====="
-            )
 
             if user_id do
               charlist_user_id =
@@ -375,34 +393,19 @@ defmodule MazarynWeb.MediaLive.Video.Show do
 
                 user_tuple when is_tuple(user_tuple) and tuple_size(user_tuple) >= 9 ->
                   username = elem(user_tuple, 8)
-                  avatar = elem(user_tuple, 6)
-
-                  Logger.info(
-                    "===== OPEN_REACTIONS_MODAL: Raw username: #{inspect(username)} ====="
-                  )
-
-                  Logger.info("===== OPEN_REACTIONS_MODAL: Raw avatar: #{inspect(avatar)} =====")
+                  avatar = elem(user_tuple, 26)
 
                   username_str =
                     case username do
                       u when is_list(u) and length(u) > 0 ->
                         str = List.to_string(u)
 
-                        Logger.info(
-                          "===== OPEN_REACTIONS_MODAL: Converted username from list: #{str} ====="
-                        )
-
                         if String.starts_with?(str, ["/ip4", "/ip6"]), do: "Anonymous", else: str
 
                       u when is_binary(u) and u != "" ->
-                        Logger.info("===== OPEN_REACTIONS_MODAL: Username is binary: #{u} =====")
                         if String.starts_with?(u, ["/ip4", "/ip6"]), do: "Anonymous", else: u
 
                       _ ->
-                        Logger.warning(
-                          "===== OPEN_REACTIONS_MODAL: Username format unknown, defaulting to Anonymous ====="
-                        )
-
                         "Anonymous"
                     end
 
@@ -429,9 +432,6 @@ defmodule MazarynWeb.MediaLive.Video.Show do
                         "/images/default-avatar.png"
                     end
 
-                  Logger.info("===== OPEN_REACTIONS_MODAL: Final username: #{username_str} =====")
-                  Logger.info("===== OPEN_REACTIONS_MODAL: Final avatar: #{avatar_str} =====")
-
                   %{
                     username: username_str,
                     avatar: avatar_str,
@@ -439,14 +439,9 @@ defmodule MazarynWeb.MediaLive.Video.Show do
                   }
 
                 _ ->
-                  Logger.warning(
-                    "===== OPEN_REACTIONS_MODAL: User tuple invalid or too small ====="
-                  )
-
                   %{username: "Unknown", avatar: "/images/default-avatar.png", verified: false}
               end
             else
-              Logger.warning("===== OPEN_REACTIONS_MODAL: No user_id found in reaction =====")
               %{username: "Unknown", avatar: "/images/default-avatar.png", verified: false}
             end
           end)
@@ -454,24 +449,13 @@ defmodule MazarynWeb.MediaLive.Video.Show do
             keep = user.username not in ["Anonymous", "Unknown"]
 
             if !keep do
-              Logger.info(
-                "===== OPEN_REACTIONS_MODAL: Filtering out user: #{user.username} ====="
-              )
             end
 
             keep
           end)
 
-        Logger.info(
-          "===== OPEN_REACTIONS_MODAL: Final user count for #{type_str}: #{length(users)} ====="
-        )
-
         {type_str, users}
       end)
-
-    Logger.info(
-      "===== OPEN_REACTIONS_MODAL: Grouped users summary: #{inspect(Enum.map(grouped_users, fn {k, v} -> {k, length(v)} end))} ====="
-    )
 
     {:noreply,
      socket
@@ -491,16 +475,7 @@ defmodule MazarynWeb.MediaLive.Video.Show do
 
   @impl true
   def handle_event("share", _params, socket) do
-    video_id = socket.assigns.video.id
-    user_id = get_user_id(socket.assigns.user)
-
-    charlist_video_id = if is_binary(video_id), do: String.to_charlist(video_id), else: video_id
-
-    if user_id do
-      :videodb.share_video(charlist_video_id, user_id)
-    end
-
-    {:noreply, put_flash(socket, :info, "Video shared")}
+    {:noreply, assign(socket, :show_share_modal, true)}
   end
 
   @impl true
@@ -527,24 +502,23 @@ defmodule MazarynWeb.MediaLive.Video.Show do
     {:noreply, push_navigate(socket, to: ~p"/#{socket.assigns.locale}/videos/#{video_id}")}
   end
 
+  @impl true
   def handle_event("show_delete_modal", _params, socket) do
-    Logger.info("🗑 Showing delete video modal")
     {:noreply, assign(socket, show_delete_modal: true)}
   end
 
+  @impl true
   def handle_event("hide_delete_modal", _params, socket) do
-    Logger.info("🚫 Hiding delete video modal")
     {:noreply, assign(socket, show_delete_modal: false)}
   end
 
+  @impl true
   def handle_event("confirm_delete_video", %{"id" => video_id}, socket) do
     delete_start = :erlang.system_time(:millisecond)
-    Logger.info("🗑 Starting confirm_delete_video for video #{video_id}")
 
     Task.start(fn ->
       try do
         :videodb.delete_video(String.to_charlist(video_id))
-        Logger.info("✅ Video #{video_id} deleted successfully")
       rescue
         error -> Logger.error("Error deleting video: #{inspect(error)}")
       end
@@ -557,50 +531,36 @@ defmodule MazarynWeb.MediaLive.Video.Show do
       |> push_navigate(to: ~p"/#{socket.assigns.locale}/videos")
 
     delete_end = :erlang.system_time(:millisecond)
-    Logger.info("🗑 confirm_delete_video completed in #{delete_end - delete_start}ms")
     {:noreply, socket}
   end
 
   @impl true
   def handle_event("delete_video", _params, socket) do
-    Logger.info("===== DELETE_VIDEO: Starting =====")
-
     user_id = get_user_id(socket.assigns.user)
     video_id = socket.assigns.video.id
 
-    Logger.info("===== DELETE_VIDEO: User ID: #{inspect(user_id)} =====")
-    Logger.info("===== DELETE_VIDEO: Video ID: #{inspect(video_id)} =====")
-
     if is_nil(user_id) do
-      Logger.error("===== DELETE_VIDEO: No user ID =====")
       {:noreply, put_flash(socket, :error, "User session expired")}
     else
       charlist_video_id = if is_binary(video_id), do: String.to_charlist(video_id), else: video_id
 
-      Logger.info("===== DELETE_VIDEO: Calling videodb:delete_video =====")
-
       case :videodb.delete_video(charlist_video_id, user_id) do
         :ok ->
-          Logger.info("===== DELETE_VIDEO: Success =====")
-
           video_id_str = if is_list(video_id), do: List.to_string(video_id), else: video_id
 
           try do
             case :ets.lookup(:video_path_cache, video_id_str) do
               [{^video_id_str, local_path, _timestamp}] ->
-                Logger.info("===== DELETE_VIDEO: Found in cache, deleting file =====")
-
                 spawn(fn ->
                   if File.exists?(local_path) do
                     File.rm(local_path)
-                    Logger.info("===== DELETE_VIDEO: Local file deleted =====")
                   end
                 end)
 
                 :ets.delete(:video_path_cache, video_id_str)
 
               [] ->
-                Logger.info("===== DELETE_VIDEO: Not in cache =====")
+                nil
             end
           rescue
             _ -> :ok
@@ -613,24 +573,18 @@ defmodule MazarynWeb.MediaLive.Video.Show do
            |> push_navigate(to: ~p"/#{socket.assigns.locale}/videos/my-videos")}
 
         {:error, :unauthorized} ->
-          Logger.error("===== DELETE_VIDEO: Unauthorized =====")
-
           {:noreply,
            socket
            |> assign(:show_delete_modal, false)
            |> put_flash(:error, "You are not authorized to delete this video")}
 
         {:error, :video_not_found} ->
-          Logger.error("===== DELETE_VIDEO: Video not found =====")
-
           {:noreply,
            socket
            |> assign(:show_delete_modal, false)
            |> put_flash(:error, "Video not found")}
 
         {:error, reason} ->
-          Logger.error("===== DELETE_VIDEO: Error: #{inspect(reason)} =====")
-
           {:noreply,
            socket
            |> assign(:show_delete_modal, false)
@@ -671,16 +625,12 @@ defmodule MazarynWeb.MediaLive.Video.Show do
   defp get_user_id(_), do: nil
 
   defp load_video(video_id, user) do
-    Logger.info("===== LOAD_VIDEO: Loading video #{inspect(video_id)} =====")
-
     user_id = get_user_id(user)
 
     video_result = try_load_video_formats(video_id)
 
     case video_result do
       {:ok, video_tuple} ->
-        Logger.info("===== LOAD_VIDEO: Video tuple received =====")
-
         if user_id do
           charlist_video_id =
             if is_binary(video_id), do: String.to_charlist(video_id), else: video_id
@@ -697,12 +647,10 @@ defmodule MazarynWeb.MediaLive.Video.Show do
         {:ok, video, creator, related_videos, comments}
 
       error ->
-        Logger.error("===== LOAD_VIDEO: Error: #{inspect(error)} =====")
         {:error, :not_found}
     end
   rescue
     error ->
-      Logger.error("===== LOAD_VIDEO: Exception: #{inspect(error)} =====")
       {:error, :exception}
   end
 
@@ -779,7 +727,7 @@ defmodule MazarynWeb.MediaLive.Video.Show do
         "https://ipfs.io/ipfs/#{cid_string}"
 
       true ->
-        "/images/default-thumbnail.jpg"
+        "/images/default-video-thumbnail.svg"
     end
   end
 
@@ -823,66 +771,27 @@ defmodule MazarynWeb.MediaLive.Video.Show do
   defp format_views(_), do: "0"
 
   defp get_creator_info(user_id) do
-    Logger.info("===== GET_CREATOR_INFO: Getting info for user: #{inspect(user_id)} =====")
-
     charlist_id = if is_binary(user_id), do: String.to_charlist(user_id), else: user_id
 
     case Core.UserClient.get_user_by_id(charlist_id) do
-      user_tuple when is_tuple(user_tuple) ->
-        Logger.info("===== GET_CREATOR_INFO: User tuple received =====")
-        Logger.info("===== GET_CREATOR_INFO: User tuple size: #{tuple_size(user_tuple)} =====")
-
-        username = elem(user_tuple, 2)
+      user_tuple when is_tuple(user_tuple) and tuple_size(user_tuple) >= 35 ->
+        username = elem(user_tuple, 8)
 
         username_str =
           case username do
             u when is_list(u) and length(u) > 0 ->
               str = List.to_string(u)
-
-              if String.starts_with?(str, ["/ip4", "/ip6"]) do
-                "Unknown"
-              else
-                str
-              end
+              if String.starts_with?(str, ["/ip4", "/ip6"]), do: "Unknown", else: str
 
             u when is_binary(u) and u != "" ->
-              if String.starts_with?(u, ["/ip4", "/ip6"]) do
-                "Unknown"
-              else
-                u
-              end
+              if String.starts_with?(u, ["/ip4", "/ip6"]), do: "Unknown", else: u
 
             _ ->
               "Unknown"
           end
 
-        avatar = elem(user_tuple, 6)
-
-        avatar_str =
-          case avatar do
-            a when is_list(a) and length(a) > 0 ->
-              str = List.to_string(a)
-
-              if String.starts_with?(str, ["/ip4", "/ip6", "http"]) and
-                   not String.contains?(str, "ipfs.io") do
-                "/images/default-avatar.png"
-              else
-                str
-              end
-
-            a when is_binary(a) and a != "" ->
-              if String.starts_with?(a, ["/ip4", "/ip6"]) do
-                "/images/default-avatar.png"
-              else
-                a
-              end
-
-            _ ->
-              "/images/default-avatar.png"
-          end
-
-        Logger.info("===== GET_CREATOR_INFO: Username: #{username_str} =====")
-        Logger.info("===== GET_CREATOR_INFO: Avatar: #{avatar_str} =====")
+        raw_avatar = elem(user_tuple, 26)
+        avatar_str = safe_process_avatar(raw_avatar)
 
         %{
           id: user_id,
@@ -891,9 +800,15 @@ defmodule MazarynWeb.MediaLive.Video.Show do
           subscribers: 0
         }
 
-      error ->
-        Logger.error("===== GET_CREATOR_INFO: Error: #{inspect(error)} =====")
+      user_tuple when is_tuple(user_tuple) ->
+        %{
+          id: user_id,
+          username: "Unknown",
+          avatar: "/images/default-avatar.png",
+          subscribers: 0
+        }
 
+      error ->
         %{
           id: user_id,
           username: "Unknown",
@@ -901,7 +816,86 @@ defmodule MazarynWeb.MediaLive.Video.Show do
           subscribers: 0
         }
     end
+  rescue
+    error ->
+      %{
+        id: user_id,
+        username: "Unknown",
+        avatar: "/images/default-avatar.png",
+        subscribers: 0
+      }
   end
+
+  defp safe_list_to_string(list) when is_list(list) do
+    try do
+      if Enum.all?(list, &is_integer/1) do
+        List.to_string(list)
+      else
+        list
+        |> Enum.filter(&is_integer/1)
+        |> List.to_string()
+      end
+    rescue
+      _ -> ""
+    end
+  end
+
+  defp safe_list_to_string(_), do: ""
+
+  defp safe_process_avatar(avatar) do
+    try do
+      case avatar do
+        :undefined ->
+          "/images/default-avatar.png"
+
+        a when is_list(a) and length(a) > 0 ->
+          str = safe_list_to_string(a)
+
+          if str == "" do
+            "/images/default-avatar.png"
+          else
+            process_avatar_string(str)
+          end
+
+        a when is_binary(a) and a != "" ->
+          process_avatar_string(a)
+
+        _ ->
+          "/images/default-avatar.png"
+      end
+    rescue
+      error ->
+        "/images/default-avatar.png"
+    end
+  end
+
+  defp process_avatar_string(str) when is_binary(str) do
+    cond do
+      str == "" ->
+        "/images/default-avatar.png"
+
+      String.starts_with?(str, ["/ip4", "/ip6"]) ->
+        "/images/default-avatar.png"
+
+      String.contains?(str, "ipfs.io/ipfs/") ->
+        str
+
+      String.starts_with?(str, "Qm") or String.starts_with?(str, "bafy") ->
+        full_url = "https://ipfs.io/ipfs/#{str}"
+        full_url
+
+      String.starts_with?(str, ["http://", "https://"]) and not String.contains?(str, "ipfs") ->
+        "/images/default-avatar.png"
+
+      String.starts_with?(str, "/") ->
+        str
+
+      true ->
+        "/images/default-avatar.png"
+    end
+  end
+
+  defp process_avatar_string(_), do: "/images/default-avatar.png"
 
   defp load_related_videos(current_video_id) do
     case :videodb.get_public_videos() do
@@ -946,9 +940,20 @@ defmodule MazarynWeb.MediaLive.Video.Show do
     charlist_id = if is_binary(user_id), do: String.to_charlist(user_id), else: user_id
 
     case Core.UserClient.get_user_by_id(charlist_id) do
-      user_tuple when is_tuple(user_tuple) ->
-        username = elem(user_tuple, 2)
-        if is_list(username), do: List.to_string(username), else: username
+      user_tuple when is_tuple(user_tuple) and tuple_size(user_tuple) >= 35 ->
+        raw_username = elem(user_tuple, 8)
+
+        case raw_username do
+          u when is_list(u) and length(u) > 0 ->
+            str = List.to_string(u)
+            if String.starts_with?(str, ["/ip4", "/ip6"]), do: "Unknown", else: str
+
+          u when is_binary(u) and u != "" ->
+            if String.starts_with?(u, ["/ip4", "/ip6"]), do: "Unknown", else: u
+
+          _ ->
+            "Unknown"
+        end
 
       _ ->
         "Unknown"
@@ -956,7 +961,6 @@ defmodule MazarynWeb.MediaLive.Video.Show do
   end
 
   defp load_comments(video_id) do
-    Logger.info("===== LOAD_COMMENTS: Loading for video ID: #{inspect(video_id)} =====")
     charlist_id = if is_binary(video_id), do: String.to_charlist(video_id), else: video_id
 
     case :videodb.get_video_comments(charlist_id) do
@@ -966,18 +970,9 @@ defmodule MazarynWeb.MediaLive.Video.Show do
             comment_id = elem(comment_tuple, 1)
             user_id = elem(comment_tuple, 2)
 
-            Logger.info(
-              "===== LOAD_COMMENTS: Processing comment #{inspect(comment_id)} for user #{inspect(user_id)} ====="
-            )
-
             content =
               case :videodb.get_video_comment_content(comment_id) do
                 {error, reason} ->
-                  Logger.error("===== LOAD_COMMENTS: Failed to load content for comment ~p: ~p", [
-                    comment_id,
-                    reason
-                  ])
-
                   "[Content unavailable]"
 
                 binary_content when is_binary(binary_content) ->
@@ -993,15 +988,11 @@ defmodule MazarynWeb.MediaLive.Video.Show do
             user_data =
               case Core.UserClient.get_user_by_id(user_id) do
                 {:error, reason} ->
-                  Logger.warning(
-                    "===== LOAD_COMMENTS: Could not get user for comment: #{inspect(reason)} ====="
-                  )
-
                   %{username: "Anonymous", avatar: "/images/default-avatar.png"}
 
-                user_tuple when is_tuple(user_tuple) and tuple_size(user_tuple) >= 9 ->
+                user_tuple when is_tuple(user_tuple) and tuple_size(user_tuple) >= 35 ->
                   raw_username = elem(user_tuple, 8)
-                  raw_avatar = elem(user_tuple, 6)
+                  raw_avatar = elem(user_tuple, 26)
 
                   Logger.info(
                     "===== LOAD_COMMENTS: Raw username from tuple: #{inspect(raw_username)} ====="
@@ -1015,59 +1006,19 @@ defmodule MazarynWeb.MediaLive.Video.Show do
                     case raw_username do
                       u when is_list(u) and length(u) > 0 ->
                         str = List.to_string(u)
-                        Logger.info("===== LOAD_COMMENTS: Converted username: #{str} =====")
                         str
 
                       u when is_binary(u) and u != "" ->
-                        Logger.info("===== LOAD_COMMENTS: Username is binary: #{u} =====")
                         u
 
                       _ ->
-                        Logger.warning("===== LOAD_COMMENTS: Username format unknown =====")
                         "Anonymous"
                     end
 
-                  avatar_str =
-                    case raw_avatar do
-                      a when is_list(a) and length(a) > 0 ->
-                        str = List.to_string(a)
-
-                        Logger.info(
-                          "===== LOAD_COMMENTS: Converted avatar from list: #{str} ====="
-                        )
-
-                        if String.starts_with?(str, ["/ip4", "/ip6", "http"]) and
-                             not String.contains?(str, "ipfs.io") do
-                          Logger.info("===== LOAD_COMMENTS: Avatar rejected, using default =====")
-                          "/images/default-avatar.png"
-                        else
-                          Logger.info("===== LOAD_COMMENTS: Avatar accepted: #{str} =====")
-                          str
-                        end
-
-                      a when is_binary(a) and a != "" ->
-                        Logger.info("===== LOAD_COMMENTS: Avatar is binary: #{a} =====")
-
-                        if String.starts_with?(a, ["/ip4", "/ip6"]) do
-                          Logger.info("===== LOAD_COMMENTS: Avatar rejected, using default =====")
-                          "/images/default-avatar.png"
-                        else
-                          Logger.info("===== LOAD_COMMENTS: Avatar accepted: #{a} =====")
-                          a
-                        end
-
-                      _ ->
-                        Logger.info("===== LOAD_COMMENTS: No avatar found, using default =====")
-                        "/images/default-avatar.png"
-                    end
-
-                  Logger.info("===== LOAD_COMMENTS: Final username: #{username_str} =====")
-                  Logger.info("===== LOAD_COMMENTS: Final avatar: #{avatar_str} =====")
-
+                  avatar_str = safe_process_avatar(raw_avatar)
                   %{username: username_str, avatar: avatar_str}
 
                 _ ->
-                  Logger.warning("===== LOAD_COMMENTS: User tuple invalid =====")
                   %{username: "Anonymous", avatar: "/images/default-avatar.png"}
               end
 
@@ -1079,11 +1030,9 @@ defmodule MazarynWeb.MediaLive.Video.Show do
             }
           end)
 
-        Logger.info("===== LOAD_COMMENTS: Returning #{length(result)} formatted comments =====")
         result
 
       other ->
-        Logger.warning("===== LOAD_COMMENTS: videodb returned: #{inspect(other)} =====")
         []
     end
   end

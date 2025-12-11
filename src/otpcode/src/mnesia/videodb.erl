@@ -50,6 +50,7 @@
     get_view_stats/1,
 
     share_video/2,
+    share_video/3,
     save_video/2,
     unsave_video/2,
 
@@ -1536,20 +1537,105 @@ get_view_stats(VideoId) ->
         {aborted, Reason} -> {error, {transaction_failed, Reason}}
     end.
 
-share_video(VideoId, _UserId) ->
-    Fun = fun() ->
-        case mnesia:read({video, VideoId}) of
-            [] -> {error, video_not_found};
-            [Video] ->
-                mnesia:write(Video#video{shares = Video#video.shares + 1}),
-                ok
-        end
-    end,
+    share_video(VideoId, UserId) ->
+            share_video(VideoId, UserId, "").
 
-    case mnesia:transaction(Fun) of
-        {atomic, Result} -> Result;
-        {aborted, Reason} -> {error, {transaction_failed, Reason}}
-    end.
+            share_video(VideoId, UserId, Description) ->
+                Fun = fun() ->
+                    case mnesia:read({video, VideoId}) of
+                        [] -> {error, video_not_found};
+                        [Video] ->
+                            mnesia:write(Video#video{shares = Video#video.shares + 1}),
+
+                            case mnesia:read({user, UserId}) of
+                                [] ->
+                                    {error, user_not_found};
+                                [User] ->
+                                    Username = case User#user.username of
+                                        U when is_list(U) -> U;
+                                        U when is_binary(U) -> binary_to_list(U);
+                                        _ -> "Unknown"
+                                    end,
+
+                                    VideoIdStr = if
+                                        is_list(VideoId) -> VideoId;
+                                        is_binary(VideoId) -> binary_to_list(VideoId);
+                                        true -> VideoId
+                                    end,
+
+                                    VideoTitle = if
+                                        is_binary(Video#video.title) -> Video#video.title;
+                                        is_list(Video#video.title) -> list_to_binary(Video#video.title);
+                                        true -> <<"Shared Video">>
+                                    end,
+
+                                    VideoUrl = "https://mazaryn.io/en/videos/" ++ VideoIdStr,
+
+                                    Content = case Description of
+                                        "" ->
+                                            iolist_to_binary([
+                                                "VIDEO_SHARE:", VideoIdStr, "|", VideoUrl, "|", VideoTitle, "\n"
+                                            ]);
+                                        Desc when is_binary(Desc) andalso byte_size(Desc) > 0 ->
+                                            iolist_to_binary([
+                                                "VIDEO_SHARE:", VideoIdStr, "|", VideoUrl, "|", VideoTitle, "\n",
+                                                Desc
+                                            ]);
+                                        Desc when is_list(Desc) andalso length(Desc) > 0 ->
+                                            DescBin = list_to_binary(Desc),
+                                            iolist_to_binary([
+                                                "VIDEO_SHARE:", VideoIdStr, "|", VideoUrl, "|", VideoTitle, "\n",
+                                                DescBin
+                                            ]);
+                                        _ ->
+                                            iolist_to_binary([
+                                                "VIDEO_SHARE:", VideoIdStr, "|", VideoUrl, "|", VideoTitle, "\n"
+                                            ])
+                                    end,
+
+                                    ThumbnailUrl = case Video#video.thumbnail_url of
+                                        undefined -> undefined;
+                                        "" -> undefined;
+                                        Thumb when is_list(Thumb) -> Thumb;
+                                        Thumb when is_binary(Thumb) -> binary_to_list(Thumb);
+                                        _ -> undefined
+                                    end,
+
+                                    {ok, #{
+                                        username => Username,
+                                        content => binary_to_list(Content),
+                                        media => ThumbnailUrl,
+                                        video_id => VideoIdStr,
+                                        video_url => VideoUrl,
+                                        video_title => binary_to_list(VideoTitle),
+                                        hashtags => [<<"video">>, <<"shared">>],
+                                        emoji => [],
+                                        mention => []
+                                    }}
+                            end
+                    end
+                end,
+
+                case mnesia:transaction(Fun) of
+                    {atomic, {ok, PostData}} ->
+                        AuthorUsername = maps:get(username, PostData),
+                        Content = maps:get(content, PostData),
+                        Media = maps:get(media, PostData),
+                        Hashtags = maps:get(hashtags, PostData),
+                        Emoji = maps:get(emoji, PostData),
+                        Mention = maps:get(mention, PostData),
+
+                        case postdb:insert(AuthorUsername, Content, Media, Hashtags, "", Emoji, Mention) of
+                            PostId when is_list(PostId) orelse is_binary(PostId) ->
+                                {ok, PostId};
+                            {error, Reason} ->
+                                {error, {post_creation_failed, Reason}}
+                        end;
+                    {atomic, {error, Reason}} ->
+                        {error, Reason};
+                    {aborted, Reason} ->
+                        {error, {transaction_failed, Reason}}
+                end.
 
 save_video(VideoId, UserId) ->
     Fun = fun() ->

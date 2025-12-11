@@ -7,15 +7,6 @@ defmodule Core.PostClient do
     ~c"zKegB4mWRXP3PDVuntpnA"
   """
   def create(author, content, media \\ [], hashtag, link_url, emoji, mention) do
-    IO.puts("🔨 PostClient.create called")
-    IO.puts("🔨 Author: #{author}")
-    IO.puts("🔨 Content: #{content}")
-    IO.puts("🔨 Media: #{inspect(media)}")
-    IO.puts("🔨 Hashtag: #{hashtag}")
-    IO.puts("🔨 Link URL: #{link_url}")
-    IO.puts("🔨 Emoji: #{emoji}")
-    IO.puts("🔨 Mention: #{mention}")
-
     content_erlang = String.to_charlist(content)
 
     media_param = if is_list(media) and length(media) > 0, do: media, else: []

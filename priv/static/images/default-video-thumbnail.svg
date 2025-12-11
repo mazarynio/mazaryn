@@ -1,0 +1,93 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720">
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0f172a;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#1e293b;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#334155;stop-opacity:1" />
+    </linearGradient>
+
+    <linearGradient id="playGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#3b82f6;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#6366f1;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#8b5cf6;stop-opacity:1" />
+    </linearGradient>
+
+    <linearGradient id="textGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#60a5fa;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#a78bfa;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#c084fc;stop-opacity:1" />
+    </linearGradient>
+
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="8" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+
+    <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="3"/>
+      <feOffset dx="0" dy="2" result="offsetblur"/>
+      <feComponentTransfer>
+        <feFuncA type="linear" slope="0.3"/>
+      </feComponentTransfer>
+      <feMerge>
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <rect width="1280" height="720" fill="url(#bgGradient)"/>
+
+  <circle cx="150" cy="120" r="120" fill="#3b82f6" opacity="0.08">
+    <animate attributeName="opacity" values="0.08;0.12;0.08" dur="4s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="1150" cy="600" r="150" fill="#8b5cf6" opacity="0.08">
+    <animate attributeName="opacity" values="0.08;0.12;0.08" dur="3s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="300" cy="500" r="80" fill="#6366f1" opacity="0.06">
+    <animate attributeName="opacity" values="0.06;0.10;0.06" dur="5s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="1000" cy="150" r="100" fill="#a78bfa" opacity="0.06">
+    <animate attributeName="opacity" values="0.06;0.10;0.06" dur="4.5s" repeatCount="indefinite"/>
+  </circle>
+
+  <g filter="url(#glow)">
+    <circle cx="640" cy="320" r="100" fill="url(#playGradient)" opacity="0.2"/>
+    <circle cx="640" cy="320" r="90" fill="url(#playGradient)" opacity="0.4"/>
+    <circle cx="640" cy="320" r="75" fill="url(#playGradient)"/>
+  </g>
+
+  <path d="M 610 285 L 610 355 L 680 320 Z" fill="white" opacity="0.95" filter="url(#shadow)"/>
+
+  <text x="640" y="480"
+        font-family="'Poppins', 'Segoe UI', Arial, sans-serif"
+        font-size="72"
+        font-weight="700"
+        fill="url(#textGradient)"
+        text-anchor="middle"
+        filter="url(#shadow)">
+    Mazaryn
+  </text>
+
+  <g opacity="0.9">
+    <circle cx="440" cy="475" r="8" fill="#3b82f6"/>
+    <circle cx="470" cy="475" r="8" fill="#6366f1"/>
+    <circle cx="810" cy="475" r="8" fill="#8b5cf6"/>
+    <circle cx="840" cy="475" r="8" fill="#a78bfa"/>
+  </g>
+
+  <text x="640" y="540"
+        font-family="'Poppins', 'Segoe UI', Arial, sans-serif"
+        font-size="24"
+        font-weight="500"
+        fill="#94a3b8"
+        text-anchor="middle"
+        opacity="0.8">
+    Premium Video Content
+  </text>
+
+  <rect x="540" y="570" width="200" height="3" rx="1.5" fill="url(#playGradient)" opacity="0.6"/>
+</svg>

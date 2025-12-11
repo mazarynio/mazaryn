@@ -33,40 +33,64 @@ insert(Author, Content, Media, Hashtag, Link_URL, Emoji, Mention) ->
         Id = nanoid:gen(),
         Date = calendar:universal_time(),
         AI_Post_ID = ai_postdb:insert(Id),
-        UserID = userdb:get_user_id(Author),
-        [User] = mnesia:index_read(user, Author, #user.username),
-        ContentToCache = if
-            is_binary(Content) -> binary_to_list(Content);
-            true -> Content
+
+        IndexResult = mnesia:index_read(user, Author, #user.username),
+
+        {User, UserID} = case IndexResult of
+            [] ->
+                AuthorBinary = if
+                    is_list(Author) -> list_to_binary(Author);
+                    is_binary(Author) -> Author;
+                    true -> Author
+                end,
+                BinaryResult = mnesia:index_read(user, AuthorBinary, #user.username),
+                case BinaryResult of
+                    [FoundUser] ->
+                        {FoundUser, FoundUser#user.id};
+                    [] ->
+                        {{error, user_not_found}, undefined}
+                end;
+            [FoundUser] ->
+                {FoundUser, FoundUser#user.id}
         end,
-        ok = content_cache:set(Id, ContentToCache),
-        MediaForCache = if
-            Media =:= undefined -> undefined;
-            Media =:= "" -> "";
-            true -> Media
-        end,
-        ok = content_cache:set({media, Id}, MediaForCache),
-        PlaceholderContent = Id,
-        PlaceholderMedia = {media, Id},
-        mnesia:write(#post{
-            id = Id,
-            ai_post_id = AI_Post_ID,
-            user_id = UserID,
-            content = PlaceholderContent,
-            emoji = Emoji,
-            author = Author,
-            media = PlaceholderMedia,
-            hashtag = Hashtag,
-            mention = Mention,
-            link_url = Link_URL,
-            comments = [],
-            likes = [],
-            date_created = Date
-        }),
-        Posts = User#user.post,
-        mnesia:write(User#user{post = [Id | Posts]}),
-        update_activity(Author, Date),
-        {ok, Id}
+
+        case User of
+            {error, user_not_found} ->
+                {error, user_not_found};
+            _ ->
+                ContentToCache = if
+                    is_binary(Content) -> binary_to_list(Content);
+                    true -> Content
+                end,
+                ok = content_cache:set(Id, ContentToCache),
+                MediaForCache = if
+                    Media =:= undefined -> undefined;
+                    Media =:= "" -> "";
+                    true -> Media
+                end,
+                ok = content_cache:set({media, Id}, MediaForCache),
+                PlaceholderContent = Id,
+                PlaceholderMedia = {media, Id},
+                mnesia:write(#post{
+                    id = Id,
+                    ai_post_id = AI_Post_ID,
+                    user_id = UserID,
+                    content = PlaceholderContent,
+                    emoji = Emoji,
+                    author = Author,
+                    media = PlaceholderMedia,
+                    hashtag = Hashtag,
+                    mention = Mention,
+                    link_url = Link_URL,
+                    comments = [],
+                    likes = [],
+                    date_created = Date
+                }),
+                Posts = User#user.post,
+                mnesia:write(User#user{post = [Id | Posts]}),
+                update_activity(Author, Date),
+                {ok, Id}
+        end
     end,
     case mnesia:transaction(Fun) of
         {atomic, {ok, Id}} ->

@@ -4,7 +4,6 @@ defmodule MazarynWeb.MediaLive.Video.Index do
 
   @impl true
   def mount(_params, session, socket) do
-    Logger.info("===== VIDEO INDEX MOUNT =====")
     user = get_user_from_session(session)
 
     {:ok,
@@ -35,14 +34,12 @@ defmodule MazarynWeb.MediaLive.Video.Index do
 
   @impl true
   def handle_event("play_video", %{"id" => video_id}, socket) do
-    Logger.info("===== PLAY_VIDEO: Navigating to video #{video_id} =====")
     video_id_string = to_string(video_id)
     {:noreply, push_navigate(socket, to: ~p"/#{socket.assigns.locale}/videos/#{video_id_string}")}
   end
 
   @impl true
   def handle_info({:play_video, video_id}, socket) do
-    Logger.info("===== PLAY_VIDEO INFO: Navigating to video #{video_id} =====")
     {:noreply, push_navigate(socket, to: ~p"/#{socket.assigns.locale}/videos/#{video_id}")}
   end
 
@@ -125,7 +122,7 @@ defmodule MazarynWeb.MediaLive.Video.Index do
         "https://ipfs.io/ipfs/#{cid_string}"
 
       true ->
-        "/images/default-thumbnail.jpg"
+        "/images/default-video-thumbnail.svg"
     end
   end
 
@@ -181,42 +178,27 @@ defmodule MazarynWeb.MediaLive.Video.Index do
 
     case Core.UserClient.get_user_by_id(user_id) do
       {:error, reason} ->
-        Logger.error("===== GET_CREATOR_NAME: Error: #{inspect(reason)} =====")
         "Unknown"
 
-      user_tuple when is_tuple(user_tuple) and tuple_size(user_tuple) >= 9 ->
-        Logger.info(
-          "===== GET_CREATOR_NAME: User tuple received, size: #{tuple_size(user_tuple)} ====="
-        )
-
+      user_tuple when is_tuple(user_tuple) and tuple_size(user_tuple) >= 35 ->
         username = elem(user_tuple, 8)
-
-        Logger.info("===== GET_CREATOR_NAME: Raw username: #{inspect(username)} =====")
 
         username_str =
           case username do
             u when is_list(u) and length(u) > 0 ->
               str = List.to_string(u)
-              Logger.info("===== GET_CREATOR_NAME: Converted from list: #{str} =====")
               if String.starts_with?(str, ["/ip4", "/ip6"]), do: "Unknown", else: str
 
             u when is_binary(u) and u != "" ->
-              Logger.info("===== GET_CREATOR_NAME: Username is binary: #{u} =====")
               if String.starts_with?(u, ["/ip4", "/ip6"]), do: "Unknown", else: u
 
             _ ->
-              Logger.warn(
-                "===== GET_CREATOR_NAME: Username format unknown, defaulting to Unknown ====="
-              )
-
               "Unknown"
           end
 
-        Logger.info("===== GET_CREATOR_NAME: Final username: #{username_str} =====")
         username_str
 
       _ ->
-        Logger.warn("===== GET_CREATOR_NAME: User tuple invalid or too small =====")
         "Unknown"
     end
   end
@@ -226,49 +208,89 @@ defmodule MazarynWeb.MediaLive.Video.Index do
   end
 
   defp get_creator_avatar(user_id) do
-    Logger.info("===== GET_CREATOR_AVATAR: Getting avatar for user: #{inspect(user_id)} =====")
-
     case Core.UserClient.get_user_by_id(user_id) do
       {:error, reason} ->
-        Logger.error("===== GET_CREATOR_AVATAR: Error: #{inspect(reason)} =====")
         "/images/default-avatar.png"
 
-      user_tuple when is_tuple(user_tuple) and tuple_size(user_tuple) >= 9 ->
-        Logger.info("===== GET_CREATOR_AVATAR: User tuple received =====")
+      user_tuple when is_tuple(user_tuple) and tuple_size(user_tuple) >= 35 ->
+        avatar = elem(user_tuple, 26)
+        avatar_str = safe_process_avatar(avatar)
 
-        avatar = elem(user_tuple, 6)
-
-        Logger.info("===== GET_CREATOR_AVATAR: Raw avatar: #{inspect(avatar)} =====")
-
-        avatar_str =
-          case avatar do
-            a when is_list(a) and length(a) > 0 ->
-              str = List.to_string(a)
-
-              if String.starts_with?(str, ["/ip4", "/ip6", "http"]) and
-                   not String.contains?(str, "ipfs.io") do
-                "/images/default-avatar.png"
-              else
-                str
-              end
-
-            a when is_binary(a) and a != "" ->
-              if String.starts_with?(a, ["/ip4", "/ip6"]) do
-                "/images/default-avatar.png"
-              else
-                a
-              end
-
-            _ ->
-              "/images/default-avatar.png"
-          end
-
-        Logger.info("===== GET_CREATOR_AVATAR: Final avatar: #{avatar_str} =====")
         avatar_str
 
       _ ->
-        Logger.warn("===== GET_CREATOR_AVATAR: User tuple invalid =====")
         "/images/default-avatar.png"
     end
   end
+
+  defp safe_list_to_string(list) when is_list(list) do
+    try do
+      if Enum.all?(list, &is_integer/1) do
+        List.to_string(list)
+      else
+        list
+        |> Enum.filter(&is_integer/1)
+        |> List.to_string()
+      end
+    rescue
+      _ -> ""
+    end
+  end
+
+  defp safe_list_to_string(_), do: ""
+
+  defp safe_process_avatar(avatar) do
+    try do
+      case avatar do
+        :undefined ->
+          "/images/default-avatar.png"
+
+        a when is_list(a) and length(a) > 0 ->
+          str = safe_list_to_string(a)
+
+          if str == "" do
+            "/images/default-avatar.png"
+          else
+            process_avatar_string(str)
+          end
+
+        a when is_binary(a) and a != "" ->
+          process_avatar_string(a)
+
+        _ ->
+          "/images/default-avatar.png"
+      end
+    rescue
+      error ->
+        "/images/default-avatar.png"
+    end
+  end
+
+  defp process_avatar_string(str) when is_binary(str) do
+    cond do
+      str == "" ->
+        "/images/default-avatar.png"
+
+      String.starts_with?(str, ["/ip4", "/ip6"]) ->
+        "/images/default-avatar.png"
+
+      String.contains?(str, "ipfs.io/ipfs/") ->
+        str
+
+      String.starts_with?(str, "Qm") or String.starts_with?(str, "bafy") ->
+        full_url = "https://ipfs.io/ipfs/#{str}"
+        full_url
+
+      String.starts_with?(str, ["http://", "https://"]) and not String.contains?(str, "ipfs") ->
+        "/images/default-avatar.png"
+
+      String.starts_with?(str, "/") ->
+        str
+
+      true ->
+        "/images/default-avatar.png"
+    end
+  end
+
+  defp process_avatar_string(_), do: "/images/default-avatar.png"
 end
