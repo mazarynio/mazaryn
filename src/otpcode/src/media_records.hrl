@@ -33,6 +33,7 @@
     content_warnings = [],
     views = 0,
     unique_views = 0,
+    unique_viewers = [],
     watch_time_total = 0,
     avg_watch_percentage = 0.0,
     likes = [],

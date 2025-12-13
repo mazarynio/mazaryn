@@ -37,6 +37,7 @@ defmodule Mazaryn.Schema.Video do
     field(:content_warnings, {:array, :string}, default: [])
     field(:views, :integer, default: 0)
     field(:unique_views, :integer, default: 0)
+    field(:unique_viewers, {:array, :string}, default: [])
     field(:watch_time_total, :integer, default: 0)
     field(:avg_watch_percentage, :float, default: 0.0)
     field(:likes, {:array, :string}, default: [])
@@ -214,16 +215,17 @@ defmodule Mazaryn.Schema.Video do
          available_qualities, codec, bitrate, frame_rate, aspect_ratio, title, description,
          duration_seconds, thumbnail_url, thumbnail_timestamp, preview_urls, chapters, subtitles,
          audio_tracks, interactive_elements, auto_generated_tags, detected_objects,
-         scene_detection, transcript_cid, content_warnings, views, unique_views, watch_time_total,
-         avg_watch_percentage, likes, reactions, reaction_counts, comments, shares, saves,
-         hashtags, mentions, location, privacy, allow_comments, allow_downloads, allow_remixes,
-         monetized, revenue_model, price, ad_breaks, sponsor_info, viewer_retention,
-         geographic_views, device_breakdown, referral_sources, peak_concurrent_viewers, is_live,
-         live_stream_url, live_started_at, live_ended_at, live_viewers_current, live_chat_id,
-         playlist_ids, series_id, episode_number, season_number, reported, moderation_status,
-         age_restriction, pin_info, cdn_urls, peer_availability, date_created, date_updated,
-         date_published, last_viewed, upload_device_info, processing_time_ms, video_embedding,
-         visual_signature, sign_language_overlay_cid, audio_description_cid, accessibility_score,
+         scene_detection, transcript_cid, content_warnings, views, unique_views, unique_viewers,
+         watch_time_total, avg_watch_percentage, likes, reactions, reaction_counts, comments,
+         shares, saves, hashtags, mentions, location, privacy, allow_comments, allow_downloads,
+         allow_remixes, monetized, revenue_model, price, ad_breaks, sponsor_info,
+         viewer_retention, geographic_views, device_breakdown, referral_sources,
+         peak_concurrent_viewers, is_live, live_stream_url, live_started_at, live_ended_at,
+         live_viewers_current, live_chat_id, playlist_ids, series_id, episode_number,
+         season_number, reported, moderation_status, age_restriction, pin_info, cdn_urls,
+         peer_availability, date_created, date_updated, date_published, last_viewed,
+         upload_device_info, processing_time_ms, video_embedding, visual_signature,
+         sign_language_overlay_cid, audio_description_cid, accessibility_score,
          vertical_version_cid, square_version_cid, story_version_cid, format_variants,
          collaboration_tree, remix_parent_id, remix_children_ids, remix_permissions,
          collaboration_revenue_split, adaptive_bitrate_manifest, buffer_health_metrics,
@@ -408,6 +410,7 @@ defmodule Mazaryn.Schema.Video do
       content_warnings: process_string_list(content_warnings),
       views: views,
       unique_views: unique_views,
+      unique_viewers: unique_viewers,
       watch_time_total: watch_time_total,
       avg_watch_percentage: avg_watch_percentage,
       likes: process_string_list(likes),
@@ -856,6 +859,7 @@ defmodule Mazaryn.Schema.Video do
       :content_warnings,
       :views,
       :unique_views,
+      :unique_viewers,
       :watch_time_total,
       :avg_watch_percentage,
       :likes,

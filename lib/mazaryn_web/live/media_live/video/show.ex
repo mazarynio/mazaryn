@@ -30,6 +30,8 @@ defmodule MazarynWeb.MediaLive.Video.Show do
       |> assign(:current_reaction_type, "like")
       |> assign(:watch_time_total, 0)
       |> assign(:show_delete_modal, false)
+      |> assign(:show_comment_delete_modal, false)
+      |> assign(:comment_to_delete, nil)
       |> assign(:is_owner, false)
       |> assign(:search_query, "")
       |> assign(:show_share_modal, false)
@@ -276,7 +278,18 @@ defmodule MazarynWeb.MediaLive.Video.Show do
   end
 
   @impl true
-  def handle_event("delete_comment", %{"comment-id" => comment_id}, socket) do
+  def handle_event("show_comment_delete_modal", %{"comment-id" => comment_id}, socket) do
+    {:noreply, assign(socket, show_comment_delete_modal: true, comment_to_delete: comment_id)}
+  end
+
+  @impl true
+  def handle_event("hide_comment_delete_modal", _params, socket) do
+    {:noreply, assign(socket, show_comment_delete_modal: false, comment_to_delete: nil)}
+  end
+
+  @impl true
+  def handle_event("confirm_delete_comment", _params, socket) do
+    comment_id = socket.assigns.comment_to_delete
     video_id = socket.assigns.video.id
     charlist_video_id = if is_binary(video_id), do: String.to_charlist(video_id), else: video_id
 
@@ -290,16 +303,33 @@ defmodule MazarynWeb.MediaLive.Video.Show do
         {:noreply,
          socket
          |> assign(:comments, comments)
+         |> assign(:show_comment_delete_modal, false)
+         |> assign(:comment_to_delete, nil)
          |> put_flash(:info, "Comment deleted")}
 
       {:error, reason} ->
         Logger.error("===== DELETE_COMMENT: Error: #{inspect(reason)} =====")
-        {:noreply, put_flash(socket, :error, "Failed to delete comment")}
+
+        {:noreply,
+         socket
+         |> assign(:show_comment_delete_modal, false)
+         |> assign(:comment_to_delete, nil)
+         |> put_flash(:error, "Failed to delete comment")}
 
       other ->
         Logger.error("===== DELETE_COMMENT: Unexpected: #{inspect(other)} =====")
-        {:noreply, put_flash(socket, :error, "Failed to delete comment")}
+
+        {:noreply,
+         socket
+         |> assign(:show_comment_delete_modal, false)
+         |> assign(:comment_to_delete, nil)
+         |> put_flash(:error, "Failed to delete comment")}
     end
+  end
+
+  @impl true
+  def handle_event("delete_comment", %{"comment-id" => comment_id}, socket) do
+    {:noreply, assign(socket, show_comment_delete_modal: true, comment_to_delete: comment_id)}
   end
 
   @impl true
@@ -684,6 +714,7 @@ defmodule MazarynWeb.MediaLive.Video.Show do
       thumbnail_url: get_thumbnail_url(video.changes),
       duration: format_duration(video.changes.duration_seconds),
       views: Map.get(video.changes, :views, 0),
+      unique_views: Map.get(video.changes, :unique_views, 0),
       user_id: video.changes.user_id,
       created_at: video.changes.date_created,
       status: Map.get(video.changes, :status, :ready),

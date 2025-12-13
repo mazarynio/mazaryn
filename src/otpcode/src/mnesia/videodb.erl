@@ -25,6 +25,7 @@
     add_chapter/4,
     add_subtitle/4,
     add_audio_track/4,
+    get_unique_view_count/1,
 
     react_to_video/3,
     remove_reaction_from_video/2,
@@ -197,6 +198,7 @@ create_video(CreatorId, Title, Description, VideoFile, Duration, Privacy, _Tags,
             date_updated = Now,
             views = 0,
             unique_views = 0,
+            unique_viewers = [],
             likes = [],
             reactions = #{
                 like => [],
@@ -1476,20 +1478,50 @@ increment_view_count(VideoId, UserId) ->
         {aborted, Reason} -> {error, {transaction_failed, Reason}}
     end.
 
-increment_unique_view(VideoId, _UserId) ->
-    Fun = fun() ->
-        case mnesia:read({video, VideoId}) of
-            [] -> {error, video_not_found};
-            [Video] ->
-                mnesia:write(Video#video{unique_views = Video#video.unique_views + 1}),
-                ok
-        end
-    end,
+    increment_unique_view(VideoId, UserId) when is_list(UserId) orelse is_binary(UserId) ->
+        UserIdStr = case is_binary(UserId) of
+            true -> binary_to_list(UserId);
+            false -> UserId
+        end,
+        Fun = fun() ->
+            case mnesia:read({video, VideoId}) of
+                [] -> {error, video_not_found};
+                [Video] ->
+                    UniqueViewers = case Video#video.unique_viewers of
+                        undefined -> [];
+                        List when is_list(List) -> List;
+                        _ -> []
+                    end,
+                    case lists:member(UserIdStr, UniqueViewers) of
+                        true ->
+                            {error, already_counted};
+                        false ->
+                            NewUniqueViewers = [UserIdStr | UniqueViewers],
+                            NewCount = length(NewUniqueViewers),
+                            mnesia:write(Video#video{
+                                unique_viewers = NewUniqueViewers,
+                                unique_views = NewCount
+                            }),
+                            ok
+                    end
+            end
+        end,
+        case mnesia:transaction(Fun) of
+            {atomic, Result} -> Result;
+            {aborted, Reason} -> {error, {transaction_failed, Reason}}
+        end.
 
-    case mnesia:transaction(Fun) of
-        {atomic, Result} -> Result;
-        {aborted, Reason} -> {error, {transaction_failed, Reason}}
-    end.
+        get_unique_view_count(VideoId) ->
+            Fun = fun() ->
+                case mnesia:read({video, VideoId}) of
+                    [] -> {error, video_not_found};
+                    [Video] -> {ok, Video#video.unique_views}
+                end
+            end,
+            case mnesia:transaction(Fun) of
+                {atomic, Result} -> Result;
+                {aborted, Reason} -> {error, {transaction_failed, Reason}}
+            end.
 
 track_watch_time(VideoId, _UserId, WatchSeconds) ->
     Fun = fun() ->

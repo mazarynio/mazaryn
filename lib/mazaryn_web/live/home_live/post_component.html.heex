@@ -425,80 +425,66 @@
 
         <%= if PostHelpers.is_video_share_post?(@post) do %>
           <% video_data = PostHelpers.parse_video_share_content(@post) %>
-
-          <div class="mt-3 mb-2">
-            <div class="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400 mb-3">
-              <svg class="h-4 w-4 text-blue-600 dark:text-blue-400" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z"/>
-              </svg>
-              <span class="font-medium">
-                <%= if @post.user_id == @current_user.id do %>
-                  You shared a video
-                <% else %>
-                  <%= to_string(@post.author) %> shared a video
-                <% end %>
-              </span>
-            </div>
-
+          <div class="mt-2 mb-1">
             <%= if video_data.description && String.trim(video_data.description) != "" do %>
-              <div class="mb-3 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-xl">
-                <p class="text-sm text-gray-800 dark:text-white leading-relaxed whitespace-pre-wrap">
+              <div class="mb-2 p-1 bg-gray-50 dark:bg-gray-800/50 rounded-md">
+                <p class="text-sm text-gray-800 dark:text-white leading-relaxed whitespace-pre-wrap font-bold text-center">
                   <%= video_data.description %>
                 </p>
               </div>
             <% end %>
-
             <%= if video_data.video_id do %>
-              <a href={"/#{@locale}/videos/#{video_data.video_id}"} class="block group">
-                <div class="relative overflow-hidden rounded-xl border-2 border-gray-200 dark:border-gray-700 hover:border-blue-400 dark:hover:border-blue-500 transition-all duration-200 bg-gray-900">
-                  <div class="relative aspect-video w-full">
-                    <img
-                      src={PostHelpers.get_video_thumbnail(@post)}
-                      alt={video_data.title}
-                      class="w-full h-full object-cover"
-                      onerror="this.src='/images/default-video-thumbnail.svg'"
-                    />
-
-                    <div class="absolute inset-0 bg-black/30 group-hover:bg-black/40 transition-all duration-200 flex items-center justify-center">
-                      <div class="w-16 h-16 rounded-full bg-white/90 group-hover:bg-white group-hover:scale-110 transition-all duration-200 flex items-center justify-center shadow-lg">
-                        <svg class="w-8 h-8 text-gray-900 ml-1" fill="currentColor" viewBox="0 0 24 24">
-                          <path d="M8 5v14l11-7z"/>
-                        </svg>
+              <div class="flex justify-center">
+                <div class="w-full max-w-[240px]">
+                  <a href={"/#{@locale}/videos/#{video_data.video_id}"} class="block group">
+                    <div class="relative overflow-hidden rounded-md border border-gray-200 dark:border-gray-700 hover:border-blue-400 dark:hover:border-blue-500 transition-all duration-200 bg-gray-900">
+                      <div class="relative aspect-video w-full">
+                        <img
+                          src={PostHelpers.get_video_thumbnail(@post)}
+                          alt={video_data.title}
+                          class="w-full h-full object-cover"
+                          onerror="this.src='/images/default-video-thumbnail.svg'"
+                        />
+                        <div class="absolute inset-0 bg-black/30 group-hover:bg-black/40 flex items-center justify-center">
+                          <div class="w-5 h-5 rounded-full bg-white/90 group-hover:bg-white flex items-center justify-center shadow">
+                            <svg class="w-2.5 h-2.5 text-gray-900" fill="currentColor" viewBox="0 0 24 24">
+                              <path d="M8 5v14l11-7z"/>
+                            </svg>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="p-1 bg-white dark:bg-gray-800">
+                        <h3 class="text-[9px] font-medium text-gray-900 dark:text-white line-clamp-2 mb-0.5 group-hover:text-blue-600 dark:group-hover:text-blue-400">
+                          <%= video_data.title %>
+                        </h3>
+                        <div class="flex items-center justify-between">
+                          <div class="flex items-center space-x-0.5 text-[8px] text-gray-600 dark:text-gray-400">
+                            <svg class="h-2 w-2" fill="currentColor" viewBox="0 0 24 24">
+                              <path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z"/>
+                            </svg>
+                            <span>Watch</span>
+                          </div>
+                          <div class="opacity-0 group-hover:opacity-100 transition-opacity flex items-center space-x-0.5 text-[8px] text-blue-600 dark:text-blue-400">
+                            <span>Play</span>
+                            <svg class="h-2 w-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                            </svg>
+                          </div>
+                        </div>
                       </div>
                     </div>
-                  </div>
-
-                  <div class="p-4 bg-white dark:bg-gray-800">
-                    <h3 class="text-base font-semibold text-gray-900 dark:text-white line-clamp-2 mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                      <%= video_data.title %>
-                    </h3>
-
-                    <div class="flex items-center justify-between">
-                      <div class="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400">
-                        <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
-                          <path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z"/>
-                        </svg>
-                        <span>Watch video</span>
-                      </div>
-
-                      <div class="opacity-0 group-hover:opacity-100 transition-opacity flex items-center space-x-1 text-sm text-blue-600 dark:text-blue-400">
-                        <span class="font-medium">Watch</span>
-                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-                        </svg>
-                      </div>
-                    </div>
-                  </div>
+                  </a>
                 </div>
-              </a>
+              </div>
             <% else %>
-              <div class="p-4 bg-gray-100 dark:bg-gray-800 rounded-xl text-center">
-                <p class="text-gray-500 dark:text-gray-400">Video unavailable</p>
+              <div class="flex justify-center">
+                <div class="p-1 bg-gray-100 dark:bg-gray-800 rounded-md text-center max-w-[240px]">
+                  <p class="text-[8px] text-gray-500 dark:text-gray-400">Video unavailable</p>
+                </div>
               </div>
             <% end %>
           </div>
         <% end %>
-
       <%= if @editing_post do %>
     <div class="mt-6">
       <.form
