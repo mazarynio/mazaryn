@@ -9,9 +9,17 @@
         <div class="absolute inset-0 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full blur-md opacity-20 group-hover:opacity-40 animate-pulse transition-opacity duration-300"></div>
 
         <div class="relative h-12 w-12 rounded-full overflow-hidden border-2 border-white dark:border-gray-700 shadow-lg ring-2 ring-blue-100/50 dark:ring-purple-900/30 bg-gradient-to-br from-blue-100 to-purple-100 dark:from-blue-900/20 dark:to-purple-900/20">
-          <%= if get_user_avatar(@post.author) != "/images/default-avatar.png" do %>
-            <img
-              src={get_user_avatar(@post.author)}
+        <% avatar_user = if PostHelpers.is_video_share_post?(@post) do
+                    video_data = PostHelpers.parse_video_share_content(@post)
+                    video_data.video_owner
+                  else
+                    @post.author
+                  end %>
+                  <%= if get_user_avatar(avatar_user) != "/images/default-avatar.png" do %>
+                    <img
+                      src={get_user_avatar(avatar_user)}
+                      class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
+                      alt={"#{avatar_user}'s avatar"}
               class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
               alt={"#{@post.author}'s avatar"}
               onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
@@ -32,14 +40,20 @@
       </div>
 
       <div class="flex flex-col">
-        <%= live_redirect(to: Routes.live_path(@socket, MazarynWeb.UserLive.Profile, @locale, to_string(@post.author)),
-          class: "group"
-        )  do %>
+              <% display_username = if PostHelpers.is_video_share_post?(@post) do
+                video_data = PostHelpers.parse_video_share_content(@post)
+                video_data.video_owner
+              else
+                to_string(@post.author)
+              end %>
+              <%= live_redirect(to: Routes.live_path(@socket, MazarynWeb.UserLive.Profile, @locale, display_username),
+                class: "group"
+              )  do %>
           <div class="flex items-center space-x-2">
-            <span class="text-gray-900 dark:text-white text-base font-semibold group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-200 cursor-pointer">
-              <%= to_string(@post.author) %>
-            </span>
-            <%= if verified?(@post.author)  do %>
+          <span class="text-gray-900 dark:text-white text-base font-semibold group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-200 cursor-pointer">
+                        <%= display_username %>
+                      </span>
+                      <%= if verified?(display_username)  do %>
               <img
                 alt="verified user"
                 src={Routes.static_path(@socket, "/images/verified.png")}
@@ -89,11 +103,11 @@
         class="absolute top-full right-0 mt-2 w-56 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 py-2 z-50"
         style="display: none;"
       >
-        <%= if @post.author != @current_user.username  do %>
-          <button
-            class="w-full text-left px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200 flex items-center space-x-3"
-            phx-click={@follow_event}
-            phx-value-username={"#{@post.author}"}
+      <%= if @post.user_id != @current_user.id  do %>
+                <button
+                  class="w-full text-left px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200 flex items-center space-x-3"
+                  phx-click={@follow_event}
+                  phx-value-username={"#{@post.author}"}
             phx-target={@myself}
             @click="open = false"
           >
@@ -424,7 +438,8 @@
       <% end %>
 
         <%= if PostHelpers.is_video_share_post?(@post) do %>
-          <% video_data = PostHelpers.parse_video_share_content(@post) %>
+            <% video_data = PostHelpers.parse_video_share_content(@post) %>
+
           <div class="mt-2 mb-1">
             <%= if video_data.description && String.trim(video_data.description) != "" do %>
               <div class="mb-2 p-1 bg-gray-50 dark:bg-gray-800/50 rounded-md">

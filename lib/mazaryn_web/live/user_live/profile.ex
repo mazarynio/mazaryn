@@ -624,6 +624,16 @@ defmodule MazarynWeb.UserLive.Profile do
 
     Logger.info("📸 Filtered #{length(filtered_posts)} posts from #{length(all_posts)} total")
 
+    if length(filtered_posts) > 0 do
+      spawn(fn ->
+        filtered_posts
+        |> Enum.take(5)
+        |> Enum.each(fn post ->
+          MazarynWeb.HomeLive.IpnsManager.ensure_ipns_background(post.id)
+        end)
+      end)
+    end
+
     {:noreply,
      assign(socket, posts: filtered_posts, posts_loading: false, current_filter: filter)}
   end
@@ -763,6 +773,16 @@ defmodule MazarynWeb.UserLive.Profile do
         current_posts ++ posts
       end
 
+    if length(all_posts) > 0 do
+      spawn(fn ->
+        all_posts
+        |> Enum.take(5)
+        |> Enum.each(fn post ->
+          MazarynWeb.HomeLive.IpnsManager.ensure_ipns_background(post.id)
+        end)
+      end)
+    end
+
     load_end = :erlang.system_time(:millisecond)
 
     Logger.info(
@@ -838,6 +858,16 @@ defmodule MazarynWeb.UserLive.Profile do
         current_posts = socket.assigns.posts || []
         current_posts ++ posts
       end
+
+    if length(all_posts) > 0 do
+      spawn(fn ->
+        all_posts
+        |> Enum.take(5)
+        |> Enum.each(fn post ->
+          MazarynWeb.HomeLive.IpnsManager.ensure_ipns_background(post.id)
+        end)
+      end)
+    end
 
     load_end = :erlang.system_time(:millisecond)
 
@@ -1219,7 +1249,19 @@ defmodule MazarynWeb.UserLive.Profile do
 
   defp fetch_posts_from_source(username, page, limit) do
     try do
-      all_posts = Posts.get_posts_by_author(username)
+      user_id =
+        case Users.one_by_username(username) do
+          {:ok, user} -> user.id
+          _ -> nil
+        end
+
+      all_posts =
+        if user_id do
+          Posts.get_posts_by_user_id(user_id)
+        else
+          Posts.get_posts_by_author(username)
+        end
+
       offset = (page - 1) * limit
       total_posts = length(all_posts)
 

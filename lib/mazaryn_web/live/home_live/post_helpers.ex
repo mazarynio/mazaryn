@@ -2,11 +2,10 @@ defmodule MazarynWeb.HomeLive.PostHelpers do
   @moduledoc """
   Helper functions for detecting and handling different post types
   """
+
   def is_video_share_post?(post) do
     content = get_actual_post_content(post)
-
     result = String.starts_with?(content, "VIDEO_SHARE:")
-
     result
   end
 
@@ -40,7 +39,7 @@ defmodule MazarynWeb.HomeLive.PostHelpers do
 
     case String.split(content, "\n", parts: 2) do
       [header | _] ->
-        case String.split(header, "|", parts: 3) do
+        case String.split(header, "|") do
           [video_share_part | _] ->
             video_share_part
             |> String.replace_prefix("VIDEO_SHARE:", "")
@@ -60,18 +59,39 @@ defmodule MazarynWeb.HomeLive.PostHelpers do
 
     case String.split(content, "\n", parts: 2) do
       [header, description] ->
-        parse_header_with_description(header, String.trim(description))
+        parse_header_with_description(header, String.trim(description), post)
 
       [header] ->
-        parse_header_with_description(header, nil)
+        parse_header_with_description(header, nil, post)
 
       _ ->
-        %{video_id: nil, video_url: nil, title: "Shared Video", description: nil}
+        %{
+          video_id: nil,
+          video_url: nil,
+          title: "Shared Video",
+          description: nil,
+          video_owner: to_string(post.author),
+          sharer: to_string(post.author)
+        }
     end
   end
 
-  defp parse_header_with_description(header, description) do
-    case String.split(header, "|", parts: 3) do
+  defp parse_header_with_description(header, description, post) do
+    parts = String.split(header, "|")
+
+    case parts do
+      [video_share_part, url, title, video_owner, sharer] ->
+        video_id = String.replace_prefix(video_share_part, "VIDEO_SHARE:", "") |> String.trim()
+
+        %{
+          video_id: video_id,
+          video_url: String.trim(url),
+          title: String.trim(title),
+          description: description,
+          video_owner: String.trim(video_owner),
+          sharer: String.trim(sharer)
+        }
+
       [video_share_part, url, title] ->
         video_id = String.replace_prefix(video_share_part, "VIDEO_SHARE:", "") |> String.trim()
 
@@ -79,7 +99,9 @@ defmodule MazarynWeb.HomeLive.PostHelpers do
           video_id: video_id,
           video_url: String.trim(url),
           title: String.trim(title),
-          description: description
+          description: description,
+          video_owner: to_string(post.author),
+          sharer: to_string(post.author)
         }
 
       [video_share_part, url] ->
@@ -89,7 +111,9 @@ defmodule MazarynWeb.HomeLive.PostHelpers do
           video_id: video_id,
           video_url: String.trim(url),
           title: "Shared Video",
-          description: description
+          description: description,
+          video_owner: to_string(post.author),
+          sharer: to_string(post.author)
         }
 
       [video_share_part] ->
@@ -99,11 +123,20 @@ defmodule MazarynWeb.HomeLive.PostHelpers do
           video_id: video_id,
           video_url: nil,
           title: "Shared Video",
-          description: description
+          description: description,
+          video_owner: to_string(post.author),
+          sharer: to_string(post.author)
         }
 
       _ ->
-        %{video_id: nil, video_url: nil, title: "Shared Video", description: description}
+        %{
+          video_id: nil,
+          video_url: nil,
+          title: "Shared Video",
+          description: description,
+          video_owner: to_string(post.author),
+          sharer: to_string(post.author)
+        }
     end
   end
 
@@ -117,6 +150,33 @@ defmodule MazarynWeb.HomeLive.PostHelpers do
 
       _ ->
         "/images/default-video-thumbnail.svg"
+    end
+  end
+
+  def get_display_author(post) do
+    if is_video_share_post?(post) do
+      video_data = parse_video_share_content(post)
+      video_data.video_owner
+    else
+      to_string(post.author)
+    end
+  end
+
+  def is_current_user_sharer?(post, current_user_username) do
+    if is_video_share_post?(post) do
+      video_data = parse_video_share_content(post)
+      video_data.sharer == to_string(current_user_username)
+    else
+      to_string(post.author) == to_string(current_user_username)
+    end
+  end
+
+  def get_sharer(post) do
+    if is_video_share_post?(post) do
+      video_data = parse_video_share_content(post)
+      video_data.sharer
+    else
+      to_string(post.author)
     end
   end
 end

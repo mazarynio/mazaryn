@@ -1570,22 +1570,33 @@ get_view_stats(VideoId) ->
     end.
 
     share_video(VideoId, UserId) ->
-            share_video(VideoId, UserId, "").
+        share_video(VideoId, UserId, "").
 
-            share_video(VideoId, UserId, Description) ->
-                Fun = fun() ->
-                    case mnesia:read({video, VideoId}) of
-                        [] -> {error, video_not_found};
-                        [Video] ->
-                            mnesia:write(Video#video{shares = Video#video.shares + 1}),
+    share_video(VideoId, UserId, Description) ->
+        Fun = fun() ->
+            case mnesia:read({video, VideoId}) of
+                [] -> {error, video_not_found};
+                [Video] ->
+                    mnesia:write(Video#video{shares = Video#video.shares + 1}),
+
+                    VideoOwnerId = Video#video.user_id,
+                    case mnesia:read({user, VideoOwnerId}) of
+                        [] ->
+                            {error, video_owner_not_found};
+                        [VideoOwner] ->
+                            VideoOwnerUsername = case VideoOwner#user.username of
+                                OwnerName when is_list(OwnerName) -> OwnerName;
+                                OwnerName when is_binary(OwnerName) -> binary_to_list(OwnerName);
+                                _ -> "Unknown"
+                            end,
 
                             case mnesia:read({user, UserId}) of
                                 [] ->
                                     {error, user_not_found};
-                                [User] ->
-                                    Username = case User#user.username of
-                                        U when is_list(U) -> U;
-                                        U when is_binary(U) -> binary_to_list(U);
+                                [Sharer] ->
+                                    SharerUsername = case Sharer#user.username of
+                                        SharerName when is_list(SharerName) -> SharerName;
+                                        SharerName when is_binary(SharerName) -> binary_to_list(SharerName);
                                         _ -> "Unknown"
                                     end,
 
@@ -1606,22 +1617,26 @@ get_view_stats(VideoId) ->
                                     Content = case Description of
                                         "" ->
                                             iolist_to_binary([
-                                                "VIDEO_SHARE:", VideoIdStr, "|", VideoUrl, "|", VideoTitle, "\n"
+                                                "VIDEO_SHARE:", VideoIdStr, "|", VideoUrl, "|", VideoTitle, "|",
+                                                VideoOwnerUsername, "|", SharerUsername, "\n"
                                             ]);
                                         Desc when is_binary(Desc) andalso byte_size(Desc) > 0 ->
                                             iolist_to_binary([
-                                                "VIDEO_SHARE:", VideoIdStr, "|", VideoUrl, "|", VideoTitle, "\n",
+                                                "VIDEO_SHARE:", VideoIdStr, "|", VideoUrl, "|", VideoTitle, "|",
+                                                VideoOwnerUsername, "|", SharerUsername, "\n",
                                                 Desc
                                             ]);
                                         Desc when is_list(Desc) andalso length(Desc) > 0 ->
                                             DescBin = list_to_binary(Desc),
                                             iolist_to_binary([
-                                                "VIDEO_SHARE:", VideoIdStr, "|", VideoUrl, "|", VideoTitle, "\n",
+                                                "VIDEO_SHARE:", VideoIdStr, "|", VideoUrl, "|", VideoTitle, "|",
+                                                VideoOwnerUsername, "|", SharerUsername, "\n",
                                                 DescBin
                                             ]);
                                         _ ->
                                             iolist_to_binary([
-                                                "VIDEO_SHARE:", VideoIdStr, "|", VideoUrl, "|", VideoTitle, "\n"
+                                                "VIDEO_SHARE:", VideoIdStr, "|", VideoUrl, "|", VideoTitle, "|",
+                                                VideoOwnerUsername, "|", SharerUsername, "\n"
                                             ])
                                     end,
 
@@ -1634,40 +1649,42 @@ get_view_stats(VideoId) ->
                                     end,
 
                                     {ok, #{
-                                        username => Username,
+                                        username => SharerUsername,
                                         content => binary_to_list(Content),
                                         media => ThumbnailUrl,
                                         video_id => VideoIdStr,
                                         video_url => VideoUrl,
                                         video_title => binary_to_list(VideoTitle),
+                                        video_owner => VideoOwnerUsername,
                                         hashtags => [<<"video">>, <<"shared">>],
                                         emoji => [],
                                         mention => []
                                     }}
                             end
                     end
-                end,
+            end
+        end,
 
-                case mnesia:transaction(Fun) of
-                    {atomic, {ok, PostData}} ->
-                        AuthorUsername = maps:get(username, PostData),
-                        Content = maps:get(content, PostData),
-                        Media = maps:get(media, PostData),
-                        Hashtags = maps:get(hashtags, PostData),
-                        Emoji = maps:get(emoji, PostData),
-                        Mention = maps:get(mention, PostData),
+        case mnesia:transaction(Fun) of
+            {atomic, {ok, PostData}} ->
+                AuthorUsername = maps:get(username, PostData),
+                Content = maps:get(content, PostData),
+                Media = maps:get(media, PostData),
+                Hashtags = maps:get(hashtags, PostData),
+                Emoji = maps:get(emoji, PostData),
+                Mention = maps:get(mention, PostData),
 
-                        case postdb:insert(AuthorUsername, Content, Media, Hashtags, "", Emoji, Mention) of
-                            PostId when is_list(PostId) orelse is_binary(PostId) ->
-                                {ok, PostId};
-                            {error, Reason} ->
-                                {error, {post_creation_failed, Reason}}
-                        end;
-                    {atomic, {error, Reason}} ->
-                        {error, Reason};
-                    {aborted, Reason} ->
-                        {error, {transaction_failed, Reason}}
-                end.
+                case postdb:insert(AuthorUsername, Content, Media, Hashtags, "", Emoji, Mention) of
+                    PostId when is_list(PostId) orelse is_binary(PostId) ->
+                        {ok, PostId};
+                    {error, Reason} ->
+                        {error, {post_creation_failed, Reason}}
+                end;
+            {atomic, {error, Reason}} ->
+                {error, Reason};
+            {aborted, Reason} ->
+                {error, {transaction_failed, Reason}}
+        end.
 
 save_video(VideoId, UserId) ->
     Fun = fun() ->
