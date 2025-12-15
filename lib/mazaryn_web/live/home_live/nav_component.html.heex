@@ -2,7 +2,7 @@
   <nav class="relative w-[90%] max-w-[1440px] mx-auto h-16 py-2.5 flex justify-evenly items-center text-center">
     <div class="w-[17%] mr-14 text-xl font-extrabold text-black cursor-pointer flex-shrink-0">
       <%= link to: Routes.live_path(@socket, MazarynWeb.HomeLive.Home, @locale), class: "block" do %>
-        <img src={Routes.static_path(@socket, "/images/logo-dark.svg")} alt="Mazaryn Logo" />
+        <img src={~p"/images/logo-dark.svg"} alt="Mazaryn Logo" />
       <% end %>
     </div>
     <form
@@ -32,7 +32,7 @@
         <div class="flex justify-evenly items-center py-2 px-2.5 bg-[#FAFAFA] rounded-[10px]">
           <div class="rounded-full pr-4 flex-shrink-0">
             <img
-              src={Routes.static_path(@socket, "/images/mazaryn-symbol.svg")}
+              src={~p"/images/mazaryn-symbol.svg"}
               alt="Mazaryn curryency symbol"
               class="w-6 h-6 rounded-full"
             />
@@ -70,7 +70,7 @@
               <% else %>
                 <img
                   alt="Default user"
-                  src={Routes.static_path(@socket, "/images/default-user.svg")}
+                  src={~p"/images/default-user.svg"}
                   class="w-6 rounded-full"
                 />
               <% end %>
@@ -103,7 +103,7 @@
                     <% else %>
                       <img
                         alt="Default user"
-                        src={Routes.static_path(@socket, "/images/default-user.svg")}
+                        src={~p"/images/default-user.svg"}
                         class="h-9 w-9 rounded-full"
                       />
                     <% end %>

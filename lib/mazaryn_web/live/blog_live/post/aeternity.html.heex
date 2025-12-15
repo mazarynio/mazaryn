@@ -4,7 +4,7 @@
       <h1 class="flex justify-left items-center text-2xl md:text-3xl leading-0 font-thin text-[#E5E5E5]">
         <img
           class="logo brightness-150 h-[42px] md:h-auto"
-          src={Routes.static_path(@socket, "/images/logo.png")}
+          src={~p"/images/logo.png"}
           alt="Elixir Social Network"
         /><span class="ml-[10px]">Blog</span>
       </h1>
@@ -90,7 +90,7 @@
       </div>
       <img
         class="image-cover"
-        src={Routes.static_path(@socket, "/images/aeternity.png")}
+        src={~p"/images/aeternity.png"}
         alt=""
         title=""
       />
@@ -210,7 +210,7 @@
             <div>
               <img
                 class="aspect-[16/9] object-cover rounded-2xl block border-[1px] opacity-100 md:opacity-70 transition-opacity group-hover:opacity-100"
-                src={Routes.static_path(@socket, "/images/polkadot.png")}
+                src={~p"/images/polkadot.png"}
                 alt="polkadot"
                 title="polkadot"
               />
@@ -261,7 +261,7 @@
             <div>
               <img
                 class="aspect-[16/9] object-cover rounded-2xl block border-[1px] opacity-100 md:opacity-70 transition-opacity group-hover:opacity-100"
-                src={Routes.static_path(@socket, "/images/kusama.png")}
+                src={~p"/images/kusama.png"}
                 alt="kusama"
                 title="kusama"
               />

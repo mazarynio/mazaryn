@@ -27,7 +27,7 @@
     <%= live_title_tag(assigns[:page_title] || "Mazaryn",
       suffix: " · an Online community which empower users to explore their Talents "
     ) %>
-    <link phx-track-static rel="stylesheet" href={Routes.static_path(@conn, "/assets/app.css")} />
+    <link phx-track-static rel="stylesheet" href={~p"/assets/app.css"} />
     <link
       phx-track-static
       href="//fonts.googleapis.com/css?family=Open+Sans:400,600,300"
@@ -45,7 +45,7 @@
       defer
       phx-track-static
       type="text/javascript"
-      src={Routes.static_path(@conn, "/assets/app.js")}
+      src={~p"/assets/app.js"}
     >
     </script>
   </head>

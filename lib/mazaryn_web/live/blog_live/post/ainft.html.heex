@@ -4,7 +4,7 @@
       <h1 class="flex justify-left items-center text-2xl md:text-3xl leading-0 font-thin text-[#E5E5E5]">
         <img
           class="logo brightness-150 h-[42px] md:h-auto"
-          src={Routes.static_path(@socket, "/images/logo.png")}
+          src={~p"/images/logo.png"}
           alt="Elixir Social Network"
         /><span class="ml-[10px]">Blog</span>
       </h1>
@@ -55,7 +55,7 @@
     <dl class="md:mt-[80px]">
       <dd class="flex items-center space-x-3 mb-7">
         <img
-          src={Routes.static_path(@socket, "/images/nftai.jpg")}
+          src={~p"/images/nftai.jpg"}
           alt="Arvand"
           class="w-10 h-10 object-cover rounded-xl"
           srcset=""
@@ -94,7 +94,7 @@
       </div>
       <img
         class="image-cover"
-        src={Routes.static_path(@socket, "/images/nftai.jpg")}
+        src={~p"/images/nftai.jpg"}
         alt="NFT"
         title="NFT"
       />

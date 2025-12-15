@@ -56,7 +56,7 @@
                       <%= if verified?(display_username)  do %>
               <img
                 alt="verified user"
-                src={Routes.static_path(@socket, "/images/verified.png")}
+                src={~p"/images/verified.png"}
                 class="h-5 w-5 rounded-full"
               />
             <% end %>
@@ -971,7 +971,7 @@
                   <%= if comment_user.verified do %>
                     <img
                       alt="verified user"
-                      src={Routes.static_path(@socket, "/images/verified.png")}
+                      src={~p"/images/verified.png"}
                       class="h-4 w-4"
                     />
                   <% end %>
@@ -1164,7 +1164,7 @@
                         <%= if reply_user.verified do %>
                           <img
                             alt="verified user"
-                            src={Routes.static_path(@socket, "/images/verified.png")}
+                            src={~p"/images/verified.png"}
                             class="h-3 w-3"
                           />
                         <% end %>
@@ -1486,7 +1486,7 @@
                                             <div class="relative">
                                               <img
                                                 alt="verified user"
-                                                src={Routes.static_path(@socket, "/images/verified.png")}
+                                                src={~p"/images/verified.png"}
                                                 class="h-5 w-5"
                                               />
                                               <div class="absolute inset-0 bg-blue-500 rounded-full opacity-20 animate-ping"></div>

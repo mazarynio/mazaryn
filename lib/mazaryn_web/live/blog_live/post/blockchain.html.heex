@@ -4,7 +4,7 @@
       <h1 class="flex justify-left items-center text-2xl md:text-3xl leading-0 font-thin text-[#E5E5E5]">
         <img
           class="logo brightness-150 h-[42px] md:h-auto"
-          src={Routes.static_path(@socket, "/images/logo.png")}
+          src={~p"/images/logo.png"}
           alt="Elixir Social Network"
         /><span class="ml-[10px]">Blog</span>
       </h1>
@@ -55,7 +55,7 @@
     <dl class="md:mt-[80px]">
       <dd class="flex items-center space-x-3 mb-7">
         <img
-          src={Routes.static_path(@socket, "/images/blockchain.jpg")}
+          src={~p"/images/blockchain.jpg"}
           alt="Peter"
           class="w-10 h-10 object-cover rounded-xl"
           srcset=""
@@ -94,7 +94,7 @@
       </div>
       <img
         class="image-cover"
-        src={Routes.static_path(@socket, "/images/blockchain.jpg")}
+        src={~p"/images/blockchain.jpg"}
         alt="Blockchain"
         title="Blockchain"
       />
@@ -180,7 +180,7 @@
             <div>
               <img
                 class="aspect-[16/9] object-cover rounded-2xl block border-[1px] opacity-100 md:opacity-70 transition-opacity group-hover:opacity-100"
-                src={Routes.static_path(@socket, "/images/polkadot.png")}
+                src={~p"/images/polkadot.png"}
                 alt="polkadot"
                 title="polkadot"
               />
@@ -231,7 +231,7 @@
             <div>
               <img
                 class="aspect-[16/9] object-cover rounded-2xl block border-[1px] opacity-100 md:opacity-70 transition-opacity group-hover:opacity-100"
-                src={Routes.static_path(@socket, "/images/kusama.png")}
+                src={~p"/images/kusama.png"}
                 alt="kusama"
                 title="kusama"
               />

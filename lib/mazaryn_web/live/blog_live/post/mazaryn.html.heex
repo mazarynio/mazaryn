@@ -4,7 +4,7 @@
       <h1 class="flex justify-left items-center text-2xl md:text-3xl leading-0 font-thin text-[#E5E5E5]">
         <img
           class="logo brightness-150 h-[42px] md:h-auto"
-          src={Routes.static_path(@socket, "/images/logo.png")}
+          src={~p"/images/logo.png"}
           alt="Elixir Social Network"
         /><span class="ml-[10px]">Blog</span>
       </h1>
@@ -88,7 +88,7 @@
       </div>
       <img
         class="image-cover"
-        src={Routes.static_path(@socket, "/images/home-mazaryn-blog.jpg")}
+        src={~p"/images/home-mazaryn-blog.jpg"}
         alt=""
         title=""
       />
