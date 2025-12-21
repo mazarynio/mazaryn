@@ -11,6 +11,7 @@
 @import "./video_styles.css";
 @import "./music_styles.css";
 @import "./notebook_styles.css";
+@import "./livestream_styles.css";
 
 @layer base {
     html {

@@ -1,0 +1,287 @@
+<div class="min-h-screen bg-[#27282e]">
+  <div class="fixed top-0 left-0 right-0 z-50 h-16 bg-gradient-to-b from-[#151620] to-[#151620] shadow-lg">
+    <div class="flex items-center justify-between h-full px-16 max-w-[1920px] mx-auto">
+      <.link navigate={~p"/#{@locale}/livestreams/my-streams"} class="flex items-center gap-3">
+        <Heroicons.arrow_left class="w-6 h-6 text-white" />
+        <span class="text-white text-2xl font-bold font-['Poppins']">Dashboard</span>
+      </.link>
+
+      <div class="flex items-center gap-4">
+        <%= if @stream.status == :live do %>
+          <div class="flex items-center gap-2 px-4 py-2 bg-green-600/20 rounded-lg">
+            <div class="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+            <span class="text-green-500 text-sm font-semibold font-['Poppins']">LIVE</span>
+          </div>
+        <% else %>
+          <div class="flex items-center gap-2 px-4 py-2 bg-gray-600/20 rounded-lg">
+            <div class="w-3 h-3 bg-gray-500 rounded-full"></div>
+            <span class="text-gray-500 text-sm font-semibold font-['Poppins']">ENDED</span>
+          </div>
+        <% end %>
+
+        <%= if @is_owner && @stream.status == :live do %>
+          <button
+            phx-click="open_end_modal"
+            class="px-6 py-2 bg-red-600 hover:bg-red-700 rounded-lg text-white text-sm font-semibold transition-colors"
+          >
+            End Stream
+          </button>
+        <% end %>
+      </div>
+    </div>
+  </div>
+
+  <div class="max-w-[1920px] mx-auto pt-20 px-6 py-8">
+    <div class="mb-8">
+      <h1 class="text-white text-2xl font-bold font-['Poppins'] mb-2"><%= @stream.title %></h1>
+      <p class="text-[#c5c7c8] text-base font-['Poppins'] capitalize">
+        <%= @stream.category %> • Started <%= format_time(@stream.started_at) %>
+      </p>
+    </div>
+
+    <div class="grid grid-cols-4 gap-6 mb-8">
+      <div class="bg-[#323340] rounded-[20px] p-6">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-[#c5c7c8] text-sm font-semibold font-['Poppins']">Current Viewers</h3>
+          <Heroicons.eye solid class="w-5 h-5 text-blue-500" />
+        </div>
+        <div class="text-white text-3xl font-bold font-['Poppins']">
+          <%= format_viewers(@viewer_stats.current) %>
+        </div>
+        <%= if @stream.status == :live do %>
+          <div class="mt-2 flex items-center gap-2">
+            <div class={"w-2 h-2 rounded-full #{get_status_color(@stream.status)}"}></div>
+            <span class="text-green-500 text-xs font-semibold">Watching now</span>
+          </div>
+        <% end %>
+      </div>
+
+      <div class="bg-[#323340] rounded-[20px] p-6">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-[#c5c7c8] text-sm font-semibold font-['Poppins']">Peak Viewers</h3>
+          <Heroicons.arrow_trending_up solid class="w-5 h-5 text-purple-500" />
+        </div>
+        <div class="text-white text-3xl font-bold font-['Poppins']">
+          <%= format_viewers(@viewer_stats.peak) %>
+        </div>
+        <div class="mt-2 text-purple-500 text-xs font-semibold">
+          Highest concurrent
+        </div>
+      </div>
+
+      <div class="bg-[#323340] rounded-[20px] p-6">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-[#c5c7c8] text-sm font-semibold font-['Poppins']">Total Views</h3>
+          <Heroicons.chart_bar solid class="w-5 h-5 text-green-500" />
+        </div>
+        <div class="text-white text-3xl font-bold font-['Poppins']">
+          <%= format_viewers(@viewer_stats.total) %>
+        </div>
+        <div class="mt-2 text-green-500 text-xs font-semibold">
+          Unique viewers
+        </div>
+      </div>
+
+      <div class="bg-[#323340] rounded-[20px] p-6">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-[#c5c7c8] text-sm font-semibold font-['Poppins']">Duration</h3>
+          <Heroicons.clock solid class="w-5 h-5 text-orange-500" />
+        </div>
+        <div class="text-white text-3xl font-bold font-['Poppins']">
+          <%= format_duration(@stream.duration) %>
+        </div>
+        <div class="mt-2 text-orange-500 text-xs font-semibold">
+          <%= if @stream.status == :live, do: "Live time", else: "Total time" %>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-3 gap-6">
+      <div class="col-span-2 space-y-6">
+        <div class="bg-[#323340] rounded-[20px] p-6">
+          <div class="flex items-center justify-between mb-6">
+            <h2 class="text-white text-xl font-semibold font-['Poppins']">Viewer Analytics</h2>
+            <button
+              phx-click="refresh_stats"
+              class="p-2 bg-[#27282e] rounded-lg hover:bg-[#323340] transition-colors"
+            >
+              <Heroicons.arrow_path class="w-5 h-5 text-white" />
+            </button>
+          </div>
+
+          <%= if length(@viewer_chart_data) > 0 do %>
+            <div class="h-64 flex items-end gap-2">
+              <%= for point <- @viewer_chart_data do %>
+                <% max_viewers = Enum.max_by(@viewer_chart_data, & &1.viewers).viewers %>
+                <% height_percent = if max_viewers > 0, do: (point.viewers / max_viewers * 100), else: 0 %>
+                <div class="flex-1 flex flex-col items-center gap-2">
+                  <div
+                    class="w-full bg-blue-500 rounded-t transition-all duration-300"
+                    style={"height: #{height_percent}%"}
+                    title={"#{point.time}min: #{point.viewers} viewers"}
+                  >
+                  </div>
+                  <%= if rem(point.time, 10) == 0 do %>
+                    <span class="text-[#c5c7c8] text-xs font-['Poppins']"><%= point.time %>m</span>
+                  <% end %>
+                </div>
+              <% end %>
+            </div>
+          <% else %>
+            <div class="h-64 flex items-center justify-center">
+              <p class="text-[#c5c7c8] text-sm font-['Poppins']">No viewer data available yet</p>
+            </div>
+          <% end %>
+        </div>
+
+        <%= if @stream.status == :live do %>
+          <div class="bg-[#323340] rounded-[20px] p-6" phx-hook="StreamControls" id="stream-controls" data-stream-id={@stream_id}>
+            <h2 class="text-white text-xl font-semibold font-['Poppins'] mb-6">Stream Health</h2>
+
+            <div class="grid grid-cols-4 gap-4">
+              <div class="bg-[#27282e] rounded-lg p-4">
+                <div class="text-[#c5c7c8] text-sm font-['Poppins'] mb-2">Bitrate</div>
+                <div class={"text-lg font-bold font-['Poppins'] #{get_health_color(@stream_health.status)}"}>
+                  <%= @stream_health.bitrate %>
+                </div>
+              </div>
+
+              <div class="bg-[#27282e] rounded-lg p-4">
+                <div class="text-[#c5c7c8] text-sm font-['Poppins'] mb-2">FPS</div>
+                <div class={"text-lg font-bold font-['Poppins'] #{get_health_color(@stream_health.status)}"}>
+                  <%= @stream_health.fps %>
+                </div>
+              </div>
+
+              <div class="bg-[#27282e] rounded-lg p-4">
+                <div class="text-[#c5c7c8] text-sm font-['Poppins'] mb-2">Resolution</div>
+                <div class={"text-lg font-bold font-['Poppins'] #{get_health_color(@stream_health.status)}"}>
+                  <%= @stream_health.resolution %>
+                </div>
+              </div>
+
+              <div class="bg-[#27282e] rounded-lg p-4">
+                <div class="text-[#c5c7c8] text-sm font-['Poppins'] mb-2">Status</div>
+                <div class={"text-lg font-bold font-['Poppins'] capitalize #{get_health_color(@stream_health.status)}"}>
+                  <%= @stream_health.status %>
+                </div>
+              </div>
+            </div>
+          </div>
+        <% end %>
+      </div>
+
+      <div class="space-y-6">
+        <div class="bg-[#323340] rounded-[20px] p-6">
+          <h2 class="text-white text-xl font-semibold font-['Poppins'] mb-6">Reactions</h2>
+
+          <%= if map_size(@reaction_stats) > 0 do %>
+            <div class="space-y-4">
+              <%= for {reaction, count} <- Enum.sort_by(@reaction_stats, fn {_, c} -> c end, :desc) do %>
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-3">
+                    <span class="text-2xl">
+                      <%= case reaction do %>
+                        <% "like" -> %>👍
+                        <% "love" -> %>❤️
+                        <% "fire" -> %>🔥
+                        <% "wow" -> %>😮
+                        <% "haha" -> %>😂
+                        <% _ -> %>👍
+                      <% end %>
+                    </span>
+                    <span class="text-white text-sm font-['Poppins'] capitalize"><%= reaction %></span>
+                  </div>
+                  <span class="text-white text-lg font-bold font-['Poppins']">
+                    <%= format_viewers(count) %>
+                  </span>
+                </div>
+              <% end %>
+            </div>
+          <% else %>
+            <div class="text-center py-8">
+              <p class="text-[#c5c7c8] text-sm font-['Poppins']">No reactions yet</p>
+            </div>
+          <% end %>
+        </div>
+
+        <div class="bg-[#323340] rounded-[20px] p-6">
+          <h2 class="text-white text-xl font-semibold font-['Poppins'] mb-6">Recent Chat</h2>
+
+          <%= if length(@recent_messages) > 0 do %>
+            <div class="space-y-4 max-h-64 overflow-y-auto">
+              <%= for message <- @recent_messages do %>
+                <div class="bg-[#27282e] rounded-lg p-3">
+                  <div class="flex items-center justify-between mb-1">
+                    <span class="text-white text-sm font-semibold font-['Poppins']">
+                      <%= message.username %>
+                    </span>
+                    <span class="text-[#c5c7c8] text-xs font-['Poppins']">
+                      <%= format_time(message.timestamp) %>
+                    </span>
+                  </div>
+                  <p class="text-[#c5c7c8] text-sm font-['Poppins']"><%= message.message %></p>
+                </div>
+              <% end %>
+            </div>
+          <% else %>
+            <div class="text-center py-8">
+              <p class="text-[#c5c7c8] text-sm font-['Poppins']">No chat messages yet</p>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <%= if @show_end_modal do %>
+    <div class="modal-overlay" phx-click="close_end_modal">
+      <div class="modal-content" phx-click="ignore">
+        <div class="modal-header">
+          <h2 class="modal-title">End Stream</h2>
+          <button phx-click="close_end_modal" class="modal-close">
+            <Heroicons.x_mark class="w-6 h-6" />
+          </button>
+        </div>
+
+        <div class="p-6">
+          <p class="text-white text-base font-['Poppins'] mb-4">
+            Are you sure you want to end this stream?
+          </p>
+          <p class="text-[#c5c7c8] text-sm font-['Poppins'] mb-4">
+            Your viewers will be disconnected and the stream will stop broadcasting.
+          </p>
+
+          <div class="bg-[#323340] rounded-lg p-4 space-y-2">
+            <div class="flex justify-between text-sm font-['Poppins']">
+              <span class="text-[#c5c7c8]">Current viewers:</span>
+              <span class="text-white font-semibold">
+                <%= format_viewers(@viewer_stats.current) %>
+              </span>
+            </div>
+            <div class="flex justify-between text-sm font-['Poppins']">
+              <span class="text-[#c5c7c8]">Duration:</span>
+              <span class="text-white font-semibold"><%= format_duration(@stream.duration) %></span>
+            </div>
+            <div class="flex justify-between text-sm font-['Poppins']">
+              <span class="text-[#c5c7c8]">Total views:</span>
+              <span class="text-white font-semibold">
+                <%= format_viewers(@viewer_stats.total) %>
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button phx-click="end_stream" class="control-btn-danger">
+            End Stream
+          </button>
+
+          <button phx-click="close_end_modal" class="control-btn-secondary">
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  <% end %>
+</div>

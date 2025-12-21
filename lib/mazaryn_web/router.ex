@@ -47,6 +47,8 @@ defmodule MazarynWeb.Router do
     pipe_through(:api)
 
     get("/videos/:id/stream", VideoController, :stream)
+    get("/livestreams/:id/hls", LivestreamController, :hls)
+    get("/livestreams/:id/rtmp", LivestreamController, :rtmp_info)
   end
 
   scope "/en/api" do
@@ -116,6 +118,13 @@ defmodule MazarynWeb.Router do
       live("/videos/upload", MediaLive.Video.Upload, :upload)
       live("/videos/my-videos", MediaLive.Video.MyVideos, :my_videos)
       live("/videos/:id", MediaLive.Video.Show, :show)
+
+      live("/livestreams", MediaLive.Livestream.Index, :index)
+      live("/livestreams/go-live", MediaLive.Livestream.GoLive, :go_live)
+      live("/livestreams/my-streams", MediaLive.Livestream.MyStreams, :my_streams)
+      live("/livestreams/:id", MediaLive.Livestream.Watch, :watch)
+      live("/livestreams/:id/dashboard", MediaLive.Livestream.Dashboard, :dashboard)
+      live("/livestreams/go-live/camera", MediaLive.Livestream.GoLive, :camera)
 
       live("/ai", AiLive.Index)
       live("/ai/datasets", AiLive.Datasets, :index)

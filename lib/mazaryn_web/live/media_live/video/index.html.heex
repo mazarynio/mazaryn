@@ -115,6 +115,26 @@
           </.link>
         </div>
 
+        <div class="bg-[#323340] rounded-[20px] shadow-lg p-7 space-y-7">
+          <.link
+            navigate={~p"/#{@locale}/livestreams"}
+            class="flex items-center gap-5 text-[#c5c7c8] hover:text-white hover:translate-x-1 transition-all"
+          >
+            <Heroicons.play_circle solid class="w-5 h-5" />
+            <span class="text-xl font-semibold font-['Poppins']">Live Streams</span>
+          </.link>
+
+          <.link
+            navigate={~p"/#{@locale}/livestreams/go-live"}
+            class="flex items-center gap-5 text-red-500 hover:text-red-400 hover:translate-x-1 transition-all"
+          >
+            <div class="w-5 h-5 bg-red-600 rounded-full flex items-center justify-center">
+              <div class="w-2 h-2 bg-white rounded-full"></div>
+            </div>
+            <span class="text-xl font-semibold font-['Poppins']">Go Live</span>
+          </.link>
+        </div>
+
         <div class="bg-[#323340] rounded-[20px] shadow-lg p-7">
           <.link
             navigate={~p"/#{@locale}/settings"}

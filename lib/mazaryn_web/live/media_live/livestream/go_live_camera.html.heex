@@ -1,0 +1,295 @@
+<div class="min-h-screen bg-[#1a1b26]">
+  <div class="bg-[#24283b] border-b border-[#414868] px-8 py-4">
+    <div class="max-w-7xl mx-auto flex items-center justify-between">
+      <h1 class="text-2xl font-bold text-white">Go Live</h1>
+      <%= if @stream_started do %>
+        <div class="flex items-center gap-4">
+          <div class="flex items-center gap-2 px-4 py-2 bg-red-600 rounded-lg animate-pulse">
+            <div class="w-3 h-3 bg-white rounded-full"></div>
+            <span class="text-white font-semibold">LIVE</span>
+          </div>
+          <button
+            phx-click="end_stream"
+            class="px-6 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg transition-colors"
+          >
+            End Stream
+          </button>
+        </div>
+      <% end %>
+    </div>
+  </div>
+  <div class="max-w-7xl mx-auto px-8 py-8">
+    <%= if @step == :camera_test do %>
+      <div class="grid grid-cols-3 gap-8">
+        <div class="col-span-2">
+          <div class="bg-[#24283b] rounded-xl overflow-hidden shadow-2xl">
+            <div class="aspect-video bg-black relative">
+              <video
+                id="camera-preview"
+                autoplay
+                muted
+                playsinline
+                phx-hook="CameraCapture"
+                class="w-full h-full object-cover"
+              ></video>
+              <div class="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex items-center gap-4">
+                <button
+                  id="start-camera-btn"
+                  class="w-16 h-16 bg-blue-600 hover:bg-blue-700 rounded-full flex items-center justify-center shadow-lg transition-all"
+                >
+                  <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M2 6a2 2 0 012-2h6a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6zm12.553 1.106A1 1 0 0014 8v4a1 1 0 00.553.894l2 1A1 1 0 0018 13V7a1 1 0 00-1.447-.894l-2 1z" />
+                  </svg>
+                </button>
+                <%= if @camera_active do %>
+                  <button
+                    id="test-record-btn"
+                    phx-click={if @recording, do: "stop_recording", else: "start_recording"}
+                    class={"w-12 h-12 rounded-full flex items-center justify-center shadow-lg transition-all #{if @recording, do: "bg-red-600 hover:bg-red-700 animate-pulse", else: "bg-gray-700 hover:bg-gray-600"}"}
+                  >
+                    <%= if @recording do %>
+                      <div class="w-4 h-4 bg-white rounded-sm"></div>
+                    <% else %>
+                      <div class="w-4 h-4 bg-white rounded-full"></div>
+                    <% end %>
+                  </button>
+                <% end %>
+              </div>
+              <%= if @recording do %>
+                <div class="absolute top-4 right-4 flex items-center gap-2 px-4 py-2 bg-red-600 rounded-lg">
+                  <div class="w-3 h-3 bg-white rounded-full animate-pulse"></div>
+                  <span class="text-white font-semibold">Recording</span>
+                </div>
+              <% end %>
+            </div>
+            <div class="p-6 space-y-4">
+              <div>
+                <label class="block text-gray-300 text-sm font-medium mb-2">Stream Title *</label>
+                <input
+                  type="text"
+                  id="stream-title"
+                  placeholder="Give your stream a catchy title"
+                  class="w-full px-4 py-3 bg-[#1a1b26] border border-[#414868] rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-blue-500"
+                  maxlength="100"
+                />
+              </div>
+              <div>
+                <label class="block text-gray-300 text-sm font-medium mb-2">Description</label>
+                <textarea
+                  id="stream-description"
+                  placeholder="Tell viewers what your stream is about"
+                  rows="3"
+                  class="w-full px-4 py-3 bg-[#1a1b26] border border-[#414868] rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 resize-none"
+                  maxlength="500"
+                ></textarea>
+              </div>
+              <div>
+                <label class="block text-gray-300 text-sm font-medium mb-2">Category</label>
+                <select
+                  id="stream-category"
+                  class="w-full px-4 py-3 bg-[#1a1b26] border border-[#414868] rounded-lg text-white focus:outline-none focus:border-blue-500"
+                >
+                  <option value="gaming">Gaming</option>
+                  <option value="music">Music</option>
+                  <option value="education">Education</option>
+                  <option value="tech">Tech & Science</option>
+                  <option value="art">Art & Creative</option>
+                  <option value="sports">Sports</option>
+                  <option value="cooking">Cooking</option>
+                  <option value="fitness">Fitness</option>
+                  <option value="entertainment">Entertainment</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+              <button
+                id="continue-btn"
+                phx-click="setup_stream"
+                class="w-full px-6 py-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Continue to Go Live
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="space-y-6">
+          <div class="bg-[#24283b] rounded-xl p-6">
+            <h3 class="text-white font-semibold mb-4 flex items-center gap-2">
+              <svg class="w-5 h-5 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+              </svg>
+              Setup Tips
+            </h3>
+            <ul class="space-y-3 text-gray-300 text-sm">
+              <li class="flex items-start gap-2">
+                <span class="text-blue-500">•</span>
+                <span>Test your camera and microphone before going live</span>
+              </li>
+              <li class="flex items-start gap-2">
+                <span class="text-blue-500">•</span>
+                <span>Make sure you have good lighting</span>
+              </li>
+              <li class="flex items-start gap-2">
+                <span class="text-blue-500">•</span>
+                <span>Choose a quiet environment</span>
+              </li>
+              <li class="flex items-start gap-2">
+                <span class="text-blue-500">•</span>
+                <span>Test your internet connection (recommended: 5+ Mbps upload)</span>
+              </li>
+            </ul>
+          </div>
+          <div class="bg-[#24283b] rounded-xl p-6">
+            <h3 class="text-white font-semibold mb-4">System Check</h3>
+            <div class="space-y-3">
+              <div class="flex items-center justify-between">
+                <span class="text-gray-300 text-sm">Camera</span>
+                <span class={"text-sm font-semibold #{if @camera_active, do: "text-green-500", else: "text-gray-500"}"}>
+                  <%= if @camera_active, do: "Active", else: "Not Started" %>
+                </span>
+              </div>
+              <div class="flex items-center justify-between">
+                <span class="text-gray-300 text-sm">Microphone</span>
+                <span class={"text-sm font-semibold #{if @camera_active, do: "text-green-500", else: "text-gray-500"}"}>
+                  <%= if @camera_active, do: "Active", else: "Not Started" %>
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    <% end %>
+    <%= if @step == :streaming do %>
+      <div class="grid grid-cols-3 gap-8">
+        <div class="col-span-2">
+          <div class="bg-[#24283b] rounded-xl overflow-hidden shadow-2xl">
+            <div class="aspect-video bg-black relative">
+              <video
+                id="streaming-video"
+                autoplay
+                muted
+                playsinline
+                class="w-full h-full object-cover"
+              ></video>
+              <div class="absolute top-4 left-4 flex items-center gap-2 px-4 py-2 bg-red-600 rounded-lg animate-pulse">
+                <div class="w-3 h-3 bg-white rounded-full"></div>
+                <span class="text-white font-semibold">LIVE</span>
+              </div>
+              <div class="absolute top-4 right-4 px-4 py-2 bg-black/70 rounded-lg">
+                <span class="text-white font-semibold">0 viewers</span>
+              </div>
+            </div>
+            <div class="p-6">
+              <h2 class="text-2xl font-bold text-white mb-2"><%= @title %></h2>
+              <p class="text-gray-300"><%= @description %></p>
+            </div>
+          </div>
+        </div>
+        <div class="space-y-6">
+          <div class="bg-[#24283b] rounded-xl p-6">
+            <h3 class="text-white font-semibold mb-4">Stream Info</h3>
+            <div class="space-y-3 text-sm">
+              <div>
+                <span class="text-gray-400">Status:</span>
+                <span class="text-green-500 font-semibold ml-2">LIVE</span>
+              </div>
+              <div>
+                <span class="text-gray-400">Duration:</span>
+                <span class="text-white ml-2" id="stream-duration">0:00</span>
+              </div>
+              <div>
+                <span class="text-gray-400">Category:</span>
+                <span class="text-white ml-2 capitalize"><%= @category %></span>
+              </div>
+            </div>
+          </div>
+          <div class="bg-[#24283b] rounded-xl p-6">
+            <h3 class="text-white font-semibold mb-4">Quick Actions</h3>
+            <div class="space-y-3">
+              <.link
+                navigate={~p"/#{@locale}/livestreams/#{@stream_id}"}
+                class="block w-full px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white text-center font-semibold rounded-lg transition-colors"
+              >
+                View Stream Page
+              </.link>
+              <.link
+                navigate={~p"/#{@locale}/livestreams/#{@stream_id}/dashboard"}
+                class="block w-full px-4 py-3 bg-gray-700 hover:bg-gray-600 text-white text-center font-semibold rounded-lg transition-colors"
+              >
+                Open Dashboard
+              </.link>
+            </div>
+          </div>
+        </div>
+      </div>
+    <% end %>
+  </div>
+</div>
+
+<script>
+  window.CameraCapture = {
+    mounted() {
+      this.stream = null;
+      this.mediaRecorder = null;
+      this.recordedChunks = [];
+      const video = document.getElementById('camera-preview');
+      const startBtn = document.getElementById('start-camera-btn');
+      const recordBtn = document.getElementById('test-record-btn');
+      const continueBtn = document.getElementById('continue-btn');
+
+      startBtn?.addEventListener('click', async () => {
+        try {
+          this.stream = await navigator.mediaDevices.getUserMedia({
+            video: {
+              width: { ideal: 1920 },
+              height: { ideal: 1080 },
+              facingMode: 'user'
+            },
+            audio: true
+          });
+          video.srcObject = this.stream;
+          this.pushEvent('camera_ready', {});
+          startBtn.style.display = 'none';
+        } catch (error) {
+          console.error('Error accessing camera:', error);
+          alert('Could not access camera. Please check permissions.');
+        }
+      });
+
+      continueBtn?.addEventListener('click', () => {
+        const title = document.getElementById('stream-title')?.value || '';
+        const description = document.getElementById('stream-description')?.value || '';
+        const category = document.getElementById('stream-category')?.value || 'gaming';
+        if (!title) {
+          alert('Please enter a stream title');
+          return;
+        }
+        this.pushEvent('setup_stream', { title, description, category });
+      });
+
+      this.handleEvent('stream_started', () => {
+        const streamingVideo = document.getElementById('streaming-video');
+        if (streamingVideo && this.stream) {
+          streamingVideo.srcObject = this.stream;
+        }
+        let seconds = 0;
+        this.durationInterval = setInterval(() => {
+          seconds++;
+          const minutes = Math.floor(seconds / 60);
+          const secs = seconds % 60;
+          const durationEl = document.getElementById('stream-duration');
+          if (durationEl) {
+            durationEl.textContent = `${minutes}:${String(secs).padStart(2, '0')}`;
+          }
+        }, 1000);
+      });
+    },
+    destroyed() {
+      if (this.stream) {
+        this.stream.getTracks().forEach(track => track.stop());
+      }
+      if (this.durationInterval) {
+        clearInterval(this.durationInterval);
+      }
+    }
+  };
+</script>

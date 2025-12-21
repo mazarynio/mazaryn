@@ -1,0 +1,270 @@
+<div class="min-h-screen bg-[#27282e]">
+  <div class="fixed top-0 left-0 right-0 z-50 h-16 bg-gradient-to-b from-[#151620] to-[#151620] shadow-lg">
+    <div class="flex items-center justify-between h-full px-16 max-w-[1920px] mx-auto">
+      <.link navigate={~p"/#{@locale}/livestreams"} class="flex items-center gap-3">
+        <Heroicons.arrow_left class="w-6 h-6 text-white" />
+        <span class="text-white text-2xl font-bold font-['Poppins']">Mazaryn</span>
+      </.link>
+
+      <div class="flex items-center gap-5">
+        <.link
+          navigate={~p"/#{@locale}/notifications"}
+          class="w-10 h-10 bg-[#323340] rounded-full flex items-center justify-center hover:bg-[#3a3b4a] transition-colors"
+        >
+          <Heroicons.bell solid class="w-5 h-5 text-[#aaaaaa]" />
+        </.link>
+      </div>
+    </div>
+  </div>
+
+  <div class="flex max-w-[1920px] mx-auto pt-20 px-6 gap-6">
+    <main class="flex-1 py-8">
+      <div class="livestream-player-container mb-6" phx-hook="LivestreamPlayer" id="livestream-player">
+        <video
+          id="stream-video"
+          data-stream-id={@stream_id}
+          data-is-live="true"
+          data-hls-url={@stream.hls_url}
+          playsinline
+          class="w-full h-full"
+        >
+        </video>
+
+        <div id="stream-loading">
+          <div class="stream-spinner"></div>
+          <div class="stream-loading-text">Loading stream...</div>
+        </div>
+
+        <div id="stream-error" style="display: none;"></div>
+
+        <div class="live-badge">
+          <div class="live-badge-pulse"></div>
+          <span class="live-badge-text">Live</span>
+        </div>
+
+        <div class="stream-stats-overlay">
+          <div class="stat-badge">
+            <Heroicons.eye solid class="stat-icon" />
+            <span class="stat-text" phx-hook="ViewerCounter" id="viewer-count" data-count={@current_viewers}>
+              <%= format_viewers(@current_viewers) %>
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-[#323340] rounded-[20px] p-6 mb-6">
+        <h1 class="text-white text-2xl font-bold font-['Poppins'] mb-3">
+          <%= @stream.title %>
+        </h1>
+
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-4">
+            <%= if @creator.avatar && @creator.avatar != "/images/default-avatar.png" do %>
+              <img
+                src={@creator.avatar}
+                class="w-12 h-12 rounded-full object-cover"
+                alt={@creator.username}
+              />
+            <% else %>
+              <div class="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center">
+                <Heroicons.user solid class="w-6 h-6 text-white" />
+              </div>
+            <% end %>
+
+            <div>
+              <.link
+                navigate={~p"/#{@locale}/#{@creator.username}"}
+                class="text-white text-lg font-semibold font-['Poppins'] hover:text-blue-500 transition-colors"
+              >
+                <%= @creator.username %>
+              </.link>
+              <p class="text-[#c5c7c8] text-sm font-['Poppins'] capitalize">
+                <%= @stream.category %>
+              </p>
+            </div>
+          </div>
+
+          <%= if @user && get_user_id(@user) != @stream.user_id do %>
+            <button
+              phx-click="toggle_follow"
+              class={"px-6 py-2 rounded-lg font-semibold font-['Poppins'] transition-all #{if @is_following, do: "bg-[#323340] text-white hover:bg-[#27282e]", else: "bg-blue-500 text-white hover:bg-blue-600"}"}
+            >
+              <%= if @is_following, do: "Following", else: "Follow" %>
+            </button>
+          <% end %>
+        </div>
+
+        <%= if @stream.description && @stream.description != "" do %>
+          <div class="mt-4 p-4 bg-[#27282e] rounded-lg">
+            <p class="text-white text-sm font-['Poppins'] leading-relaxed">
+              <%= @stream.description %>
+            </p>
+          </div>
+        <% end %>
+
+        <%= if length(@stream.tags) > 0 do %>
+          <div class="mt-4 flex flex-wrap gap-2">
+            <%= for tag <- @stream.tags do %>
+              <span class="px-3 py-1 bg-[#27282e] rounded-full text-white text-sm font-['Poppins']">
+                <%= if is_list(tag), do: List.to_string(tag), else: tag %>
+              </span>
+            <% end %>
+          </div>
+        <% end %>
+      </div>
+
+      <div class="bg-[#323340] rounded-[20px] p-6">
+        <h2 class="text-white text-xl font-semibold font-['Poppins'] mb-4">Quick Reactions</h2>
+
+        <div class="reactions-container" phx-hook="ReactionButton" id="reactions" data-stream-id={@stream_id}>
+          <button
+            phx-click="send_reaction"
+            phx-value-reaction_type="like"
+            class="reaction-btn"
+            title="Like"
+          >
+            <span class="reaction-icon">👍</span>
+          </button>
+
+          <button
+            phx-click="send_reaction"
+            phx-value-reaction_type="love"
+            class="reaction-btn"
+            title="Love"
+          >
+            <span class="reaction-icon">❤️</span>
+          </button>
+
+          <button
+            phx-click="send_reaction"
+            phx-value-reaction_type="fire"
+            class="reaction-btn"
+            title="Fire"
+          >
+            <span class="reaction-icon">🔥</span>
+          </button>
+
+          <button
+            phx-click="send_reaction"
+            phx-value-reaction_type="wow"
+            class="reaction-btn"
+            title="Wow"
+          >
+            <span class="reaction-icon">😮</span>
+          </button>
+
+          <button
+            phx-click="send_reaction"
+            phx-value-reaction_type="haha"
+            class="reaction-btn"
+            title="Haha"
+          >
+            <span class="reaction-icon">😂</span>
+          </button>
+        </div>
+      </div>
+    </main>
+
+    <aside class="w-96 py-8">
+      <div class="chat-container" phx-hook="LiveChat" id="live-chat">
+        <div class="chat-header">
+          <h2 class="chat-title">Live Chat</h2>
+          <button
+            phx-click="toggle_viewer_list"
+            class="text-[#c5c7c8] hover:text-white transition-colors"
+          >
+            <Heroicons.user_group class="w-5 h-5" />
+          </button>
+        </div>
+
+        <div class="chat-messages" id="chat-messages-container">
+          <%= if Enum.empty?(@chat_messages) do %>
+            <div class="text-center py-8">
+              <p class="text-[#c5c7c8] text-sm font-['Poppins']">Be the first to chat!</p>
+            </div>
+          <% else %>
+            <%= for message <- @chat_messages do %>
+              <div class="chat-message">
+                <%= if message.avatar && message.avatar != "/images/default-avatar.png" do %>
+                  <img
+                    src={message.avatar}
+                    class="chat-avatar"
+                    alt={message.username}
+                  />
+                <% else %>
+                  <div class="chat-avatar bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center">
+                    <Heroicons.user solid class="w-5 h-5 text-white" />
+                  </div>
+                <% end %>
+
+                <div class="chat-content">
+                  <div class="chat-username"><%= message.username %></div>
+                  <div class="chat-text"><%= message.message %></div>
+                </div>
+              </div>
+            <% end %>
+          <% end %>
+        </div>
+
+        <%= if @user do %>
+          <form phx-submit="send_chat" class="chat-input-container">
+            <input
+              type="text"
+              name="message"
+              value={@chat_input}
+              phx-keyup="update_chat_input"
+              phx-debounce="100"
+              placeholder="Say something..."
+              maxlength="500"
+              class="chat-input"
+            />
+            <button type="submit" class="chat-send-btn">
+              Send
+            </button>
+          </form>
+        <% else %>
+          <div class="chat-input-container">
+            <.link
+              navigate={~p"/#{@locale}/login"}
+              class="w-full py-3 bg-blue-500 hover:bg-blue-600 rounded-lg text-white text-center font-semibold transition-colors"
+            >
+              Login to Chat
+            </.link>
+          </div>
+        <% end %>
+      </div>
+    </aside>
+  </div>
+
+  <%= if @show_viewer_list do %>
+    <div class="modal-overlay" phx-click="toggle_viewer_list">
+      <div class="modal-content" phx-click="ignore">
+        <div class="modal-header">
+          <h2 class="modal-title">Current Viewers (<%= @current_viewers %>)</h2>
+          <button phx-click="toggle_viewer_list" class="modal-close">
+            <Heroicons.x_mark class="w-6 h-6" />
+          </button>
+        </div>
+
+        <div class="viewer-list">
+          <%= if Enum.empty?(@viewers_list) do %>
+            <p class="text-center text-[#c5c7c8] py-8">No viewers yet</p>
+          <% else %>
+            <%= for viewer <- @viewers_list do %>
+              <div class="viewer-item">
+                <%= if viewer.avatar && viewer.avatar != "/images/default-avatar.png" do %>
+                  <img src={viewer.avatar} class="viewer-avatar" alt={viewer.username} />
+                <% else %>
+                  <div class="viewer-avatar bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center">
+                    <Heroicons.user solid class="w-5 h-5 text-white" />
+                  </div>
+                <% end %>
+                <span class="viewer-name"><%= viewer.username %></span>
+              </div>
+            <% end %>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  <% end %>
+</div>

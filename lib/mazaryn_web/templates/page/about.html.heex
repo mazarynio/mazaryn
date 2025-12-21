@@ -4,8 +4,9 @@
       <img
         class="relative h-[42px] md:h-auto brightness-150"
         src={~p"/images/logo.png"}
-        alt="Elixir Social Network"
-      /> <span class="ml-[10px]"><%= gettext("About") %></span>
+        alt="MAZARYN - Open Social Network for Developers"
+      />
+      <span class="ml-[10px]"><%= gettext("About") %></span>
     </div>
     <a class="text-[16px] text-[#D3D3D3] hover:text-[#fff]" href="/blog">
       <%= gettext("Blog") %>
@@ -13,26 +14,49 @@
   </div>
 </header>
 
-<section class="relative">
-  <div class="w-[95%] md:w-[90%] m-auto md:m-unset md:w-100 items-center py-[4em]">
-    <h1 class="text-2xl md:text-5xl leading-[1.8rem] md:leading-10 md:leading-9 text-center text-black min-w-[260px] font-[600] capitalize mt-auto mb-[0.875em]">
-      <%= gettext("About this site") %>
+<section class="relative bg-white py-12">
+  <div class="w-[95%] md:w-[90%] max-w-4xl mx-auto">
+    <h1 class="text-3xl md:text-5xl text-center font-bold text-gray-900 mb-8">
+      <%= gettext("About Mazaryn") %>
     </h1>
-    <p class="max-w-[320px] text-center md:max-w-[700px] mx-auto text-black opacity-[0.8]">
-      <%= gettext(
-        "MAZARYN is an Smart and OpenSource Platform of Inspiration & innovation. We take Care of User's Privacy and Content's Quality to Make the Happier Moments."
-      ) %>
+
+    <div class="space-y-6 text-gray-700 leading-relaxed">
+      <p class="text-center text-lg">
+        <%= gettext("""
+        Mazaryn is an open-source, privacy-first social network built for developers, creators, and innovators.
+        Headquartered in Iran, Mazaryn leverages the decentralized power of IPFS to give users full ownership
+        of their content—enabling secure uploads of images, videos, live streams, datasets, and AI models.
+        """) %>
+      </p>
+
+      <p class="text-center text-lg">
+        <%= gettext("""
+        Beyond social interaction, Mazaryn fosters a collaborative AI ecosystem where developers can host
+        competitions, share machine learning models, and publish datasets—all within a trusted, transparent,
+        and community-driven environment.
+        """) %>
+      </p>
+
+      <p class="text-center text-lg font-medium text-gray-800">
+        <%= gettext("""
+        Designed with ethics and user sovereignty at its core, Mazaryn redefines online connection:
+        no tracking, no surveillance, just innovation.
+        """) %>
+      </p>
+    </div>
+
+    <div class="mt-12 flex justify-center">
       <script type="text/javascript">
-                atOptions = {
-                        'key' : 'eec57f52a43261eb13b668eb6f81940c',
-                        'format' : 'iframe',
-                        'height' : 50,
-                        'width' : 320,
-                        'params' : {}
-                };
-                document.write('<scr' + 'ipt type="text/javascript" src="http' + (location.protocol === 'https:' ? 's' : '') +
-        '://www.profitablecreativeformat.com/eec57f52a43261eb13b668eb6f81940c/invoke.js"></scr' + 'ipt>');
+        atOptions = {
+          'key' : 'eec57f52a43261eb13b668eb6f81940c',
+          'format' : 'iframe',
+          'height' : 50,
+          'width' : 320,
+          'params' : {}
+        };
+        document.write('<scr' + 'ipt type="text/javascript" src="http' + (location.protocol === 'https:' ? 's' : '') +
+          '://www.profitablecreativeformat.com/eec57f52a43261eb13b668eb6f81940c/invoke.js"></scr' + 'ipt>');
       </script>
-    </p>
+    </div>
   </div>
 </section>

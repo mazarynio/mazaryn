@@ -1,5 +1,7 @@
 import "../css/app.css";
 import { VideoPlayer } from "./hooks/video_hooks";
+import LivestreamHooks from "./hooks/livestream_hooks";
+import MyStreams from "./hooks/my_streams_hook";
 
 import "phoenix_html";
 
@@ -480,6 +482,9 @@ let Hooks = {
 
   VideoCall: VideoCallHook,
   VideoPlayer: VideoPlayer,
+  MyStreams: MyStreams,
+
+  ...LivestreamHooks,
 
   ...NotebookHooks,
 };
