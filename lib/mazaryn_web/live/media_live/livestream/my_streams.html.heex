@@ -8,7 +8,6 @@
           <div class="w-2 h-2 bg-blue-500 rounded-full"></div>
         </div>
       </.link>
-
       <div class="flex items-center gap-5">
         <button
           phx-click="navigate_to_go_live"
@@ -17,7 +16,6 @@
           <div class="w-3 h-3 bg-white rounded-full animate-pulse"></div>
           <span class="text-white text-base font-semibold font-['Poppins']">Go Live</span>
         </button>
-
         <%= if @user do %>
           <div class="flex items-center gap-3 px-4 h-10 bg-[#323340] rounded-lg">
             <% avatar_url = MazarynWeb.Live.Helper.handle_avatar(@user) %>
@@ -28,7 +26,9 @@
                 <Heroicons.user solid class="w-5 h-5 text-white" />
               </div>
             <% end %>
-            <span class="text-white text-base font-['Poppins']"><%= @user.username || "User" %></span>
+            <span class="text-white text-base font-['Poppins']">
+              <%= if is_tuple(@user), do: elem(@user, 8), else: @user.username || "User" %>
+            </span>
           </div>
         <% end %>
       </div>
@@ -39,28 +39,16 @@
     <aside class="fixed left-16 top-24 w-60">
       <div class="space-y-6">
         <h2 class="text-[#c5c7c8] text-xl font-semibold font-['Poppins']">Live Streams</h2>
-
         <div class="bg-[#323340] rounded-[20px] shadow-lg p-7 space-y-7">
-          <.link
-            navigate={~p"/#{@locale}/livestreams"}
-            class="flex items-center gap-5 text-[#c5c7c8] hover:text-white hover:translate-x-1 transition-all"
-          >
+          <.link navigate={~p"/#{@locale}/livestreams"} class="flex items-center gap-5 text-[#c5c7c8] hover:text-white hover:translate-x-1 transition-all">
             <Heroicons.play_circle solid class="w-5 h-5" />
             <span class="text-xl font-semibold font-['Poppins']">Browse</span>
           </.link>
-
-          <.link
-            navigate={~p"/#{@locale}/livestreams/my-streams"}
-            class="flex items-center gap-5 text-blue-500 hover:translate-x-1 transition-transform"
-          >
+          <.link navigate={~p"/#{@locale}/livestreams/my-streams"} class="flex items-center gap-5 text-blue-500 hover:translate-x-1 transition-transform">
             <Heroicons.video_camera solid class="w-5 h-5" />
             <span class="text-xl font-semibold font-['Poppins']">My Streams</span>
           </.link>
-
-          <.link
-            navigate={~p"/#{@locale}/livestreams/go-live"}
-            class="flex items-center gap-5 text-[#c5c7c8] hover:text-white hover:translate-x-1 transition-all"
-          >
+          <.link navigate={~p"/#{@locale}/livestreams/go-live"} class="flex items-center gap-5 text-[#c5c7c8] hover:text-white hover:translate-x-1 transition-all">
             <div class="w-5 h-5 bg-red-600 rounded-full flex items-center justify-center">
               <div class="w-2 h-2 bg-white rounded-full"></div>
             </div>
@@ -87,7 +75,6 @@
             </div>
           </div>
         </div>
-
         <div class="bg-[#323340] rounded-[20px] p-6">
           <div class="flex items-center gap-4">
             <div class="w-12 h-12 bg-red-500/20 rounded-full flex items-center justify-center">
@@ -99,7 +86,6 @@
             </div>
           </div>
         </div>
-
         <div class="bg-[#323340] rounded-[20px] p-6">
           <div class="flex items-center gap-4">
             <div class="w-12 h-12 bg-orange-500/20 rounded-full flex items-center justify-center">
@@ -113,7 +99,6 @@
             </div>
           </div>
         </div>
-
         <div class="bg-[#323340] rounded-[20px] p-6">
           <div class="flex items-center gap-4">
             <div class="w-12 h-12 bg-purple-500/20 rounded-full flex items-center justify-center">
@@ -131,37 +116,10 @@
 
       <div class="bg-[#323340] rounded-[20px] p-6">
         <div class="flex gap-4 mb-6">
-          <button
-            phx-click="switch_tab"
-            phx-value-tab="all"
-            class={"px-6 py-2 rounded-lg font-semibold font-['Poppins'] transition-colors #{if @active_tab == "all", do: "bg-blue-500 text-white", else: "bg-[#27282e] text-[#c5c7c8] hover:text-white"}"}
-          >
-            All Streams
-          </button>
-
-          <button
-            phx-click="switch_tab"
-            phx-value-tab="live"
-            class={"px-6 py-2 rounded-lg font-semibold font-['Poppins'] transition-colors #{if @active_tab == "live", do: "bg-blue-500 text-white", else: "bg-[#27282e] text-[#c5c7c8] hover:text-white"}"}
-          >
-            Live
-          </button>
-
-          <button
-            phx-click="switch_tab"
-            phx-value-tab="ended"
-            class={"px-6 py-2 rounded-lg font-semibold font-['Poppins'] transition-colors #{if @active_tab == "ended", do: "bg-blue-500 text-white", else: "bg-[#27282e] text-[#c5c7c8] hover:text-white"}"}
-          >
-            Ended
-          </button>
-
-          <button
-            phx-click="switch_tab"
-            phx-value-tab="recorded"
-            class={"px-6 py-2 rounded-lg font-semibold font-['Poppins'] transition-colors #{if @active_tab == "recorded", do: "bg-blue-500 text-white", else: "bg-[#27282e] text-[#c5c7c8] hover:text-white"}"}
-          >
-            📼 Recorded
-          </button>
+          <button phx-click="switch_tab" phx-value-tab="all" class={"px-6 py-2 rounded-lg font-semibold font-['Poppins'] transition-colors #{if @active_tab == "all", do: "bg-blue-500 text-white", else: "bg-[#27282e] text-[#c5c7c8] hover:text-white"}"}>All Streams</button>
+          <button phx-click="switch_tab" phx-value-tab="live" class={"px-6 py-2 rounded-lg font-semibold font-['Poppins'] transition-colors #{if @active_tab == "live", do: "bg-blue-500 text-white", else: "bg-[#27282e] text-[#c5c7c8] hover:text-white"}"}>Live</button>
+          <button phx-click="switch_tab" phx-value-tab="ended" class={"px-6 py-2 rounded-lg font-semibold font-['Poppins'] transition-colors #{if @active_tab == "ended", do: "bg-blue-500 text-white", else: "bg-[#27282e] text-[#c5c7c8] hover:text-white"}"}>Ended</button>
+          <button phx-click="switch_tab" phx-value-tab="recorded" class={"px-6 py-2 rounded-lg font-semibold font-['Poppins'] transition-colors #{if @active_tab == "recorded", do: "bg-blue-500 text-white", else: "bg-[#27282e] text-[#c5c7c8] hover:text-white"}"}>📼 Recorded</button>
         </div>
 
         <%= if Enum.empty?(@user_streams) do %>
@@ -170,13 +128,8 @@
               <Heroicons.video_camera class="w-8 h-8 text-gray-600" />
             </div>
             <p class="text-gray-400 text-lg font-['Poppins'] mb-2">No streams yet</p>
-            <p class="text-gray-500 text-sm font-['Poppins'] mb-6">
-              Start your first livestream to see it here
-            </p>
-            <.link
-              navigate={~p"/#{@locale}/livestreams/go-live"}
-              class="inline-flex items-center gap-2 px-6 py-3 bg-red-600 hover:bg-red-700 rounded-lg text-white font-semibold transition-colors"
-            >
+            <p class="text-gray-500 text-sm font-['Poppins'] mb-6">Start your first livestream to see it here</p>
+            <.link navigate={~p"/#{@locale}/livestreams/go-live"} class="inline-flex items-center gap-2 px-6 py-3 bg-red-600 hover:bg-red-700 rounded-lg text-white font-semibold transition-colors">
               <div class="w-3 h-3 bg-white rounded-full"></div>
               Go Live
             </.link>
@@ -187,112 +140,80 @@
               <div class="bg-[#27282e] rounded-lg p-4 flex gap-4 hover:bg-[#2d2e35] transition-colors">
                 <div class="relative w-48 h-28 rounded-lg overflow-hidden flex-shrink-0">
                   <img src={stream.thumbnail_url} class="w-full h-full object-cover" alt={stream.title} />
-
                   <%= if stream.status == :live do %>
                     <div class="absolute top-2 left-2 bg-red-600 px-3 py-1 rounded-full flex items-center gap-1.5">
                       <div class="w-2 h-2 bg-white rounded-full animate-pulse"></div>
                       <span class="text-white text-xs font-semibold font-['Poppins']">LIVE</span>
                     </div>
                   <% end %>
-
+                  <%= if stream.vod_cid do %>
+                    <div class="absolute top-2 right-2 bg-purple-600 px-2 py-1 rounded-full">
+                      <span class="text-white text-xs font-semibold font-['Poppins']">VOD</span>
+                    </div>
+                  <% end %>
                   <div class="absolute bottom-2 right-2 bg-black/70 backdrop-blur-sm px-2 py-1 rounded">
-                    <span class="text-white text-xs font-semibold font-['Poppins']">
-                      <%= stream.duration %>
-                    </span>
+                    <span class="text-white text-xs font-semibold font-['Poppins']"><%= stream.duration %></span>
                   </div>
                 </div>
-
                 <div class="flex-1 flex flex-col justify-between">
                   <div>
                     <div class="flex items-start justify-between mb-2">
-                      <h3 class="text-white text-lg font-semibold font-['Poppins'] line-clamp-1">
-                        <%= stream.title %>
-                      </h3>
-
+                      <h3 class="text-white text-lg font-semibold font-['Poppins'] line-clamp-1"><%= stream.title %></h3>
                       <%= if stream.status == :live do %>
-                        <span class="px-3 py-1 bg-red-600 rounded-full text-white text-xs font-semibold">
-                          LIVE
-                        </span>
+                        <span class="px-3 py-1 bg-red-600 rounded-full text-white text-xs font-semibold">LIVE</span>
                       <% else %>
-                        <span class="px-3 py-1 bg-[#323340] rounded-full text-[#c5c7c8] text-xs font-semibold">
-                          Ended
-                        </span>
+                        <span class="px-3 py-1 bg-[#323340] rounded-full text-[#c5c7c8] text-xs font-semibold">Ended</span>
                       <% end %>
                     </div>
-
-                    <p class="text-[#c5c7c8] text-sm font-['Poppins'] capitalize mb-3">
-                      <%= stream.category %>
-                    </p>
-
+                    <p class="text-[#c5c7c8] text-sm font-['Poppins'] capitalize mb-3"><%= stream.category %></p>
                     <div class="flex gap-6 text-sm font-['Poppins']">
                       <div class="flex items-center gap-2">
                         <Heroicons.eye solid class="w-4 h-4 text-[#c5c7c8]" />
                         <span class="text-white"><%= format_viewers(stream.total_views) %> views</span>
                       </div>
-
                       <div class="flex items-center gap-2">
                         <Heroicons.chart_bar solid class="w-4 h-4 text-[#c5c7c8]" />
-                        <span class="text-white">
-                          Peak: <%= format_viewers(stream.peak_viewers) %>
-                        </span>
+                        <span class="text-white">Peak: <%= format_viewers(stream.peak_viewers) %></span>
                       </div>
-
                       <div class="flex items-center gap-2">
                         <Heroicons.calendar solid class="w-4 h-4 text-[#c5c7c8]" />
                         <span class="text-white"><%= format_date(stream.started_at) %></span>
                       </div>
                     </div>
                   </div>
-
                   <div class="flex gap-2">
                     <%= if stream.status == :live do %>
-                      <button
-                        phx-click="view_stream"
-                        phx-value-id={stream.id}
-                        class="px-4 py-2 bg-blue-500 hover:bg-blue-600 rounded-lg text-white text-sm font-semibold transition-colors"
-                      >
+                      <button phx-click="view_stream" phx-value-id={stream.id} class="px-4 py-2 bg-blue-500 hover:bg-blue-600 rounded-lg text-white text-sm font-semibold transition-colors">
                         Watch
                       </button>
-
-                      <button
-                        phx-click="view_dashboard"
-                        phx-value-id={stream.id}
-                        class="px-4 py-2 bg-[#323340] hover:bg-[#3a3b4a] rounded-lg text-white text-sm font-semibold transition-colors"
-                      >
+                      <button phx-click="view_dashboard" phx-value-id={stream.id} class="px-4 py-2 bg-[#323340] hover:bg-[#3a3b4a] rounded-lg text-white text-sm font-semibold transition-colors">
                         Dashboard
                       </button>
                     <% else %>
-                      <%= if stream.has_vod do %>
-                        <button
-                          phx-click="view_stream"
-                          phx-value-id={stream.id}
-                          class="px-4 py-2 bg-blue-500 hover:bg-blue-600 rounded-lg text-white text-sm font-semibold transition-colors"
+                      <%= if stream.vod_cid do %>
+                        <a
+                          href={"https://ipfs.io/ipfs/#{stream.vod_cid}"}
+                          target="_blank"
+                          class="px-4 py-2 bg-purple-500 hover:bg-purple-600 rounded-lg text-white text-sm font-semibold transition-colors flex items-center gap-2"
                         >
-                          Watch VOD
-                        </button>
-
-                        <button
-                          phx-click="download_vod"
-                          phx-value-id={stream.id}
-                          class="px-4 py-2 bg-[#323340] hover:bg-[#3a3b4a] rounded-lg text-white text-sm font-semibold transition-colors"
-                        >
+                          <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" />
+                          </svg>
+                          Watch Recording
+                        </a>
+                        <button phx-click="download_vod" phx-value-id={stream.id} class="px-4 py-2 bg-[#323340] hover:bg-[#3a3b4a] rounded-lg text-white text-sm font-semibold transition-colors flex items-center gap-2">
+                          <Heroicons.arrow_down_tray solid class="w-4 h-4" />
                           Download
                         </button>
+                      <% else %>
+                        <span class="px-4 py-2 bg-gray-600/50 rounded-lg text-gray-400 text-sm font-semibold">
+                          Recording in progress...
+                        </span>
                       <% end %>
-
-                      <button
-                        phx-click="view_dashboard"
-                        phx-value-id={stream.id}
-                        class="px-4 py-2 bg-[#323340] hover:bg-[#3a3b4a] rounded-lg text-white text-sm font-semibold transition-colors"
-                      >
+                      <button phx-click="view_dashboard" phx-value-id={stream.id} class="px-4 py-2 bg-[#323340] hover:bg-[#3a3b4a] rounded-lg text-white text-sm font-semibold transition-colors">
                         Analytics
                       </button>
-
-                      <button
-                        phx-click="open_delete_modal"
-                        phx-value-id={stream.id}
-                        class="px-4 py-2 bg-red-600/20 hover:bg-red-600 rounded-lg text-red-400 hover:text-white text-sm font-semibold transition-colors"
-                      >
+                      <button phx-click="open_delete_modal" phx-value-id={stream.id} class="px-4 py-2 bg-red-600/20 hover:bg-red-600 rounded-lg text-red-400 hover:text-white text-sm font-semibold transition-colors">
                         Delete
                       </button>
                     <% end %>
@@ -307,16 +228,15 @@
   </div>
 
   <%= if @show_delete_modal && @selected_stream do %>
-    <div class="modal-overlay" phx-click="close_delete_modal">
-      <div class="modal-content" phx-click="ignore">
-        <div class="modal-header">
-          <h2 class="modal-title">Delete Stream</h2>
-          <button phx-click="close_delete_modal" class="modal-close">
-            <Heroicons.x_mark class="w-6 h-6" />
+    <div class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50" phx-click="close_delete_modal">
+      <div class="bg-[#323340] rounded-[20px] p-6 max-w-md w-full mx-4" phx-click="ignore">
+        <div class="flex items-center justify-between mb-6">
+          <h2 class="text-white text-xl font-bold font-['Poppins']">Delete Stream</h2>
+          <button phx-click="close_delete_modal" class="w-10 h-10 bg-[#27282e] rounded-full flex items-center justify-center hover:bg-[#2a2b36] transition-colors">
+            <Heroicons.x_mark class="w-6 h-6 text-white" />
           </button>
         </div>
-
-        <div class="p-6">
+        <div class="mb-6">
           <p class="text-white text-base font-['Poppins'] mb-4">
             Are you sure you want to delete "<strong><%= @selected_stream.title %></strong>"?
           </p>
@@ -324,19 +244,11 @@
             This action cannot be undone. All analytics and VOD data will be permanently deleted.
           </p>
         </div>
-
-        <div class="modal-actions">
-          <button
-            phx-click="delete_stream"
-            class="control-btn-danger"
-          >
+        <div class="flex gap-3">
+          <button phx-click="delete_stream" class="flex-1 px-6 py-3 bg-red-600 hover:bg-red-700 rounded-lg text-white font-semibold transition-colors">
             Delete Stream
           </button>
-
-          <button
-            phx-click="close_delete_modal"
-            class="control-btn-secondary"
-          >
+          <button phx-click="close_delete_modal" class="flex-1 px-6 py-3 bg-[#27282e] hover:bg-[#2a2b36] rounded-lg text-white font-semibold transition-colors">
             Cancel
           </button>
         </div>

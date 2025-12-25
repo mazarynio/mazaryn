@@ -5,95 +5,150 @@
         <Heroicons.arrow_left class="w-6 h-6 text-white" />
         <span class="text-white text-2xl font-bold font-['Poppins']">Mazaryn</span>
       </.link>
-
       <div class="flex items-center gap-5">
-        <.link
-          navigate={~p"/#{@locale}/notifications"}
-          class="w-10 h-10 bg-[#323340] rounded-full flex items-center justify-center hover:bg-[#3a3b4a] transition-colors"
-        >
+        <.link navigate={~p"/#{@locale}/notifications"} class="w-10 h-10 bg-[#323340] rounded-full flex items-center justify-center hover:bg-[#3a3b4a] transition-colors">
           <Heroicons.bell solid class="w-5 h-5 text-[#aaaaaa]" />
         </.link>
       </div>
     </div>
   </div>
-
   <div class="flex max-w-[1920px] mx-auto pt-20 px-6 gap-6">
     <main class="flex-1 py-8">
-      <div class="livestream-player-container mb-6" phx-hook="LivestreamPlayer" id="livestream-player">
-        <video
-          id="stream-video"
-          data-stream-id={@stream_id}
-          data-is-live="true"
-          data-hls-url={@stream.hls_url}
-          playsinline
-          class="w-full h-full"
-        >
-        </video>
-
-        <div id="stream-loading">
-          <div class="stream-spinner"></div>
-          <div class="stream-loading-text">Loading stream...</div>
-        </div>
-
-        <div id="stream-error" style="display: none;"></div>
-
-        <div class="live-badge">
-          <div class="live-badge-pulse"></div>
-          <span class="live-badge-text">Live</span>
-        </div>
-
-        <div class="stream-stats-overlay">
-          <div class="stat-badge">
-            <Heroicons.eye solid class="stat-icon" />
-            <span class="stat-text" phx-hook="ViewerCounter" id="viewer-count" data-count={@current_viewers}>
-              <%= format_viewers(@current_viewers) %>
-            </span>
+      <div class="aspect-video bg-black relative rounded-xl overflow-hidden mb-6 shadow-2xl" id="player-container">
+        <%= if @stream do %>
+          <%= if @stream.hls_url do %>
+            <video
+              id="livestream-player"
+              phx-hook="LivestreamPlayer"
+              data-stream-id={@stream.id}
+              data-is-live={to_string(@stream.status == :live)}
+              data-hls-url={@stream.hls_url}
+              class="w-full h-full"
+              playsinline
+            >
+            </video>
+            <%= if @stream.status == :live do %>
+              <div class="absolute top-6 left-6 flex items-center gap-3 px-5 py-3 bg-gradient-to-r from-red-600 to-pink-600 rounded-xl shadow-2xl animate-pulse">
+                <div class="w-4 h-4 bg-white rounded-full"></div>
+                <span class="text-white text-lg font-bold font-['Poppins']">LIVE</span>
+              </div>
+              <div class="absolute bottom-6 right-6 px-5 py-3 bg-black/70 backdrop-blur-md rounded-xl">
+                <div class="flex items-center gap-2">
+                  <Heroicons.eye solid class="w-5 h-5 text-white" />
+                  <span class="text-white font-bold font-['Poppins']" id="viewer-count">
+                    <%= format_viewers(@current_viewers) %>
+                  </span>
+                </div>
+              </div>
+            <% else %>
+              <div class="absolute top-6 left-6 px-5 py-3 bg-gradient-to-r from-purple-600 to-blue-600 rounded-xl shadow-2xl">
+                <div class="flex items-center gap-2">
+                  <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M2 6a2 2 0 012-2h6a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM14.553 7.106A1 1 0 0014 8v4a1 1 0 00.553.894l2 1A1 1 0 0018 13V7a1 1 0 00-1.447-.894l-2 1z" />
+                  </svg>
+                  <span class="text-white font-bold font-['Poppins']">VOD RECORDING</span>
+                </div>
+              </div>
+              <div class="absolute bottom-6 right-6 px-5 py-3 bg-black/70 backdrop-blur-md rounded-xl">
+                <div class="flex items-center gap-4 text-white text-sm font-['Poppins']">
+                  <div class="flex items-center gap-2">
+                    <Heroicons.eye solid class="w-4 h-4" />
+                    <span><%= format_viewers(@stream.total_views) %> views</span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <Heroicons.chart_bar solid class="w-4 h-4" />
+                    <span>Peak: <%= format_viewers(@stream.peak_viewers) %></span>
+                  </div>
+                </div>
+              </div>
+            <% end %>
+          <% else %>
+            <div class="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-gray-900 to-black">
+              <div class="text-center p-8 max-w-md">
+                <div class="w-20 h-20 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <Heroicons.exclamation_triangle solid class="w-12 h-12 text-red-500" />
+                </div>
+                <h3 class="text-red-500 text-2xl font-bold mb-3 font-['Poppins']">No Video Available</h3>
+                <p class="text-gray-400 text-sm mb-6">This stream doesn't have a playable video source.</p>
+              </div>
+            </div>
+          <% end %>
+        <% else %>
+          <div class="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-purple-900 to-blue-900">
+            <div class="text-center">
+              <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-white mx-auto mb-4"></div>
+              <p class="text-white text-xl font-['Poppins']">Loading stream...</p>
+            </div>
+          </div>
+        <% end %>
+        <div id="stream-loading" class="hidden absolute inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div class="text-center">
+            <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-purple-500 mx-auto mb-4"></div>
+            <p class="text-white font-['Poppins']">Buffering...</p>
           </div>
         </div>
+        <div id="stream-error" class="hidden absolute inset-0 flex items-center justify-center bg-black/90 backdrop-blur-sm text-white text-center p-8"></div>
       </div>
-
-      <div class="bg-[#323340] rounded-[20px] p-6 mb-6">
-        <h1 class="text-white text-2xl font-bold font-['Poppins'] mb-3">
-          <%= @stream.title %>
-        </h1>
-
-        <div class="flex items-center justify-between">
+      <div class="bg-[#323340] rounded-[20px] p-6 mb-6 shadow-lg">
+        <div class="flex items-start justify-between mb-4">
+          <div class="flex-1">
+            <h1 class="text-white text-2xl font-bold font-['Poppins'] mb-2">
+              <%= @stream.title %>
+            </h1>
+            <p class="text-[#c5c7c8] text-sm font-['Poppins'] capitalize">
+              <%= @stream.category %>
+            </p>
+          </div>
+          <%= if @stream.status != :live do %>
+            <div class="flex gap-2">
+              <a
+                href={"https://ipfs.io/ipfs/#{extract_cid(@stream.hls_url)}"}
+                download={"mazaryn_stream_#{@stream.id}.mp4"}
+                class="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-white text-sm font-semibold transition-colors flex items-center gap-2"
+              >
+                <Heroicons.arrow_down_tray solid class="w-4 h-4" />
+                Download
+              </a>
+              <button
+                type="button"
+                phx-click={JS.dispatch("share-stream", detail: %{title: @stream.title})}
+                class="px-4 py-2 bg-[#27282e] hover:bg-[#2a2b36] rounded-lg text-white text-sm font-semibold transition-colors flex items-center gap-2"
+              >
+                <Heroicons.share solid class="w-4 h-4" />
+                Share
+              </button>
+            </div>
+          <% end %>
+        </div>
+        <div class="flex items-center justify-between pt-4 border-t border-[#27282e]">
           <div class="flex items-center gap-4">
             <%= if @creator.avatar && @creator.avatar != "/images/default-avatar.png" do %>
-              <img
-                src={@creator.avatar}
-                class="w-12 h-12 rounded-full object-cover"
-                alt={@creator.username}
-              />
+              <img src={@creator.avatar} class="w-12 h-12 rounded-full object-cover ring-2 ring-purple-500" alt={@creator.username} />
             <% else %>
-              <div class="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center">
+              <div class="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center ring-2 ring-purple-500">
                 <Heroicons.user solid class="w-6 h-6 text-white" />
               </div>
             <% end %>
-
             <div>
-              <.link
-                navigate={~p"/#{@locale}/#{@creator.username}"}
-                class="text-white text-lg font-semibold font-['Poppins'] hover:text-blue-500 transition-colors"
-              >
+              <.link navigate={~p"/#{@locale}/#{@creator.username}"} class="text-white text-lg font-semibold font-['Poppins'] hover:text-purple-400 transition-colors">
                 <%= @creator.username %>
               </.link>
-              <p class="text-[#c5c7c8] text-sm font-['Poppins'] capitalize">
-                <%= @stream.category %>
-              </p>
+              <div class="flex items-center gap-3 text-sm text-[#c5c7c8]">
+                <span><%= format_viewers(@stream.total_views) %> views</span>
+                <span>•</span>
+                <span>Peak: <%= format_viewers(@stream.peak_viewers) %></span>
+              </div>
             </div>
           </div>
-
           <%= if @user && get_user_id(@user) != @stream.user_id do %>
             <button
               phx-click="toggle_follow"
-              class={"px-6 py-2 rounded-lg font-semibold font-['Poppins'] transition-all #{if @is_following, do: "bg-[#323340] text-white hover:bg-[#27282e]", else: "bg-blue-500 text-white hover:bg-blue-600"}"}
+              class={"px-6 py-2 rounded-lg font-semibold font-['Poppins'] transition-all shadow-lg #{if @is_following, do: "bg-[#323340] text-white hover:bg-[#27282e]", else: "bg-gradient-to-r from-purple-500 to-blue-500 text-white hover:from-purple-600 hover:to-blue-600"}"}
             >
               <%= if @is_following, do: "Following", else: "Follow" %>
             </button>
           <% end %>
         </div>
-
         <%= if @stream.description && @stream.description != "" do %>
           <div class="mt-4 p-4 bg-[#27282e] rounded-lg">
             <p class="text-white text-sm font-['Poppins'] leading-relaxed">
@@ -101,165 +156,129 @@
             </p>
           </div>
         <% end %>
-
         <%= if length(@stream.tags) > 0 do %>
           <div class="mt-4 flex flex-wrap gap-2">
             <%= for tag <- @stream.tags do %>
-              <span class="px-3 py-1 bg-[#27282e] rounded-full text-white text-sm font-['Poppins']">
+              <span class="px-3 py-1 bg-[#27282e] rounded-full text-purple-400 text-sm font-['Poppins'] border border-purple-500/30">
                 <%= if is_list(tag), do: List.to_string(tag), else: tag %>
               </span>
             <% end %>
           </div>
         <% end %>
       </div>
-
-      <div class="bg-[#323340] rounded-[20px] p-6">
-        <h2 class="text-white text-xl font-semibold font-['Poppins'] mb-4">Quick Reactions</h2>
-
-        <div class="reactions-container" phx-hook="ReactionButton" id="reactions" data-stream-id={@stream_id}>
-          <button
-            phx-click="send_reaction"
-            phx-value-reaction_type="like"
-            class="reaction-btn"
-            title="Like"
-          >
-            <span class="reaction-icon">👍</span>
-          </button>
-
-          <button
-            phx-click="send_reaction"
-            phx-value-reaction_type="love"
-            class="reaction-btn"
-            title="Love"
-          >
-            <span class="reaction-icon">❤️</span>
-          </button>
-
-          <button
-            phx-click="send_reaction"
-            phx-value-reaction_type="fire"
-            class="reaction-btn"
-            title="Fire"
-          >
-            <span class="reaction-icon">🔥</span>
-          </button>
-
-          <button
-            phx-click="send_reaction"
-            phx-value-reaction_type="wow"
-            class="reaction-btn"
-            title="Wow"
-          >
-            <span class="reaction-icon">😮</span>
-          </button>
-
-          <button
-            phx-click="send_reaction"
-            phx-value-reaction_type="haha"
-            class="reaction-btn"
-            title="Haha"
-          >
-            <span class="reaction-icon">😂</span>
-          </button>
+      <%= if @stream.status == :live do %>
+        <div class="bg-[#323340] rounded-[20px] p-6 shadow-lg">
+          <h2 class="text-white text-xl font-semibold font-['Poppins'] mb-4">Quick Reactions</h2>
+          <div class="flex gap-4" phx-hook="ReactionButton" id="reactions" data-stream-id={@stream_id}>
+            <button phx-click="send_reaction" phx-value-reaction_type="like" class="px-6 py-3 bg-[#27282e] hover:bg-[#2a2b36] rounded-xl text-2xl transition-all hover:scale-110" title="Like">
+              👍
+            </button>
+            <button phx-click="send_reaction" phx-value-reaction_type="love" class="px-6 py-3 bg-[#27282e] hover:bg-[#2a2b36] rounded-xl text-2xl transition-all hover:scale-110" title="Love">
+              ❤️
+            </button>
+            <button phx-click="send_reaction" phx-value-reaction_type="fire" class="px-6 py-3 bg-[#27282e] hover:bg-[#2a2b36] rounded-xl text-2xl transition-all hover:scale-110" title="Fire">
+              🔥
+            </button>
+            <button phx-click="send_reaction" phx-value-reaction_type="wow" class="px-6 py-3 bg-[#27282e] hover:bg-[#2a2b36] rounded-xl text-2xl transition-all hover:scale-110" title="Wow">
+              😮
+            </button>
+            <button phx-click="send_reaction" phx-value-reaction_type="haha" class="px-6 py-3 bg-[#27282e] hover:bg-[#2a2b36] rounded-xl text-2xl transition-all hover:scale-110" title="Haha">
+              😂
+            </button>
+          </div>
         </div>
-      </div>
+      <% end %>
     </main>
-
-    <aside class="w-96 py-8">
-      <div class="chat-container" phx-hook="LiveChat" id="live-chat">
-        <div class="chat-header">
-          <h2 class="chat-title">Live Chat</h2>
-          <button
-            phx-click="toggle_viewer_list"
-            class="text-[#c5c7c8] hover:text-white transition-colors"
-          >
-            <Heroicons.user_group class="w-5 h-5" />
-          </button>
-        </div>
-
-        <div class="chat-messages" id="chat-messages-container">
-          <%= if Enum.empty?(@chat_messages) do %>
-            <div class="text-center py-8">
-              <p class="text-[#c5c7c8] text-sm font-['Poppins']">Be the first to chat!</p>
-            </div>
-          <% else %>
-            <%= for message <- @chat_messages do %>
-              <div class="chat-message">
-                <%= if message.avatar && message.avatar != "/images/default-avatar.png" do %>
-                  <img
-                    src={message.avatar}
-                    class="chat-avatar"
-                    alt={message.username}
-                  />
-                <% else %>
-                  <div class="chat-avatar bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center">
-                    <Heroicons.user solid class="w-5 h-5 text-white" />
-                  </div>
-                <% end %>
-
-                <div class="chat-content">
-                  <div class="chat-username"><%= message.username %></div>
-                  <div class="chat-text"><%= message.message %></div>
-                </div>
+    <%= if @stream.status == :live do %>
+      <aside class="w-96 py-8">
+        <div class="bg-[#323340] rounded-[20px] shadow-lg overflow-hidden sticky top-24">
+          <div class="p-6 border-b border-[#27282e] flex items-center justify-between">
+            <h2 class="text-white text-xl font-bold font-['Poppins']">Live Chat</h2>
+            <button phx-click="toggle_viewer_list" class="w-10 h-10 bg-[#27282e] rounded-full flex items-center justify-center hover:bg-[#2a2b36] transition-colors">
+              <Heroicons.user_group class="w-5 h-5 text-white" />
+            </button>
+          </div>
+          <div class="h-[600px] overflow-y-auto p-6 space-y-4" id="chat-messages-container" phx-hook="LiveChat">
+            <%= if Enum.empty?(@chat_messages) do %>
+              <div class="text-center py-8">
+                <p class="text-[#c5c7c8] text-sm font-['Poppins']">Be the first to chat!</p>
               </div>
+            <% else %>
+              <%= for message <- @chat_messages do %>
+                <div class="flex gap-3">
+                  <%= if message.avatar && message.avatar != "/images/default-avatar.png" do %>
+                    <img src={message.avatar} class="w-10 h-10 rounded-full object-cover flex-shrink-0" alt={message.username} />
+                  <% else %>
+                    <div class="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center flex-shrink-0">
+                      <Heroicons.user solid class="w-5 h-5 text-white" />
+                    </div>
+                  <% end %>
+                  <div class="flex-1">
+                    <div class="text-white text-sm font-semibold font-['Poppins'] mb-1">
+                      <%= message.username %>
+                    </div>
+                    <div class="text-[#c5c7c8] text-sm font-['Poppins']">
+                      <%= message.message %>
+                    </div>
+                  </div>
+                </div>
+              <% end %>
             <% end %>
+          </div>
+          <%= if @user do %>
+            <form phx-submit="send_chat" class="p-6 border-t border-[#27282e]">
+              <div class="flex gap-2">
+                <input
+                  type="text"
+                  name="message"
+                  value={@chat_input}
+                  phx-keyup="update_chat_input"
+                  phx-debounce="100"
+                  placeholder="Say something..."
+                  maxlength="500"
+                  class="flex-1 px-4 py-3 bg-[#27282e] border-2 border-[#414868] rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-purple-500 transition-colors font-['Poppins']"
+                />
+                <button type="submit" class="px-6 py-3 bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 rounded-xl text-white font-semibold font-['Poppins'] transition-colors">
+                  Send
+                </button>
+              </div>
+            </form>
+          <% else %>
+            <div class="p-6 border-t border-[#27282e]">
+              <.link navigate={~p"/#{@locale}/login"} class="block w-full py-3 bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 rounded-lg text-white text-center font-semibold font-['Poppins'] transition-colors">
+                Login to Chat
+              </.link>
+            </div>
           <% end %>
         </div>
-
-        <%= if @user do %>
-          <form phx-submit="send_chat" class="chat-input-container">
-            <input
-              type="text"
-              name="message"
-              value={@chat_input}
-              phx-keyup="update_chat_input"
-              phx-debounce="100"
-              placeholder="Say something..."
-              maxlength="500"
-              class="chat-input"
-            />
-            <button type="submit" class="chat-send-btn">
-              Send
-            </button>
-          </form>
-        <% else %>
-          <div class="chat-input-container">
-            <.link
-              navigate={~p"/#{@locale}/login"}
-              class="w-full py-3 bg-blue-500 hover:bg-blue-600 rounded-lg text-white text-center font-semibold transition-colors"
-            >
-              Login to Chat
-            </.link>
-          </div>
-        <% end %>
-      </div>
-    </aside>
+      </aside>
+    <% end %>
   </div>
-
   <%= if @show_viewer_list do %>
-    <div class="modal-overlay" phx-click="toggle_viewer_list">
-      <div class="modal-content" phx-click="ignore">
-        <div class="modal-header">
-          <h2 class="modal-title">Current Viewers (<%= @current_viewers %>)</h2>
-          <button phx-click="toggle_viewer_list" class="modal-close">
-            <Heroicons.x_mark class="w-6 h-6" />
+    <div class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50" phx-click="toggle_viewer_list">
+      <div class="bg-[#323340] rounded-[20px] p-6 max-w-md w-full mx-4" phx-click="ignore">
+        <div class="flex items-center justify-between mb-6">
+          <h2 class="text-white text-xl font-bold font-['Poppins']">
+            Current Viewers (<%= @current_viewers %>)
+          </h2>
+          <button phx-click="toggle_viewer_list" class="w-10 h-10 bg-[#27282e] rounded-full flex items-center justify-center hover:bg-[#2a2b36] transition-colors">
+            <Heroicons.x_mark class="w-6 h-6 text-white" />
           </button>
         </div>
-
-        <div class="viewer-list">
+        <div class="space-y-3 max-h-96 overflow-y-auto">
           <%= if Enum.empty?(@viewers_list) do %>
             <p class="text-center text-[#c5c7c8] py-8">No viewers yet</p>
           <% else %>
             <%= for viewer <- @viewers_list do %>
-              <div class="viewer-item">
+              <div class="flex items-center gap-3 p-3 bg-[#27282e] rounded-xl hover:bg-[#2a2b36] transition-colors">
                 <%= if viewer.avatar && viewer.avatar != "/images/default-avatar.png" do %>
-                  <img src={viewer.avatar} class="viewer-avatar" alt={viewer.username} />
+                  <img src={viewer.avatar} class="w-10 h-10 rounded-full object-cover" alt={viewer.username} />
                 <% else %>
-                  <div class="viewer-avatar bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center">
+                  <div class="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center">
                     <Heroicons.user solid class="w-5 h-5 text-white" />
                   </div>
                 <% end %>
-                <span class="viewer-name"><%= viewer.username %></span>
+                <span class="text-white font-semibold font-['Poppins']"><%= viewer.username %></span>
               </div>
             <% end %>
           <% end %>
@@ -268,3 +287,16 @@
     </div>
   <% end %>
 </div>
+<script>
+  window.addEventListener("share-stream", (e) => {
+    if (navigator.share) {
+      navigator.share({
+        title: e.detail.title,
+        url: window.location.href
+      }).catch(err => console.log("Share cancelled", err));
+    } else {
+      navigator.clipboard.writeText(window.location.href);
+      alert("Link copied to clipboard!");
+    }
+  });
+</script>

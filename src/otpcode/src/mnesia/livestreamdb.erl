@@ -30,9 +30,16 @@
     save_recording/3,
     get_recorded_streams/1,
     get_vod_streams/0,
-    update_recording_status/3
+    update_recording_status/3,
+    save_recording_from_file/3,
+    save_recording_to_ipfs/3,
+    get_recording_content/1,
+    get_recording_cid/1,
+    generate_srs_config/0,
+    ensure_srs_directories/0,
+    start_srs/0,
+    stop_srs/0
 ]).
-
 -include("../records.hrl").
 -include("../media_records.hrl").
 -include_lib("stdlib/include/qlc.hrl").
@@ -71,6 +78,9 @@ create_livestream(UserId, Title, Description, Visibility, Tags, Category, Langua
     end.
 
 start_livestream(StreamId, UserId, RustStreamId, PlaybackUrl, HlsUrl) ->
+    ensure_srs_directories(),
+    generate_srs_config(),
+    start_srs(),
     case mnesia:transaction(fun() ->
         case mnesia:read({livestream, StreamId}) of
             [Stream] ->
@@ -81,7 +91,8 @@ start_livestream(StreamId, UserId, RustStreamId, PlaybackUrl, HlsUrl) ->
                         playback_url = PlaybackUrl,
                         hls_url = HlsUrl,
                         started_at = calendar:universal_time(),
-                        notification_sent = true
+                        notification_sent = true,
+                        auto_record = true
                     },
                     mnesia:write(UpdatedStream),
                     {ok, updated};
@@ -740,3 +751,387 @@ generate_backup_rtmp_url(StreamKey) ->
 normalize_user_id(UserId) when is_binary(UserId) -> UserId;
 normalize_user_id(UserId) when is_list(UserId) -> list_to_binary(UserId);
 normalize_user_id(UserId) -> list_to_binary(io_lib:format("~p", [UserId])).
+
+save_recording_from_file(StreamId, UserId, FilePath) when is_binary(StreamId), is_list(FilePath) ->
+    save_recording_from_file_internal(StreamId, UserId, FilePath);
+save_recording_from_file(StreamId, UserId, FilePath) when is_binary(StreamId), is_binary(FilePath) ->
+    save_recording_from_file_internal(StreamId, UserId, binary_to_list(FilePath));
+save_recording_from_file(StreamId, UserId, FilePath) when is_list(StreamId), is_list(FilePath) ->
+    save_recording_from_file_internal(list_to_binary(StreamId), UserId, FilePath);
+save_recording_from_file(StreamId, UserId, FilePath) when is_list(StreamId), is_binary(FilePath) ->
+    save_recording_from_file_internal(list_to_binary(StreamId), UserId, binary_to_list(FilePath)).
+
+save_recording_from_file_internal(StreamId, UserId, FilePath) ->
+    io:format("DEBUG: [save_recording_from_file_internal] Called~n"),
+    io:format("DEBUG: StreamId = ~p~n", [StreamId]),
+    io:format("DEBUG: UserId = ~p~n", [UserId]),
+    io:format("DEBUG: FilePath = ~p~n", [FilePath]),
+
+    case filelib:is_file(FilePath) of
+        false ->
+            io:format("ERROR: [save_recording_from_file_internal] File not found: ~p~n", [FilePath]),
+            {error, file_not_found};
+        true ->
+            io:format("INFO: [save_recording_from_file_internal] File exists: ~p~n", [FilePath]),
+            Fun = fun() ->
+                case mnesia:read({livestream, StreamId}) of
+                    [Stream] ->
+                        io:format("DEBUG: [save_recording_from_file_internal] Found stream: ~p~n", [StreamId]),
+                        UserIdNorm = normalize_user_id(UserId),
+                        StreamUserIdNorm = normalize_user_id(Stream#livestream.user_id),
+                        io:format("DEBUG: UserIdNorm = ~p~n", [UserIdNorm]),
+                        io:format("DEBUG: StreamUserIdNorm = ~p~n", [StreamUserIdNorm]),
+                        case StreamUserIdNorm =:= UserIdNorm of
+                            true ->
+                                io:format("INFO: [save_recording_from_file_internal] User authorized~n"),
+                                ok = content_cache:set({livestream_recording_path, StreamId}, FilePath),
+                                mnesia:write(Stream#livestream{
+                                    recording_status = processing,
+                                    vod_enabled = true
+                                }),
+                                io:format("DEBUG: Spawning IPFS upload process for stream ~p~n", [StreamId]),
+                                spawn(fun() ->
+                                    upload_recording_file_to_ipfs(StreamId, FilePath)
+                                end),
+                                {ok, processing};
+                            false ->
+                                io:format("ERROR: [save_recording_from_file_internal] Unauthorized user ~p for stream ~p~n", [UserId, StreamId]),
+                                {error, unauthorized}
+                        end;
+                    [] ->
+                        io:format("ERROR: [save_recording_from_file_internal] Stream not found: ~p~n", [StreamId]),
+                        {error, stream_not_found}
+                end
+            end,
+            case mnesia:transaction(Fun) of
+                {atomic, Result} ->
+                    io:format("DEBUG: [save_recording_from_file_internal] Transaction success: ~p~n", [Result]),
+                    Result;
+                {aborted, Reason} ->
+                    io:format("ERROR: [save_recording_from_file_internal] Transaction aborted: ~p~n", [Reason]),
+                    {error, {transaction_failed, Reason}}
+            end
+    end.
+
+save_recording_to_ipfs(StreamId, UserId, RecordingBinary) when is_binary(RecordingBinary) ->
+    Fun = fun() ->
+        case mnesia:read({livestream, StreamId}) of
+            [Stream] ->
+                UserIdNorm = normalize_user_id(UserId),
+                StreamUserIdNorm = normalize_user_id(Stream#livestream.user_id),
+                case StreamUserIdNorm =:= UserIdNorm of
+                    true ->
+                        mnesia:write(Stream#livestream{
+                            recording_status = processing,
+                            vod_enabled = true
+                        }),
+                        spawn(fun() ->
+                            upload_recording_binary_to_ipfs(StreamId, RecordingBinary)
+                        end),
+                        {ok, processing};
+                    false ->
+                        {error, unauthorized}
+                end;
+            [] ->
+                {error, stream_not_found}
+        end
+    end,
+    case mnesia:transaction(Fun) of
+        {atomic, Result} -> Result;
+        {aborted, Reason} -> {error, {transaction_failed, Reason}}
+    end.
+
+upload_recording_file_to_ipfs(StreamId, FilePath) ->
+    io:format("DEBUG: [upload_recording_file_to_ipfs] Started for ~p from file ~p~n", [StreamId, FilePath]),
+    try
+        error_logger:info_msg("Starting IPFS upload for livestream recording ~p from file: ~p", [StreamId, FilePath]),
+        case ipfs_video:upload_video(FilePath) of
+            {error, Reason} ->
+                io:format("ERROR: [upload_recording_file_to_ipfs] IPFS upload failed: ~p~n", [Reason]),
+                error_logger:error_msg("IPFS upload failed for recording ~p: ~p", [StreamId, Reason]),
+                update_recording_status_failed(StreamId);
+            CID when is_list(CID) ->
+                io:format("INFO: [upload_recording_file_to_ipfs] Success - CID: ~p~n", [CID]),
+                handle_successful_upload(StreamId, CID, FilePath);
+            CID when is_binary(CID) ->
+                io:format("INFO: [upload_recording_file_to_ipfs] Success - CID (binary): ~p~n", [CID]),
+                handle_successful_upload(StreamId, binary_to_list(CID), FilePath);
+            Other ->
+                io:format("ERROR: [upload_recording_file_to_ipfs] Unexpected IPFS result: ~p~n", [Other]),
+                error_logger:error_msg("Unexpected IPFS upload result for recording ~p: ~p", [StreamId, Other]),
+                update_recording_status_failed(StreamId)
+        end
+    catch
+        Exception:Error:Stacktrace ->
+            io:format("ERROR: [upload_recording_file_to_ipfs] Exception: ~p:~p~n~p~n", [Exception, Error, Stacktrace]),
+            error_logger:error_msg("Exception while uploading recording ~p to IPFS: ~p:~p~n~p", [StreamId, Exception, Error, Stacktrace]),
+            update_recording_status_failed(StreamId)
+    end.
+
+upload_recording_binary_to_ipfs(StreamId, RecordingBinary) ->
+    try
+        Size = byte_size(RecordingBinary),
+        error_logger:info_msg("Starting IPFS upload for livestream recording ~p, size: ~p bytes", [StreamId, Size]),
+        CID = if
+            Size > 10485760 ->
+                upload_large_recording_chunked(RecordingBinary);
+            true ->
+                ipfs_video:upload_video(RecordingBinary)
+        end,
+        case CID of
+            {error, Reason} ->
+                error_logger:error_msg("IPFS upload failed for recording ~p: ~p", [StreamId, Reason]),
+                update_recording_status_failed(StreamId);
+            ValidCID when is_list(ValidCID) ->
+                handle_successful_upload(StreamId, ValidCID, undefined);
+            ValidCID when is_binary(ValidCID) ->
+                handle_successful_upload(StreamId, binary_to_list(ValidCID), undefined);
+            Other ->
+                error_logger:error_msg("Unexpected IPFS upload result for recording ~p: ~p", [StreamId, Other]),
+                update_recording_status_failed(StreamId)
+        end
+    catch
+        Exception:Error:Stacktrace ->
+            error_logger:error_msg(
+                "Exception while uploading recording ~p to IPFS: ~p:~p~n~p",
+                [StreamId, Exception, Error, Stacktrace]
+            ),
+            update_recording_status_failed(StreamId)
+    end.
+
+handle_successful_upload(StreamId, CIDStr, FilePath) ->
+    io:format("DEBUG: [handle_successful_upload] Success for ~p CID=~p FilePath=~p~n", [StreamId, CIDStr, FilePath]),
+    UpdateF = fun() ->
+        case mnesia:read({livestream, StreamId}) of
+            [Stream] ->
+                UpdatedStream = Stream#livestream{
+                    recording_cid = CIDStr,
+                    vod_cid = CIDStr,
+                    recording_status = available,
+                    vod_enabled = true
+                },
+                mnesia:write(UpdatedStream),
+                io:format("DEBUG: [handle_successful_upload] Mnesia updated - CID: ~p~n", [CIDStr]);
+            [] ->
+                io:format("ERROR: [handle_successful_upload] Stream not found in Mnesia: ~p~n", [StreamId])
+        end
+    end,
+    mnesia:transaction(UpdateF),
+    content_cache:delete({livestream_recording_path, StreamId}),
+    case FilePath of
+        undefined -> ok;
+        Path when is_list(Path) ->
+            spawn(fun() ->
+                timer:sleep(30000),
+                try
+                    case filelib:is_file(Path) of
+                        true ->
+                            file:delete(Path),
+                            io:format("INFO: [handle_successful_upload] Cleaned up temp file: ~p~n", [Path]);
+                        false ->
+                            ok
+                    end
+                catch
+                    Ex:Err ->
+                        io:format("WARNING: [handle_successful_upload] Cleanup failed: ~p:~p~n", [Ex, Err])
+                end
+            end)
+    end,
+    spawn(fun() ->
+        timer:sleep(5000),
+        try
+            KeyName = "livestream_" ++ binary_to_list(StreamId),
+            error_logger:info_msg("Generating IPNS key: ~p", [KeyName]),
+            {ok, #{id := _KeyID, name := _}} = ipfs_client_4:key_gen(KeyName),
+            PublishOptions = [
+                {key, KeyName},
+                {resolve, false},
+                {lifetime, "168h0m0s"},
+                {ttl, "15m0s"},
+                {v1compat, true},
+                {ipns_base, "base36"}
+            ],
+            case ipfs_client_5:name_publish("/ipfs/" ++ CIDStr, PublishOptions) of
+                {ok, #{name := IPNSKey}} ->
+                    error_logger:info_msg("IPNS published for stream ~p: ~p", [StreamId, IPNSKey]);
+                {error, IPNSReason} ->
+                    error_logger:error_msg("IPNS publish failed for stream ~p: ~p", [StreamId, IPNSReason])
+            end
+        catch
+            Exception:Error:Stacktrace ->
+                error_logger:error_msg(
+                    "Exception while publishing IPNS for stream ~p: ~p:~p~n~p",
+                    [StreamId, Exception, Error, Stacktrace]
+                )
+        end
+    end),
+    ok.
+
+upload_large_recording_chunked(BinaryContent) ->
+    ChunkSize = 10485760,
+    Chunks = split_into_chunks(BinaryContent, ChunkSize),
+    ChunkCIDs = lists:map(fun(Chunk) ->
+        ipfs_video:upload_video(Chunk)
+    end, Chunks),
+    Manifest = #{
+        <<"type">> => <<"chunked_livestream_recording">>,
+        <<"chunks">> => ChunkCIDs,
+        <<"total_size">> => byte_size(BinaryContent)
+    },
+    ManifestJSON = jsx:encode(Manifest),
+    ipfs_content:upload_text(binary_to_list(ManifestJSON)).
+
+split_into_chunks(Binary, ChunkSize) ->
+    split_into_chunks(Binary, ChunkSize, []).
+
+split_into_chunks(<<>>, _ChunkSize, Acc) ->
+    lists:reverse(Acc);
+split_into_chunks(Binary, ChunkSize, Acc) when byte_size(Binary) =< ChunkSize ->
+    lists:reverse([Binary | Acc]);
+split_into_chunks(Binary, ChunkSize, Acc) ->
+    <<Chunk:ChunkSize/binary, Rest/binary>> = Binary,
+    split_into_chunks(Rest, ChunkSize, [Chunk | Acc]).
+
+get_recording_content(StreamId) when is_binary(StreamId) ->
+    get_recording_content_internal(StreamId);
+get_recording_content(StreamId) when is_list(StreamId) ->
+    get_recording_content_internal(list_to_binary(StreamId)).
+
+get_recording_content_internal(StreamId) ->
+    Fun = fun() ->
+        case mnesia:read({livestream, StreamId}) of
+            [] -> {error, stream_not_found};
+            [Stream] ->
+                RecordingCID = Stream#livestream.recording_cid,
+                case RecordingCID of
+                    undefined -> {error, no_recording};
+                    CID when is_list(CID) orelse is_binary(CID) ->
+                        try
+                            Content = ipfs_video:get_video_binary(CID),
+                            {ok, Content}
+                        catch
+                            _:Error -> {error, Error}
+                        end;
+                    _ -> {error, invalid_cid}
+                end
+        end
+    end,
+    case mnesia:transaction(Fun) of
+        {atomic, {ok, Content}} -> Content;
+        {atomic, {error, Reason}} -> {error, Reason};
+        Error -> Error
+    end.
+
+get_recording_cid(StreamId) when is_binary(StreamId) ->
+    get_recording_cid_internal(StreamId);
+get_recording_cid(StreamId) when is_list(StreamId) ->
+    get_recording_cid_internal(list_to_binary(StreamId)).
+
+get_recording_cid_internal(StreamId) ->
+    Fun = fun() ->
+        case mnesia:read({livestream, StreamId}) of
+            [] -> {error, stream_not_found};
+            [Stream] -> {ok, Stream#livestream.recording_cid}
+        end
+    end,
+    case mnesia:transaction(Fun) of
+        {atomic, Result} -> Result;
+        {aborted, Reason} -> {error, {transaction_failed, Reason}}
+    end.
+
+update_recording_status_failed(StreamId) ->
+    UpdateF = fun() ->
+        case mnesia:read({livestream, StreamId}) of
+            [Stream] ->
+                mnesia:write(Stream#livestream{
+                    recording_status = failed
+                });
+            [] -> ok
+        end
+    end,
+    mnesia:transaction(UpdateF).
+
+ensure_srs_directories() ->
+    {ok, Cwd} = file:get_cwd(),
+    HomeDir = os:getenv("HOME", Cwd),
+    BaseDir = filename:join([HomeDir, "srs"]),
+    RecordDir = filename:join([BaseDir, "record", ""]),
+    HlsDir = filename:join([BaseDir, "hls", ""]),
+    lists:foreach(fun(Dir) ->
+        case filelib:is_dir(Dir) of
+            true ->
+                file:change_mode(Dir, 8#777);
+            false ->
+                case filelib:ensure_dir(Dir) of
+                    ok ->
+                        file:make_dir(Dir),
+                        file:change_mode(Dir, 8#777);
+                    {error, Reason} ->
+                        error_logger:error_msg("Failed to create directory ~p: ~p", [Dir, Reason])
+                end
+        end
+    end, [RecordDir, HlsDir]).
+
+    generate_srs_config() ->
+        {ok, Cwd} = file:get_cwd(),
+        HomeDir = os:getenv("HOME", Cwd),
+        RecordDir = filename:join([HomeDir, "srs", "record"]),
+        HlsDir = filename:join([HomeDir, "srs", "hls"]),
+        RecordDirBin = list_to_binary(RecordDir),
+        HlsDirBin = list_to_binary(HlsDir),
+        Template = <<
+            "listen 1935;\n\n"
+            "http_server {\n"
+            "    enabled         on;\n"
+            "    listen          1985;\n"
+            "}\n\n"
+            "vhost __defaultVhost__ {\n"
+            "    record {\n"
+            "        enabled         on;\n"
+            "        record_path     ", RecordDirBin/binary, ";\n"
+            "        record_suffix   .webm;\n"
+            "        record_plan     all;\n"
+            "        record_interval 3600;\n"
+            "        record_wait_keyframe on;\n"
+            "    }\n\n"
+            "    hls {\n"
+            "        enabled         on;\n"
+            "        hls_path        ", HlsDirBin/binary, ";\n"
+            "        hls_fragment    10;\n"
+            "        hls_window      60;\n"
+            "    }\n\n"
+            "    http_hooks {\n"
+            "        enabled         on;\n"
+            "        on_stream_end   http://localhost:4000/api/livestreams/end_recording;\n"
+            "    }\n"
+            "}\n"
+        >>,
+        ConfigPath = filename:join([HomeDir, ".srs.conf"]),
+        ConfigPathBin = list_to_binary(ConfigPath),
+        ok = file:write_file(ConfigPathBin, Template),
+        ConfigPathBin.
+
+    start_srs() ->
+        case whereis(srs_process) of
+            undefined ->
+                ConfigPath = generate_srs_config(),
+                Cmd = "/usr/local/srs/objs/srs -c " ++ binary_to_list(ConfigPath),
+                Pid = spawn(fun() ->
+                    register(srs_process, self()),
+                    os:cmd(Cmd),
+                    exit(normal)
+                end),
+                {ok, Pid};
+            Pid ->
+                {ok, Pid}
+        end.
+
+stop_srs() ->
+    case whereis(srs_process) of
+        undefined ->
+            ok;
+        Pid ->
+            exit(Pid, kill),
+            unregister(srs_process),
+            ok
+    end.

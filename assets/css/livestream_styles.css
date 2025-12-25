@@ -2,17 +2,25 @@
     position: relative;
     width: 100%;
     aspect-ratio: 16 / 9;
-    background: #000;
-    border-radius: 20px;
+    background: linear-gradient(135deg, #0f0f17 0%, #1a1a2e 100%);
+    border-radius: 24px;
     overflow: hidden;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    box-shadow:
+        0 20px 60px rgba(0, 0, 0, 0.5),
+        0 0 0 1px rgba(255, 255, 255, 0.05) inset;
+    border: 1px solid rgba(67, 133, 245, 0.2);
 }
 
 .livestream-player-container video {
     width: 100%;
     height: 100%;
     display: block;
-    object-fit: contain;
+    object-fit: cover;
+    transition: transform 0.4s ease;
+}
+
+.livestream-player-container:hover video {
+    transform: scale(1.02);
 }
 
 #stream-loading {
@@ -24,23 +32,25 @@
     display: none;
     flex-direction: column;
     align-items: center;
-    gap: 16px;
+    gap: 20px;
 }
 
 .stream-spinner {
-    width: 48px;
-    height: 48px;
-    border: 3px solid rgba(255, 255, 255, 0.2);
+    width: 60px;
+    height: 60px;
+    border: 4px solid rgba(255, 255, 255, 0.15);
     border-top-color: #4385f5;
     border-radius: 50%;
     animation: spin 1s linear infinite;
+    box-shadow: 0 0 20px rgba(67, 133, 245, 0.3);
 }
 
 .stream-loading-text {
     color: white;
     font-family: "Poppins", sans-serif;
-    font-size: 14px;
-    font-weight: 500;
+    font-size: 16px;
+    font-weight: 600;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
 }
 
 #stream-error {
@@ -48,102 +58,109 @@
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    background: rgba(239, 68, 68, 0.9);
+    background: rgba(239, 68, 68, 0.95);
     color: white;
-    padding: 16px 24px;
-    border-radius: 12px;
+    padding: 20px 32px;
+    border-radius: 16px;
     font-family: "Poppins", sans-serif;
-    font-size: 14px;
+    font-size: 16px;
+    font-weight: 600;
     display: none;
     z-index: 100;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(10px);
 }
 
 .live-badge {
     position: absolute;
-    top: 20px;
-    left: 20px;
+    top: 24px;
+    left: 24px;
     background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-    padding: 8px 16px;
-    border-radius: 20px;
+    padding: 10px 20px;
+    border-radius: 30px;
     display: flex;
     align-items: center;
-    gap: 8px;
-    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+    gap: 10px;
+    box-shadow: 0 6px 20px rgba(239, 68, 68, 0.5);
     z-index: 10;
+    border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .live-badge-pulse {
-    width: 8px;
-    height: 8px;
+    width: 10px;
+    height: 10px;
     background: white;
     border-radius: 50%;
-    animation: pulse 2s ease-in-out infinite;
+    animation: pulse 1.8s ease-in-out infinite;
 }
 
 .live-badge-text {
     color: white;
     font-family: "Poppins", sans-serif;
-    font-size: 14px;
-    font-weight: 600;
+    font-size: 15px;
+    font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 1px;
 }
 
 .stream-stats-overlay {
     position: absolute;
-    top: 20px;
-    right: 20px;
+    top: 24px;
+    right: 24px;
     display: flex;
-    gap: 12px;
+    gap: 14px;
     z-index: 10;
 }
 
 .stat-badge {
-    background: rgba(0, 0, 0, 0.7);
-    backdrop-filter: blur(10px);
-    padding: 8px 16px;
-    border-radius: 20px;
+    background: rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(12px);
+    padding: 10px 18px;
+    border-radius: 30px;
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .stat-icon {
-    width: 20px;
-    height: 20px;
-    color: white;
+    width: 22px;
+    height: 22px;
+    color: #4385f5;
 }
 
 .stat-text {
     color: white;
     font-family: "Poppins", sans-serif;
-    font-size: 14px;
+    font-size: 15px;
     font-weight: 600;
 }
 
 .chat-container {
-    background: #323340;
-    border-radius: 20px;
-    padding: 20px;
-    height: 600px;
+    background: linear-gradient(145deg, #2a2b36 0%, #323340 100%);
+    border-radius: 24px;
+    padding: 24px;
+    height: 620px;
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(67, 133, 245, 0.15);
 }
 
 .chat-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding-bottom: 16px;
-    border-bottom: 2px solid #27282e;
+    padding-bottom: 20px;
+    border-bottom: 2px solid rgba(67, 133, 245, 0.2);
 }
 
 .chat-title {
     color: white;
     font-family: "Poppins", sans-serif;
-    font-size: 18px;
-    font-weight: 600;
+    font-size: 20px;
+    font-weight: 700;
 }
 
 .chat-messages {
@@ -151,38 +168,45 @@
     overflow-y: auto;
     display: flex;
     flex-direction: column;
-    gap: 16px;
-    padding-right: 8px;
+    gap: 18px;
+    padding-right: 10px;
 }
 
 .chat-messages::-webkit-scrollbar {
-    width: 6px;
+    width: 8px;
 }
 
 .chat-messages::-webkit-scrollbar-track {
-    background: #27282e;
-    border-radius: 3px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 4px;
 }
 
 .chat-messages::-webkit-scrollbar-thumb {
-    background: #4385f5;
-    border-radius: 3px;
+    background: linear-gradient(180deg, #4385f5, #5a9fff);
+    border-radius: 4px;
 }
 
 .chat-messages::-webkit-scrollbar-thumb:hover {
-    background: #5a9fff;
+    background: linear-gradient(180deg, #5a9fff, #6ab0ff);
 }
 
 .chat-message {
     display: flex;
-    gap: 12px;
-    animation: slideIn 0.3s ease-out;
+    gap: 14px;
+    animation: slideIn 0.4s ease-out;
+    padding: 8px;
+    border-radius: 16px;
+    transition: background 0.2s ease;
+}
+
+.chat-message:hover {
+    background: rgba(67, 133, 245, 0.08);
 }
 
 @keyframes slideIn {
     from {
         opacity: 0;
-        transform: translateY(10px);
+        transform: translateY(15px);
     }
     to {
         opacity: 1;
@@ -191,11 +215,12 @@
 }
 
 .chat-avatar {
-    width: 40px;
-    height: 40px;
+    width: 44px;
+    height: 44px;
     border-radius: 50%;
     flex-shrink: 0;
     object-fit: cover;
+    border: 2px solid rgba(67, 133, 245, 0.3);
 }
 
 .chat-content {
@@ -204,66 +229,69 @@
 }
 
 .chat-username {
-    color: white;
+    color: #4385f5;
     font-family: "Poppins", sans-serif;
-    font-size: 14px;
-    font-weight: 600;
-    margin-bottom: 4px;
+    font-size: 15px;
+    font-weight: 700;
+    margin-bottom: 6px;
 }
 
 .chat-text {
-    color: #c5c7c8;
+    color: #e0e0e0;
     font-family: "Poppins", sans-serif;
-    font-size: 14px;
-    line-height: 1.5;
+    font-size: 15px;
+    line-height: 1.6;
     word-wrap: break-word;
 }
 
 .chat-input-container {
     display: flex;
-    gap: 12px;
-    padding-top: 16px;
-    border-top: 2px solid #27282e;
+    gap: 14px;
+    padding-top: 20px;
+    border-top: 2px solid rgba(67, 133, 245, 0.2);
 }
 
 .chat-input {
     flex: 1;
-    background: #27282e;
+    background: rgba(39, 40, 46, 0.8);
     border: 2px solid transparent;
-    border-radius: 12px;
-    padding: 12px 16px;
+    border-radius: 16px;
+    padding: 14px 20px;
     color: white;
     font-family: "Poppins", sans-serif;
-    font-size: 14px;
+    font-size: 15px;
     outline: none;
-    transition: border-color 0.3s ease;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(8px);
 }
 
 .chat-input:focus {
     border-color: #4385f5;
+    box-shadow: 0 0 0 3px rgba(67, 133, 245, 0.2);
 }
 
 .chat-input::placeholder {
-    color: #aaaaaa;
+    color: #888;
 }
 
 .chat-send-btn {
-    background: #4385f5;
+    background: linear-gradient(135deg, #4385f5, #5a9fff);
     border: none;
-    border-radius: 12px;
-    padding: 12px 24px;
+    border-radius: 16px;
+    padding: 14px 28px;
     color: white;
     font-family: "Poppins", sans-serif;
-    font-size: 14px;
-    font-weight: 600;
+    font-size: 15px;
+    font-weight: 700;
     cursor: pointer;
     transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(67, 133, 245, 0.3);
 }
 
 .chat-send-btn:hover {
-    background: #5a9fff;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(67, 133, 245, 0.4);
+    background: linear-gradient(135deg, #5a9fff, #6ab0ff);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(67, 133, 245, 0.4);
 }
 
 .chat-send-btn:active {
@@ -272,30 +300,33 @@
 
 .reactions-container {
     display: flex;
-    gap: 12px;
-    padding: 16px;
-    background: rgba(0, 0, 0, 0.5);
-    border-radius: 16px;
-    backdrop-filter: blur(10px);
+    gap: 16px;
+    padding: 20px;
+    background: rgba(0, 0, 0, 0.6);
+    border-radius: 20px;
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .reaction-btn {
-    background: rgba(255, 255, 255, 0.1);
-    border: 2px solid transparent;
+    background: rgba(255, 255, 255, 0.08);
+    border: 2px solid rgba(255, 255, 255, 0.15);
     border-radius: 50%;
-    width: 48px;
-    height: 48px;
+    width: 56px;
+    height: 56px;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
     transition: all 0.3s ease;
+    backdrop-filter: blur(4px);
 }
 
 .reaction-btn:hover {
     background: rgba(255, 255, 255, 0.2);
-    border-color: white;
-    transform: scale(1.1);
+    border-color: #4385f5;
+    transform: scale(1.15);
+    box-shadow: 0 0 20px rgba(67, 133, 245, 0.4);
 }
 
 .reaction-pulse {
@@ -307,7 +338,7 @@
         transform: scale(1);
     }
     50% {
-        transform: scale(1.3);
+        transform: scale(1.4);
     }
     100% {
         transform: scale(1);
@@ -315,34 +346,36 @@
 }
 
 .reaction-icon {
-    font-size: 24px;
+    font-size: 28px;
 }
 
 .stream-controls-bar {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 20px;
-    padding: 20px;
+    gap: 24px;
+    padding: 24px;
     background: rgba(0, 0, 0, 0.7);
-    backdrop-filter: blur(10px);
-    border-radius: 20px;
+    backdrop-filter: blur(16px);
+    border-radius: 24px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .control-indicator {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
 }
 
 .indicator-dot {
-    width: 12px;
-    height: 12px;
+    width: 14px;
+    height: 14px;
     border-radius: 50%;
 }
 
 .indicator-dot.active {
     background: #10b981;
+    box-shadow: 0 0 15px rgba(16, 185, 129, 0.6);
     animation: pulse 2s ease-in-out infinite;
 }
 
@@ -356,204 +389,216 @@
         opacity: 1;
     }
     50% {
-        opacity: 0.5;
+        opacity: 0.6;
     }
 }
 
 .control-btn-primary {
-    background: #4385f5;
+    background: linear-gradient(135deg, #4385f5, #5a9fff);
     color: white;
     border: none;
-    border-radius: 12px;
-    padding: 12px 32px;
+    border-radius: 16px;
+    padding: 14px 36px;
     font-family: "Poppins", sans-serif;
-    font-size: 16px;
-    font-weight: 600;
+    font-size: 17px;
+    font-weight: 700;
     cursor: pointer;
     transition: all 0.3s ease;
+    box-shadow: 0 6px 20px rgba(67, 133, 245, 0.4);
 }
 
 .control-btn-primary:hover {
-    background: #5a9fff;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(67, 133, 245, 0.4);
+    background: linear-gradient(135deg, #5a9fff, #6ab0ff);
+    transform: translateY(-4px);
+    box-shadow: 0 12px 30px rgba(67, 133, 245, 0.5);
 }
 
 .control-btn-danger {
-    background: #ef4444;
+    background: linear-gradient(135deg, #ef4444, #dc2626);
     color: white;
     border: none;
-    border-radius: 12px;
-    padding: 12px 32px;
+    border-radius: 16px;
+    padding: 14px 36px;
     font-family: "Poppins", sans-serif;
-    font-size: 16px;
-    font-weight: 600;
+    font-size: 17px;
+    font-weight: 700;
     cursor: pointer;
     transition: all 0.3s ease;
+    box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4);
 }
 
 .control-btn-danger:hover {
-    background: #dc2626;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+    background: linear-gradient(135deg, #dc2626, #b91c1c);
+    transform: translateY(-4px);
+    box-shadow: 0 12px 30px rgba(239, 68, 68, 0.5);
 }
 
 .control-btn-secondary {
-    background: #323340;
+    background: rgba(50, 51, 64, 0.8);
     color: white;
-    border: none;
-    border-radius: 12px;
-    padding: 12px 32px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    padding: 14px 36px;
     font-family: "Poppins", sans-serif;
-    font-size: 16px;
-    font-weight: 400;
+    font-size: 17px;
+    font-weight: 600;
     cursor: pointer;
     transition: all 0.3s ease;
+    backdrop-filter: blur(8px);
 }
 
 .control-btn-secondary:hover {
-    background: #3a3b4a;
+    background: rgba(58, 59, 74, 0.9);
+    transform: translateY(-2px);
 }
 
 .rtmp-info-box {
-    background: #323340;
-    border-radius: 20px;
-    padding: 24px;
-    margin-bottom: 20px;
+    background: linear-gradient(145deg, #2a2b36 0%, #323340 100%);
+    border-radius: 24px;
+    padding: 28px;
+    margin-bottom: 24px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(67, 133, 245, 0.15);
 }
 
 .rtmp-info-title {
     color: white;
     font-family: "Poppins", sans-serif;
-    font-size: 18px;
-    font-weight: 600;
-    margin-bottom: 16px;
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 20px;
 }
 
 .rtmp-field {
-    margin-bottom: 16px;
+    margin-bottom: 20px;
 }
 
 .rtmp-label {
     color: #c5c7c8;
     font-family: "Poppins", sans-serif;
-    font-size: 14px;
+    font-size: 15px;
     font-weight: 600;
-    margin-bottom: 8px;
+    margin-bottom: 10px;
     display: block;
 }
 
 .rtmp-value-container {
     display: flex;
-    gap: 12px;
+    gap: 14px;
     align-items: center;
 }
 
 .rtmp-value {
     flex: 1;
-    background: #27282e;
-    border: 2px solid #27282e;
-    border-radius: 12px;
-    padding: 12px 16px;
+    background: rgba(39, 40, 46, 0.8);
+    border: 2px solid rgba(67, 133, 245, 0.2);
+    border-radius: 16px;
+    padding: 14px 20px;
     color: white;
-    font-family: "Poppins", monospace;
-    font-size: 14px;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 15px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    backdrop-filter: blur(8px);
 }
 
 .copy-btn {
-    background: #27282e;
-    border: none;
-    border-radius: 12px;
-    padding: 12px 16px;
+    background: rgba(39, 40, 46, 0.8);
+    border: 2px solid rgba(67, 133, 245, 0.2);
+    border-radius: 16px;
+    padding: 14px 20px;
     color: #aaaaaa;
     cursor: pointer;
     transition: all 0.3s ease;
+    backdrop-filter: blur(8px);
 }
 
 .copy-btn:hover {
     background: #4385f5;
     color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(67, 133, 245, 0.4);
 }
 
 .stream-preview-card {
-    background: #323340;
-    border-radius: 20px;
-    padding: 28px;
-    box-shadow: 0 10px 20px rgba(32, 40, 49, 0.12);
+    background: linear-gradient(145deg, #2a2b36 0%, #323340 100%);
+    border-radius: 24px;
+    padding: 32px;
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(67, 133, 245, 0.15);
 }
 
 .preview-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 36px;
+    margin-bottom: 40px;
 }
 
 .preview-title {
     color: white;
     font-family: "Poppins", sans-serif;
-    font-size: 20px;
-    font-weight: 600;
+    font-size: 22px;
+    font-weight: 700;
 }
 
 .preview-details {
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 24px;
 }
 
 .preview-row {
-    padding: 10px 0;
-    border-bottom: 2px solid #6b7280;
+    padding: 12px 0;
+    border-bottom: 2px solid rgba(67, 133, 245, 0.2);
     display: flex;
-    gap: 64px;
+    gap: 80px;
 }
 
 .preview-label {
-    color: white;
+    color: #c5c7c8;
     font-family: "Poppins", sans-serif;
-    font-size: 16px;
+    font-size: 17px;
     font-weight: 600;
-    min-width: 120px;
+    min-width: 140px;
 }
 
 .preview-value {
     color: white;
     font-family: "Poppins", sans-serif;
-    font-size: 16px;
-    font-weight: 600;
+    font-size: 17px;
+    font-weight: 700;
     flex: 1;
 }
 
 .preview-tags {
     display: flex;
-    gap: 5px;
+    gap: 10px;
     flex-wrap: wrap;
 }
 
 .preview-tag {
-    background: #323340;
-    padding: 6px 10px;
-    border-radius: 10px;
+    background: linear-gradient(135deg, #4385f5, #5a9fff);
+    padding: 8px 16px;
+    border-radius: 12px;
     color: white;
     font-family: "Poppins", sans-serif;
-    font-size: 14px;
+    font-size: 15px;
+    font-weight: 600;
 }
 
 .preview-actions {
     display: flex;
-    gap: 10px;
-    margin-top: 16px;
+    gap: 14px;
+    margin-top: 20px;
 }
 
 .modal-overlay {
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.7);
-    backdrop-filter: blur(4px);
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(8px);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -561,26 +606,27 @@
 }
 
 .modal-content {
-    background: #323340;
-    border-radius: 20px;
-    padding: 28px;
-    max-width: 530px;
+    background: linear-gradient(145deg, #2a2b36 0%, #323340 100%);
+    border-radius: 24px;
+    padding: 32px;
+    max-width: 560px;
     width: 90%;
-    box-shadow: 0 10px 20px rgba(32, 40, 49, 0.12);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+    border: 1px solid rgba(67, 133, 245, 0.2);
 }
 
 .modal-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 36px;
+    margin-bottom: 40px;
 }
 
 .modal-title {
     color: white;
     font-family: "Poppins", sans-serif;
-    font-size: 20px;
-    font-weight: 600;
+    font-size: 22px;
+    font-weight: 700;
 }
 
 .modal-close {
@@ -588,7 +634,7 @@
     border: none;
     color: #aaaaaa;
     cursor: pointer;
-    padding: 8px;
+    padding: 10px;
     transition: color 0.3s ease;
 }
 
@@ -599,47 +645,51 @@
 .modal-body {
     color: white;
     font-family: "Poppins", sans-serif;
-    font-size: 16px;
-    margin-bottom: 36px;
+    font-size: 17px;
+    margin-bottom: 40px;
+    line-height: 1.7;
 }
 
 .modal-actions {
     display: flex;
-    gap: 10px;
+    gap: 14px;
 }
 
 .viewer-list {
-    background: #323340;
-    border-radius: 20px;
-    padding: 20px;
-    max-height: 400px;
+    background: linear-gradient(145deg, #2a2b36 0%, #323340 100%);
+    border-radius: 24px;
+    padding: 24px;
+    max-height: 420px;
     overflow-y: auto;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
 }
 
 .viewer-item {
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 12px;
-    border-radius: 12px;
-    transition: background 0.3s ease;
+    gap: 16px;
+    padding: 14px;
+    border-radius: 16px;
+    transition: all 0.3s ease;
 }
 
 .viewer-item:hover {
-    background: #27282e;
+    background: rgba(67, 133, 245, 0.15);
+    transform: translateX(8px);
 }
 
 .viewer-avatar {
-    width: 40px;
-    height: 40px;
+    width: 48px;
+    height: 48px;
     border-radius: 50%;
     object-fit: cover;
+    border: 3px solid rgba(67, 133, 245, 0.4);
 }
 
 .viewer-name {
     color: white;
     font-family: "Poppins", sans-serif;
-    font-size: 14px;
+    font-size: 16px;
     font-weight: 600;
 }
 
@@ -653,21 +703,33 @@
     .livestream-player-container {
         border-radius: 0;
     }
-
     .chat-container {
-        height: 400px;
+        height: 420px;
         border-radius: 0;
+        padding: 16px;
     }
-
     .stream-controls-bar {
         flex-wrap: wrap;
-        gap: 12px;
+        gap: 16px;
+        padding: 16px;
     }
-
     .control-btn-primary,
     .control-btn-danger,
     .control-btn-secondary {
-        padding: 10px 20px;
-        font-size: 14px;
+        padding: 12px 24px;
+        font-size: 15px;
+    }
+    .live-badge {
+        top: 16px;
+        left: 16px;
+        padding: 8px 14px;
+    }
+    .stream-stats-overlay {
+        top: 16px;
+        right: 16px;
+        gap: 10px;
+    }
+    .stat-badge {
+        padding: 8px 14px;
     }
 }

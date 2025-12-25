@@ -288,13 +288,18 @@ defmodule MazarynWeb.MediaLive.Livestream.Watch do
   defp get_username(_), do: "Anonymous"
 
   defp load_stream(socket, stream_id, user) do
+    Logger.info("🎬 [WATCH] Loading stream: #{stream_id}")
+
     charlist_stream_id = String.to_charlist(stream_id)
 
     case :livestreamdb.get_livestream(charlist_stream_id) do
       {:ok, stream_tuple} ->
+        Logger.info("✅ [WATCH] Stream found")
+
         stream = format_stream(stream_tuple)
         creator = get_creator_info(stream.user_id)
         messages = load_chat_messages(charlist_stream_id)
+
         user_id = get_user_id(user)
 
         is_following =
@@ -312,22 +317,29 @@ defmodule MazarynWeb.MediaLive.Livestream.Watch do
         |> assign(:current_viewers, stream.current_viewers)
         |> assign(:is_following, is_following)
 
-      {:error, reason} ->
-        Logger.error("Failed to load stream: #{inspect(reason)}")
+      {:error, :not_found} ->
+        Logger.error("❌ [WATCH] Stream not found: #{stream_id}")
 
         socket
         |> put_flash(:error, "Stream not found")
         |> push_navigate(to: ~p"/#{socket.assigns.locale}/livestreams")
+
+      {:error, reason} ->
+        Logger.error("❌ [WATCH] Error loading stream: #{inspect(reason)}")
+
+        socket
+        |> put_flash(:error, "Failed to load stream")
+        |> push_navigate(to: ~p"/#{socket.assigns.locale}/livestreams")
     end
   end
 
-  defp format_stream(stream_tuple) do
+  defp format_stream(stream_tuple) when is_tuple(stream_tuple) do
     {_tag, stream_id, user_id, title, description, thumbnail_cid, _thumb_ipns, status,
-     _visibility, tags, category, _lang, _key, _rtmp, _backup, _playback, hls_url, _vod, _rust_id,
-     _proto, _qual, viewers, peak, total, _unique, _timeline, _mods, _banned, _slow, _slow_dur,
-     _chat_en, _chat_replay, _chat_msgs, _reactions, _react_counts, _shares, _saves, started_at,
-     _ended_at, _scheduled, _duration, _bitrate, _resolution, _dropped, _health, _notif, _created,
-     _data} = stream_tuple
+     _visibility, tags, category, _lang, _key, _rtmp, _backup, _playback, hls_url, vod_cid,
+     _rust_id, _proto, _qual, viewers, peak, total, _unique, _timeline, _mods, _banned, _slow,
+     _slow_dur, _chat_en, _chat_replay, _chat_msgs, _reactions, _react_counts, _shares, _saves,
+     started_at, _ended_at, _scheduled, _duration, _bitrate, _resolution, _dropped, _health,
+     _notif, _created, _data} = stream_tuple
 
     %{
       id: if(is_binary(stream_id), do: stream_id, else: to_string(stream_id)),
@@ -342,36 +354,59 @@ defmodule MazarynWeb.MediaLive.Livestream.Watch do
       total_views: total || 0,
       started_at: started_at,
       status: status,
-      hls_url: if(is_binary(hls_url), do: hls_url, else: get_hls_url(stream_id)),
+      hls_url: get_video_url(status, hls_url, vod_cid),
       tags: if(is_list(tags), do: tags, else: [])
     }
+  end
+
+  defp get_video_url(:live, hls_url, _vod_cid) when is_binary(hls_url) and hls_url != "" do
+    Logger.info("🎬 [VIDEO_URL] Live stream with HLS URL: #{hls_url}")
+    hls_url
+  end
+
+  defp get_video_url(:live, hls_url, _vod_cid) when is_list(hls_url) do
+    hls_str = List.to_string(hls_url)
+    Logger.info("🎬 [VIDEO_URL] Live stream with charlist HLS URL: #{hls_str}")
+    if hls_str != "", do: hls_str, else: nil
+  end
+
+  defp get_video_url(:live, _hls_url, _vod_cid) do
+    Logger.warn("⚠️ [VIDEO_URL] Live stream with no HLS URL")
+    nil
+  end
+
+  defp get_video_url(:ended, _hls_url, vod_cid) when is_binary(vod_cid) and vod_cid != "" do
+    url = "https://ipfs.io/ipfs/#{vod_cid}"
+    Logger.info("🎬 [VIDEO_URL] VOD with binary CID: #{url}")
+    url
+  end
+
+  defp get_video_url(:ended, _hls_url, vod_cid) when is_list(vod_cid) and length(vod_cid) > 10 do
+    cid_str = List.to_string(vod_cid)
+    url = "https://ipfs.io/ipfs/#{cid_str}"
+    Logger.info("🎬 [VIDEO_URL] VOD with charlist CID: #{url}")
+    url
+  end
+
+  defp get_video_url(status, _hls_url, vod_cid) do
+    Logger.error("❌ [VIDEO_URL] No matching clause - Status: #{inspect(status)}, VOD CID: #{inspect(vod_cid)}")
+    nil
   end
 
   defp get_thumbnail_url(thumbnail_cid) when is_binary(thumbnail_cid) and thumbnail_cid != "" do
     "https://ipfs.io/ipfs/#{thumbnail_cid}"
   end
 
-  defp get_thumbnail_url(thumbnail_cid)
-       when is_list(thumbnail_cid) and length(thumbnail_cid) > 0 do
+  defp get_thumbnail_url(thumbnail_cid) when is_list(thumbnail_cid) and length(thumbnail_cid) > 0 do
     "https://ipfs.io/ipfs/#{List.to_string(thumbnail_cid)}"
   end
 
-  defp get_thumbnail_url(:undefined), do: "/images/default-stream-thumbnail.png"
-  defp get_thumbnail_url(nil), do: "/images/default-stream-thumbnail.png"
   defp get_thumbnail_url(_), do: "/images/default-stream-thumbnail.png"
 
   defp format_category(category) when is_atom(category), do: Atom.to_string(category)
   defp format_category(category) when is_binary(category), do: category
   defp format_category(category) when is_list(category), do: List.to_string(category)
   defp format_category(_), do: "other"
-
-  defp get_hls_url(stream_id) when is_binary(stream_id) do
-    "https://#{System.get_env("HLS_DOMAIN", "stream.mazaryn.io")}/live/#{stream_id}/index.m3u8"
-  end
-
-  defp get_hls_url(stream_id) when is_list(stream_id) do
-    get_hls_url(List.to_string(stream_id))
-  end
 
   defp get_creator_info(user_id) do
     charlist_id = if is_binary(user_id), do: String.to_charlist(user_id), else: user_id
@@ -516,4 +551,13 @@ defmodule MazarynWeb.MediaLive.Livestream.Watch do
 
   defp format_viewers(count) when is_integer(count), do: Integer.to_string(count)
   defp format_viewers(_), do: "0"
+
+  defp extract_cid(hls_url) when is_binary(hls_url) do
+    case String.starts_with?(hls_url, "https://ipfs.io/ipfs/") do
+      true -> String.replace_prefix(hls_url, "https://ipfs.io/ipfs/", "")
+      false -> ""
+    end
+  end
+
+  defp extract_cid(_), do: ""
 end

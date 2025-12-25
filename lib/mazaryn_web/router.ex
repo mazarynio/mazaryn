@@ -37,28 +37,35 @@ defmodule MazarynWeb.Router do
     plug(:accepts, ["json", "zip", "octet-stream"])
   end
 
+  pipeline :api_multipart do
+    plug(:accepts, ["multipart"])
+    plug(:fetch_session)
+    plug(:validate_session)
+  end
+
   scope "/api", MazarynWeb do
     pipe_through(:api_binary)
-
     get("/datasets/:dataset_id/download", DatasetDownloadController, :download)
   end
 
   scope "/api", MazarynWeb do
     pipe_through(:api)
-
     get("/videos/:id/stream", VideoController, :stream)
     get("/livestreams/:id/hls", LivestreamController, :hls)
     get("/livestreams/:id/rtmp", LivestreamController, :rtmp_info)
   end
 
+  scope "/api", MazarynWeb do
+    pipe_through(:api_multipart)
+    post("/livestreams/:id/save-recording", LivestreamController, :save_recording)
+  end
+
   scope "/en/api" do
     pipe_through(:api)
-
     forward("/graphiql", Absinthe.Plug.GraphiQL,
       schema: MazarynWeb.Schema,
       interface: :simple
     )
-
     forward("/", Absinthe.Plug, schema: MazarynWeb.Schema)
   end
 
@@ -107,24 +114,24 @@ defmodule MazarynWeb.Router do
 
     live_session :restricted,
       on_mount: [{MazarynWeb.UserLiveAuth, :restricted}, {MazarynWeb.UserLiveAuth, :default}] do
+
       live("/home", HomeLive.Home)
       live("/post/:post_id", PostLive.Show)
       live("/dashboard", DashboardLive.Dashboard)
       live("/approve", HomeLive.Approve)
       live("/coins", CoinLive.Index)
       live("/notifications", HomeLive.Notification)
-
       live("/videos", MediaLive.Video.Index, :index)
       live("/videos/upload", MediaLive.Video.Upload, :upload)
       live("/videos/my-videos", MediaLive.Video.MyVideos, :my_videos)
       live("/videos/:id", MediaLive.Video.Show, :show)
-
       live("/livestreams", MediaLive.Livestream.Index, :index)
       live("/livestreams/go-live", MediaLive.Livestream.GoLive, :go_live)
       live("/livestreams/my-streams", MediaLive.Livestream.MyStreams, :my_streams)
       live("/livestreams/:id", MediaLive.Livestream.Watch, :watch)
       live("/livestreams/:id/dashboard", MediaLive.Livestream.Dashboard, :dashboard)
       live("/livestreams/go-live/camera", MediaLive.Livestream.GoLive, :camera)
+
 
       live("/ai", AiLive.Index)
       live("/ai/datasets", AiLive.Datasets, :index)
@@ -140,10 +147,8 @@ defmodule MazarynWeb.Router do
       live("/ai/competitions/:id/leaderboard", AiLive.CompetitionLeaderboard, :leaderboard)
       live("/ai/competitions/:id/submit", AiLive.CompetitionSubmit, :submit)
       live("/ai/competitions/:id/teams", AiLive.CompetitionTeams, :teams)
-
       live("/ai/notebooks", AiLive.Notebooks, :index)
       live("/ai/notebooks/:id", AiLive.NotebookShow, :show)
-
       live("/ai/models", AiLive.Models, :index)
       live("/ai/models/new", AiLive.ModelNew, :new)
       live("/ai/models/:id", AiLive.ModelShow, :show)
@@ -153,7 +158,6 @@ defmodule MazarynWeb.Router do
       live("/ai/discussions", AiLive.Discussions, :index)
       live("/ai/discussions/new", AiLive.DiscussionNew, :new)
       live("/ai/discussions/:id", AiLive.DiscussionShow, :show)
-
       live("/downloads", DownloadManagerLive.Index, :index)
 
       scope "/chats" do

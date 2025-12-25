@@ -1,6 +1,5 @@
 const CameraManager = {
   mounted() {
-    console.log("🎥 [CameraManager] HOOK MOUNTED");
     this.stream = null;
     this.mediaRecorder = null;
     this.recordedChunks = [];
@@ -8,54 +7,39 @@ const CameraManager = {
     this.recordingStartTime = null;
     this.durationInterval = null;
     this.durationStarted = false;
+    this.recordingBlob = null;
+    this.streamId = null;
     const streamingVideo = document.getElementById("streaming-video");
     const cameraPreview = document.getElementById("camera-preview");
     if (streamingVideo) {
-      console.log("📺 Detected STREAMING page");
       this.isStreaming = true;
       this.handleStreamingPage();
     } else if (cameraPreview) {
-      console.log("📹 Detected PREVIEW/SETUP page");
       this.isStreaming = false;
       this.handlePreviewPage();
     }
     setTimeout(() => this.attachEventHandlers(), 100);
   },
   async handlePreviewPage() {
-    console.log("🎬 Setting up preview page...");
     const existingStream = window.MAZARYN_GLOBAL_CAMERA_STREAM;
     if (existingStream && existingStream.active) {
-      console.log("♻️ Reusing existing camera stream for preview");
       this.stream = existingStream;
       this.attachStreamToPreview(existingStream);
     } else {
-      console.log("🆕 Requesting new camera permission for preview");
       await this.requestCameraPermission();
     }
   },
   async handleStreamingPage() {
-    console.log("📡 Setting up streaming page...");
     const existingStream = window.MAZARYN_GLOBAL_CAMERA_STREAM;
     if (existingStream && existingStream.active) {
-      console.log("✅ Found existing active camera stream!");
-      console.log("Stream info:", {
-        id: existingStream.id,
-        active: existingStream.active,
-        videoTracks: existingStream.getVideoTracks().length,
-        audioTracks: existingStream.getAudioTracks().length,
-      });
       this.stream = existingStream;
       this.attachStreamToStreaming(existingStream);
       this.startDurationCounter();
       const autoRecord = document.querySelector('[data-auto-record="true"]');
       if (autoRecord) {
-        console.log(
-          "🔴 Auto-record enabled, starting recording in 2 seconds...",
-        );
         setTimeout(() => this.startRecording(), 2000);
       }
     } else {
-      console.warn("⚠️ No existing stream found, requesting new permission");
       await this.requestCameraPermission();
       if (this.stream) {
         this.startDurationCounter();
@@ -65,29 +49,39 @@ const CameraManager = {
         }
       }
     }
+    const streamIdEl = document.querySelector("[data-stream-id]");
+    if (streamIdEl) {
+      this.streamId = streamIdEl.dataset.streamId;
+    }
   },
   async requestCameraPermission() {
-    console.log("📸 Requesting camera permission...");
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({
+      const constraints = {
         video: {
-          width: { ideal: 1920 },
-          height: { ideal: 1080 },
+          width: { ideal: 1920, min: 1280 },
+          height: { ideal: 1080, min: 720 },
+          frameRate: { ideal: 60, min: 30 },
           facingMode: "user",
+          resizeMode: "crop-and-scale",
         },
         audio: {
           echoCancellation: true,
           noiseSuppression: true,
           autoGainControl: true,
+          sampleRate: { ideal: 48000 },
+          channelCount: { ideal: 2 },
         },
-      });
-      console.log("✅ Camera permission granted!");
-      console.log("Stream details:", {
-        id: stream.id,
-        active: stream.active,
-        videoTracks: stream.getVideoTracks().length,
-        audioTracks: stream.getAudioTracks().length,
-      });
+      };
+      const stream = await navigator.mediaDevices.getUserMedia(constraints);
+      const videoTrack = stream.getVideoTracks()[0];
+      if (videoTrack) {
+        const settings = videoTrack.getSettings();
+        console.log("Camera started:", {
+          resolution: `${settings.width}x${settings.height}`,
+          frameRate: settings.frameRate,
+          device: videoTrack.label,
+        });
+      }
       this.stream = stream;
       window.MAZARYN_GLOBAL_CAMERA_STREAM = stream;
       window.globalCameraStream = stream;
@@ -98,62 +92,63 @@ const CameraManager = {
       }
       this.pushEvent("camera_ready", {});
       const startBtn = document.getElementById("start-camera-btn");
-      if (startBtn) {
-        startBtn.style.display = "none";
-      }
+      if (startBtn) startBtn.style.display = "none";
       return true;
     } catch (error) {
-      console.error("❌ Camera permission error:", error);
-      if (error.name === "NotAllowedError") {
-        this.showPermissionPrompt();
-      } else {
-        this.showError(error);
+      console.error("Camera permission error:", error);
+      if (error.name === "OverconstrainedError") {
+        return this.requestFallbackCamera();
       }
+      alert("Camera permission denied. Please allow camera access.");
+      return false;
+    }
+  },
+  async requestFallbackCamera() {
+    try {
+      const fallbackStream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          width: { ideal: 1280 },
+          height: { ideal: 720 },
+          frameRate: { ideal: 30 },
+          facingMode: "user",
+        },
+        audio: true,
+      });
+      this.stream = fallbackStream;
+      window.MAZARYN_GLOBAL_CAMERA_STREAM = fallbackStream;
+      if (this.isStreaming) {
+        this.attachStreamToStreaming(fallbackStream);
+      } else {
+        this.attachStreamToPreview(fallbackStream);
+      }
+      this.pushEvent("camera_ready", {});
+      return true;
+    } catch (err) {
+      console.error("Fallback camera failed:", err);
+      alert("Unable to access camera. Please check permissions.");
       return false;
     }
   },
   attachStreamToPreview(stream) {
     const video = document.getElementById("camera-preview");
-    if (!video) {
-      console.warn("⚠️ Preview video element not found");
-      return;
-    }
+    if (!video) return;
     video.srcObject = stream;
     video.muted = true;
     video.autoplay = true;
     video.playsInline = true;
-    video
-      .play()
-      .then(() => {
-        console.log("✅ Preview video playing");
-      })
-      .catch((err) => {
-        console.error("Preview play error:", err);
-      });
+    video.play();
   },
   attachStreamToStreaming(stream) {
     const video = document.getElementById("streaming-video");
     if (!video) {
-      console.warn("⚠️ Streaming video element not found");
       setTimeout(() => this.attachStreamToStreaming(stream), 300);
       return;
     }
-    console.log("🔗 Attaching stream to streaming video...");
     video.srcObject = stream;
     video.muted = false;
     video.autoplay = true;
     video.playsInline = true;
-    video
-      .play()
-      .then(() => {
-        console.log("✅✅✅ STREAMING VIDEO IS NOW PLAYING! ✅✅✅");
-      })
-      .catch((err) => {
-        console.error("❌ Streaming play error:", err);
-        setTimeout(() => {
-          video.play().catch((e) => console.error("Retry failed:", e));
-        }, 500);
-      });
+    video.play();
   },
   attachEventHandlers() {
     const startBtn = document.getElementById("start-camera-btn");
@@ -185,51 +180,72 @@ const CameraManager = {
           return;
         }
         if (this.stream && this.stream.active) {
-          console.log("💾 Storing camera stream globally before navigation");
           window.MAZARYN_GLOBAL_CAMERA_STREAM = this.stream;
         }
-        this.pushEvent("setup_stream", {
-          title: title,
-          description: description,
-          category: category,
-        });
+        this.pushEvent("setup_stream", { title, description, category });
       });
       continueBtn.dataset.listenerAttached = "true";
     }
     const endStreamBtn = document.querySelector('[phx-click="end_stream"]');
     if (endStreamBtn && !endStreamBtn.dataset.jsListenerAttached) {
-      console.log("🔴 Attaching END STREAM handler");
       endStreamBtn.addEventListener(
         "click",
         async (e) => {
-          console.log("🛑 END STREAM CLICKED - JS cleanup");
+          e.preventDefault();
+          let recordingFile = null;
+          let durationSeconds = 0;
           if (this.isRecording && this.mediaRecorder) {
             try {
               await new Promise((resolve) => {
-                this.mediaRecorder.onstop = resolve;
+                const timeout = setTimeout(resolve, 8000);
+                this.mediaRecorder.onstop = () => {
+                  clearTimeout(timeout);
+                  if (this.recordedChunks.length === 0) {
+                    resolve();
+                    return;
+                  }
+                  const blob = new Blob(this.recordedChunks, {
+                    type: "video/webm",
+                  });
+                  durationSeconds = Math.floor(
+                    (Date.now() - this.recordingStartTime) / 1000,
+                  );
+                  recordingFile = new File(
+                    [blob],
+                    `livestream_${this.streamId}_${Date.now()}.webm`,
+                    {
+                      type: "video/webm",
+                    },
+                  );
+                  resolve();
+                };
                 this.mediaRecorder.stop();
               });
-              console.log("Recording stopped");
             } catch (err) {
-              console.error("Failed to stop recording:", err);
+              console.error("Error stopping recording:", err);
             }
+          }
+          if (this.durationInterval) {
+            clearInterval(this.durationInterval);
+            this.durationInterval = null;
           }
           if (this.stream) {
             this.stream.getTracks().forEach((track) => track.stop());
             this.stream = null;
             window.MAZARYN_GLOBAL_CAMERA_STREAM = null;
-            console.log("Camera stopped");
           }
-          if (this.durationInterval) {
-            clearInterval(this.durationInterval);
-            this.durationInterval = null;
+          if (recordingFile && this.streamId) {
+            await this.uploadRecordingFile(
+              recordingFile,
+              durationSeconds,
+              this.streamId,
+            );
           }
           this.pushEvent("end_stream", {});
         },
         { capture: true },
       );
       endStreamBtn.dataset.jsListenerAttached = "true";
-      console.log("✅ End stream handler attached");
     }
   },
   startRecording() {
@@ -238,158 +254,92 @@ const CameraManager = {
       return;
     }
     if (this.isRecording) {
-      console.warn("Already recording");
       return;
     }
-    console.log("🔴 Starting recording...");
     this.recordedChunks = [];
     this.recordingStartTime = Date.now();
-    const mimeTypes = [
-      "video/webm;codecs=vp9,opus",
-      "video/webm;codecs=vp8,opus",
-      "video/webm;codecs=vp9",
-      "video/webm;codecs=vp8",
-      "video/webm",
-      "video/mp4",
-    ];
-    const mimeType = mimeTypes.find((type) =>
-      MediaRecorder.isTypeSupported(type),
-    );
-    if (!mimeType) {
-      alert("Recording not supported in this browser");
-      return;
-    }
-    console.log("Using MIME type:", mimeType);
+    const mimeType = MediaRecorder.isTypeSupported("video/webm;codecs=vp9,opus")
+      ? "video/webm;codecs=vp9,opus"
+      : MediaRecorder.isTypeSupported("video/webm;codecs=vp8,opus")
+        ? "video/webm;codecs=vp8,opus"
+        : "video/webm";
     try {
       this.mediaRecorder = new MediaRecorder(this.stream, {
         mimeType: mimeType,
-        videoBitsPerSecond: 2500000,
-        audioBitsPerSecond: 128000,
+        videoBitsPerSecond: 5000000,
+        audioBitsPerSecond: 192000,
       });
       this.mediaRecorder.ondataavailable = (event) => {
         if (event.data && event.data.size > 0) {
           this.recordedChunks.push(event.data);
-          console.log(
-            `📦 Chunk: ${event.data.size} bytes (Total: ${this.recordedChunks.length})`,
-          );
         }
       };
-      this.mediaRecorder.onstop = async () => {
-        console.log("⏹️ Recording stopped");
-        if (this.recordedChunks.length === 0) {
-          console.warn("No chunks recorded!");
-          return;
-        }
+      this.mediaRecorder.onstop = () => {
+        if (this.recordedChunks.length === 0) return;
         const blob = new Blob(this.recordedChunks, { type: mimeType });
-        const durationSeconds = Math.floor(
-          (Date.now() - this.recordingStartTime) / 1000,
-        );
-        console.log(`✅ Recording complete:`, {
-          size: blob.size,
-          duration: durationSeconds,
-          chunks: this.recordedChunks.length,
-          mimeType: mimeType,
-        });
-        if (this.isStreaming) {
-          console.log("📤 Uploading recording...");
-          await this.uploadRecording(blob, durationSeconds);
-        } else {
-          this.downloadRecording(blob, "test");
-        }
+        this.recordingBlob = blob;
         this.isRecording = false;
-        this.pushEvent("stop_recording", {});
-      };
-      this.mediaRecorder.onerror = (event) => {
-        console.error("Recording error:", event.error);
       };
       this.mediaRecorder.start(1000);
       this.isRecording = true;
       this.pushEvent("start_recording", {});
-      console.log("✅ MediaRecorder started");
     } catch (error) {
       console.error("Failed to start recording:", error);
-      alert("Failed to start recording: " + error.message);
+      alert("Failed to start recording");
     }
   },
   stopRecording() {
-    if (!this.isRecording || !this.mediaRecorder) {
-      return;
+    if (this.isRecording && this.mediaRecorder) {
+      this.mediaRecorder.stop();
     }
-    console.log("⏹️ Stopping recording...");
-    this.mediaRecorder.stop();
   },
-  async uploadRecording(blob, durationSeconds) {
+  async uploadRecordingFile(file, durationSeconds, streamId) {
     try {
-      console.log("📤 Preparing upload...");
-      const mockCID = `Qm${Math.random().toString(36).substring(2, 15)}${Math.random().toString(36).substring(2, 15)}`;
-      console.log("Simulated IPFS upload, CID:", mockCID);
-      if (this.isStreaming) {
-        this.pushEvent("save_recording", {
-          cid: mockCID,
-          size: blob.size,
-          duration: durationSeconds,
-        });
+      const formData = new FormData();
+      formData.append("recording_file", file);
+      formData.append("duration", durationSeconds);
+      formData.append("size", file.size);
+      formData.append("mime_type", file.type);
+      const csrfToken = document.querySelector(
+        'meta[name="csrf-token"]',
+      )?.content;
+      const uploadUrl = `/api/livestreams/${streamId}/save-recording`;
+      const response = await fetch(uploadUrl, {
+        method: "POST",
+        body: formData,
+        headers: {
+          "x-csrf-token": csrfToken,
+        },
+      });
+      if (response.ok) {
+        this.pushEvent("recording_uploaded", { stream_id: streamId });
+      } else {
+        const error = await response.text();
+        this.pushEvent("recording_upload_failed", { error });
       }
-      this.downloadRecording(blob, "stream");
-      console.log("✅ Recording saved!");
     } catch (error) {
-      console.error("Upload error:", error);
-      this.downloadRecording(blob, "backup");
+      this.pushEvent("recording_upload_failed", { error: error.message });
     }
-  },
-  downloadRecording(blob, type) {
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `mazaryn-${type}-${Date.now()}.webm`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    console.log(`💾 Downloaded ${type} recording`);
   },
   startDurationCounter() {
-    if (this.durationStarted) {
-      console.log("Duration counter already started");
-      return;
-    }
+    if (this.durationStarted) return;
     this.durationStarted = true;
     const startTime = Date.now();
     this.durationInterval = setInterval(() => {
       const elapsed = Math.floor((Date.now() - startTime) / 1000);
       const minutes = Math.floor(elapsed / 60);
       const seconds = elapsed % 60;
-      const formatted = `${minutes}:${seconds.toString().padStart(2, "0")}`;
       const durationEl = document.getElementById("stream-duration");
       if (durationEl) {
-        durationEl.textContent = formatted;
+        durationEl.textContent = `${minutes}:${seconds.toString().padStart(2, "0")}`;
       }
     }, 1000);
-    console.log("⏱️ Duration counter started");
-  },
-  showPermissionPrompt() {
-    alert(
-      `Camera permission required. Please allow camera and microphone access.`,
-    );
-  },
-  showError(error) {
-    let message = "Camera error: " + error.message;
-    if (error.name === "NotFoundError") {
-      message = "No camera found. Please connect a camera and try again.";
-    } else if (error.name === "NotReadableError") {
-      message = "Camera is already in use by another application.";
-    } else if (error.name === "OverconstrainedError") {
-      message = "Camera doesn't support the requested resolution.";
-    }
-    alert(message);
   },
   updated() {
-    console.log("🔄 [CameraManager] Hook updated");
     const streamingVideo = document.getElementById("streaming-video");
     if (streamingVideo && !streamingVideo.srcObject) {
       const stream = this.stream || window.MAZARYN_GLOBAL_CAMERA_STREAM;
       if (stream && stream.active) {
-        console.log("📺 Re-attaching stream after update");
         this.attachStreamToStreaming(stream);
         if (!this.durationStarted) {
           this.startDurationCounter();
@@ -399,12 +349,10 @@ const CameraManager = {
     this.attachEventHandlers();
   },
   destroyed() {
-    console.log("🔚 [CameraManager] Hook destroyed");
-    if (this.durationInterval) {
-      clearInterval(this.durationInterval);
-      this.durationInterval = null;
+    if (this.durationInterval) clearInterval(this.durationInterval);
+    if (this.stream) {
+      this.stream.getTracks().forEach((track) => track.stop());
     }
-    console.log("ℹ️ Hook destroyed, cleanup handled by End Stream button");
   },
 };
 export default CameraManager;
