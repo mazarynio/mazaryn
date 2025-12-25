@@ -8,7 +8,6 @@
           <div class="w-2 h-2 bg-blue-500 rounded-full"></div>
         </div>
       </.link>
-
       <div class="flex items-center gap-5">
         <form class="w-[548px]">
           <div class="relative">
@@ -20,14 +19,12 @@
             <Heroicons.magnifying_glass class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#aaaaaa]" />
           </div>
         </form>
-
         <button
           phx-click="navigate_to_upload"
           class="w-10 h-10 bg-[#323340] rounded-full flex items-center justify-center hover:bg-[#3a3b4a] transition-colors"
         >
           <Heroicons.arrow_up_tray solid class="w-5 h-5 text-white" />
         </button>
-
         <.link
           navigate={~p"/#{@locale}/notifications"}
           class="w-10 h-10 bg-[#323340] rounded-full flex items-center justify-center hover:bg-[#3a3b4a] transition-colors"
@@ -35,17 +32,29 @@
           <Heroicons.bell solid class="w-5 h-5 text-white" />
         </.link>
       </div>
-
       <div class="flex items-center gap-5">
         <%= if @user do %>
-          <div class="flex items-center gap-3 px-4 h-10 bg-[#323340] rounded-lg">
-            <img
-              src="/images/default-avatar.png"
-              class="w-8 h-8 rounded-full object-cover"
-              alt="User"
-            />
-            <span class="text-white text-base font-['Poppins']">My Videos</span>
-          </div>
+          <.link navigate={~p"/#{@locale}/#{@user.username}"} class="flex items-center gap-3 px-4 h-10 bg-[#323340] rounded-lg hover:bg-[#3a3b4a] transition-colors cursor-pointer">
+            <% avatar_url = MazarynWeb.Live.Helper.handle_avatar(@user) %>
+            <%= if avatar_url && avatar_url != "" && avatar_url != "/images/default-avatar.png" do %>
+              <img
+                src={avatar_url}
+                class="w-8 h-8 rounded-full object-cover"
+                alt={@user.username}
+                onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+              />
+              <div class="hidden w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center">
+                <Heroicons.user solid class="w-5 h-5 text-white" />
+              </div>
+            <% else %>
+              <div class="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center">
+                <Heroicons.user solid class="w-5 h-5 text-white" />
+              </div>
+            <% end %>
+            <span class="text-white text-base font-medium font-['Poppins']">
+              <%= @user.username %>
+            </span>
+          </.link>
         <% end %>
       </div>
     </div>
@@ -55,7 +64,6 @@
     <aside class="fixed left-16 top-24 w-60">
       <div class="space-y-6">
         <h2 class="text-[#c5c7c8] text-xl font-semibold font-['Poppins']">Video</h2>
-
         <div class="bg-[#323340] rounded-[20px] shadow-lg p-7 space-y-7">
           <.link
             navigate={~p"/#{@locale}/videos"}
@@ -64,7 +72,6 @@
             <Heroicons.home solid class="w-5 h-5" />
             <span class="text-xl font-semibold font-['Poppins']">Home</span>
           </.link>
-
           <.link
             navigate={~p"/#{@locale}/videos/my-videos"}
             class="flex items-center gap-5 text-blue-500 hover:translate-x-1 transition-transform"
@@ -72,7 +79,6 @@
             <Heroicons.video_camera solid class="w-5 h-5" />
             <span class="text-xl font-semibold font-['Poppins']">Your videos</span>
           </.link>
-
           <.link
             navigate={~p"/#{@locale}/videos/discover"}
             class="flex items-center gap-5 text-[#c5c7c8] hover:text-white hover:translate-x-1 transition-all"
@@ -80,7 +86,6 @@
             <Heroicons.globe_alt solid class="w-5 h-5" />
             <span class="text-xl font-semibold font-['Poppins']">Discover</span>
           </.link>
-
           <.link
             navigate={~p"/#{@locale}/videos/trending"}
             class="flex items-center gap-5 text-[#c5c7c8] hover:text-white hover:translate-x-1 transition-all"
@@ -89,7 +94,6 @@
             <span class="text-xl font-semibold font-['Poppins']">Trending</span>
           </.link>
         </div>
-
         <div class="bg-[#323340] rounded-[20px] shadow-lg p-7">
           <.link
             navigate={~p"/#{@locale}/settings"}
@@ -107,7 +111,6 @@
         <div class="space-y-5">
           <h2 class="text-white text-xl font-semibold font-['Poppins']">Currently Uploading</h2>
           <p class="text-white text-sm font-['Poppins']">Leave the app running until upload is complete</p>
-
           <%= for video <- Enum.filter(@uploaded_videos, &(&1.status == "processing")) do %>
             <div class="p-5 bg-[#323340] rounded-[20px] flex gap-5">
               <img
@@ -115,13 +118,11 @@
                 class="w-64 h-44 rounded-md object-cover"
                 alt={video.title}
               />
-
               <div class="flex-1 space-y-5">
                 <div class="space-y-2.5">
                   <h3 class="text-white text-base font-semibold font-['Poppins']"><%= video.title %></h3>
                   <p class="text-neutral-400 text-base font-['Poppins']"><%= video.url_slug %></p>
                 </div>
-
                 <div class="space-y-2.5">
                   <div class="w-full h-10 bg-[#27282e] rounded-lg overflow-hidden relative">
                     <div
@@ -149,7 +150,6 @@
         >
           ALL
         </button>
-
         <button
           phx-click="switch_tab"
           phx-value-tab="uploads"
@@ -157,7 +157,6 @@
         >
           UPLOADS
         </button>
-
         <button
           phx-click="switch_tab"
           phx-value-tab="live"
@@ -165,7 +164,6 @@
         >
           LIVE
         </button>
-
         <button
           phx-click="switch_tab"
           phx-value-tab="scheduled"
@@ -205,7 +203,6 @@
                     <% end %>
                   <% end %>
                 </div>
-
                 <div class="flex-1 space-y-3">
                   <div>
                     <h3
@@ -217,20 +214,17 @@
                     </h3>
                     <p class="text-neutral-400 text-sm font-['Poppins'] mt-1"><%= video.url_slug %></p>
                   </div>
-
                   <div class="p-3 bg-[#27282e] rounded-lg">
                     <p class="text-gray-300 text-sm font-['Poppins'] line-clamp-2">
                       <%= video.description %>
                     </p>
                   </div>
-
                   <div class="flex items-center justify-between">
                     <div class="flex items-center gap-4 text-gray-400 text-sm">
                       <span><%= video.views %> views</span>
                       <span>•</span>
                       <span><%= video.created_at %></span>
                     </div>
-
                     <div class="flex gap-2">
                       <button
                         phx-click="edit_video"
@@ -240,7 +234,6 @@
                       >
                         <Heroicons.pencil class="w-5 h-5 text-gray-400 group-hover:text-white" />
                       </button>
-
                       <button
                         phx-click="show_delete_modal"
                         phx-value-id={video.id}
@@ -275,26 +268,22 @@
                     </span>
                   <% end %>
                 </div>
-
                 <div class="flex-1 space-y-3">
                   <div>
                     <h3 class="text-white text-lg font-semibold font-['Poppins']"><%= video.title %></h3>
                     <p class="text-neutral-400 text-sm font-['Poppins'] mt-1"><%= video.url_slug %></p>
                   </div>
-
                   <div class="p-3 bg-[#27282e] rounded-lg">
                     <p class="text-gray-300 text-sm font-['Poppins'] line-clamp-2">
                       <%= video.description %>
                     </p>
                   </div>
-
                   <div class="flex items-center justify-between">
                     <div class="flex items-center gap-4 text-gray-400 text-sm">
                       <span><%= video.views %> views</span>
                       <span>•</span>
                       <span><%= video.created_at %></span>
                     </div>
-
                     <div class="flex gap-2">
                       <button
                         phx-click="edit_video"
@@ -303,7 +292,6 @@
                       >
                         <Heroicons.pencil class="w-5 h-5 text-gray-400 group-hover:text-white" />
                       </button>
-
                       <button
                         phx-click="show_delete_modal"
                         phx-value-id={video.id}
@@ -329,7 +317,6 @@
                     LIVE
                   </span>
                 </div>
-
                 <div class="flex-1">
                   <h3 class="text-white text-lg font-semibold font-['Poppins']"><%= video.title %></h3>
                 </div>
@@ -343,7 +330,6 @@
             <div class="p-5 bg-[#323340] rounded-[20px] shadow-lg">
               <div class="flex gap-5">
                 <img src={video.thumbnail_url} class="w-64 h-44 rounded-md object-cover" alt={video.title} />
-
                 <div class="flex-1">
                   <h3 class="text-white text-lg font-semibold font-['Poppins']"><%= video.title %></h3>
                 </div>

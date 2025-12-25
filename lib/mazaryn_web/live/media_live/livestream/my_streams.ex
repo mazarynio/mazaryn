@@ -256,7 +256,7 @@ defmodule MazarynWeb.MediaLive.Livestream.MyStreams do
 
   defp get_thumbnail_url(cid) when is_binary(cid) and cid != "", do: "https://ipfs.io/ipfs/#{cid}"
   defp get_thumbnail_url(cid) when is_list(cid) and length(cid) > 0, do: "https://ipfs.io/ipfs/#{List.to_string(cid)}"
-  defp get_thumbnail_url(_), do: "/images/default-stream-thumbnail.png"
+  defp get_thumbnail_url(_), do: "/images/default-stream-thumbnail.svg"
 
   defp format_category(cat) when is_atom(cat), do: Atom.to_string(cat)
   defp format_category(cat) when is_binary(cat), do: cat

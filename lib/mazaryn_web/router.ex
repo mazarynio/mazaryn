@@ -131,7 +131,7 @@ defmodule MazarynWeb.Router do
       live("/livestreams/:id", MediaLive.Livestream.Watch, :watch)
       live("/livestreams/:id/dashboard", MediaLive.Livestream.Dashboard, :dashboard)
       live("/livestreams/go-live/camera", MediaLive.Livestream.GoLive, :camera)
-
+      live("/livestreams/:id/watch-vod", MediaLive.Livestream.VodWatch, :show)
 
       live("/ai", AiLive.Index)
       live("/ai/datasets", AiLive.Datasets, :index)

@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 360" fill="none">
+  <!-- Dark gradient background -->
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#151620"/>
+      <stop offset="100%" stop-color="#0f0f1a"/>
+    </linearGradient>
+    <linearGradient id="playGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#818cf8"/>
+      <stop offset="100%" stop-color="#6366f1"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="8" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <rect width="480" height="360" fill="url(#bgGradient)" rx="16"/>
+
+  <!-- Subtle abstract waves -->
+  <path d="M0 200 Q120 120, 240 180 T480 160 L480 360 L0 360 Z" fill="#1e293b" opacity="0.4"/>
+  <path d="M0 240 Q160 160, 320 220 T480 200 L480 360 L0 360 Z" fill="#334155" opacity="0.2"/>
+
+  <!-- Large glowing play button -->
+  <g transform="translate(240,180)" filter="url(#glow)">
+    <polygon points="0,-60 52,30 -52,30" fill="url(#playGradient)" opacity="0.9"/>
+    <polygon points="0,-55 48,27.5 -48,27.5" fill="white" opacity="0.3"/>
+  </g>
+
+  <!-- Mazaryn brand text -->
+  <text x="240" y="280" font-family="system-ui, -apple-system, sans-serif" font-size="36" font-weight="800" fill="#c5c7c8" text-anchor="middle" letter-spacing="2">Mazaryn</text>
+  <text x="240" y="315" font-family="system-ui, -apple-system, sans-serif" font-size="16" fill="#6366f1" text-anchor="middle" opacity="0.8">Stream Recording</text>
+</svg>

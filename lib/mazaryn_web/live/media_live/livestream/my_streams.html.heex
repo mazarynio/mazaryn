@@ -17,24 +17,25 @@
           <span class="text-white text-base font-semibold font-['Poppins']">Go Live</span>
         </button>
         <%= if @user do %>
-          <div class="flex items-center gap-3 px-4 h-10 bg-[#323340] rounded-lg">
-            <% avatar_url = MazarynWeb.Live.Helper.handle_avatar(@user) %>
-            <%= if avatar_url && avatar_url != "" && avatar_url != "/images/default-avatar.png" do %>
-              <img src={avatar_url} class="w-8 h-8 rounded-full object-cover" alt="User" />
-            <% else %>
-              <div class="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center">
-                <Heroicons.user solid class="w-5 h-5 text-white" />
-              </div>
-            <% end %>
-            <span class="text-white text-base font-['Poppins']">
-              <%= if is_tuple(@user), do: elem(@user, 8), else: @user.username || "User" %>
-            </span>
-          </div>
+          <.link navigate={~p"/#{@locale}/#{@user.username}"}>
+            <div class="flex items-center gap-3 px-4 h-10 bg-[#323340] rounded-lg hover:bg-[#3a3b4a] transition-colors cursor-pointer">
+              <% avatar_url = MazarynWeb.Live.Helper.handle_avatar(@user) %>
+              <%= if avatar_url && avatar_url != "" && avatar_url != "/images/default-avatar.png" do %>
+                <img src={avatar_url} class="w-8 h-8 rounded-full object-cover" alt="User" />
+              <% else %>
+                <div class="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center">
+                  <Heroicons.user solid class="w-5 h-5 text-white" />
+                </div>
+              <% end %>
+              <span class="text-white text-base font-['Poppins']">
+                <%= if is_tuple(@user), do: elem(@user, 8), else: @user.username || "User" %>
+              </span>
+            </div>
+          </.link>
         <% end %>
       </div>
     </div>
   </div>
-
   <div class="flex max-w-[1440px] mx-auto pt-20">
     <aside class="fixed left-16 top-24 w-60">
       <div class="space-y-6">
@@ -55,14 +56,26 @@
             <span class="text-xl font-semibold font-['Poppins']">Go Live</span>
           </.link>
         </div>
+
+        <div class="mt-8">
+          <h2 class="text-[#c5c7c8] text-xl font-semibold font-['Poppins'] mb-4">Videos</h2>
+          <div class="bg-[#323340] rounded-[20px] shadow-lg p-7 space-y-7">
+            <.link navigate={~p"/#{@locale}/videos"} class="flex items-center gap-5 text-[#c5c7c8] hover:text-white hover:translate-x-1 transition-all">
+              <Heroicons.film solid class="w-5 h-5" />
+              <span class="text-xl font-semibold font-['Poppins']">All Videos</span>
+            </.link>
+            <.link navigate={~p"/#{@locale}/videos/my-videos"} class="flex items-center gap-5 text-[#c5c7c8] hover:text-white hover:translate-x-1 transition-all">
+              <Heroicons.video_camera solid class="w-5 h-5" />
+              <span class="text-xl font-semibold font-['Poppins']">My Videos</span>
+            </.link>
+          </div>
+        </div>
       </div>
     </aside>
-
     <main class="ml-80 mr-16 flex-1 py-8 space-y-8">
       <div class="flex items-center justify-between">
         <h1 class="text-white text-2xl font-bold font-['Poppins']">My Streams</h1>
       </div>
-
       <div class="grid grid-cols-4 gap-6">
         <div class="bg-[#323340] rounded-[20px] p-6">
           <div class="flex items-center gap-4">
@@ -113,7 +126,6 @@
           </div>
         </div>
       </div>
-
       <div class="bg-[#323340] rounded-[20px] p-6">
         <div class="flex gap-4 mb-6">
           <button phx-click="switch_tab" phx-value-tab="all" class={"px-6 py-2 rounded-lg font-semibold font-['Poppins'] transition-colors #{if @active_tab == "all", do: "bg-blue-500 text-white", else: "bg-[#27282e] text-[#c5c7c8] hover:text-white"}"}>All Streams</button>
@@ -121,7 +133,6 @@
           <button phx-click="switch_tab" phx-value-tab="ended" class={"px-6 py-2 rounded-lg font-semibold font-['Poppins'] transition-colors #{if @active_tab == "ended", do: "bg-blue-500 text-white", else: "bg-[#27282e] text-[#c5c7c8] hover:text-white"}"}>Ended</button>
           <button phx-click="switch_tab" phx-value-tab="recorded" class={"px-6 py-2 rounded-lg font-semibold font-['Poppins'] transition-colors #{if @active_tab == "recorded", do: "bg-blue-500 text-white", else: "bg-[#27282e] text-[#c5c7c8] hover:text-white"}"}>📼 Recorded</button>
         </div>
-
         <%= if Enum.empty?(@user_streams) do %>
           <div class="text-center py-16">
             <div class="w-16 h-16 bg-[#27282e] rounded-full flex items-center justify-center mx-auto mb-4">
@@ -139,7 +150,12 @@
             <%= for stream <- @user_streams do %>
               <div class="bg-[#27282e] rounded-lg p-4 flex gap-4 hover:bg-[#2d2e35] transition-colors">
                 <div class="relative w-48 h-28 rounded-lg overflow-hidden flex-shrink-0">
-                  <img src={stream.thumbnail_url} class="w-full h-full object-cover" alt={stream.title} />
+                  <img
+                    src={stream.thumbnail_url}
+                    class="w-full h-full object-cover rounded-lg"
+                    alt={stream.title}
+                    onerror="this.onerror=null; this.src='/images/default-stream-thumbnail.svg';"
+                  />
                   <%= if stream.status == :live do %>
                     <div class="absolute top-2 left-2 bg-red-600 px-3 py-1 rounded-full flex items-center gap-1.5">
                       <div class="w-2 h-2 bg-white rounded-full animate-pulse"></div>
@@ -191,16 +207,15 @@
                       </button>
                     <% else %>
                       <%= if stream.vod_cid do %>
-                        <a
-                          href={"https://ipfs.io/ipfs/#{stream.vod_cid}"}
-                          target="_blank"
+                        <.link
+                          navigate={~p"/#{@locale}/livestreams/#{stream.id}/watch-vod"}
                           class="px-4 py-2 bg-purple-500 hover:bg-purple-600 rounded-lg text-white text-sm font-semibold transition-colors flex items-center gap-2"
                         >
                           <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                             <path d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" />
                           </svg>
                           Watch Recording
-                        </a>
+                        </.link>
                         <button phx-click="download_vod" phx-value-id={stream.id} class="px-4 py-2 bg-[#323340] hover:bg-[#3a3b4a] rounded-lg text-white text-sm font-semibold transition-colors flex items-center gap-2">
                           <Heroicons.arrow_down_tray solid class="w-4 h-4" />
                           Download
@@ -226,7 +241,6 @@
       </div>
     </main>
   </div>
-
   <%= if @show_delete_modal && @selected_stream do %>
     <div class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50" phx-click="close_delete_modal">
       <div class="bg-[#323340] rounded-[20px] p-6 max-w-md w-full mx-4" phx-click="ignore">

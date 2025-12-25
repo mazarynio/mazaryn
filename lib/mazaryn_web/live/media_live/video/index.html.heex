@@ -8,7 +8,6 @@
           <div class="w-2 h-2 bg-blue-500 rounded-full"></div>
         </div>
       </.link>
-
       <div class="flex items-center gap-5">
         <form phx-submit="search" class="w-[548px]">
           <div class="relative">
@@ -22,14 +21,12 @@
             <Heroicons.magnifying_glass class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#aaaaaa]" />
           </div>
         </form>
-
         <button
           phx-click="navigate_to_upload"
           class="w-10 h-10 bg-[#323340] rounded-full flex items-center justify-center hover:bg-[#3a3b4a] transition-colors"
         >
           <Heroicons.arrow_up_tray solid class="w-5 h-5 text-[#aaaaaa]" />
         </button>
-
         <.link
           navigate={~p"/#{@locale}/notifications"}
           class="w-10 h-10 bg-[#323340] rounded-full flex items-center justify-center hover:bg-[#3a3b4a] transition-colors"
@@ -37,13 +34,11 @@
           <Heroicons.bell solid class="w-5 h-5 text-[#aaaaaa]" />
         </.link>
       </div>
-
       <div class="flex items-center gap-5">
         <div class="h-10 px-4 bg-[#323340] rounded-lg flex items-center gap-2">
           <img src="/images/mazaryn-symbol.svg" class="w-5 h-5" alt="Mazaryn coin" />
-          <span class="text-white text-base font-['Poppins']">0.23</span>
+          <span class="text-white text-base font-['Poppins']">0.1</span>
         </div>
-
         <%= if @user do %>
           <div class="relative" x-data="{ open: false }">
             <button @click="open = !open" class="flex items-center gap-3 px-4 h-10 bg-[#323340] rounded-lg hover:bg-[#3a3b4a] transition-colors">
@@ -75,12 +70,10 @@
       </div>
     </div>
   </div>
-
   <div class="flex max-w-[1440px] mx-auto pt-20">
     <aside class="fixed left-16 top-24 w-60">
       <div class="space-y-6">
         <h2 class="text-[#c5c7c8] text-xl font-semibold font-['Poppins']">Video</h2>
-
         <div class="bg-[#323340] rounded-[20px] shadow-lg p-7 space-y-7">
           <.link
             navigate={~p"/#{@locale}/videos"}
@@ -89,7 +82,6 @@
             <Heroicons.home solid class="w-5 h-5" />
             <span class="text-xl font-semibold font-['Poppins']">Home</span>
           </.link>
-
           <.link
             navigate={~p"/#{@locale}/videos/my-videos"}
             class="flex items-center gap-5 text-[#c5c7c8] hover:text-white hover:translate-x-1 transition-all"
@@ -97,7 +89,6 @@
             <Heroicons.video_camera solid class="w-5 h-5" />
             <span class="text-xl font-semibold font-['Poppins']">Your videos</span>
           </.link>
-
           <.link
             navigate={~p"/#{@locale}/videos/discover"}
             class="flex items-center gap-5 text-[#c5c7c8] hover:text-white hover:translate-x-1 transition-all"
@@ -105,7 +96,6 @@
             <Heroicons.globe_alt solid class="w-5 h-5" />
             <span class="text-xl font-semibold font-['Poppins']">Discover</span>
           </.link>
-
           <.link
             navigate={~p"/#{@locale}/videos/trending"}
             class="flex items-center gap-5 text-[#c5c7c8] hover:text-white hover:translate-x-1 transition-all"
@@ -115,6 +105,7 @@
           </.link>
         </div>
 
+        <!-- Live Streams Section -->
         <div class="bg-[#323340] rounded-[20px] shadow-lg p-7 space-y-7">
           <.link
             navigate={~p"/#{@locale}/livestreams"}
@@ -123,7 +114,13 @@
             <Heroicons.play_circle solid class="w-5 h-5" />
             <span class="text-xl font-semibold font-['Poppins']">Live Streams</span>
           </.link>
-
+          <.link
+            navigate={~p"/#{@locale}/livestreams/my-streams"}
+            class="flex items-center gap-5 text-[#c5c7c8] hover:text-white hover:translate-x-1 transition-all"
+          >
+            <Heroicons.video_camera solid class="w-5 h-5" />
+            <span class="text-xl font-semibold font-['Poppins']">My Streams</span>
+          </.link>
           <.link
             navigate={~p"/#{@locale}/livestreams/go-live"}
             class="flex items-center gap-5 text-red-500 hover:text-red-400 hover:translate-x-1 transition-all"
@@ -146,7 +143,6 @@
         </div>
       </div>
     </aside>
-
     <main class="ml-80 mr-16 flex-1 py-8 space-y-8">
       <section>
         <div class="flex items-center gap-3 mb-7">
@@ -155,7 +151,6 @@
           </div>
           <h2 class="text-[#c5c7c8] text-xl font-semibold font-['Poppins']">Featured</h2>
         </div>
-
         <div class="grid grid-cols-4 gap-4">
           <%= for video <- @videos do %>
             <div
@@ -164,14 +159,17 @@
               class="cursor-pointer hover:-translate-y-2 transition-transform duration-300"
             >
               <div class="relative w-full aspect-video rounded-lg overflow-hidden mb-5">
-                <img src={video.thumbnail_url} class="w-full h-full object-cover" alt={video.title} />
-
+                <img
+                  src={video.thumbnail_url}
+                  class="w-full h-full object-cover"
+                  alt={video.title}
+                  onerror="this.onerror=null; this.src='/images/default-video-thumbnail.svg';"
+                />
                 <%= if video.duration do %>
                   <div class="absolute bottom-2 right-2 px-2 py-1 bg-black/70 rounded-full">
                     <span class="text-white text-sm font-['Poppins']"><%= video.duration %></span>
                   </div>
                 <% end %>
-
                 <%= if video.is_live do %>
                   <div class="absolute top-2 right-2 px-3 py-1 bg-red-600 rounded-full flex items-center gap-1">
                     <div class="w-2 h-2 bg-white rounded-full animate-pulse"></div>
@@ -179,7 +177,6 @@
                   </div>
                 <% end %>
               </div>
-
               <div class="flex gap-3">
                 <%= if video.creator_avatar && video.creator_avatar != "" && video.creator_avatar != "/images/default-avatar.png" do %>
                   <img
