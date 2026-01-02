@@ -1,0 +1,308 @@
+<.live_component
+  module={MazarynWeb.HomeLive.NavComponent}
+  id="navigation"
+  user={@user}
+  search=""
+  locale={@locale}
+/>
+
+<div class="min-h-screen bg-slate-900">
+  <div class="flex">
+    <% margin_class = if @show_sidebar, do: "mr-96", else: "mr-0" %>
+    <div class={"flex-1 transition-all duration-300 #{margin_class}"}>
+      <div class="bg-black">
+        <div class="max-w-6xl mx-auto">
+          <%= if @lesson.content_type == :video do %>
+            <div class="relative aspect-video bg-black">
+              <%= if String.contains?(@lesson.content_data, "youtube.com") or String.contains?(@lesson.content_data, "youtu.be") do %>
+                <iframe
+                  src={convert_youtube_url_to_embed(@lesson.content_data)}
+                  class="w-full h-full"
+                  frameborder="0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowfullscreen
+                >
+                </iframe>
+              <% else %>
+                <video
+                  id="lesson-video"
+                  class="w-full h-full"
+                  controls
+                  phx-hook="VideoProgress"
+                >
+                  <source src={@lesson.content_data} type="video/mp4" />
+                  Your browser does not support the video tag.
+                </video>
+              <% end %>
+            </div>
+          <% else %>
+            <div class="aspect-video bg-gradient-to-br from-violet-600 to-indigo-700 flex items-center justify-center">
+              <div class="text-center text-white p-8">
+                <svg class="w-24 h-24 mx-auto mb-4 opacity-75" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                <h2 class="text-3xl font-bold mb-2"><%= @lesson.title %></h2>
+                <p class="text-violet-200">Text-based lesson</p>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      </div>
+
+      <div class="bg-slate-900 text-white">
+        <div class="max-w-6xl mx-auto px-8 py-6">
+          <div class="flex items-center justify-between mb-6">
+            <div class="flex items-center space-x-4">
+              <button
+                phx-click="toggle_sidebar"
+                class="p-2 hover:bg-slate-800 rounded-lg transition-colors"
+              >
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+              </button>
+              <div>
+                <h1 class="text-2xl font-bold"><%= @lesson.title %></h1>
+                <p class="text-slate-400"><%= @module.title %></p>
+              </div>
+            </div>
+
+            <%= if not @lesson_completed do %>
+              <button
+                phx-click="mark_complete"
+                class="px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-xl font-semibold transition-colors flex items-center space-x-2"
+              >
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span>Mark as Complete</span>
+              </button>
+            <% else %>
+              <div class="px-6 py-3 bg-green-600/20 border border-green-600 text-green-400 rounded-xl font-semibold flex items-center space-x-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span>Completed</span>
+              </div>
+            <% end %>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div class="lg:col-span-2 space-y-6">
+              <div class="bg-slate-800 rounded-2xl p-6">
+                <h2 class="text-xl font-bold mb-4">About This Lesson</h2>
+                <p class="text-slate-300 leading-relaxed"><%= @lesson.description %></p>
+              </div>
+
+              <%= if @lesson.content_type == :text do %>
+                <div class="bg-slate-800 rounded-2xl p-8">
+                  <div class="prose prose-invert prose-violet max-w-none">
+                    <%= raw Earmark.as_html!(@lesson.content_data) %>
+                  </div>
+                </div>
+              <% end %>
+
+              <div class="bg-slate-800 rounded-2xl p-6">
+                <h2 class="text-xl font-bold mb-4">Notes</h2>
+                <textarea
+                  phx-blur="save_notes"
+                  name="notes"
+                  rows="6"
+                  class="w-full bg-slate-700 text-white px-4 py-3 rounded-xl border border-slate-600 focus:ring-2 focus:ring-violet-500 focus:border-transparent resize-none"
+                  placeholder="Take notes while learning..."
+                ><%= @notes %></textarea>
+                <p class="text-xs text-slate-400 mt-2">Your notes are saved automatically</p>
+              </div>
+
+              <div class="flex items-center justify-between pt-6 border-t border-slate-700">
+                <%= if @prev_lesson do %>
+                  <.link
+                    navigate={~p"/#{@locale}/ai/learning/paths/#{@path_id}/modules/#{@prev_lesson.module_id}/lessons/#{@prev_lesson.lesson.id}"}
+                    class="flex items-center px-6 py-3 bg-slate-800 hover:bg-slate-700 rounded-xl font-semibold transition-colors"
+                  >
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                    </svg>
+                    Previous Lesson
+                  </.link>
+                <% else %>
+                  <div></div>
+                <% end %>
+
+                <%= if @next_lesson do %>
+                  <.link
+                    navigate={~p"/#{@locale}/ai/learning/paths/#{@path_id}/modules/#{@next_lesson.module_id}/lessons/#{@next_lesson.lesson.id}"}
+                    class="flex items-center px-6 py-3 bg-violet-600 hover:bg-violet-700 rounded-xl font-semibold transition-colors"
+                  >
+                    Next Lesson
+                    <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                    </svg>
+                  </.link>
+                <% else %>
+                  <.link
+                    navigate={~p"/#{@locale}/ai/learning/paths/#{@path_id}"}
+                    class="flex items-center px-6 py-3 bg-green-600 hover:bg-green-700 rounded-xl font-semibold transition-colors"
+                  >
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Complete Course
+                  </.link>
+                <% end %>
+              </div>
+            </div>
+
+            <div class="lg:col-span-1">
+              <div class="bg-slate-800 rounded-2xl p-6 sticky top-6">
+                <h3 class="font-bold mb-4">Lesson Info</h3>
+                <div class="space-y-4 text-sm">
+                  <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-violet-600 rounded-lg flex items-center justify-center">
+                      <%= case @lesson.content_type do %>
+                        <% :video -> %>
+                          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                          </svg>
+                        <% :text -> %>
+                          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                          </svg>
+                        <% _ -> %>
+                          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                          </svg>
+                      <% end %>
+                    </div>
+                    <div>
+                      <p class="text-slate-400 text-xs">Type</p>
+                      <p class="font-semibold capitalize"><%= @lesson.content_type %></p>
+                    </div>
+                  </div>
+
+                  <%= if @lesson.duration_minutes > 0 do %>
+                    <div class="flex items-center space-x-3">
+                      <div class="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                      </div>
+                      <div>
+                        <p class="text-slate-400 text-xs">Duration</p>
+                        <p class="font-semibold"><%= @lesson.duration_minutes %> minutes</p>
+                      </div>
+                    </div>
+                  <% end %>
+
+                  <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-amber-600 rounded-lg flex items-center justify-center">
+                      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                      </svg>
+                    </div>
+                    <div>
+                      <p class="text-slate-400 text-xs">Lesson Number</p>
+                      <p class="font-semibold">#<%= @lesson.lesson_number %></p>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="mt-6 pt-6 border-t border-slate-700">
+                  <.link
+                    navigate={~p"/#{@locale}/ai/learning/paths/#{@path_id}"}
+                    class="flex items-center justify-center w-full px-4 py-3 bg-slate-700 hover:bg-slate-600 rounded-xl font-semibold transition-colors"
+                  >
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                    Back to Course
+                  </.link>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <%= if @show_sidebar do %>
+      <div class="fixed right-0 top-0 bottom-0 w-96 bg-slate-800 border-l border-slate-700 overflow-y-auto">
+        <div class="p-6">
+          <div class="flex items-center justify-between mb-6">
+            <h2 class="text-xl font-bold text-white">Course Content</h2>
+            <button
+              phx-click="toggle_sidebar"
+              class="p-2 text-slate-400 hover:text-white hover:bg-slate-700 rounded-lg transition-colors"
+            >
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+
+          <div class="space-y-3">
+            <%= for module <- @all_modules do %>
+              <div class="bg-slate-700 rounded-xl overflow-hidden">
+                <div class="px-4 py-3 bg-slate-600">
+                  <div class="flex items-center space-x-3">
+                    <div class="w-8 h-8 bg-violet-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                      <span class="text-white text-sm font-bold"><%= module.order %></span>
+                    </div>
+                    <h3 class="font-semibold text-white text-sm"><%= module.title %></h3>
+                  </div>
+                </div>
+                <div class="divide-y divide-slate-600">
+                  <%= for lesson <- module.lessons do %>
+                    <% active_class = if lesson.id == @lesson_id, do: "bg-violet-600/20 border-l-4 border-violet-600", else: "" %>
+                    <.link
+                      navigate={~p"/#{@locale}/ai/learning/paths/#{@path_id}/modules/#{module.id}/lessons/#{lesson.id}"}
+                      class={"px-4 py-3 flex items-center justify-between hover:bg-slate-600 transition-colors #{active_class}"}
+                    >
+                      <div class="flex items-center space-x-3 flex-1 min-w-0">
+                        <div class="w-6 h-6 bg-slate-600 rounded flex items-center justify-center flex-shrink-0">
+                          <%= case lesson.content_type do %>
+                            <% :video -> %>
+                              <svg class="w-3 h-3 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                              </svg>
+                            <% :text -> %>
+                              <svg class="w-3 h-3 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6" />
+                              </svg>
+                            <% _ -> %>
+                              <svg class="w-3 h-3 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6" />
+                              </svg>
+                          <% end %>
+                        </div>
+                        <span class="text-sm text-slate-200 truncate"><%= lesson.title %></span>
+                      </div>
+                      <%= if lesson.duration_minutes > 0 do %>
+                        <span class="text-xs text-slate-400 ml-2 flex-shrink-0"><%= lesson.duration_minutes %>m</span>
+                      <% end %>
+                    </.link>
+                  <% end %>
+                </div>
+              </div>
+            <% end %>
+          </div>
+        </div>
+      </div>
+    <% end %>
+  </div>
+</div>
+
+<script>
+  window.Hooks = window.Hooks || {};
+
+  window.Hooks.VideoProgress = {
+    mounted() {
+      const video = this.el;
+
+      video.addEventListener('timeupdate', () => {
+        const position = Math.floor(video.currentTime);
+        this.pushEvent('update_progress', { position: position });
+      });
+    }
+  };
+</script>

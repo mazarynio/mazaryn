@@ -1,0 +1,215 @@
+<.live_component
+  module={MazarynWeb.HomeLive.NavComponent}
+  id="navigation"
+  user={@user}
+  search=""
+  locale={@locale}
+/>
+
+<div class="min-h-screen bg-gradient-to-br from-slate-50 via-purple-50 to-indigo-50">
+  <div class="max-w-7xl mx-auto px-6 py-8">
+    <div class="mb-8">
+      <h1 class="text-4xl font-bold text-slate-900 mb-2">Learning Hub Administration</h1>
+      <p class="text-lg text-slate-600">Review and approve instructor requests and learning paths</p>
+    </div>
+
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 mb-6">
+      <div class="border-b border-slate-200">
+        <nav class="flex space-x-8 px-6" aria-label="Tabs">
+          <button
+            phx-click="switch_tab"
+            phx-value-tab="instructor_requests"
+            class={"py-4 px-1 border-b-2 font-medium text-sm transition-colors #{if @active_tab == :instructor_requests, do: "border-violet-600 text-violet-600", else: "border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300"}"}
+          >
+            Instructor Requests
+            <%= if length(@instructor_requests) > 0 do %>
+              <span class="ml-2 px-2 py-1 bg-violet-100 text-violet-600 text-xs font-semibold rounded-full">
+                <%= length(@instructor_requests) %>
+              </span>
+            <% end %>
+          </button>
+          <button
+            phx-click="switch_tab"
+            phx-value-tab="pending_paths"
+            class={"py-4 px-1 border-b-2 font-medium text-sm transition-colors #{if @active_tab == :pending_paths, do: "border-violet-600 text-violet-600", else: "border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300"}"}
+          >
+            Pending Learning Paths
+            <%= if length(@pending_paths) > 0 do %>
+              <span class="ml-2 px-2 py-1 bg-amber-100 text-amber-600 text-xs font-semibold rounded-full">
+                <%= length(@pending_paths) %>
+              </span>
+            <% end %>
+          </button>
+        </nav>
+      </div>
+
+      <div class="p-6">
+        <%= if @active_tab == :instructor_requests do %>
+          <div class="space-y-4">
+            <%= if @instructor_requests == [] do %>
+              <div class="text-center py-12">
+                <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-slate-100 mb-4">
+                  <svg class="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <h3 class="text-lg font-semibold text-slate-900 mb-2">No pending requests</h3>
+                <p class="text-slate-600">All instructor requests have been reviewed</p>
+              </div>
+            <% else %>
+              <%= for request <- @instructor_requests do %>
+                <div class="border border-slate-200 rounded-xl p-6">
+                  <div class="flex items-start justify-between mb-4">
+                    <div class="flex-1">
+                      <div class="flex items-center space-x-3 mb-2">
+                        <div class="w-12 h-12 bg-gradient-to-br from-violet-500 to-indigo-500 rounded-full flex items-center justify-center">
+                          <span class="text-white font-bold text-lg">
+                            <%= String.first(request.name) %><%= String.first(request.family) %>
+                          </span>
+                        </div>
+                        <div>
+                          <h3 class="text-lg font-semibold text-slate-900">
+                            <%= request.name %> <%= request.family %>
+                          </h3>
+                          <p class="text-sm text-slate-500">User ID: <%= request.user_id %></p>
+                        </div>
+                      </div>
+
+                      <div class="mt-4">
+                        <p class="text-sm font-semibold text-slate-700 mb-2">Why they want to teach:</p>
+                        <p class="text-slate-600 bg-slate-50 p-4 rounded-lg"><%= request.reason %></p>
+                      </div>
+
+                      <%= if request.requested_at do %>
+                        <p class="text-sm text-slate-500 mt-3">
+                          Requested: <%= format_datetime(request.requested_at) %>
+                        </p>
+                      <% end %>
+                    </div>
+                  </div>
+
+                  <div class="flex items-center space-x-3 pt-4 border-t border-slate-200">
+                    <button
+                      phx-click="approve_instructor"
+                      phx-value-user_id={request.user_id}
+                      disabled={@processing}
+                      class={"flex-1 px-4 py-2 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition-colors #{if @processing, do: "opacity-50 cursor-not-allowed"}"}
+                    >
+                      <div class="flex items-center justify-center space-x-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                        </svg>
+                        <span>Approve</span>
+                      </div>
+                    </button>
+
+                    <button
+                      id={"reject-instructor-#{request.user_id}"}
+                      phx-hook="RejectInstructorButton"
+                      data-user-id={request.user_id}
+                      disabled={@processing}
+                      class={"flex-1 px-4 py-2 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 transition-colors #{if @processing, do: "opacity-50 cursor-not-allowed"}"}
+                    >
+                      <div class="flex items-center justify-center space-x-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                        <span>Reject</span>
+                      </div>
+                    </button>
+                  </div>
+                </div>
+              <% end %>
+            <% end %>
+          </div>
+        <% end %>
+
+        <%= if @active_tab == :pending_paths do %>
+          <div class="space-y-4">
+            <%= if @pending_paths == [] do %>
+              <div class="text-center py-12">
+                <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-slate-100 mb-4">
+                  <svg class="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <h3 class="text-lg font-semibold text-slate-900 mb-2">No pending learning paths</h3>
+                <p class="text-slate-600">All learning paths have been reviewed</p>
+              </div>
+            <% else %>
+              <%= for path <- @pending_paths do %>
+                <div class="border border-slate-200 rounded-xl p-6">
+                  <div class="flex items-start justify-between mb-4">
+                    <div class="flex-1">
+                      <div class="flex items-center space-x-2 mb-2">
+                        <h3 class="text-lg font-semibold text-slate-900"><%= path.title %></h3>
+                        <span class="px-2 py-1 bg-amber-100 text-amber-700 text-xs font-medium rounded-full">
+                          Pending Review
+                        </span>
+                      </div>
+
+                      <div class="flex items-center space-x-4 text-sm text-slate-500 mb-3">
+                        <span>By: <%= path.creator_name %></span>
+                        <%= if path.category do %>
+                          <span>•</span>
+                          <span>Category: <%= String.capitalize(path.category) %></span>
+                        <% end %>
+                        <span>•</span>
+                        <span>Level: <%= String.capitalize(to_string(path.difficulty_level)) %></span>
+                      </div>
+
+                      <%= if path.description do %>
+                        <p class="text-slate-600 mb-4"><%= path.description %></p>
+                      <% end %>
+
+                      <%= if path.tags && path.tags != [] do %>
+                        <div class="flex flex-wrap gap-2 mb-4">
+                          <%= for tag <- path.tags do %>
+                            <span class="px-2 py-1 bg-slate-100 text-slate-700 text-xs font-medium rounded-full">
+                              <%= tag %>
+                            </span>
+                          <% end %>
+                        </div>
+                      <% end %>
+                    </div>
+                  </div>
+
+                  <div class="flex items-center space-x-3 pt-4 border-t border-slate-200">
+                    <button
+                      phx-click="approve_path"
+                      phx-value-path_id={path.id}
+                      disabled={@processing}
+                      class={"flex-1 px-4 py-2 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition-colors #{if @processing, do: "opacity-50 cursor-not-allowed"}"}
+                    >
+                      <div class="flex items-center justify-center space-x-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                        </svg>
+                        <span>Approve Path</span>
+                      </div>
+                    </button>
+
+                    <button
+                      id={"reject-path-#{path.id}"}
+                      phx-hook="RejectPathButton"
+                      data-path-id={path.id}
+                      disabled={@processing}
+                      class={"flex-1 px-4 py-2 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 transition-colors #{if @processing, do: "opacity-50 cursor-not-allowed"}"}
+                    >
+                      <div class="flex items-center justify-center space-x-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                        <span>Reject Path</span>
+                      </div>
+                    </button>
+                  </div>
+                </div>
+              <% end %>
+            <% end %>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>

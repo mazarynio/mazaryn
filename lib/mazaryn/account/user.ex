@@ -43,6 +43,7 @@ defmodule Account.User do
     datasets
     competitions
     data
+    groups
   )a
 
   @required_attrs [
@@ -93,6 +94,7 @@ defmodule Account.User do
     field(:suspend, {:array, :string}, default: [])
     field(:datasets, {:array, :string}, default: [])
     field(:competitions, {:array, :string}, default: [])
+    field(:groups, {:array, :string}, default: [])
     field(:data, :map)
   end
 
@@ -101,7 +103,7 @@ defmodule Account.User do
          username, password, email, address, knode, media, posts, blog_post, notif, following,
          follower, blocked, saved_posts, reposts, other_info, private, date_created, date_updated,
          avatar_url, banner_url, token_id, chat, verified, report, level, last_activity, suspend,
-         datasets, competitions, data} = _user
+         datasets, competitions, groups, data} = _user
       ) do
     avatar_url =
       case avatar_url do
@@ -165,6 +167,7 @@ defmodule Account.User do
       suspend: suspend,
       datasets: datasets,
       competitions: competitions,
+      groups: groups,
       data: data
     })
   end
@@ -199,7 +202,7 @@ defmodule Account.User do
          username, password, email, address, knode, media, posts, blog_post, notif, following,
          follower, blocked, saved_posts, reposts, other_info, private, date_created, date_updated,
          avatar_url, banner_url, token_id, chat, verified, report, level, last_activity, suspend,
-         datasets, competitions, data} = _user
+         datasets, competitions, groups, data} = _user
       ) do
     try do
       changeset =
@@ -208,7 +211,7 @@ defmodule Account.User do
            username, password, email, address, knode, media, posts, blog_post, notif, following,
            follower, blocked, saved_posts, reposts, other_info, private, date_created,
            date_updated, avatar_url, banner_url, token_id, chat, verified, report, level,
-           last_activity, suspend, datasets, competitions, data}
+           last_activity, suspend, datasets, competitions, groups, data}
         )
 
       {:ok, changeset}

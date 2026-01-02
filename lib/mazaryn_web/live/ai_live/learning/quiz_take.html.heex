@@ -1,0 +1,305 @@
+<.live_component
+  module={MazarynWeb.HomeLive.NavComponent}
+  id="navigation"
+  user={@user}
+  search=""
+  locale={@locale}
+/>
+
+<div class="min-h-screen bg-gradient-to-br from-slate-50 via-purple-50 to-indigo-50 py-12">
+  <div class="max-w-4xl mx-auto px-6">
+    <%= if not @quiz_started do %>
+      <div class="bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden">
+        <div class="bg-gradient-to-r from-violet-600 to-indigo-600 px-8 py-12 text-center">
+          <h1 class="text-4xl font-bold text-white mb-4"><%= @quiz.title %></h1>
+          <%= if @quiz.description && @quiz.description != "" do %>
+            <p class="text-violet-100 text-lg"><%= @quiz.description %></p>
+          <% end %>
+        </div>
+
+        <div class="p-8">
+          <div class="grid grid-cols-3 gap-6 mb-8">
+            <div class="text-center p-6 bg-slate-50 rounded-xl">
+              <div class="text-3xl font-bold text-violet-600 mb-2">
+                <%= length(@questions) %>
+              </div>
+              <div class="text-sm text-slate-600">Questions</div>
+            </div>
+
+            <%= if @quiz.time_limit > 0 do %>
+              <div class="text-center p-6 bg-slate-50 rounded-xl">
+                <div class="text-3xl font-bold text-violet-600 mb-2">
+                  <%= @quiz.time_limit %>
+                </div>
+                <div class="text-sm text-slate-600">Minutes</div>
+              </div>
+            <% end %>
+
+            <div class="text-center p-6 bg-slate-50 rounded-xl">
+              <div class="text-3xl font-bold text-violet-600 mb-2">
+                <%= @quiz.passing_score %>%
+              </div>
+              <div class="text-sm text-slate-600">Passing Score</div>
+            </div>
+          </div>
+
+          <div class="bg-blue-50 border border-blue-200 rounded-xl p-6 mb-8">
+            <h3 class="font-bold text-blue-900 mb-3">Instructions</h3>
+            <ul class="space-y-2 text-sm text-blue-800">
+              <li class="flex items-start">
+                <svg class="w-5 h-5 mr-2 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span>Read each question carefully before selecting your answer</span>
+              </li>
+              <li class="flex items-start">
+                <svg class="w-5 h-5 mr-2 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span>You can navigate between questions using the Next/Previous buttons</span>
+              </li>
+              <%= if @quiz.time_limit > 0 do %>
+                <li class="flex items-start">
+                  <svg class="w-5 h-5 mr-2 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <span>Complete the quiz before time runs out</span>
+                </li>
+              <% end %>
+              <%= if @quiz.allow_retakes do %>
+                <li class="flex items-start">
+                  <svg class="w-5 h-5 mr-2 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
+                  <span>You can retake this quiz if needed</span>
+                </li>
+              <% end %>
+            </ul>
+          </div>
+
+          <button
+            phx-click="start_quiz"
+            class="w-full px-8 py-4 bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-xl font-semibold text-lg hover:shadow-lg transition-all"
+          >
+            Start Quiz
+          </button>
+        </div>
+      </div>
+    <% end %>
+
+    <%= if @quiz_started and not @quiz_submitted do %>
+      <% current_q = Enum.at(@questions, @current_question) %>
+      <div class="bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden">
+        <div class="bg-gradient-to-r from-violet-600 to-indigo-600 px-8 py-6">
+          <div class="flex items-center justify-between text-white">
+            <div>
+              <p class="text-violet-100 text-sm mb-1">Question <%= @current_question + 1 %> of <%= length(@questions) %></p>
+              <h2 class="text-2xl font-bold"><%= @quiz.title %></h2>
+            </div>
+            <%= if @quiz.time_limit > 0 do %>
+              <div class="text-center">
+                <div class="text-3xl font-bold"><%= div(@time_remaining, 60) %>:<%= rem(@time_remaining, 60) |> to_string() |> String.pad_leading(2, "0") %></div>
+                <p class="text-violet-100 text-sm">Time Remaining</p>
+              </div>
+            <% end %>
+          </div>
+        </div>
+
+        <div class="p-8">
+          <div class="mb-8">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-xl font-bold text-slate-900"><%= current_q["text"] %></h3>
+              <span class="px-3 py-1 bg-violet-100 text-violet-700 rounded-full text-sm font-semibold">
+                <%= current_q["points"] %> <%= if current_q["points"] == 1, do: "point", else: "points" %>
+              </span>
+            </div>
+
+            <div class="space-y-3">
+              <%= for {option, idx} <- Enum.with_index(current_q["options"]) do %>
+                <label class={"relative flex items-start p-5 border-2 rounded-xl cursor-pointer transition-all #{if Map.get(@user_answers, @current_question) == idx, do: "border-violet-600 bg-violet-50", else: "border-slate-200 hover:border-violet-300"}"}>
+                  <input
+                    type="radio"
+                    name="answer"
+                    phx-click="answer_question"
+                    phx-value-question-idx={@current_question}
+                    phx-value-answer={idx}
+                    checked={Map.get(@user_answers, @current_question) == idx}
+                    class="sr-only"
+                  />
+                  <div class={"flex-shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center mr-4 #{if Map.get(@user_answers, @current_question) == idx, do: "border-violet-600 bg-violet-600", else: "border-slate-300"}"}>
+                    <%= if Map.get(@user_answers, @current_question) == idx do %>
+                      <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
+                      </svg>
+                    <% end %>
+                  </div>
+                  <span class={"text-slate-700 #{if Map.get(@user_answers, @current_question) == idx, do: "font-semibold"}"}><%= option %></span>
+                </label>
+              <% end %>
+            </div>
+          </div>
+
+          <div class="flex items-center justify-between pt-6 border-t border-slate-200">
+            <button
+              type="button"
+              phx-click="prev_question"
+              disabled={@current_question == 0}
+              class={"inline-flex items-center px-6 py-3 rounded-xl font-semibold transition-colors #{if @current_question == 0, do: "bg-slate-100 text-slate-400 cursor-not-allowed", else: "bg-slate-100 text-slate-700 hover:bg-slate-200"}"}
+            >
+              <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+              </svg>
+              Previous
+            </button>
+
+            <%= if @current_question == length(@questions) - 1 do %>
+              <button
+                type="button"
+                phx-click="submit_quiz"
+                data-confirm="Are you sure you want to submit? You won't be able to change your answers."
+                class="inline-flex items-center px-8 py-3 bg-green-600 text-white rounded-xl font-semibold hover:bg-green-700 transition-colors"
+              >
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Submit Quiz
+              </button>
+            <% else %>
+              <button
+                type="button"
+                phx-click="next_question"
+                class="inline-flex items-center px-6 py-3 bg-violet-600 text-white rounded-xl font-semibold hover:bg-violet-700 transition-colors"
+              >
+                Next
+                <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+            <% end %>
+          </div>
+
+          <div class="mt-6 pt-6 border-t border-slate-200">
+            <div class="flex items-center justify-between mb-3">
+              <p class="text-sm font-semibold text-slate-700">Progress</p>
+              <p class="text-sm text-slate-500">
+                <%= map_size(@user_answers) %> / <%= length(@questions) %> answered
+              </p>
+            </div>
+            <div class="w-full bg-slate-200 rounded-full h-2">
+              <div
+                class="bg-violet-600 h-2 rounded-full transition-all duration-300"
+                style={"width: #{map_size(@user_answers) / length(@questions) * 100}%"}
+              ></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    <% end %>
+
+    <%= if @quiz_submitted do %>
+      <% passed = @score >= @quiz.passing_score %>
+      <div class="bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden">
+        <div class={"px-8 py-12 text-center #{if passed, do: "bg-gradient-to-r from-green-500 to-emerald-600", else: "bg-gradient-to-r from-red-500 to-rose-600"}"}>
+          <div class="w-24 h-24 mx-auto mb-6 bg-white/20 rounded-full flex items-center justify-center">
+            <%= if passed do %>
+              <svg class="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            <% else %>
+              <svg class="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            <% end %>
+          </div>
+          <h1 class="text-4xl font-bold text-white mb-2">
+            <%= if passed, do: "Congratulations!", else: "Keep Trying!" %>
+          </h1>
+          <p class="text-white/90 text-lg mb-6">
+            <%= if passed, do: "You passed the quiz!", else: "You didn't pass this time, but you can try again." %>
+          </p>
+          <div class="inline-flex items-center space-x-4 text-white">
+            <div class="text-center">
+              <div class="text-5xl font-bold"><%= @score %>%</div>
+              <p class="text-white/80 text-sm">Your Score</p>
+            </div>
+            <div class="text-4xl opacity-50">|</div>
+            <div class="text-center">
+              <div class="text-5xl font-bold"><%= @quiz.passing_score %>%</div>
+              <p class="text-white/80 text-sm">Required</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="p-8">
+          <h2 class="text-2xl font-bold text-slate-900 mb-6">Review Answers</h2>
+
+          <div class="space-y-6">
+            <%= for {result, idx} <- Enum.with_index(@results) do %>
+              <div class={"rounded-xl p-6 border-2 #{if result.is_correct, do: "bg-green-50 border-green-200", else: "bg-red-50 border-red-200"}"}>
+                <div class="flex items-start justify-between mb-4">
+                  <div class="flex items-start space-x-3 flex-1">
+                    <div class={"w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 #{if result.is_correct, do: "bg-green-500", else: "bg-red-500"}"}>
+                      <%= if result.is_correct do %>
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                        </svg>
+                      <% else %>
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      <% end %>
+                    </div>
+                    <div class="flex-1">
+                      <p class="font-bold text-slate-900 mb-2">Question <%= idx + 1 %></p>
+                      <p class="text-slate-700"><%= result.question_text %></p>
+                    </div>
+                  </div>
+                  <span class={"px-3 py-1 rounded-full text-sm font-semibold #{if result.is_correct, do: "bg-green-100 text-green-700", else: "bg-red-100 text-red-700"}"}>
+                    <%= if result.is_correct, do: "Correct", else: "Incorrect" %>
+                  </span>
+                </div>
+
+                <%= if not result.is_correct do %>
+                  <div class="ml-13 p-4 bg-white rounded-lg border border-red-200">
+                    <p class="text-sm text-slate-600 mb-2">Correct answer:</p>
+                    <p class="font-semibold text-slate-900">
+                      <%= Enum.at(Enum.at(@questions, result.question_idx)["options"], result.correct_answer) %>
+                    </p>
+                  </div>
+                <% end %>
+
+                <%= if result.explanation && result.explanation != "" do %>
+                  <div class="ml-13 mt-3 p-4 bg-white rounded-lg border border-slate-200">
+                    <p class="text-sm font-semibold text-slate-700 mb-1">Explanation:</p>
+                    <p class="text-sm text-slate-600"><%= result.explanation %></p>
+                  </div>
+                <% end %>
+              </div>
+            <% end %>
+          </div>
+
+          <div class="flex items-center justify-center space-x-4 mt-8 pt-8 border-t border-slate-200">
+            <%= if @quiz.allow_retakes and not passed do %>
+              <button
+                phx-click="retake_quiz"
+                class="inline-flex items-center px-8 py-4 bg-violet-600 text-white rounded-xl font-semibold hover:bg-violet-700 transition-colors"
+              >
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+                Retake Quiz
+              </button>
+            <% end %>
+
+            <.link
+              navigate={~p"/#{@locale}/ai/learning/paths/#{@path_id}"}
+              class="inline-flex items-center px-8 py-4 bg-slate-100 text-slate-700 rounded-xl font-semibold hover:bg-slate-200 transition-colors"
+            >
+              Back to Course
+            </.link>
+          </div>
+        </div>
+      </div>
+    <% end %>
+  </div>
+</div>

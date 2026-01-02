@@ -17,24 +17,23 @@
     team_size_limit,
     submission_ids = [],
     participants = [],
-    status,                        % draft | active | ended | voting | archived
+    status,
     visibility = public,
     tags = [],
     date_created,
     date_updated,
     report = [],
     metadata = #{},
-
-    discussion_cids = [],          % IPFS CIDs for discussion threads
-    team_ids = [],                 % List of team IDs (not full records)
-    evaluation_script_cid,         % IPFS CID for automated scoring script
-    prize_distribution = #{},      % Map of {rank => prize_amount/token}
-    external_data_allowed = false, % Whether participants can use external datasets
-    late_submission_penalty = 0.0, % Penalty percentage per day late
-    compute_quota = #{},           % {cpu_hours => X, gpu_hours => Y, tpu_hours => Z}
-    featured = false,              % Whether competition is featured/promoted
-    difficulty_level,              % beginner | intermediate | advanced | expert
-    host_evaluation_cid            % IPFS CID for host's evaluation results/analysis
+    discussion_cids = [],
+    team_ids = [],
+    evaluation_script_cid,
+    prize_distribution = #{},
+    external_data_allowed = false,
+    late_submission_penalty = 0.0,
+    compute_quota = #{},
+    featured = false,
+    difficulty_level,
+    host_evaluation_cid
 }).
 
 -record(dataset, {
@@ -58,19 +57,18 @@
     date_updated,
     report = [],
     metadata = #{},
-
-    version_history = [],          % List of {version, cid, timestamp, changes}
-    schema_cid,                    % IPFS CID for data schema (JSON/Avro)
-    sample_cid,                    % IPFS CID for sample/preview data (first 1000 rows)
-    citation_count = 0,            % Number of times cited in notebooks/papers
-    doi,                           % Digital Object Identifier for academic citation
+    version_history = [],
+    schema_cid,
+    sample_cid,
+    citation_count = 0,
+    doi,
     related_dataset_ids = [],
-    data_quality_score = 0.0,      % Automated quality score (0-100)
-    update_frequency,              % daily | weekly | monthly | static
-    access_requests = [],          % List of {user_id, reason, status, timestamp}
-    collaborators = [],            % List of user_ids who can edit metadata
-    used_in_notebook_ids = [],     % Track which notebooks use this dataset
-    used_in_model_ids = []         % Track which models trained on this dataset
+    data_quality_score = 0.0,
+    update_frequency,
+    access_requests = [],
+    collaborators = [],
+    used_in_notebook_ids = [],
+    used_in_model_ids = []
 }).
 
 -record(notebook, {
@@ -97,16 +95,16 @@
     date_updated,
     report = [],
     data = #{},
-    forked_from,                   % Parent notebook ID if this is a fork
-    fork_count = 0,                % Number of times this notebook was forked
-    execution_logs_cid,            % IPFS CID for execution logs/errors
-    dependencies_cid,              % IPFS CID for requirements.txt or environment.yml
-    compute_time_used = 0,         % Total seconds of compute time used
-    gpu_time_used = 0,             % Total seconds of GPU time used
-    scheduled_runs = [],           % List of {cron_expression, enabled, last_run}
-    notebook_type,                 % analysis | competition_submission | tutorial | research
-    citations = [],                % List of {paper_doi, dataset_id, external_url}
-    interactive_widgets = []       % List of {widget_type, widget_cid, position}
+    forked_from,
+    fork_count = 0,
+    execution_logs_cid,
+    dependencies_cid,
+    compute_time_used = 0,
+    gpu_time_used = 0,
+    scheduled_runs = [],
+    notebook_type,
+    citations = [],
+    interactive_widgets = []
 }).
 
 -record(leaderboard, {
@@ -115,17 +113,16 @@
     evaluation_metric,
     last_updated,
     data = #{},
-
-    public_submission_ids = [],    % Submissions visible before end
-    private_submission_ids = [],   % Final evaluation submissions
-    evaluation_history = [],       % History: [{timestamp, submission_id, score}]
-    team_submission_ids = [],      % Team submissions
-    solo_submission_ids = [],      % Individual submissions
-    best_scores_per_team = #{},    % Map of team_id => {submission_id, score}
-    percentile_data = #{},         % Percentile rankings {percentile => score}
-    score_distribution_cid,        % IPFS CID for visualization data
-    benchmark_score,               % Baseline score to beat
-    prize_cutoffs = #{}            % Map of {rank_range => prize_tier}
+    public_submission_ids = [],
+    private_submission_ids = [],
+    evaluation_history = [],
+    team_submission_ids = [],
+    solo_submission_ids = [],
+    best_scores_per_team = #{},
+    percentile_data = #{},
+    score_distribution_cid,
+    benchmark_score,
+    prize_cutoffs = #{}
 }).
 
 -record(model, {
@@ -147,16 +144,16 @@
     date_updated,
     report = [],
     data = #{},
-    training_dataset_cids = [],    % IPFS CIDs for training datasets used
-    performance_metrics = #{},     % Map of metric_name => value
-    inference_api_endpoint,        % URL for model inference API (if deployed)
-    docker_image_cid,              % IPFS CID for containerized model
-    model_card_cid,                % IPFS CID for model documentation/card
-    version_history = [],          % List of {version, cid, timestamp, improvements}
-    benchmark_results = [],        % List of {dataset_id, metric, score}
-    dependencies_cid,              % IPFS CID for requirements/dependencies
-    inference_time_ms = 0,         % Average inference time in milliseconds
-    carbon_footprint = 0.0         % Estimated CO2 emissions during training (kg)
+    training_dataset_cids = [],
+    performance_metrics = #{},
+    inference_api_endpoint,
+    docker_image_cid,
+    model_card_cid,
+    version_history = [],
+    benchmark_results = [],
+    dependencies_cid,
+    inference_time_ms = 0,
+    carbon_footprint = 0.0
 }).
 
 -record(code_snippet, {
@@ -174,46 +171,16 @@
     date_updated,
     report = [],
     data = #{},
-    execution_count = 0,           % Number of times executed
-    forked_from,                   % Parent snippet ID if forked
-    fork_count = 0,                % Number of forks
-    input_schema = #{},            % Expected input format/types
-    output_schema = #{},           % Expected output format/types
-    execution_environment,         % Required runtime environment
-    performance_metrics = #{},     % {execution_time, memory_usage, etc.}
-    usage_examples_cid,            % IPFS CID for usage examples
-    test_cases_cid,                % IPFS CID for unit tests
-    dependencies = []              % List of required packages/libraries
-}).
-
--record(learning_resource, {
-    id,
-    creator_id,
-    title,
-    description,
-    type,                          % tutorial | course | exercise | workshop
-    content_cid,
-    level,
-    tags = [],
-    duration,                      % Duration in seconds
-    visibility = public,
-    completions = 0,
-    likes = [],
-    comments = [],
-    date_created,
-    date_updated,
-    report = [],
-    data = #{},
-    prerequisites = [],            % List of learning_resource IDs required first
-    learning_path_id,              % ID of curriculum/learning path this belongs to
-    exercises_cid,                 % IPFS CID for practice exercises
-    solutions_cid,                 % IPFS CID for exercise solutions
-    quiz_cid,                      % IPFS CID for assessment quiz
-    video_segments = [],           % List of {start_time, end_time, topic}
-    interactive_demos = [],        % List of {demo_type, demo_cid, description}
-    certificate_template_cid,      % IPFS CID for completion certificate template
-    discussion_cid,                % IPFS CID for Q&A/discussion thread
-    related_competition_ids = []
+    execution_count = 0,
+    forked_from,
+    fork_count = 0,
+    input_schema = #{},
+    output_schema = #{},
+    execution_environment,
+    performance_metrics = #{},
+    usage_examples_cid,
+    test_cases_cid,
+    dependencies = []
 }).
 
 -record(data_science_progress, {
@@ -228,16 +195,16 @@
     model_contributions = 0,
     last_updated,
     data = #{},
-    rank_global,                   % Global ranking position
-    rank_by_country,               % Country-specific ranking
-    specializations = [],          % List of areas (nlp, cv, etc.)
-    contribution_streak = 0,       % Days of consecutive activity
-    mentor_score = 0.0,            % Score based on helping others (0-100)
-    code_review_count = 0,         % Number of code reviews performed
-    discussion_contributions = 0,  % Number of helpful discussion posts
-    achievements_timeline = [],    % List of {timestamp, achievement_type, details}
-    follower_ids = [],             % List of user_ids following this user
-    following_ids = []             % List of user_ids this user follows
+    rank_global,
+    rank_by_country,
+    specializations = [],
+    contribution_streak = 0,
+    mentor_score = 0.0,
+    code_review_count = 0,
+    discussion_contributions = 0,
+    achievements_timeline = [],
+    follower_ids = [],
+    following_ids = []
 }).
 
 -record(team, {
@@ -245,139 +212,139 @@
     competition_id,
     name,
     creator_id,
-    members = [],                  % List of {user_id, role, joined_at}
-    invitations = [],              % List of {user_id, status, invited_at, expires_at}
-    merge_requests = [],           % List of {from_team_id, status, requested_at}
+    members = [],
+    invitations = [],
+    merge_requests = [],
     submission_ids = [],
     team_score,
     rank,
     disbanded = false,
     date_created,
     date_updated,
-
-    discussion_cids = [],          % Team-specific discussions
-    notebook_ids = [],             % Shared team notebooks
-    compute_quota_used = #{},      % Track team's compute usage
-    total_submissions = 0,         % Total submission count
-    best_submission_id,            % ID of best scoring submission
-    team_avatar_cid,               % Team avatar/logo on IPFS
-    metadata = #{}                 % Additional team metadata
+    discussion_cids = [],
+    notebook_ids = [],
+    compute_quota_used = #{},
+    total_submissions = 0,
+    best_submission_id,
+    team_avatar_cid,
+    metadata = #{}
 }).
 
 -record(discussion_thread, {
     id,
-    parent_type,                   % competition | dataset | notebook | general | team | model
+    parent_type,
     parent_id,
     creator_id,
     title,
-    content_cid,                   % IPFS CID for thread content
-    replies = [],                  % [{reply_id, user_id, content_cid, timestamp}]
-    upvotes = [],                  % List of user_ids who upvoted
-    downvotes = [],                % List of user_ids who downvoted
+    content_cid,
+    replies = [],
+    upvotes = [],
+    downvotes = [],
     pinned = false,
     solved = false,
     tags = [],
     date_created,
     date_updated,
-
-    visibility = public,           % public | private | team_only
-    reply_count = 0,               % Denormalized count for performance
-    view_count = 0,                % Track engagement
-    last_activity,                 % Timestamp of last reply/edit
-    accepted_answer_id,            % For Q&A threads
-    locked = false,                % Prevent new replies
-    report = [],                   % Moderation reports
-    mentioned_user_ids = [],       % Users mentioned with @
-    metadata = #{}                 % Additional metadata
+    visibility = public,
+    reply_count = 0,
+    view_count = 0,
+    last_activity,
+    accepted_answer_id,
+    locked = false,
+    report = [],
+    mentioned_user_ids = [],
+    metadata = #{}
 }).
 
 -record(compute_session, {
     id,
     user_id,
     notebook_id,
-    resource_type,                 % cpu | gpu | tpu
+    resource_type,
     start_time,
     end_time,
     duration_seconds,
     cost_tokens,
-    status,                        % queued | running | completed | failed | terminated
-    logs_cid,                      % IPFS CID for session logs
-    team_id,                       % If part of team competition
-    competition_id,                % Link to competition if applicable
-    memory_used_mb,                % Track memory usage
-    storage_used_mb,               % Track storage usage
-    error_cid,                     % IPFS CID for error logs if failed
-    checkpoint_cids = [],          % Saved checkpoints during execution
-    cpu_cores_used,                % Number of CPU cores
-    gpu_model,                     % GPU model (e.g., "Tesla V100")
-    date_created,                  % Creation timestamp
-    metadata = #{}                 % Additional session metadata
+    status,
+    logs_cid,
+    team_id,
+    competition_id,
+    memory_used_mb,
+    storage_used_mb,
+    error_cid,
+    checkpoint_cids = [],
+    cpu_cores_used,
+    gpu_model,
+    date_created,
+    metadata = #{}
 }).
 
 -record(submission, {
     id,
     competition_id,
-    team_id,                       % Team ID if team competition
-    user_id,                       % User ID if solo OR the submitter from team
-    submission_cid,                % IPFS CID of the submission file
-    notebook_id,                   % notebook that generated this
-    submission_number,             % nth submission for this team/user
-    score_public,                  % Score on public leaderboard
-    score_private,                 % Score on private leaderboard (if available)
-    evaluation_status,             % pending | queued | evaluating | completed | failed
-    evaluation_cid,                % IPFS CID for evaluation results/logs
-    error_message,                 % Error message if evaluation failed
-    submission_time,               % Timestamp of submission
-    compute_session_id,            % Link to compute session used
-    late_submission = false,       % Whether submitted after deadline
-    disqualified = false,          % If violates rules
-    disqualification_reason,       % Reason if disqualified
-    file_size_bytes,               % Submission file size
-    evaluation_time_seconds,       % Time taken to evaluate
-    metadata = #{}
-}).
-
--record(badge, {
-    id,
-    name,                          % e.g., "Top 10% Finisher"
-    description,
-    icon_cid,                      % IPFS CID for badge image/icon
-    criteria = #{},                % Requirements to earn badge
-    rarity,                        % common | rare | epic | legendary
-    nft_contract_address,          % If badge is an NFT on blockchain
-    nft_token_standard,            % ERC-721 | ERC-1155 | etc.
-    total_awarded = 0,             % Number of users who have earned it
-    category,                      % competition | contribution | learning | social
-    points_value = 0,              % Points awarded when earned
-    date_created,
-    metadata = #{}
-}).
-
--record(user_badge, {
-    id,
+    team_id,
     user_id,
-    badge_id,
-    earned_at,                     % Timestamp when earned
-    competition_id,                % Related competition
-    context = #{},                 % Additional context (rank, score, etc.)
-    nft_token_id,                  % If minted as NFT
-    transaction_hash,              % Blockchain transaction hash if NFT
+    submission_cid,
+    notebook_id,
+    submission_number,
+    score_public,
+    score_private,
+    evaluation_status,
+    evaluation_cid,
+    error_message,
+    submission_time,
+    compute_session_id,
+    late_submission = false,
+    disqualified = false,
+    disqualification_reason,
+    file_size_bytes,
+    evaluation_time_seconds,
     metadata = #{}
 }).
 
 -record(notification, {
     id,
     user_id,
-    type,                          % competition_invite | submission_scored | badge_earned | etc.
+    type,
     title,
     message,
-    link_type,                     % competition | notebook | discussion | team | etc.
-    link_id,                       % ID of the linked entity
+    link_type,
+    link_id,
     read = false,
-    action_required = false,       % Whether user needs to take action
-    priority,                      % low | normal | high | urgent
-    expires_at,                    % Expiration timestamp for time-sensitive notifications
+    action_required = false,
+    priority,
+    expires_at,
     date_created,
+    metadata = #{}
+}).
+
+-record(code_review, {
+    id,
+    notebook_id,
+    reviewer_id,
+    author_id,
+    review_type,
+    comments = [],
+    rating,
+    status,
+    helpful_count = 0,
+    date_created,
+    date_updated,
+    metadata = #{}
+}).
+
+-record(collaboration_request, {
+    id,
+    resource_type,
+    resource_id,
+    requester_id,
+    owner_id,
+    request_type,
+    reason,
+    status,
+    requested_at,
+    responded_at,
+    expires_at,
     metadata = #{}
 }).
 
@@ -386,44 +353,1048 @@
     title,
     description,
     creator_id,
-    resource_ids = [],             % Ordered list of learning_resource IDs
-    difficulty_level,              % beginner | intermediate | advanced
-    estimated_duration,            % Total duration in seconds
-    certificate_template_cid,      % IPFS CID for completion certificate
-    completions = 0,               % Number of users who completed
+    creator_name,
+    creator_family,
+    approval_status = pending,
+    approved_by,
+    approved_at,
+    rejection_reason,
+    content_quality_score = 0.0,
+    resource_ids = [],
+    difficulty_level,
+    estimated_duration,
+    certificate_template_cid,
+    completions = 0,
     tags = [],
-    visibility = public,
+    visibility = draft,
     date_created,
     date_updated,
+    metadata = #{},
+    track,
+    category,
+    subcategory,
+    prerequisite_paths = [],
+    next_paths = [],
+    enrollment_count = 0,
+    completion_rate = 0.0,
+    average_rating = 0.0,
+    total_reviews = 0,
+    instructors = [],
+    learning_outcomes = [],
+    career_outcomes = [],
+    job_roles = [],
+    industry_relevance = [],
+    certification_info = #{},
+    price = 0.0,
+    currency = "USD",
+    discount_info = #{},
+    access_duration_days,
+    lifetime_access = true,
+    includes_mentorship = false,
+    includes_job_placement = false,
+    capstone_project_id,
+    final_assessment_id,
+    badges_earned = [],
+    partner_organizations = [],
+    accreditation = [],
+    ceu_credits = 0.0,
+    featured = false,
+    trending = false,
+    new_release = false,
+    bestseller = false,
+    path_modules = [],
+    flexible_deadlines = true,
+    self_paced = true,
+    cohort_based = false,
+    live_classes = [],
+    recorded_sessions = true,
+    language = "en",
+    subtitles_languages = [],
+    thumbnail_cid,
+    preview_video_cid,
+    instructor_bio,
+    instructor_credentials = [],
+    last_updated_by,
+    update_history = [],
+    flagged = false,
+    flag_reason,
+    student_feedback = [],
+    promotional_video_cid,
+    syllabus_pdf_cid,
+    ipns,
+    total_revenue = 0.0,
+    completion_count = 0,
+    modules_count = 0,
+    lessons_count = 0,
+    quizzes_count = 0,
+    projects_count = 0
+}).
+
+-record(learning_resource, {
+    id,
+    creator_id,
+    creator_name,
+    creator_family,
+    approval_status = pending,
+    approved_by,
+    approved_at,
+    rejection_reason,
+    title,
+    description,
+    type,
+    content_cid,
+    level,
+    tags = [],
+    duration,
+    visibility = draft,
+    completions = 0,
+    likes = [],
+    comments = [],
+    date_created,
+    date_updated,
+    report = [],
+    data = #{},
+    prerequisites = [],
+    learning_path_id,
+    exercises_cid,
+    solutions_cid,
+    quiz_cid,
+    video_segments = [],
+    interactive_demos = [],
+    certificate_template_cid,
+    discussion_cid,
+    related_competition_ids = [],
+    module_number,
+    lesson_number,
+    estimated_time_minutes,
+    difficulty_score = 0.0,
+    completion_rate = 0.0,
+    average_rating = 0.0,
+    enrollment_count = 0,
+    code_exercises = [],
+    practical_projects = [],
+    reading_materials_cid,
+    video_lectures_cid,
+    audio_lectures_cid,
+    slides_cid,
+    images_cids = [],
+    text_content_cid,
+    notebook_templates = [],
+    dataset_references = [],
+    model_references = [],
+    external_resources = [],
+    learning_objectives = [],
+    skills_gained = [],
+    assessment_criteria = #{},
+    grading_rubric_cid,
+    peer_review_enabled = false,
+    instructor_ids = [],
+    ta_ids = [],
+    forum_cid,
+    live_session_schedule = [],
+    office_hours = [],
+    syllabus_cid,
+    language = "en",
+    subtitles_available = [],
+    accessibility_features = [],
+    mobile_optimized = true,
+    offline_available = false,
+    content_quality_score = 0.0,
+    last_updated_by,
+    update_history = [],
+    flagged = false,
+    flag_reason,
+    admin_notes = [],
+    ipns,
+    rating_count = 0,
+    completion_count = 0
+}).
+
+-record(learning_module, {
+    id,
+    path_id,
+    creator_id,
+    creator_name,
+    creator_family,
+    approval_status = pending,
+    approved_by,
+    approved_at,
+    rejection_reason,
+    title,
+    description,
+    module_number,
+    lessons = [],
+    lessons_count = 0,
+    estimated_hours,
+    prerequisites = [],
+    learning_objectives = [],
+    assessment_id,
+    project_id,
+    unlock_criteria = #{},
+    locked = true,
+    date_created,
+    date_updated,
+    metadata = #{},
+    visibility = draft,
+    thumbnail_cid,
+    intro_video_cid,
+    intro_video_duration = 0,
+    resources_cid,
+    content_quality_score = 0.0,
+    last_updated_by,
+    flagged = false,
+    completion_count = 0,
+    average_completion_time = 0,
+    ipns
+}).
+
+-record(lesson, {
+    id,
+    module_id,
+    path_id,
+    creator_id,
+    creator_name,
+    creator_family,
+    approval_status = pending,
+    approved_by,
+    approved_at,
+    rejection_reason,
+    title,
+    description,
+    lesson_number,
+    content_type,
+    content_cid,
+    duration_minutes,
+    video_cid,
+    video_quality = "1080p",
+    video_size_bytes = 0,
+    video_duration_seconds = 0,
+    video_format = "mp4",
+    audio_cid,
+    audio_quality = "high",
+    audio_size_bytes = 0,
+    audio_duration_seconds = 0,
+    audio_format = "mp3",
+    slides_cid,
+    slides_count = 0,
+    images_cids = [],
+    text_content_cid,
+    text_word_count = 0,
+    transcript_cid,
+    transcript_language = "en",
+    code_samples = [],
+    exercises = [],
+    quiz_id,
+    prerequisites = [],
+    next_lesson_id,
+    prev_lesson_id,
+    completion_criteria = #{},
+    date_created,
+    date_updated,
+    metadata = #{},
+    visibility = draft,
+    thumbnail_cid,
+    preview_available = false,
+    preview_duration_seconds = 30,
+    downloadable = false,
+    resource_files_cid,
+    supplementary_materials = [],
+    references = [],
+    content_quality_score = 0.0,
+    last_updated_by,
+    flagged = false,
+    flag_reason,
+    student_questions = [],
+    admin_notes = [],
+    ipns,
+    content_status = processing,
+    processing_progress = 0,
+    view_count = 0,
+    completion_count = 0,
+    average_rating = 0.0,
+    likes_count = 0,
+    comments_count = 0
+}).
+
+-record(lesson_progress, {
+    id,
+    user_id,
+    lesson_id,
+    module_id,
+    path_id,
+    status = not_started,
+    progress_percentage = 0.0,
+    video_position_seconds = 0,
+    last_accessed,
+    completed_at,
+    time_spent_seconds = 0,
+    notes = [],
+    bookmarked = false,
+    rating,
+    review_text,
+    helpful_count = 0,
     metadata = #{}
 }).
 
--record(code_review, {
+-record(module_progress, {
     id,
-    notebook_id,                   % Notebook being reviewed
-    reviewer_id,                   % User conducting the review
-    author_id,                     % Original notebook author
-    review_type,                   % informal | competition | mentor
-    comments = [],                 % List of {line_number, comment_cid, timestamp}
-    rating,                        % 1-5 stars
-    status,                        % draft | submitted | resolved
-    helpful_count = 0,             % How many found this review helpful
-    date_created,
-    date_updated,
+    user_id,
+    module_id,
+    path_id,
+    status = locked,
+    progress_percentage = 0.0,
+    completed_lessons = [],
+    current_lesson_id,
+    started_at,
+    completed_at,
+    time_spent_seconds = 0,
+    quiz_scores = #{},
+    exercise_completions = [],
     metadata = #{}
 }).
 
--record(collaboration_request, {
+-record(user_learning_progress, {
+    user_id,
+    path_id,
+    enrollment_date,
+    start_date,
+    completion_date,
+    status,
+    progress_percentage = 0.0,
+    completed_resources = [],
+    completed_modules = [],
+    completed_lessons = [],
+    current_module_id,
+    current_resource_id,
+    current_lesson_id,
+    time_spent_minutes = 0,
+    video_watch_time = 0,
+    audio_listen_time = 0,
+    reading_time = 0,
+    last_accessed,
+    certificates_earned = [],
+    badges_earned = [],
+    quiz_scores = #{},
+    quiz_attempts_count = 0,
+    project_submissions = [],
+    peer_reviews_given = [],
+    peer_reviews_received = [],
+    notes = [],
+    bookmarks = [],
+    discussion_participation = 0,
+    questions_asked = 0,
+    answers_given = 0,
+    streak_days = 0,
+    longest_streak = 0,
+    last_activity_date,
+    completion_estimate,
+    performance_metrics = #{},
+    strengths = [],
+    areas_for_improvement = [],
+    recommended_resources = [],
+    study_schedule = [],
+    reminders_enabled = true,
+    notification_preferences = #{},
+    metadata = #{},
+    exercise_attempts = #{},
+    favorite_resources = [],
+    learning_pace,
+    preferred_content_type,
+    study_hours_per_week = 0,
+    target_completion_date
+}).
+
+-record(video_upload_session, {
     id,
-    resource_type,                 % dataset | notebook | model | competition
-    resource_id,
-    requester_id,
-    owner_id,
-    request_type,                  % edit | view | download | fork
-    reason,                        % Why they want access
-    status,                        % pending | approved | rejected | expired
-    requested_at,
-    responded_at,
+    lesson_id,
+    user_id,
+    filename,
+    total_size_bytes,
+    uploaded_bytes = 0,
+    chunk_size = 10485760,
+    chunks_total,
+    chunks_uploaded = [],
+    status = uploading,
+    temp_file_path,
+    final_cid,
+    video_metadata = #{},
+    started_at,
+    completed_at,
+    error_message,
+    metadata = #{}
+}).
+
+-record(content_comment, {
+    id,
+    content_type,
+    content_id,
+    user_id,
+    username,
+    comment_text,
+    parent_comment_id,
+    upvotes = [],
+    downvotes = [],
+    replies = [],
+    flagged = false,
+    flag_reason,
+    timestamp,
+    edited = false,
+    edit_timestamp,
+    metadata = #{}
+}).
+
+-record(content_reaction, {
+    id,
+    content_type,
+    content_id,
+    user_id,
+    reaction_type,
+    timestamp,
+    metadata = #{}
+}).
+
+-record(student_question, {
+    id,
+    lesson_id,
+    module_id,
+    path_id,
+    student_id,
+    question_text,
+    question_timestamp_seconds,
+    answers = [],
+    accepted_answer_id,
+    upvotes = [],
+    views = 0,
+    status = open,
+    tags = [],
+    created_at,
+    updated_at,
+    metadata = #{}
+}).
+
+-record(question_answer, {
+    id,
+    question_id,
+    responder_id,
+    responder_type,
+    answer_text,
+    upvotes = [],
+    downvotes = [],
+    accepted = false,
+    created_at,
+    edited = false,
+    edit_timestamp,
+    metadata = #{}
+}).
+
+-record(path_review, {
+    id,
+    path_id,
+    user_id,
+    username,
+    rating,
+    review_title,
+    review_text,
+    pros = [],
+    cons = [],
+    would_recommend = true,
+    completion_percentage,
+    helpful_votes = 0,
+    not_helpful_votes = 0,
+    instructor_response,
+    created_at,
+    updated_at,
+    verified_purchase = false,
+    metadata = #{}
+}).
+
+-record(instructor_analytics, {
+    instructor_id,
+    date,
+    total_students = 0,
+    new_enrollments = 0,
+    active_students = 0,
+    completions = 0,
+    revenue = 0.0,
+    average_rating = 0.0,
+    total_reviews = 0,
+    paths_created = 0,
+    modules_created = 0,
+    lessons_created = 0,
+    total_video_minutes = 0,
+    engagement_rate = 0.0,
+    response_time_hours = 0.0,
+    metadata = #{}
+}).
+
+-record(content_analytics, {
+    content_type,
+    content_id,
+    date,
+    views = 0,
+    unique_viewers = 0,
+    completions = 0,
+    average_rating = 0.0,
+    drop_off_rate = 0.0,
+    engagement_score = 0.0,
+    comments_count = 0,
+    questions_count = 0,
+    average_watch_time_seconds = 0,
+    completion_rate = 0.0,
+    metadata = #{}
+}).
+
+-record(learning_notification, {
+    id,
+    user_id,
+    type,
+    title,
+    message,
+    link_type,
+    link_id,
+    priority = normal,
+    read = false,
+    action_required = false,
+    action_url,
+    created_at,
+    read_at,
     expires_at,
     metadata = #{}
+}).
+
+-record(learning_schedule, {
+    id,
+    path_id,
+    cohort_name,
+    start_date,
+    end_date,
+    schedule_type = self_paced,
+    module_unlock_dates = #{},
+    lesson_unlock_dates = #{},
+    deadlines = #{},
+    live_sessions = [],
+    max_students,
+    enrolled_students = [],
+    instructors = [],
+    tas = [],
+    status = upcoming,
+    metadata = #{}
+}).
+
+-record(quiz, {
+    id,
+    resource_id,
+    creator_id,
+    creator_name,
+    creator_family,
+    approval_status = pending,
+    approved_by,
+    approved_at,
+    rejection_reason,
+    title,
+    description,
+    questions = [],
+    time_limit_minutes,
+    passing_score = 70.0,
+    attempts_allowed = 3,
+    shuffle_questions = true,
+    shuffle_answers = true,
+    show_correct_answers = true,
+    show_explanations = true,
+    proctored = false,
+    date_created,
+    date_updated,
+    metadata = #{},
+    difficulty_level,
+    total_points = 0.0,
+    flagged = false,
+    content_quality_score = 0.0,
+    questions_cid,
+    ipns
+}).
+
+-record(quiz_question, {
+    id,
+    quiz_id,
+    question_text,
+    question_type,
+    options = [],
+    correct_answer,
+    explanation,
+    points = 1.0,
+    difficulty,
+    tags = [],
+    code_snippet,
+    image_cid,
+    audio_cid,
+    video_cid,
+    hint,
+    time_limit_seconds,
+    partial_credit = false,
+    metadata = #{}
+}).
+
+-record(quiz_attempt, {
+    id,
+    quiz_id,
+    user_id,
+    attempt_number,
+    start_time,
+    end_time,
+    score = 0.0,
+    percentage = 0.0,
+    passed = false,
+    answers = #{},
+    time_taken_seconds,
+    ip_address,
+    browser_info,
+    flagged_for_review = false,
+    metadata = #{},
+    max_score = 0.0,
+    submitted_at
+}).
+
+-record(exercise, {
+    id,
+    resource_id,
+    creator_id,
+    creator_name,
+    creator_family,
+    approval_status = pending,
+    approved_by,
+    approved_at,
+    rejection_reason,
+    title,
+    description,
+    difficulty,
+    exercise_type,
+    problem_statement,
+    starter_code,
+    test_cases = [],
+    solution_code,
+    hints = [],
+    time_limit_minutes,
+    memory_limit_mb,
+    allowed_languages = [],
+    tags = [],
+    points = 10.0,
+    date_created,
+    date_updated,
+    metadata = #{},
+    video_explanation_cid,
+    images_cids = [],
+    flagged = false,
+    problem_statement_cid,
+    starter_code_cid,
+    solution_code_cid,
+    ipns
+}).
+
+-record(exercise_submission, {
+    id,
+    exercise_id,
+    user_id,
+    submission_time,
+    code,
+    language,
+    status,
+    test_results = [],
+    execution_time_ms,
+    memory_used_mb,
+    score = 0.0,
+    feedback,
+    instructor_comments,
+    peer_reviews = [],
+    metadata = #{},
+    code_cid,
+    submitted_at
+}).
+
+-record(project, {
+    id,
+    path_id,
+    module_id,
+    creator_id,
+    creator_name,
+    creator_family,
+    approval_status = pending,
+    approved_by,
+    approved_at,
+    rejection_reason,
+    title,
+    description,
+    difficulty,
+    estimated_hours,
+    requirements = [],
+    deliverables = [],
+    grading_rubric = #{},
+    starter_files_cid,
+    example_solutions_cid,
+    datasets_required = [],
+    tools_required = [],
+    submission_deadline,
+    late_penalty_percentage = 10.0,
+    peer_review_required = false,
+    instructor_review_required = true,
+    min_peer_reviews = 3,
+    date_created,
+    date_updated,
+    metadata = #{},
+    instruction_video_cid,
+    instruction_audio_cid,
+    reference_images_cids = [],
+    flagged = false,
+    requirements_cid,
+    rubric_cid,
+    ipns
+}).
+
+-record(project_submission, {
+    id,
+    project_id,
+    user_id,
+    submission_time,
+    files_cid,
+    github_repo,
+    repository_url,
+    demo_url,
+    video_demo_cid,
+    documentation_cid,
+    status,
+    score = 0.0,
+    grade,
+    feedback,
+    instructor_feedback,
+    grader_id,
+    graded_at,
+    peer_reviews = [],
+    revision_count = 0,
+    last_revision_time,
+    metadata = #{},
+    description,
+    submitted_at
+}).
+
+-record(certificate, {
+    id,
+    user_id,
+    path_id,
+    certificate_type,
+    issue_date,
+    expiry_date,
+    certificate_cid,
+    verification_code,
+    blockchain_hash,
+    nft_token_id,
+    skills_certified = [],
+    grade,
+    distinction = false,
+    accreditation_body,
+    ceu_credits = 0.0,
+    shareable_link,
+    linkedin_url,
+    metadata = #{},
+    instructor_signature_cid,
+    mazaryn_seal_cid,
+    qr_code_cid,
+    ipns
+}).
+
+-record(badge, {
+    id,
+    name,
+    description,
+    icon_cid,
+    criteria = #{},
+    rarity,
+    nft_contract_address,
+    nft_token_standard,
+    total_awarded = 0,
+    category,
+    points_value = 0,
+    date_created,
+    metadata = #{},
+    badge_type,
+    skill_category,
+    prerequisite_badges = [],
+    next_level_badge,
+    progress_trackable = true,
+    auto_awarded = false,
+    manual_review_required = false,
+    expiry_enabled = false,
+    expiry_duration_days,
+    renewable = false,
+    stackable = false,
+    display_priority = 0,
+    shareable = true,
+    blockchain_enabled = false
+}).
+
+-record(user_badge, {
+    id,
+    user_id,
+    badge_id,
+    earned_at,
+    competition_id,
+    context = #{},
+    nft_token_id,
+    transaction_hash,
+    metadata = #{}
+}).
+
+-record(learning_track, {
+    id,
+    title,
+    description,
+    category,
+    level,
+    paths = [],
+    total_duration_hours,
+    career_focus,
+    job_roles = [],
+    skills_covered = [],
+    prerequisites = [],
+    certification_available = true,
+    featured = false,
+    enrollment_count = 0,
+    completion_rate = 0.0,
+    date_created,
+    date_updated,
+    metadata = #{}
+}).
+
+-record(discussion_post, {
+    id,
+    resource_id,
+    user_id,
+    title,
+    content,
+    post_type,
+    tags = [],
+    upvotes = [],
+    downvotes = [],
+    replies = [],
+    parent_id,
+    reply_count = 0,
+    views = 0,
+    pinned = false,
+    solved = false,
+    accepted_answer_id,
+    instructor_response = false,
+    date_created,
+    date_updated,
+    created_at,
+    updated_at,
+    metadata = #{},
+    flagged = false,
+    moderated_by,
+    content_cid,
+    ipns
+}).
+
+-record(study_group, {
+    id,
+    name,
+    description,
+    path_id,
+    creator_id,
+    members = [],
+    max_members = 10,
+    privacy,
+    meeting_schedule = [],
+    chat_room_id,
+    shared_resources = [],
+    group_projects = [],
+    achievements = [],
+    date_created,
+    created_at,
+    metadata = #{}
+}).
+
+-record(mentor_session, {
+    id,
+    mentor_id,
+    student_id,
+    mentee_id,
+    path_id,
+    session_date,
+    scheduled_time,
+    duration_minutes,
+    topics = [],
+    topic,
+    notes,
+    action_items = [],
+    next_session_date,
+    status,
+    rating,
+    feedback,
+    metadata = #{},
+    notes_cid,
+    recording_cid,
+    created_at
+}).
+
+-record(live_class, {
+    id,
+    path_id,
+    instructor_id,
+    instructor_name,
+    instructor_family,
+    title,
+    description,
+    scheduled_time,
+    duration_minutes,
+    meeting_url,
+    recording_cid,
+    recording_allowed = true,
+    slides_cid,
+    attendees = [],
+    max_attendees = 100,
+    registration_required = true,
+    status,
+    chat_transcript_cid,
+    qa_session = [],
+    polls = [],
+    breakout_rooms = [],
+    metadata = #{},
+    thumbnail_cid,
+    reminder_sent = false,
+    created_at
+}).
+
+-record(content_review, {
+    id,
+    content_type,
+    content_id,
+    reviewer_id,
+    review_date,
+    status,
+    quality_score = 0.0,
+    technical_accuracy = 0.0,
+    clarity = 0.0,
+    engagement = 0.0,
+    production_quality = 0.0,
+    comments = [],
+    suggestions = [],
+    approval_notes,
+    rejection_notes,
+    metadata = #{}
+}).
+
+-record(instructor_profile, {
+    id,
+    user_id,
+    name,
+    family,
+    bio,
+    expertise_areas = [],
+    expertise,
+    certifications = [],
+    education = [],
+    work_experience = [],
+    teaching_experience_years = 0,
+    years_experience = 0,
+    total_students = 0,
+    total_courses = 0,
+    average_rating = 0.0,
+    total_reviews = 0,
+    profile_image_cid,
+    video_intro_cid,
+    social_links = #{},
+    linkedin_url,
+    twitter_url,
+    website_url,
+    verified = false,
+    verified_by,
+    verified_at,
+    featured = false,
+    date_created,
+    date_updated,
+    created_at,
+    updated_at,
+    metadata = #{},
+    bio_cid,
+    resume_cid
+}).
+
+-record(admin_action, {
+    id,
+    admin_username,
+    action_type,
+    target_type,
+    content_type,
+    target_id,
+    content_id,
+    action_date,
+    timestamp,
+    reason,
+    notes,
+    details = #{},
+    metadata = #{},
+    reversible = true,
+    reversed = false,
+    reversed_by,
+    reversed_at,
+    reversal_reason
+}).
+
+-record(enrollment, {
+    id,
+    user_id,
+    path_id,
+    enrollment_date,
+    status,
+    progress_percentage = 0.0,
+    completion_date,
+    time_spent_minutes = 0,
+    last_accessed
+}).
+
+-record(user_completion, {
+    id,
+    user_id,
+    content_type,
+    content_id,
+    completed_at,
+    time_spent_minutes
+}).
+
+-record(time_tracking, {
+    id,
+    user_id,
+    content_type,
+    content_id,
+    minutes,
+    tracked_at
+}).
+
+-record(bookmark, {
+    id,
+    user_id,
+    resource_id,
+    created_at
+}).
+
+-record(resource_rating, {
+    id,
+    resource_id,
+    user_id,
+    rating,
+    created_at
+}).
+
+-record(verified_instructor, {
+    user_id,
+    verified_at,
+    verified_by
+}).
+
+-record(instructor_request, {
+    user_id,
+    name,
+    family,
+    reason,
+    requested_at,
+    status,
+    rejection_reason
 }).

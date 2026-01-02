@@ -1,0 +1,781 @@
+<.live_component
+  module={MazarynWeb.HomeLive.NavComponent}
+  id="navigation"
+  user={@user}
+  search=""
+  locale={@locale}
+/>
+
+<div class="min-h-screen bg-gradient-to-br from-slate-50 via-purple-50 to-indigo-50 py-12">
+  <div class="max-w-6xl mx-auto px-6">
+    <div class="mb-8">
+      <.link
+        navigate={~p"/#{@locale}/ai/learning/instructor/dashboard"}
+        class="inline-flex items-center text-slate-600 hover:text-violet-600 transition-colors mb-4"
+      >
+        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+        </svg>
+        Back to Dashboard
+      </.link>
+      <h1 class="text-4xl font-bold text-slate-900 mb-2">Create New Learning Path</h1>
+      <p class="text-lg text-slate-600">Build a comprehensive course to share your expertise</p>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+      <div class="lg:col-span-1">
+        <div class="bg-white rounded-2xl shadow-lg border border-slate-200 p-6 sticky top-6">
+          <h3 class="font-bold text-slate-900 mb-4">Course Creation Steps</h3>
+
+          <div class="space-y-4">
+            <%= for step <- 1..@total_steps do %>
+              <% step_bg = if step == @current_step, do: "bg-violet-100", else: if step < @current_step, do: "bg-green-50 hover:bg-green-100", else: "hover:bg-slate-50" %>
+              <button
+                type="button"
+                phx-click="go_to_step"
+                phx-value-step={step}
+                class={"flex items-center space-x-3 w-full text-left p-3 rounded-lg transition-all #{step_bg}"}
+              >
+                <% badge_color = if step < @current_step, do: "bg-green-500 text-white", else: if step == @current_step, do: "bg-violet-600 text-white", else: "bg-slate-200 text-slate-600" %>
+                <div class={"flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center font-semibold #{badge_color}"}>
+                  <%= if step < @current_step do %>
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                  <% else %>
+                    <%= step %>
+                  <% end %>
+                </div>
+                <div class="flex-1 min-w-0">
+                  <% text_color = if step == @current_step, do: "text-violet-900", else: if step < @current_step, do: "text-green-700", else: "text-slate-600" %>
+                  <p class={"font-medium truncate #{text_color}"}>
+                    <%= case step do %>
+                      <% 1 -> %> Basic Info
+                      <% 2 -> %> Details
+                      <% 3 -> %> Settings
+                      <% 4 -> %> Review
+                    <% end %>
+                  </p>
+                  <p class="text-xs text-slate-500 truncate">
+                    <%= case step do %>
+                      <% 1 -> %> Title, description, category
+                      <% 2 -> %> Tags, outcomes, duration
+                      <% 3 -> %> Price, access, language
+                      <% 4 -> %> Preview and publish
+                    <% end %>
+                  </p>
+                </div>
+              </button>
+            <% end %>
+          </div>
+
+          <div class="mt-6 pt-6 border-t border-slate-200">
+            <button
+              phx-click="save_draft"
+              disabled={@submitting}
+              class="w-full px-4 py-2 bg-slate-100 text-slate-700 rounded-lg font-medium hover:bg-slate-200 transition-colors disabled:opacity-50"
+            >
+              <div class="flex items-center justify-center space-x-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+                </svg>
+                <span>Save as Draft</span>
+              </div>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="lg:col-span-3">
+        <div class="bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden">
+          <div class="bg-gradient-to-r from-violet-600 to-indigo-600 px-8 py-6">
+            <div class="flex items-center justify-between">
+              <div>
+                <h2 class="text-2xl font-bold text-white">
+                  <%= case @current_step do %>
+                    <% 1 -> %> Step 1: Basic Information
+                    <% 2 -> %> Step 2: Course Details
+                    <% 3 -> %> Step 3: Course Settings
+                    <% 4 -> %> Step 4: Review & Publish
+                  <% end %>
+                </h2>
+                <p class="text-violet-100 mt-1">
+                  <%= case @current_step do %>
+                    <% 1 -> %> Tell us about your course
+                    <% 2 -> %> Add tags, outcomes and requirements
+                    <% 3 -> %> Configure pricing and access
+                    <% 4 -> %> Review everything before publishing
+                  <% end %>
+                </p>
+              </div>
+              <div class="text-white/90 text-sm font-medium">
+                Step <%= @current_step %> of <%= @total_steps %>
+              </div>
+            </div>
+          </div>
+
+          <div class="p-8">
+            <form phx-submit={if @current_step == @total_steps, do: "submit", else: "next_step"} phx-change="validate">
+              <%= if @current_step == 1 do %>
+                <div class="space-y-6">
+                  <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-2">
+                      Course Title <span class="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      name="title"
+                      value={@title}
+                      class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-transparent"
+                      placeholder="e.g., Complete Machine Learning Bootcamp 2024"
+                      required
+                    />
+                    <%= if @errors[:title] do %>
+                      <p class="mt-2 text-sm text-red-600 flex items-center">
+                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <%= @errors[:title] %>
+                      </p>
+                    <% end %>
+                  </div>
+
+                  <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-2">
+                      Course Description <span class="text-red-500">*</span>
+                    </label>
+                    <textarea
+                      name="description"
+                      rows="8"
+                      class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-transparent resize-none"
+                      placeholder="Provide a comprehensive description of what students will learn in this course. Include the key topics covered, teaching methodology, and expected outcomes. (Minimum 100 characters)"
+                      required
+                    ><%= @description %></textarea>
+                    <div class="flex justify-between mt-2">
+                      <%= if @errors[:description] do %>
+                        <p class="text-sm text-red-600 flex items-center">
+                          <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          <%= @errors[:description] %>
+                        </p>
+                      <% else %>
+                        <p class="text-sm text-slate-500">
+                          <%= String.length(@description) %> / 100 characters minimum
+                        </p>
+                      <% end %>
+                    </div>
+                  </div>
+
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label class="block text-sm font-semibold text-slate-700 mb-2">
+                        Category <span class="text-red-500">*</span>
+                      </label>
+                      <select
+                        name="category"
+                        class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-transparent"
+                        required
+                      >
+                        <option value="">Select a category</option>
+                        <option value="programming" selected={@category == "programming"}>Programming & Development</option>
+                        <option value="data_science" selected={@category == "data_science"}>Data Science & AI</option>
+                        <option value="machine_learning" selected={@category == "machine_learning"}>Machine Learning</option>
+                        <option value="web_dev" selected={@category == "web_dev"}>Web Development</option>
+                        <option value="mobile" selected={@category == "mobile"}>Mobile Development</option>
+                        <option value="cloud" selected={@category == "cloud"}>Cloud Computing & DevOps</option>
+                        <option value="security" selected={@category == "security"}>Cybersecurity</option>
+                        <option value="blockchain" selected={@category == "blockchain"}>Blockchain & Web3</option>
+                        <option value="design" selected={@category == "design"}>UI/UX Design</option>
+                        <option value="business" selected={@category == "business"}>Business & Marketing</option>
+                        <option value="databases" selected={@category == "databases"}>Databases</option>
+                        <option value="networking" selected={@category == "networking"}>Networking</option>
+                      </select>
+                      <%= if @errors[:category] do %>
+                        <p class="mt-2 text-sm text-red-600 flex items-center">
+                          <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          <%= @errors[:category] %>
+                        </p>
+                      <% end %>
+                    </div>
+
+                    <div>
+                      <label class="block text-sm font-semibold text-slate-700 mb-2">
+                        Subcategory
+                      </label>
+                      <input
+                        type="text"
+                        name="subcategory"
+                        value={@subcategory}
+                        class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-transparent"
+                        placeholder="e.g., Deep Learning, React.js"
+                      />
+                      <p class="mt-1 text-xs text-slate-500">Optional: Be more specific</p>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-2">
+                      Difficulty Level <span class="text-red-500">*</span>
+                    </label>
+                    <div class="grid grid-cols-3 gap-4">
+                      <%= for level <- ["beginner", "intermediate", "advanced"] do %>
+                        <% is_selected = @difficulty_level == level %>
+                        <% border_class = if is_selected, do: "border-violet-600 bg-violet-50", else: "border-slate-200 hover:border-violet-300" %>
+                        <label class={"relative flex items-center justify-center p-4 border-2 rounded-xl cursor-pointer transition-all #{border_class}"}>
+                          <input
+                            type="radio"
+                            name="difficulty_level"
+                            value={level}
+                            checked={is_selected}
+                            class="sr-only"
+                          />
+                          <div class="text-center">
+                            <% icon_bg = if is_selected, do: "bg-violet-600 text-white", else: "bg-slate-100 text-slate-600" %>
+                            <div class={"w-12 h-12 mx-auto mb-2 rounded-full flex items-center justify-center #{icon_bg}"}>
+                              <%= case level do %>
+                                <% "beginner" -> %>
+                                  <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                                  </svg>
+                                <% "intermediate" -> %>
+                                  <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                                  </svg>
+                                <% "advanced" -> %>
+                                  <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                  </svg>
+                              <% end %>
+                            </div>
+                            <% text_color = if is_selected, do: "text-violet-900", else: "text-slate-700" %>
+                            <p class={"font-semibold capitalize #{text_color}"}>
+                              <%= level %>
+                            </p>
+                          </div>
+                        </label>
+                      <% end %>
+                    </div>
+                  </div>
+                </div>
+              <% end %>
+
+              <%= if @current_step == 2 do %>
+                <div class="space-y-8">
+                  <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-2">
+                      Estimated Duration (hours) <span class="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="number"
+                      name="estimated_duration"
+                      value={@estimated_duration}
+                      min="1"
+                      max="1000"
+                      class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-transparent"
+                      placeholder="e.g., 40"
+                      required
+                    />
+                    <%= if @errors[:estimated_duration] do %>
+                      <p class="mt-2 text-sm text-red-600 flex items-center">
+                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <%= @errors[:estimated_duration] %>
+                      </p>
+                    <% else %>
+                      <p class="mt-1 text-xs text-slate-500">Total time students will need to complete the course</p>
+                    <% end %>
+                  </div>
+
+                  <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-3">
+                      Course Tags <span class="text-red-500">*</span>
+                    </label>
+                    <div class="flex flex-wrap gap-2 mb-3 min-h-[44px] p-3 bg-slate-50 rounded-xl border border-slate-200">
+                      <%= if length(@tags) == 0 do %>
+                        <span class="text-slate-400 text-sm">No tags added yet</span>
+                      <% else %>
+                        <%= for tag <- @tags do %>
+                          <span class="inline-flex items-center px-3 py-1.5 bg-violet-600 text-white rounded-full text-sm font-medium">
+                            <%= tag %>
+                            <button
+                              type="button"
+                              phx-click="remove_tag"
+                              phx-value-tag={tag}
+                              class="ml-2 hover:text-violet-200"
+                            >
+                              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                              </svg>
+                            </button>
+                          </span>
+                        <% end %>
+                      <% end %>
+                    </div>
+                    <div class="flex space-x-2">
+                      <input
+                        type="text"
+                        id="tag-input"
+                        class="flex-1 px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-transparent"
+                        placeholder="Add a tag (e.g., Python, TensorFlow, Neural Networks)"
+                        maxlength="30"
+                      />
+                      <button
+                        type="button"
+                        onclick="
+                          const input = document.getElementById('tag-input');
+                          const value = input.value.trim();
+                          if (value) {
+                            this.setAttribute('phx-value-tag', value);
+                            input.value = '';
+                          }
+                        "
+                        phx-click="add_tag"
+                        class="px-6 py-3 bg-violet-600 text-white rounded-xl font-semibold hover:bg-violet-700 transition-colors"
+                      >
+                        Add Tag
+                      </button>
+                    </div>
+                    <%= if @errors[:tags] do %>
+                      <p class="mt-2 text-sm text-red-600 flex items-center">
+                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <%= @errors[:tags] %>
+                      </p>
+                    <% else %>
+                      <p class="mt-2 text-xs text-slate-500">
+                        <%= length(@tags) %> / 10 tags added
+                      </p>
+                    <% end %>
+                  </div>
+
+                  <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-3">
+                      Learning Outcomes <span class="text-red-500">*</span>
+                    </label>
+                    <div class="space-y-2 mb-4">
+                      <%= if length(@learning_outcomes) == 0 do %>
+                        <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 text-center text-slate-400 text-sm">
+                          No learning outcomes added yet
+                        </div>
+                      <% else %>
+                        <%= for {outcome, index} <- Enum.with_index(@learning_outcomes) do %>
+                          <div class="flex items-start space-x-3 p-4 bg-green-50 rounded-xl border border-green-200 group hover:bg-green-100 transition-colors">
+                            <div class="flex-shrink-0 mt-0.5">
+                              <div class="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
+                                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                </svg>
+                              </div>
+                            </div>
+                            <span class="flex-1 text-slate-700 font-medium"><%= outcome %></span>
+                            <button
+                              type="button"
+                              phx-click="remove_outcome"
+                              phx-value-index={index}
+                              class="flex-shrink-0 text-slate-400 hover:text-red-600 transition-colors"
+                            >
+                              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                              </svg>
+                            </button>
+                          </div>
+                        <% end %>
+                      <% end %>
+                    </div>
+                    <div class="flex space-x-2">
+                      <input
+                        type="text"
+                        id="outcome-input"
+                        class="flex-1 px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-transparent"
+                        placeholder="What will students be able to do? (e.g., Build and train neural networks from scratch)"
+                        maxlength="200"
+                      />
+                      <button
+                        type="button"
+                        onclick="
+                          const input = document.getElementById('outcome-input');
+                          const value = input.value.trim();
+                          if (value) {
+                            this.setAttribute('phx-value-outcome', value);
+                            input.value = '';
+                          }
+                        "
+                        phx-click="add_outcome"
+                        class="px-6 py-3 bg-violet-600 text-white rounded-xl font-semibold hover:bg-violet-700 transition-colors"
+                      >
+                        Add Outcome
+                      </button>
+                    </div>
+                    <%= if @errors[:learning_outcomes] do %>
+                      <p class="mt-2 text-sm text-red-600 flex items-center">
+                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <%= @errors[:learning_outcomes] %>
+                      </p>
+                    <% else %>
+                      <p class="mt-2 text-xs text-slate-500">
+                        <%= length(@learning_outcomes) %> / 10 outcomes added
+                      </p>
+                    <% end %>
+                  </div>
+
+                  <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-3">
+                      Prerequisites
+                    </label>
+                    <div class="space-y-2 mb-4">
+                      <%= if length(@prerequisite_list) == 0 do %>
+                        <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 text-center text-slate-400 text-sm">
+                          No prerequisites specified (suitable for complete beginners)
+                        </div>
+                      <% else %>
+                        <%= for {prereq, index} <- Enum.with_index(@prerequisite_list) do %>
+                          <div class="flex items-start space-x-3 p-4 bg-amber-50 rounded-xl border border-amber-200 group hover:bg-amber-100 transition-colors">
+                            <div class="flex-shrink-0 mt-0.5">
+                              <div class="w-6 h-6 bg-amber-500 rounded-full flex items-center justify-center">
+                                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                              </div>
+                            </div>
+                            <span class="flex-1 text-slate-700 font-medium"><%= prereq %></span>
+                            <button
+                              type="button"
+                              phx-click="remove_prerequisite"
+                              phx-value-index={index}
+                              class="flex-shrink-0 text-slate-400 hover:text-red-600 transition-colors"
+                            >
+                              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                              </svg>
+                            </button>
+                          </div>
+                        <% end %>
+                      <% end %>
+                    </div>
+                    <div class="flex space-x-2">
+                      <input
+                        type="text"
+                        id="prereq-input"
+                        class="flex-1 px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-transparent"
+                        placeholder="What should students know before taking this course? (e.g., Basic Python programming)"
+                        maxlength="200"
+                      />
+                      <button
+                        type="button"
+                        onclick="
+                          const input = document.getElementById('prereq-input');
+                          const value = input.value.trim();
+                          if (value) {
+                            this.setAttribute('phx-value-prerequisite', value);
+                            input.value = '';
+                          }
+                        "
+                        phx-click="add_prerequisite"
+                        class="px-6 py-3 bg-violet-600 text-white rounded-xl font-semibold hover:bg-violet-700 transition-colors"
+                      >
+                        Add
+                      </button>
+                    </div>
+                    <p class="mt-2 text-xs text-slate-500">
+                      <%= length(@prerequisite_list) %> / 10 prerequisites
+                    </p>
+                  </div>
+                </div>
+              <% end %>
+
+              <%= if @current_step == 3 do %>
+                <div class="space-y-8">
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label class="block text-sm font-semibold text-slate-700 mb-2">
+                        Price
+                      </label>
+                      <div class="relative">
+                        <span class="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-500 font-medium">$</span>
+                        <input
+                          type="number"
+                          name="price"
+                          value={@price}
+                          min="0"
+                          step="0.01"
+                          class="w-full pl-8 pr-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-transparent"
+                          placeholder="0.00"
+                        />
+                      </div>
+                      <p class="mt-2 text-xs text-slate-500">Set to 0 for a free course</p>
+                    </div>
+
+                    <div>
+                      <label class="block text-sm font-semibold text-slate-700 mb-2">
+                        Currency
+                      </label>
+                      <select
+                        name="currency"
+                        class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-transparent"
+                      >
+                        <option value="USD" selected={@currency == "USD"}>USD ($)</option>
+                        <option value="EUR" selected={@currency == "EUR"}>EUR (€)</option>
+                        <option value="GBP" selected={@currency == "GBP"}>GBP (£)</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-2">
+                      Language
+                    </label>
+                    <select
+                      name="language"
+                      class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-transparent"
+                    >
+                      <option value="en" selected={@language == "en"}>English</option>
+                      <option value="es" selected={@language == "es"}>Spanish</option>
+                      <option value="fr" selected={@language == "fr"}>French</option>
+                      <option value="de" selected={@language == "de"}>German</option>
+                      <option value="zh" selected={@language == "zh"}>Chinese</option>
+                      <option value="ja" selected={@language == "ja"}>Japanese</option>
+                      <option value="ar" selected={@language == "ar"}>Arabic</option>
+                      <option value="pt" selected={@language == "pt"}>Portuguese</option>
+                      <option value="ru" selected={@language == "ru"}>Russian</option>
+                    </select>
+                  </div>
+
+                  <div class="space-y-4">
+                    <div class="flex items-center justify-between p-5 bg-slate-50 rounded-xl border border-slate-200 hover:bg-slate-100 transition-colors">
+                      <div class="flex-1">
+                        <div class="flex items-center space-x-3 mb-1">
+                          <svg class="w-5 h-5 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          <p class="font-semibold text-slate-900">Self-Paced Learning</p>
+                        </div>
+                        <p class="text-sm text-slate-600 ml-8">Students can progress through the course at their own speed</p>
+                      </div>
+                      <label class="relative inline-flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
+                          name="self_paced"
+                          value="true"
+                          checked={@self_paced}
+                          class="sr-only peer"
+                        />
+                        <div class="w-14 h-7 bg-slate-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-violet-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[4px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-violet-600"></div>
+                      </label>
+                    </div>
+
+                    <div class="flex items-center justify-between p-5 bg-slate-50 rounded-xl border border-slate-200 hover:bg-slate-100 transition-colors">
+                      <div class="flex-1">
+                        <div class="flex items-center space-x-3 mb-1">
+                          <svg class="w-5 h-5 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                          </svg>
+                          <p class="font-semibold text-slate-900">Lifetime Access</p>
+                        </div>
+                        <p class="text-sm text-slate-600 ml-8">Students have unlimited access after enrollment</p>
+                      </div>
+                      <label class="relative inline-flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
+                          name="lifetime_access"
+                          value="true"
+                          checked={@lifetime_access}
+                          class="sr-only peer"
+                        />
+                        <div class="w-14 h-7 bg-slate-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-violet-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[4px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-violet-600"></div>
+                      </label>
+                    </div>
+
+                    <div class="flex items-center justify-between p-5 bg-slate-50 rounded-xl border border-slate-200 hover:bg-slate-100 transition-colors">
+                      <div class="flex-1">
+                        <div class="flex items-center space-x-3 mb-1">
+                          <svg class="w-5 h-5 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+                          </svg>
+                          <p class="font-semibold text-slate-900">Certificate of Completion</p>
+                        </div>
+                        <p class="text-sm text-slate-600 ml-8">Award certificates when students complete the course</p>
+                      </div>
+                      <label class="relative inline-flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
+                          name="certification_available"
+                          value="true"
+                          checked={@certification_available}
+                          class="sr-only peer"
+                        />
+                        <div class="w-14 h-7 bg-slate-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-violet-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[4px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-violet-600"></div>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              <% end %>
+
+              <%= if @current_step == 4 do %>
+                <div class="space-y-6">
+                  <div class="bg-gradient-to-r from-violet-50 to-indigo-50 rounded-2xl p-6 border border-violet-200">
+                    <div class="flex items-start space-x-4">
+                      <div class="flex-shrink-0">
+                        <div class="w-12 h-12 bg-violet-600 rounded-full flex items-center justify-center">
+                          <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                        </div>
+                      </div>
+                      <div class="flex-1">
+                        <h3 class="text-lg font-bold text-violet-900 mb-2">Review Your Course</h3>
+                        <p class="text-violet-800 mb-4">Please review all the information before submitting. Your course will be sent to administrators for approval.</p>
+                        <ul class="space-y-2 text-sm text-violet-700">
+                          <li class="flex items-center">
+                            <svg class="w-4 h-4 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span>Admin review typically takes 1-3 business days</span>
+                          </li>
+                          <li class="flex items-center">
+                            <svg class="w-4 h-4 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span>You can add modules and lessons after approval</span>
+                          </li>
+                          <li class="flex items-center">
+                            <svg class="w-4 h-4 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span>You'll be notified via email when reviewed</span>
+                          </li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="bg-white rounded-xl border border-slate-200 overflow-hidden">
+                    <div class="border-b border-slate-200 px-6 py-4 bg-slate-50">
+                      <h4 class="font-bold text-slate-900">Course Summary</h4>
+                    </div>
+                    <div class="p-6 space-y-4">
+                      <div>
+                        <p class="text-sm font-semibold text-slate-500 mb-1">Title</p>
+                        <p class="text-slate-900 font-medium"><%= @title %></p>
+                      </div>
+                      <div>
+                        <p class="text-sm font-semibold text-slate-500 mb-1">Description</p>
+                        <p class="text-slate-700 text-sm"><%= @description %></p>
+                      </div>
+                      <div class="grid grid-cols-2 gap-4">
+                        <div>
+                          <p class="text-sm font-semibold text-slate-500 mb-1">Category</p>
+                          <p class="text-slate-900"><%= String.capitalize(@category) %></p>
+                        </div>
+                        <div>
+                          <p class="text-sm font-semibold text-slate-500 mb-1">Level</p>
+                          <p class="text-slate-900 capitalize"><%= @difficulty_level %></p>
+                        </div>
+                      </div>
+                      <div class="grid grid-cols-2 gap-4">
+                        <div>
+                          <p class="text-sm font-semibold text-slate-500 mb-1">Duration</p>
+                          <p class="text-slate-900"><%= @estimated_duration %> hours</p>
+                        </div>
+                        <div>
+                          <p class="text-sm font-semibold text-slate-500 mb-1">Price</p>
+                          <p class="text-slate-900">
+                            <%= if @price == "0.0" or @price == "0", do: "Free", else: "$#{@price}" %>
+                          </p>
+                        </div>
+                      </div>
+                      <div>
+                        <p class="text-sm font-semibold text-slate-500 mb-2">Tags</p>
+                        <div class="flex flex-wrap gap-2">
+                          <%= for tag <- @tags do %>
+                            <span class="px-3 py-1 bg-violet-100 text-violet-700 rounded-full text-sm font-medium">
+                              <%= tag %>
+                            </span>
+                          <% end %>
+                        </div>
+                      </div>
+                      <div>
+                        <p class="text-sm font-semibold text-slate-500 mb-2">Learning Outcomes (<%= length(@learning_outcomes) %>)</p>
+                        <ul class="space-y-2">
+                          <%= for outcome <- Enum.take(@learning_outcomes, 3) do %>
+                            <li class="flex items-start text-sm text-slate-700">
+                              <svg class="w-5 h-5 text-green-600 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                              </svg>
+                              <%= outcome %>
+                            </li>
+                          <% end %>
+                          <%= if length(@learning_outcomes) > 3 do %>
+                            <li class="text-sm text-slate-500 ml-7">
+                              ... and <%= length(@learning_outcomes) - 3 %> more
+                            </li>
+                          <% end %>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              <% end %>
+
+              <div class="flex items-center justify-between mt-8 pt-6 border-t border-slate-200">
+                <%= if @current_step > 1 do %>
+                  <button
+                    type="button"
+                    phx-click="prev_step"
+                    class="inline-flex items-center px-6 py-3 border-2 border-slate-300 text-slate-700 rounded-xl font-semibold hover:bg-slate-50 transition-colors"
+                  >
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                    </svg>
+                    Previous
+                  </button>
+                <% else %>
+                  <.link
+                    navigate={~p"/#{@locale}/ai/learning/instructor/dashboard"}
+                    class="inline-flex items-center px-6 py-3 border-2 border-slate-300 text-slate-700 rounded-xl font-semibold hover:bg-slate-50 transition-colors"
+                  >
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                    Cancel
+                  </.link>
+                <% end %>
+
+                <% submit_disabled = @submitting %>
+                <% submit_class = if submit_disabled, do: "opacity-50 cursor-not-allowed", else: "" %>
+                <button
+                  type="submit"
+                  disabled={submit_disabled}
+                  class={"inline-flex items-center px-8 py-3 bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-xl font-semibold hover:shadow-lg transition-all duration-200 #{submit_class}"}
+                >
+                  <%= if @submitting do %>
+                    <svg class="animate-spin h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24">
+                      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <%= if @save_as_draft, do: "Saving Draft...", else: "Publishing..." %>
+                  <% else %>
+                    <%= if @current_step == @total_steps do %>
+                      Publish Course
+                    <% else %>
+                      Next Step
+                    <% end %>
+                    <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                    </svg>
+                  <% end %>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

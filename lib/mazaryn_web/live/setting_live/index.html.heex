@@ -1,0 +1,375 @@
+<.live_component
+  module={MazarynWeb.HomeLive.NavComponent}
+  id="navigation"
+  user={@user}
+  search=""
+  locale={@locale}
+/>
+
+<div class="bg-[#FAFAFA] min-h-screen">
+  <div class="flex w-[90%] max-w-[1440px] mx-auto">
+    <div class="w-full lg:w-[18%] py-6">
+      <.live_component
+        module={MazarynWeb.HomeLive.LeftSidebarComponent}
+        id="leftside"
+        user={@user}
+        locale={@locale}
+      />
+    </div>
+
+    <div class="w-full lg:w-[78.6%] ml-11 py-6">
+      <%= if @show_success do %>
+        <div class="mb-6 bg-green-50 border-l-4 border-green-400 p-4 rounded-lg shadow-sm animate-fade-in">
+          <div class="flex items-center">
+            <svg class="w-6 h-6 text-green-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <p class="text-green-800 font-medium"><%= @success_message %></p>
+          </div>
+        </div>
+      <% end %>
+
+      <div class="max-w-4xl">
+        <div class="mb-8">
+          <h1 class="text-4xl font-bold text-gray-900 mb-2">Settings</h1>
+          <p class="text-gray-600">Manage your account settings and preferences</p>
+        </div>
+
+        <div class="space-y-6">
+          <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 hover:shadow-md transition-shadow">
+            <div class="flex items-center mb-6">
+              <div class="p-3 bg-blue-50 rounded-xl mr-4">
+                <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                </svg>
+              </div>
+              <div>
+                <h2 class="text-2xl font-semibold text-gray-800">Change Username</h2>
+                <p class="text-sm text-gray-500 mt-1">Update your username to personalize your profile</p>
+              </div>
+            </div>
+
+            <form phx-submit="save_username" class="space-y-6">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                  Current Username
+                </label>
+                <div class="relative">
+                  <input
+                    type="text"
+                    value={@user.username}
+                    disabled
+                    class="w-full px-4 py-3 pl-10 rounded-xl border border-gray-200 bg-gray-50 text-gray-500 cursor-not-allowed"
+                  />
+                  <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                    </svg>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                  New Username
+                </label>
+                <div class="relative">
+                  <input
+                    type="text"
+                    name="username"
+                    phx-change="validate_username"
+                    placeholder="Enter new username"
+                    class="w-full px-4 py-3 pl-10 rounded-xl border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all outline-none"
+                  />
+                  <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <span class="text-gray-400 text-lg">@</span>
+                  </div>
+                </div>
+                <%= if length(@username_errors) > 0 do %>
+                  <%= for error <- @username_errors do %>
+                    <p class="mt-2 text-sm text-red-600 flex items-center">
+                      <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                      </svg>
+                      <%= error %>
+                    </p>
+                  <% end %>
+                <% end %>
+              </div>
+
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                  Current Password
+                </label>
+                <div class="relative">
+                  <input
+                    type="password"
+                    name="current_password"
+                    phx-change="validate_username_password"
+                    placeholder="Enter current password to confirm"
+                    class="w-full px-4 py-3 pl-10 rounded-xl border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all outline-none"
+                  />
+                  <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                    </svg>
+                  </div>
+                </div>
+                <%= if @username_password_error != nil do %>
+                  <p class="mt-2 text-sm text-red-600 flex items-center">
+                    <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                    </svg>
+                    <%= @username_password_error %>
+                  </p>
+                <% end %>
+              </div>
+
+              <button
+                type="submit"
+                class="w-full px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white font-medium rounded-xl hover:from-blue-600 hover:to-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-300 shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center"
+              >
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                </svg>
+                Update Username
+              </button>
+            </form>
+          </div>
+
+          <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 hover:shadow-md transition-shadow">
+            <div class="flex items-center mb-6">
+              <div class="p-3 bg-purple-50 rounded-xl mr-4">
+                <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                </svg>
+              </div>
+              <div>
+                <h2 class="text-2xl font-semibold text-gray-800">Change Email</h2>
+                <p class="text-sm text-gray-500 mt-1">Update your email address for account notifications</p>
+              </div>
+            </div>
+
+            <form phx-submit="save_email" class="space-y-6">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                  Current Email
+                </label>
+                <div class="relative">
+                  <input
+                    type="email"
+                    value={@user.email}
+                    disabled
+                    class="w-full px-4 py-3 pl-10 rounded-xl border border-gray-200 bg-gray-50 text-gray-500 cursor-not-allowed"
+                  />
+                  <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                    </svg>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                  New Email
+                </label>
+                <div class="relative">
+                  <input
+                    type="email"
+                    name="email"
+                    phx-change="validate_email"
+                    placeholder="Enter new email address"
+                    class="w-full px-4 py-3 pl-10 rounded-xl border border-gray-300 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all outline-none"
+                  />
+                  <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"/>
+                    </svg>
+                  </div>
+                </div>
+                <%= if length(@email_errors) > 0 do %>
+                  <%= for error <- @email_errors do %>
+                    <p class="mt-2 text-sm text-red-600 flex items-center">
+                      <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                      </svg>
+                      <%= error %>
+                    </p>
+                  <% end %>
+                <% end %>
+              </div>
+
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                  Current Password
+                </label>
+                <div class="relative">
+                  <input
+                    type="password"
+                    name="current_password"
+                    phx-change="validate_email_password"
+                    placeholder="Enter current password to confirm"
+                    class="w-full px-4 py-3 pl-10 rounded-xl border border-gray-300 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all outline-none"
+                  />
+                  <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                    </svg>
+                  </div>
+                </div>
+                <%= if @email_password_error != nil do %>
+                  <p class="mt-2 text-sm text-red-600 flex items-center">
+                    <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                    </svg>
+                    <%= @email_password_error %>
+                  </p>
+                <% end %>
+              </div>
+
+              <button
+                type="submit"
+                class="w-full px-6 py-3 bg-gradient-to-r from-purple-500 to-purple-600 text-white font-medium rounded-xl hover:from-purple-600 hover:to-purple-700 focus:outline-none focus:ring-4 focus:ring-purple-300 shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center"
+              >
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                </svg>
+                Update Email
+              </button>
+            </form>
+          </div>
+
+          <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 hover:shadow-md transition-shadow">
+            <div class="flex items-center mb-6">
+              <div class="p-3 bg-red-50 rounded-xl mr-4">
+                <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                </svg>
+              </div>
+              <div>
+                <h2 class="text-2xl font-semibold text-gray-800">Change Password</h2>
+                <p class="text-sm text-gray-500 mt-1">Keep your account secure with a strong password</p>
+              </div>
+            </div>
+
+            <form phx-submit="save_password" class="space-y-6">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                  Current Password
+                </label>
+                <div class="relative">
+                  <input
+                    type="password"
+                    name="current_password"
+                    phx-change="validate_password"
+                    placeholder="Enter current password"
+                    class="w-full px-4 py-3 pl-10 rounded-xl border border-gray-300 focus:border-red-500 focus:ring-2 focus:ring-red-200 transition-all outline-none"
+                  />
+                  <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                    </svg>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                  New Password
+                </label>
+                <div class="relative">
+                  <input
+                    type="password"
+                    name="new_password"
+                    phx-change="validate_password"
+                    placeholder="Enter new password"
+                    class="w-full px-4 py-3 pl-10 rounded-xl border border-gray-300 focus:border-red-500 focus:ring-2 focus:ring-red-200 transition-all outline-none"
+                  />
+                  <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/>
+                    </svg>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                  Confirm New Password
+                </label>
+                <div class="relative">
+                  <input
+                    type="password"
+                    name="confirm_password"
+                    phx-change="validate_password"
+                    placeholder="Confirm new password"
+                    class="w-full px-4 py-3 pl-10 rounded-xl border border-gray-300 focus:border-red-500 focus:ring-2 focus:ring-red-200 transition-all outline-none"
+                  />
+                  <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                    </svg>
+                  </div>
+                </div>
+                <%= if length(@password_errors) > 0 do %>
+                  <%= for error <- @password_errors do %>
+                    <p class="mt-2 text-sm text-red-600 flex items-center">
+                      <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                      </svg>
+                      <%= error %>
+                    </p>
+                  <% end %>
+                <% end %>
+              </div>
+
+              <div class="bg-amber-50 border-l-4 border-amber-400 p-4 rounded-lg">
+                <div class="flex">
+                  <svg class="w-5 h-5 text-amber-400 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                  </svg>
+                  <div class="text-sm text-amber-700">
+                    <p class="font-medium">Password requirements:</p>
+                    <ul class="mt-2 list-disc list-inside space-y-1">
+                      <li>At least 8 characters long</li>
+                      <li>Maximum 60 characters</li>
+                      <li>Must match in both fields</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                class="w-full px-6 py-3 bg-gradient-to-r from-red-500 to-red-600 text-white font-medium rounded-xl hover:from-red-600 hover:to-red-700 focus:outline-none focus:ring-4 focus:ring-red-300 shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center"
+              >
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                </svg>
+                Update Password
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.3s ease-out;
+}
+</style>

@@ -4,18 +4,19 @@ defmodule MazarynWeb.HomeLive.LeftSidebarComponent do
 
   def render(assigns) do
     current_user = assigns.user.username |> String.to_charlist()
+
     ~H"""
     <div>
-      <div class="social-box w-full bg-white white:bg-gray-800 py-6 px-5 rounded-[20px]">
+      <div class="social-box w-full bg-gradient-to-br from-indigo-200 via-purple-200 to-pink-200 py-6 px-5 rounded-[20px] shadow-sm hover:shadow-lg transition-all duration-300">
         <div class="flex justify-between align-center items-center">
           <div class="flex justify-center items-center">
             <ul>
               <li class="flex align-center items-center mx-2 mb-7">
                 <%= live_redirect to: Routes.live_path(@socket, MazarynWeb.HomeLive.Home, @locale),
-                               replace: false, class: "group flex align-center items-start text-base text-gray-500 font-semibold hover:text-blue-500" do %>
+                               replace: false, class: "group flex align-center items-start text-base text-gray-800 font-semibold hover:text-blue-700 transition-colors" do %>
                   <i>
                     <svg
-                      class="h-5 w-5 mr-3.5 group-hover:fill-[#4385F5]"
+                      class="h-5 w-5 mr-3.5 fill-gray-700 group-hover:fill-blue-700 transition-colors"
                       width="20"
                       height="20"
                       viewBox="0 0 20 20"
@@ -23,24 +24,23 @@ defmodule MazarynWeb.HomeLive.LeftSidebarComponent do
                       xmlns="http://www.w3.org/2000/svg"
                     >
                       <path
-                        class="fill-[#60616D] group-hover:fill-[#4385F5]"
                         d="M19.6488 7.86157L17.1463 5.82204V2.56025C17.1463 2.19294 16.8474 1.89407 16.4801 1.89407H14.9055C14.5382 1.89407 14.2393 2.19294 14.2393 2.56025V3.45274L10.8955 0.72753C10.6537 0.530462 10.3349 0.421875 9.99789 0.421875C9.66226 0.421875 9.34497 0.529796 9.10442 0.725834L0.351262 7.86151C-0.046447 8.18558 -0.0225857 8.46785 0.0270144 8.60727C0.0764932 8.74638 0.235831 8.97978 0.746729 8.97978H1.94531V18.3636C1.94531 19.0333 2.48867 19.5781 3.15654 19.5781H6.94164C7.60389 19.5781 8.1226 19.0446 8.1226 18.3636V14.5155C8.1226 14.1857 8.42571 13.8853 8.7585 13.8853H11.3021C11.6193 13.8853 11.8774 14.168 11.8774 14.5155V18.3636C11.8774 19.0219 12.446 19.5781 13.1189 19.5781H16.8435C17.5114 19.5781 18.0547 19.0333 18.0547 18.3636V8.97978H19.2533C19.7642 8.97978 19.9235 8.74638 19.973 8.60727C20.0226 8.46785 20.0465 8.18558 19.6488 7.86157Z"
                       />
                     </svg>
                   </i>
-                  <div class="text-[#60616D] text-base leading-6 group-hover:text-[#4385F5]">
+                  <div class="text-gray-800 group-hover:text-blue-700 transition-colors">
                     <%= gettext("Home") %>
                   </div>
                 <% end %>
               </li>
               <li class="flex align-center items-center mx-2 mb-7">
                 <.link
-                  navigate={~p(/chats)}
-                  class="group flex items-start text-base text-gray-500 font-semibold hover:text-blue-500 "
+                  navigate={~p"/chats"}
+                  class="group flex items-start text-base text-gray-800 font-semibold hover:text-blue-700 transition-colors"
                 >
                   <i>
                     <svg
-                      class="h-5 w-5 mr-3.5 group-hover:fill-[#4385F5]"
+                      class="h-5 w-5 mr-3.5 fill-gray-700 group-hover:fill-blue-700 transition-colors"
                       width="20"
                       height="20"
                       viewBox="0 0 20 20"
@@ -49,47 +49,45 @@ defmodule MazarynWeb.HomeLive.LeftSidebarComponent do
                     >
                       <g clip-path="url(#clip0_390_1350)">
                         <path
-                          class="fill-[#60616D] group-hover:fill-[#4385F5]"
                           d="M19.1328 17.2236C18.5592 16.9973 18.0578 16.6081 17.6961 16.1015C19.1126 15.1443 20.0003 13.7723 20.0003 12.2479C20.0003 10.5798 18.9375 9.09385 17.2818 8.13477C17.1069 12.1761 12.8179 15.0539 7.9919 15.0539C7.58572 15.0539 7.1832 15.033 6.78516 14.9936C8.0419 16.4887 10.2939 17.4853 12.8634 17.4853C13.8006 17.4853 14.6955 17.3525 15.5154 17.1115C16.249 17.798 17.2926 18.131 18.3518 17.9139C18.6362 17.8556 18.9041 17.7613 19.1516 17.6366C19.2313 17.5965 19.2801 17.5133 19.276 17.4241C19.2719 17.3348 19.2159 17.2564 19.1328 17.2236Z"
                         />
                         <path
-                          class="fill-[#60616D] group-hover:fill-[#4385F5]"
                           d="M15.9831 7.88507C15.9831 4.64616 12.4052 2.02051 7.99157 2.02051C3.57796 2.02051 0 4.64616 0 7.88507C0 9.59189 0.993913 11.1282 2.57987 12.1999C2.16378 12.7828 1.58261 13.2268 0.918435 13.477C0.835 13.5085 0.777739 13.5858 0.772174 13.6748C0.766609 13.7638 0.813826 13.8478 0.892739 13.8894C1.40926 14.1613 1.98974 14.3032 2.56978 14.3032C3.49617 14.3032 4.36878 13.9423 5.022 13.3311C5.94009 13.6009 6.94213 13.7496 7.99161 13.7496C12.4052 13.7496 15.9831 11.124 15.9831 7.88507Z"
                         />
                       </g>
                       <defs>
                         <clipPath id="clip0_390_1350">
-                          <rect class="fill-white group-hover:fill-[#4385F5]" width="20" height="20" />
+                          <rect width="20" height="20" />
                         </clipPath>
                       </defs>
                     </svg>
                   </i>
-                  <div class="text-[#60616D] text-base leading-6 group-hover:text-[#4385F5]">
+                  <div class="text-gray-800 group-hover:text-blue-700 transition-colors">
                     <%= gettext("Chat") %>
                   </div>
                 </.link>
               </li>
               <li class="flex align-center items-center mx-2 mb-7">
-                <a
-                  href="home"
-                  class="group flex items-start text-base text-gray-500 font-semibold hover:text-blue-500"
+                <.link
+                  navigate={~p"/#{@locale}/groups"}
+                  class="group flex items-start text-base text-gray-800 font-semibold hover:text-blue-700 transition-colors"
                 >
                   <i>
-                    <%= icon("hero-users-solid", class: "h-6 w-5 mr-3.5 fill-[#60616D] group-hover:fill-[#4385F5]") %>
+                    <%= icon("hero-users-solid", class: "h-6 w-5 mr-3.5 fill-gray-700 group-hover:fill-blue-700 transition-colors") %>
                   </i>
-                  <div class="text-base leading-6 text-[#60616D] group-hover:text-[#4385F5]">
-                    <%= gettext("Group") %>
+                  <div class="text-gray-800 group-hover:text-blue-700 transition-colors">
+                    <%= gettext("Groups") %>
                   </div>
-                </a>
+                </.link>
               </li>
               <li class="flex align-center items-center mx-2 mb-7">
                 <.link
                   navigate={~p"/#{@locale}/videos"}
-                  class="group flex items-start text-base text-gray-500 font-semibold hover:text-blue-500"
+                  class="group flex items-start text-base text-gray-800 font-semibold hover:text-blue-700 transition-colors"
                 >
                   <i>
                     <svg
-                      class="h-5 w-5 mr-3.5 fill-[#60616D] group-hover:fill-[#4385F5]"
+                      class="h-5 w-5 mr-3.5 fill-gray-700 group-hover:fill-blue-700 transition-colors"
                       width="20"
                       height="20"
                       viewBox="0 0 20 20"
@@ -97,12 +95,11 @@ defmodule MazarynWeb.HomeLive.LeftSidebarComponent do
                       xmlns="http://www.w3.org/2000/svg"
                     >
                       <path
-                        class="fill-[#60616D] group-hover:fill-[#4385F5]"
                         d="M2 4C2 2.89543 2.89543 2 4 2H16C17.1046 2 18 2.89543 18 4V16C18 17.1046 17.1046 18 16 18H4C2.89543 18 2 17.1046 2 16V4ZM8 6L14 10L8 14V6Z"
                       />
                     </svg>
                   </i>
-                  <div class="text-[#60616D] text-base leading-6 group-hover:text-[#4385F5]">
+                  <div class="text-gray-800 group-hover:text-blue-700 transition-colors">
                     <%= gettext("Videos") %>
                   </div>
                 </.link>
@@ -110,11 +107,11 @@ defmodule MazarynWeb.HomeLive.LeftSidebarComponent do
               <li class="flex align-center items-center mx-2 mb-7">
                 <button
                   phx-click="open_weather"
-                  class="group flex items-start text-base text-gray-500 font-semibold hover:text-blue-500 w-full text-left"
+                  class="group flex items-start text-base text-gray-800 font-semibold hover:text-blue-700 transition-colors w-full text-left"
                 >
                   <i>
                     <svg
-                      class="h-5 w-5 mr-3.5 fill-[#60616D] group-hover:fill-[#4385F5]"
+                      class="h-5 w-5 mr-3.5 fill-gray-700 group-hover:fill-blue-700 transition-colors"
                       width="20"
                       height="20"
                       viewBox="0 0 20 20"
@@ -122,28 +119,26 @@ defmodule MazarynWeb.HomeLive.LeftSidebarComponent do
                       xmlns="http://www.w3.org/2000/svg"
                     >
                       <path
-                        class="fill-[#60616D] group-hover:fill-[#4385F5]"
                         d="M15.833 12.5C17.214 12.5 18.333 11.381 18.333 10C18.333 8.619 17.214 7.5 15.833 7.5C15.756 7.5 15.679 7.503 15.603 7.509C15.064 5.445 13.193 3.889 10.972 3.889C8.25 3.889 6.042 6.097 6.042 8.819V8.889C4.375 9.181 3.125 10.639 3.125 12.361C3.125 14.292 4.681 15.847 6.611 15.847H15.833C17.214 15.847 18.333 14.728 18.333 13.347C18.333 12.847 18.125 12.403 17.806 12.069C17.181 12.347 16.528 12.5 15.833 12.5Z"
                       />
                       <path
-                        class="fill-[#60616D] group-hover:fill-[#4385F5]"
                         d="M12 5.208C12.347 4.861 12.5 4.403 12.5 3.889C12.5 2.847 11.681 2 10.625 2C9.569 2 8.75 2.847 8.75 3.889C8.75 4.403 8.903 4.861 9.25 5.208C7.875 5.542 6.736 6.375 5.972 7.5H7.069C7.681 6.875 8.542 6.458 9.514 6.458C11.389 6.458 12.917 7.986 12.917 9.861C12.917 10.833 12.5 11.694 11.875 12.306V13.403C12.997 12.639 13.833 11.5 14.167 10.125C14.514 10.472 14.972 10.625 15.486 10.625C16.528 10.625 17.375 9.806 17.375 8.75C17.375 7.694 16.528 6.875 15.486 6.875C14.972 6.875 14.514 7.028 14.167 7.375C13.833 6 12.997 4.861 12 5.208Z"
                       />
                     </svg>
                   </i>
-                  <div class="text-base leading-6 text-[#60616D] group-hover:text-[#4385F5]">
+                  <div class="text-gray-800 group-hover:text-blue-700 transition-colors">
                     <%= gettext("Weather") %>
                   </div>
                 </button>
               </li>
               <li class="flex align-center items-center mx-2">
-                <a
-                  href="/home"
-                  class="group flex items-start text-base text-gray-500 font-semibold hover:text-blue-500"
+                <.link
+                  navigate={~p"/#{@locale}/settings"}
+                  class="group flex items-start text-base text-gray-800 font-semibold hover:text-blue-700 transition-colors"
                 >
                   <i>
                     <svg
-                      class="h-6 w-5 mr-3.5 fill-[#60616D] group-hover:fill-[#4385F5]"
+                      class="h-6 w-5 mr-3.5 fill-gray-700 group-hover:fill-blue-700 transition-colors"
                       width="20"
                       height="20"
                       viewBox="0 0 20 20"
@@ -151,28 +146,26 @@ defmodule MazarynWeb.HomeLive.LeftSidebarComponent do
                       xmlns="http://www.w3.org/2000/svg"
                     >
                       <path
-                        class="fill-[#60616D] group-hover:fill-[#4385F5]"
                         d="M10 11.25C10.6904 11.25 11.25 10.6904 11.25 10C11.25 9.30964 10.6904 8.75 10 8.75C9.30964 8.75 8.75 9.30964 8.75 10C8.75 10.6904 9.30964 11.25 10 11.25Z"
                       />
                       <path
-                        class="fill-[#60616D] group-hover:fill-[#4385F5]"
                         d="M18.2425 8.60032L17.5842 6.50033C17.5131 6.25762 17.3939 6.03172 17.2336 5.83609C17.0733 5.64047 16.8753 5.47913 16.6513 5.36169C16.4274 5.24426 16.182 5.17314 15.93 5.15257C15.6779 5.13201 15.4243 5.16242 15.1842 5.24199L14.9009 5.33366C14.6789 5.40703 14.4425 5.42565 14.2118 5.38792C13.9811 5.35019 13.7629 5.25724 13.5759 5.11699L13.4842 5.05033C13.3017 4.91064 13.1546 4.73001 13.0547 4.52302C12.9548 4.31602 12.905 4.08845 12.9092 3.85866V3.62533C12.9133 3.10201 12.7095 2.59848 12.3426 2.22533C12.168 2.04904 11.9604 1.90896 11.7316 1.81314C11.5028 1.71733 11.2573 1.66766 11.0092 1.66699H8.88422C8.37436 1.67358 7.88776 1.88132 7.53034 2.24498C7.17293 2.60864 6.97364 3.09877 6.97588 3.60866V3.80866C6.97508 4.05055 6.92001 4.28918 6.81473 4.50696C6.70944 4.72474 6.55663 4.91612 6.36755 5.06699L6.25922 5.15033C6.05034 5.30834 5.80602 5.41296 5.54751 5.45507C5.289 5.49719 5.02412 5.47554 4.77588 5.39199C4.5479 5.3131 4.30627 5.28128 4.06563 5.29847C3.82499 5.31566 3.59034 5.38149 3.37588 5.49199C3.1526 5.60281 2.9545 5.7584 2.79393 5.94908C2.63337 6.13975 2.51376 6.36143 2.44255 6.60033L1.75922 8.76699C1.60075 9.25549 1.64139 9.78678 1.87231 10.2455C2.10322 10.7042 2.50578 11.0533 2.99255 11.217H3.12588C3.35043 11.3011 3.55197 11.4371 3.71414 11.6137C3.87631 11.7903 3.99453 12.0027 4.05922 12.2337L4.10922 12.367C4.20211 12.6221 4.23318 12.8956 4.19986 13.165C4.16654 13.4345 4.06979 13.6922 3.91755 13.917C3.6094 14.3366 3.47942 14.861 3.55589 15.376C3.63236 15.891 3.90909 16.355 4.32588 16.667L6.05088 17.9753C6.37751 18.2128 6.77208 18.3385 7.17588 18.3337C7.28396 18.3442 7.39281 18.3442 7.50088 18.3337C7.75097 18.2852 7.98857 18.1864 8.19918 18.0431C8.4098 17.8998 8.58901 17.7152 8.72588 17.5003L8.91755 17.2253C9.052 17.0325 9.2299 16.8739 9.4369 16.7624C9.6439 16.651 9.8742 16.5897 10.1092 16.5837C10.3555 16.5776 10.5993 16.634 10.8179 16.7477C11.0365 16.8614 11.2227 17.0285 11.3592 17.2337L11.4592 17.3753C11.6013 17.5868 11.7852 17.7669 11.9995 17.9046C12.2138 18.0423 12.4541 18.1347 12.7054 18.1761C12.9568 18.2175 13.214 18.207 13.4611 18.1452C13.7083 18.0834 13.9402 17.9717 14.1426 17.817L15.8342 16.5503C16.2342 16.2397 16.5002 15.7878 16.5777 15.2873C16.6551 14.7868 16.5382 14.2757 16.2509 13.8587L16.0342 13.542C15.9039 13.3407 15.8186 13.1136 15.7841 12.8763C15.7496 12.639 15.7667 12.3971 15.8342 12.167C15.9031 11.9207 16.0308 11.6949 16.2065 11.509C16.3822 11.3232 16.6005 11.1829 16.8425 11.1003L17.0092 11.042C17.4915 10.8746 17.8898 10.5263 18.1199 10.0707C18.3501 9.61507 18.3941 9.08779 18.2425 8.60032ZM10.0009 12.917C9.42402 12.917 8.86011 12.7459 8.38047 12.4254C7.90083 12.105 7.52699 11.6494 7.30623 11.1165C7.08548 10.5835 7.02772 9.99709 7.14026 9.43131C7.2528 8.86553 7.53059 8.34583 7.93849 7.93793C8.34639 7.53003 8.86609 7.25224 9.43187 7.1397C9.99765 7.02716 10.5841 7.08492 11.117 7.30568C11.65 7.52643 12.1055 7.90027 12.426 8.37991C12.7465 8.85955 12.9176 9.42346 12.9176 10.0003C12.9176 10.7739 12.6103 11.5157 12.0633 12.0627C11.5163 12.6097 10.7744 12.917 10.0009 12.917Z"
                       />
                     </svg>
                   </i>
-                  <div class="text-base leading-6 text-[#60616D] group-hover:text-[#4385F5]">
+                  <div class="text-gray-800 group-hover:text-blue-700 transition-colors">
                     <%= gettext("Settings") %>
                   </div>
-                </a>
+                </.link>
               </li>
               <li class="flex align-center items-center mx-2 mt-7">
                 <.link
                   navigate={~p"/#{@locale}/ai"}
-                  class="group flex items-start text-base text-gray-500 font-semibold hover:text-blue-500"
+                  class="group flex items-start text-base text-gray-800 font-semibold hover:text-blue-700 transition-colors"
                 >
                   <i>
                     <svg
-                      class="h-6 w-6 mr-3.5 fill-[#60616D] group-hover:fill-[#4385F5]"
+                      class="h-6 w-6 mr-3.5 fill-gray-700 group-hover:fill-blue-700 transition-colors"
                       width="20"
                       height="20"
                       viewBox="0 0 24 24"
@@ -180,12 +173,11 @@ defmodule MazarynWeb.HomeLive.LeftSidebarComponent do
                       xmlns="http://www.w3.org/2000/svg"
                     >
                       <path
-                        class="fill-[#60616D] group-hover:fill-[#4385F5]"
                         d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"
                       />
                     </svg>
                   </i>
-                  <div class="text-[#60616D] text-base leading-6 group-hover:text-[#4385F5]">
+                  <div class="text-gray-800 group-hover:text-blue-700 transition-colors">
                     <div class="flex items-center space-x-2">
                       <span><%= gettext("Mazaryn AI") %></span>
                       <span class="px-1.5 py-0.5 bg-gradient-to-r from-violet-600 to-indigo-600 text-white text-xs font-bold rounded-md">NEW</span>
@@ -197,18 +189,18 @@ defmodule MazarynWeb.HomeLive.LeftSidebarComponent do
           </div>
         </div>
       </div>
-      <div class="social-box w-full bg-white white:bg-gray-800 py-6 px-5 my-8 rounded-[20px]">
+      <div class="social-box w-full bg-gradient-to-br from-indigo-200 via-purple-200 to-pink-200 py-6 px-5 my-8 rounded-[20px] shadow-sm hover:shadow-lg transition-all duration-300">
         <div class="flex justify-between align-center items-center">
           <div class="flex justify-center items-center">
             <ul>
               <li class="flex align-center items-center group mx-2 mb-7">
                 <.link
                   navigate={~p"/dashboard"}
-                  class="group flex items-center text-base text-gray-500 font-semibold hover:text-blue-500"
+                  class="group flex items-center text-base text-gray-800 font-semibold hover:text-blue-700 transition-colors"
                 >
                   <i>
                     <svg
-                      class="h-6 w-5 mr-3.5 fill-[#60616D] group-hover:fill-[#4385F5]"
+                      class="h-6 w-5 mr-3.5 fill-gray-700 group-hover:fill-blue-700 transition-colors"
                       width="20"
                       height="18"
                       viewBox="0 0 20 18"
@@ -216,12 +208,11 @@ defmodule MazarynWeb.HomeLive.LeftSidebarComponent do
                       xmlns="http://www.w3.org/2000/svg"
                     >
                       <path
-                        class="fill-[#60616D] group-hover:fill-[#4385F5]"
                         d="M18.75 8.375V6.5C18.75 5.80961 18.1903 5.25 17.5 5.25H3.75C3.06063 5.25 2.5 4.68937 2.5 4C2.5 3.31063 3.06063 2.75 3.75 2.75H17.5C18.1903 2.75 18.75 2.19031 18.75 1.5C18.75 0.809687 18.1903 0.25 17.5 0.25H3.75C1.68211 0.25 0 1.93215 0 4V5.25V15.25C0 16.6307 1.11937 17.75 2.5 17.75H17.5C18.1903 17.75 18.75 17.1904 18.75 16.5V14.625C19.4403 14.625 20 14.0654 20 13.375V9.625C20 8.93461 19.4403 8.375 18.75 8.375ZM16.875 12.75C16.1847 12.75 15.625 12.1904 15.625 11.5C15.625 10.8096 16.1847 10.25 16.875 10.25C17.5653 10.25 18.125 10.8096 18.125 11.5C18.125 12.1904 17.5653 12.75 16.875 12.75Z"
                       />
                     </svg>
                   </i>
-                  <div class="text-base leading-6 text-[#60616D] group-hover:text-[#4385F5]">
+                  <div class="text-gray-800 group-hover:text-blue-700 transition-colors">
                     <%= gettext("Dashboard") %>
                   </div>
                 </.link>
@@ -229,11 +220,11 @@ defmodule MazarynWeb.HomeLive.LeftSidebarComponent do
               <li class="flex align-center items-center mx-2 mb-7">
                 <a
                   href="home"
-                  class="group flex items-center text-base text-gray-500 font-semibold hover:text-blue-500"
+                  class="group flex items-center text-base text-gray-800 font-semibold hover:text-blue-700 transition-colors"
                 >
                   <i>
                     <svg
-                      class="h-5 w-5 mr-3.5 fill-[#60616D] group-hover:fill-[#4385F5]"
+                      class="h-5 w-5 mr-3.5 fill-gray-700 group-hover:fill-blue-700 transition-colors"
                       width="16"
                       height="18"
                       viewBox="0 0 16 18"
@@ -241,31 +232,30 @@ defmodule MazarynWeb.HomeLive.LeftSidebarComponent do
                       xmlns="http://www.w3.org/2000/svg"
                     >
                       <path
-                        class="fill-[#60616D] group-hover:fill-[#4385F5]"
                         d="M15 7H16V18H0V7H1V5C1 2.24 3.24 -2.23031e-07 6 -2.23031e-07C6.71 -2.23031e-07 7.39 0.15 8 0.42C8.6301 0.142126 9.31135 -0.000934361 10 -2.23031e-07C12.76 -2.23031e-07 15 2.24 15 5V7ZM3 5V7H5V5C5 3.87 5.39 2.84 6.02 2H6C4.35 2 3 3.35 3 5ZM13 7V5C13 3.35 11.65 2 10 2H9.98C10.6376 2.86228 10.9957 3.91562 11 5V7H13ZM8 2.78C7.39 3.33 7 4.12 7 5V7H9V5C9 4.12 8.61 3.33 8 2.78Z"
                       />
                     </svg>
                   </i>
-                  <div class="text-base leading-6 text-[#60616D] group-hover:text-[#4385F5]">
+                  <div class="text-gray-800 group-hover:text-blue-700 transition-colors">
                     My Products
                   </div>
                 </a>
               </li>
               <li class="flex align-center items-center mx-2 group">
-                <%= live_redirect to: Routes.live_path(@socket, MazarynWeb.UserLive.Profile,@locale, @user.username), replace: false, class: "group flex items-center text-base text-[#60616D] font-semibold" do %>
+                <%= live_redirect to: Routes.live_path(@socket, MazarynWeb.UserLive.Profile, @locale, @user.username), replace: false, class: "group flex items-center text-base text-gray-800 font-semibold" do %>
                   <%= if @user.avatar_url do %>
                     <img
                       src={Path.join(Mazaryn.config([:media, :ipfs_gateway]), @user.avatar_url)}
-                      class="h-8 w-8 mr-3.5 object-cover rounded-full ring-blue-500 group-hover:ring"
+                      class="h-8 w-8 mr-3.5 object-cover rounded-full ring-2 ring-white group-hover:ring-blue-400 transition-all"
                     />
                   <% else %>
                     <img
                       alt="Default user"
                       src={Routes.static_path(@socket, "/images/default-user.svg")}
-                      class="opacity-70 h-5 w-5 mr-3.5 rounded-full ring-blue-500 group-hover:ring"
+                      class="opacity-70 h-5 w-5 mr-3.5 rounded-full ring-2 ring-white group-hover:ring-blue-400 transition-all"
                     />
                   <% end %>
-                  <div class="leading-6 text-[#60616D] group-hover:text-[#4385F5]">
+                  <div class="leading-6 text-gray-800 group-hover:text-blue-700 transition-colors">
                     @<%= @user.username %>
                   </div>
                 <% end %>
@@ -275,19 +265,19 @@ defmodule MazarynWeb.HomeLive.LeftSidebarComponent do
         </div>
       </div>
       <%= if Enum.member?(ManageUser.get_admin_list(), current_user) do %>
-        <div class="social-box w-full bg-white white:bg-gray-800 py-6 px-5 my-8 rounded-[20px]">
+        <div class="social-box w-full bg-gradient-to-br from-indigo-200 via-purple-200 to-pink-200 py-6 px-5 my-8 rounded-[20px] shadow-sm hover:shadow-lg transition-all duration-300">
           <div class="flex justify-between align-center items-center">
             <div class="flex justify-center items-center">
               <ul>
                 <li class="flex align-center items-center mx-2 mb-7">
                   <.link
                     navigate={~p"/manage"}
-                    class="group flex items-center text-base text-gray-500 font-semibold hover:text-blue-500"
+                    class="group flex items-center text-base text-gray-800 font-semibold hover:text-blue-700 transition-colors"
                   >
                     <i>
-                      <%= icon("hero-users-solid", class: "h-6 w-5 mr-3.5 fill-[#60616D] group-hover:fill-[#4385F5]") %>
+                      <%= icon("hero-users-solid", class: "h-6 w-5 mr-3.5 fill-gray-700 group-hover:fill-blue-700 transition-colors") %>
                     </i>
-                    <div class="text-base leading-6 text-[#60616D] group-hover:text-[#4385F5]">
+                    <div class="text-gray-800 group-hover:text-blue-700 transition-colors">
                       <%= gettext("Manage Users") %>
                     </div>
                   </.link>
@@ -297,114 +287,19 @@ defmodule MazarynWeb.HomeLive.LeftSidebarComponent do
           </div>
         </div>
       <% end %>
-      <div class="font-medium text-base leading-6 text-[#60616D]"><%= gettext("Explore") %></div>
-      <div class="social-box w-full bg-white white:bg-gray-800 py-6 px-5 my-6 rounded-[20px]">
+      <div class="font-medium text-base leading-6 text-gray-800"><%= gettext("Explore") %></div>
+      <div class="social-box w-full bg-gradient-to-br from-indigo-200 via-purple-200 to-pink-200 py-6 px-5 my-6 rounded-[20px] shadow-sm hover:shadow-lg transition-all duration-300">
         <div class="flex justify-between align-center items-center">
           <div class="flex justify-center items-center">
             <ul>
               <li class="flex align-center items-center group mx-2 mb-7">
-                <a
-                  href="home"
-                  class="flex items-start text-base text-gray-500 font-semibold group-hover:text-blue-500"
+                <.link
+                  navigate={~p"/#{@locale}"}
+                  class="group flex items-start text-base text-gray-800 font-semibold group-hover:text-blue-700 transition-colors"
                 >
                   <i>
                     <svg
-                      class="h-5 w-5 mr-3 fill-[#60616D] group-hover:fill-[#4385F5]"
-                      width="20"
-                      height="20"
-                      viewBox="0 0 20 20"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        class="fill-[#60616D] group-hover:fill-[#4385F5]"
-                        d="M4 2C3.44772 2 3 2.44772 3 3V17C3 17.5523 3.44772 18 4 18H16C16.5523 18 17 17.5523 17 17V6.41421C17 6.149 16.8946 5.89464 16.7071 5.70711L13.2929 2.29289C13.1054 2.10536 12.851 2 12.5858 2H4ZM5 4H12V6C12 6.55228 12.4477 7 13 7H15V16H5V4Z"
-                      />
-                      <path
-                        class="fill-[#60616D] group-hover:fill-[#4385F5]"
-                        d="M7 9C7 8.44772 7.44772 8 8 8H12C12.5523 8 13 8.44772 13 9C13 9.55228 12.5523 10 12 10H8C7.44772 10 7 9.55228 7 9Z"
-                      />
-                      <path
-                        class="fill-[#60616D] group-hover:fill-[#4385F5]"
-                        d="M7 12C7 11.4477 7.44772 11 8 11H12C12.5523 11 13 11.4477 13 12C13 12.5523 12.5523 13 12 13H8C7.44772 13 7 12.5523 7 12Z"
-                      />
-                      <path
-                        class="fill-[#60616D] group-hover:fill-[#4385F5]"
-                        d="M8 14C7.44772 14 7 14.4477 7 15C7 15.5523 7.44772 16 8 16H10C10.5523 16 11 15.5523 11 15C11 14.4477 10.5523 14 10 14H8Z"
-                      />
-                    </svg>
-                  </i>
-                  <div class="leading-6 text-[#60616D] group-hover:text-[#4385F5]">Blog</div>
-                </a>
-              </li>
-              <li class="flex align-center items-center group mx-2 mb-7">
-                <a
-                  href="home"
-                  class="flex items-start text-base text-gray-500 font-semibold group-hover:text-blue-500"
-                >
-                  <i>
-                    <svg
-                      class="h-5 w-5 mr-3 fill-[#60616D] group-hover:fill-[#4385F5]"
-                      width="20"
-                      height="20"
-                      viewBox="0 0 20 20"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        class="fill-[#60616D] group-hover:fill-[#4385F5]"
-                        d="M17.9003 15.6656C17.5712 15.3365 17.1331 15.1835 16.7013 15.2087L15.5443 14.0517C16.0138 13.4522 16.4016 12.794 16.7013 12.0855C17.1541 11.0124 17.3847 9.87421 17.3847 8.70252C17.3847 7.53083 17.1541 6.39057 16.7013 5.31949C16.2633 4.28404 15.6365 3.35549 14.838 2.5569C14.0394 1.7583 13.1108 1.13158 12.0754 0.693506C11.0022 0.240759 9.86402 0.0101929 8.69235 0.0101929C7.52065 0.0101929 6.3804 0.240759 5.30932 0.693506C4.27387 1.12948 3.34532 1.7562 2.54672 2.5548C1.74813 3.3534 1.12141 4.28195 0.683334 5.3174C0.230566 6.3906 0 7.52875 0 8.70044C0 9.87212 0.230566 11.0124 0.683313 12.0835C1.12139 13.1189 1.74811 14.0475 2.5467 14.8461C3.3453 15.6447 4.27385 16.2714 5.3093 16.7094C6.38248 17.1622 7.52063 17.3928 8.69233 17.3928C9.864 17.3928 11.0043 17.1622 12.0753 16.7094C12.7922 16.4055 13.4587 16.0136 14.0645 15.5336L15.2194 16.6885C15.1964 17.1203 15.3473 17.5583 15.6764 17.8874L17.3176 19.5286C17.6236 19.8347 18.026 19.9898 18.4285 19.9898C18.8309 19.9898 19.2333 19.8368 19.5394 19.5286C20.1535 18.9145 20.1535 17.9189 19.5394 17.3047L17.9003 15.6656ZM14.0477 12.553C13.8402 12.8381 13.6097 13.1105 13.356 13.3641C13.1087 13.6115 12.8446 13.8358 12.5679 14.037C11.4486 14.8544 10.1029 15.2946 8.69021 15.2946C6.92743 15.2946 5.27155 14.6092 4.02649 13.3621C2.78144 12.117 2.09393 10.459 2.09393 8.69835C2.09393 6.93766 2.77934 5.27969 4.02649 4.03463C5.27155 2.78958 6.92953 2.10207 8.69021 2.10207C10.4509 2.10207 12.1089 2.78748 13.3539 4.03463C14.599 5.27969 15.2865 6.93766 15.2865 8.69835C15.2886 10.1027 14.8547 11.4379 14.0477 12.553Z"
-                      />
-                      <path
-                        class="fill-[#60616D] group-hover:fill-[#4385F5]"
-                        d="M8.09069 4.05978H9.29592C9.67321 4.05978 9.98552 4.35741 10.0442 4.74309H11.0985C11.0315 3.77681 10.2496 3.01175 9.29592 3.01175H8.09069C7.13699 3.01175 6.35516 3.77681 6.28809 4.74309H7.3424C7.39899 4.35532 7.7134 4.05978 8.09069 4.05978Z"
-                      />
-                      <path
-                        class="fill-[#60616D] group-hover:fill-[#4385F5]"
-                        d="M11.103 5.26709H10.055H7.33009H6.28207H4.57379C4.25519 5.26709 3.89676 5.57102 3.70183 5.76176C3.58026 5.90848 3.5572 6.00909 3.56768 6.12228C3.64524 6.87476 4.14619 7.58323 4.99509 8.14078C5.74757 8.63335 6.69289 8.95824 7.72415 9.0819C8.03855 9.11963 8.36344 9.14059 8.69043 9.14059C9.29618 9.14059 9.88729 9.07352 10.4406 8.94566C11.168 8.77798 11.8303 8.50549 12.3879 8.14078C13.2368 7.58323 13.7356 6.87267 13.8153 6.12228C13.8279 6.007 13.765 5.84141 13.6811 5.76176C13.4862 5.57102 13.1278 5.26709 12.8092 5.26709H11.103Z"
-                      />
-                      <path
-                        class="fill-[#60616D] group-hover:fill-[#4385F5]"
-                        d="M12.8508 8.84295C12.3435 9.17622 11.7608 9.44242 11.1278 9.63107C10.3711 9.85954 9.54532 9.97903 8.69222 9.97903C8.63144 9.97903 8.56856 9.97903 8.50777 9.97692C7.01119 9.94759 5.60683 9.54722 4.53363 8.84295C4.08088 8.54531 3.70569 8.20575 3.41224 7.83056C3.34098 7.73833 3.28857 7.7551 3.28857 7.87036V10.7923C3.28857 11.5322 3.86289 12.1338 4.57136 12.1338H10.6604H12.8089C13.0415 12.1338 13.2595 12.0688 13.4461 11.9556C13.8317 11.725 14.0916 11.2911 14.0916 10.7923V7.87248C14.0916 7.7572 14.0392 7.74043 13.968 7.83265C13.6787 8.20573 13.3035 8.54531 12.8508 8.84295Z"
-                      />
-                    </svg>
-                  </i>
-                  <div class="leading-6 text-[#60616D] group-hover:text-[#4385F5]">Jobs</div>
-                </a>
-              </li>
-              <li class="flex align-center items-center group mx-2 mb-7">
-                <a
-                  href="home"
-                  class="group flex items-start text-base text-gray-500 font-semibold group-hover:text-blue-500"
-                >
-                  <i>
-                    <svg
-                      class="h-5 w-5 mr-3 fill-[#60616D] group-hover:fill-[#4385F5]"
-                      width="20"
-                      height="20"
-                      viewBox="0 0 20 20"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        class="group-hover:fill-[#4385F5]"
-                        d="M18.7672 7.61445L17.3017 2.18982C17.2567 2.0241 17.1873 1.86759 17.1037 1.72022C17.2278 1.54275 17.3017 1.32772 17.3017 1.0948C17.3017 0.490026 16.8113 0 16.2069 0H3.66564C3.06096 0 2.57111 0.490252 2.57111 1.0948C2.57111 1.39736 2.6935 1.6711 2.8923 1.86945C2.81068 2.01397 2.74321 2.1679 2.69924 2.33028L1.23395 7.75491C1.0356 8.48934 1.32375 9.1092 1.8883 9.25685V20H18.2046V9.08073C18.7051 8.89101 18.9537 8.30626 18.7672 7.61445ZM14.0669 3.09883L15.3051 7.6821C15.3241 7.75346 15.3526 7.82184 15.3797 7.89044C14.8267 8.79579 14.0233 9.18897 13.1479 8.97123C12.3794 8.78056 11.8431 8.1908 11.8315 7.77249V3.31006C11.8315 3.23784 11.8206 3.1682 11.81 3.09887H14.0669V3.09883ZM4.69613 7.82279L5.9721 3.09883H8.12061C8.10972 3.1682 8.0991 3.2378 8.0991 3.31001V7.85632L8.09635 7.85497C7.58549 8.82128 6.79588 9.25256 5.93102 9.03766C5.21413 8.85987 4.71434 8.30631 4.71434 7.92113H4.66042C4.67186 7.88796 4.68695 7.85655 4.69613 7.82279ZM13.5921 18.8849H4.78931V15.3639H6.36903C6.52043 15.0222 6.86123 14.7833 7.25928 14.7833C7.65671 14.7833 7.99796 15.0222 8.14909 15.3639H11.3641C11.4093 14.8679 11.8219 14.4781 12.3298 14.4781C12.8373 14.4781 13.25 14.8679 13.2949 15.3639H13.5922V18.8849H13.5921ZM6.60182 14.0963C6.60182 13.7174 6.90945 13.4099 7.28852 13.4099C7.6676 13.4099 7.97496 13.7175 7.97496 14.0963C7.97496 14.4758 7.6676 14.7833 7.28852 14.7833C6.90945 14.7833 6.60182 14.4758 6.60182 14.0963ZM11.6723 13.7912C11.6723 13.4123 11.9797 13.1047 12.3587 13.1047C12.7379 13.1047 13.0453 13.4123 13.0453 13.7912C13.0453 14.1705 12.7378 14.4781 12.3587 14.4781C11.9797 14.4781 11.6723 14.1705 11.6723 13.7912ZM17.3597 19.155H16.2799V12.0309H3.88577V19.155H2.73336V9.30299L2.98142 9.30778C3.56847 9.31967 4.18079 8.87854 4.51242 8.26545C4.70187 8.7238 5.23261 9.15485 5.86364 9.31144C5.98683 9.34195 6.15893 9.37186 6.36076 9.37186C6.85802 9.37186 7.53487 9.18897 8.10118 8.38725C8.11185 9.15128 8.73623 9.49538 9.50758 9.49538H10.423C11.0882 9.49538 11.6419 9.03283 11.7898 8.41287C12.0623 8.78761 12.5381 9.11047 13.0804 9.24478C13.2123 9.27764 13.397 9.30959 13.6129 9.30959C14.1591 9.30959 14.907 9.1027 15.5233 8.18799C15.8615 8.76791 16.4525 9.17817 17.0195 9.1671L17.3597 9.1605V19.155V19.155Z"
-                      />
-                    </svg>
-                  </i>
-                  <div class="leading-6 text-[#60616D] group-hover:text-[#4385F5]">
-                    <%= gettext("Marketplace") %>
-                  </div>
-                </a>
-              </li>
-              <li class="flex align-center items-center group mx-2 ">
-                <a
-                  href="home"
-                  class="group flex items-start text-base text-gray-500 font-semibold group-hover:text-blue-500"
-                >
-                  <i>
-                    <svg
-                      class="h-5 w-5 mr-3 fill-[#60616D] group-hover:fill-[#4385F5]"
+                      class="h-5 w-5 mr-3 fill-gray-700 group-hover:fill-blue-700 transition-colors"
                       width="20"
                       height="20"
                       viewBox="0 0 20 20"
@@ -413,19 +308,49 @@ defmodule MazarynWeb.HomeLive.LeftSidebarComponent do
                     >
                       <g clip-path="url(#clip0_120_636)">
                         <path
-                          class="fill-[#60616D] group-hover:fill-[#4385F5]"
                           d="M10 0C4.47715 0 0 4.47715 0 10C0 15.5229 4.47715 20 10 20C15.5229 20 20 15.5229 20 10C20 4.47715 15.5229 0 10 0ZM6.8396 4.35547C9.85633 4.36898 12.0833 7.37903 15.6567 5.06713V11.1169C12.7697 14.004 10.0626 9.33178 5.84472 10.4797V15.6445H4.34325V5.06713C5.25033 4.54343 6.07063 4.35203 6.8396 4.35547Z"
                         />
                       </g>
                       <defs>
                         <clipPath id="clip0_120_636">
-                          <rect class="fill-white group-hover:fill-[#4385F5]" width="20" height="20" />
+                          <rect width="20" height="20" />
                         </clipPath>
                       </defs>
                     </svg>
                   </i>
-                  <div class="leading-6 text-[#60616D] group-hover:text-[#4385F5]">Pages</div>
-                </a>
+                  <div class="leading-6 text-gray-800 group-hover:text-blue-700 transition-colors">Pages</div>
+                </.link>
+              </li>
+              <li class="flex align-center items-center group mx-2 mb-7">
+                <.link
+                  navigate={~p"/#{@locale}/jobs"}
+                  class="group flex items-start text-base text-gray-800 font-semibold hover:text-blue-700 transition-colors"
+                >
+                  <i>
+                    <svg
+                      class="h-5 w-5 mr-3 fill-gray-700 group-hover:fill-blue-700 transition-colors"
+                      width="20"
+                      height="20"
+                      viewBox="0 0 20 20"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M17.9003 15.6656C17.5712 15.3365 17.1331 15.1835 16.7013 15.2087L15.5443 14.0517C16.0138 13.4522 16.4016 12.794 16.7013 12.0855C17.1541 11.0124 17.3847 9.87421 17.3847 8.70252C17.3847 7.53083 17.1541 6.39057 16.7013 5.31949C16.2633 4.28404 15.6365 3.35549 14.838 2.5569C14.0394 1.7583 13.1108 1.13158 12.0754 0.693506C11.0022 0.240759 9.86402 0.0101929 8.69235 0.0101929C7.52065 0.0101929 6.3804 0.240759 5.30932 0.693506C4.27387 1.12948 3.34532 1.7562 2.54672 2.5548C1.74813 3.3534 1.12141 4.28195 0.683334 5.3174C0.230566 6.3906 0 7.52875 0 8.70044C0 9.87212 0.230566 11.0124 0.683313 12.0835C1.12139 13.1189 1.74811 14.0475 2.5467 14.8461C3.3453 15.6447 4.27385 16.2714 5.3093 16.7094C6.38248 17.1622 7.52063 17.3928 8.69233 17.3928C9.864 17.3928 11.0043 17.1622 12.0753 16.7094C12.7922 16.4055 13.4587 16.0136 14.0645 15.5336L15.2194 16.6885C15.1964 17.1203 15.3473 17.5583 15.6764 17.8874L17.3176 19.5286C17.6236 19.8347 18.026 19.9898 18.4285 19.9898C18.8309 19.9898 19.2333 19.8368 19.5394 19.5286C20.1535 18.9145 20.1535 17.9189 19.5394 17.3047L17.9003 15.6656ZM14.0477 12.553C13.8402 12.8381 13.6097 13.1105 13.356 13.3641C13.1087 13.6115 12.8446 13.8358 12.5679 14.037C11.4486 14.8544 10.1029 15.2946 8.69021 15.2946C6.92743 15.2946 5.27155 14.6092 4.02649 13.3621C2.78144 12.117 2.09393 10.459 2.09393 8.69835C2.09393 6.93766 2.77934 5.27969 4.02649 4.03463C5.27155 2.78958 6.92953 2.10207 8.69021 2.10207C10.4509 2.10207 12.1089 2.78748 13.3539 4.03463C14.599 5.27969 15.2865 6.93766 15.2865 8.69835C15.2886 10.1027 14.8547 11.4379 14.0477 12.553Z"
+                      />
+                      <path
+                        d="M8.09069 4.05978H9.29592C9.67321 4.05978 9.98552 4.35741 10.0442 4.74309H11.0985C11.0315 3.77681 10.2496 3.01175 9.29592 3.01175H8.09069C7.13699 3.01175 6.35516 3.77681 6.28809 4.74309H7.3424C7.39899 4.35532 7.7134 4.05978 8.09069 4.05978Z"
+                      />
+                      <path
+                        d="M11.103 5.26709H10.055H7.33009H6.28207H4.57379C4.25519 5.26709 3.89676 5.57102 3.70183 5.76176C3.58026 5.90848 3.5572 6.00909 3.56768 6.12228C3.64524 6.87476 4.14619 7.58323 4.99509 8.14078C5.74757 8.63335 6.69289 8.95824 7.72415 9.0819C8.03855 9.11963 8.36344 9.14059 8.69043 9.14059C9.29618 9.14059 9.88729 9.07352 10.4406 8.94566C11.168 8.77798 11.8303 8.50549 12.3879 8.14078C13.2368 7.58323 13.7356 6.87267 13.8153 6.12228C13.8279 6.007 13.765 5.84141 13.6811 5.76176C13.4862 5.57102 13.1278 5.26709 12.8092 5.26709H11.103Z"
+                      />
+                      <path
+                        d="M12.8508 8.84295C12.3435 9.17622 11.7608 9.44242 11.1278 9.63107C10.3711 9.85954 9.54532 9.97903 8.69222 9.97903C8.63144 9.97903 8.56856 9.97903 8.50777 9.97692C7.01119 9.94759 5.60683 9.54722 4.53363 8.84295C4.08088 8.54531 3.70569 8.20575 3.41224 7.83056C3.34098 7.73833 3.28857 7.7551 3.28857 7.87036V10.7923C3.28857 11.5322 3.86289 12.1338 4.57136 12.1338H10.6604H12.8089C13.0415 12.1338 13.2595 12.0688 13.4461 11.9556C13.8317 11.725 14.0916 11.2911 14.0916 10.7923V7.87248C14.0916 7.7572 14.0392 7.74043 13.968 7.83265C13.6787 8.20573 13.3035 8.54531 12.8508 8.84295Z"
+                      />
+                    </svg>
+                  </i>
+                  <div class="leading-6 text-gray-800 group-hover:text-blue-700 transition-colors"><%= gettext("Jobs") %></div>
+                </.link>
               </li>
             </ul>
           </div>

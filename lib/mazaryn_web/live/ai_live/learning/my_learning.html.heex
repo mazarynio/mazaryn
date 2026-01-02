@@ -1,0 +1,235 @@
+<.live_component
+  module={MazarynWeb.HomeLive.NavComponent}
+  id="navigation"
+  user={@user}
+  search=""
+  locale={@locale}
+/>
+
+<div class="min-h-screen bg-gradient-to-br from-slate-50 via-purple-50 to-indigo-50 py-12">
+  <div class="max-w-7xl mx-auto px-6">
+    <div class="mb-8">
+      <div class="flex items-center justify-between mb-6">
+        <div>
+          <h1 class="text-4xl font-bold text-slate-900 mb-2">My Learning</h1>
+          <p class="text-lg text-slate-600">Track your progress and continue where you left off</p>
+        </div>
+        <.link
+          navigate={~p"/#{@locale}/ai/learning"}
+          class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-xl font-semibold hover:shadow-lg transition-all"
+        >
+          <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+          Explore Courses
+        </.link>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div class="bg-white rounded-2xl shadow-lg border border-slate-200 p-6">
+          <div class="flex items-center justify-between mb-4">
+            <div class="w-12 h-12 bg-violet-100 rounded-xl flex items-center justify-center">
+              <svg class="w-6 h-6 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+              </svg>
+            </div>
+          </div>
+          <div class="text-3xl font-bold text-slate-900 mb-1"><%= @stats.total %></div>
+          <div class="text-sm text-slate-600">Total Courses</div>
+        </div>
+
+        <div class="bg-white rounded-2xl shadow-lg border border-slate-200 p-6">
+          <div class="flex items-center justify-between mb-4">
+            <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
+              <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+            </div>
+          </div>
+          <div class="text-3xl font-bold text-slate-900 mb-1"><%= @stats.in_progress %></div>
+          <div class="text-sm text-slate-600">In Progress</div>
+        </div>
+
+        <div class="bg-white rounded-2xl shadow-lg border border-slate-200 p-6">
+          <div class="flex items-center justify-between mb-4">
+            <div class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
+              <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+          </div>
+          <div class="text-3xl font-bold text-slate-900 mb-1"><%= @stats.completed %></div>
+          <div class="text-sm text-slate-600">Completed</div>
+        </div>
+
+        <div class="bg-white rounded-2xl shadow-lg border border-slate-200 p-6">
+          <div class="flex items-center justify-between mb-4">
+            <div class="w-12 h-12 bg-amber-100 rounded-xl flex items-center justify-center">
+              <svg class="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+          </div>
+          <div class="text-3xl font-bold text-slate-900 mb-1"><%= @stats.total_hours %>h</div>
+          <div class="text-sm text-slate-600">Learning Time</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="mb-6">
+      <div class="bg-white rounded-2xl shadow-lg border border-slate-200 p-2 inline-flex space-x-2">
+        <%= for {filter, label} <- [{:all, "All Courses"}, {:in_progress, "In Progress"}, {:completed, "Completed"}, {:not_started, "Not Started"}] do %>
+          <button
+            phx-click="filter_courses"
+            phx-value-filter={filter}
+            class={"px-6 py-2 rounded-xl font-medium transition-all #{if @active_filter == filter, do: "bg-violet-600 text-white", else: "text-slate-600 hover:bg-slate-50"}"}
+          >
+            <%= label %>
+          </button>
+        <% end %>
+      </div>
+    </div>
+
+    <%= if length(@enrolled_courses) == 0 do %>
+      <div class="bg-white rounded-2xl shadow-lg border border-slate-200 p-12 text-center">
+        <div class="inline-flex items-center justify-center w-20 h-20 rounded-full bg-violet-100 mb-6">
+          <svg class="w-10 h-10 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+          </svg>
+        </div>
+        <h2 class="text-2xl font-bold text-slate-900 mb-3">No Enrolled Courses</h2>
+        <p class="text-slate-600 mb-8 max-w-md mx-auto">
+          Start your learning journey by enrolling in courses that interest you.
+        </p>
+        <.link
+          navigate={~p"/#{@locale}/ai/learning"}
+          class="inline-flex items-center px-8 py-4 bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-xl font-semibold hover:shadow-lg transition-all"
+        >
+          <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+          Browse Courses
+        </.link>
+      </div>
+    <% else %>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <%= for course <- (if assigns[:filtered_courses], do: @filtered_courses, else: @enrolled_courses) do %>
+          <div class="bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden hover:shadow-xl transition-shadow group">
+            <div class="relative h-48 bg-gradient-to-br from-violet-500 via-purple-500 to-indigo-600">
+              <div class="absolute inset-0 bg-black/30"></div>
+              <div class="absolute top-4 right-4">
+                <span class={"inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold #{case course.status do
+                  :completed -> "bg-green-500 text-white"
+                  :in_progress -> "bg-blue-500 text-white"
+                  :not_started -> "bg-slate-500 text-white"
+                end}"}>
+                  <%= case course.status do %>
+                    <% :completed -> %>
+                      <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      Completed
+                    <% :in_progress -> %>
+                      <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                      </svg>
+                      In Progress
+                    <% :not_started -> %>
+                      <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      Not Started
+                  <% end %>
+                </span>
+              </div>
+              <div class="absolute inset-0 flex items-center justify-center">
+                <div class="text-center text-white p-4">
+                  <h3 class="text-2xl font-bold mb-2 line-clamp-2"><%= course.path.title %></h3>
+                </div>
+              </div>
+            </div>
+
+            <div class="p-6">
+              <div class="mb-4">
+                <div class="flex justify-between items-center mb-2">
+                  <span class="text-sm font-semibold text-slate-700">Progress</span>
+                  <span class="text-sm font-bold text-violet-600"><%= course.progress %>%</span>
+                </div>
+                <div class="w-full bg-slate-200 rounded-full h-2">
+                  <div
+                    class="bg-gradient-to-r from-violet-600 to-indigo-600 h-2 rounded-full transition-all duration-300"
+                    style={"width: #{course.progress}%"}
+                  ></div>
+                </div>
+              </div>
+
+              <p class="text-sm text-slate-600 mb-4 line-clamp-2">
+                <%= Map.get(course.path, :description, "") %>
+              </p>
+
+              <div class="flex items-center justify-between text-xs text-slate-500 mb-4">
+                <div class="flex items-center">
+                  <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  Last accessed: <%= format_date(course.last_accessed) %>
+                </div>
+              </div>
+
+              <.link
+                navigate={~p"/#{@locale}/ai/learning/paths/#{course.path_id}"}
+                class="block w-full px-6 py-3 bg-gradient-to-r from-violet-600 to-indigo-600 text-white text-center rounded-xl font-semibold hover:shadow-lg transition-all group-hover:scale-105 duration-200"
+              >
+                <%= if course.status == :not_started do %>
+                  Start Learning
+                <% else %>
+                  Continue Learning
+                <% end %>
+                <svg class="w-4 h-4 inline-block ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                </svg>
+              </.link>
+            </div>
+          </div>
+        <% end %>
+      </div>
+
+      <%= if length(if assigns[:filtered_courses], do: @filtered_courses, else: @enrolled_courses) == 0 and @active_filter != :all do %>
+        <div class="bg-white rounded-2xl shadow-lg border border-slate-200 p-12 text-center">
+          <svg class="w-16 h-16 text-slate-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+          <h3 class="text-xl font-bold text-slate-900 mb-2">No courses found</h3>
+          <p class="text-slate-600">Try selecting a different filter</p>
+        </div>
+      <% end %>
+
+      <%= if @stats.in_progress > 0 and @active_filter == :all do %>
+        <div class="mt-8 bg-gradient-to-r from-violet-50 to-indigo-50 rounded-2xl p-8 border border-violet-200">
+          <div class="flex items-start space-x-4">
+            <div class="flex-shrink-0">
+              <div class="w-12 h-12 bg-violet-600 rounded-full flex items-center justify-center">
+                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+              </div>
+            </div>
+            <div class="flex-1">
+              <h3 class="text-lg font-bold text-violet-900 mb-2">Keep Learning!</h3>
+              <p class="text-violet-800 mb-4">
+                You have <%= @stats.in_progress %> <%= if @stats.in_progress == 1, do: "course", else: "courses" %> in progress.
+                Stay consistent to reach your learning goals!
+              </p>
+              <div class="flex items-center space-x-2 text-sm text-violet-700">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span>You've completed <%= @stats.completed %> <%= if @stats.completed == 1, do: "course", else: "courses" %></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      <% end %>
+    <% end %>
+  </div>
+</div>

@@ -439,17 +439,26 @@ get_token_by_id(TokenID) ->
         _ -> error
     end.
 
-change_password(Username, CurrentPass, NewPass) ->
-    Fun = fun() ->
-        case check_user_credential(Username, CurrentPass) of
-            {true, User} ->
-                mnesia:write(User#user{password = erlpass:hash(NewPass),
-                                       date_updated = calendar:universal_time()});
-            false -> wrong_username_or_password
-        end
-    end,
-    {atomic, Res} = mnesia:transaction(Fun),
-    Res.
+    change_password(Username, CurrentPass, NewPass) ->
+        Fun = fun() ->
+            case mnesia:index_read(user, Username, username) of
+                [] ->
+                    wrong_username_or_password;
+                [User] ->
+                    case erlpass:match(CurrentPass, User#user.password) of
+                        true ->
+                            mnesia:write(User#user{
+                                password = erlpass:hash(NewPass),
+                                date_updated = calendar:universal_time()
+                            }),
+                            ok;
+                        false ->
+                            wrong_username_or_password
+                    end
+            end
+        end,
+        {atomic, Res} = mnesia:transaction(Fun),
+        Res.
 
 change_email(Username, Password, NewEmail) ->
     Fun = fun() ->
@@ -469,23 +478,32 @@ change_email(Username, Password, NewEmail) ->
     {atomic, Res} = mnesia:transaction(Fun),
     Res.
 
-change_username(Username, CurrentPass, NewUsername) ->
-    Fun = fun() ->
-        case check_username(NewUsername) of
-            undefined ->
-                case check_user_credential(Username, CurrentPass) of
-                    {true, User} ->
-                        mnesia:write(User#user{username = NewUsername,
-                                               date_updated = calendar:universal_time()}),
-                        mnesia:delete({user, Username});
-                    false ->
-                        wrong_username_or_password
-                end;
-            username_existed -> username_existed
-        end
-    end,
-    {atomic, Res} = mnesia:transaction(Fun),
-    Res.
+    change_username(Username, CurrentPass, NewUsername) ->
+        Fun = fun() ->
+            case check_username(NewUsername) of
+                username_existed ->
+                    username_existed;
+                undefined ->
+                    case mnesia:index_read(user, Username, username) of
+                        [] ->
+                            wrong_username_or_password;
+                        [User] ->
+                            case erlpass:match(CurrentPass, User#user.password) of
+                                true ->
+                                    UpdatedUser = User#user{
+                                        username = NewUsername,
+                                        date_updated = calendar:universal_time()
+                                    },
+                                    mnesia:write(UpdatedUser),
+                                    ok;
+                                false ->
+                                    wrong_username_or_password
+                            end
+                    end
+            end
+        end,
+        {atomic, Res} = mnesia:transaction(Fun),
+        Res.
 
 delete_user(Username) ->
     F = fun() ->

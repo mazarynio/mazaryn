@@ -480,6 +480,40 @@ let Hooks = {
     },
   },
 
+  RejectInstructorButton: {
+    mounted() {
+      this.el.addEventListener("click", (e) => {
+        e.preventDefault();
+        const userId = this.el.dataset.userId;
+        const reason = prompt("Please provide a reason for rejection:");
+
+        if (reason && reason.trim()) {
+          this.pushEvent("reject_instructor", {
+            user_id: userId,
+            reason: reason.trim(),
+          });
+        }
+      });
+    },
+  },
+
+  RejectPathButton: {
+    mounted() {
+      this.el.addEventListener("click", (e) => {
+        e.preventDefault();
+        const pathId = this.el.dataset.pathId;
+        const reason = prompt("Please provide a reason for rejection:");
+
+        if (reason && reason.trim()) {
+          this.pushEvent("reject_path", {
+            path_id: pathId,
+            reason: reason.trim(),
+          });
+        }
+      });
+    },
+  },
+
   VideoCall: VideoCallHook,
   VideoPlayer: VideoPlayer,
   MyStreams: MyStreams,

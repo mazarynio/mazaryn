@@ -1,0 +1,167 @@
+<.live_component
+  module={MazarynWeb.HomeLive.NavComponent}
+  id="navigation"
+  user={@user}
+  search=""
+  locale={@locale}
+/>
+
+<div class="min-h-screen bg-gradient-to-br from-slate-50 via-purple-50 to-indigo-50">
+  <div class="max-w-7xl mx-auto px-6 py-12">
+    <div class="flex items-center justify-between mb-8">
+      <div>
+        <h1 class="text-4xl font-bold text-slate-900 mb-2">Learning Hub</h1>
+        <p class="text-lg text-slate-600">Master AI, ML, and Data Science with expert-led courses</p>
+      </div>
+
+      <div class="flex items-center space-x-4">
+        <%= if @is_admin do %>
+          <.link
+            navigate={~p"/#{@locale}/ai/learning/admin"}
+            class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-red-600 to-pink-600 text-white rounded-xl font-semibold hover:shadow-lg transition-all duration-200"
+          >
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+            </svg>
+            Admin Panel
+          </.link>
+        <% end %>
+
+        <%= if @is_instructor do %>
+          <.link
+            navigate={~p"/#{@locale}/ai/learning/instructor/dashboard"}
+            class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-xl font-semibold hover:shadow-lg transition-all duration-200"
+          >
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+            </svg>
+            Instructor Dashboard
+          </.link>
+        <% else %>
+          <.link
+            navigate={~p"/#{@locale}/ai/learning/become-instructor"}
+            class="inline-flex items-center px-6 py-3 border-2 border-violet-600 text-violet-600 rounded-xl font-semibold hover:bg-violet-50 transition-all duration-200"
+          >
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+            </svg>
+            Become Instructor
+          </.link>
+        <% end %>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-8">
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
+        <div class="flex-1 max-w-2xl">
+          <div class="relative">
+            <input
+              type="text"
+              phx-change="search"
+              name="query"
+              value={@search_query}
+              placeholder="Search courses..."
+              class="w-full px-5 py-3 pl-12 border border-slate-300 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-transparent"
+            />
+            <svg class="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </div>
+        </div>
+
+        <div class="flex items-center space-x-3">
+          <select
+            phx-change="select_difficulty"
+            name="difficulty"
+            class="px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-transparent"
+          >
+            <option value="">All Levels</option>
+            <option value="beginner" selected={@selected_difficulty == "beginner"}>Beginner</option>
+            <option value="intermediate" selected={@selected_difficulty == "intermediate"}>Intermediate</option>
+            <option value="advanced" selected={@selected_difficulty == "advanced"}>Advanced</option>
+          </select>
+
+          <%= if @selected_category || @selected_difficulty || @search_query != "" do %>
+            <button
+              phx-click="clear_filters"
+              class="px-4 py-3 bg-slate-100 text-slate-700 rounded-xl font-medium hover:bg-slate-200 transition-colors"
+            >
+              Clear Filters
+            </button>
+          <% end %>
+        </div>
+      </div>
+    </div>
+
+    <%= if @my_enrollments != [] do %>
+      <div class="mb-12">
+        <h2 class="text-2xl font-bold text-slate-900 mb-6">Continue Learning</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+            <h3 class="font-semibold text-slate-900 mb-2">Course Title</h3>
+            <div class="w-full bg-slate-200 rounded-full h-2 mb-2">
+              <div class="bg-gradient-to-r from-violet-600 to-indigo-600 h-2 rounded-full" style="width: 45%"></div>
+            </div>
+            <p class="text-sm text-slate-500">45% complete</p>
+          </div>
+        </div>
+      </div>
+    <% end %>
+
+    <div class="mb-12">
+      <h2 class="text-2xl font-bold text-slate-900 mb-6">Browse by Category</h2>
+      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        <%= for category <- @categories do %>
+          <button
+            phx-click="select_category"
+            phx-value-category={category.id}
+            class={"group p-6 bg-white rounded-xl shadow-sm border-2 transition-all duration-200 hover:shadow-md #{if @selected_category == category.id, do: "border-violet-600 bg-violet-50", else: "border-slate-200 hover:border-violet-300"}"}
+          >
+            <div class="text-4xl mb-3"><%= category.icon %></div>
+            <h3 class={"font-semibold transition-colors #{if @selected_category == category.id, do: "text-violet-600", else: "text-slate-900 group-hover:text-violet-600"}"}><%= category.name %></h3>
+          </button>
+        <% end %>
+      </div>
+    </div>
+
+    <div>
+      <h2 class="text-2xl font-bold text-slate-900 mb-6">Featured Courses</h2>
+      <%= if @featured_paths == [] do %>
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-12 text-center">
+          <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-slate-100 mb-4">
+            <svg class="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+            </svg>
+          </div>
+          <h3 class="text-lg font-semibold text-slate-900 mb-2">No courses available yet</h3>
+          <p class="text-slate-600 mb-6">Be the first to create a course!</p>
+          <%= if @is_instructor do %>
+            <.link
+              navigate={~p"/#{@locale}/ai/learning/paths/new"}
+              class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-xl font-semibold hover:shadow-lg transition-all duration-200"
+            >
+              <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+              </svg>
+              Create Learning Path
+            </.link>
+          <% end %>
+        </div>
+      <% else %>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden hover:shadow-lg transition-shadow">
+            <div class="h-48 bg-gradient-to-br from-violet-500 to-indigo-600"></div>
+            <div class="p-6">
+              <h3 class="text-xl font-bold text-slate-900 mb-2">Course Title</h3>
+              <p class="text-slate-600 mb-4">Course description goes here...</p>
+              <div class="flex items-center justify-between">
+                <span class="text-sm text-slate-500">Beginner</span>
+                <span class="text-violet-600 font-semibold">Free</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

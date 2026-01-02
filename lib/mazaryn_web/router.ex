@@ -5,8 +5,7 @@ defmodule MazarynWeb.Router do
     only: [redirect_unauthorized: 2, validate_session: 2, check_if_admin: 2]
 
   import MazarynWeb.Plug.CheckAllowedUser
-
-  @env Application.get_env(:mazaryn, :env)
+  @env Application.compile_env(:mazaryn, :env)
 
   pipeline :browser do
     plug(:accepts, ["html"])
@@ -62,10 +61,12 @@ defmodule MazarynWeb.Router do
 
   scope "/en/api" do
     pipe_through(:api)
+
     forward("/graphiql", Absinthe.Plug.GraphiQL,
       schema: MazarynWeb.Schema,
       interface: :simple
     )
+
     forward("/", Absinthe.Plug, schema: MazarynWeb.Schema)
   end
 
@@ -73,7 +74,6 @@ defmodule MazarynWeb.Router do
 
   scope "/:locale", MazarynWeb do
     pipe_through(:browser)
-
     get("/logout", LogoutController, :index)
     get("/confirm/:token", ConfirmAccountController, :index)
     get("/verify-email/:token", EmailVerificationController, :verify, as: :email_verification)
@@ -108,13 +108,11 @@ defmodule MazarynWeb.Router do
 
   scope "/:locale", MazarynWeb do
     pipe_through(:restricted)
-
     get("/downloads/:id/file", DownloadController, :download_file)
     get("/ai/datasets/:dataset_id/zip", DatasetZipController, :serve)
 
     live_session :restricted,
       on_mount: [{MazarynWeb.UserLiveAuth, :restricted}, {MazarynWeb.UserLiveAuth, :default}] do
-
       live("/home", HomeLive.Home)
       live("/post/:post_id", PostLive.Show)
       live("/dashboard", DashboardLive.Dashboard)
@@ -132,7 +130,6 @@ defmodule MazarynWeb.Router do
       live("/livestreams/:id/dashboard", MediaLive.Livestream.Dashboard, :dashboard)
       live("/livestreams/go-live/camera", MediaLive.Livestream.GoLive, :camera)
       live("/livestreams/:id/watch-vod", MediaLive.Livestream.VodWatch, :show)
-
       live("/ai", AiLive.Index)
       live("/ai/datasets", AiLive.Datasets, :index)
       live("/ai/datasets/new", AiLive.DatasetNew, :new)
@@ -159,6 +156,59 @@ defmodule MazarynWeb.Router do
       live("/ai/discussions/new", AiLive.DiscussionNew, :new)
       live("/ai/discussions/:id", AiLive.DiscussionShow, :show)
       live("/downloads", DownloadManagerLive.Index, :index)
+      live("/ai/learning", AiLive.Learning.Index, :index)
+      live("/ai/learning/become-instructor", AiLive.Learning.BecomeInstructor, :new)
+      live("/ai/learning/instructor/dashboard", AiLive.Learning.InstructorDashboard, :dashboard)
+      live("/ai/learning/paths", AiLive.Learning.Paths, :index)
+      live("/ai/learning/paths/new", AiLive.Learning.PathNew, :new)
+      live("/ai/learning/my-learning", AiLive.Learning.MyLearning, :index)
+      live("/ai/learning/certificates", AiLive.Learning.Certificates, :index)
+      live("/ai/learning/admin", AiLive.Learning.AdminApproval, :admin)
+      live("/ai/learning/paths/:path_id/modules", AiLive.Learning.ModulesIndex, :index)
+      live("/ai/learning/paths/:path_id/modules/new", AiLive.Learning.ModuleNew, :new)
+      live("/ai/learning/paths/:path_id/modules/:id/edit", AiLive.Learning.ModuleEdit, :edit)
+
+      live(
+        "/ai/learning/paths/:path_id/modules/:module_id/lessons",
+        AiLive.Learning.LessonsIndex,
+        :index
+      )
+
+      live(
+        "/ai/learning/paths/:path_id/modules/:module_id/lessons/new",
+        AiLive.Learning.LessonNew,
+        :new
+      )
+
+      live(
+        "/ai/learning/paths/:path_id/modules/:module_id/lessons/:id/edit",
+        AiLive.Learning.LessonEdit,
+        :edit
+      )
+
+      live(
+        "/ai/learning/paths/:path_id/modules/:module_id/lessons/:lesson_id",
+        AiLive.Learning.LessonView,
+        :show
+      )
+
+      live(
+        "/ai/learning/paths/:path_id/modules/:module_id/lessons/:lesson_id/quiz/new",
+        AiLive.Learning.QuizNew,
+        :new
+      )
+
+      live("/ai/learning/paths/:path_id/quizzes/:quiz_id", AiLive.Learning.QuizTake, :take)
+      live("/ai/learning/paths/:path_id/edit", AiLive.Learning.PathEdit, :edit)
+      live("/ai/learning/paths/:path_id", AiLive.Learning.PathShow, :show)
+
+      live("/groups", GroupLive.Index, :index)
+      live("/groups/:id", GroupLive.Show, :show)
+      live("/groups/:id/settings", GroupLive.Settings, :settings)
+      live("/groups/:id/members", GroupLive.Members, :members)
+      live("/groups/:id/invites", GroupLive.Invites, :invites)
+
+      live("/jobs", JobLive.Index, :index)
 
       scope "/chats" do
         live("/", ChatsLive.Index, :index)
@@ -172,11 +222,10 @@ defmodule MazarynWeb.Router do
 
       live("/search", SearchLive.Index)
       live("/posts", PostLive.Index)
-      live("/dashboard", DashboardLive.Index)
-      live("/dashboard/hedera-wallet", DashboardLive.Wallet.HederaWallet)
       live("/notifications", NotificationLive.Index)
       live("/user_blog", UserBlog.Index)
       live("/hashtag/:hashtag_name", HashtagLive.Index)
+      live("/settings", SettingLive.Index)
       live("/:username", UserLive.Profile)
       live("/:username/:locale", UserLive.Profile)
     end

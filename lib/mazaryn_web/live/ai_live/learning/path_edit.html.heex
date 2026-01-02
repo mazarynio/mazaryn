@@ -1,0 +1,386 @@
+<.live_component
+  module={MazarynWeb.HomeLive.NavComponent}
+  id="navigation"
+  user={@user}
+  search=""
+  locale={@locale}
+/>
+
+<div class="min-h-screen bg-gradient-to-br from-slate-50 via-purple-50 to-indigo-50 py-12">
+  <div class="max-w-5xl mx-auto px-6">
+    <div class="mb-8">
+      <.link
+        navigate={~p"/#{@locale}/ai/learning/paths/#{@path_id}"}
+        class="inline-flex items-center text-slate-600 hover:text-violet-600 transition-colors mb-4"
+      >
+        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+        </svg>
+        Back to Course
+      </.link>
+      <h1 class="text-4xl font-bold text-slate-900 mb-2">Edit Learning Path</h1>
+      <p class="text-lg text-slate-600">Update your course information</p>
+    </div>
+
+    <div class="bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden">
+      <div class="bg-gradient-to-r from-violet-600 to-indigo-600 px-8 py-4">
+        <div class="flex items-center justify-between">
+          <h2 class="text-xl font-bold text-white">Course Settings</h2>
+          <span class="px-3 py-1 bg-white/20 text-white text-sm font-medium rounded-full">
+            Status: <%= String.capitalize(@path.approval_status || "draft") %>
+          </span>
+        </div>
+      </div>
+
+      <div class="p-8">
+        <form phx-submit="submit" phx-change="validate">
+          <div class="space-y-8">
+            <div>
+              <h2 class="text-xl font-bold text-slate-900 mb-4">Basic Information</h2>
+
+              <div class="space-y-6">
+                <div>
+                  <label class="block text-sm font-semibold text-slate-700 mb-2">
+                    Course Title <span class="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    name="title"
+                    value={@title}
+                    class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-transparent"
+                    placeholder="e.g., Complete Machine Learning Bootcamp"
+                  />
+                  <%= if @errors[:title] do %>
+                    <p class="mt-1 text-sm text-red-600"><%= @errors[:title] %></p>
+                  <% end %>
+                </div>
+
+                <div>
+                  <label class="block text-sm font-semibold text-slate-700 mb-2">
+                    Description <span class="text-red-500">*</span>
+                  </label>
+                  <textarea
+                    name="description"
+                    rows="6"
+                    class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-transparent resize-none"
+                    placeholder="Provide a detailed description of what students will learn in this course (minimum 100 characters)"
+                  ><%= @description %></textarea>
+                  <div class="flex justify-between mt-1">
+                    <%= if @errors[:description] do %>
+                      <p class="text-sm text-red-600"><%= @errors[:description] %></p>
+                    <% else %>
+                      <p class="text-sm text-slate-500"><%= String.length(@description) %> / 100 characters minimum</p>
+                    <% end %>
+                  </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-2">
+                      Category <span class="text-red-500">*</span>
+                    </label>
+                    <select
+                      name="category"
+                      class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-transparent"
+                    >
+                      <option value="">Select a category</option>
+                      <option value="programming" selected={@category == "programming"}>Programming & Development</option>
+                      <option value="data_science" selected={@category == "data_science"}>Data Science & AI</option>
+                      <option value="web_dev" selected={@category == "web_dev"}>Web Development</option>
+                      <option value="mobile" selected={@category == "mobile"}>Mobile Development</option>
+                      <option value="cloud" selected={@category == "cloud"}>Cloud & DevOps</option>
+                      <option value="security" selected={@category == "security"}>Cybersecurity</option>
+                      <option value="blockchain" selected={@category == "blockchain"}>Blockchain & Web3</option>
+                      <option value="design" selected={@category == "design"}>UI/UX Design</option>
+                      <option value="business" selected={@category == "business"}>Business & Marketing</option>
+                    </select>
+                    <%= if @errors[:category] do %>
+                      <p class="mt-1 text-sm text-red-600"><%= @errors[:category] %></p>
+                    <% end %>
+                  </div>
+
+                  <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-2">
+                      Difficulty Level <span class="text-red-500">*</span>
+                    </label>
+                    <select
+                      name="difficulty_level"
+                      class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-transparent"
+                    >
+                      <option value="beginner" selected={@difficulty_level == "beginner"}>Beginner</option>
+                      <option value="intermediate" selected={@difficulty_level == "intermediate"}>Intermediate</option>
+                      <option value="advanced" selected={@difficulty_level == "advanced"}>Advanced</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-2">
+                      Estimated Duration (hours) <span class="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="number"
+                      name="estimated_duration"
+                      value={@estimated_duration}
+                      min="1"
+                      class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-transparent"
+                      placeholder="e.g., 40"
+                    />
+                    <%= if @errors[:estimated_duration] do %>
+                      <p class="mt-1 text-sm text-red-600"><%= @errors[:estimated_duration] %></p>
+                    <% end %>
+                  </div>
+
+                  <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-2">
+                      Price (USD)
+                    </label>
+                    <input
+                      type="number"
+                      name="price"
+                      value={@price}
+                      min="0"
+                      step="0.01"
+                      class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-transparent"
+                      placeholder="0.00 for free course"
+                    />
+                    <p class="mt-1 text-sm text-slate-500">Set to 0 for a free course</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="border-t border-slate-200 pt-8">
+              <h2 class="text-xl font-bold text-slate-900 mb-4">Course Details</h2>
+
+              <div class="space-y-6">
+                <div>
+                  <label class="block text-sm font-semibold text-slate-700 mb-2">
+                    Tags
+                  </label>
+                  <div class="flex flex-wrap gap-2 mb-3">
+                    <%= for tag <- @tags do %>
+                      <span class="inline-flex items-center px-3 py-1 bg-violet-100 text-violet-700 rounded-full text-sm">
+                        <%= tag %>
+                        <button
+                          type="button"
+                          phx-click="remove_tag"
+                          phx-value-tag={tag}
+                          class="ml-2 text-violet-500 hover:text-violet-700"
+                        >
+                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        </button>
+                      </span>
+                    <% end %>
+                  </div>
+                  <div class="flex space-x-2">
+                    <input
+                      type="text"
+                      id="tag-input"
+                      class="flex-1 px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-transparent"
+                      placeholder="Add a tag (e.g., Python, Machine Learning)"
+                    />
+                    <button
+                      type="button"
+                      onclick="
+                        const input = document.getElementById('tag-input');
+                        const value = input.value.trim();
+                        if (value) {
+                          this.setAttribute('phx-value-tag', value);
+                          input.value = '';
+                        }
+                      "
+                      phx-click="add_tag"
+                      class="px-6 py-3 bg-violet-100 text-violet-700 rounded-xl font-semibold hover:bg-violet-200 transition-colors"
+                    >
+                      Add
+                    </button>
+                  </div>
+                  <p class="mt-1 text-sm text-slate-500">Maximum 10 tags</p>
+                </div>
+
+                <div>
+                  <label class="block text-sm font-semibold text-slate-700 mb-2">
+                    Learning Outcomes
+                  </label>
+                  <div class="space-y-2 mb-3">
+                    <%= for {outcome, index} <- Enum.with_index(@learning_outcomes) do %>
+                      <div class="flex items-start space-x-2 p-3 bg-slate-50 rounded-lg">
+                        <svg class="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span class="flex-1 text-slate-700"><%= outcome %></span>
+                        <button
+                          type="button"
+                          phx-click="remove_outcome"
+                          phx-value-index={index}
+                          class="text-slate-400 hover:text-red-600"
+                        >
+                          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        </button>
+                      </div>
+                    <% end %>
+                  </div>
+                  <div class="flex space-x-2">
+                    <input
+                      type="text"
+                      id="outcome-input"
+                      class="flex-1 px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-transparent"
+                      placeholder="What will students learn? (e.g., Build neural networks from scratch)"
+                    />
+                    <button
+                      type="button"
+                      onclick="
+                        const input = document.getElementById('outcome-input');
+                        const value = input.value.trim();
+                        if (value) {
+                          this.setAttribute('phx-value-outcome', value);
+                          input.value = '';
+                        }
+                      "
+                      phx-click="add_outcome"
+                      class="px-6 py-3 bg-violet-100 text-violet-700 rounded-xl font-semibold hover:bg-violet-200 transition-colors"
+                    >
+                      Add
+                    </button>
+                  </div>
+                  <p class="mt-1 text-sm text-slate-500">Maximum 10 learning outcomes</p>
+                </div>
+
+                <div>
+                  <label class="block text-sm font-semibold text-slate-700 mb-2">
+                    Prerequisites
+                  </label>
+                  <textarea
+                    name="prerequisites"
+                    rows="3"
+                    class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-transparent resize-none"
+                    placeholder="What knowledge or experience should students have before taking this course?"
+                  ><%= @prerequisites %></textarea>
+                </div>
+              </div>
+            </div>
+
+            <div class="border-t border-slate-200 pt-8">
+              <h2 class="text-xl font-bold text-slate-900 mb-4">Course Settings</h2>
+
+              <div class="space-y-4">
+                <div class="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
+                  <div>
+                    <p class="font-medium text-slate-900">Self-Paced Learning</p>
+                    <p class="text-sm text-slate-600">Students can progress at their own speed</p>
+                  </div>
+                  <label class="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      name="self_paced"
+                      value="true"
+                      checked={@self_paced}
+                      class="sr-only peer"
+                    />
+                    <div class="w-11 h-6 bg-slate-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-violet-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-violet-600"></div>
+                  </label>
+                </div>
+
+                <div class="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
+                  <div>
+                    <p class="font-medium text-slate-900">Lifetime Access</p>
+                    <p class="text-sm text-slate-600">Students have unlimited access after enrollment</p>
+                  </div>
+                  <label class="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      name="lifetime_access"
+                      value="true"
+                      checked={@lifetime_access}
+                      class="sr-only peer"
+                    />
+                    <div class="w-11 h-6 bg-slate-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-violet-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-violet-600"></div>
+                  </label>
+                </div>
+
+                <div>
+                  <label class="block text-sm font-semibold text-slate-700 mb-2">
+                    Language
+                  </label>
+                  <select
+                    name="language"
+                    class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-transparent"
+                  >
+                    <option value="en" selected={@language == "en"}>English</option>
+                    <option value="es" selected={@language == "es"}>Spanish</option>
+                    <option value="fr" selected={@language == "fr"}>French</option>
+                    <option value="de" selected={@language == "de"}>German</option>
+                    <option value="zh" selected={@language == "zh"}>Chinese</option>
+                    <option value="ja" selected={@language == "ja"}>Japanese</option>
+                    <option value="ar" selected={@language == "ar"}>Arabic</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <%= if @path.approval_status == "rejected" && @path.rejection_reason do %>
+              <div class="bg-red-50 border border-red-200 rounded-xl p-6">
+                <h3 class="font-semibold text-red-900 mb-2">Rejection Reason</h3>
+                <p class="text-red-800"><%= @path.rejection_reason %></p>
+                <p class="text-sm text-red-700 mt-3">
+                  Please address the issues above and resubmit your course for review.
+                </p>
+              </div>
+            <% end %>
+
+            <div class="bg-blue-50 border border-blue-200 rounded-xl p-6">
+              <h3 class="font-semibold text-blue-900 mb-3">Important Notes</h3>
+              <ul class="space-y-2 text-sm text-blue-800">
+                <li class="flex items-start">
+                  <svg class="w-5 h-5 text-blue-600 mr-2 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <span>Changes to approved courses may require re-approval</span>
+                </li>
+                <li class="flex items-start">
+                  <svg class="w-5 h-5 text-blue-600 mr-2 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <span>Students enrolled in this course will see the updated content</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="flex items-center justify-between mt-8 pt-6 border-t border-slate-200">
+            <.link
+              navigate={~p"/#{@locale}/ai/learning/paths/#{@path_id}"}
+              class="px-6 py-3 border-2 border-slate-300 text-slate-700 rounded-xl font-semibold hover:bg-slate-50 transition-colors"
+            >
+              Cancel
+            </.link>
+
+            <button
+              type="submit"
+              disabled={@submitting}
+              class={"px-8 py-3 bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-xl font-semibold hover:shadow-lg transition-all duration-200 #{if @submitting, do: "opacity-50 cursor-not-allowed"}"}
+            >
+              <%= if @submitting do %>
+                <div class="flex items-center space-x-2">
+                  <svg class="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  <span>Saving...</span>
+                </div>
+              <% else %>
+                Save Changes
+              <% end %>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>

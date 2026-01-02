@@ -8,7 +8,7 @@
 
 -behaviour(supervisor).
 
--export([start_link/0, init/1]).
+-export([start_link/0, init/1, init_admin_system/0]).
 -export([start_distributed/0, add_node/1, add_extra_nodes/1, create_tables_on_nodes/1]).
 
 -define(SERVER, ?MODULE).
@@ -17,9 +17,15 @@
 -define(TABLES, [post, notif, user, blog_post, comment, blog_comment, like, reply, chat, media, report, knode, business, ads, quantum,
  ai_user, ai_post, ai_chat, ai_media, ai_business, ai_ads, p2p_node,
  pin_info, pin_params, pin_history, bulk_operation, scheduled_job, rate_limiter_usage, pin_info_lookup, pin_health, storage_quota, presence,
- dataset, competition, notebook, model, video, music, album, playlist, ai_video, media_view, livestream]).
+ dataset, competition, notebook, model, video, music, album, playlist, ai_video, media_view, livestream,
+ learning_path, learning_resource, learning_module, lesson, user_learning_progress, quiz, quiz_question, quiz_attempt, exercise,
+ exercise_submission, project, project_submission, certificate, badge, user_badge, enrollment, user_completion,
+ discussion_post, study_group, mentor_session, live_class, instructor_profile, admin_action, time_tracking, bookmark,
+ resource_rating, learning_track, verified_instructor, instructor_request, lesson_progress, module_progress,
+ video_upload_session, content_comment, content_reaction, student_question, question_answer, path_review,
+ instructor_analytics, content_analytics, learning_notification, learning_schedule, group, group_member, group_message,
+ group_invite, group_admin, channel, channel_post, channel_subscriber]).
 
-%% API
 start_link() ->
     case initialize() of
         ok ->
@@ -121,7 +127,6 @@ add_table_copy(Table, Node) ->
             {error, {add_table_copy_failed, Table, Node, Reason}}
     end.
 
-%% Supervisor callbacks
 init([]) ->
     SupFlags = #{
         strategy => one_for_one,
@@ -153,7 +158,6 @@ init([]) ->
     ],
     {ok, {SupFlags, ChildSpecs}}.
 
-%% Internal functions
 initialize() ->
     try
         logger:info("Initializing distributed otpcode application..."),
@@ -168,6 +172,7 @@ initialize() ->
         Tables = mnesia:system_info(tables),
         logger:info("Existing tables before index creation: ~p", [Tables]),
         ok = create_table_indexes(),
+        ok = init_admin_system(),
         logger:info("otpcode application initialized successfully."),
         ok
     catch
@@ -249,7 +254,14 @@ wait_for_tables() ->
     end.
 
 create_table_indexes() ->
-    IndexesToCreate = [{user, username}, {user, email}],
+    IndexesToCreate = [{user, username}, {user, email}, {enrollment, user_id}, {enrollment, path_id},
+                       {user_completion, user_id}, {instructor_profile, user_id}, {admin_action, admin_username},
+                       {admin_action, content_type}, {admin_action, content_id}, {bookmark, user_id},
+                       {bookmark, resource_id}, {resource_rating, resource_id}, {resource_rating, user_id},
+                       {lesson_progress, user_id}, {lesson_progress, lesson_id}, {module_progress, user_id},
+                       {module_progress, module_id}, {content_comment, content_id}, {content_reaction, content_id},
+                       {student_question, lesson_id}, {question_answer, question_id}, {path_review, path_id},
+                       {learning_notification, user_id}, {video_upload_session, lesson_id}],
     Results = [create_index(Table, Field) || {Table, Field} <- IndexesToCreate],
     case lists:all(fun(Result) -> Result == ok end, Results) of
         true -> ok;
@@ -281,6 +293,18 @@ create_index(Table, Field) ->
                     logger:error("Field ~p does not exist in table ~p", [Field, Table]),
                     {error, {field_not_found, Table, Field}}
             end
+    end.
+
+init_admin_system() ->
+    logger:info("Initializing admin system..."),
+    case admindb:init_default_admins() of
+        ok ->
+            Admins = admindb:list_admins(),
+            logger:info("Admin system initialized. Default admins: ~p", [Admins]),
+            ok;
+        {error, Reason} ->
+            logger:error("Failed to initialize admins: ~p", [Reason]),
+            ok
     end.
 
 table_type(post) -> ordered_set;
@@ -329,4 +353,53 @@ table_attributes(album) -> record_info(fields, album);
 table_attributes(playlist) -> record_info(fields, playlist);
 table_attributes(ai_video) -> record_info(fields, ai_video);
 table_attributes(media_view) -> record_info(fields, media_view);
-table_attributes(livestream) -> record_info(fields, livestream).
+table_attributes(livestream) -> record_info(fields, livestream);
+table_attributes(learning_path) -> record_info(fields, learning_path);
+table_attributes(learning_resource) -> record_info(fields, learning_resource);
+table_attributes(learning_module) -> record_info(fields, learning_module);
+table_attributes(lesson) -> record_info(fields, lesson);
+table_attributes(user_learning_progress) -> record_info(fields, user_learning_progress);
+table_attributes(quiz) -> record_info(fields, quiz);
+table_attributes(quiz_question) -> record_info(fields, quiz_question);
+table_attributes(quiz_attempt) -> record_info(fields, quiz_attempt);
+table_attributes(exercise) -> record_info(fields, exercise);
+table_attributes(exercise_submission) -> record_info(fields, exercise_submission);
+table_attributes(project) -> record_info(fields, project);
+table_attributes(project_submission) -> record_info(fields, project_submission);
+table_attributes(certificate) -> record_info(fields, certificate);
+table_attributes(badge) -> record_info(fields, badge);
+table_attributes(user_badge) -> record_info(fields, user_badge);
+table_attributes(enrollment) -> record_info(fields, enrollment);
+table_attributes(user_completion) -> record_info(fields, user_completion);
+table_attributes(discussion_post) -> record_info(fields, discussion_post);
+table_attributes(study_group) -> record_info(fields, study_group);
+table_attributes(mentor_session) -> record_info(fields, mentor_session);
+table_attributes(live_class) -> record_info(fields, live_class);
+table_attributes(instructor_profile) -> record_info(fields, instructor_profile);
+table_attributes(admin_action) -> record_info(fields, admin_action);
+table_attributes(time_tracking) -> record_info(fields, time_tracking);
+table_attributes(bookmark) -> record_info(fields, bookmark);
+table_attributes(resource_rating) -> record_info(fields, resource_rating);
+table_attributes(learning_track) -> record_info(fields, learning_track);
+table_attributes(verified_instructor) -> record_info(fields, verified_instructor);
+table_attributes(instructor_request) -> record_info(fields, instructor_request);
+table_attributes(lesson_progress) -> record_info(fields, lesson_progress);
+table_attributes(module_progress) -> record_info(fields, module_progress);
+table_attributes(video_upload_session) -> record_info(fields, video_upload_session);
+table_attributes(content_comment) -> record_info(fields, content_comment);
+table_attributes(content_reaction) -> record_info(fields, content_reaction);
+table_attributes(student_question) -> record_info(fields, student_question);
+table_attributes(question_answer) -> record_info(fields, question_answer);
+table_attributes(path_review) -> record_info(fields, path_review);
+table_attributes(instructor_analytics) -> record_info(fields, instructor_analytics);
+table_attributes(content_analytics) -> record_info(fields, content_analytics);
+table_attributes(learning_notification) -> record_info(fields, learning_notification);
+table_attributes(learning_schedule) -> record_info(fields, learning_schedule);
+table_attributes(group) -> record_info(fields, group);
+table_attributes(group_member) -> record_info(fields, group_member);
+table_attributes(group_message) -> record_info(fields, group_message);
+table_attributes(group_invite) -> record_info(fields, group_invite);
+table_attributes(group_admin) -> record_info(fields, group_admin);
+table_attributes(channel) -> record_info(fields, channel);
+table_attributes(channel_post) -> record_info(fields, channel_post);
+table_attributes(channel_subscriber) -> record_info(fields, channel_subscriber).

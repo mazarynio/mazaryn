@@ -34,6 +34,7 @@
                 suspend = [],
                 datasets,
                 competitions,
+                groups = [],
 
                 data = #{} }).
 
@@ -319,6 +320,186 @@ date_created, date_updated, report = [], data = #{}}).
     post,
     media,
     date_created,
+    data = #{}
+}).
+
+-record(group, {
+    id,
+    unique_name,
+    name,
+    description,
+    type = group,
+    privacy = public,
+    owner_id,
+    avatar_url,
+    banner_url,
+    admins = [],
+    members = [],
+    pending_invites = [],
+    banned_users = [],
+    messages = [],
+    pinned_messages = [],
+    settings = #{
+        allow_member_invite => false,
+        message_history_visible => true,
+        approval_required => false,
+        mute_all => false
+    },
+    tags = [],
+    category,
+    member_count = 0,
+    max_members,
+    date_created,
+    date_updated,
+    last_activity,
+    data = #{}
+}).
+
+-record(group_member, {
+    id,
+    group_id,
+    user_id,
+    role = member,
+    permissions = [],
+    join_date,
+    invited_by,
+    muted = false,
+    notifications = true,
+    last_read_message_id,
+    data = #{}
+}).
+
+-record(group_message, {
+    id,
+    group_id,
+    user_id,
+    content,
+    media = [],
+    message_type = text,
+    reply_to,
+    mentions = [],
+    reactions = #{
+        like => [],
+        celebrate => [],
+        support => [],
+        love => [],
+        insightful => [],
+        funny => []
+    },
+    reaction_counts = #{
+        like => 0,
+        celebrate => 0,
+        support => 0,
+        love => 0,
+        insightful => 0,
+        funny => 0
+    },
+    edited = false,
+    deleted = false,
+    pinned = false,
+    date_created,
+    date_updated,
+    data = #{}
+}).
+
+-record(group_invite, {
+    id,
+    group_id,
+    inviter_id,
+    invitee_id,
+    status = pending,
+    message,
+    date_created,
+    date_responded,
+    data = #{}
+}).
+
+-record(group_admin, {
+    id,
+    group_id,
+    user_id,
+    assigned_by,
+    permissions = [
+        manage_messages,
+        manage_members,
+        send_announcements,
+        pin_messages,
+        manage_invites
+    ],
+    date_assigned,
+    data = #{}
+}).
+
+-record(channel, {
+    id,
+    unique_name,
+    name,
+    description,
+    privacy = public,
+    owner_id,
+    avatar_url,
+    banner_url,
+    admins = [],
+    subscribers = [],
+    posts = [],
+    pinned_posts = [],
+    category,
+    tags = [],
+    subscriber_count = 0,
+    settings = #{
+        allow_comments => true,
+        allow_reactions => true,
+        subscriber_posts => false,
+        moderation_required => false
+    },
+    verified = false,
+    date_created,
+    date_updated,
+    last_activity,
+    data = #{}
+}).
+
+-record(channel_post, {
+    id,
+    channel_id,
+    user_id,
+    content,
+    media = [],
+    post_type = announcement,
+    comments = [],
+    reactions = #{
+        like => [],
+        celebrate => [],
+        support => [],
+        love => [],
+        insightful => [],
+        funny => []
+    },
+    reaction_counts = #{
+        like => 0,
+        celebrate => 0,
+        support => 0,
+        love => 0,
+        insightful => 0,
+        funny => 0
+    },
+    views = 0,
+    pinned = false,
+    edited = false,
+    deleted = false,
+    date_created,
+    date_updated,
+    data = #{}
+}).
+
+-record(channel_subscriber, {
+    id,
+    channel_id,
+    user_id,
+    notifications = true,
+    muted = false,
+    last_read_post_id,
+    subscribe_date,
     data = #{}
 }).
 

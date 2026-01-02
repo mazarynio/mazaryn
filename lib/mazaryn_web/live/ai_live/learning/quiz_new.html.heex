@@ -1,0 +1,341 @@
+<.live_component
+  module={MazarynWeb.HomeLive.NavComponent}
+  id="navigation"
+  user={@user}
+  search=""
+  locale={@locale}
+/>
+
+<div class="min-h-screen bg-gradient-to-br from-slate-50 via-purple-50 to-indigo-50 py-12">
+  <div class="max-w-5xl mx-auto px-6">
+    <div class="mb-8">
+      <.link
+        navigate={~p"/#{@locale}/ai/learning/paths/#{@path_id}/modules/#{@module_id}/lessons"}
+        class="inline-flex items-center text-slate-600 hover:text-violet-600 transition-colors mb-4"
+      >
+        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+        </svg>
+        Back to Lessons
+      </.link>
+      <h1 class="text-4xl font-bold text-slate-900 mb-2">Create Quiz</h1>
+      <p class="text-lg text-slate-600">For lesson: <%= @lesson.title %></p>
+    </div>
+
+    <form phx-submit="submit" phx-change="validate">
+      <div class="space-y-6">
+        <div class="bg-white rounded-2xl shadow-lg border border-slate-200 p-8">
+          <h2 class="text-2xl font-bold text-slate-900 mb-6">Quiz Settings</h2>
+
+          <div class="space-y-6">
+            <div>
+              <label class="block text-sm font-semibold text-slate-700 mb-2">
+                Quiz Title <span class="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                name="title"
+                value={@title}
+                class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-transparent"
+                placeholder="e.g., Module 1 Assessment"
+                required
+              />
+              <%= if @errors[:title] do %>
+                <p class="mt-2 text-sm text-red-600 flex items-center">
+                  <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <%= @errors[:title] %>
+                </p>
+              <% end %>
+            </div>
+
+            <div>
+              <label class="block text-sm font-semibold text-slate-700 mb-2">
+                Description
+              </label>
+              <textarea
+                name="description"
+                rows="3"
+                class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-transparent resize-none"
+                placeholder="Brief description of what this quiz covers"
+              ><%= @description %></textarea>
+            </div>
+
+            <div class="grid grid-cols-2 gap-6">
+              <div>
+                <label class="block text-sm font-semibold text-slate-700 mb-2">
+                  Time Limit (minutes)
+                </label>
+                <input
+                  type="number"
+                  name="time_limit"
+                  value={@time_limit}
+                  min="1"
+                  max="180"
+                  class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-transparent"
+                />
+                <p class="mt-1 text-xs text-slate-500">Set to 0 for no time limit</p>
+              </div>
+
+              <div>
+                <label class="block text-sm font-semibold text-slate-700 mb-2">
+                  Passing Score (%)
+                </label>
+                <input
+                  type="number"
+                  name="passing_score"
+                  value={@passing_score}
+                  min="0"
+                  max="100"
+                  class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-transparent"
+                />
+              </div>
+            </div>
+
+            <div class="flex items-center justify-between p-5 bg-slate-50 rounded-xl border border-slate-200">
+              <div class="flex-1">
+                <div class="flex items-center space-x-3 mb-1">
+                  <svg class="w-5 h-5 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
+                  <p class="font-semibold text-slate-900">Allow Retakes</p>
+                </div>
+                <p class="text-sm text-slate-600 ml-8">Students can retake the quiz if they fail</p>
+              </div>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  name="allow_retakes"
+                  value="true"
+                  checked={@allow_retakes}
+                  class="sr-only peer"
+                />
+                <div class="w-14 h-7 bg-slate-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-violet-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[4px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-violet-600"></div>
+              </label>
+            </div>
+
+            <div class="flex items-center justify-between p-5 bg-slate-50 rounded-xl border border-slate-200">
+              <div class="flex-1">
+                <div class="flex items-center space-x-3 mb-1">
+                  <svg class="w-5 h-5 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+                  </svg>
+                  <p class="font-semibold text-slate-900">Shuffle Questions</p>
+                </div>
+                <p class="text-sm text-slate-600 ml-8">Randomize question order for each attempt</p>
+              </div>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  name="shuffle_questions"
+                  value="true"
+                  checked={@shuffle_questions}
+                  class="sr-only peer"
+                />
+                <div class="w-14 h-7 bg-slate-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-violet-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[4px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-violet-600"></div>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-2xl shadow-lg border border-slate-200 p-8">
+          <div class="flex items-center justify-between mb-6">
+            <h2 class="text-2xl font-bold text-slate-900">Questions</h2>
+            <button
+              type="button"
+              phx-click="add_question"
+              class="inline-flex items-center px-4 py-2 bg-violet-600 text-white rounded-xl font-semibold hover:bg-violet-700 transition-colors"
+            >
+              <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+              </svg>
+              Add Question
+            </button>
+          </div>
+
+          <%= if @errors[:questions] do %>
+            <div class="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl">
+              <p class="text-sm text-red-600 flex items-center">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <%= @errors[:questions] %>
+              </p>
+            </div>
+          <% end %>
+
+          <%= if length(@questions) == 0 do %>
+            <div class="text-center py-12 border-2 border-dashed border-slate-300 rounded-2xl">
+              <svg class="w-16 h-16 text-slate-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <p class="text-slate-500 mb-4">No questions added yet</p>
+              <button
+                type="button"
+                phx-click="add_question"
+                class="inline-flex items-center px-6 py-3 bg-violet-600 text-white rounded-xl font-semibold hover:bg-violet-700 transition-colors"
+              >
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                </svg>
+                Add Your First Question
+              </button>
+            </div>
+          <% else %>
+            <div class="space-y-6">
+              <%= for {question, index} <- Enum.with_index(@questions) do %>
+                <div class="bg-slate-50 rounded-2xl p-6 border border-slate-200">
+                  <div class="flex items-start justify-between mb-4">
+                    <div class="flex items-center space-x-3">
+                      <div class="w-10 h-10 bg-violet-600 rounded-full flex items-center justify-center">
+                        <span class="text-white font-bold"><%= index + 1 %></span>
+                      </div>
+                      <h3 class="font-bold text-slate-900">Question <%= index + 1 %></h3>
+                    </div>
+                    <button
+                      type="button"
+                      phx-click="remove_question"
+                      phx-value-index={index}
+                      class="text-slate-400 hover:text-red-600 transition-colors"
+                    >
+                      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                    </button>
+                  </div>
+
+                  <div class="space-y-4">
+                    <div>
+                      <label class="block text-sm font-semibold text-slate-700 mb-2">
+                        Question Text
+                      </label>
+                      <textarea
+                        phx-blur="update_question"
+                        phx-value-index={index}
+                        phx-value-field="text"
+                        rows="3"
+                        class="w-full px-4 py-3 bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-transparent resize-none"
+                        placeholder="Enter your question here..."
+                      ><%= question.text %></textarea>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                      <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-2">
+                          Question Type
+                        </label>
+                        <select
+                          phx-change="update_question"
+                          phx-value-index={index}
+                          phx-value-field="type"
+                          class="w-full px-4 py-3 bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-transparent"
+                        >
+                          <option value="multiple_choice" selected={question.type == "multiple_choice"}>Multiple Choice</option>
+                          <option value="true_false" selected={question.type == "true_false"}>True/False</option>
+                        </select>
+                      </div>
+
+                      <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-2">
+                          Points
+                        </label>
+                        <input
+                          type="number"
+                          phx-blur="update_question"
+                          phx-value-index={index}
+                          phx-value-field="points"
+                          value={question.points}
+                          min="1"
+                          max="10"
+                          class="w-full px-4 py-3 bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-transparent"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label class="block text-sm font-semibold text-slate-700 mb-3">
+                        Answer Options
+                      </label>
+                      <div class="space-y-3">
+                        <%= for {option, opt_idx} <- Enum.with_index(question.options) do %>
+                          <div class="flex items-center space-x-3">
+                            <input
+                              type="radio"
+                              name={"question_#{index}_correct"}
+                              phx-click="update_question"
+                              phx-value-index={index}
+                              phx-value-field="correct_answer"
+                              value={opt_idx}
+                              checked={question.correct_answer == opt_idx}
+                              class="w-5 h-5 text-violet-600"
+                            />
+                            <input
+                              type="text"
+                              phx-blur="update_option"
+                              phx-value-question-index={index}
+                              phx-value-option-index={opt_idx}
+                              value={option}
+                              class="flex-1 px-4 py-3 bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-transparent"
+                              placeholder={"Option #{opt_idx + 1}"}
+                            />
+                          </div>
+                        <% end %>
+                      </div>
+                      <p class="mt-2 text-xs text-slate-500">Select the correct answer</p>
+                    </div>
+
+                    <div>
+                      <label class="block text-sm font-semibold text-slate-700 mb-2">
+                        Explanation (Optional)
+                      </label>
+                      <textarea
+                        phx-blur="update_question"
+                        phx-value-index={index}
+                        phx-value-field="explanation"
+                        rows="2"
+                        class="w-full px-4 py-3 bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-transparent resize-none"
+                        placeholder="Explain why this is the correct answer..."
+                      ><%= question.explanation %></textarea>
+                    </div>
+                  </div>
+                </div>
+              <% end %>
+            </div>
+          <% end %>
+        </div>
+
+        <div class="flex items-center justify-between">
+          <.link
+            navigate={~p"/#{@locale}/ai/learning/paths/#{@path_id}/modules/#{@module_id}/lessons"}
+            class="inline-flex items-center px-6 py-3 border-2 border-slate-300 text-slate-700 rounded-xl font-semibold hover:bg-slate-50 transition-colors"
+          >
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+            Cancel
+          </.link>
+
+          <button
+            type="submit"
+            disabled={@submitting or length(@questions) == 0}
+            class={"inline-flex items-center px-8 py-3 bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-xl font-semibold hover:shadow-lg transition-all #{if @submitting or length(@questions) == 0, do: "opacity-50 cursor-not-allowed"}"}
+          >
+            <%= if @submitting do %>
+              <svg class="animate-spin h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              Creating Quiz...
+            <% else %>
+              <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              Create Quiz
+            <% end %>
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>

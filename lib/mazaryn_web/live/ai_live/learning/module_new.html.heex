@@ -1,0 +1,159 @@
+<.live_component
+  module={MazarynWeb.HomeLive.NavComponent}
+  id="navigation"
+  user={@user}
+  search=""
+  locale={@locale}
+/>
+
+<div class="min-h-screen bg-gradient-to-br from-slate-50 via-purple-50 to-indigo-50 py-12">
+  <div class="max-w-4xl mx-auto px-6">
+    <div class="mb-8">
+      <.link
+        navigate={~p"/#{@locale}/ai/learning/paths/#{@path_id}/modules"}
+        class="inline-flex items-center text-slate-600 hover:text-violet-600 transition-colors mb-4"
+      >
+        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+        </svg>
+        Back to Modules
+      </.link>
+
+      <h1 class="text-4xl font-bold text-slate-900 mb-2">Create New Module</h1>
+      <p class="text-slate-600">Add a new module to <span class="font-semibold"><%= @path.title %></span></p>
+    </div>
+
+    <div class="bg-white rounded-2xl shadow-lg border border-slate-200 p-8">
+      <form phx-change="validate" phx-submit="save">
+        <div class="space-y-6">
+          <div>
+            <label for="module-title" class="block text-sm font-semibold text-slate-900 mb-2">
+              Module Title <span class="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              id="module-title"
+              name="module[title]"
+              value={@form[:title].value}
+              placeholder="e.g., Introduction to Machine Learning"
+              class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all"
+              required
+            />
+            <%= if @errors[:title] do %>
+              <p class="text-red-600 text-sm mt-1"><%= @errors[:title] %></p>
+            <% end %>
+          </div>
+
+          <div>
+            <label for="module-description" class="block text-sm font-semibold text-slate-900 mb-2">
+              Module Description <span class="text-red-500">*</span>
+            </label>
+            <textarea
+              id="module-description"
+              name="module[description]"
+              rows="5"
+              placeholder="Describe what students will learn in this module..."
+              class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all resize-none"
+              required
+            ><%= @form[:description].value %></textarea>
+            <%= if @errors[:description] do %>
+              <p class="text-red-600 text-sm mt-1"><%= @errors[:description] %></p>
+            <% end %>
+            <p class="text-sm text-slate-500 mt-1">Provide a clear overview of the module's content and learning objectives</p>
+          </div>
+
+          <div class="grid grid-cols-2 gap-6">
+            <div>
+              <label for="module-estimated-hours" class="block text-sm font-semibold text-slate-900 mb-2">
+                Estimated Hours
+              </label>
+              <input
+                type="number"
+                id="module-estimated-hours"
+                name="module[estimated_hours]"
+                value={@form[:estimated_hours].value}
+                min="0"
+                step="1"
+                placeholder="0"
+                class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all"
+              />
+              <p class="text-sm text-slate-500 mt-1">How long will it take to complete?</p>
+            </div>
+
+            <div>
+              <label for="module-order" class="block text-sm font-semibold text-slate-900 mb-2">
+                Module Order
+              </label>
+              <input
+                type="number"
+                id="module-order"
+                name="module[order]"
+                value={@form[:order].value}
+                min="1"
+                class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all"
+                readonly
+              />
+              <p class="text-sm text-slate-500 mt-1">Position in course sequence</p>
+            </div>
+          </div>
+
+          <%= if @errors[:base] do %>
+            <div class="bg-red-50 border border-red-200 rounded-xl p-4">
+              <div class="flex items-start">
+                <svg class="w-5 h-5 text-red-600 mr-2 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <p class="text-red-800"><%= @errors[:base] %></p>
+              </div>
+            </div>
+          <% end %>
+        </div>
+
+        <div class="flex items-center justify-between pt-8 border-t border-slate-200 mt-8">
+          <.link
+            navigate={~p"/#{@locale}/ai/learning/paths/#{@path_id}/modules"}
+            class="px-6 py-3 border-2 border-slate-300 text-slate-700 rounded-xl font-semibold hover:bg-slate-50 transition-colors"
+          >
+            Cancel
+          </.link>
+
+          <button
+            type="submit"
+            class="px-8 py-3 bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-xl font-semibold hover:shadow-lg transition-all"
+          >
+            Create Module
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <div class="mt-6 bg-blue-50 rounded-xl p-6 border border-blue-200">
+      <h3 class="text-lg font-bold text-blue-900 mb-3 flex items-center">
+        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        Module Creation Tips
+      </h3>
+      <ul class="space-y-2 text-blue-800">
+        <li class="flex items-start">
+          <svg class="w-5 h-5 mr-2 mt-0.5 flex-shrink-0 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <span>Use clear, descriptive titles that tell students what they'll learn</span>
+        </li>
+        <li class="flex items-start">
+          <svg class="w-5 h-5 mr-2 mt-0.5 flex-shrink-0 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <span>Break down complex topics into focused, manageable modules</span>
+        </li>
+        <li class="flex items-start">
+          <svg class="w-5 h-5 mr-2 mt-0.5 flex-shrink-0 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <span>Include 3-8 lessons per module for optimal learning flow</span>
+        </li>
+      </ul>
+    </div>
+  </div>
+</div>

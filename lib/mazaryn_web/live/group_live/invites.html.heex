@@ -1,0 +1,71 @@
+<.live_component
+  module={MazarynWeb.HomeLive.NavComponent}
+  id="navigation"
+  user={@user}
+  search=""
+  locale={@locale}
+/>
+
+<div class="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+  <div class="max-w-5xl mx-auto px-6 py-8">
+    <div class="mb-6">
+      <.link
+        navigate={~p"/#{@locale}/groups/#{@group.id}"}
+        class="inline-flex items-center space-x-2 text-slate-600 hover:text-violet-600 transition-colors"
+      >
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+        </svg>
+        <span class="font-medium">Back to Group</span>
+      </.link>
+    </div>
+
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+      <div class="bg-gradient-to-r from-violet-600 to-indigo-600 px-8 py-6">
+        <h1 class="text-3xl font-bold text-white">Group Invitations</h1>
+        <p class="text-violet-100 mt-1">Manage pending invitations for <%= @group.name %></p>
+      </div>
+
+      <div class="p-6">
+        <%= if @invites == [] do %>
+          <div class="text-center py-12">
+            <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-slate-100 mb-4">
+              <svg class="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+              </svg>
+            </div>
+            <p class="text-slate-500 font-medium">No pending invitations</p>
+            <p class="text-sm text-slate-400 mt-1">All invitations have been accepted or cancelled</p>
+          </div>
+        <% else %>
+          <div class="space-y-3">
+            <%= for invite <- @invites do %>
+              <% invitee = get_user_info(invite.invitee_id) %>
+              <% inviter = get_user_info(invite.inviter_id) %>
+              <div class="flex items-center justify-between p-4 bg-slate-50 rounded-xl hover:bg-slate-100 transition-colors">
+                <div class="flex items-center space-x-4">
+                  <div class="w-12 h-12 bg-gradient-to-br from-violet-500 to-indigo-600 rounded-full flex items-center justify-center text-white font-bold text-lg">
+                    <%= String.first(invitee.username) |> String.upcase() %>
+                  </div>
+                  <div>
+                    <p class="font-semibold text-slate-900"><%= invitee.username %></p>
+                    <p class="text-xs text-slate-500">Invited by <%= inviter.username %> • <%= format_datetime(invite.date_created) %></p>
+                  </div>
+                </div>
+
+                <button
+                  phx-click="cancel_invite"
+                  phx-value-invite_id={invite.id}
+                  data-confirm="Are you sure you want to cancel this invitation?"
+                  class="px-4 py-2 bg-red-100 text-red-700 rounded-lg font-medium hover:bg-red-200 transition-colors text-sm"
+                >
+                  Cancel
+                </button>
+              </div>
+            <% end %>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>

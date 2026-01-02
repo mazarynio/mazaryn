@@ -1,0 +1,124 @@
+<.live_component
+  module={MazarynWeb.HomeLive.NavComponent}
+  id="navigation"
+  user={@user}
+  search=""
+  locale={@locale}
+/>
+
+<div class="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+  <div class="max-w-4xl mx-auto px-6 py-8">
+    <div class="mb-6">
+      <.link
+        navigate={~p"/#{@locale}/groups/#{@group.id}"}
+        class="inline-flex items-center space-x-2 text-slate-600 hover:text-violet-600 transition-colors"
+      >
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+        </svg>
+        <span class="font-medium">Back to Group</span>
+      </.link>
+    </div>
+
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+      <div class="bg-gradient-to-r from-violet-600 to-indigo-600 px-8 py-6">
+        <h1 class="text-3xl font-bold text-white">Group Settings</h1>
+        <p class="text-violet-100 mt-1">Manage your group configuration</p>
+      </div>
+
+      <form phx-submit="update_group" phx-change="update_form" class="p-8 space-y-6">
+        <div>
+          <label class="block text-sm font-semibold text-slate-700 mb-2">Group Name</label>
+          <input
+            type="text"
+            name="name"
+            value={@form_data["name"]}
+            required
+            class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-transparent"
+            placeholder="Enter group name"
+          />
+        </div>
+
+        <div>
+          <label class="block text-sm font-semibold text-slate-700 mb-2">Unique Name</label>
+          <div class="relative">
+            <span class="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400">@</span>
+            <input
+              type="text"
+              name="unique_name"
+              value={@form_data["unique_name"]}
+              required
+              class="w-full pl-8 pr-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-transparent"
+              placeholder="uniquename"
+            />
+          </div>
+          <p class="text-xs text-slate-500 mt-1">This will be your group's URL</p>
+        </div>
+
+        <div>
+          <label class="block text-sm font-semibold text-slate-700 mb-2">Description</label>
+          <textarea
+            name="description"
+            value={@form_data["description"]}
+            rows="4"
+            class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-transparent"
+            placeholder="What is this group about?"
+          ></textarea>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-semibold text-slate-700 mb-2">Type</label>
+            <select
+              name="type"
+              value={@form_data["type"]}
+              class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-transparent"
+            >
+              <option value="general">General</option>
+              <option value="study">Study</option>
+              <option value="work">Work</option>
+              <option value="hobby">Hobby</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-sm font-semibold text-slate-700 mb-2">Privacy</label>
+            <select
+              name="privacy"
+              value={@form_data["privacy"]}
+              class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-transparent"
+            >
+              <option value="public">Public</option>
+              <option value="private">Private</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-between pt-6 border-t border-slate-200">
+          <button
+            type="submit"
+            class="px-8 py-3 bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-xl font-semibold hover:shadow-lg transition-all duration-200"
+          >
+            Save Changes
+          </button>
+        </div>
+      </form>
+
+      <div class="px-8 pb-8">
+        <div class="bg-red-50 border border-red-200 rounded-xl p-6">
+          <h3 class="text-lg font-bold text-red-900 mb-2">Danger Zone</h3>
+          <p class="text-red-700 text-sm mb-4">
+            Once you delete a group, there is no going back. Please be certain.
+          </p>
+          <button
+            phx-click="delete_group"
+            data-confirm="Are you absolutely sure you want to delete this group? This action cannot be undone and all messages will be lost."
+            class="px-6 py-3 bg-red-600 text-white rounded-xl font-semibold hover:bg-red-700 transition-colors"
+          >
+            Delete Group
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
