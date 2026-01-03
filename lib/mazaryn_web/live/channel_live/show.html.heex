@@ -1,0 +1,276 @@
+<.live_component
+  module={MazarynWeb.HomeLive.NavComponent}
+  id="navigation"
+  user={@user}
+  search=""
+  locale={@locale}
+/>
+
+<div class="min-h-screen bg-gradient-to-b from-indigo-50 via-blue-50 to-purple-50">
+  <div class="relative overflow-hidden">
+    <div class="absolute inset-0 bg-gradient-to-br from-indigo-400/20 via-blue-300/20 to-purple-400/20"></div>
+    <div class="relative max-w-7xl mx-auto px-6 py-16 lg:py-20">
+      <div class="text-center mb-12">
+        <.link navigate={~p"/#{@locale}/groups"} class="inline-flex items-center gap-2 text-gray-700 hover:text-indigo-600 transition">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+          </svg>
+          Back to Browse
+        </.link>
+      </div>
+
+      <div class="flex flex-col md:flex-row items-center md:items-end gap-10">
+        <div class="relative">
+          <div class="w-32 h-32 bg-gradient-to-br from-indigo-500 to-blue-500 rounded-3xl shadow-2xl flex items-center justify-center border-6 border-white">
+            <span class="text-6xl font-black text-white"><%= String.first(@channel.name) |> String.upcase() %></span>
+          </div>
+        </div>
+
+        <div class="text-center md:text-left flex-1">
+          <h1 class="text-5xl lg:text-6xl font-black text-gray-900 mb-4"><%= @channel.name %></h1>
+          <p class="text-2xl text-indigo-600 font-semibold mb-6">@<%= @channel.unique_name %></p>
+
+          <div class="flex flex-wrap justify-center md:justify-start gap-6 mb-8">
+            <div class="flex items-center gap-3 bg-white/80 backdrop-blur-sm px-6 py-4 rounded-2xl shadow-md">
+              <div class="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center">
+                <svg class="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                </svg>
+              </div>
+              <div>
+                <p class="text-2xl font-bold text-gray-900"><%= @channel.subscriber_count %></p>
+                <p class="text-sm text-gray-600">Subscribers</p>
+              </div>
+            </div>
+
+            <%= if @channel.category && @channel.category != "" do %>
+              <div class="flex items-center gap-3 bg-white/80 backdrop-blur-sm px-6 py-4 rounded-2xl shadow-md">
+                <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                  <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                  </svg>
+                </div>
+                <div>
+                  <p class="text-xl font-bold text-gray-900 capitalize"><%= @channel.category %></p>
+                  <p class="text-sm text-gray-600">Category</p>
+                </div>
+              </div>
+            <% end %>
+
+            <%= if @channel.privacy == :private do %>
+              <span class="px-6 py-4 bg-black/10 backdrop-blur-sm text-gray-800 font-medium rounded-2xl flex items-center gap-2">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+                Private Channel
+              </span>
+            <% else %>
+              <span class="px-6 py-4 bg-white/30 backdrop-blur-sm text-gray-800 font-medium rounded-2xl">
+                Public Channel
+              </span>
+            <% end %>
+          </div>
+
+          <div class="flex flex-wrap justify-center md:justify-start gap-4">
+            <%= if @is_subscriber do %>
+              <%= if @is_owner do %>
+                <.link navigate={~p"/#{@locale}/channels/#{@channel.id}/settings"} class="px-8 py-4 bg-gray-100 text-gray-800 rounded-2xl font-semibold hover:bg-gray-200 transition">
+                  Settings
+                </.link>
+              <% end %>
+              <%= if @is_admin do %>
+                <button phx-click="open_invite_modal" class="px-8 py-4 bg-indigo-100 text-indigo-700 rounded-2xl font-semibold hover:bg-indigo-200 transition">
+                  Invite Subscribers
+                </button>
+              <% end %>
+              <%= unless @is_owner do %>
+                <button phx-click="unsubscribe_channel" data-confirm="Are you sure?" class="px-8 py-4 bg-red-100 text-red-700 rounded-2xl font-semibold hover:bg-red-200 transition">
+                  Unsubscribe
+                </button>
+              <% end %>
+            <% else %>
+              <button phx-click="subscribe_channel" class="group inline-flex items-center gap-3 px-10 py-5 bg-gradient-to-r from-indigo-600 to-blue-600 text-white font-bold rounded-2xl shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300">
+                <svg class="w-7 h-7 group-hover:rotate-90 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 4v16m8-8H4" />
+                </svg>
+                Subscribe
+              </button>
+            <% end %>
+          </div>
+        </div>
+      </div>
+
+      <%= if @channel.description && @channel.description != "" do %>
+        <div class="mt-12 p-8 bg-white/70 backdrop-blur-sm rounded-3xl border border-white/50 max-w-4xl mx-auto">
+          <p class="text-lg text-gray-700 leading-relaxed text-center"><%= @channel.description %></p>
+        </div>
+      <% end %>
+    </div>
+  </div>
+
+  <div class="max-w-5xl mx-auto px-6 py-12">
+    <div class="bg-white/90 backdrop-blur-md rounded-3xl shadow-xl border border-white/50 overflow-hidden">
+      <%= if @is_admin do %>
+        <div class="p-6 bg-gradient-to-r from-indigo-50 to-blue-50 border-b border-gray-200">
+          <form phx-submit="create_post" class="flex gap-4">
+            <textarea
+              name="content"
+              value={@post_content}
+              phx-change="update_post_content"
+              placeholder="Share something with your subscribers..."
+              rows="2"
+              class="flex-1 px-6 py-4 bg-white border border-gray-300 rounded-2xl focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 resize-none transition text-base"
+            ></textarea>
+            <button type="submit" class="px-8 py-4 bg-gradient-to-r from-indigo-600 to-blue-600 text-white rounded-2xl font-bold hover:shadow-lg transition self-end">
+              Post
+            </button>
+          </form>
+        </div>
+      <% end %>
+
+      <div class="max-h-[600px] overflow-y-auto p-6 space-y-5" id="posts-container">
+        <%= if @posts == [] do %>
+          <div class="text-center py-20">
+            <div class="w-28 h-28 mx-auto mb-8 bg-gradient-to-br from-indigo-100 to-blue-100 rounded-full flex items-center justify-center">
+              <svg class="w-14 h-14 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+              </svg>
+            </div>
+            <h3 class="text-3xl font-bold text-gray-900 mb-3">No posts yet</h3>
+            <p class="text-gray-500 text-lg">Be the first to post!</p>
+          </div>
+        <% else %>
+          <%= for post <- Enum.reverse(@posts) |> Enum.reject(&(&1.deleted)) do %>
+            <% user_info = get_user_info(post.user_id) %>
+            <% is_own_post = post.user_id == extract_user_id(@user) %>
+
+            <div class="group p-6 bg-white rounded-2xl shadow-sm hover:shadow-md transition border border-gray-100">
+              <div class="flex gap-4">
+                <div class="flex-shrink-0">
+                  <%= if user_info.avatar_url != "/images/default-avatar.png" do %>
+                    <img
+                      src={user_info.avatar_url}
+                      alt={user_info.username}
+                      class="w-12 h-12 rounded-full object-cover shadow-md"
+                      onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+                    />
+                    <div class="hidden w-12 h-12 bg-gradient-to-br from-indigo-500 to-blue-500 rounded-full items-center justify-center shadow-md">
+                      <span class="text-xl font-bold text-white">
+                        <%= String.first(user_info.username) |> String.upcase() %>
+                      </span>
+                    </div>
+                  <% else %>
+                    <div class="w-12 h-12 bg-gradient-to-br from-indigo-500 to-blue-500 rounded-full flex items-center justify-center shadow-md">
+                      <span class="text-xl font-bold text-white">
+                        <%= String.first(user_info.username) |> String.upcase() %>
+                      </span>
+                    </div>
+                  <% end %>
+                </div>
+
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-center justify-between mb-3">
+                    <div>
+                      <p class="font-bold text-gray-900 text-lg capitalize"><%= user_info.username %></p>
+                      <p class="text-sm text-gray-500"><%= format_datetime(post.date_created) %></p>
+                    </div>
+
+                    <%= if is_own_post || @is_admin do %>
+                      <button phx-click="delete_post" phx-value-post_id={post.id} data-confirm="Delete this post?" class="opacity-0 group-hover:opacity-100 p-2 hover:bg-red-50 rounded-lg text-red-600 transition">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2.126 2.126 0 0116.138 21H7.862a2.126 2.126 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      </button>
+                    <% end %>
+                  </div>
+
+                  <p class="text-gray-700 leading-relaxed mb-4 break-words"><%= post.content %></p>
+
+                  <div class="flex items-center gap-3 flex-wrap">
+                    <%= for reaction_type <- [:like, :love, :laugh, :wow] do %>
+                      <% count = Map.get(post.reaction_counts, reaction_type, 0) %>
+                      <button phx-click="react_to_post" phx-value-post_id={post.id} phx-value-reaction={reaction_type} class="px-4 py-2 bg-gray-50 hover:bg-indigo-100 rounded-full transition flex items-center gap-2 text-sm">
+                        <span class="text-lg"><%= reaction_emoji(reaction_type) %></span>
+                        <%= if count > 0 do %>
+                          <span class="font-semibold text-gray-700"><%= count %></span>
+                        <% end %>
+                      </button>
+                    <% end %>
+                  </div>
+                </div>
+              </div>
+            </div>
+          <% end %>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%= if @show_invite_modal do %>
+  <div class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-6">
+    <div class="bg-white rounded-3xl shadow-2xl max-w-lg w-full">
+      <div class="bg-gradient-to-r from-indigo-600 to-blue-600 px-8 py-6 flex items-center justify-between rounded-t-3xl">
+        <h2 class="text-2xl font-bold text-white">Invite Subscribers</h2>
+        <button phx-click="close_invite_modal" class="text-white hover:bg-white/20 p-2 rounded-xl transition">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <div class="p-8 space-y-6">
+        <div class="relative">
+          <svg class="absolute left-5 top-1/2 -translate-y-1/2 w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+          <input
+            type="text"
+            phx-change="search_users"
+            name="query"
+            value={@invite_search}
+            placeholder="Search by username..."
+            class="w-full pl-14 pr-5 py-4 border border-gray-300 rounded-2xl focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 transition"
+          />
+        </div>
+
+        <div class="space-y-3 max-h-80 overflow-y-auto">
+          <%= for user <- @found_users do %>
+            <div class="flex items-center justify-between p-5 bg-gray-50 rounded-2xl hover:bg-gray-100 transition">
+              <div class="flex items-center gap-4">
+                <%= if user.avatar_url != "/images/default-avatar.png" do %>
+                  <img
+                    src={user.avatar_url}
+                    alt={user.username}
+                    class="w-12 h-12 rounded-full object-cover"
+                    onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+                  />
+                  <div class="hidden w-12 h-12 bg-gradient-to-br from-indigo-500 to-blue-500 rounded-full items-center justify-center">
+                    <span class="text-xl font-bold text-white"><%= String.first(user.username) |> String.upcase() %></span>
+                  </div>
+                <% else %>
+                  <div class="w-12 h-12 bg-gradient-to-br from-indigo-500 to-blue-500 rounded-full flex items-center justify-center">
+                    <span class="text-xl font-bold text-white"><%= String.first(user.username) |> String.upcase() %></span>
+                  </div>
+                <% end %>
+                <p class="font-semibold text-gray-900 capitalize"><%= user.username %></p>
+              </div>
+              <button phx-click="send_invite" phx-value-invitee_id={user.id} class="px-6 py-3 bg-gradient-to-r from-indigo-600 to-blue-600 text-white rounded-xl font-medium hover:shadow-md transition">
+                Invite
+              </button>
+            </div>
+          <% end %>
+
+          <%= if @found_users == [] && @invite_search != "" do %>
+            <p class="text-center text-gray-500 py-8">No users found</p>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+<% end %>
+
+<script>
+  const container = document.getElementById('posts-container');
+  if (container) container.scrollTop = container.scrollHeight;
+</script>

@@ -503,6 +503,18 @@ date_created, date_updated, report = [], data = #{}}).
     data = #{}
 }).
 
+-record(channel_invite, {
+    id,
+    channel_id,
+    inviter_id,
+    invitee_id,
+    status = pending,
+    message,
+    date_created,
+    date_responded,
+    data = #{}
+}).
+
 -record(ai_user, {
     id,
     user_id,

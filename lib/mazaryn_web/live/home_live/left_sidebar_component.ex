@@ -7,7 +7,7 @@ defmodule MazarynWeb.HomeLive.LeftSidebarComponent do
 
     ~H"""
     <div>
-      <div class="social-box w-full bg-gradient-to-br from-indigo-200 via-purple-200 to-pink-200 py-6 px-5 rounded-[20px] shadow-sm hover:shadow-lg transition-all duration-300">
+      <div class="social-box w-full bg-gradient-to-br from-indigo-100 via-purple-200 to-pink-200 py-6 px-5 rounded-[20px] shadow-sm hover:shadow-lg transition-all duration-300">
         <div class="flex justify-between align-center items-center">
           <div class="flex justify-center items-center">
             <ul>

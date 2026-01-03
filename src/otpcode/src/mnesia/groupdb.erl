@@ -15,10 +15,39 @@
     pin_channel_post/2, unpin_channel_post/2,
     react_to_channel_post/3, comment_on_channel_post/4,
     get_channel_posts/2, search_channels/2, get_user_channels/1,
-    add_channel_admin/3, remove_channel_admin/2
+    add_channel_admin/3, remove_channel_admin/2, send_channel_invite/4
 ]).
 -include("../records.hrl").
 -include_lib("stdlib/include/qlc.hrl").
+
+is_valid_category(Category) when is_list(Category) ->
+    Length = length(Category),
+    Length > 0 andalso Length < 100 andalso
+    not lists:all(fun(C) -> (C >= $a andalso C =< $z) orelse
+                            (C >= $A andalso C =< $Z) orelse
+                            (C >= $0 andalso C =< $9) orelse
+                            C =:= $_ orelse C =:= $- end, Category) orelse
+    lists:any(fun(C) -> C =:= $\s orelse C =:= $, end, Category);
+is_valid_category(Category) when is_binary(Category) ->
+    is_valid_category(binary_to_list(Category));
+is_valid_category(_) ->
+    false.
+
+normalize_category(undefined) -> undefined;
+normalize_category([]) -> undefined;
+normalize_category(Category) when is_list(Category) ->
+    case length(Category) > 30 andalso
+         lists:all(fun(C) -> (C >= $a andalso C =< $z) orelse
+                            (C >= $A andalso C =< $Z) orelse
+                            (C >= $0 andalso C =< $9) orelse
+                            C =:= $_ orelse C =:= $- end, Category) of
+        true -> undefined;
+        false -> Category
+    end;
+normalize_category(Category) when is_binary(Category) ->
+    normalize_category(binary_to_list(Category));
+normalize_category(_) ->
+    undefined.
 
 create_group(OwnerID, UniqueName, Name, Description, Type, Privacy, Settings) ->
     Fun = fun() ->
@@ -1089,55 +1118,58 @@ update_member_settings(GroupID, UserID, SettingsMap) ->
         {aborted, Reason} -> throw({transaction_failed, Reason})
     end.
 
-create_channel(OwnerID, UniqueName, Name, Description, Privacy, Category, Settings) ->
-    Fun = fun() ->
-        case mnesia:read({user, OwnerID}) of
-            [_Owner] ->
-                case mnesia:match_object(#channel{unique_name = UniqueName, _ = '_'}) of
-                    [] -> ok;
-                    [_|_] -> throw({error, unique_name_already_taken})
-                end,
-                ChannelID = nanoid:gen(),
-                Date = calendar:universal_time(),
-                Channel = #channel{
-                    id = ChannelID,
-                    unique_name = UniqueName,
-                    name = Name,
-                    description = Description,
-                    privacy = Privacy,
-                    owner_id = OwnerID,
-                    admins = [OwnerID],
-                    subscribers = [OwnerID],
-                    category = Category,
-                    settings = maps:merge(#{
-                        allow_comments => true,
-                        allow_reactions => true,
-                        subscriber_posts => false,
-                        moderation_required => false
-                    }, Settings),
-                    subscriber_count = 1,
-                    date_created = Date,
-                    date_updated = Date,
-                    last_activity = Date
-                },
-                Subscriber = #channel_subscriber{
-                    id = nanoid:gen(),
-                    channel_id = ChannelID,
-                    user_id = OwnerID,
-                    subscribe_date = Date
-                },
-                mnesia:write(Channel),
-                mnesia:write(Subscriber),
-                ChannelID;
-            [] ->
-                throw({error, user_not_found})
-        end
-    end,
-    case mnesia:transaction(Fun) of
-        {atomic, ChannelID} -> ChannelID;
-        {aborted, {error, Error}} -> throw(Error);
-        {aborted, Reason} -> throw({transaction_failed, Reason})
-    end.
+    create_channel(OwnerID, UniqueName, Name, Description, Privacy, Category, Settings) ->
+        Fun = fun() ->
+            case mnesia:read({user, OwnerID}) of
+                [_Owner] ->
+                    case mnesia:match_object(#channel{unique_name = UniqueName, _ = '_'}) of
+                        [] -> ok;
+                        [_|_] -> throw({error, unique_name_already_taken})
+                    end,
+                    ChannelID = nanoid:gen(),
+                    Date = calendar:universal_time(),
+
+                    NormalizedCategory = normalize_category(Category),
+
+                    Channel = #channel{
+                        id = ChannelID,
+                        unique_name = UniqueName,
+                        name = Name,
+                        description = Description,
+                        privacy = Privacy,
+                        owner_id = OwnerID,
+                        admins = [OwnerID],
+                        subscribers = [OwnerID],
+                        category = NormalizedCategory,
+                        settings = maps:merge(#{
+                            allow_comments => true,
+                            allow_reactions => true,
+                            subscriber_posts => false,
+                            moderation_required => false
+                        }, Settings),
+                        subscriber_count = 1,
+                        date_created = Date,
+                        date_updated = Date,
+                        last_activity = Date
+                    },
+                    Subscriber = #channel_subscriber{
+                        id = nanoid:gen(),
+                        channel_id = ChannelID,
+                        user_id = OwnerID,
+                        subscribe_date = Date
+                    },
+                    mnesia:write(Channel),
+                    mnesia:write(Subscriber),
+                    ChannelID;
+                [] ->
+                    throw({error, user_not_found})
+            end
+        end,
+        case mnesia:transaction(Fun) of
+            {atomic, ChannelID} -> ChannelID;
+            {aborted, {error, Error}} -> throw(Error);
+            {aborted, Reason} -> throw({transaction_failed, Reason})
+        end.
 
 get_channel(ChannelID) ->
     Fun = fun() ->
@@ -1152,43 +1184,49 @@ get_channel(ChannelID) ->
         {aborted, Reason} -> throw({transaction_failed, Reason})
     end.
 
-update_channel(ChannelID, UpdateMap) ->
-    Fun = fun() ->
-        case mnesia:read({channel, ChannelID}) of
-            [Channel] ->
-                NewUniqueName = maps:get(unique_name, UpdateMap, Channel#channel.unique_name),
-                case NewUniqueName =/= Channel#channel.unique_name of
-                    true ->
-                        case mnesia:match_object(#channel{unique_name = NewUniqueName, _ = '_'}) of
-                            [] -> ok;
-                            [_|_] -> throw({error, unique_name_already_taken})
-                        end;
-                    false -> ok
-                end,
-                UpdatedChannel = Channel#channel{
-                    unique_name = NewUniqueName,
-                    name = maps:get(name, UpdateMap, Channel#channel.name),
-                    description = maps:get(description, UpdateMap, Channel#channel.description),
-                    privacy = maps:get(privacy, UpdateMap, Channel#channel.privacy),
-                    avatar_url = maps:get(avatar_url, UpdateMap, Channel#channel.avatar_url),
-                    banner_url = maps:get(banner_url, UpdateMap, Channel#channel.banner_url),
-                    category = maps:get(category, UpdateMap, Channel#channel.category),
-                    tags = maps:get(tags, UpdateMap, Channel#channel.tags),
-                    settings = maps:merge(Channel#channel.settings, maps:get(settings, UpdateMap, #{})),
-                    date_updated = calendar:universal_time()
-                },
-                mnesia:write(UpdatedChannel),
-                ChannelID;
-            [] ->
-                throw(channel_not_found)
-        end
-    end,
-    case mnesia:transaction(Fun) of
-        {atomic, ChannelID} -> ChannelID;
-        {aborted, channel_not_found} -> throw(channel_not_found);
-        {aborted, {error, Error}} -> throw(Error);
-        {aborted, Reason} -> throw({transaction_failed, Reason})
-    end.
+    update_channel(ChannelID, UpdateMap) ->
+        Fun = fun() ->
+            case mnesia:read({channel, ChannelID}) of
+                [Channel] ->
+                    NewUniqueName = maps:get(unique_name, UpdateMap, Channel#channel.unique_name),
+                    case NewUniqueName =/= Channel#channel.unique_name of
+                        true ->
+                            case mnesia:match_object(#channel{unique_name = NewUniqueName, _ = '_'}) of
+                                [] -> ok;
+                                [_|_] -> throw({error, unique_name_already_taken})
+                            end;
+                        false -> ok
+                    end,
+
+                    NewCategory = case maps:get(category, UpdateMap, undefined) of
+                        undefined -> Channel#channel.category;
+                        Cat -> normalize_category(Cat)
+                    end,
+
+                    UpdatedChannel = Channel#channel{
+                        unique_name = NewUniqueName,
+                        name = maps:get(name, UpdateMap, Channel#channel.name),
+                        description = maps:get(description, UpdateMap, Channel#channel.description),
+                        privacy = maps:get(privacy, UpdateMap, Channel#channel.privacy),
+                        avatar_url = maps:get(avatar_url, UpdateMap, Channel#channel.avatar_url),
+                        banner_url = maps:get(banner_url, UpdateMap, Channel#channel.banner_url),
+                        category = NewCategory,
+                        tags = maps:get(tags, UpdateMap, Channel#channel.tags),
+                        settings = maps:merge(Channel#channel.settings, maps:get(settings, UpdateMap, #{})),
+                        date_updated = calendar:universal_time()
+                    },
+                    mnesia:write(UpdatedChannel),
+                    ChannelID;
+                [] ->
+                    throw(channel_not_found)
+            end
+        end,
+        case mnesia:transaction(Fun) of
+            {atomic, ChannelID} -> ChannelID;
+            {aborted, channel_not_found} -> throw(channel_not_found);
+            {aborted, {error, Error}} -> throw(Error);
+            {aborted, Reason} -> throw({transaction_failed, Reason})
+        end.
 
 delete_channel(ChannelID) ->
     Fun = fun() ->
@@ -1652,3 +1690,57 @@ remove_channel_admin(ChannelID, UserID) ->
         {aborted, channel_not_found} -> throw(channel_not_found);
         {aborted, Reason} -> throw({transaction_failed, Reason})
     end.
+
+    send_channel_invite(ChannelID, InviterID, InviteeID, Message) ->
+        Fun = fun() ->
+            case mnesia:read({channel, ChannelID}) of
+                [Channel] ->
+                    IsAdmin = lists:member(InviterID, Channel#channel.admins) orelse
+                             InviterID =:= Channel#channel.owner_id,
+                    case IsAdmin of
+                        true ->
+                            case mnesia:read({user, InviteeID}) of
+                                [_User] ->
+                                    case lists:member(InviteeID, Channel#channel.subscribers) of
+                                        true ->
+                                            throw({error, already_subscribed});
+                                        false ->
+                                            InviteID = nanoid:gen(),
+                                            Date = calendar:universal_time(),
+                                            Invite = #channel_invite{
+                                                id = InviteID,
+                                                channel_id = ChannelID,
+                                                inviter_id = InviterID,
+                                                invitee_id = InviteeID,
+                                                status = pending,
+                                                message = Message,
+                                                date_created = Date
+                                            },
+                                            mnesia:write(Invite),
+                                            Notif = #notif{
+                                                id = nanoid:gen(),
+                                                user_id = InviteeID,
+                                                message = "Channel invitation",
+                                                type = channel_invite,
+                                                date_created = Date,
+                                                data = #{channel_id => ChannelID, invite_id => InviteID}
+                                            },
+                                            mnesia:write(Notif),
+                                            InviteID
+                                    end;
+                                [] ->
+                                    throw({error, invitee_not_found})
+                            end;
+                        false ->
+                            throw({error, permission_denied})
+                    end;
+                [] ->
+                    throw(channel_not_found)
+            end
+        end,
+        case mnesia:transaction(Fun) of
+            {atomic, InviteID} -> InviteID;
+            {aborted, {error, Error}} -> throw(Error);
+            {aborted, channel_not_found} -> throw(channel_not_found);
+            {aborted, Reason} -> throw({transaction_failed, Reason})
+        end.

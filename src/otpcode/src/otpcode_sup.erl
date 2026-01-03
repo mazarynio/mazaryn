@@ -24,7 +24,7 @@
  resource_rating, learning_track, verified_instructor, instructor_request, lesson_progress, module_progress,
  video_upload_session, content_comment, content_reaction, student_question, question_answer, path_review,
  instructor_analytics, content_analytics, learning_notification, learning_schedule, group, group_member, group_message,
- group_invite, group_admin, channel, channel_post, channel_subscriber]).
+ group_invite, group_admin, channel, channel_post, channel_subscriber, channel_invite]).
 
 start_link() ->
     case initialize() of
@@ -402,4 +402,5 @@ table_attributes(group_invite) -> record_info(fields, group_invite);
 table_attributes(group_admin) -> record_info(fields, group_admin);
 table_attributes(channel) -> record_info(fields, channel);
 table_attributes(channel_post) -> record_info(fields, channel_post);
-table_attributes(channel_subscriber) -> record_info(fields, channel_subscriber).
+table_attributes(channel_subscriber) -> record_info(fields, channel_subscriber);
+table_attributes(channel_invite) -> record_info(fields, channel_invite).

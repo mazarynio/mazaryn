@@ -208,6 +208,11 @@ defmodule MazarynWeb.Router do
       live("/groups/:id/members", GroupLive.Members, :members)
       live("/groups/:id/invites", GroupLive.Invites, :invites)
 
+      live("/channels", ChannelLive.Index, :index)
+      live("/channels/:id", ChannelLive.Show, :show)
+      live("/channels/:id/settings", ChannelLive.Settings, :settings)
+      live("/channels/:id/subscribers", ChannelLive.Subscribers, :subscribers)
+
       live("/jobs", JobLive.Index, :index)
 
       scope "/chats" do
