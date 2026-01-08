@@ -1,0 +1,571 @@
+<.live_component
+  module={MazarynWeb.HomeLive.NavComponent}
+  id="navigation"
+  user={@current_user}
+  search=""
+  locale={@locale}
+/>
+
+<div class="bg-[#FAFAFA] min-h-screen">
+  <div class="flex w-[90%] max-w-[1440px] mx-auto">
+    <div class="w-full lg:w-[18%] py-6">
+      <.live_component
+        module={MazarynWeb.HomeLive.LeftSidebarComponent}
+        id="leftside"
+        user={@current_user}
+        locale={@locale}
+      />
+    </div>
+
+    <div class="w-full lg:w-[78.6%] ml-11 py-6">
+      <div class="bg-white rounded-3xl shadow-xl p-8 mb-6">
+        <div class="flex items-center justify-between mb-8">
+          <div>
+            <h1 class="text-3xl font-bold text-gray-900">Browse Jobs</h1>
+            <p class="text-gray-600 mt-2"><%= length(@filtered_jobs) %> jobs available</p>
+          </div>
+
+          <div class="flex gap-3">
+            <.link navigate={~p"/en/resumes"} class="px-6 py-3 bg-purple-600 text-white font-semibold rounded-xl hover:bg-purple-700 transition-all flex items-center gap-2 shadow-lg">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              My Resumes
+            </.link>
+
+            <button
+              phx-click="show_create_job_modal"
+              class="px-6 py-3 bg-emerald-600 text-white font-semibold rounded-xl hover:bg-emerald-700 transition-all flex items-center gap-2 shadow-lg">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+              </svg>
+              Post a Job
+            </button>
+
+            <.link navigate={~p"/en/jobs/saved"} class="px-6 py-3 border border-gray-300 text-gray-700 font-semibold rounded-xl hover:bg-gray-50 transition-all flex items-center gap-2">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+              </svg>
+              Saved Jobs
+            </.link>
+          </div>
+        </div>
+
+        <div class="mb-6">
+          <div class="flex gap-3">
+            <div class="flex-1 relative">
+              <svg class="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+              <input
+                type="text"
+                phx-change="search"
+                name="query"
+                value={@search_query}
+                placeholder="Search jobs by title, industry, or keywords..."
+                class="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+              />
+            </div>
+
+            <button
+              phx-click="toggle_filters"
+              class="px-6 py-3 border border-gray-300 text-gray-700 font-semibold rounded-xl hover:bg-gray-50 transition-all flex items-center gap-2">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+              </svg>
+              Filters
+            </button>
+          </div>
+        </div>
+
+        <%= if @show_filters do %>
+          <div class="bg-gray-50 rounded-2xl p-6 mb-6 border border-gray-200">
+            <.form for={%{}} phx-submit="apply_filters" class="space-y-4">
+              <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div>
+                  <label class="block text-sm font-semibold text-gray-700 mb-2">Employment Type</label>
+                  <select name="employment_type" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500">
+                    <option value="all" selected={@filter_employment_type == "all"}>All Types</option>
+                    <option value="full_time" selected={@filter_employment_type == "full_time"}>Full-time</option>
+                    <option value="part_time" selected={@filter_employment_type == "part_time"}>Part-time</option>
+                    <option value="contract" selected={@filter_employment_type == "contract"}>Contract</option>
+                    <option value="internship" selected={@filter_employment_type == "internship"}>Internship</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label class="block text-sm font-semibold text-gray-700 mb-2">Work Location</label>
+                  <select name="location_type" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500">
+                    <option value="all" selected={@filter_location_type == "all"}>All Locations</option>
+                    <option value="remote" selected={@filter_location_type == "remote"}>Remote</option>
+                    <option value="on_site" selected={@filter_location_type == "on_site"}>On-site</option>
+                    <option value="hybrid" selected={@filter_location_type == "hybrid"}>Hybrid</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label class="block text-sm font-semibold text-gray-700 mb-2">Seniority Level</label>
+                  <select name="seniority" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500">
+                    <option value="all" selected={@filter_seniority == "all"}>All Levels</option>
+                    <option value="entry" selected={@filter_seniority == "entry"}>Entry Level</option>
+                    <option value="mid" selected={@filter_seniority == "mid"}>Mid Level</option>
+                    <option value="senior" selected={@filter_seniority == "senior"}>Senior</option>
+                    <option value="lead" selected={@filter_seniority == "lead"}>Lead</option>
+                    <option value="executive" selected={@filter_seniority == "executive"}>Executive</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label class="block text-sm font-semibold text-gray-700 mb-2">Location</label>
+                  <input
+                    type="text"
+                    name="location"
+                    value={@filter_location}
+                    placeholder="City or Country"
+                    class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500"
+                  />
+                </div>
+              </div>
+
+              <div class="flex gap-3 justify-end">
+                <button
+                  type="button"
+                  phx-click="clear_filters"
+                  class="px-6 py-2 border border-gray-300 text-gray-700 font-semibold rounded-xl hover:bg-gray-50">
+                  Clear
+                </button>
+                <button
+                  type="submit"
+                  class="px-6 py-2 bg-emerald-600 text-white font-semibold rounded-xl hover:bg-emerald-700">
+                  Apply Filters
+                </button>
+              </div>
+            </.form>
+          </div>
+        <% end %>
+
+        <div class="space-y-4">
+          <%= if length(@filtered_jobs) > 0 do %>
+            <%= for job <- @filtered_jobs do %>
+              <.link navigate={~p"/en/jobs/#{job.id}"} class="block border border-gray-200 rounded-2xl p-6 hover:shadow-lg hover:border-emerald-500 transition-all">
+                <div class="flex items-start justify-between">
+                  <div class="flex-1">
+                    <div class="flex items-center gap-3 mb-3">
+                      <h3 class="text-xl font-bold text-gray-900"><%= job.title %></h3>
+                      <%= if job.status == "active" do %>
+                        <span class="px-3 py-1 bg-green-100 text-green-700 text-xs font-semibold rounded-full">Active</span>
+                      <% end %>
+                      <%= if job.poster_type == "business" do %>
+                        <span class="px-3 py-1 bg-blue-100 text-blue-700 text-xs font-semibold rounded-full">Business</span>
+                      <% else %>
+                        <span class="px-3 py-1 bg-purple-100 text-purple-700 text-xs font-semibold rounded-full">Individual</span>
+                      <% end %>
+                    </div>
+
+                    <div class="flex flex-wrap gap-4 text-sm text-gray-600 mb-4">
+                      <div class="flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                        </svg>
+                        Company
+                      </div>
+
+                      <div class="flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                        <%= format_location(job.locations) %>
+                      </div>
+
+                      <div class="flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                        </svg>
+                        <%= String.replace(job.employment_type, "_", " ") |> String.capitalize() %>
+                      </div>
+
+                      <%= if job.salary_visible do %>
+                        <div class="flex items-center gap-2">
+                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          <%= format_salary_range(job.salary_range) %>
+                        </div>
+                      <% end %>
+                    </div>
+
+                    <p class="text-gray-700 line-clamp-2 mb-3"><%= job.short_description %></p>
+
+                    <div class="flex flex-wrap gap-2">
+                      <%= for skill <- Enum.take(job.required_skills, 5) do %>
+                        <span class="px-3 py-1 bg-blue-50 text-blue-700 text-xs font-medium rounded-full">
+                          <%= skill %>
+                        </span>
+                      <% end %>
+                    </div>
+                  </div>
+
+                  <div class="flex flex-col items-end gap-3 ml-6">
+                    <button
+                      phx-click="save_job"
+                      phx-value-id={job.id}
+                      class="p-2 text-gray-400 hover:text-emerald-600 transition-colors"
+                      onclick="event.preventDefault(); event.stopPropagation();">
+                      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                      </svg>
+                    </button>
+
+                    <div class="text-right">
+                      <p class="text-xs text-gray-500"><%= time_ago(job.date_created) %></p>
+                      <p class="text-xs text-gray-500 mt-1"><%= job.applications_count %> applicants</p>
+                    </div>
+                  </div>
+                </div>
+              </.link>
+            <% end %>
+          <% else %>
+            <div class="text-center py-12">
+              <div class="inline-flex items-center justify-center w-20 h-20 bg-gray-100 rounded-full mb-4">
+                <svg class="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </div>
+              <h3 class="text-lg font-medium text-gray-900 mb-2">No jobs found</h3>
+              <p class="text-gray-500 mb-4">Try adjusting your search or filters</p>
+              <button
+                phx-click="clear_filters"
+                class="px-6 py-2 bg-emerald-600 text-white font-semibold rounded-xl hover:bg-emerald-700 transition-all">
+                Clear Filters
+              </button>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%= if @show_create_job_modal do %>
+  <div class="fixed inset-0 z-50 overflow-y-auto" phx-click="hide_create_job_modal">
+    <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+      <div class="fixed inset-0 bg-black bg-opacity-50 transition-opacity"></div>
+
+      <div class="inline-block align-bottom bg-white rounded-2xl px-6 pt-6 pb-4 text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full sm:p-8 max-h-[90vh] overflow-y-auto"
+           phx-click={Phoenix.LiveView.JS.exec("event.stopPropagation()")}>
+        <div class="flex items-center justify-between mb-6">
+          <h3 class="text-2xl font-bold text-gray-900">Post a Job</h3>
+          <button
+            phx-click="hide_create_job_modal"
+            class="text-gray-400 hover:text-gray-600 transition-colors">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        <.form for={%{}} phx-submit="create_job" class="space-y-6">
+          <div class="bg-blue-50 border-l-4 border-blue-400 p-4 rounded-lg mb-6">
+            <div class="flex items-start">
+              <svg class="w-5 h-5 text-blue-400 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+              </svg>
+              <div class="text-sm text-blue-700">
+                <p class="font-medium mb-1">Choose how to post this job:</p>
+                <p>Post as an individual or select one of your business accounts</p>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-2">
+              Post As <span class="text-red-500">*</span>
+            </label>
+            <div class="space-y-3">
+              <label class="flex items-center p-4 border-2 border-gray-300 rounded-xl cursor-pointer hover:border-emerald-500 transition-all">
+                <input
+                  type="radio"
+                  name="poster_type"
+                  value="individual"
+                  checked={@selected_poster_type == "individual"}
+                  phx-change="change_poster_type"
+                  class="w-5 h-5 text-emerald-600 focus:ring-emerald-500"
+                />
+                <div class="ml-3">
+                  <span class="font-semibold text-gray-900">Individual</span>
+                  <p class="text-sm text-gray-600">Post this job under your personal account</p>
+                </div>
+              </label>
+
+              <%= if length(@user_businesses) > 0 do %>
+                <label class="flex items-start p-4 border-2 border-gray-300 rounded-xl cursor-pointer hover:border-emerald-500 transition-all">
+                  <input
+                    type="radio"
+                    name="poster_type"
+                    value="business"
+                    checked={@selected_poster_type == "business"}
+                    phx-change="change_poster_type"
+                    class="w-5 h-5 text-emerald-600 focus:ring-emerald-500 mt-0.5"
+                  />
+                  <div class="ml-3 flex-1">
+                    <span class="font-semibold text-gray-900">Business Account</span>
+                    <p class="text-sm text-gray-600 mb-3">Post this job under one of your businesses</p>
+
+                    <%= if @selected_poster_type == "business" do %>
+                      <select
+                        name="business_id"
+                        required
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500">
+                        <option value="">Select a business...</option>
+                        <%= for business <- @user_businesses do %>
+                          <option value={business.id}><%= business.company_name %></option>
+                        <% end %>
+                      </select>
+                    <% end %>
+                  </div>
+                </label>
+              <% else %>
+                <div class="p-4 bg-gray-50 rounded-xl border border-gray-200">
+                  <p class="text-sm text-gray-600 mb-2">Don't have a business account yet?</p>
+                  <.link navigate={~p"/en/business"} class="text-sm text-emerald-600 hover:text-emerald-700 font-semibold">
+                    Create a Business Account →
+                  </.link>
+                </div>
+              <% end %>
+            </div>
+          </div>
+
+          <div class="border-t border-gray-200 pt-6">
+            <h4 class="text-lg font-bold text-gray-900 mb-4">Job Details</h4>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div class="md:col-span-2">
+                <label class="block text-sm font-semibold text-gray-700 mb-2">
+                  Job Title <span class="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  name="title"
+                  required
+                  class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500"
+                  placeholder="e.g., Senior Software Engineer"
+                />
+              </div>
+
+              <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">
+                  Location <span class="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  name="location"
+                  required
+                  class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500"
+                  placeholder="e.g., New York, NY"
+                />
+              </div>
+
+              <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">
+                  Employment Type <span class="text-red-500">*</span>
+                </label>
+                <select
+                  name="employment_type"
+                  required
+                  class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500">
+                  <option value="full_time">Full-time</option>
+                  <option value="part_time">Part-time</option>
+                  <option value="contract">Contract</option>
+                  <option value="freelance">Freelance</option>
+                  <option value="internship">Internship</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">
+                  Work Location Type <span class="text-red-500">*</span>
+                </label>
+                <select
+                  name="location_type"
+                  required
+                  class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500">
+                  <option value="on_site">On-site</option>
+                  <option value="remote">Remote</option>
+                  <option value="hybrid">Hybrid</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">
+                  Seniority Level
+                </label>
+                <select
+                  name="seniority_level"
+                  class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500">
+                  <option value="entry">Entry Level</option>
+                  <option value="mid" selected>Mid Level</option>
+                  <option value="senior">Senior</option>
+                  <option value="lead">Lead</option>
+                  <option value="executive">Executive</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">
+                  Industry/Category
+                </label>
+                <input
+                  type="text"
+                  name="industry"
+                  class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500"
+                  placeholder="e.g., Technology, Healthcare"
+                />
+              </div>
+
+              <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">
+                  Min Salary
+                </label>
+                <input
+                  type="number"
+                  name="salary_min"
+                  step="1000"
+                  class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500"
+                  placeholder="50000"
+                />
+              </div>
+
+              <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">
+                  Max Salary
+                </label>
+                <input
+                  type="number"
+                  name="salary_max"
+                  step="1000"
+                  class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500"
+                  placeholder="80000"
+                />
+              </div>
+
+              <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">
+                  Salary Currency
+                </label>
+                <select
+                  name="salary_currency"
+                  class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500">
+                  <option value="USD">USD</option>
+                  <option value="EUR">EUR</option>
+                  <option value="GBP">GBP</option>
+                  <option value="CAD">CAD</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">
+                  Salary Period
+                </label>
+                <select
+                  name="salary_period"
+                  class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500">
+                  <option value="yearly">Yearly</option>
+                  <option value="monthly">Monthly</option>
+                  <option value="hourly">Hourly</option>
+                </select>
+              </div>
+
+              <div class="flex items-center">
+                <input
+                  type="checkbox"
+                  name="salary_visible"
+                  value="true"
+                  class="w-5 h-5 text-emerald-600 border-gray-300 rounded focus:ring-emerald-500"
+                />
+                <label class="ml-3 text-sm font-semibold text-gray-700">
+                  Show salary publicly
+                </label>
+              </div>
+
+              <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">
+                  Min Experience (years)
+                </label>
+                <input
+                  type="number"
+                  name="experience_min"
+                  min="0"
+                  value="0"
+                  class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500"
+                />
+              </div>
+
+              <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">
+                  Max Experience (years)
+                </label>
+                <input
+                  type="number"
+                  name="experience_max"
+                  min="0"
+                  value="0"
+                  class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500"
+                />
+              </div>
+
+              <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">
+                  Application Deadline
+                </label>
+                <input
+                  type="date"
+                  name="application_deadline"
+                  class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500"
+                />
+              </div>
+
+              <div class="md:col-span-2">
+                <label class="block text-sm font-semibold text-gray-700 mb-2">
+                  Required Skills (comma-separated)
+                </label>
+                <input
+                  type="text"
+                  name="required_skills"
+                  class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500"
+                  placeholder="e.g., JavaScript, React, Node.js"
+                />
+              </div>
+
+              <div class="md:col-span-2">
+                <label class="block text-sm font-semibold text-gray-700 mb-2">
+                  Job Description <span class="text-red-500">*</span>
+                </label>
+                <textarea
+                  name="description"
+                  required
+                  rows="8"
+                  class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500"
+                  placeholder="Describe the role, responsibilities, and what you're looking for..."></textarea>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-4 space-y-3 space-y-reverse sm:space-y-0 pt-6 border-t">
+            <button
+              type="button"
+              phx-click="hide_create_job_modal"
+              class="w-full sm:w-auto px-6 py-3 border border-gray-300 text-gray-700 font-semibold rounded-xl hover:bg-gray-50 transition-all">
+              Cancel
+            </button>
+            <button
+              type="submit"
+              class="w-full sm:w-auto px-6 py-3 bg-emerald-600 text-white font-semibold rounded-xl hover:bg-emerald-700 transition-all shadow-lg">
+              Post Job
+            </button>
+          </div>
+        </.form>
+      </div>
+    </div>
+  </div>
+<% end %>

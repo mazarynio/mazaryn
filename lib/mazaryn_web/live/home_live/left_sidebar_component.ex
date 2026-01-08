@@ -105,9 +105,9 @@ defmodule MazarynWeb.HomeLive.LeftSidebarComponent do
                 </.link>
               </li>
               <li class="flex align-center items-center mx-2 mb-7">
-                <button
-                  phx-click="open_weather"
-                  class="group flex items-start text-base text-gray-800 font-semibold hover:text-blue-700 transition-colors w-full text-left"
+                <.link
+                  navigate={~p"/#{@locale}/weather"}
+                  class="group flex items-start text-base text-gray-800 font-semibold hover:text-blue-700 transition-colors"
                 >
                   <i>
                     <svg
@@ -129,7 +129,7 @@ defmodule MazarynWeb.HomeLive.LeftSidebarComponent do
                   <div class="text-gray-800 group-hover:text-blue-700 transition-colors">
                     <%= gettext("Weather") %>
                   </div>
-                </button>
+                </.link>
               </li>
               <li class="flex align-center items-center mx-2">
                 <.link

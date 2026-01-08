@@ -1,347 +1,361 @@
-defmodule Core.Account.Business do
-  @moduledoc """
-  Embedded schema to represent Account.Business
-  """
+defmodule Account.Business do
   use Ecto.Schema
-
   import Ecto.Changeset
-  @optional_fields ~w(
-    id
-    ai_business_id
-    ads_id
-    company_size
-    website
-    business_phone
-    tax_id
-    verification_status
-    business_type
-    founding_date
-    location
-    operating_hours
-    products_services
-    social_media_links
-    business_description
-    logo_url
-    banner_url
-    followers_count
-    following_count
-    posts
-    posts_count
-    average_engagement_rate
-    customer_support_email
-    payment_info
-    subscription_tier
-    account_managers
-    business_goals
-    date_created
-    date_updated
-    brand_colors
-    brand_voice_keywords
-    certifications
-    awards
-    partnerships
-    sustainability_initiatives
-    corporate_values
-    employee_count
-    annual_revenue
-    target_audience
-    content_calendar
-    crm_integration
-    loyalty_program
-    user_generated_content
-    virtual_events
-    augmented_reality_experiences
-    chatbot_enabled
-    blockchain_initiatives
-    data_privacy_certifications
-    ai_powered_features_enabled
-    social_responsibility_score
-    innovation_index
-    customer_satisfaction_index
-    crisis_management_plan
-    digital_asset_portfolio
-    metaverse_presence
-    carbon_footprint_data
-    diversity_inclusion_metrics
-    talent_acquisition_channels
-    knowledge_base_url
-    api_integrations
-    virtual_reality_spaces
-    voice_interaction_profile
-    biometric_authentication_methods
-    iot_integration_points
-    quantum_resistant_security_measures
-    neurofeedback_enabled_services
-    emotional_intelligence_score
-    cultural_adaptation_strategies
-    language_localization_status
-    continual_learning_initiatives
-    cross_platform_presence
-    ethical_ai_commitment
-    blockchain_integration
-    ai_ethical_guidelines
-    digital_transformation_score
-    circular_economy_initiatives
-    global_expansion_roadmap
-    intellectual_property_portfolio
-    regulatory_compliance_status
-    supply_chain_transparency
-    customer_data_management_practices
-    digital_asset_management
-    quantum_computing_readiness
-    augmented_workforce_metrics
-    ecosystem_partnerships
-    cyber_resilience_score
-    decentralized_autonomous_organization_status
-    data
-  )a
+  require Logger
 
-  @required_fields ~w(
-    user_id
-    company_name
-    industry
-    business_email
-  )a
+  @required_attrs [
+    :company_name,
+    :business_email
+  ]
 
   embedded_schema do
-    field(:ai_business_id, :string)
-    field(:ads_id, :string)
+    field(:user_id, :string)
+    field(:company_name, :string)
+    field(:legal_name, :string)
+    field(:industry, :string)
+    field(:sub_industry, :string)
     field(:company_size, :string)
     field(:website, :string)
-    field(:business_phone, :string)
-    field(:tex_id, :string)
-    field(:verification_status, :string)
-    field(:business_type, :string)
-    field(:founding_date, :date)
-    field(:location, :string)
-    field(:operating_hours, :map)
-    field(:products_services, {:array, :string})
-    field(:social_media_links, {:array, :string})
-    field(:business_description, :string)
-    field(:logo_url, :string)
-    field(:banner_url, :string)
-    field(:followers_count, :integer)
-    field(:following_count, :integer)
-    field(:posts, {:array, :map})
-    field(:posts_count, :integer)
-    field(:average_engagement_rate, :float)
-    field(:customer_support_email, :string)
-    field(:payment_info, :map)
-    field(:subscription_tier, :string)
-    field(:account_managers, {:array, :string})
-    field(:business_golas, :map)
-    field(:data_created, :utc_datetime)
-    field(:date_updated, :utc_datetime)
-    field(:brand_colors, {:array, :string})
-    field(:brand_voice_keywords, {:array, :string})
-    field(:certifications, {:array, :string})
-    field(:awards, {:array, :string})
-    field(:partnerships, {:array, :string})
-    field(:sustainability_initiatives, :map)
-    field(:corporate_values, :map)
-    field(:employee_count, :integer)
-    field(:annual_revenue, :integer)
-    field(:target_audience, {:array, :string})
-    field(:content_calendar, :map)
-    field(:crm_integration, :map)
-    field(:loyalty_program, :map)
-    field(:user_generated_content, :map)
-    field(:virtual_events, {:array, :map})
-    field(:augmented_reality_experiences, :map)
-    field(:chatbot_enabled, :boolean)
-    field(:blockchain_initiatives, :map)
-    field(:data_privacy_certifications, {:array, :string})
-    field(:ai_powered_features_enabled, :boolean)
-    field(:social_responsibility_score, :float)
-    field(:innovation_index, :float)
-    field(:customer_satisfaction_index, :float)
-    field(:crisis_management_plan, :map)
-    field(:digital_asset_portfolio, {:array, :map})
-    field(:metaverse_presence, :map)
-    field(:carbon_footprint_data, :map)
-    field(:diversity_inclusion_metrics, :map)
-    field(:talent_acquisition_channels, {:array, :string})
-    field(:knowledge_base_url, :string)
-    field(:api_integrations, {:array, :map})
-    field(:virtual_reality_spaces, :map)
-    field(:voice_interaction_profile, :map)
-    field(:biometric_authentication_methods, {:array, :string})
-    field(:iot_integration_points, {:array, :map})
-    field(:quantum_resistant_security_measures, :map)
-    field(:neurofeedback_enabled_services, :map)
-    field(:emotional_intelligence_score, :float)
-    field(:cultural_adaptation_strategies, :map)
-    field(:language_localization_status, :map)
-    field(:continual_learning_initiatives, :map)
-    field(:cross_platform_presence, :map)
-    field(:ethical_ai_commitment, :map)
-    field(:blockchain_integration, :map)
-    field(:ai_ethical_guidelines, :map)
-    field(:digital_transformation_score, :float)
-    field(:circular_economy_initiatives, :map)
-    field(:global_expansion_roadmap, :map)
-    field(:intellectual_property_portfolio, :map)
-    field(:regulatory_compliance_status, :map)
-    field(:supply_chain_transparency, :map)
-    field(:customer_data_management_practices, :map)
-    field(:digital_asset_management, :map)
-    field(:quantum_computing_readiness, :map)
-    field(:augmented_workforce_metrics, :map)
-    field(:ecosystem_partnerships, {:array, :map})
-    field(:cyber_resilience_score, :float)
-    field(:decentralized_autonomous_organization_status, :map)
-    field(:data, :map)
-    field(:user_id, :integer)
-    field(:company_name, :string)
-    field(:industry, :string)
     field(:business_email, :string)
+    field(:business_phone, :string)
+    field(:tax_id, :string)
+    field(:business_registration_number, :string)
+    field(:verification_status, :boolean, default: false)
+    field(:verification_level, :string, default: "none")
+    field(:verification_documents, {:array, :string}, default: [])
+    field(:verification_badge_ipfs_hash, :string)
+    field(:business_type, :string)
+    field(:founding_date, :utc_datetime)
+    field(:registration_date, :utc_datetime)
+
+    field(:logo_ipfs_hash, :string)
+    field(:banner_ipfs_hash, :string)
+    field(:gallery_ipfs_hashes, {:array, :string}, default: [])
+    field(:video_intro_ipfs_hash, :string)
+    field(:promotional_videos_ipfs_hashes, {:array, :string}, default: [])
+    field(:documents_ipfs_hashes, :map, default: %{})
+    field(:product_images_ipfs_hashes, {:array, :string}, default: [])
+    field(:team_photos_ipfs_hashes, {:array, :string}, default: [])
+
+    field(:location, :map, default: %{})
+    field(:operating_hours, {:array, :map}, default: [])
+    field(:additional_locations, {:array, :map}, default: [])
+    field(:delivery_areas, {:array, :string}, default: [])
+    field(:languages_supported, {:array, :string}, default: [])
+
+    field(:products_services, {:array, :string}, default: [])
+    field(:business_description, :string)
+    field(:long_description, :string)
+    field(:mission_statement, :string)
+    field(:vision_statement, :string)
+    field(:core_values, {:array, :string}, default: [])
+    field(:unique_selling_points, {:array, :string}, default: [])
+    field(:social_media_links, :map, default: %{})
+    field(:business_highlights, {:array, :string}, default: [])
+
+    field(:followers, {:array, :string}, default: [])
+    field(:followers_count, :integer, default: 0)
+    field(:following, {:array, :string}, default: [])
+    field(:following_count, :integer, default: 0)
+    field(:posts, {:array, :string}, default: [])
+    field(:posts_count, :integer, default: 0)
+    field(:posts_limit_monthly, :integer, default: 10)
+    field(:average_engagement_rate, :float, default: 0.0)
+    field(:total_impressions, :integer, default: 0)
+    field(:total_clicks, :integer, default: 0)
+    field(:total_shares, :integer, default: 0)
+    field(:total_saves, :integer, default: 0)
+
+    field(:job_postings, {:array, :string}, default: [])
+    field(:active_job_postings_count, :integer, default: 0)
+    field(:max_active_job_postings, :integer, default: 2)
+    field(:total_applications_received, :integer, default: 0)
+    field(:shortlisted_candidates, {:array, :string}, default: [])
+    field(:interviewed_candidates, {:array, :string}, default: [])
+    field(:hired_candidates, {:array, :string}, default: [])
+    field(:rejected_candidates, {:array, :string}, default: [])
+    field(:job_posting_credits, :integer, default: 0)
+    field(:featured_job_slots, :integer, default: 0)
+    field(:job_application_tracking_enabled, :boolean, default: false)
+    field(:automated_screening_enabled, :boolean, default: false)
+    field(:video_interview_enabled, :boolean, default: false)
+    field(:skills_assessment_enabled, :boolean, default: false)
+
+    field(:ads_campaigns, {:array, :string}, default: [])
+    field(:ads_budget_remaining, :float, default: 0.0)
+    field(:total_ad_spend, :float, default: 0.0)
+    field(:ad_impressions, :integer, default: 0)
+    field(:ad_clicks, :integer, default: 0)
+    field(:ad_conversions, :integer, default: 0)
+    field(:ad_roi, :float, default: 0.0)
+    field(:retargeting_enabled, :boolean, default: false)
+    field(:sponsored_posts_count, :integer, default: 0)
+    field(:banner_ads_active, {:array, :string}, default: [])
+
+    field(:subscription_tier, :string, default: "free")
+    field(:subscription_start_date, :utc_datetime)
+    field(:subscription_end_date, :utc_datetime)
+    field(:subscription_auto_renew, :boolean, default: false)
+    field(:billing_cycle, :string, default: "monthly")
+    field(:discount_code_applied, :string)
+    field(:payment_info, :map, default: %{})
+    field(:trial_period_active, :boolean, default: false)
+    field(:trial_end_date, :utc_datetime)
+    field(:loyalty_points, :integer, default: 0)
+    field(:referral_credits, :float, default: 0.0)
+
+    field(:account_managers, {:array, :map}, default: [])
+    field(:team_members, {:array, :string}, default: [])
+    field(:max_team_members, :integer, default: 3)
+    field(:pending_invitations, {:array, :map}, default: [])
+    field(:roles_permissions, :map, default: %{})
+    field(:department_structure, :map, default: %{})
+    field(:employee_directory_enabled, :boolean, default: false)
+
+    field(:analytics_enabled, :boolean, default: false)
+    field(:analytics_data, :map, default: %{})
+    field(:competitor_tracking, {:array, :string}, default: [])
+    field(:market_insights, :map, default: %{})
+    field(:predictive_analytics, :map, default: %{})
+
+    field(:premium_features, :map, default: %{})
+
+    field(:brand_colors, {:array, :string}, default: [])
+    field(:brand_fonts, {:array, :string}, default: [])
+    field(:brand_voice_keywords, {:array, :string}, default: [])
+    field(:brand_guidelines_ipfs_hash, :string)
+    field(:marketing_materials_ipfs_hashes, {:array, :string}, default: [])
+    field(:logo_variations_ipfs_hashes, {:array, :string}, default: [])
+    field(:brand_story, :string)
+    field(:press_kit_ipfs_hash, :string)
+
+    field(:certifications, {:array, :map}, default: [])
+    field(:awards, {:array, :map}, default: [])
+    field(:licenses, {:array, :string}, default: [])
+    field(:insurance_documents, {:array, :string}, default: [])
+    field(:compliance_documents, {:array, :string}, default: [])
+    field(:industry_memberships, {:array, :string}, default: [])
+    field(:accreditations, {:array, :string}, default: [])
+
+    field(:partnerships, {:array, :string}, default: [])
+    field(:affiliates, {:array, :string}, default: [])
+    field(:sponsors, {:array, :string}, default: [])
+    field(:suppliers, {:array, :string}, default: [])
+    field(:clients, {:array, :string}, default: [])
+    field(:collaboration_requests, {:array, :string}, default: [])
+    field(:strategic_alliances, {:array, :string}, default: [])
+
+    field(:sustainability_initiatives, {:array, :string}, default: [])
+    field(:corporate_values, {:array, :string}, default: [])
+    field(:diversity_inclusion_commitment, :map, default: %{})
+    field(:community_involvement, {:array, :string}, default: [])
+    field(:charitable_contributions, {:array, :string}, default: [])
+    field(:environmental_impact_score, :float, default: 0.0)
+    field(:social_impact_report_ipfs_hash, :string)
+
+    field(:employee_count, :integer)
+    field(:annual_revenue, :float)
+    field(:year_established, :integer)
+    field(:growth_stage, :string)
+    field(:funding_stage, :string)
+    field(:total_funding_raised, :float)
+    field(:investors, {:array, :string}, default: [])
+    field(:valuation, :float)
+
+    field(:target_audience, {:array, :map}, default: [])
+    field(:customer_personas, {:array, :map}, default: [])
+    field(:value_proposition, :string)
+    field(:competitive_advantages, {:array, :string}, default: [])
+    field(:market_segments, {:array, :string}, default: [])
+    field(:buyer_journey_maps, {:array, :map}, default: [])
+
+    field(:content_calendar, :map, default: %{})
+    field(:blog_posts_ipfs_hashes, {:array, :string}, default: [])
+    field(:press_releases_ipfs_hashes, {:array, :string}, default: [])
+    field(:case_studies_ipfs_hashes, {:array, :string}, default: [])
+    field(:whitepapers_ipfs_hashes, {:array, :string}, default: [])
+    field(:newsletters_ipfs_hashes, {:array, :string}, default: [])
+    field(:podcasts_ipfs_hashes, {:array, :string}, default: [])
+    field(:content_library_size, :integer, default: 0)
+
+    field(:customer_support_email, :string)
+    field(:customer_support_phone, :string)
+    field(:support_hours, {:array, :string}, default: [])
+    field(:average_response_time, :integer, default: 0)
+    field(:faq_ipfs_hash, :string)
+    field(:knowledge_base_ipfs_hash, :string)
+    field(:chatbot_enabled, :boolean, default: false)
+    field(:chatbot_config, :map, default: %{})
+    field(:live_chat_enabled, :boolean, default: false)
+    field(:support_ticket_system_enabled, :boolean, default: false)
+    field(:customer_feedback_forms, {:array, :string}, default: [])
+    field(:nps_score, :float, default: 0.0)
+    field(:customer_satisfaction_score, :float, default: 0.0)
+
+    field(:events, {:array, :string}, default: [])
+    field(:webinars, {:array, :string}, default: [])
+    field(:workshops, {:array, :string}, default: [])
+    field(:conferences, {:array, :string}, default: [])
+    field(:virtual_booth_enabled, :boolean, default: false)
+    field(:event_analytics, :map, default: %{})
+    field(:recurring_events, {:array, :string}, default: [])
+
+    field(:products_catalog_ipfs_hash, :string)
+    field(:services_catalog_ipfs_hash, :string)
+    field(:pricing_sheet_ipfs_hash, :string)
+    field(:accepts_payments, :boolean, default: false)
+    field(:payment_methods_accepted, {:array, :string}, default: [])
+    field(:shopping_cart_enabled, :boolean, default: false)
+    field(:inventory_count, :integer, default: 0)
+    field(:product_recommendations_enabled, :boolean, default: false)
+    field(:subscription_products, {:array, :string}, default: [])
+    field(:digital_products, {:array, :string}, default: [])
+
+    field(:reviews, {:array, :string}, default: [])
+    field(:average_rating, :float, default: 0.0)
+    field(:total_reviews_count, :integer, default: 0)
+    field(:verified_reviews_count, :integer, default: 0)
+    field(:testimonials, {:array, :map}, default: [])
+    field(:response_to_reviews_enabled, :boolean, default: false)
+    field(:review_request_automation, :boolean, default: false)
+    field(:reputation_score, :float, default: 0.0)
+    field(:trust_score, :float, default: 0.0)
+
+    field(:privacy_policy_ipfs_hash, :string)
+    field(:terms_of_service_ipfs_hash, :string)
+    field(:gdpr_compliant, :boolean, default: false)
+    field(:ccpa_compliant, :boolean, default: false)
+    field(:data_protection_measures, {:array, :string}, default: [])
+    field(:security_certifications, {:array, :string}, default: [])
+    field(:two_factor_enabled, :boolean, default: false)
+    field(:sso_enabled, :boolean, default: false)
+    field(:ip_whitelist, {:array, :string}, default: [])
+    field(:audit_log, {:array, :map}, default: [])
+    field(:data_retention_policy, :string)
+    field(:encryption_level, :string, default: "basic")
+
+    field(:api_keys, {:array, :string}, default: [])
+    field(:api_rate_limit, :integer, default: 0)
+    field(:webhooks, {:array, :map}, default: [])
+    field(:third_party_integrations, {:array, :map}, default: [])
+    field(:crm_integration_type, :string)
+    field(:erp_integration_type, :string)
+    field(:zapier_enabled, :boolean, default: false)
+    field(:custom_integrations, {:array, :map}, default: [])
+
+    field(:blockchain_verified, :boolean, default: false)
+    field(:smart_contracts, {:array, :string}, default: [])
+    field(:nft_collections, {:array, :string}, default: [])
+    field(:crypto_wallet_address, :string)
+    field(:token_details, :map, default: %{})
+    field(:dao_membership, {:array, :string}, default: [])
+    field(:defi_integrations, {:array, :string}, default: [])
+    field(:web3_enabled_features, :map, default: %{})
+
+    field(:metaverse_presence, :map, default: %{})
+    field(:ar_experiences, {:array, :string}, default: [])
+    field(:vr_experiences, {:array, :string}, default: [])
+    field(:ai_assistant_enabled, :boolean, default: false)
+    field(:voice_assistant_enabled, :boolean, default: false)
+
+    field(:innovation_lab_enabled, :boolean, default: false)
+    field(:patents, {:array, :map}, default: [])
+    field(:research_papers, {:array, :string}, default: [])
+    field(:open_source_projects, {:array, :string}, default: [])
+    field(:innovation_pipeline, {:array, :string}, default: [])
+    field(:tech_stack, {:array, :string}, default: [])
+
+    field(:careers_page_ipfs_hash, :string)
+    field(:employee_benefits, {:array, :string}, default: [])
+    field(:company_culture_description, :string)
+    field(:company_culture_videos_ipfs_hashes, {:array, :string}, default: [])
+    field(:work_environment_type, :string)
+    field(:recruitment_process_description, :string)
+    field(:employee_testimonials, {:array, :string}, default: [])
+    field(:glassdoor_rating, :float)
+    field(:employee_referral_program_enabled, :boolean, default: false)
+
+    field(:notification_preferences, :map, default: %{})
+    field(:alerts_enabled, :boolean, default: true)
+    field(:custom_alerts, {:array, :string}, default: [])
+    field(:alert_history, {:array, :map}, default: [])
+
+    field(:leads, {:array, :string}, default: [])
+    field(:lead_capture_forms, {:array, :string}, default: [])
+    field(:lead_scoring_enabled, :boolean, default: false)
+    field(:email_capture_enabled, :boolean, default: false)
+    field(:contact_database_size, :integer, default: 0)
+    field(:sales_pipeline, :map, default: %{})
+    field(:conversion_tracking, :map, default: %{})
+
+    field(:email_marketing_enabled, :boolean, default: false)
+    field(:sms_marketing_enabled, :boolean, default: false)
+    field(:push_notification_campaigns, {:array, :string}, default: [])
+    field(:drip_campaigns, {:array, :string}, default: [])
+    field(:email_templates, {:array, :string}, default: [])
+    field(:broadcast_messages, {:array, :string}, default: [])
+
+    field(:page_load_speed, :float, default: 0.0)
+    field(:seo_score, :float, default: 0.0)
+    field(:mobile_optimization_score, :float, default: 0.0)
+    field(:accessibility_score, :float, default: 0.0)
+    field(:performance_reports, {:array, :string}, default: [])
+
+    field(:badges_earned, {:array, :string}, default: [])
+    field(:featured_badge, :boolean, default: false)
+    field(:top_rated_badge, :boolean, default: false)
+    field(:verified_badge, :boolean, default: false)
+    field(:industry_leader_badge, :boolean, default: false)
+    field(:trending_badge, :boolean, default: false)
+    field(:award_badges, {:array, :string}, default: [])
+
+    field(:engagement_score, :float, default: 0.0)
+    field(:activity_streak, :integer, default: 0)
+    field(:achievements, {:array, :string}, default: [])
+    field(:leaderboard_rank, :integer)
+    field(:points_balance, :integer, default: 0)
+    field(:rewards_claimed, {:array, :string}, default: [])
+
+    field(:account_status, :string, default: "active")
+    field(:account_flags, {:array, :string}, default: [])
+    field(:featured_until, :utc_datetime)
+    field(:boosted_until, :utc_datetime)
+    field(:priority_until, :utc_datetime)
+    field(:last_active, :utc_datetime)
+    field(:date_created, :utc_datetime)
+    field(:date_updated, :utc_datetime)
+    field(:last_login, :utc_datetime)
+    field(:login_history, {:array, :map}, default: [])
+    field(:total_logins, :integer, default: 0)
+    field(:account_age_days, :integer, default: 0)
+
+    field(:storage_used, :float, default: 0.0)
+    field(:storage_limit, :float, default: 1.0)
+    field(:bandwidth_used, :float, default: 0.0)
+    field(:bandwidth_limit, :float, default: 10.0)
+    field(:api_calls_used, :integer, default: 0)
+    field(:api_calls_limit, :integer, default: 0)
+
+    field(:custom_fields, :map, default: %{})
+    field(:tags, {:array, :string}, default: [])
+    field(:metadata, :map, default: %{})
+    field(:notes, {:array, :string}, default: [])
+    field(:data, :map, default: %{})
   end
 
-  def erl_changeset(
-        {:business, id, ai_business_id, ads_id, company_size, website, business_phone, tax_id,
-         verification_status, business_type, founding_date, location, operating_hours,
-         products_services, social_media_links, business_description, logo_url, banner_url,
-         followers_count, following_count, posts, posts_count, average_engagement_rate,
-         customer_support_email, payment_info, subscription_tier, account_managers,
-         business_golas, data_created, date_updated, brand_colors, brand_voice_keywords,
-         certifications, awards, partnerships, sustainability_initiatives, corporate_values,
-         employee_count, annual_revenue, target_audience, content_calendar, crm_integration,
-         loyalty_program, user_generated_content, virtual_events, augmented_reality_experiences,
-         chatbot_enabled, blockchain_initiatives, data_privacy_certifications,
-         ai_powered_features_enabled, social_responsibility_score, innovation_index,
-         customer_satisfaction_index, crisis_management_plan, digital_asset_portfolio,
-         metaverse_presence, carbon_footprint_data, diversity_inclusion_metrics,
-         talent_acquisition_channels, knowledge_base_url, api_integrations,
-         virtual_reality_spaces, voice_interaction_profile, biometric_authentication_methods,
-         iot_integration_points, quantum_resistant_security_measures,
-         neurofeedback_enabled_services, emotional_intelligence_score,
-         cultural_adaptation_strategies, language_localization_status,
-         continual_learning_initiatives, cross_platform_presence, ethical_ai_commitment,
-         blockchain_integration, ai_ethical_guidelines, digital_transformation_score,
-         circular_economy_initiatives, global_expansion_roadmap, intellectual_property_portfolio,
-         regulatory_compliance_status, supply_chain_transparency,
-         customer_data_management_practices, digital_asset_management,
-         quantum_computing_readiness, augmented_workforce_metrics, ecosystem_partnerships,
-         cyber_resilience_score, decentralized_autonomous_organization_status, data, user_id,
-         company_name, industry, business_email}
-      ) do
-    %__MODULE__{}
-    |> change(%{
-      id: id,
-      ai_business_id: ai_business_id,
-      ads_id: ads_id,
-      company_size: company_size,
-      website: website,
-      business_phone: business_phone,
-      tax_id: tax_id,
-      verification_status: verification_status,
-      business_type: business_type,
-      founding_date: founding_date,
-      location: location,
-      operating_hours: operating_hours,
-      products_services: products_services,
-      social_media_links: social_media_links,
-      business_description: business_description,
-      logo_url: logo_url,
-      banner_url: banner_url,
-      followers_count: followers_count,
-      following_count: following_count,
-      posts: posts,
-      posts_count: posts_count,
-      average_engagement_rate: average_engagement_rate,
-      customer_support_email: customer_support_email,
-      payment_info: payment_info,
-      subscription_tier: subscription_tier,
-      account_managers: account_managers,
-      business_golas: business_golas,
-      data_created: data_created,
-      date_updated: date_updated,
-      brand_colors: brand_colors,
-      brand_voice_keywords: brand_voice_keywords,
-      certifications: certifications,
-      awards: awards,
-      partnerships: partnerships,
-      sustainability_initiatives: sustainability_initiatives,
-      corporate_values: corporate_values,
-      employee_count: employee_count,
-      annual_revenue: annual_revenue,
-      target_audience: target_audience,
-      content_calendar: content_calendar,
-      crm_integration: crm_integration,
-      loyalty_program: loyalty_program,
-      user_generated_content: user_generated_content,
-      virtual_events: virtual_events,
-      augmented_reality_experiences: augmented_reality_experiences,
-      chatbot_enabled: chatbot_enabled,
-      blockchain_initiatives: blockchain_initiatives,
-      data_privacy_certifications: data_privacy_certifications,
-      ai_powered_features_enabled: ai_powered_features_enabled,
-      social_responsibility_score: social_responsibility_score,
-      innovation_index: innovation_index,
-      customer_satisfaction_index: customer_satisfaction_index,
-      crisis_management_plan: crisis_management_plan,
-      digital_asset_portfolio: digital_asset_portfolio,
-      metaverse_presence: metaverse_presence,
-      carbon_footprint_data: carbon_footprint_data,
-      diversity_inclusion_metrics: diversity_inclusion_metrics,
-      talent_acquisition_channels: talent_acquisition_channels,
-      knowledge_base_url: knowledge_base_url,
-      api_integrations: api_integrations,
-      virtual_reality_spaces: virtual_reality_spaces,
-      voice_interaction_profile: voice_interaction_profile,
-      biometric_authentication_methods: biometric_authentication_methods,
-      iot_integration_points: iot_integration_points,
-      quantum_resistant_security_measures: quantum_resistant_security_measures,
-      neurofeedback_enabled_services: neurofeedback_enabled_services,
-      emotional_intelligence_score: emotional_intelligence_score,
-      cultural_adaptation_strategies: cultural_adaptation_strategies,
-      language_localization_status: language_localization_status,
-      continual_learning_initiatives: continual_learning_initiatives,
-      cross_platform_presence: cross_platform_presence,
-      ethical_ai_commitment: ethical_ai_commitment,
-      blockchain_integration: blockchain_integration,
-      ai_ethical_guidelines: ai_ethical_guidelines,
-      digital_transformation_score: digital_transformation_score,
-      circular_economy_initiatives: circular_economy_initiatives,
-      global_expansion_roadmap: global_expansion_roadmap,
-      intellectual_property_portfolio: intellectual_property_portfolio,
-      regulatory_compliance_status: regulatory_compliance_status,
-      supply_chain_transparency: supply_chain_transparency,
-      customer_data_management_practices: customer_data_management_practices,
-      digital_asset_management: digital_asset_management,
-      quantum_computing_readiness: quantum_computing_readiness,
-      augmented_workforce_metrics: augmented_workforce_metrics,
-      ecosystem_partnerships: ecosystem_partnerships,
-      cyber_resilience_score: cyber_resilience_score,
-      decentralized_autonomous_organization_status: decentralized_autonomous_organization_status,
-      data: data,
-      user_id: user_id,
-      company_name: company_name,
-      industry: industry,
-      business_email: business_email
-    })
+  def changeset(business, attrs \\ %{}) do
+    business
+    |> cast(attrs, list_all_fields())
+    |> validate_required(@required_attrs)
+    |> validate_format(:business_email, ~r/@/)
+    |> validate_length(:company_name, min: 2, max: 100)
   end
-
-  def erl_changeset(_), do: %{}
-
-  defp handle_datetime(:undefined), do: nil
-  defp handle_datetime(datetime), do: Timex.to_naive_datetime(datetime)
-
-  def changeset(%__MODULE__{} = struct, attrs \\ %{}) do
-    struct
-    |> cast(attrs, @optional_fields ++ @required_fields)
-    |> validate_required(@required_fields)
-  end
-
-  def update_changeset(%__MODULE__{} = struct, attrs \\ %{}) do
-    struct
-    |> cast(attrs, [:id, :content])
-    |> validate_required([:id, :content])
-  end
-
-  def build(map) when map == %{}, do: %{}
 
   def build(changeset) do
     apply_action(changeset, :build)
+  end
+
+  defp list_all_fields do
+    __MODULE__.__schema__(:fields)
   end
 end

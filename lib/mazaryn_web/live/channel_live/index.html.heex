@@ -1,0 +1,112 @@
+<.live_component
+  module={MazarynWeb.HomeLive.NavComponent}
+  id="navigation"
+  user={@user}
+  search=""
+  locale={@locale}
+/>
+
+<div class="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+  <div class="max-w-7xl mx-auto px-6 py-12">
+    <div class="mb-8">
+      <.link navigate={~p"/#{@locale}/groups"} class="inline-flex items-center gap-2 text-slate-600 hover:text-indigo-600 transition-colors font-medium">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+        </svg>
+        Back to Groups & Channels
+      </.link>
+    </div>
+
+    <div class="text-center mb-12">
+      <h1 class="text-5xl font-black text-gray-900 mb-4">Channels</h1>
+      <p class="text-xl text-gray-600">Discover and subscribe to channels</p>
+    </div>
+
+    <div class="max-w-2xl mx-auto mb-12">
+      <form phx-submit="search" class="relative">
+        <svg class="absolute left-6 top-1/2 -translate-y-1/2 w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+        </svg>
+        <input
+          type="text"
+          name="query"
+          value={@search_query}
+          placeholder="Search channels..."
+          class="w-full pl-16 pr-6 py-5 bg-white border-2 border-gray-200 rounded-2xl focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 transition text-lg"
+          phx-change="search"
+          phx-debounce="300"
+        />
+      </form>
+    </div>
+
+    <%= if filtered_channels(@all_channels, @search_query) == [] do %>
+      <div class="text-center py-20">
+        <div class="w-32 h-32 mx-auto mb-8 bg-gradient-to-br from-indigo-100 to-blue-100 rounded-full flex items-center justify-center">
+          <svg class="w-16 h-16 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+          </svg>
+        </div>
+        <h3 class="text-3xl font-bold text-gray-900 mb-3">No channels found</h3>
+        <p class="text-gray-500 text-lg">
+          <%= if @search_query != "", do: "Try adjusting your search", else: "No public channels available yet" %>
+        </p>
+      </div>
+    <% else %>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <%= for channel <- filtered_channels(@all_channels, @search_query) do %>
+          <.link navigate={~p"/#{@locale}/channels/#{channel.id}"} class="group">
+            <div class="bg-white rounded-2xl shadow-sm border-2 border-gray-100 hover:border-indigo-300 transition-all hover:shadow-lg p-6">
+              <div class="flex items-start gap-4 mb-4">
+                <div class="w-16 h-16 bg-gradient-to-br from-indigo-500 to-blue-500 rounded-2xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition">
+                  <span class="text-3xl font-black text-white">
+                    <%= String.first(channel.name) |> String.upcase() %>
+                  </span>
+                </div>
+                <div class="flex-1 min-w-0">
+                  <h3 class="text-xl font-bold text-gray-900 group-hover:text-indigo-600 transition truncate">
+                    <%= channel.name %>
+                  </h3>
+                  <p class="text-sm text-indigo-600 font-medium">@<%= channel.unique_name %></p>
+                  <%= if channel.owner_username && channel.owner_username != "Unknown" do %>
+                    <p class="text-xs text-gray-500 mt-1">
+                      by <span class="font-medium"><%= channel.owner_username %></span>
+                    </p>
+                  <% end %>
+                </div>
+              </div>
+
+              <%= if channel.description && channel.description != "" do %>
+                <p class="text-gray-600 mb-4 line-clamp-2">
+                  <%= channel.description %>
+                </p>
+              <% end %>
+
+              <div class="flex items-center justify-between pt-4 border-t border-gray-100">
+                <div class="flex items-center gap-2 text-gray-600">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                  </svg>
+                  <span class="font-semibold"><%= channel.subscriber_count || 0 %></span>
+                  <span class="text-sm text-gray-500"><%= if (channel.subscriber_count || 0) == 1, do: "subscriber", else: "subscribers" %></span>
+                </div>
+
+                <%= if channel.privacy == :private do %>
+                  <span class="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-medium flex items-center gap-1">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                    </svg>
+                    Private
+                  </span>
+                <% else %>
+                  <span class="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">
+                    Public
+                  </span>
+                <% end %>
+              </div>
+            </div>
+          </.link>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+</div>

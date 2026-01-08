@@ -7,7 +7,6 @@
 />
 
 <div class="min-h-screen bg-gradient-to-b from-purple-50 via-pink-50 to-indigo-50">
-  <!-- Hero Header -->
   <div class="relative overflow-hidden">
     <div class="absolute inset-0 bg-gradient-to-br from-purple-400/20 via-pink-300/20 to-indigo-400/20"></div>
     <div class="relative max-w-7xl mx-auto px-6 py-16 lg:py-20">
@@ -21,14 +20,12 @@
       </div>
 
       <div class="flex flex-col md:flex-row items-center md:items-end gap-10">
-        <!-- Group Avatar -->
         <div class="relative">
           <div class="w-32 h-32 bg-gradient-to-br from-purple-500 to-pink-500 rounded-3xl shadow-2xl flex items-center justify-center border-6 border-white">
             <span class="text-6xl font-black text-white"><%= String.first(@group.name) |> String.upcase() %></span>
           </div>
         </div>
 
-        <!-- Group Info -->
         <div class="text-center md:text-left flex-1">
           <h1 class="text-5xl lg:text-6xl font-black text-gray-900 mb-4"><%= @group.name %></h1>
           <p class="text-2xl text-purple-600 font-semibold mb-6">@<%= @group.unique_name %></p>
@@ -72,19 +69,33 @@
             <% end %>
           </div>
 
-          <!-- Action Buttons -->
           <div class="flex flex-wrap justify-center md:justify-start gap-4">
             <%= if @is_member do %>
               <%= if @is_owner do %>
-                <.link navigate={~p"/#{@locale}/groups/#{@group.id}/settings"} class="px-8 py-4 bg-gray-100 text-gray-800 rounded-2xl font-semibold hover:bg-gray-200 transition">
+                <.link
+                  navigate={~p"/#{@locale}/groups/#{@group.id}/settings"}
+                  class="px-8 py-4 bg-gray-100 text-gray-800 rounded-2xl font-semibold hover:bg-gray-200 transition flex items-center gap-2"
+                >
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
                   Settings
                 </.link>
               <% end %>
+
               <%= if @is_admin do %>
-                <button phx-click="open_invite_modal" class="px-8 py-4 bg-purple-100 text-purple-700 rounded-2xl font-semibold hover:bg-purple-200 transition">
-                  Invite Members
-                </button>
+                <.link
+                  navigate={~p"/#{@locale}/groups/#{@group.id}/invites"}
+                  class="px-8 py-4 bg-purple-100 text-purple-700 rounded-2xl font-semibold hover:bg-purple-200 transition flex items-center gap-2"
+                >
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                  </svg>
+                  Manage Invites
+                </.link>
               <% end %>
+
               <%= unless @is_owner do %>
                 <button phx-click="leave_group" data-confirm="Are you sure?" class="px-8 py-4 bg-red-100 text-red-700 rounded-2xl font-semibold hover:bg-red-200 transition">
                   Leave Group
@@ -102,7 +113,6 @@
         </div>
       </div>
 
-      <!-- Description -->
       <%= if @group.description && @group.description != "" do %>
         <div class="mt-12 p-8 bg-white/70 backdrop-blur-sm rounded-3xl border border-white/50 max-w-4xl mx-auto">
           <p class="text-lg text-gray-700 leading-relaxed text-center"><%= @group.description %></p>
@@ -114,40 +124,47 @@
   <%= if @is_member do %>
     <div class="max-w-5xl mx-auto px-6 py-12">
       <div class="bg-white/90 backdrop-blur-md rounded-3xl shadow-xl border border-white/50 overflow-hidden">
-        <!-- Tabs -->
         <div class="p-4 border-b border-gray-200">
           <div class="flex gap-6 justify-center">
-            <button phx-click="switch_tab" phx-value-tab="chat" class={"px-8 py-4 font-bold rounded-2xl transition #{if @active_tab == "chat", do: "bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-md", else: "text-gray-600 hover:bg-gray-100"}"}>
+            <button
+              phx-click="switch_tab"
+              phx-value-tab="chat"
+              class={"px-8 py-4 font-bold rounded-2xl transition #{if @active_tab == "chat", do: "bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-md", else: "text-gray-600 hover:bg-gray-100"}"}
+            >
               Chat
             </button>
-            <.link navigate={~p"/#{@locale}/groups/#{@group.id}/members"} class="px-8 py-4 font-semibold text-gray-600 hover:bg-gray-100 rounded-2xl transition flex items-center gap-2">
+
+            <.link
+              navigate={~p"/#{@locale}/groups/#{@group.id}/members"}
+              class="px-8 py-4 font-semibold text-gray-600 hover:bg-gray-100 rounded-2xl transition flex items-center gap-2"
+            >
               Members
-              <span class="px-4 py-1 bg-purple-100 text-purple-700 rounded-full text-sm font-bold"><%= @group.member_count %></span>
+              <span class="px-4 py-1 bg-purple-100 text-purple-700 rounded-full text-sm font-bold">
+                <%= @group.member_count %>
+              </span>
             </.link>
           </div>
         </div>
 
-        <!-- Messages -->
-        <div class="max-h-[600px] overflow-y-auto p-6 space-y-5 scrollbar-thumb-purple-500 scrollbar-thumb-rounded scrollbar-track-gray-100 scrollbar-w-2" id="messages-container">
-          <%= if @messages == [] do %>
-            <div class="text-center py-20">
-              <div class="w-28 h-28 mx-auto mb-8 bg-gradient-to-br from-purple-100 to-pink-100 rounded-full flex items-center justify-center">
-                <svg class="w-14 h-14 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                </svg>
+        <%= if @active_tab == "chat" do %>
+          <div class="max-h-[600px] overflow-y-auto p-6 space-y-5 scrollbar-thumb-purple-500 scrollbar-thumb-rounded scrollbar-track-gray-100 scrollbar-w-2" id="messages-container">
+            <%= if @messages == [] do %>
+              <div class="text-center py-20">
+                <div class="w-28 h-28 mx-auto mb-8 bg-gradient-to-br from-purple-100 to-pink-100 rounded-full flex items-center justify-center">
+                  <svg class="w-14 h-14 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                  </svg>
+                </div>
+                <h3 class="text-3xl font-bold text-gray-900 mb-3">No messages yet</h3>
+                <p class="text-gray-500 text-lg">Be the first to say hello!</p>
               </div>
-              <h3 class="text-3xl font-bold text-gray-900 mb-3">No messages yet</h3>
-              <p class="text-gray-500 text-lg">Be the first to say hello!</p>
-            </div>
-          <% else %>
-            <%= for message <- Enum.reverse(@messages) |> Enum.reject(&(&1.deleted)) do %>
-              <% is_own_message = message.user_id == extract_user_id(@user) %>
-              <%= if !message.deleted do %>
+            <% else %>
+              <%= for message <- Enum.reverse(@messages) do %>
                 <% is_own_message = message.user_id == extract_user_id(@user) %>
                 <% user_info = get_user_info(message.user_id) %>
 
                 <div class={"group flex gap-4 p-6 bg-white rounded-2xl shadow-sm hover:shadow-md transition border border-gray-100 #{if is_own_message, do: "flex-row-reverse"}"}>
-                  <div class="flex-shrink-0">
+                  <.link navigate={~p"/#{@locale}/#{user_info.username}"} class="flex-shrink-0">
                     <%= if user_info.avatar_url != "/images/default-avatar.png" do %>
                       <img
                         src={user_info.avatar_url}
@@ -167,12 +184,14 @@
                         </span>
                       </div>
                     <% end %>
-                  </div>
+                  </.link>
 
                   <div class="flex-1 min-w-0">
                     <div class={"flex items-center justify-between mb-3 #{if is_own_message, do: "flex-row-reverse"}"}>
                       <div class={if is_own_message, do: "text-right", else: ""}>
-                        <p class="font-bold text-gray-900 text-lg capitalize"><%= user_info.username %></p>
+                        <.link navigate={~p"/#{@locale}/#{user_info.username}"} class="font-bold text-gray-900 text-lg capitalize hover:text-purple-600 transition">
+                          <%= user_info.username %>
+                        </.link>
                         <p class="text-sm text-gray-500"><%= format_datetime(message.date_created) %></p>
                       </div>
 
@@ -185,7 +204,9 @@
                       <% end %>
                     </div>
 
-                    <p class={"text-gray-700 leading-relaxed mb-4 break-words #{if is_own_message, do: "text-right"}"}><%= message.content %></p>
+                    <p class={"text-gray-700 leading-relaxed mb-4 break-words #{if is_own_message, do: "text-right"}"}>
+                      <%= message.content %>
+                    </p>
 
                     <div class={"flex items-center gap-3 flex-wrap #{if is_own_message, do: "justify-end"}"}>
                       <%= for reaction_type <- [:like, :love, :laugh, :wow] do %>
@@ -202,25 +223,25 @@
                 </div>
               <% end %>
             <% end %>
-          <% end %>
-        </div>
+          </div>
 
-        <div class="p-6 bg-gray-50 border-t border-gray-200">
-          <form phx-submit="send_message" class="flex gap-4">
-            <textarea
-              name="content"
-              value={@message_content}
-              phx-change="update_message_content"
-              placeholder="Write a message..."
-              rows="1"
-              class="flex-1 px-6 py-4 bg-white border border-gray-300 rounded-2xl focus:border-purple-500 focus:ring-4 focus:ring-purple-100 resize-none transition text-base"
-              onkeydown="if(event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); this.form.requestSubmit(); }"
-            ></textarea>
-            <button type="submit" class="px-8 py-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-2xl font-bold hover:shadow-lg transition">
-              Send
-            </button>
-          </form>
-        </div>
+          <div class="p-6 bg-gray-50 border-t border-gray-200">
+            <form phx-submit="send_message" class="flex gap-4">
+              <textarea
+                name="content"
+                value={@message_content}
+                phx-change="update_message_content"
+                placeholder="Write a message..."
+                rows="1"
+                class="flex-1 px-6 py-4 bg-white border border-gray-300 rounded-2xl focus:border-purple-500 focus:ring-4 focus:ring-purple-100 resize-none transition text-base"
+                onkeydown="if(event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); this.form.requestSubmit(); }"
+              ></textarea>
+              <button type="submit" class="px-8 py-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-2xl font-bold hover:shadow-lg transition">
+                Send
+              </button>
+            </form>
+          </div>
+        <% end %>
       </div>
     </div>
   <% else %>
@@ -244,89 +265,14 @@
   <% end %>
 </div>
 
-<%= if @show_invite_modal do %>
-  <div class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-6">
-    <div class="bg-white rounded-3xl shadow-2xl max-w-lg w-full">
-      <div class="bg-gradient-to-r from-purple-600 to-pink-600 px-8 py-6 flex items-center justify-between rounded-t-3xl">
-        <h2 class="text-2xl font-bold text-white">Invite Members</h2>
-        <button phx-click="close_invite_modal" class="text-white hover:bg-white/20 p-2 rounded-xl transition">
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </button>
-      </div>
-
-      <div class="p-8 space-y-6">
-        <div class="relative">
-          <svg class="absolute left-5 top-1/2 -translate-y-1/2 w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-          </svg>
-          <input
-            type="text"
-            phx-change="search_users"
-            name="query"
-            value={@invite_search}
-            placeholder="Search by username..."
-            class="w-full pl-14 pr-5 py-4 border border-gray-300 rounded-2xl focus:border-purple-500 focus:ring-4 focus:ring-purple-100 transition"
-          />
-        </div>
-
-        <div class="space-y-3 max-h-80 overflow-y-auto">
-          <%= for user <- @found_users do %>
-            <div class="flex items-center justify-between p-5 bg-gray-50 rounded-2xl hover:bg-gray-100 transition">
-              <div class="flex items-center gap-4">
-                <%= if user.avatar_url != "/images/default-avatar.png" do %>
-                  <img
-                    src={user.avatar_url}
-                    alt={user.username}
-                    class="w-12 h-12 rounded-full object-cover"
-                    onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
-                  />
-                  <div class="hidden w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full items-center justify-center">
-                    <span class="text-xl font-bold text-white"><%= String.first(user.username) |> String.upcase() %></span>
-                  </div>
-                <% else %>
-                  <div class="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
-                    <span class="text-xl font-bold text-white"><%= String.first(user.username) |> String.upcase() %></span>
-                  </div>
-                <% end %>
-                <p class="font-semibold text-gray-900 capitalize"><%= user.username %></p>
-              </div>
-              <button phx-click="send_invite" phx-value-invitee_id={user.id} class="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl font-medium hover:shadow-md transition">
-                Invite
-              </button>
-            </div>
-          <% end %>
-
-          <%= if @found_users == [] && @invite_search != "" do %>
-            <p class="text-center text-gray-500 py-8">No users found</p>
-          <% end %>
-        </div>
-      </div>
-    </div>
-  </div>
-<% end %>
-
 <script>
   const container = document.getElementById('messages-container');
   if (container) container.scrollTop = container.scrollHeight;
 </script>
 
 <style>
-  .scrollbar-w-2::-webkit-scrollbar {
-    width: 0.5rem;
-  }
-
-  .scrollbar-track-gray-100::-webkit-scrollbar-track {
-    background-color: #f3f4f6;
-  }
-
-  .scrollbar-thumb-purple-500::-webkit-scrollbar-thumb {
-    background-color: #a855f7;
-    border-radius: 0.25rem;
-  }
-
-  .scrollbar-thumb-rounded::-webkit-scrollbar-thumb {
-    border-radius: 0.25rem;
-  }
+  .scrollbar-w-2::-webkit-scrollbar { width: 0.5rem; }
+  .scrollbar-track-gray-100::-webkit-scrollbar-track { background-color: #f3f4f6; }
+  .scrollbar-thumb-purple-500::-webkit-scrollbar-thumb { background-color: #a855f7; border-radius: 0.25rem; }
+  .scrollbar-thumb-rounded::-webkit-scrollbar-thumb { border-radius: 0.25rem; }
 </style>

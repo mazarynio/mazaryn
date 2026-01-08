@@ -1,0 +1,391 @@
+<.live_component
+  module={MazarynWeb.HomeLive.NavComponent}
+  id="navigation"
+  user={@current_user}
+  search=""
+  locale={@locale}
+/>
+
+<div class="bg-[#FAFAFA] min-h-screen">
+  <div class="flex w-[90%] max-w-[1440px] mx-auto">
+    <div class="w-full lg:w-[18%] py-6">
+      <.live_component
+        module={MazarynWeb.HomeLive.LeftSidebarComponent}
+        id="leftside"
+        user={@current_user}
+        locale={@locale}
+      />
+    </div>
+
+    <div class="w-full lg:w-[78.6%] ml-11 py-6">
+      <!-- Business Header -->
+      <div class="bg-white rounded-3xl shadow-xl p-8 mb-6">
+        <div class="flex items-center justify-between mb-8">
+          <div class="flex items-center gap-6">
+            <div class="w-24 h-24 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-3xl flex items-center justify-center shadow-xl">
+              <span class="text-5xl font-bold text-white">
+                <%= if @business.company_name && String.length(@business.company_name) > 0 do %>
+                  <%= String.first(@business.company_name) |> String.upcase() %>
+                <% else %>
+                  B
+                <% end %>
+              </span>
+            </div>
+            <div>
+              <h1 class="text-4xl font-bold text-gray-900"><%= @business.company_name %></h1>
+              <p class="text-xl text-gray-600 mt-2"><%= @business.industry %></p>
+            </div>
+          </div>
+
+          <div class="flex gap-3">
+            <%= if not @editing do %>
+              <button
+                phx-click="edit"
+                class="px-6 py-3 bg-emerald-600 text-white font-semibold rounded-xl hover:bg-emerald-700 transition-all flex items-center gap-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
+                Edit Profile
+              </button>
+
+              <button
+                phx-click="show_delete_modal"
+                class="px-6 py-3 bg-red-600 text-white font-semibold rounded-xl hover:bg-red-700 transition-all flex items-center gap-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+                Delete
+              </button>
+            <% end %>
+          </div>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <%= if not @editing do %>
+          <div class="border-t border-gray-200 pt-6">
+            <div class="flex gap-2 overflow-x-auto pb-2">
+              <.link navigate={~p"/en/business/#{@business_id}"} class="px-6 py-3 bg-emerald-600 text-white font-semibold rounded-xl hover:bg-emerald-700 transition-all flex items-center gap-2 whitespace-nowrap">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                </svg>
+                Overview
+              </.link>
+
+              <.link navigate={~p"/en/business/#{@business_id}/team"} class="px-6 py-3 border border-gray-300 text-gray-700 font-semibold rounded-xl hover:bg-gray-50 transition-all flex items-center gap-2 whitespace-nowrap">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+                Team
+              </.link>
+
+              <.link navigate={~p"/en/business/#{@business_id}/analytics"} class="px-6 py-3 border border-gray-300 text-gray-700 font-semibold rounded-xl hover:bg-gray-50 transition-all flex items-center gap-2 whitespace-nowrap">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+                Analytics
+              </.link>
+
+              <.link navigate={~p"/en/business/#{@business_id}/jobs"} class="px-6 py-3 border border-gray-300 text-gray-700 font-semibold rounded-xl hover:bg-gray-50 transition-all flex items-center gap-2 whitespace-nowrap">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                </svg>
+                Jobs
+              </.link>
+
+              <button class="px-6 py-3 border border-gray-300 text-gray-700 font-semibold rounded-xl hover:bg-gray-50 transition-all flex items-center gap-2 whitespace-nowrap opacity-50 cursor-not-allowed">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
+                </svg>
+                Ads
+                <span class="text-xs bg-gray-200 px-2 py-1 rounded">Soon</span>
+              </button>
+
+              <button class="px-6 py-3 border border-gray-300 text-gray-700 font-semibold rounded-xl hover:bg-gray-50 transition-all flex items-center gap-2 whitespace-nowrap opacity-50 cursor-not-allowed">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+                </svg>
+                Posts
+                <span class="text-xs bg-gray-200 px-2 py-1 rounded">Soon</span>
+              </button>
+            </div>
+          </div>
+        <% end %>
+      </div>
+
+      <!-- Main Content -->
+      <div class="bg-white rounded-3xl shadow-xl p-8">
+        <%= if @editing do %>
+          <h2 class="text-2xl font-bold text-gray-900 mb-6">Edit Business Profile</h2>
+
+          <.form for={%{}} phx-submit="save_business" class="space-y-6 max-w-3xl">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">Company Name</label>
+                <input
+                  type="text"
+                  name="business[company_name]"
+                  value={@business.company_name}
+                  class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500"
+                />
+              </div>
+
+              <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">Industry</label>
+                <input
+                  type="text"
+                  name="business[industry]"
+                  value={@business.industry}
+                  class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500"
+                />
+              </div>
+
+              <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">Company Size</label>
+                <select
+                  name="business[company_size]"
+                  class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500">
+                  <option value="1-10" selected={@business.company_size == "1-10"}>1-10 employees</option>
+                  <option value="11-50" selected={@business.company_size == "11-50"}>11-50 employees</option>
+                  <option value="51-200" selected={@business.company_size == "51-200"}>51-200 employees</option>
+                  <option value="201-500" selected={@business.company_size == "201-500"}>201-500 employees</option>
+                  <option value="501-1000" selected={@business.company_size == "501-1000"}>501-1000 employees</option>
+                  <option value="1001+" selected={@business.company_size == "1001+"}>1001+ employees</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">Website</label>
+                <input
+                  type="url"
+                  name="business[website]"
+                  value={@business.website}
+                  class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500"
+                  placeholder="https://example.com"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-sm font-semibold text-gray-700 mb-2">Business Description</label>
+              <textarea
+                name="business[business_description]"
+                rows="6"
+                class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500"><%= @business.business_description %></textarea>
+            </div>
+
+            <div class="flex gap-4">
+              <button
+                type="button"
+                phx-click="cancel_edit"
+                class="px-6 py-3 border border-gray-300 text-gray-700 font-semibold rounded-xl hover:bg-gray-50">
+                Cancel
+              </button>
+              <button
+                type="submit"
+                class="px-6 py-3 bg-emerald-600 text-white font-semibold rounded-xl hover:bg-emerald-700">
+                Save Changes
+              </button>
+            </div>
+          </.form>
+        <% else %>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div>
+              <h3 class="text-lg font-semibold text-gray-900 mb-4">Business Information</h3>
+              <dl class="space-y-4">
+                <div>
+                  <dt class="text-sm font-medium text-gray-500">Business Email</dt>
+                  <dd class="mt-1 text-gray-900"><%= @business.business_email %></dd>
+                </div>
+                <div>
+                  <dt class="text-sm font-medium text-gray-500">Website</dt>
+                  <dd class="mt-1 text-gray-900">
+                    <%= if @business.website != "" do %>
+                      <a href={@business.website} target="_blank" class="text-emerald-600 hover:underline"><%= @business.website %></a>
+                    <% else %>
+                      Not provided
+                    <% end %>
+                  </dd>
+                </div>
+                <div>
+                  <dt class="text-sm font-medium text-gray-500">Company Size</dt>
+                  <dd class="mt-1 text-gray-900"><%= @business.company_size || "Not specified" %></dd>
+                </div>
+                <div>
+                  <dt class="text-sm font-medium text-gray-500">Industry</dt>
+                  <dd class="mt-1 text-gray-900"><%= @business.industry || "Not specified" %></dd>
+                </div>
+              </dl>
+            </div>
+
+            <div>
+              <h3 class="text-lg font-semibold text-gray-900 mb-4">Description</h3>
+              <p class="text-gray-700 leading-relaxed">
+                <%= if @business.business_description != "" do %>
+                  <%= @business.business_description %>
+                <% else %>
+                  No description provided yet.
+                <% end %>
+              </p>
+            </div>
+          </div>
+
+          <!-- Quick Stats -->
+          <div class="mt-12 pt-8 border-t border-gray-200">
+            <h3 class="text-2xl font-bold text-gray-900 mb-6">Quick Stats</h3>
+
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+              <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl p-6">
+                <div class="flex items-center justify-between mb-3">
+                  <h4 class="text-sm font-medium text-blue-900">Total Posts</h4>
+                  <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+                  </svg>
+                </div>
+                <p class="text-3xl font-bold text-blue-900">0</p>
+              </div>
+
+              <div class="bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-2xl p-6">
+                <div class="flex items-center justify-between mb-3">
+                  <h4 class="text-sm font-medium text-emerald-900">Active Jobs</h4>
+                  <svg class="w-8 h-8 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                  </svg>
+                </div>
+                <p class="text-3xl font-bold text-emerald-900">0</p>
+              </div>
+
+              <div class="bg-gradient-to-br from-purple-50 to-purple-100 rounded-2xl p-6">
+                <div class="flex items-center justify-between mb-3">
+                  <h4 class="text-sm font-medium text-purple-900">Team Members</h4>
+                  <svg class="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                  </svg>
+                </div>
+                <p class="text-3xl font-bold text-purple-900">0</p>
+              </div>
+
+              <div class="bg-gradient-to-br from-orange-50 to-orange-100 rounded-2xl p-6">
+                <div class="flex items-center justify-between mb-3">
+                  <h4 class="text-sm font-medium text-orange-900">Profile Views</h4>
+                  <svg class="w-8 h-8 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                  </svg>
+                </div>
+                <p class="text-3xl font-bold text-orange-900">0</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Get Started Section -->
+          <div class="mt-12 pt-8 border-t border-gray-200">
+            <h3 class="text-2xl font-bold text-gray-900 mb-6">Get Started</h3>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <.link navigate={~p"/en/business/#{@business_id}/team"} class="block p-6 border-2 border-gray-200 rounded-2xl hover:border-emerald-500 hover:shadow-lg transition-all group">
+                <div class="w-12 h-12 bg-emerald-100 rounded-xl flex items-center justify-center mb-4 group-hover:bg-emerald-500 transition-colors">
+                  <svg class="w-6 h-6 text-emerald-600 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                  </svg>
+                </div>
+                <h4 class="text-lg font-bold text-gray-900 mb-2">Build Your Team</h4>
+                <p class="text-gray-600 text-sm">Invite team members and assign roles to collaborate effectively</p>
+              </.link>
+
+              <.link navigate={~p"/en/business/#{@business_id}/jobs"} class="block p-6 border-2 border-gray-200 rounded-2xl hover:border-blue-500 hover:shadow-lg transition-all group">
+                <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mb-4 group-hover:bg-blue-500 transition-colors">
+                  <svg class="w-6 h-6 text-blue-600 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                  </svg>
+                </div>
+                <h4 class="text-lg font-bold text-gray-900 mb-2">Post Your First Job</h4>
+                <p class="text-gray-600 text-sm">Start recruiting top talent by posting job openings</p>
+              </.link>
+
+              <.link navigate={~p"/en/business/#{@business_id}/analytics"} class="block p-6 border-2 border-gray-200 rounded-2xl hover:border-purple-500 hover:shadow-lg transition-all group">
+                <div class="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center mb-4 group-hover:bg-purple-500 transition-colors">
+                  <svg class="w-6 h-6 text-purple-600 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                  </svg>
+                </div>
+                <h4 class="text-lg font-bold text-gray-900 mb-2">Track Analytics</h4>
+                <p class="text-gray-600 text-sm">Monitor your business performance and engagement metrics</p>
+              </.link>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%= if assigns[:show_delete_modal] do %>
+  <div class="fixed inset-0 z-50 overflow-y-auto" phx-click="hide_delete_modal">
+    <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+      <div class="fixed inset-0 bg-black bg-opacity-50 transition-opacity"></div>
+
+      <div class="inline-block align-bottom bg-white rounded-2xl px-6 pt-6 pb-4 text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-md sm:w-full sm:p-8"
+           phx-click={Phoenix.LiveView.JS.exec("event.stopPropagation()")}>
+        <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-red-100 mb-6">
+          <svg class="h-8 w-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+          </svg>
+        </div>
+
+        <div class="text-center">
+          <h3 class="text-xl font-bold text-gray-900 mb-2">
+            Delete Business Account?
+          </h3>
+          <p class="text-sm text-gray-500 mb-6">
+            Are you sure you want to permanently delete <strong class="text-gray-700"><%= @business.company_name %></strong>?
+            This action cannot be undone and all your business data will be lost forever.
+          </p>
+
+          <div class="bg-red-50 border-l-4 border-red-400 p-4 mb-6 text-left rounded-lg">
+            <div class="flex items-start">
+              <svg class="w-5 h-5 text-red-400 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+              </svg>
+              <div class="text-sm">
+                <p class="font-medium text-red-800">This will permanently delete:</p>
+                <ul class="mt-2 list-disc list-inside text-red-700 space-y-1">
+                  <li>All business posts and content</li>
+                  <li>Business profile information</li>
+                  <li>Team member associations</li>
+                  <li>All analytics data</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex flex-col-reverse sm:flex-row sm:justify-center sm:space-x-4 space-y-3 space-y-reverse sm:space-y-0">
+          <button
+            phx-click="hide_delete_modal"
+            type="button"
+            class="w-full sm:w-auto inline-flex justify-center items-center px-6 py-3 border border-gray-300 shadow-sm text-base font-medium rounded-xl text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition-colors duration-200">
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+            Keep Business
+          </button>
+          <button
+            phx-click="delete_business"
+            type="button"
+            class="w-full sm:w-auto inline-flex justify-center items-center px-6 py-3 border border-transparent text-base font-medium rounded-xl text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors duration-200 shadow-lg">
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+            Yes, Delete Forever
+          </button>
+        </div>
+
+        <p class="text-xs text-gray-400 text-center mt-6">
+          This action is permanent and cannot be reversed
+        </p>
+      </div>
+    </div>
+  </div>
+<% end %>

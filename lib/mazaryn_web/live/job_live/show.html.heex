@@ -1,0 +1,277 @@
+<.live_component
+  module={MazarynWeb.HomeLive.NavComponent}
+  id="navigation"
+  user={@current_user}
+  search=""
+  locale={@locale}
+/>
+
+<div class="bg-[#FAFAFA] min-h-screen">
+  <div class="flex w-[90%] max-w-[1440px] mx-auto">
+    <div class="w-full lg:w-[18%] py-6">
+      <.live_component
+        module={MazarynWeb.HomeLive.LeftSidebarComponent}
+        id="leftside"
+        user={@current_user}
+        locale={@locale}
+      />
+    </div>
+
+    <div class="w-full lg:w-[78.6%] ml-11 py-6">
+      <div class="mb-6">
+        <.link navigate={~p"/en/jobs"} class="inline-flex items-center gap-2 text-gray-600 hover:text-emerald-600 transition-colors">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+          </svg>
+          Back to Jobs
+        </.link>
+      </div>
+
+      <div class="bg-white rounded-3xl shadow-xl p-8 mb-6">
+        <div class="flex items-start justify-between mb-6">
+          <div class="flex-1">
+            <div class="flex items-center gap-3 mb-4">
+              <h1 class="text-4xl font-bold text-gray-900"><%= @job.title %></h1>
+              <%= if @job.status == "active" do %>
+                <span class="px-4 py-2 bg-green-100 text-green-700 text-sm font-semibold rounded-full">Active</span>
+              <% end %>
+            </div>
+
+            <div class="flex flex-wrap gap-4 text-gray-600 mb-4">
+              <div class="flex items-center gap-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                </svg>
+                <span class="font-medium">Company Name</span>
+              </div>
+
+              <div class="flex items-center gap-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                <%= format_location(@job.locations) %>
+              </div>
+
+              <div class="flex items-center gap-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Posted <%= time_ago(@job.date_created) %>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex flex-col gap-3 ml-6">
+            <button
+              phx-click="show_apply_modal"
+              class="px-8 py-4 bg-emerald-600 text-white font-bold rounded-xl hover:bg-emerald-700 transition-all shadow-lg text-lg">
+              Apply Now
+            </button>
+
+            <button
+              phx-click="save_job"
+              class={"px-8 py-3 font-semibold rounded-xl transition-all flex items-center justify-center gap-2 #{if @is_saved, do: "bg-emerald-100 text-emerald-700 border-2 border-emerald-600", else: "border-2 border-gray-300 text-gray-700 hover:bg-gray-50"}"}>
+              <svg class={"w-5 h-5 #{if @is_saved, do: "fill-current", else: ""}"} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+              </svg>
+              <%= if @is_saved, do: "Saved", else: "Save Job" %>
+            </button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 p-6 bg-gray-50 rounded-2xl">
+          <div>
+            <p class="text-sm text-gray-500 mb-1">Salary</p>
+            <p class="text-lg font-semibold text-gray-900"><%= format_salary_range(@job.salary_range) %></p>
+          </div>
+
+          <div>
+            <p class="text-sm text-gray-500 mb-1">Employment Type</p>
+            <p class="text-lg font-semibold text-gray-900"><%= format_employment_type(@job.employment_type) %></p>
+          </div>
+
+          <div>
+            <p class="text-sm text-gray-500 mb-1">Work Location</p>
+            <p class="text-lg font-semibold text-gray-900"><%= format_location_type(@job.location_type) %></p>
+          </div>
+
+          <div>
+            <p class="text-sm text-gray-500 mb-1">Seniority Level</p>
+            <p class="text-lg font-semibold text-gray-900"><%= format_seniority(@job.seniority_level) %></p>
+          </div>
+
+          <div>
+            <p class="text-sm text-gray-500 mb-1">Industry</p>
+            <p class="text-lg font-semibold text-gray-900"><%= @job.industry %></p>
+          </div>
+
+          <div>
+            <p class="text-sm text-gray-500 mb-1">Applicants</p>
+            <p class="text-lg font-semibold text-gray-900"><%= @job.applications_count %></p>
+          </div>
+        </div>
+
+        <div class="border-t border-gray-200 pt-8">
+          <h2 class="text-2xl font-bold text-gray-900 mb-4">Job Description</h2>
+          <div class="prose max-w-none text-gray-700 leading-relaxed">
+            <p><%= @job.description %></p>
+          </div>
+        </div>
+
+        <%= if length(@job.required_skills) > 0 do %>
+          <div class="border-t border-gray-200 pt-8 mt-8">
+            <h2 class="text-2xl font-bold text-gray-900 mb-4">Required Skills</h2>
+            <div class="flex flex-wrap gap-3">
+              <%= for skill <- @job.required_skills do %>
+                <span class="px-4 py-2 bg-blue-100 text-blue-700 font-medium rounded-xl">
+                  <%= skill %>
+                </span>
+              <% end %>
+            </div>
+          </div>
+        <% end %>
+
+        <div class="border-t border-gray-200 pt-8 mt-8">
+          <h2 class="text-2xl font-bold text-gray-900 mb-4">Experience Required</h2>
+          <p class="text-gray-700">
+            <%= if @job.experience_required.min_years == @job.experience_required.max_years do %>
+              <%= @job.experience_required.min_years %> years of experience
+            <% else %>
+              <%= @job.experience_required.min_years %> - <%= @job.experience_required.max_years %> years of experience
+            <% end %>
+          </p>
+        </div>
+
+        <div class="border-t border-gray-200 pt-8 mt-8">
+          <div class="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-2xl p-8 text-center">
+            <h3 class="text-2xl font-bold text-gray-900 mb-4">Interested in this position?</h3>
+            <p class="text-gray-600 mb-6">Join our team and make an impact!</p>
+            <button
+              phx-click="show_apply_modal"
+              class="px-10 py-4 bg-emerald-600 text-white font-bold rounded-xl hover:bg-emerald-700 transition-all shadow-lg text-lg">
+              Apply for this Job
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%= if @show_apply_modal do %>
+  <div class="fixed inset-0 z-50 overflow-y-auto" phx-click="hide_apply_modal">
+    <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+      <div class="fixed inset-0 bg-black bg-opacity-50 transition-opacity"></div>
+
+      <div class="inline-block align-bottom bg-white rounded-2xl px-6 pt-6 pb-4 text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full sm:p-8"
+           phx-click={Phoenix.LiveView.JS.exec("event.stopPropagation()")}>
+        <div class="flex items-center justify-between mb-6">
+          <h3 class="text-2xl font-bold text-gray-900">Apply for <%= @job.title %></h3>
+          <button
+            phx-click="hide_apply_modal"
+            class="text-gray-400 hover:text-gray-600 transition-colors">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        <.form for={%{}} phx-submit="apply_to_job" class="space-y-6">
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-2">
+              Full Name <span class="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              name="full_name"
+              required
+              value={@current_user.username || ""}
+              class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500"
+            />
+          </div>
+
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-2">
+              Email <span class="text-red-500">*</span>
+            </label>
+            <input
+              type="email"
+              name="email"
+              required
+              value={@current_user.email || ""}
+              class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500"
+            />
+          </div>
+
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-2">
+              Phone
+            </label>
+            <input
+              type="tel"
+              name="phone"
+              class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500"
+              placeholder="+1 (555) 123-4567"
+            />
+          </div>
+
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-2">
+              Resume <span class="text-red-500">*</span>
+            </label>
+            <input
+              type="file"
+              name="resume"
+              accept=".pdf,.doc,.docx"
+              required
+              class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500"
+            />
+            <p class="text-xs text-gray-500 mt-2">PDF, DOC, or DOCX (max 5MB)</p>
+          </div>
+
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-2">
+              Cover Letter
+            </label>
+            <textarea
+              name="cover_letter"
+              rows="6"
+              class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500"
+              placeholder="Tell us why you're a great fit for this position..."></textarea>
+          </div>
+
+          <div class="bg-blue-50 border-l-4 border-blue-400 p-4 rounded-lg">
+            <div class="flex items-start">
+              <svg class="w-5 h-5 text-blue-400 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+              </svg>
+              <div class="text-sm text-blue-700">
+                <p class="font-medium">Application Tips:</p>
+                <ul class="mt-2 list-disc list-inside space-y-1">
+                  <li>Make sure your resume is up to date</li>
+                  <li>Highlight relevant skills and experience</li>
+                  <li>Proofread your application before submitting</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-4 space-y-3 space-y-reverse sm:space-y-0 pt-6 border-t">
+            <button
+              type="button"
+              phx-click="hide_apply_modal"
+              class="w-full sm:w-auto px-6 py-3 border border-gray-300 text-gray-700 font-semibold rounded-xl hover:bg-gray-50 transition-all">
+              Cancel
+            </button>
+            <button
+              type="submit"
+              class="w-full sm:w-auto px-6 py-3 bg-emerald-600 text-white font-semibold rounded-xl hover:bg-emerald-700 transition-all shadow-lg">
+              Submit Application
+            </button>
+          </div>
+        </.form>
+      </div>
+    </div>
+  </div>
+<% end %>

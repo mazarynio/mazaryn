@@ -5,47 +5,63 @@ defmodule MazarynWeb.GroupLive.Members do
   require Logger
 
   @impl true
-  def mount(%{"id" => group_id}, %{"session_uuid" => session_uuid} = _session, socket) do
+  def mount(%{"id" => group_id_from_url}, %{"session_uuid" => session_uuid} = _session, socket) do
+    Logger.info("🔍 Members mount - URL param: '#{group_id_from_url}'")
+
     with {:ok, user} <- Users.get_by_session_uuid(session_uuid) do
-      group = load_group(group_id)
+      Logger.info("✅ User authenticated: #{user.username}")
+
+      group = load_group(group_id_from_url) || load_group(group_id_from_url <> "_")
 
       if group do
+        Logger.info("✅ Group loaded: #{group.name}")
+
         user_id_str = extract_user_id(user)
         is_member = is_member?(group, user_id_str)
         is_owner = is_owner?(group, user_id_str)
         is_admin = is_admin?(group, user_id_str)
 
+        Logger.info(
+          "👤 User: #{user_id_str}, Member: #{is_member}, Owner: #{is_owner}, Admin: #{is_admin}"
+        )
+
         if is_member do
-          members = load_group_members(group_id)
+          members = load_group_members(group.id)
+          Logger.info("✅ Loaded #{length(members)} members")
 
-          socket =
-            socket
-            |> assign(user: user)
-            |> assign(session_uuid: session_uuid)
-            |> assign(group: group)
-            |> assign(is_member: is_member)
-            |> assign(is_owner: is_owner)
-            |> assign(is_admin: is_admin)
-            |> assign(members: members)
-            |> assign(search_query: "")
-            |> assign(show_admin_modal: false)
-            |> assign(selected_member: nil)
-
-          {:ok, socket}
+          {:ok,
+           socket
+           |> assign(user: user)
+           |> assign(session_uuid: session_uuid)
+           |> assign(group: group)
+           |> assign(group_id: group.id)
+           |> assign(is_member: is_member)
+           |> assign(is_owner: is_owner)
+           |> assign(is_admin: is_admin)
+           |> assign(members: members)
+           |> assign(search_query: "")
+           |> assign(show_admin_modal: false)
+           |> assign(selected_member: nil)}
         else
+          Logger.error("❌ User not a member")
+
           {:ok,
            socket
            |> put_flash(:error, "You must be a member to view members")
-           |> redirect(to: "/#{socket.assigns.locale}/groups/#{group_id}")}
+           |> redirect(to: ~p"/#{socket.assigns.locale}/groups/#{group.id}")}
         end
       else
+        Logger.error("❌ Group not found")
+
         {:ok,
          socket
          |> put_flash(:error, "Group not found")
-         |> redirect(to: "/#{socket.assigns.locale}/groups")}
+         |> redirect(to: ~p"/#{socket.assigns.locale}/groups")}
       end
     else
-      {:error, _reason} ->
+      {:error, reason} ->
+        Logger.error("❌ Auth error: #{inspect(reason)}")
+
         {:ok,
          socket
          |> put_flash(:error, "Session expired")
@@ -54,10 +70,10 @@ defmodule MazarynWeb.GroupLive.Members do
   end
 
   @impl true
-  def mount(%{"id" => group_id}, %{"user_id" => user_id} = _session, socket) do
+  def mount(%{"id" => group_id_from_url}, %{"user_id" => user_id} = _session, socket) do
     case Users.one_by_email(user_id) do
       {:ok, user} ->
-        group = load_group(group_id)
+        group = load_group(group_id_from_url) || load_group(group_id_from_url <> "_")
 
         if group do
           user_id_str = extract_user_id(user)
@@ -66,33 +82,32 @@ defmodule MazarynWeb.GroupLive.Members do
           is_admin = is_admin?(group, user_id_str)
 
           if is_member do
-            members = load_group_members(group_id)
+            members = load_group_members(group.id)
 
-            socket =
-              socket
-              |> assign(user: user)
-              |> assign(user_id: user_id)
-              |> assign(group: group)
-              |> assign(is_member: is_member)
-              |> assign(is_owner: is_owner)
-              |> assign(is_admin: is_admin)
-              |> assign(members: members)
-              |> assign(search_query: "")
-              |> assign(show_admin_modal: false)
-              |> assign(selected_member: nil)
-
-            {:ok, socket}
+            {:ok,
+             socket
+             |> assign(user: user)
+             |> assign(user_id: user_id)
+             |> assign(group: group)
+             |> assign(group_id: group.id)
+             |> assign(is_member: is_member)
+             |> assign(is_owner: is_owner)
+             |> assign(is_admin: is_admin)
+             |> assign(members: members)
+             |> assign(search_query: "")
+             |> assign(show_admin_modal: false)
+             |> assign(selected_member: nil)}
           else
             {:ok,
              socket
              |> put_flash(:error, "You must be a member to view members")
-             |> redirect(to: "/#{socket.assigns.locale}/groups/#{group_id}")}
+             |> redirect(to: ~p"/#{socket.assigns.locale}/groups/#{group.id}")}
           end
         else
           {:ok,
            socket
            |> put_flash(:error, "Group not found")
-           |> redirect(to: "/#{socket.assigns.locale}/groups")}
+           |> redirect(to: ~p"/#{socket.assigns.locale}/groups")}
         end
 
       {:error, _reason} ->
@@ -104,21 +119,17 @@ defmodule MazarynWeb.GroupLive.Members do
   end
 
   @impl true
-  def handle_event("search", %{"query" => query}, socket) do
+  def handle_event("search", %{"value" => query}, socket) do
     {:noreply, assign(socket, search_query: query)}
   end
 
   @impl true
   def handle_event("remove_member", %{"member_id" => member_id}, socket) do
     user_id_str = extract_user_id(socket.assigns.user)
-    group_id = socket.assigns.group.id
+    group_id = socket.assigns.group_id
 
     try do
-      :groupdb.remove_member(
-        to_charlist(group_id),
-        to_charlist(member_id),
-        to_charlist(user_id_str)
-      )
+      Core.GroupClient.remove_member(group_id, member_id, user_id_str)
 
       members = load_group_members(group_id)
       group = load_group(group_id)
@@ -136,28 +147,12 @@ defmodule MazarynWeb.GroupLive.Members do
   end
 
   @impl true
-  def handle_event("open_admin_modal", %{"member_id" => member_id}, socket) do
-    member = Enum.find(socket.assigns.members, fn m -> m.user_id == member_id end)
-    {:noreply, assign(socket, show_admin_modal: true, selected_member: member)}
-  end
-
-  @impl true
-  def handle_event("close_admin_modal", _params, socket) do
-    {:noreply, assign(socket, show_admin_modal: false, selected_member: nil)}
-  end
-
-  @impl true
   def handle_event("make_admin", %{"member_id" => member_id}, socket) do
     user_id_str = extract_user_id(socket.assigns.user)
-    group_id = socket.assigns.group.id
+    group_id = socket.assigns.group_id
 
     try do
-      :groupdb.add_admin(
-        to_charlist(group_id),
-        to_charlist(member_id),
-        to_charlist(user_id_str),
-        [:all]
-      )
+      Core.GroupClient.add_admin(group_id, member_id, user_id_str, [:all])
 
       members = load_group_members(group_id)
       group = load_group(group_id)
@@ -166,8 +161,6 @@ defmodule MazarynWeb.GroupLive.Members do
        socket
        |> assign(members: members)
        |> assign(group: group)
-       |> assign(show_admin_modal: false)
-       |> assign(selected_member: nil)
        |> put_flash(:info, "Member promoted to admin")}
     rescue
       error ->
@@ -178,10 +171,10 @@ defmodule MazarynWeb.GroupLive.Members do
 
   @impl true
   def handle_event("remove_admin", %{"member_id" => member_id}, socket) do
-    group_id = socket.assigns.group.id
+    group_id = socket.assigns.group_id
 
     try do
-      :groupdb.remove_admin(to_charlist(group_id), to_charlist(member_id))
+      Core.GroupClient.remove_admin(group_id, member_id)
 
       members = load_group_members(group_id)
       group = load_group(group_id)
@@ -190,24 +183,26 @@ defmodule MazarynWeb.GroupLive.Members do
        socket
        |> assign(members: members)
        |> assign(group: group)
-       |> assign(show_admin_modal: false)
-       |> assign(selected_member: nil)
        |> put_flash(:info, "Admin privileges removed")}
     rescue
       error ->
         Logger.error("Failed to remove admin: #{inspect(error)}")
-        {:noreply, put_flash(socket, :error, "Failed to remove admin privileges")}
+        {:noreply, put_flash(socket, :error, "Failed to remove admin")}
     end
   end
 
   defp extract_user_id(user) do
-    if is_binary(user.id), do: user.id, else: to_string(user.id)
+    cond do
+      is_binary(user.id) -> user.id
+      is_list(user.id) -> to_string(user.id)
+      true -> to_string(user.id)
+    end
   end
 
   defp load_group(group_id) do
     try do
-      group = :groupdb.get_group(to_charlist(group_id))
-      convert_group_record(group)
+      group_tuple = Core.GroupClient.get_group(group_id)
+      convert_group_record(group_tuple)
     rescue
       _ -> nil
     end
@@ -215,13 +210,8 @@ defmodule MazarynWeb.GroupLive.Members do
 
   defp load_group_members(group_id) do
     try do
-      case :groupdb.get_group_members(to_charlist(group_id)) do
-        members when is_list(members) ->
-          Enum.map(members, &convert_member_record/1)
-
-        _ ->
-          []
-      end
+      members = Core.GroupClient.get_group_members(group_id)
+      Enum.map(members, &convert_member_record/1)
     rescue
       _ -> []
     end
@@ -248,44 +238,28 @@ defmodule MazarynWeb.GroupLive.Members do
   end
 
   defp convert_group_record(group) do
-    admins_raw = elem(group, 8)
-    members_raw = elem(group, 9)
-
-    admins =
-      case admins_raw do
-        :undefined -> []
-        list when is_list(list) -> Enum.map(list, &to_string/1)
-        _ -> []
-      end
-
-    members =
-      case members_raw do
-        :undefined -> []
-        list when is_list(list) -> Enum.map(list, &to_string/1)
-        _ -> []
-      end
-
     %{
-      id: to_string(elem(group, 1)),
-      unique_name: to_string(elem(group, 2)),
-      name: to_string(elem(group, 3)),
-      description: to_string(elem(group, 4)),
+      id: group |> elem(1) |> to_string(),
+      unique_name: group |> elem(2) |> to_string(),
+      name: group |> elem(3) |> to_string(),
+      description: group |> elem(4) |> to_string(),
       type: elem(group, 5),
       privacy: elem(group, 6),
-      owner_id: to_string(elem(group, 7)),
-      admins: admins,
-      members: members,
-      settings: elem(group, 10),
-      member_count: elem(group, 14),
-      date_created: elem(group, 15)
+      owner_id: group |> elem(7) |> to_string(),
+      admins: safe_list(elem(group, 10)),
+      members: safe_list(elem(group, 11)),
+      settings: elem(group, 16),
+      banned_users: safe_list(elem(group, 12)),
+      member_count: elem(group, 19),
+      date_created: elem(group, 21)
     }
   end
 
   defp convert_member_record(member) do
     %{
-      id: to_string(elem(member, 1)),
-      group_id: to_string(elem(member, 2)),
-      user_id: to_string(elem(member, 3)),
+      id: member |> elem(1) |> to_string(),
+      group_id: member |> elem(2) |> to_string(),
+      user_id: member |> elem(3) |> to_string(),
       role: elem(member, 4),
       permissions: elem(member, 5),
       join_date: elem(member, 6),
@@ -295,21 +269,53 @@ defmodule MazarynWeb.GroupLive.Members do
     }
   end
 
+  defp safe_list(:undefined), do: []
+  defp safe_list(l) when is_list(l), do: Enum.map(l, &to_string/1)
+  defp safe_list(_), do: []
+
   def get_user_info(user_id) do
     try do
-      case Core.UserClient.get_user_by_id(to_charlist(user_id)) do
-        {:ok, user} ->
+      user_tuple = Core.UserClient.get_user_by_id(user_id)
+
+      case user_tuple do
+        tuple when is_tuple(tuple) and tuple_size(tuple) > 8 ->
+          username = tuple |> elem(8) |> to_string()
+
+          avatar_url =
+            try do
+              case elem(tuple, 29) do
+                :undefined -> "/images/default-avatar.png"
+                nil -> "/images/default-avatar.png"
+                url when is_list(url) -> to_string(url)
+                url when is_binary(url) -> url
+                _ -> "/images/default-avatar.png"
+              end
+            rescue
+              _ -> "/images/default-avatar.png"
+            end
+
           %{
-            id: to_string(elem(user, 1)),
-            username: to_string(elem(user, 2)),
-            avatar_url: if(elem(user, 20) == :undefined, do: nil, else: to_string(elem(user, 20)))
+            id: to_string(user_id),
+            username: username,
+            avatar_url: avatar_url
           }
 
         _ ->
-          %{id: user_id, username: "Unknown", avatar_url: nil}
+          %{
+            id: to_string(user_id),
+            username: "Unknown",
+            avatar_url: "/images/default-avatar.png"
+          }
       end
     rescue
-      _ -> %{id: user_id, username: "Unknown", avatar_url: nil}
+      error ->
+        Logger.error("Failed to get user info for #{user_id}: #{inspect(error)}")
+
+        %{
+          id: to_string(user_id),
+          username: "Unknown",
+          avatar_url: "/images/default-avatar.png"
+        }
     end
   end
 
@@ -324,11 +330,11 @@ defmodule MazarynWeb.GroupLive.Members do
   end
 
   def filtered_members(members, search_query) do
-    if String.trim(search_query) == "" do
+    query = String.trim(search_query) |> String.downcase()
+
+    if query == "" do
       members
     else
-      query = String.downcase(search_query)
-
       Enum.filter(members, fn member ->
         user_info = get_user_info(member.user_id)
         String.contains?(String.downcase(user_info.username), query)

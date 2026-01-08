@@ -1,0 +1,189 @@
+<.live_component
+  module={MazarynWeb.HomeLive.NavComponent}
+  id="navigation"
+  user={@current_user}
+  search=""
+  locale={@locale}
+/>
+
+<div class="bg-[#FAFAFA] min-h-screen">
+  <div class="flex w-[90%] max-w-[1440px] mx-auto">
+    <div class="w-full lg:w-[18%] py-6">
+      <.live_component
+        module={MazarynWeb.HomeLive.LeftSidebarComponent}
+        id="leftside"
+        user={@current_user}
+        locale={@locale}
+      />
+    </div>
+
+    <div class="w-full lg:w-[78.6%] ml-11 py-6">
+      <div class="bg-white rounded-3xl shadow-xl p-8 mb-6">
+        <div class="flex items-center justify-between mb-8">
+          <div>
+            <h1 class="text-3xl font-bold text-gray-900">Team Management</h1>
+            <p class="text-gray-600 mt-2"><%= @business.company_name %></p>
+          </div>
+
+          <div class="flex gap-3">
+            <.link navigate={~p"/en/business/#{@business_id}"} class="px-6 py-3 border border-gray-300 text-gray-700 font-semibold rounded-xl hover:bg-gray-50 transition-all flex items-center gap-2">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+              </svg>
+              Back to Business
+            </.link>
+
+            <button
+              phx-click="show_invite_modal"
+              class="px-6 py-3 bg-emerald-600 text-white font-semibold rounded-xl hover:bg-emerald-700 transition-all flex items-center gap-2">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+              </svg>
+              Invite Member
+            </button>
+          </div>
+        </div>
+
+        <div class="border-t border-gray-200 pt-6">
+          <%= if length(@team_members) > 0 do %>
+            <div class="space-y-4">
+              <%= for member <- @team_members do %>
+                <div class="flex items-center justify-between p-4 border border-gray-200 rounded-xl hover:shadow-md transition-all">
+                  <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-full flex items-center justify-center">
+                      <span class="text-xl font-bold text-white">
+                        <%= String.first(member.user_id) |> String.upcase() %>
+                      </span>
+                    </div>
+
+                    <div>
+                      <h3 class="text-lg font-semibold text-gray-900">User ID: <%= member.user_id %></h3>
+                      <p class="text-sm text-gray-600">Role: <span class="font-medium"><%= member.role %></span></p>
+                    </div>
+                  </div>
+
+                  <div class="flex gap-3">
+                    <select
+                      phx-change="update_role"
+                      phx-value-user_id={member.user_id}
+                      name="role"
+                      class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500">
+                      <option value="member" selected={member.role == "member"}>Member</option>
+                      <option value="admin" selected={member.role == "admin"}>Admin</option>
+                      <option value="manager" selected={member.role == "manager"}>Manager</option>
+                      <option value="viewer" selected={member.role == "viewer"}>Viewer</option>
+                    </select>
+
+                    <button
+                      phx-click="remove_member"
+                      phx-value-user_id={member.user_id}
+                      class="px-4 py-2 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 transition-all">
+                      Remove
+                    </button>
+                  </div>
+                </div>
+              <% end %>
+            </div>
+          <% else %>
+            <div class="text-center py-12">
+              <div class="inline-flex items-center justify-center w-20 h-20 bg-gray-100 rounded-full mb-4">
+                <svg class="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+              </div>
+              <h3 class="text-lg font-medium text-gray-900 mb-2">No Team Members Yet</h3>
+              <p class="text-gray-500 mb-4">Start building your team by inviting members</p>
+              <button
+                phx-click="show_invite_modal"
+                class="px-6 py-2 bg-emerald-600 text-white font-semibold rounded-xl hover:bg-emerald-700 transition-all">
+                Invite First Member
+              </button>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%= if @show_invite_modal do %>
+  <div class="fixed inset-0 z-50 overflow-y-auto" phx-click="hide_invite_modal">
+    <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+      <div class="fixed inset-0 bg-black bg-opacity-50 transition-opacity"></div>
+
+      <div class="inline-block align-bottom bg-white rounded-2xl px-6 pt-6 pb-4 text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-8"
+           phx-click={Phoenix.LiveView.JS.exec("event.stopPropagation()")}>
+        <div class="flex items-center justify-between mb-6">
+          <h3 class="text-2xl font-bold text-gray-900">Invite Team Member</h3>
+          <button
+            phx-click="hide_invite_modal"
+            class="text-gray-400 hover:text-gray-600 transition-colors">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        <.form for={%{}} phx-submit="invite_member" class="space-y-6">
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-2">
+              Email Address <span class="text-red-500">*</span>
+            </label>
+            <input
+              type="email"
+              name="email"
+              required
+              class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+              placeholder="member@example.com"
+            />
+          </div>
+
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-2">
+              Role <span class="text-red-500">*</span>
+            </label>
+            <select
+              name="role"
+              class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent">
+              <option value="member">Member</option>
+              <option value="admin">Admin</option>
+              <option value="manager">Manager</option>
+              <option value="viewer">Viewer</option>
+            </select>
+          </div>
+
+          <div class="bg-blue-50 border-l-4 border-blue-400 p-4 rounded-lg">
+            <div class="flex items-start">
+              <svg class="w-5 h-5 text-blue-400 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+              </svg>
+              <div class="text-sm text-blue-700">
+                <p class="font-medium">Role Permissions:</p>
+                <ul class="mt-2 list-disc list-inside space-y-1">
+                  <li><strong>Admin:</strong> Full access to all settings</li>
+                  <li><strong>Manager:</strong> Can manage team and posts</li>
+                  <li><strong>Member:</strong> Can create and edit posts</li>
+                  <li><strong>Viewer:</strong> Read-only access</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-4 space-y-3 space-y-reverse sm:space-y-0">
+            <button
+              type="button"
+              phx-click="hide_invite_modal"
+              class="w-full sm:w-auto px-6 py-3 border border-gray-300 text-gray-700 font-semibold rounded-xl hover:bg-gray-50 transition-all">
+              Cancel
+            </button>
+            <button
+              type="submit"
+              class="w-full sm:w-auto px-6 py-3 bg-emerald-600 text-white font-semibold rounded-xl hover:bg-emerald-700 transition-all shadow-lg">
+              Send Invitation
+            </button>
+          </div>
+        </.form>
+      </div>
+    </div>
+  </div>
+<% end %>

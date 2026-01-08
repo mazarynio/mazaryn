@@ -70,7 +70,7 @@ defmodule MazarynWeb.AuthLive.Login do
               )
 
               if is_production and not db_user.verified do
-                Logger.warn(
+                Logger.warning(
                   "✗ Login blocked - email not verified in production (email: #{user_email})"
                 )
 
@@ -113,7 +113,7 @@ defmodule MazarynWeb.AuthLive.Login do
           end
 
         changeset ->
-          Logger.warn("✗ User not found or password invalid - email: #{email}")
+          Logger.warning("✗ User not found or password invalid - email: #{email}")
           Logger.debug("Changeset errors: #{inspect(changeset.errors)}")
 
           changeset =
@@ -123,14 +123,14 @@ defmodule MazarynWeb.AuthLive.Login do
           {:noreply, assign(socket, changeset: changeset)}
       end
     else
-      Logger.warn("Login attempt rejected - form_disabled was true")
+      Logger.warning("Login attempt rejected - form_disabled was true")
       {:noreply, socket}
     end
   end
 
   @impl true
   def handle_event("save", param, socket) do
-    Logger.warn("Login save handler called with unexpected params")
+    Logger.warning("Login save handler called with unexpected params")
     Logger.debug("Unexpected params: #{inspect(param)}")
     {:noreply, socket}
   end

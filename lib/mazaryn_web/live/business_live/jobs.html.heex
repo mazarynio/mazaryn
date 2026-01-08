@@ -1,0 +1,421 @@
+<.live_component
+  module={MazarynWeb.HomeLive.NavComponent}
+  id="navigation"
+  user={@current_user}
+  search=""
+  locale={@locale}
+/>
+
+<div class="bg-[#FAFAFA] min-h-screen">
+  <div class="flex w-[90%] max-w-[1440px] mx-auto">
+    <div class="w-full lg:w-[18%] py-6">
+      <.live_component
+        module={MazarynWeb.HomeLive.LeftSidebarComponent}
+        id="leftside"
+        user={@current_user}
+        locale={@locale}
+      />
+    </div>
+
+    <div class="w-full lg:w-[78.6%] ml-11 py-6">
+      <div class="bg-white rounded-3xl shadow-xl p-8 mb-6">
+        <div class="flex items-center justify-between mb-8">
+          <div>
+            <h1 class="text-3xl font-bold text-gray-900">Job Postings</h1>
+            <p class="text-gray-600 mt-2"><%= @business.company_name %></p>
+          </div>
+
+          <div class="flex gap-3">
+            <.link navigate={~p"/en/business/#{@business_id}"} class="px-6 py-3 border border-gray-300 text-gray-700 font-semibold rounded-xl hover:bg-gray-50 transition-all flex items-center gap-2">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+              </svg>
+              Back to Business
+            </.link>
+
+            <button
+              phx-click="show_create_modal"
+              class="px-6 py-3 bg-emerald-600 text-white font-semibold rounded-xl hover:bg-emerald-700 transition-all flex items-center gap-2">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+              </svg>
+              Post New Job
+            </button>
+          </div>
+        </div>
+
+        <div class="border-t border-gray-200 pt-6">
+          <%= if length(@job_postings) > 0 do %>
+            <div class="space-y-4">
+              <%= for job <- @job_postings do %>
+                <div class="border border-gray-200 rounded-2xl p-6 hover:shadow-lg transition-all">
+                  <div class="flex items-start justify-between">
+                    <div class="flex-1">
+                      <div class="flex items-center gap-3 mb-3">
+                        <h3 class="text-xl font-bold text-gray-900"><%= job.title %></h3>
+                        <%= cond do %>
+                          <% job.status == "active" -> %>
+                            <span class="px-3 py-1 bg-green-100 text-green-700 text-xs font-semibold rounded-full">Active</span>
+                          <% job.status == "draft" -> %>
+                            <span class="px-3 py-1 bg-gray-100 text-gray-700 text-xs font-semibold rounded-full">Draft</span>
+                          <% job.status == "closed" -> %>
+                            <span class="px-3 py-1 bg-red-100 text-red-700 text-xs font-semibold rounded-full">Closed</span>
+                          <% true -> %>
+                            <span class="px-3 py-1 bg-gray-100 text-gray-700 text-xs font-semibold rounded-full"><%= String.capitalize(job.status) %></span>
+                        <% end %>
+                      </div>
+
+                      <div class="flex flex-wrap gap-4 text-sm text-gray-600 mb-4">
+                        <div class="flex items-center gap-2">
+                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                          </svg>
+                          <%= job.location_type |> String.replace("_", " ") |> String.capitalize() %>
+                        </div>
+
+                        <div class="flex items-center gap-2">
+                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                          </svg>
+                          <%= job.employment_type |> String.replace("_", " ") |> String.capitalize() %>
+                        </div>
+
+                        <div class="flex items-center gap-2">
+                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                          </svg>
+                          <%= job.views %> views
+                        </div>
+
+                        <div class="flex items-center gap-2">
+                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                          </svg>
+                          <%= job.applications_count %> applicants
+                        </div>
+                      </div>
+
+                      <p class="text-gray-700 line-clamp-2"><%= job.description %></p>
+                    </div>
+
+                    <div class="flex flex-col gap-2 ml-4">
+                      <button
+                        phx-click="toggle_status"
+                        phx-value-id={job.id}
+                        phx-value-status={job.status}
+                        class="px-4 py-2 border border-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-50 transition-all text-sm">
+                        <%= if job.status == "active", do: "Close", else: "Publish" %>
+                      </button>
+
+                      <.link navigate={~p"/en/jobs/#{job.id}"} class="px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-all text-sm text-center">
+                        View
+                      </.link>
+
+                      <button
+                        phx-click="edit_job"
+                        phx-value-id={job.id}
+                        class="px-4 py-2 bg-emerald-600 text-white font-semibold rounded-lg hover:bg-emerald-700 transition-all text-sm">
+                        Edit
+                      </button>
+
+                      <button
+                        phx-click="delete_job"
+                        phx-value-id={job.id}
+                        data-confirm="Are you sure you want to delete this job posting?"
+                        class="px-4 py-2 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 transition-all text-sm">
+                        Delete
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              <% end %>
+            </div>
+          <% else %>
+            <div class="text-center py-12">
+              <div class="inline-flex items-center justify-center w-20 h-20 bg-gray-100 rounded-full mb-4">
+                <svg class="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                </svg>
+              </div>
+              <h3 class="text-lg font-medium text-gray-900 mb-2">No Job Postings Yet</h3>
+              <p class="text-gray-500 mb-4">Start recruiting by posting your first job</p>
+              <button
+                phx-click="show_create_modal"
+                class="px-6 py-2 bg-emerald-600 text-white font-semibold rounded-xl hover:bg-emerald-700 transition-all">
+                Post Your First Job
+              </button>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%= if @show_create_modal do %>
+  <div class="fixed inset-0 z-50 overflow-y-auto" phx-click="hide_create_modal">
+    <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+      <div class="fixed inset-0 bg-black bg-opacity-50 transition-opacity"></div>
+
+      <div class="inline-block align-bottom bg-white rounded-2xl px-6 pt-6 pb-4 text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full sm:p-8 max-h-[90vh] overflow-y-auto"
+           phx-click={Phoenix.LiveView.JS.exec("event.stopPropagation()")}>
+        <div class="flex items-center justify-between mb-6">
+          <h3 class="text-2xl font-bold text-gray-900">
+            <%= if @editing_job, do: "Edit Job Posting", else: "Create Job Posting" %>
+          </h3>
+          <button
+            phx-click="hide_create_modal"
+            class="text-gray-400 hover:text-gray-600 transition-colors">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        <.form
+          for={%{}}
+          phx-submit={if @editing_job, do: "update_job", else: "create_job"}
+          class="space-y-6">
+
+          <%= if @editing_job do %>
+            <input type="hidden" name="id" value={@editing_job.id} />
+          <% end %>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="md:col-span-2">
+              <label class="block text-sm font-semibold text-gray-700 mb-2">
+                Job Title <span class="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                name="title"
+                required
+                value={if @editing_job, do: @editing_job.title, else: ""}
+                class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500"
+                placeholder="e.g., Senior Software Engineer"
+              />
+            </div>
+
+            <div>
+              <label class="block text-sm font-semibold text-gray-700 mb-2">
+                Location <span class="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                name="location"
+                required
+                value={if @editing_job, do: "", else: ""}
+                class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500"
+                placeholder="e.g., New York, NY"
+              />
+            </div>
+
+            <div>
+              <label class="block text-sm font-semibold text-gray-700 mb-2">
+                Employment Type <span class="text-red-500">*</span>
+              </label>
+              <select
+                name="employment_type"
+                required
+                class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500">
+                <option value="full_time" selected={@editing_job && @editing_job.employment_type == "full_time"}>Full-time</option>
+                <option value="part_time" selected={@editing_job && @editing_job.employment_type == "part_time"}>Part-time</option>
+                <option value="contract" selected={@editing_job && @editing_job.employment_type == "contract"}>Contract</option>
+                <option value="freelance" selected={@editing_job && @editing_job.employment_type == "freelance"}>Freelance</option>
+                <option value="internship" selected={@editing_job && @editing_job.employment_type == "internship"}>Internship</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-sm font-semibold text-gray-700 mb-2">
+                Work Location Type <span class="text-red-500">*</span>
+              </label>
+              <select
+                name="location_type"
+                required
+                class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500">
+                <option value="on_site" selected={@editing_job && @editing_job.location_type == "on_site"}>On-site</option>
+                <option value="remote" selected={@editing_job && @editing_job.location_type == "remote"}>Remote</option>
+                <option value="hybrid" selected={@editing_job && @editing_job.location_type == "hybrid"}>Hybrid</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-sm font-semibold text-gray-700 mb-2">
+                Seniority Level
+              </label>
+              <select
+                name="seniority_level"
+                class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500">
+                <option value="entry" selected={@editing_job && @editing_job.seniority_level == "entry"}>Entry Level</option>
+                <option value="mid" selected={@editing_job && @editing_job.seniority_level == "mid"}>Mid Level</option>
+                <option value="senior" selected={@editing_job && @editing_job.seniority_level == "senior"}>Senior</option>
+                <option value="lead" selected={@editing_job && @editing_job.seniority_level == "lead"}>Lead</option>
+                <option value="executive" selected={@editing_job && @editing_job.seniority_level == "executive"}>Executive</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-sm font-semibold text-gray-700 mb-2">
+                Industry/Category
+              </label>
+              <input
+                type="text"
+                name="industry"
+                value={if @editing_job, do: @editing_job.industry, else: ""}
+                class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500"
+                placeholder="e.g., Technology, Healthcare"
+              />
+            </div>
+
+            <div>
+              <label class="block text-sm font-semibold text-gray-700 mb-2">
+                Min Salary
+              </label>
+              <input
+                type="number"
+                name="salary_min"
+                step="1000"
+                value={if @editing_job, do: @editing_job.salary_range.min, else: ""}
+                class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500"
+                placeholder="50000"
+              />
+            </div>
+
+            <div>
+              <label class="block text-sm font-semibold text-gray-700 mb-2">
+                Max Salary
+              </label>
+              <input
+                type="number"
+                name="salary_max"
+                step="1000"
+                value={if @editing_job, do: @editing_job.salary_range.max, else: ""}
+                class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500"
+                placeholder="80000"
+              />
+            </div>
+
+            <div>
+              <label class="block text-sm font-semibold text-gray-700 mb-2">
+                Salary Currency
+              </label>
+              <select
+                name="salary_currency"
+                class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500">
+                <option value="USD">USD</option>
+                <option value="EUR">EUR</option>
+                <option value="GBP">GBP</option>
+                <option value="CAD">CAD</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-sm font-semibold text-gray-700 mb-2">
+                Salary Period
+              </label>
+              <select
+                name="salary_period"
+                class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500">
+                <option value="yearly">Yearly</option>
+                <option value="monthly">Monthly</option>
+                <option value="hourly">Hourly</option>
+              </select>
+            </div>
+
+            <div class="flex items-center">
+              <input
+                type="checkbox"
+                name="salary_visible"
+                value="true"
+                class="w-5 h-5 text-emerald-600 border-gray-300 rounded focus:ring-emerald-500"
+              />
+              <label class="ml-3 text-sm font-semibold text-gray-700">
+                Show salary publicly
+              </label>
+            </div>
+
+            <div>
+              <label class="block text-sm font-semibold text-gray-700 mb-2">
+                Min Experience (years)
+              </label>
+              <input
+                type="number"
+                name="experience_min"
+                min="0"
+                value={if @editing_job, do: @editing_job.experience_required.min_years, else: "0"}
+                class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500"
+              />
+            </div>
+
+            <div>
+              <label class="block text-sm font-semibold text-gray-700 mb-2">
+                Max Experience (years)
+              </label>
+              <input
+                type="number"
+                name="experience_max"
+                min="0"
+                value={if @editing_job, do: @editing_job.experience_required.max_years, else: "0"}
+                class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500"
+              />
+            </div>
+
+            <div>
+              <label class="block text-sm font-semibold text-gray-700 mb-2">
+                Application Deadline
+              </label>
+              <input
+                type="date"
+                name="application_deadline"
+                value={if @editing_job, do: @editing_job.application_deadline, else: ""}
+                class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500"
+              />
+            </div>
+
+            <div class="md:col-span-2">
+              <label class="block text-sm font-semibold text-gray-700 mb-2">
+                Required Skills (comma-separated)
+              </label>
+              <input
+                type="text"
+                name="required_skills"
+                value={if @editing_job, do: Enum.join(@editing_job.required_skills, ", "), else: ""}
+                class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500"
+                placeholder="e.g., JavaScript, React, Node.js"
+              />
+            </div>
+
+            <div class="md:col-span-2">
+              <label class="block text-sm font-semibold text-gray-700 mb-2">
+                Job Description <span class="text-red-500">*</span>
+              </label>
+              <textarea
+                name="description"
+                required
+                rows="8"
+                class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500"
+                placeholder="Describe the role, responsibilities, and what you're looking for..."><%= if @editing_job, do: @editing_job.description, else: "" %></textarea>
+            </div>
+          </div>
+
+          <div class="flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-4 space-y-3 space-y-reverse sm:space-y-0 pt-6 border-t">
+            <button
+              type="button"
+              phx-click="hide_create_modal"
+              class="w-full sm:w-auto px-6 py-3 border border-gray-300 text-gray-700 font-semibold rounded-xl hover:bg-gray-50 transition-all">
+              Cancel
+            </button>
+            <button
+              type="submit"
+              class="w-full sm:w-auto px-6 py-3 bg-emerald-600 text-white font-semibold rounded-xl hover:bg-emerald-700 transition-all shadow-lg">
+              <%= if @editing_job, do: "Update Job", else: "Post Job" %>
+            </button>
+          </div>
+        </.form>
+      </div>
+    </div>
+  </div>
+<% end %>

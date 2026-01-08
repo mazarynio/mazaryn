@@ -1,6 +1,8 @@
 -module(otpcode_sup).
 
 -include("records.hrl").
+-include("business.hrl").
+-include("job_records.hrl").
 -include("ml_records.hrl").
 -include("media_records.hrl").
 -include("kademlia/kademlia.hrl").
@@ -24,7 +26,11 @@
  resource_rating, learning_track, verified_instructor, instructor_request, lesson_progress, module_progress,
  video_upload_session, content_comment, content_reaction, student_question, question_answer, path_review,
  instructor_analytics, content_analytics, learning_notification, learning_schedule, group, group_member, group_message,
- group_invite, group_admin, channel, channel_post, channel_subscriber, channel_invite]).
+ group_invite, group_admin, channel, channel_post, channel_subscriber, channel_invite,
+ job_posting, resume, work_experience, education, job_application, interview_stage, saved_job, job_alert,
+ talent_pool, candidate_search, recruiter_contact, skill, skill_endorsement, skill_assessment, company_review,
+ interview_prep, job_market_insights, user_job_analytics, job_message, background_check, employment_verification,
+ job_referral, job_board_settings]).
 
 start_link() ->
     case initialize() of
@@ -261,7 +267,11 @@ create_table_indexes() ->
                        {lesson_progress, user_id}, {lesson_progress, lesson_id}, {module_progress, user_id},
                        {module_progress, module_id}, {content_comment, content_id}, {content_reaction, content_id},
                        {student_question, lesson_id}, {question_answer, question_id}, {path_review, path_id},
-                       {learning_notification, user_id}, {video_upload_session, lesson_id}],
+                       {learning_notification, user_id}, {video_upload_session, lesson_id},
+                       {job_posting, poster_id}, {job_posting, status}, {resume, user_id},
+                       {job_application, job_posting_id}, {job_application, applicant_user_id},
+                       {job_application, status}, {saved_job, user_id}, {job_alert, user_id},
+                       {skill_endorsement, user_id}, {company_review, business_id}],
     Results = [create_index(Table, Field) || {Table, Field} <- IndexesToCreate],
     case lists:all(fun(Result) -> Result == ok end, Results) of
         true -> ok;
@@ -309,6 +319,7 @@ init_admin_system() ->
 
 table_type(post) -> ordered_set;
 table_type(blog_post) -> ordered_set;
+table_type(job_posting) -> ordered_set;
 table_type(_) -> set.
 
 table_attributes(post) -> record_info(fields, post);
@@ -403,4 +414,27 @@ table_attributes(group_admin) -> record_info(fields, group_admin);
 table_attributes(channel) -> record_info(fields, channel);
 table_attributes(channel_post) -> record_info(fields, channel_post);
 table_attributes(channel_subscriber) -> record_info(fields, channel_subscriber);
-table_attributes(channel_invite) -> record_info(fields, channel_invite).
+table_attributes(channel_invite) -> record_info(fields, channel_invite);
+table_attributes(job_posting) -> record_info(fields, job_posting);
+table_attributes(resume) -> record_info(fields, resume);
+table_attributes(work_experience) -> record_info(fields, work_experience);
+table_attributes(education) -> record_info(fields, education);
+table_attributes(job_application) -> record_info(fields, job_application);
+table_attributes(interview_stage) -> record_info(fields, interview_stage);
+table_attributes(saved_job) -> record_info(fields, saved_job);
+table_attributes(job_alert) -> record_info(fields, job_alert);
+table_attributes(talent_pool) -> record_info(fields, talent_pool);
+table_attributes(candidate_search) -> record_info(fields, candidate_search);
+table_attributes(recruiter_contact) -> record_info(fields, recruiter_contact);
+table_attributes(skill) -> record_info(fields, skill);
+table_attributes(skill_endorsement) -> record_info(fields, skill_endorsement);
+table_attributes(skill_assessment) -> record_info(fields, skill_assessment);
+table_attributes(company_review) -> record_info(fields, company_review);
+table_attributes(interview_prep) -> record_info(fields, interview_prep);
+table_attributes(job_market_insights) -> record_info(fields, job_market_insights);
+table_attributes(user_job_analytics) -> record_info(fields, user_job_analytics);
+table_attributes(job_message) -> record_info(fields, job_message);
+table_attributes(background_check) -> record_info(fields, background_check);
+table_attributes(employment_verification) -> record_info(fields, employment_verification);
+table_attributes(job_referral) -> record_info(fields, job_referral);
+table_attributes(job_board_settings) -> record_info(fields, job_board_settings).

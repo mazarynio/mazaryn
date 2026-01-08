@@ -1,64 +1,76 @@
-<.live_component
-  module={MazarynWeb.HomeLive.NavComponent}
-  id="navigation"
-  user={@user}
-  search=""
-  locale={@locale}
-/>
-
 <div class="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
   <div class="max-w-5xl mx-auto px-6 py-8">
+    <!-- Back Button -->
     <div class="mb-6">
-      <.link
-        navigate={~p"/#{@locale}/groups/#{@group.id}"}
-        class="inline-flex items-center space-x-2 text-slate-600 hover:text-violet-600 transition-colors"
-      >
+      <.link navigate={~p"/#{@locale}/groups/#{@group.id}"} class="inline-flex items-center space-x-2 text-slate-600 hover:text-violet-600 transition">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
         </svg>
-        <span class="font-medium">Back to Group</span>
+        <span>Back to Group</span>
       </.link>
     </div>
 
-    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+    <!-- Main Card -->
+    <div class="bg-white rounded-2xl shadow-sm border overflow-hidden">
+      <!-- Header -->
       <div class="bg-gradient-to-r from-violet-600 to-indigo-600 px-8 py-6">
-        <h1 class="text-3xl font-bold text-white">Group Invitations</h1>
-        <p class="text-violet-100 mt-1">Manage pending invitations for <%= @group.name %></p>
+        <div class="flex items-center justify-between">
+          <div>
+            <h1 class="text-3xl font-bold text-white">Group Invitations</h1>
+            <p class="text-violet-100 mt-1">Manage invitations for <%= @group.name %></p>
+          </div>
+          <button phx-click="open_invite_modal" class="px-6 py-3 bg-white text-violet-600 rounded-xl font-semibold hover:bg-violet-50 transition flex items-center gap-2">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            </svg>
+            Send Invite
+          </button>
+        </div>
       </div>
 
+      <!-- Invites List -->
       <div class="p-6">
         <%= if @invites == [] do %>
           <div class="text-center py-12">
-            <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-slate-100 mb-4">
+            <div class="w-16 h-16 mx-auto mb-4 bg-slate-100 rounded-full flex items-center justify-center">
               <svg class="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
               </svg>
             </div>
             <p class="text-slate-500 font-medium">No pending invitations</p>
             <p class="text-sm text-slate-400 mt-1">All invitations have been accepted or cancelled</p>
+            <button phx-click="open_invite_modal" class="mt-6 px-6 py-3 bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-xl font-semibold hover:shadow-lg transition">
+              Send New Invitation
+            </button>
           </div>
         <% else %>
           <div class="space-y-3">
             <%= for invite <- @invites do %>
               <% invitee = get_user_info(invite.invitee_id) %>
               <% inviter = get_user_info(invite.inviter_id) %>
-              <div class="flex items-center justify-between p-4 bg-slate-50 rounded-xl hover:bg-slate-100 transition-colors">
+              <div class="flex items-center justify-between p-4 bg-slate-50 rounded-xl hover:bg-slate-100 transition">
                 <div class="flex items-center space-x-4">
-                  <div class="w-12 h-12 bg-gradient-to-br from-violet-500 to-indigo-600 rounded-full flex items-center justify-center text-white font-bold text-lg">
-                    <%= String.first(invitee.username) |> String.upcase() %>
-                  </div>
+                  <%= if invitee.avatar_url != "/images/default-avatar.png" do %>
+                    <img
+                      src={invitee.avatar_url}
+                      alt={invitee.username}
+                      class="w-12 h-12 rounded-full object-cover"
+                      onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+                    />
+                    <div class="hidden w-12 h-12 bg-gradient-to-br from-violet-500 to-indigo-600 rounded-full items-center justify-center text-white font-bold">
+                      <%= String.first(invitee.username) |> String.upcase() %>
+                    </div>
+                  <% else %>
+                    <div class="w-12 h-12 bg-gradient-to-br from-violet-500 to-indigo-600 rounded-full flex items-center justify-center text-white font-bold">
+                      <%= String.first(invitee.username) |> String.upcase() %>
+                    </div>
+                  <% end %>
                   <div>
-                    <p class="font-semibold text-slate-900"><%= invitee.username %></p>
+                    <p class="font-semibold text-slate-900 capitalize"><%= invitee.username %></p>
                     <p class="text-xs text-slate-500">Invited by <%= inviter.username %> • <%= format_datetime(invite.date_created) %></p>
                   </div>
                 </div>
-
-                <button
-                  phx-click="cancel_invite"
-                  phx-value-invite_id={invite.id}
-                  data-confirm="Are you sure you want to cancel this invitation?"
-                  class="px-4 py-2 bg-red-100 text-red-700 rounded-lg font-medium hover:bg-red-200 transition-colors text-sm"
-                >
+                <button phx-click="cancel_invite" phx-value-invite_id={invite.id} data-confirm="Cancel this invitation?" class="px-4 py-2 bg-red-100 text-red-700 rounded-lg font-medium hover:bg-red-200 transition text-sm">
                   Cancel
                 </button>
               </div>
@@ -69,3 +81,122 @@
     </div>
   </div>
 </div>
+
+<!-- Invite Modal -->
+<%= if @show_invite_modal do %>
+  <div class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-6" phx-click="close_invite_modal">
+    <div class="bg-white rounded-3xl shadow-2xl max-w-3xl w-full max-h-[85vh] flex flex-col overflow-hidden" phx-click="stop_propagation">
+      <!-- Modal Header -->
+      <div class="bg-gradient-to-r from-violet-600 to-indigo-600 px-8 py-6 flex items-center justify-between flex-shrink-0">
+        <h2 class="text-2xl font-bold text-white">Invite Members</h2>
+        <button phx-click="close_invite_modal" class="text-white hover:bg-white/20 p-2 rounded-xl transition">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="p-8 flex-1 overflow-y-auto">
+        <!-- Search Input -->
+        <div class="mb-6">
+          <div class="relative">
+            <svg class="absolute left-5 top-1/2 -translate-y-1/2 w-6 h-6 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            <input
+              type="text"
+              phx-keyup="search_users"
+              phx-debounce="300"
+              value={@search_query}
+              placeholder="Search by username..."
+              autocomplete="off"
+              autocorrect="off"
+              autocapitalize="off"
+              spellcheck="false"
+              class="w-full pl-14 pr-5 py-4 border-2 border-violet-300 rounded-2xl focus:border-violet-500 focus:ring-4 focus:ring-violet-100 transition text-lg"
+              autofocus
+            />
+          </div>
+        </div>
+
+        <!-- Search Results -->
+        <div class="min-h-[200px]">
+          <%= if @search_query == "" do %>
+            <!-- Empty State -->
+            <div class="text-center py-16">
+              <div class="w-24 h-24 mx-auto mb-6 bg-gradient-to-br from-violet-100 to-indigo-100 rounded-full flex items-center justify-center">
+                <svg class="w-12 h-12 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </div>
+              <h3 class="text-xl font-bold text-gray-900 mb-2">Search for users</h3>
+              <p class="text-gray-500">Enter a username to find members you want to invite</p>
+            </div>
+          <% else %>
+            <%= if @found_users == [] do %>
+              <!-- No Results -->
+              <div class="text-center py-16">
+                <div class="w-24 h-24 mx-auto mb-6 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full flex items-center justify-center">
+                  <svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                  </svg>
+                </div>
+                <h3 class="text-xl font-bold text-gray-900 mb-2">No users found</h3>
+                <p class="text-gray-500 mb-1">No users match "<span class="font-semibold"><%= @search_query %></span>"</p>
+                <p class="text-sm text-gray-400">Try a different username or check the spelling</p>
+              </div>
+            <% else %>
+              <!-- Results List -->
+              <div class="space-y-3">
+                <%= for user <- @found_users do %>
+                  <div class="flex items-center justify-between p-5 bg-gradient-to-r from-gray-50 to-gray-100 rounded-2xl hover:from-violet-50 hover:to-indigo-50 transition-all border-2 border-transparent hover:border-violet-300 group">
+                    <div class="flex items-center gap-4 flex-1 min-w-0">
+                      <!-- Avatar -->
+                      <div class="flex-shrink-0">
+                        <%= if user.avatar_url != "/images/default-avatar.png" do %>
+                          <img
+                            src={user.avatar_url}
+                            alt={user.username}
+                            class="w-14 h-14 rounded-full object-cover ring-4 ring-white shadow-md"
+                            onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+                          />
+                          <div class="hidden w-14 h-14 bg-gradient-to-br from-violet-500 to-indigo-600 rounded-full items-center justify-center ring-4 ring-white shadow-md">
+                            <span class="text-xl font-bold text-white"><%= String.first(user.username) |> String.upcase() %></span>
+                          </div>
+                        <% else %>
+                          <div class="w-14 h-14 bg-gradient-to-br from-violet-500 to-indigo-600 rounded-full flex items-center justify-center ring-4 ring-white shadow-md">
+                            <span class="text-xl font-bold text-white"><%= String.first(user.username) |> String.upcase() %></span>
+                          </div>
+                        <% end %>
+                      </div>
+
+                      <!-- User Info -->
+                      <div class="flex-1 min-w-0">
+                        <h4 class="font-bold text-gray-900 text-lg capitalize truncate group-hover:text-violet-700 transition">
+                          <%= user.username %>
+                        </h4>
+                        <p class="text-sm text-gray-500 truncate font-mono">
+                          ID: <%= String.slice(user.id, 0, 12) %>...
+                        </p>
+                      </div>
+                    </div>
+
+                    <!-- Invite Button -->
+                    <button
+                      phx-click="send_invite"
+                      phx-value-user_id={user.id}
+                      class="px-6 py-3 bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-xl font-semibold hover:shadow-lg hover:scale-105 transition-all flex-shrink-0 ml-4"
+                    >
+                      Invite
+                    </button>
+                  </div>
+                <% end %>
+              </div>
+            <% end %>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+<% end %>

@@ -1,0 +1,318 @@
+<.live_component
+  module={MazarynWeb.HomeLive.NavComponent}
+  id="navigation"
+  user={@user}
+  search=""
+  locale={@locale}
+/>
+
+<div class="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+  <div class="flex flex-wrap w-[90%] max-w-[1440px] mx-auto">
+    <!-- Sidebar -->
+    <div class="w-full lg:w-[18%] py-6">
+      <.live_component
+        module={MazarynWeb.HomeLive.LeftSidebarComponent}
+        id="leftsidebar"
+        user={@user}
+        locale={@locale}
+      />
+    </div>
+
+    <div class="w-full lg:w-[82%] py-6 lg:pl-11 lg:pr-6">
+      <div class="mb-8">
+        <div class="flex items-center gap-4 mb-4">
+          <div class="w-16 h-16 bg-gradient-to-br from-blue-500 via-purple-500 to-indigo-600 rounded-3xl flex items-center justify-center shadow-xl">
+            <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.002 4.002 0 003 15z"></path>
+            </svg>
+          </div>
+          <div>
+            <h1 class="text-4xl font-black text-gray-900">Weather Forecast</h1>
+            <p class="text-gray-600 text-lg">Get accurate weather information worldwide</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Weather Card -->
+      <div class="bg-white rounded-3xl shadow-2xl overflow-hidden border-2 border-gray-100">
+        <!-- Search Section -->
+        <div class="p-8 bg-gradient-to-r from-blue-500 via-purple-500 to-indigo-600">
+          <form phx-submit="search_weather" class="flex gap-4">
+            <div class="flex-1 relative">
+              <input
+                type="text"
+                name="city"
+                value={@search_query}
+                placeholder="Enter city name (e.g., London, New York, Tokyo, Perth)"
+                class="w-full h-16 pl-14 pr-4 bg-white/90 backdrop-blur-sm border-2 border-white/50 rounded-2xl focus:border-white focus:bg-white transition-all duration-200 text-gray-900 placeholder-gray-500 text-lg font-medium shadow-lg"
+                required
+              />
+              <svg class="absolute left-5 top-5 w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+              </svg>
+            </div>
+            <button
+              type="submit"
+              disabled={@weather_loading}
+              class="h-16 px-10 bg-white text-blue-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed font-bold rounded-2xl transition-all duration-200 shadow-xl hover:shadow-2xl hover:scale-105 active:scale-95 disabled:hover:scale-100"
+            >
+              <%= if @weather_loading do %>
+                <div class="flex items-center space-x-2">
+                  <svg class="animate-spin w-6 h-6" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  <span class="text-lg">Searching...</span>
+                </div>
+              <% else %>
+                <div class="flex items-center space-x-2">
+                  <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                  </svg>
+                  <span class="text-lg">Search</span>
+                </div>
+              <% end %>
+            </button>
+          </form>
+
+          <%= if @weather_error do %>
+            <div class="mt-4 p-4 bg-white/20 backdrop-blur-sm border border-white/30 rounded-xl">
+              <div class="flex items-center space-x-2">
+                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <p class="text-white font-medium"><%= @weather_error %></p>
+              </div>
+            </div>
+          <% end %>
+        </div>
+
+        <!-- Weather Content -->
+        <div class="p-8">
+          <%= if @weather_data do %>
+            <div class="space-y-8">
+              <!-- Current Weather -->
+              <div class="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 rounded-3xl p-8 border-2 border-blue-100 shadow-lg">
+                <div class="flex items-center justify-between mb-6">
+                  <div>
+                    <h3 class="text-4xl font-black text-gray-900"><%= @weather_data.city %></h3>
+                    <p class="text-xl text-gray-600"><%= @weather_data.country %></p>
+                    <p class="text-sm text-gray-500 mt-2">Updated: <%= @weather_data.updated_at %></p>
+                  </div>
+                  <div class="text-right">
+                    <div class="text-7xl font-black text-gray-900"><%= @weather_data.temperature %>°</div>
+                    <div class="text-gray-600 font-semibold text-lg">Feels like <%= @weather_data.feels_like %>°</div>
+                  </div>
+                </div>
+
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center space-x-6">
+                    <div class="w-24 h-24 relative">
+                      <img
+                        src={"https://openweathermap.org/img/wn/#{@weather_data.icon}@4x.png"}
+                        alt={@weather_data.description}
+                        class="w-full h-full object-contain drop-shadow-lg"
+                      />
+                    </div>
+                    <div>
+                      <p class="text-3xl font-black text-gray-900 capitalize"><%= @weather_data.main %></p>
+                      <p class="text-xl text-gray-600 capitalize"><%= @weather_data.description %></p>
+                    </div>
+                  </div>
+
+                  <div class="grid grid-cols-2 gap-4 text-center">
+                    <div class="bg-white/70 backdrop-blur-sm rounded-2xl p-4 border-2 border-white shadow-md">
+                      <div class="text-3xl font-black text-blue-600"><%= @weather_data.temp_max %>°</div>
+                      <div class="text-sm text-gray-600 font-bold mt-1">High</div>
+                    </div>
+                    <div class="bg-white/70 backdrop-blur-sm rounded-2xl p-4 border-2 border-white shadow-md">
+                      <div class="text-3xl font-black text-indigo-600"><%= @weather_data.temp_min %>°</div>
+                      <div class="text-sm text-gray-600 font-bold mt-1">Low</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div class="bg-white rounded-2xl p-6 border-2 border-gray-100 shadow-md hover:shadow-xl transition-shadow">
+                  <div class="flex items-center space-x-3">
+                    <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
+                      <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.002 4.002 0 003 15z"></path>
+                      </svg>
+                    </div>
+                    <div>
+                      <p class="text-3xl font-black text-gray-900"><%= @weather_data.humidity %>%</p>
+                      <p class="text-sm text-gray-600 font-medium">Humidity</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="bg-white rounded-2xl p-6 border-2 border-gray-100 shadow-md hover:shadow-xl transition-shadow">
+                  <div class="flex items-center space-x-3">
+                    <div class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
+                      <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 4V2a1 1 0 011-1h8a1 1 0 011 1v2"></path>
+                      </svg>
+                    </div>
+                    <div>
+                      <p class="text-3xl font-black text-gray-900"><%= @weather_data.pressure %></p>
+                      <p class="text-sm text-gray-600 font-medium">hPa</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="bg-white rounded-2xl p-6 border-2 border-gray-100 shadow-md hover:shadow-xl transition-shadow">
+                  <div class="flex items-center space-x-3">
+                    <div class="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center">
+                      <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945"></path>
+                      </svg>
+                    </div>
+                    <div>
+                      <p class="text-3xl font-black text-gray-900"><%= @weather_data.wind_speed %></p>
+                      <p class="text-sm text-gray-600 font-medium">m/s</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="bg-white rounded-2xl p-6 border-2 border-gray-100 shadow-md hover:shadow-xl transition-shadow">
+                  <div class="flex items-center space-x-3">
+                    <div class="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center">
+                      <svg class="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                      </svg>
+                    </div>
+                    <div>
+                      <p class="text-3xl font-black text-gray-900"><%= @weather_data.visibility %></p>
+                      <p class="text-sm text-gray-600 font-medium">km</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <%= if @weather_data.forecast do %>
+                <div class="bg-white rounded-3xl p-8 border-2 border-gray-100 shadow-lg">
+                  <h4 class="text-2xl font-black text-gray-900 mb-6">5-Day Forecast</h4>
+                  <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+                    <%= for day <- @weather_data.forecast do %>
+                      <div class="bg-gradient-to-br from-gray-50 to-gray-100 hover:from-blue-50 hover:to-indigo-50 rounded-2xl p-6 transition-all text-center border-2 border-gray-200 hover:border-blue-300">
+                        <p class="font-black text-gray-900 mb-3 text-lg"><%= day.date %></p>
+                        <div class="w-16 h-16 mx-auto mb-3">
+                          <img
+                            src={"https://openweathermap.org/img/wn/#{day.icon}@2x.png"}
+                            alt={day.description}
+                            class="w-full h-full object-contain"
+                          />
+                        </div>
+                        <p class="text-sm text-gray-600 capitalize mb-3 font-medium"><%= day.main %></p>
+                        <div class="space-y-1">
+                          <p class="text-2xl font-black text-gray-900"><%= day.temp_max %>°</p>
+                          <p class="text-base text-gray-600 font-semibold"><%= day.temp_min %>°</p>
+                        </div>
+                      </div>
+                    <% end %>
+                  </div>
+                </div>
+              <% end %>
+
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="bg-gradient-to-r from-yellow-50 to-orange-50 rounded-2xl p-6 border-2 border-yellow-200">
+                  <div class="flex items-center space-x-3 mb-4">
+                    <div class="w-12 h-12 bg-yellow-500 rounded-xl flex items-center justify-center shadow-md">
+                      <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                      </svg>
+                    </div>
+                    <h5 class="text-xl font-black text-gray-900">Sun & UV Index</h5>
+                  </div>
+                  <div class="space-y-3">
+                    <div class="flex justify-between items-center">
+                      <span class="text-gray-700 font-medium">Sunrise</span>
+                      <span class="font-black text-gray-900 text-lg"><%= @weather_data.sunrise %></span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                      <span class="text-gray-700 font-medium">Sunset</span>
+                      <span class="font-black text-gray-900 text-lg"><%= @weather_data.sunset %></span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                      <span class="text-gray-700 font-medium">UV Index</span>
+                      <span class="font-black text-orange-600 text-lg"><%= @weather_data.uv_index || "N/A" %></span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-6 border-2 border-blue-200">
+                  <div class="flex items-center space-x-3 mb-4">
+                    <div class="w-12 h-12 bg-blue-500 rounded-xl flex items-center justify-center shadow-md">
+                      <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2"></path>
+                      </svg>
+                    </div>
+                    <h5 class="text-xl font-black text-gray-900">Wind Information</h5>
+                  </div>
+                  <div class="space-y-3">
+                    <div class="flex justify-between items-center">
+                      <span class="text-gray-700 font-medium">Speed</span>
+                      <span class="font-black text-gray-900 text-lg"><%= @weather_data.wind_speed %> m/s</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                      <span class="text-gray-700 font-medium">Direction</span>
+                      <span class="font-black text-gray-900 text-lg"><%= @weather_data.wind_direction %>°</span>
+                    </div>
+                    <%= if @weather_data.wind_gust do %>
+                      <div class="flex justify-between items-center">
+                        <span class="text-gray-700 font-medium">Gusts</span>
+                        <span class="font-black text-blue-600 text-lg"><%= @weather_data.wind_gust %> m/s</span>
+                      </div>
+                    <% end %>
+                  </div>
+                </div>
+              </div>
+            </div>
+          <% else %>
+            <!-- Empty State -->
+            <div class="text-center py-20">
+              <div class="w-32 h-32 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full mx-auto mb-8 flex items-center justify-center shadow-2xl">
+                <svg class="w-16 h-16 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.002 4.002 0 003 15z"></path>
+                </svg>
+              </div>
+              <h3 class="text-3xl font-black text-gray-900 mb-4">Welcome to Weather Forecast</h3>
+              <p class="text-gray-600 text-lg mb-10 max-w-2xl mx-auto">
+                Search for any city to get detailed weather information including current conditions,
+                5-day forecast, and comprehensive weather data.
+              </p>
+              <div class="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl mx-auto">
+                <div class="bg-blue-50 rounded-2xl p-6 border-2 border-blue-100">
+                  <svg class="w-10 h-10 text-blue-600 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                  </svg>
+                  <p class="font-bold text-gray-900">Temperature</p>
+                </div>
+                <div class="bg-green-50 rounded-2xl p-6 border-2 border-green-100">
+                  <svg class="w-10 h-10 text-green-600 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.002 4.002 0 003 15z"></path>
+                  </svg>
+                  <p class="font-bold text-gray-900">Humidity</p>
+                </div>
+                <div class="bg-purple-50 rounded-2xl p-6 border-2 border-purple-100">
+                  <svg class="w-10 h-10 text-purple-600 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2"></path>
+                  </svg>
+                  <p class="font-bold text-gray-900">Wind Speed</p>
+                </div>
+                <div class="bg-orange-50 rounded-2xl p-6 border-2 border-orange-100">
+                  <svg class="w-10 h-10 text-orange-600 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                  </svg>
+                  <p class="font-bold text-gray-900">5-Day Forecast</p>
+                </div>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

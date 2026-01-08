@@ -11,11 +11,11 @@
     <div class="absolute inset-0 bg-gradient-to-br from-indigo-400/20 via-blue-300/20 to-purple-400/20"></div>
     <div class="relative max-w-7xl mx-auto px-6 py-16 lg:py-20">
       <div class="text-center mb-12">
-        <.link navigate={~p"/#{@locale}/groups"} class="inline-flex items-center gap-2 text-gray-700 hover:text-indigo-600 transition">
+        <.link navigate={~p"/#{@locale}/channels"} class="inline-flex items-center gap-2 text-gray-700 hover:text-indigo-600 transition">
           <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
           </svg>
-          Back to Browse
+          Back to Channels
         </.link>
       </div>
 
@@ -74,15 +74,40 @@
           <div class="flex flex-wrap justify-center md:justify-start gap-4">
             <%= if @is_subscriber do %>
               <%= if @is_owner do %>
-                <.link navigate={~p"/#{@locale}/channels/#{@channel.id}/settings"} class="px-8 py-4 bg-gray-100 text-gray-800 rounded-2xl font-semibold hover:bg-gray-200 transition">
+                <.link
+                  navigate={~p"/#{@locale}/channels/#{@channel.id}/settings"}
+                  class="px-8 py-4 bg-gray-100 text-gray-800 rounded-2xl font-semibold hover:bg-gray-200 transition flex items-center gap-2"
+                >
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
                   Settings
                 </.link>
               <% end %>
+
               <%= if @is_admin do %>
-                <button phx-click="open_invite_modal" class="px-8 py-4 bg-indigo-100 text-indigo-700 rounded-2xl font-semibold hover:bg-indigo-200 transition">
-                  Invite Subscribers
-                </button>
+                <.link
+                  navigate={~p"/#{@locale}/channels/#{@channel.id}/subscribers"}
+                  class="px-8 py-4 bg-blue-100 text-blue-700 rounded-2xl font-semibold hover:bg-blue-200 transition flex items-center gap-2"
+                >
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                  </svg>
+                  Subscribers
+                </.link>
+
+                <.link
+                  navigate={~p"/#{@locale}/channels/#{@channel.id}/invites"}
+                  class="px-8 py-4 bg-indigo-100 text-indigo-700 rounded-2xl font-semibold hover:bg-indigo-200 transition flex items-center gap-2"
+                >
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                  </svg>
+                  Manage Invites
+                </.link>
               <% end %>
+
               <%= unless @is_owner do %>
                 <button phx-click="unsubscribe_channel" data-confirm="Are you sure?" class="px-8 py-4 bg-red-100 text-red-700 rounded-2xl font-semibold hover:bg-red-200 transition">
                   Unsubscribe
@@ -140,18 +165,18 @@
             <p class="text-gray-500 text-lg">Be the first to post!</p>
           </div>
         <% else %>
-          <%= for post <- Enum.reverse(@posts) |> Enum.reject(&(&1.deleted)) do %>
+          <%= for post <- Enum.reverse(@posts) do %>
             <% user_info = get_user_info(post.user_id) %>
             <% is_own_post = post.user_id == extract_user_id(@user) %>
 
             <div class="group p-6 bg-white rounded-2xl shadow-sm hover:shadow-md transition border border-gray-100">
               <div class="flex gap-4">
-                <div class="flex-shrink-0">
+                <.link navigate={~p"/#{@locale}/#{user_info.username}"} class="flex-shrink-0">
                   <%= if user_info.avatar_url != "/images/default-avatar.png" do %>
                     <img
                       src={user_info.avatar_url}
                       alt={user_info.username}
-                      class="w-12 h-12 rounded-full object-cover shadow-md"
+                      class="w-12 h-12 rounded-full object-cover shadow-md hover:ring-2 hover:ring-indigo-500 transition"
                       onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
                     />
                     <div class="hidden w-12 h-12 bg-gradient-to-br from-indigo-500 to-blue-500 rounded-full items-center justify-center shadow-md">
@@ -160,18 +185,20 @@
                       </span>
                     </div>
                   <% else %>
-                    <div class="w-12 h-12 bg-gradient-to-br from-indigo-500 to-blue-500 rounded-full flex items-center justify-center shadow-md">
+                    <div class="w-12 h-12 bg-gradient-to-br from-indigo-500 to-blue-500 rounded-full flex items-center justify-center shadow-md hover:ring-2 hover:ring-indigo-500 transition">
                       <span class="text-xl font-bold text-white">
                         <%= String.first(user_info.username) |> String.upcase() %>
                       </span>
                     </div>
                   <% end %>
-                </div>
+                </.link>
 
                 <div class="flex-1 min-w-0">
                   <div class="flex items-center justify-between mb-3">
                     <div>
-                      <p class="font-bold text-gray-900 text-lg capitalize"><%= user_info.username %></p>
+                      <.link navigate={~p"/#{@locale}/#{user_info.username}"} class="font-bold text-gray-900 text-lg capitalize hover:text-indigo-600 transition">
+                        <%= user_info.username %>
+                      </.link>
                       <p class="text-sm text-gray-500"><%= format_datetime(post.date_created) %></p>
                     </div>
 
@@ -206,69 +233,6 @@
     </div>
   </div>
 </div>
-
-<%= if @show_invite_modal do %>
-  <div class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-6">
-    <div class="bg-white rounded-3xl shadow-2xl max-w-lg w-full">
-      <div class="bg-gradient-to-r from-indigo-600 to-blue-600 px-8 py-6 flex items-center justify-between rounded-t-3xl">
-        <h2 class="text-2xl font-bold text-white">Invite Subscribers</h2>
-        <button phx-click="close_invite_modal" class="text-white hover:bg-white/20 p-2 rounded-xl transition">
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </button>
-      </div>
-
-      <div class="p-8 space-y-6">
-        <div class="relative">
-          <svg class="absolute left-5 top-1/2 -translate-y-1/2 w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-          </svg>
-          <input
-            type="text"
-            phx-change="search_users"
-            name="query"
-            value={@invite_search}
-            placeholder="Search by username..."
-            class="w-full pl-14 pr-5 py-4 border border-gray-300 rounded-2xl focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 transition"
-          />
-        </div>
-
-        <div class="space-y-3 max-h-80 overflow-y-auto">
-          <%= for user <- @found_users do %>
-            <div class="flex items-center justify-between p-5 bg-gray-50 rounded-2xl hover:bg-gray-100 transition">
-              <div class="flex items-center gap-4">
-                <%= if user.avatar_url != "/images/default-avatar.png" do %>
-                  <img
-                    src={user.avatar_url}
-                    alt={user.username}
-                    class="w-12 h-12 rounded-full object-cover"
-                    onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
-                  />
-                  <div class="hidden w-12 h-12 bg-gradient-to-br from-indigo-500 to-blue-500 rounded-full items-center justify-center">
-                    <span class="text-xl font-bold text-white"><%= String.first(user.username) |> String.upcase() %></span>
-                  </div>
-                <% else %>
-                  <div class="w-12 h-12 bg-gradient-to-br from-indigo-500 to-blue-500 rounded-full flex items-center justify-center">
-                    <span class="text-xl font-bold text-white"><%= String.first(user.username) |> String.upcase() %></span>
-                  </div>
-                <% end %>
-                <p class="font-semibold text-gray-900 capitalize"><%= user.username %></p>
-              </div>
-              <button phx-click="send_invite" phx-value-invitee_id={user.id} class="px-6 py-3 bg-gradient-to-r from-indigo-600 to-blue-600 text-white rounded-xl font-medium hover:shadow-md transition">
-                Invite
-              </button>
-            </div>
-          <% end %>
-
-          <%= if @found_users == [] && @invite_search != "" do %>
-            <p class="text-center text-gray-500 py-8">No users found</p>
-          <% end %>
-        </div>
-      </div>
-    </div>
-  </div>
-<% end %>
 
 <script>
   const container = document.getElementById('posts-container');

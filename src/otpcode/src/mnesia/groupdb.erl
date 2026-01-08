@@ -15,7 +15,12 @@
     pin_channel_post/2, unpin_channel_post/2,
     react_to_channel_post/3, comment_on_channel_post/4,
     get_channel_posts/2, search_channels/2, get_user_channels/1,
-    add_channel_admin/3, remove_channel_admin/2, send_channel_invite/4
+    add_channel_admin/3, remove_channel_admin/2, send_channel_invite/4,
+    get_pending_invites/1, get_user_invites/1, search_users_by_username/1,
+    get_group_by_username/1, get_user_by_username/1,
+    get_pending_channel_invites/1, get_user_channel_invites/1,
+    cancel_channel_invite/2, accept_channel_invite/2, reject_channel_invite/2,
+    get_channel_subscribers/1
 ]).
 -include("../records.hrl").
 -include_lib("stdlib/include/qlc.hrl").
@@ -1744,3 +1749,207 @@ remove_channel_admin(ChannelID, UserID) ->
             {aborted, channel_not_found} -> throw(channel_not_found);
             {aborted, Reason} -> throw({transaction_failed, Reason})
         end.
+
+        get_pending_invites(GroupID) ->
+            Fun = fun() ->
+                mnesia:match_object(#group_invite{group_id = GroupID, status = pending, _ = '_'})
+            end,
+            case mnesia:transaction(Fun) of
+                {atomic, Invites} -> Invites;
+                {aborted, Reason} -> throw({transaction_failed, Reason})
+            end.
+
+        get_user_invites(UserID) ->
+            Fun = fun() ->
+                mnesia:match_object(#group_invite{invitee_id = UserID, status = pending, _ = '_'})
+            end,
+            case mnesia:transaction(Fun) of
+                {atomic, Invites} -> Invites;
+                {aborted, Reason} -> throw({transaction_failed, Reason})
+            end.
+
+        search_users_by_username(Query) ->
+            LowerQuery = string:lowercase(Query),
+            Fun = fun() ->
+                AllUsers = mnesia:match_object(#user{_ = '_'}),
+                lists:filter(fun(U) ->
+                    Username = U#user.username,
+                    LowerUsername = string:lowercase(Username),
+                    string:find(LowerUsername, LowerQuery) =/= nomatch
+                end, AllUsers)
+            end,
+            case mnesia:transaction(Fun) of
+                {atomic, Users} -> Users;
+                {aborted, Reason} -> throw({transaction_failed, Reason})
+            end.
+
+            get_group_by_username(UniqueName) when is_binary(UniqueName) ->
+                get_group_by_username(binary_to_list(UniqueName));
+            get_group_by_username(UniqueName) when is_list(UniqueName) ->
+                Fun = fun() ->
+                    case mnesia:index_read(group, UniqueName, #group.unique_name) of
+                        [Group] -> Group;
+                        [] -> throw(group_not_found);
+                        [_|_] -> throw({error, multiple_groups_with_same_unique_name})
+                    end
+                end,
+                case mnesia:transaction(Fun) of
+                    {atomic, Group} -> Group;
+                    {aborted, group_not_found} -> throw(group_not_found);
+                    {aborted, {error, Error}} -> throw(Error);
+                    {aborted, Reason} -> throw({transaction_failed, Reason})
+                end;
+            get_group_by_username(_) ->
+                throw({error, invalid_unique_name}).
+
+                get_user_by_username(Username) ->
+                    F = fun() ->
+                        mnesia:index_read(user, Username, username)
+                    end,
+                    Res = mnesia:transaction(F),
+                    case Res of
+                        {atomic, [User]} -> User;
+                        {atomic, []} -> not_exist;
+                        _ -> error
+                    end.
+
+                    get_pending_channel_invites(ChannelID) ->
+                        Fun = fun() ->
+                            mnesia:match_object(#channel_invite{channel_id = ChannelID, status = pending, _ = '_'})
+                        end,
+                        case mnesia:transaction(Fun) of
+                            {atomic, Invites} -> Invites;
+                            {aborted, Reason} -> throw({transaction_failed, Reason})
+                        end.
+
+                    get_user_channel_invites(UserID) ->
+                        Fun = fun() ->
+                            mnesia:match_object(#channel_invite{invitee_id = UserID, status = pending, _ = '_'})
+                        end,
+                        case mnesia:transaction(Fun) of
+                            {atomic, Invites} -> Invites;
+                            {aborted, Reason} -> throw({transaction_failed, Reason})
+                        end.
+
+                    cancel_channel_invite(InviteID, InviterID) ->
+                        Fun = fun() ->
+                            case mnesia:read({channel_invite, InviteID}) of
+                                [Invite] ->
+                                    ChannelID = Invite#channel_invite.channel_id,
+                                    case mnesia:read({channel, ChannelID}) of
+                                        [Channel] ->
+                                            IsAuthorized = Invite#channel_invite.inviter_id =:= InviterID orelse
+                                                         Channel#channel.owner_id =:= InviterID orelse
+                                                         lists:member(InviterID, Channel#channel.admins),
+                                            case IsAuthorized of
+                                                true ->
+                                                    mnesia:delete({channel_invite, InviteID}),
+                                                    ok;
+                                                false ->
+                                                    throw({error, unauthorized})
+                                            end;
+                                        [] ->
+                                            throw(channel_not_found)
+                                    end;
+                                [] ->
+                                    throw({error, invite_not_found})
+                            end
+                        end,
+                        case mnesia:transaction(Fun) of
+                            {atomic, ok} -> ok;
+                            {aborted, {error, Error}} -> throw(Error);
+                            {aborted, channel_not_found} -> throw(channel_not_found);
+                            {aborted, Reason} -> throw({transaction_failed, Reason})
+                        end.
+
+                    accept_channel_invite(InviteID, UserID) ->
+                        Fun = fun() ->
+                            case mnesia:read({channel_invite, InviteID}) of
+                                [Invite] ->
+                                    case Invite#channel_invite.invitee_id of
+                                        UserID ->
+                                            case Invite#channel_invite.status of
+                                                pending ->
+                                                    ChannelID = Invite#channel_invite.channel_id,
+                                                    case mnesia:read({channel, ChannelID}) of
+                                                        [Channel] ->
+                                                            Date = calendar:universal_time(),
+                                                            Subscriber = #channel_subscriber{
+                                                                id = nanoid:gen(),
+                                                                channel_id = ChannelID,
+                                                                user_id = UserID,
+                                                                subscribe_date = Date
+                                                            },
+                                                            UpdatedInvite = Invite#channel_invite{
+                                                                status = accepted,
+                                                                date_responded = Date
+                                                            },
+                                                            UpdatedChannel = Channel#channel{
+                                                                subscribers = [UserID | Channel#channel.subscribers],
+                                                                subscriber_count = Channel#channel.subscriber_count + 1,
+                                                                last_activity = Date
+                                                            },
+                                                            mnesia:write(Subscriber),
+                                                            mnesia:write(UpdatedInvite),
+                                                            mnesia:write(UpdatedChannel),
+                                                            ChannelID;
+                                                        [] ->
+                                                            throw(channel_not_found)
+                                                    end;
+                                                _ ->
+                                                    throw({error, invite_already_responded})
+                                            end;
+                                        _ ->
+                                            throw({error, unauthorized})
+                                    end;
+                                [] ->
+                                    throw({error, invite_not_found})
+                            end
+                        end,
+                        case mnesia:transaction(Fun) of
+                            {atomic, ChannelID} -> ChannelID;
+                            {aborted, {error, Error}} -> throw(Error);
+                            {aborted, channel_not_found} -> throw(channel_not_found);
+                            {aborted, Reason} -> throw({transaction_failed, Reason})
+                        end.
+
+                    reject_channel_invite(InviteID, UserID) ->
+                        Fun = fun() ->
+                            case mnesia:read({channel_invite, InviteID}) of
+                                [Invite] ->
+                                    case Invite#channel_invite.invitee_id of
+                                        UserID ->
+                                            case Invite#channel_invite.status of
+                                                pending ->
+                                                    Date = calendar:universal_time(),
+                                                    UpdatedInvite = Invite#channel_invite{
+                                                        status = rejected,
+                                                        date_responded = Date
+                                                    },
+                                                    mnesia:write(UpdatedInvite),
+                                                    ok;
+                                                _ ->
+                                                    throw({error, invite_already_responded})
+                                            end;
+                                        _ ->
+                                            throw({error, unauthorized})
+                                    end;
+                                [] ->
+                                    throw({error, invite_not_found})
+                            end
+                        end,
+                        case mnesia:transaction(Fun) of
+                            {atomic, ok} -> ok;
+                            {aborted, {error, Error}} -> throw(Error);
+                            {aborted, Reason} -> throw({transaction_failed, Reason})
+                        end.
+
+                        get_channel_subscribers(ChannelID) ->
+                            Fun = fun() ->
+                                SubRecords = mnesia:match_object(#channel_subscriber{channel_id = ChannelID, _ = '_'}),
+                                SubRecords
+                            end,
+                            case mnesia:transaction(Fun) of
+                                {atomic, Subscribers} -> Subscribers;
+                                {aborted, Reason} -> throw({transaction_failed, Reason})
+                            end.

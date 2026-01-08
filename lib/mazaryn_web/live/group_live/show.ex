@@ -71,9 +71,6 @@ defmodule MazarynWeb.GroupLive.Show do
             |> assign(messages: messages)
             |> assign(members: members)
             |> assign(message_content: "")
-            |> assign(show_invite_modal: false)
-            |> assign(invite_search: "")
-            |> assign(found_users: [])
             |> assign(active_tab: "chat")
 
           Logger.info("✅ Socket assigned successfully")
@@ -145,9 +142,6 @@ defmodule MazarynWeb.GroupLive.Show do
               |> assign(messages: messages)
               |> assign(members: members)
               |> assign(message_content: "")
-              |> assign(show_invite_modal: false)
-              |> assign(invite_search: "")
-              |> assign(found_users: [])
               |> assign(active_tab: "chat")
 
             {:ok, socket}
@@ -364,13 +358,27 @@ defmodule MazarynWeb.GroupLive.Show do
 
   @impl true
   def handle_event("delete_message", %{"message_id" => message_id}, socket) do
-    Logger.info("🗑️ Delete message: #{message_id}")
+    Logger.info("=" |> String.duplicate(80))
+    Logger.info("🗑️ DELETE MESSAGE EVENT")
+    Logger.info("=" |> String.duplicate(80))
+    Logger.info("📍 Message ID: #{message_id}")
+
     user_id_str = extract_user_id(socket.assigns.user)
+    Logger.info("📍 User ID: #{user_id_str}")
 
     try do
+      Logger.info("🔵 Calling :groupdb.delete_message...")
       :groupdb.delete_message(to_charlist(message_id), to_charlist(user_id_str))
+      Logger.info("✅ Message marked as deleted in database")
 
+      Logger.info("⏳ Waiting 150ms for database consistency...")
+      Process.sleep(150)
+
+      Logger.info("🔄 Reloading all messages from database...")
       messages = load_group_messages(socket.assigns.group.id)
+
+      Logger.info("✅ Final message list contains #{length(messages)} messages")
+      Logger.info("=" |> String.duplicate(80))
 
       {:noreply,
        socket
@@ -378,7 +386,9 @@ defmodule MazarynWeb.GroupLive.Show do
        |> put_flash(:info, "Message deleted")}
     rescue
       error ->
-        Logger.error("Failed to delete message: #{inspect(error)}")
+        Logger.error("❌ FAILED TO DELETE MESSAGE")
+        Logger.error("   Error: #{inspect(error)}")
+        Logger.info("=" |> String.duplicate(80))
         {:noreply, put_flash(socket, :error, "Failed to delete message")}
     end
   end
@@ -405,73 +415,6 @@ defmodule MazarynWeb.GroupLive.Show do
       error ->
         Logger.error("Failed to react to message: #{inspect(error)}")
         {:noreply, socket}
-    end
-  end
-
-  @impl true
-  def handle_event("open_invite_modal", _params, socket) do
-    Logger.info("📧 Opening invite modal")
-    {:noreply, assign(socket, show_invite_modal: true)}
-  end
-
-  @impl true
-  def handle_event("close_invite_modal", _params, socket) do
-    Logger.info("❌ Closing invite modal")
-    {:noreply, assign(socket, show_invite_modal: false, invite_search: "", found_users: [])}
-  end
-
-  @impl true
-  def handle_event("search_users", %{"query" => query}, socket) do
-    Logger.info("🔍 Searching users: #{query}")
-
-    if String.trim(query) == "" do
-      {:noreply, assign(socket, invite_search: query, found_users: [])}
-    else
-      found_users = search_users(query)
-      Logger.info("   Found #{length(found_users)} users")
-      {:noreply, assign(socket, invite_search: query, found_users: found_users)}
-    end
-  end
-
-  @impl true
-  def handle_event("send_invite", %{"invitee_id" => invitee_id}, socket) do
-    Logger.info("=" |> String.duplicate(80))
-    Logger.info("📨 SEND INVITE EVENT")
-    Logger.info("=" |> String.duplicate(80))
-
-    user_id_str = extract_user_id(socket.assigns.user)
-    group_id = socket.assigns.group.id
-
-    Logger.info("📍 Inviter ID: #{user_id_str}")
-    Logger.info("📍 Invitee ID: #{invitee_id}")
-    Logger.info("📍 Group ID: #{group_id}")
-
-    try do
-      Logger.info("🔵 Calling :groupdb.send_invite...")
-
-      invite_id =
-        :groupdb.send_invite(
-          to_charlist(group_id),
-          to_charlist(user_id_str),
-          to_charlist(invitee_id),
-          to_charlist("Join our group!")
-        )
-
-      Logger.info("✅ Invite sent, ID: #{inspect(invite_id)}")
-      Logger.info("=" |> String.duplicate(80))
-
-      {:noreply,
-       socket
-       |> assign(show_invite_modal: false)
-       |> assign(invite_search: "")
-       |> assign(found_users: [])
-       |> put_flash(:info, "Invitation sent!")}
-    rescue
-      error ->
-        Logger.error("❌ FAILED TO SEND INVITE")
-        Logger.error("   Error: #{inspect(error)}")
-        Logger.info("=" |> String.duplicate(80))
-        {:noreply, put_flash(socket, :error, "Failed to send invitation")}
     end
   end
 
@@ -557,10 +500,20 @@ defmodule MazarynWeb.GroupLive.Show do
 
       case :groupdb.get_group_messages(to_charlist(group_id), 50) do
         messages when is_list(messages) ->
-          Logger.info("✅ Received #{length(messages)} messages")
+          Logger.info("✅ Received #{length(messages)} raw messages from database")
+
           converted = Enum.map(messages, &convert_message_record/1)
-          Logger.info("✅ Converted #{length(converted)} messages")
-          converted
+
+          non_deleted =
+            Enum.filter(converted, fn msg ->
+              not msg.deleted
+            end)
+
+          Logger.info(
+            "✅ Filtered to #{length(non_deleted)} non-deleted messages (removed #{length(converted) - length(non_deleted)} deleted)"
+          )
+
+          non_deleted
 
         other ->
           Logger.warning("⚠️ Unexpected result from get_group_messages: #{inspect(other)}")
@@ -686,42 +639,6 @@ defmodule MazarynWeb.GroupLive.Show do
     }
   end
 
-  defp search_users(query) do
-    Logger.info("🔍 search_users called with query: #{query}")
-
-    try do
-      case Core.UserClient.search_user_pattern(to_charlist(query)) do
-        users when is_list(users) ->
-          Logger.info("✅ Found #{length(users)} users")
-
-          converted =
-            Enum.map(users, fn user ->
-              username = elem(user, 8) |> to_string()
-
-              avatar_url = get_user_avatar(username)
-
-              %{
-                id: to_string(elem(user, 1)),
-                username: username,
-                avatar_url: avatar_url
-              }
-            end)
-
-          Logger.info("✅ Converted #{length(converted)} user records")
-          converted
-
-        other ->
-          Logger.warning("⚠️ Unexpected result: #{inspect(other)}")
-          []
-      end
-    rescue
-      error ->
-        Logger.error("❌ Failed to search users")
-        Logger.error("   Error: #{inspect(error)}")
-        []
-    end
-  end
-
   def get_user_info(user_id) do
     Logger.debug("🔍 get_user_info for: #{inspect(user_id)}")
 
@@ -736,7 +653,6 @@ defmodule MazarynWeb.GroupLive.Show do
           %{id: to_string(user_id), username: "Unknown", avatar_url: "/images/default-avatar.png"}
 
         user_tuple when is_tuple(user_tuple) ->
-          # Username is at element 8
           username = elem(user_tuple, 8) |> to_string()
 
           avatar_url = get_user_avatar(username)

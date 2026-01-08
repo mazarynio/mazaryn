@@ -193,11 +193,27 @@ defmodule MazarynWeb.ChannelLive.Show do
 
   @impl true
   def handle_event("delete_post", %{"post_id" => post_id}, socket) do
+    Logger.info("=" |> String.duplicate(80))
+    Logger.info("🗑️ DELETE POST EVENT")
+    Logger.info("=" |> String.duplicate(80))
+    Logger.info("📍 Post ID: #{post_id}")
+
     user_id_str = extract_user_id(socket.assigns.user)
+    Logger.info("📍 User ID: #{user_id_str}")
 
     try do
+      Logger.info("🔵 Calling :groupdb.delete_channel_post...")
       :groupdb.delete_channel_post(to_charlist(post_id), to_charlist(user_id_str))
+      Logger.info("✅ Post marked as deleted in database")
+
+      Logger.info("⏳ Waiting 150ms for database consistency...")
+      Process.sleep(150)
+
+      Logger.info("🔄 Reloading all posts from database...")
       posts = load_channel_posts(socket.assigns.channel.id)
+
+      Logger.info("✅ Final post list contains #{length(posts)} posts")
+      Logger.info("=" |> String.duplicate(80))
 
       {:noreply,
        socket
@@ -205,7 +221,9 @@ defmodule MazarynWeb.ChannelLive.Show do
        |> put_flash(:info, "Post deleted")}
     rescue
       error ->
-        Logger.error("Failed to delete post: #{inspect(error)}")
+        Logger.error("❌ FAILED TO DELETE POST")
+        Logger.error("   Error: #{inspect(error)}")
+        Logger.info("=" |> String.duplicate(80))
         {:noreply, put_flash(socket, :error, "Failed to delete post")}
     end
   end
@@ -337,16 +355,37 @@ defmodule MazarynWeb.ChannelLive.Show do
   end
 
   defp load_channel_posts(channel_id) do
+    Logger.info("📨 load_channel_posts called for channel: #{channel_id}")
+
     try do
+      Logger.info("🔵 Calling :groupdb.get_channel_posts...")
+
       case :groupdb.get_channel_posts(to_charlist(channel_id), 50) do
         posts when is_list(posts) ->
-          Enum.map(posts, &convert_post_record/1)
+          Logger.info("✅ Received #{length(posts)} raw posts from database")
 
-        _ ->
+          converted = Enum.map(posts, &convert_post_record/1)
+
+          non_deleted =
+            Enum.filter(converted, fn post ->
+              not post.deleted
+            end)
+
+          Logger.info(
+            "✅ Filtered to #{length(non_deleted)} non-deleted posts (removed #{length(converted) - length(non_deleted)} deleted)"
+          )
+
+          non_deleted
+
+        other ->
+          Logger.warning("⚠️ Unexpected result: #{inspect(other)}")
           []
       end
     rescue
-      _ -> []
+      error ->
+        Logger.error("❌ Failed to load posts")
+        Logger.error("   Error: #{inspect(error)}")
+        []
     end
   end
 
@@ -402,13 +441,17 @@ defmodule MazarynWeb.ChannelLive.Show do
       case category_raw do
         :undefined ->
           ""
+
         [] ->
           ""
+
         cat when is_list(cat) ->
           cat_string = to_string(cat)
           if valid_category?(cat_string), do: cat_string, else: ""
+
         cat when is_binary(cat) ->
           if valid_category?(cat), do: cat, else: ""
+
         _ ->
           ""
       end
@@ -461,6 +504,7 @@ defmodule MazarynWeb.ChannelLive.Show do
       false
     else
       len = String.length(category)
+
       if len > 50 do
         false
       else
