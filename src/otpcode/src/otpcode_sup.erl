@@ -30,7 +30,7 @@
  job_posting, resume, work_experience, education, job_application, interview_stage, saved_job, job_alert,
  talent_pool, candidate_search, recruiter_contact, skill, skill_endorsement, skill_assessment, company_review,
  interview_prep, job_market_insights, user_job_analytics, job_message, background_check, employment_verification,
- job_referral, job_board_settings]).
+ job_referral, job_board_settings, leaderboard]).
 
 start_link() ->
     case initialize() of
@@ -437,4 +437,5 @@ table_attributes(job_message) -> record_info(fields, job_message);
 table_attributes(background_check) -> record_info(fields, background_check);
 table_attributes(employment_verification) -> record_info(fields, employment_verification);
 table_attributes(job_referral) -> record_info(fields, job_referral);
-table_attributes(job_board_settings) -> record_info(fields, job_board_settings).
+table_attributes(job_board_settings) -> record_info(fields, job_board_settings);
+table_attributes(leaderboard) -> record_info(fields, leaderboard).

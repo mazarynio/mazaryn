@@ -253,53 +253,79 @@ update_competition(CompetitionId, CreatorId, NewTitle, NewDescription, NewDatase
         {aborted, Reason} -> {error, {transaction_failed, Reason}}
     end.
 
-delete_competition(CompetitionId, UserId) ->
-    Fun = fun() ->
-        case mnesia:read({competition, CompetitionId}) of
-            [] ->
-                {error, competition_not_found};
-            [Competition] ->
-                case Competition#competition.creator_id of
-                    UserId ->
-                        case Competition#competition.status of
-                            active ->
-                                {error, cannot_delete_active_competition};
-                            _ ->
-                                lists:foreach(fun(DatasetId) ->
-                                    datasetdb:unlink_dataset_from_competition(DatasetId, CompetitionId)
-                                end, Competition#competition.dataset_ids),
+    delete_competition(CompetitionId, UserId) ->
+        Fun = fun() ->
+            case mnesia:read({competition, CompetitionId}) of
+                [] ->
+                    {error, competition_not_found};
+                [Competition] ->
+                    case Competition#competition.creator_id of
+                        UserId ->
+                            case Competition#competition.status of
+                                active ->
+                                    {error, cannot_delete_active_competition};
+                                _ ->
+                                    lists:foreach(fun(DatasetId) ->
+                                        try
+                                            datasetdb:unlink_dataset_from_competition(DatasetId, CompetitionId)
+                                        catch
+                                            _:_ -> ok
+                                        end
+                                    end, Competition#competition.dataset_ids),
 
-                                mnesia:delete({leaderboard, CompetitionId}),
+                                    mnesia:delete({leaderboard, CompetitionId}),
+                                    lists:foreach(fun(TeamId) ->
+                                        try
+                                            mnesia:delete({team, TeamId})
+                                        catch
+                                            _:_ -> ok
+                                        end
+                                    end, Competition#competition.team_ids),
 
-                                lists:foreach(fun(TeamId) ->
-                                    mnesia:delete({team, TeamId})
-                                end, Competition#competition.team_ids),
+                                    lists:foreach(fun(SubmissionId) ->
+                                        try
+                                            mnesia:delete({submission, SubmissionId})
+                                        catch
+                                            _:_ -> ok
+                                        end
+                                    end, Competition#competition.submission_ids),
 
-                                lists:foreach(fun(SubmissionId) ->
-                                    mnesia:delete({submission, SubmissionId})
-                                end, Competition#competition.submission_ids),
+                                    lists:foreach(fun(DiscussionId) ->
+                                        try
+                                            mnesia:delete({discussion_thread, DiscussionId})
+                                        catch
+                                            _:_ -> ok
+                                        end
+                                    end, Competition#competition.discussion_cids),
 
-                                mnesia:delete({competition, CompetitionId}),
+                                    case mnesia:read({user, UserId}) of
+                                        [User] ->
+                                            UpdatedCompetitions = case User#user.competitions of
+                                                undefined -> [];
+                                                List when is_list(List) ->
+                                                    lists:delete(CompetitionId, List);
+                                                _ -> []
+                                            end,
+                                            mnesia:write(User#user{competitions = UpdatedCompetitions});
+                                        [] -> ok
+                                    end,
 
-                                case mnesia:read({user, UserId}) of
-                                    [User] ->
-                                        UpdatedCompetitions = lists:delete(CompetitionId, User#user.competitions),
-                                        mnesia:write(User#user{competitions = UpdatedCompetitions});
-                                    [] -> ok
-                                end,
+                                    mnesia:delete({competition, CompetitionId}),
 
-                                ok
-                        end;
-                    _ ->
-                        {error, unauthorized}
-                end
-        end
-    end,
+                                    ok
+                            end;
+                        _ ->
+                            {error, unauthorized}
+                    end
+            end
+        end,
 
-    case mnesia:transaction(Fun) of
-        {atomic, Result} -> Result;
-        {aborted, Reason} -> {error, {transaction_failed, Reason}}
-    end.
+        case mnesia:transaction(Fun) of
+            {atomic, Result} -> Result;
+            {aborted, Reason} ->
+                error_logger:error_msg("Failed to delete competition ~p: ~p", [CompetitionId, Reason]),
+                {error, {transaction_failed, Reason}}
+        end.
 
 get_competition_by_id(CompetitionId) ->
     Fun = fun() ->
@@ -2253,3 +2279,26 @@ is_participant(CompetitionId, UserId) ->
                     Error ->
                         Error
                 end.
+
+                get_my_competitions(UserId) ->
+                    Fun = fun() ->
+                        AllCompetitions = mnesia:match_object(#competition{creator_id = UserId, _ = '_'}),
+                        lists:sort(fun(A, B) ->
+                            A#competition.date_created >= B#competition.date_created
+                        end, AllCompetitions)
+                    end,
+
+                    case mnesia:transaction(Fun) of
+                        {atomic, Res} -> Res;
+                        {aborted, _Reason} -> []
+                    end.
+
+                safe_delete_competition(CompetitionId, UserId) ->
+                    Result = delete_competition(CompetitionId, UserId),
+                    case Result of
+                        ok -> {ok, deleted};
+                        {error, competition_not_found} -> {error, competition_not_found};
+                        {error, unauthorized} -> {error, unauthorized};
+                        {error, cannot_delete_active_competition} -> {error, cannot_delete_active_competition};
+                        {error, _} -> {error, deletion_failed}
+                    end.

@@ -28,6 +28,9 @@ defmodule MazarynWeb.AiLive.Competitions do
         |> assign(filter: "all")
         |> assign(sort_by: "deadline")
         |> assign(show_create_modal: false)
+        |> assign(show_delete_confirm: false)
+        |> assign(competition_to_delete_id: nil)
+        |> assign(competition_to_delete_title: nil)
         |> assign(page: 1)
         |> assign(per_page: 12)
 
@@ -58,6 +61,9 @@ defmodule MazarynWeb.AiLive.Competitions do
           |> assign(filter: "all")
           |> assign(sort_by: "deadline")
           |> assign(show_create_modal: false)
+          |> assign(show_delete_confirm: false)
+          |> assign(competition_to_delete_id: nil)
+          |> assign(competition_to_delete_title: nil)
           |> assign(page: 1)
           |> assign(per_page: 12)
 
@@ -123,7 +129,6 @@ defmodule MazarynWeb.AiLive.Competitions do
     title = Map.get(comp_params, "title", "Untitled Competition")
     description = Map.get(comp_params, "description", "")
 
-    # Parse dates
     start_time = parse_datetime(Map.get(comp_params, "start_time", ""))
     end_time = parse_datetime(Map.get(comp_params, "end_time", ""))
 
@@ -133,6 +138,8 @@ defmodule MazarynWeb.AiLive.Competitions do
     evaluation_metric = String.to_atom(Map.get(comp_params, "evaluation_metric", "accuracy"))
     submission_limit = parse_integer(Map.get(comp_params, "submission_limit", "5"))
     team_size_limit = parse_integer(Map.get(comp_params, "team_size_limit", "5"))
+
+    difficulty = Map.get(comp_params, "difficulty", "intermediate")
 
     rules = %{
       "description" => Map.get(comp_params, "rules", ""),
@@ -231,11 +238,32 @@ defmodule MazarynWeb.AiLive.Competitions do
   end
 
   @impl true
-  def handle_event("delete_competition", %{"id" => competition_id}, socket) do
+  def handle_event("confirm_delete", %{"id" => competition_id, "title" => title}, socket) do
+    {:noreply,
+     socket
+     |> assign(show_delete_confirm: true)
+     |> assign(competition_to_delete_id: competition_id)
+     |> assign(competition_to_delete_title: title)}
+  end
+
+  @impl true
+  def handle_event("cancel_delete", _params, socket) do
+    {:noreply,
+     socket
+     |> assign(show_delete_confirm: false)
+     |> assign(competition_to_delete_id: nil)
+     |> assign(competition_to_delete_title: nil)}
+  end
+
+  @impl true
+  def handle_event("execute_delete", %{"id" => competition_id}, socket) do
     user_id = to_string(socket.assigns.user.id)
 
-    case CompetitionClient.delete_competition(competition_id, user_id) do
+    Logger.info("Attempting to delete competition: #{competition_id} by user: #{user_id}")
+
+    case safe_delete_competition(competition_id, user_id) do
       :ok ->
+        Logger.info("Successfully deleted competition: #{competition_id}")
         competitions = load_competitions(socket.assigns.user, socket.assigns.filter)
 
         filtered =
@@ -245,12 +273,36 @@ defmodule MazarynWeb.AiLive.Competitions do
 
         {:noreply,
          socket
+         |> assign(show_delete_confirm: false)
+         |> assign(competition_to_delete_id: nil)
+         |> assign(competition_to_delete_title: nil)
          |> assign(competitions: competitions)
          |> assign(filtered_competitions: sorted)
-         |> put_flash(:info, "Competition deleted")}
+         |> put_flash(:info, "Competition deleted successfully")}
+
+      {:error, :cannot_delete_active_competition} ->
+        Logger.warning("Cannot delete active competition: #{competition_id}")
+
+        {:noreply,
+         socket
+         |> assign(show_delete_confirm: false)
+         |> put_flash(:error, "Cannot delete an active competition. End it first.")}
+
+      {:error, :unauthorized} ->
+        Logger.warning("Unauthorized delete attempt: #{competition_id} by user: #{user_id}")
+
+        {:noreply,
+         socket
+         |> assign(show_delete_confirm: false)
+         |> put_flash(:error, "You are not authorized to delete this competition")}
 
       {:error, reason} ->
-        {:noreply, put_flash(socket, :error, "Failed to delete: #{inspect(reason)}")}
+        Logger.error("Failed to delete competition #{competition_id}: #{inspect(reason)}")
+
+        {:noreply,
+         socket
+         |> assign(show_delete_confirm: false)
+         |> put_flash(:error, "Failed to delete competition: #{inspect(reason)}")}
     end
   end
 
@@ -319,7 +371,7 @@ defmodule MazarynWeb.AiLive.Competitions do
 
     case filter do
       "my" ->
-        CompetitionClient.get_competitions_by_creator(user_id)
+        get_my_competitions(user_id)
         |> convert_competitions()
 
       "active" ->
@@ -354,6 +406,49 @@ defmodule MazarynWeb.AiLive.Competitions do
     error ->
       Logger.error("Error loading competitions: #{inspect(error)}")
       []
+  end
+
+  defp get_my_competitions(user_id) do
+    try do
+      :competitiondb.get_my_competitions(to_charlist(user_id))
+    rescue
+      UndefinedFunctionError ->
+        try do
+          :competitiondb.get_competitions_by_creator(to_charlist(user_id))
+        rescue
+          _ -> []
+        end
+
+      _ ->
+        []
+    end
+  end
+
+  defp safe_delete_competition(competition_id, user_id) do
+    try do
+      Logger.info("Calling competitiondb:delete_competition(#{competition_id}, #{user_id})")
+
+      case :competitiondb.delete_competition(
+             to_charlist(to_string(competition_id)),
+             to_charlist(to_string(user_id))
+           ) do
+        :ok ->
+          Logger.info("Delete returned :ok")
+          :ok
+
+        {:error, reason} ->
+          Logger.error("Delete returned error: #{inspect(reason)}")
+          {:error, reason}
+
+        other ->
+          Logger.error("Delete returned unexpected value: #{inspect(other)}")
+          {:error, :unknown_error}
+      end
+    rescue
+      error ->
+        Logger.error("Exception deleting competition: #{inspect(error)}")
+        {:error, :deletion_failed}
+    end
   end
 
   defp convert_competitions(competitions) when is_list(competitions) do
@@ -400,7 +495,7 @@ defmodule MazarynWeb.AiLive.Competitions do
   defp sort_competitions(competitions, sort_by) do
     case sort_by do
       "deadline" ->
-        Enum.sort_by(competitions, & &1.end_time, {:asc, DateTime})
+        Enum.sort_by(competitions, & &1.end_time, {:asc, NaiveDateTime})
 
       "popular" ->
         Enum.sort_by(competitions, &Competition.participant_count/1, :desc)
@@ -409,7 +504,7 @@ defmodule MazarynWeb.AiLive.Competitions do
         Enum.sort_by(competitions, & &1.reward_value, :desc)
 
       "recent" ->
-        Enum.sort_by(competitions, & &1.date_created, {:desc, DateTime})
+        Enum.sort_by(competitions, & &1.date_created, {:desc, NaiveDateTime})
 
       "submissions" ->
         Enum.sort_by(competitions, &Competition.submission_count/1, :desc)

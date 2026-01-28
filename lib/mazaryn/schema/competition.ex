@@ -55,8 +55,8 @@ defmodule Mazaryn.Schema.Competition do
     field(:dataset_ids, {:array, :string}, default: [])
     field(:dataset_cids, {:array, :string}, default: [])
     field(:dataset_ipns, {:array, :string}, default: [])
-    field(:start_time, :utc_datetime)
-    field(:end_time, :utc_datetime)
+    field(:start_time, :naive_datetime)
+    field(:end_time, :naive_datetime)
     field(:reward_type, :string)
     field(:reward_value, :float, default: 0.0)
     field(:rules, :map, default: %{})
@@ -68,8 +68,8 @@ defmodule Mazaryn.Schema.Competition do
     field(:status, :string, default: "draft")
     field(:visibility, :string, default: "public")
     field(:tags, {:array, :string}, default: [])
-    field(:date_created, :utc_datetime)
-    field(:date_updated, :utc_datetime)
+    field(:date_created, :naive_datetime)
+    field(:date_updated, :naive_datetime)
     field(:report, {:array, :string}, default: [])
     field(:metadata, :map, default: %{})
     field(:discussion_cids, {:array, :string}, default: [])
@@ -297,11 +297,11 @@ defmodule Mazaryn.Schema.Competition do
   def is_participant?(_, _), do: false
 
   def days_remaining(%__MODULE__{end_time: end_time}) when not is_nil(end_time) do
-    now = DateTime.utc_now()
+    now = NaiveDateTime.utc_now()
 
-    case DateTime.compare(end_time, now) do
+    case NaiveDateTime.compare(end_time, now) do
       :gt ->
-        diff = DateTime.diff(end_time, now, :second)
+        diff = NaiveDateTime.diff(end_time, now, :second)
         div(diff, 86400)
 
       _ ->
@@ -312,11 +312,11 @@ defmodule Mazaryn.Schema.Competition do
   def days_remaining(_), do: 0
 
   def hours_remaining(%__MODULE__{end_time: end_time}) when not is_nil(end_time) do
-    now = DateTime.utc_now()
+    now = NaiveDateTime.utc_now()
 
-    case DateTime.compare(end_time, now) do
+    case NaiveDateTime.compare(end_time, now) do
       :gt ->
-        diff = DateTime.diff(end_time, now, :second)
+        diff = NaiveDateTime.diff(end_time, now, :second)
         div(diff, 3600)
 
       _ ->
@@ -327,15 +327,16 @@ defmodule Mazaryn.Schema.Competition do
   def hours_remaining(_), do: 0
 
   def has_started?(%__MODULE__{start_time: start_time}) when not is_nil(start_time) do
-    now = DateTime.utc_now()
-    DateTime.compare(start_time, now) != :gt
+    now = NaiveDateTime.utc_now()
+    NaiveDateTime.compare(start_time, now) != :gt
   end
 
   def has_started?(_), do: false
 
+  # FIXED: Convert NaiveDateTime to DateTime for proper comparison
   def has_ended?(%__MODULE__{end_time: end_time}) when not is_nil(end_time) do
-    now = DateTime.utc_now()
-    DateTime.compare(end_time, now) != :gt
+    now = NaiveDateTime.utc_now()
+    NaiveDateTime.compare(end_time, now) != :gt
   end
 
   def has_ended?(_), do: false
@@ -398,9 +399,9 @@ defmodule Mazaryn.Schema.Competition do
 
   def format_reward(%__MODULE__{reward_type: type, reward_value: value}) do
     case type do
-      "cash" -> "$#{value}"
-      "token" -> "#{value} tokens"
-      "points" -> "#{value} points"
+      "cash" -> "$#{Float.round(value, 2)}"
+      "token" -> "#{Float.round(value, 0)} tokens"
+      "points" -> "#{Float.round(value, 0)} points"
       _ -> "#{value}"
     end
   end

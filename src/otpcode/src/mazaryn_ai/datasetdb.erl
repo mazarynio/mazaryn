@@ -95,7 +95,8 @@
     fetch_from_ipfs/1,
 
     get_dataset_zip_by_id/2,
-    get_dataset_zip_by_cid/1
+    get_dataset_zip_by_cid/1,
+    get_dataset_real_content_by_cid/1
 ]).
 
 -include("../ml_records.hrl").
@@ -2860,3 +2861,44 @@ upload_dataset_update(DatasetId, Content, Metadata) ->
                                             -spec is_zip_binary(binary()) -> boolean().
                                             is_zip_binary(<<16#50, 16#4B, _/binary>>) -> true;
                                             is_zip_binary(_) -> false.
+
+                                            is_placeholder_cid({pending, _}) -> true;
+                                            is_placeholder_cid({pending_update, _}) -> true;
+                                            is_placeholder_cid({pending_version, _}) -> true;
+                                            is_placeholder_cid({dataset_file, Id}) -> {true, Id};
+                                            is_placeholder_cid({error, _}) -> true;
+                                            is_placeholder_cid(undefined) -> true;
+                                            is_placeholder_cid(_) -> false.
+
+                                            get_dataset_real_content_by_cid(CID) when is_list(CID) orelse is_binary(CID) ->
+                                                CIDStr = ensure_string(CID),
+                                                case fetch_from_ipfs(CIDStr) of
+                                                    {ok, Binary} -> {ok, Binary};
+                                                    {error, Reason} -> {error, Reason}
+                                                end;
+                                            get_dataset_real_content_by_cid({dataset_file, DatasetId}) ->
+                                                case content_cache:get({dataset_file, DatasetId}) of
+                                                    undefined -> {error, content_not_ready};
+                                                    Content -> {ok, Content}
+                                                end;
+                                            get_dataset_real_content_by_cid({pending, DatasetId}) ->
+                                                case content_cache:get({dataset, DatasetId}) of
+                                                    undefined -> {error, content_not_ready};
+                                                    Content -> {ok, Content}
+                                                end;
+                                            get_dataset_real_content_by_cid({pending_update, DatasetId}) ->
+                                                case content_cache:get({dataset_update, DatasetId}) of
+                                                    undefined -> {error, content_not_ready};
+                                                    Content -> {ok, Content}
+                                                end;
+                                            get_dataset_real_content_by_cid({pending_version, DatasetId}) ->
+                                                case content_cache:get({dataset_version, DatasetId}) of
+                                                    undefined -> {error, content_not_ready};
+                                                    Content -> {ok, Content}
+                                                end;
+                                            get_dataset_real_content_by_cid({error, Reason}) ->
+                                                {error, {ipfs_upload_failed, Reason}};
+                                            get_dataset_real_content_by_cid(undefined) ->
+                                                {error, no_content};
+                                            get_dataset_real_content_by_cid(Other) ->
+                                                get_dataset_real_content_by_cid(ensure_string(Other)).

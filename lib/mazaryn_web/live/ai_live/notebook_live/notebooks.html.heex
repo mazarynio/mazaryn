@@ -74,11 +74,11 @@
             <option value="most_liked" selected={@filter == "most_liked"}>Most Liked</option>
             <option value="most_forked" selected={@filter == "most_forked"}>Most Forked</option>
             <optgroup label="By Language">
-              <option value="python" selected={@filter == "python"}>Python</option>
-              <option value="r" selected={@filter == "r"}>R</option>
-              <option value="julia" selected={@filter == "julia"}>Julia</option>
-              <option value="scala" selected={@filter == "scala"}>Scala</option>
-              <option value="sql" selected={@filter == "sql"}>SQL</option>
+              <option value="python" selected={@filter == "python"}>🐍 Python</option>
+              <option value="julia" selected={@filter == "julia"}>🔬 Julia</option>
+              <option value="elixir" selected={@filter == "elixir"}>💧 Elixir</option>
+              <option value="rust" selected={@filter == "rust"}>🦀 Rust</option>
+              <option value="r" selected={@filter == "r"}>📊 R</option>
             </optgroup>
             <optgroup label="By Type">
               <option value="analysis" selected={@filter == "analysis"}>Analysis</option>
@@ -104,7 +104,7 @@
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-      <div class="bg-white rounded-xl p-4 border border-slate-200">
+      <div class="bg-white rounded-xl p-4 border border-slate-200 hover:border-purple-300 hover:shadow-lg transition-all">
         <div class="flex items-center space-x-3">
           <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
             <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -118,7 +118,7 @@
         </div>
       </div>
 
-      <div class="bg-white rounded-xl p-4 border border-slate-200">
+      <div class="bg-white rounded-xl p-4 border border-slate-200 hover:border-pink-300 hover:shadow-lg transition-all">
         <div class="flex items-center space-x-3">
           <div class="w-10 h-10 bg-pink-100 rounded-lg flex items-center justify-center">
             <svg class="w-5 h-5 text-pink-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -134,7 +134,7 @@
         </div>
       </div>
 
-      <div class="bg-white rounded-xl p-4 border border-slate-200">
+      <div class="bg-white rounded-xl p-4 border border-slate-200 hover:border-blue-300 hover:shadow-lg transition-all">
         <div class="flex items-center space-x-3">
           <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
             <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -150,7 +150,7 @@
         </div>
       </div>
 
-      <div class="bg-white rounded-xl p-4 border border-slate-200">
+      <div class="bg-white rounded-xl p-4 border border-slate-200 hover:border-amber-300 hover:shadow-lg transition-all">
         <div class="flex items-center space-x-3">
           <div class="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center">
             <svg class="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -202,12 +202,12 @@
                   <h3 class="text-lg font-semibold text-slate-900 group-hover:text-purple-600 transition-colors line-clamp-1">
                     <%= notebook.title %>
                   </h3>
-                  <div class="flex items-center space-x-2 mt-2">
-                    <span class={"px-2 py-1 text-xs font-medium rounded-full #{MazarynWeb.AiLive.Notebooks.language_color(notebook.language)}"}>
-                      <%= Mazaryn.Schema.Notebook.language_label(notebook) %>
+                  <div class="flex items-center space-x-2 mt-2 flex-wrap gap-y-2">
+                    <span class={language_badge_color(to_string(notebook.language))}>
+                      <%= language_display_name(notebook.language) %>
                     </span>
-                    <span class={"px-2 py-1 text-xs font-medium rounded-full #{MazarynWeb.AiLive.Notebooks.type_color(notebook.notebook_type)}"}>
-                      <%= Mazaryn.Schema.Notebook.type_label(notebook) %>
+                    <span class={type_color(to_string(notebook.notebook_type))}>
+                      <%= type_label(notebook.notebook_type) %>
                     </span>
                     <%= if Mazaryn.Schema.Notebook.is_public?(notebook) do %>
                       <span class="px-2 py-1 bg-green-100 text-green-700 text-xs font-medium rounded-full">Public</span>
@@ -320,9 +320,9 @@
 
                 <%= if notebook.creator_id == to_string(@user.id) do %>
                   <button
-                    phx-click="delete_notebook"
+                    phx-click="open_delete_modal"
                     phx-value-id={notebook.id}
-                    data-confirm="Are you sure you want to delete this notebook?"
+                    phx-value-title={notebook.title}
                     class="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                     title="Delete"
                   >
@@ -388,11 +388,11 @@
                 required
                 class="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
               >
-                <option value="python">Python</option>
-                <option value="r">R</option>
-                <option value="julia">Julia</option>
-                <option value="scala">Scala</option>
-                <option value="sql">SQL</option>
+                <option value="python">🐍 Python</option>
+                <option value="julia">🔬 Julia</option>
+                <option value="elixir">💧 Elixir</option>
+                <option value="rust">🦀 Rust</option>
+                <option value="r">📊 R</option>
               </select>
             </div>
 
@@ -404,9 +404,10 @@
                 class="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
               >
                 <option value="python3">Python 3</option>
+                <option value="julia">Julia</option>
+                <option value="elixir">Elixir</option>
+                <option value="rust">Rust</option>
                 <option value="ir">R</option>
-                <option value="ijulia">Julia</option>
-                <option value="scala">Scala</option>
               </select>
             </div>
           </div>
@@ -438,31 +439,6 @@
           </div>
 
           <div>
-            <label class="block text-sm font-medium text-slate-700 mb-2">Python Version</label>
-            <select
-              name="notebook[python_version]"
-              class="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-            >
-              <option value="3.10" selected>Python 3.10</option>
-              <option value="3.11">Python 3.11</option>
-              <option value="3.12">Python 3.12</option>
-            </select>
-          </div>
-
-          <div class="flex items-center space-x-3">
-            <input
-              type="checkbox"
-              id="gpu_enabled"
-              name="notebook[gpu_enabled]"
-              value="true"
-              class="w-4 h-4 text-purple-600 border-slate-300 rounded focus:ring-purple-500"
-            />
-            <label for="gpu_enabled" class="text-sm text-slate-700">
-              Enable GPU acceleration (uses GPU quota)
-            </label>
-          </div>
-
-          <div>
             <label class="block text-sm font-medium text-slate-700 mb-2">Tags (comma-separated)</label>
             <input
               type="text"
@@ -488,6 +464,104 @@
             </button>
           </div>
         </form>
+      </div>
+    </div>
+  </div>
+<% end %>
+
+<%= if @show_delete_modal do %>
+  <div class="fixed inset-0 z-50 overflow-y-auto" phx-click="close_delete_modal">
+    <div class="flex items-center justify-center min-h-screen px-4">
+      <div class="fixed inset-0 bg-black bg-opacity-50 transition-opacity"></div>
+
+      <div class="relative bg-white rounded-2xl shadow-xl max-w-lg w-full p-8 transform transition-all" phx-click="stop_propagation">
+        <div class="flex items-center justify-center w-16 h-16 mx-auto mb-6 bg-red-100 rounded-full">
+          <svg class="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+        </div>
+
+        <h2 class="text-2xl font-bold text-center text-slate-900 mb-3">Delete Notebook?</h2>
+
+        <p class="text-center text-slate-600 mb-2">
+          You're about to permanently delete:
+        </p>
+
+        <p class="text-center text-lg font-semibold text-slate-900 mb-6 px-4 py-3 bg-slate-50 rounded-lg">
+          "<%= @delete_notebook_title %>"
+        </p>
+
+        <div class="bg-red-50 border border-red-200 rounded-xl p-4 mb-6">
+          <div class="flex">
+            <svg class="w-5 h-5 text-red-600 mt-0.5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+            <div class="text-sm text-red-800">
+              <p class="font-semibold mb-1">Warning: This action cannot be undone!</p>
+              <p>This will permanently delete:</p>
+              <ul class="list-disc list-inside mt-2 space-y-1 ml-2">
+                <li>All notebook content and cells</li>
+                <li>All execution outputs and history</li>
+                <li>All comments and interactions</li>
+                <li>Version history</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="mb-6">
+          <label class="block text-sm font-medium text-slate-700 mb-2">
+            To confirm, type: <span class="font-mono text-red-600">delete <%= @delete_notebook_title %></span>
+          </label>
+          <input
+            type="text"
+            value={@delete_confirmation_text}
+            phx-keyup="update_delete_confirmation"
+            phx-debounce="100"
+            placeholder="Type here to confirm..."
+            class="w-full px-4 py-3 border-2 border-slate-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 font-mono"
+            autofocus
+          />
+          <%= if @delete_confirmation_text != "" && String.downcase(@delete_confirmation_text) != String.downcase("delete " <> @delete_notebook_title) do %>
+            <p class="mt-2 text-sm text-red-600 flex items-center">
+              <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+              Text doesn't match. Please type exactly: <span class="ml-1 font-mono">delete <%= @delete_notebook_title %></span>
+            </p>
+          <% end %>
+          <%= if String.downcase(@delete_confirmation_text) == String.downcase("delete " <> @delete_notebook_title) do %>
+            <p class="mt-2 text-sm text-green-600 flex items-center">
+              <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+              </svg>
+              Confirmed! You can now delete the notebook.
+            </p>
+          <% end %>
+        </div>
+
+        <div class="flex items-center justify-end space-x-3">
+          <button
+            type="button"
+            phx-click="close_delete_modal"
+            class="px-6 py-3 text-slate-700 font-medium hover:bg-slate-100 rounded-xl transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            phx-click="confirm_delete_notebook"
+            disabled={String.downcase(@delete_confirmation_text) != String.downcase("delete " <> @delete_notebook_title)}
+            class={"px-6 py-3 font-medium rounded-xl transition-all " <>
+              if String.downcase(@delete_confirmation_text) == String.downcase("delete " <> @delete_notebook_title) do
+                "bg-red-600 text-white hover:bg-red-700 shadow-lg hover:shadow-xl cursor-pointer"
+              else
+                "bg-slate-200 text-slate-400 cursor-not-allowed"
+              end}
+          >
+            Delete Permanently
+          </button>
+        </div>
       </div>
     </div>
   </div>

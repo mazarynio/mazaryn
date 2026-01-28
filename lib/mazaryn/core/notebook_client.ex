@@ -20,6 +20,151 @@ defmodule Core.NotebookClient do
     value
   end
 
+  def create_session(notebook_id, user_id, language) when is_binary(notebook_id) and is_binary(user_id) do
+    Logger.info("Creating kernel session for notebook #{notebook_id}")
+    notebook_id_charlist = ensure_charlist(notebook_id)
+    user_id_charlist = ensure_charlist(user_id)
+    language_atom = ensure_atom(language)
+
+    try do
+      case :notebook_client.create_session(notebook_id_charlist, user_id_charlist, language_atom) do
+        {:ok, session_id, kernel_id} ->
+          {:ok, to_string(session_id), to_string(kernel_id)}
+
+        {:error, reason} ->
+          Logger.error("Failed to create kernel session: #{inspect(reason)}")
+          {:error, reason}
+      end
+    rescue
+      error ->
+        Logger.error("Exception creating kernel session: #{inspect(error)}")
+        {:error, :kernel_creation_failed}
+    end
+  end
+
+  def close_session(session_id) when is_binary(session_id) do
+    Logger.info("Closing kernel session #{session_id}")
+    session_id_charlist = ensure_charlist(session_id)
+
+    try do
+      :notebook_client.close_session(session_id_charlist)
+    rescue
+      error ->
+        Logger.error("Exception closing kernel session: #{inspect(error)}")
+        {:error, :close_failed}
+    end
+  end
+
+  def execute_code(session_id, code, cell_id) when is_binary(session_id) and is_binary(code) do
+    Logger.info("Executing code in session #{session_id} for cell #{cell_id}")
+    session_id_charlist = ensure_charlist(session_id)
+    code_charlist = ensure_charlist(code)
+    cell_id_charlist = ensure_charlist(cell_id)
+
+    try do
+      case :notebook_client.execute_code(session_id_charlist, code_charlist, cell_id_charlist) do
+        {:ok, result} when is_map(result) ->
+          {:ok, convert_execution_result(result)}
+
+        {:error, reason} ->
+          Logger.error("Code execution failed: #{inspect(reason)}")
+          {:error, reason}
+      end
+    rescue
+      error ->
+        Logger.error("Exception executing code: #{inspect(error)}")
+        {:error, :execution_failed}
+    end
+  end
+
+  def get_kernel_status(session_id) when is_binary(session_id) do
+    session_id_charlist = ensure_charlist(session_id)
+
+    try do
+      case :notebook_client.get_kernel_status(session_id_charlist) do
+        {:ok, status} -> {:ok, status}
+        error -> error
+      end
+    rescue
+      error ->
+        Logger.error("Exception getting kernel status: #{inspect(error)}")
+        {:error, :status_check_failed}
+    end
+  end
+
+  def interrupt_kernel(session_id) when is_binary(session_id) do
+    Logger.info("Interrupting kernel session #{session_id}")
+    session_id_charlist = ensure_charlist(session_id)
+
+    try do
+      :notebook_client.interrupt_kernel(session_id_charlist)
+    rescue
+      error ->
+        Logger.error("Exception interrupting kernel: #{inspect(error)}")
+        {:error, :interrupt_failed}
+    end
+  end
+
+  def restart_kernel(session_id) when is_binary(session_id) do
+    Logger.info("Restarting kernel session #{session_id}")
+    session_id_charlist = ensure_charlist(session_id)
+
+    try do
+      :notebook_client.restart_kernel(session_id_charlist)
+    rescue
+      error ->
+        Logger.error("Exception restarting kernel: #{inspect(error)}")
+        {:error, :restart_failed}
+    end
+  end
+
+  defp convert_execution_result(result_map) do
+    %{
+      execution_id: map_get_string(result_map, :execution_id),
+      outputs: convert_outputs(Map.get(result_map, :outputs, [])),
+      execution_time_ms: Map.get(result_map, :execution_time_ms),
+      status: Map.get(result_map, :status)
+    }
+  end
+
+  defp convert_outputs(outputs) when is_list(outputs) do
+    Enum.map(outputs, &convert_output/1)
+  end
+
+  defp convert_outputs(_), do: []
+
+  defp convert_output(output) when is_map(output) do
+    output_type = Map.get(output, :output_type, :text)
+    data = Map.get(output, :data)
+
+    %{
+      output_type: output_type,
+      data: convert_output_data(data)
+    }
+  end
+
+  defp convert_output(output), do: %{output_type: :unknown, data: inspect(output)}
+
+  defp convert_output_data({:text, text}) when is_list(text), do: %{type: :text, value: to_string(text)}
+  defp convert_output_data({:text, text}) when is_binary(text), do: %{type: :text, value: text}
+  defp convert_output_data({:html, html}) when is_list(html), do: %{type: :html, value: to_string(html)}
+  defp convert_output_data({:html, html}) when is_binary(html), do: %{type: :html, value: html}
+  defp convert_output_data({:json, json}), do: %{type: :json, value: json}
+  defp convert_output_data(data), do: %{type: :unknown, value: inspect(data)}
+
+  defp map_get_string(map, key) do
+    case Map.get(map, key) do
+      value when is_list(value) -> to_string(value)
+      value when is_binary(value) -> value
+      value -> inspect(value)
+    end
+  end
+
+  defp ensure_atom(value) when is_atom(value), do: value
+  defp ensure_atom(value) when is_binary(value), do: String.to_atom(value)
+  defp ensure_atom(value) when is_list(value), do: List.to_atom(value)
+  defp ensure_atom(_), do: :python
+
   def create_notebook(
         token,
         title,

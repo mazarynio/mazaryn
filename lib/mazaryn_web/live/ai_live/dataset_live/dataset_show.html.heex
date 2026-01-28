@@ -8,7 +8,6 @@
 
 <div class="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
   <div class="max-w-7xl mx-auto px-6 py-8">
-    <!-- Header -->
     <div class="flex items-center space-x-4 mb-8">
       <.link
         navigate={~p"/#{@locale}/ai/datasets"}
@@ -21,7 +20,6 @@
       </.link>
     </div>
 
-    <!-- Dataset Header Card -->
     <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-8 mb-6">
       <div class="flex items-start justify-between mb-6">
         <div class="flex-1">
@@ -81,7 +79,6 @@
         </div>
       </div>
 
-      <!-- Stats Grid -->
       <div class="grid grid-cols-2 md:grid-cols-5 gap-4 pt-6 border-t border-slate-100">
         <div class="text-center">
           <div class="text-2xl font-bold text-slate-900"><%= @dataset.downloads %></div>
@@ -112,7 +109,6 @@
       </div>
     </div>
 
-    <!-- Tabs -->
     <div class="bg-white rounded-2xl shadow-sm border border-slate-200 mb-6">
       <div class="flex border-b border-slate-200">
         <button
@@ -131,13 +127,6 @@
         </button>
         <button
           phx-click="change_tab"
-          phx-value-tab="versions"
-          class={"px-6 py-4 font-medium transition-colors #{if @active_tab == "versions", do: "text-blue-600 border-b-2 border-blue-600", else: "text-slate-600 hover:text-slate-900"}"}
-        >
-          Versions
-        </button>
-        <button
-          phx-click="change_tab"
           phx-value-tab="files"
           class={"px-6 py-4 font-medium transition-colors #{if @active_tab == "files", do: "text-blue-600 border-b-2 border-blue-600", else: "text-slate-600 hover:text-slate-900"}"}
         >
@@ -148,7 +137,6 @@
       <div class="p-6">
         <%= if @active_tab == "overview" do %>
           <div class="space-y-6">
-            <!-- License -->
             <div>
               <h3 class="text-lg font-semibold text-slate-900 mb-3">License</h3>
               <span class="px-4 py-2 bg-blue-50 text-blue-700 font-medium rounded-lg">
@@ -156,7 +144,6 @@
               </span>
             </div>
 
-            <!-- Tags -->
             <%= if length(@dataset.tags || []) > 0 do %>
               <div>
                 <h3 class="text-lg font-semibold text-slate-900 mb-3">Tags</h3>
@@ -170,12 +157,35 @@
               </div>
             <% end %>
 
-            <!-- IPFS Info -->
             <%= if @dataset.content_cid do %>
               <div>
                 <h3 class="text-lg font-semibold text-slate-900 mb-3">IPFS Content</h3>
-                <div class="bg-slate-50 rounded-lg p-4 font-mono text-sm text-slate-600 break-all">
-                  <%= @dataset.content_cid %>
+                <div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-200">
+                  <div class="flex items-center space-x-3">
+                    <div class="flex-shrink-0 w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center">
+                      <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                      </svg>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                      <div class="flex items-center space-x-2 mb-1">
+                        <span class="text-xs font-semibold text-blue-700 uppercase tracking-wide">Content Identifier</span>
+                        <span class="px-2 py-0.5 bg-blue-600 text-white text-xs font-medium rounded-full">IPFS</span>
+                      </div>
+                      <div class="font-mono text-sm text-slate-700 break-all">
+                        <%= @dataset.content_cid %>
+                      </div>
+                    </div>
+                    <button
+                      onclick={"navigator.clipboard.writeText('#{@dataset.content_cid}')"}
+                      class="flex-shrink-0 p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors"
+                      title="Copy CID"
+                    >
+                      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                      </svg>
+                    </button>
+                  </div>
                 </div>
               </div>
             <% end %>
@@ -183,13 +193,36 @@
             <%= if @dataset.ipns do %>
               <div>
                 <h3 class="text-lg font-semibold text-slate-900 mb-3">IPNS</h3>
-                <div class="bg-slate-50 rounded-lg p-4 font-mono text-sm text-slate-600 break-all">
-                  <%= @dataset.ipns %>
+                <div class="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-6 border border-purple-200">
+                  <div class="flex items-center space-x-3">
+                    <div class="flex-shrink-0 w-12 h-12 bg-purple-600 rounded-lg flex items-center justify-center">
+                      <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                      </svg>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                      <div class="flex items-center space-x-2 mb-1">
+                        <span class="text-xs font-semibold text-purple-700 uppercase tracking-wide">Name System</span>
+                        <span class="px-2 py-0.5 bg-purple-600 text-white text-xs font-medium rounded-full">IPNS</span>
+                      </div>
+                      <div class="font-mono text-sm text-slate-700 break-all">
+                        <%= @dataset.ipns %>
+                      </div>
+                    </div>
+                    <button
+                      onclick={"navigator.clipboard.writeText('#{@dataset.ipns}')"}
+                      class="flex-shrink-0 p-2 text-purple-600 hover:bg-purple-100 rounded-lg transition-colors"
+                      title="Copy IPNS"
+                    >
+                      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                      </svg>
+                    </button>
+                  </div>
                 </div>
               </div>
             <% end %>
 
-            <!-- Rating Section -->
             <div>
               <h3 class="text-lg font-semibold text-slate-900 mb-3">Rate this Dataset</h3>
               <div class="flex items-center space-x-2">
@@ -223,7 +256,6 @@
               </div>
             </div>
 
-            <!-- DOI -->
             <%= if Mazaryn.Schema.Dataset.has_doi?(@dataset) do %>
               <div>
                 <h3 class="text-lg font-semibold text-slate-900 mb-3">Digital Object Identifier (DOI)</h3>
@@ -241,19 +273,23 @@
           <div class="space-y-4">
             <%= if @dataset.metadata && map_size(@dataset.metadata) > 0 do %>
               <%= for {key, value} <- @dataset.metadata do %>
-                <div class="flex items-start py-3 border-b border-slate-100 last:border-0">
-                  <div class="w-1/3 font-medium text-slate-700 break-words"><%= key %></div>
-                  <div class="w-2/3 text-slate-600">
-                    <%= cond do %>
-                      <% is_map(value) -> %>
-                        <pre class="text-sm bg-slate-50 p-3 rounded-lg overflow-x-auto whitespace-pre-wrap"><%= MazarynWeb.AiLive.DatasetShow.format_metadata_value(value) %></pre>
-                      <% is_list(value) -> %>
-                        <pre class="text-sm bg-slate-50 p-3 rounded-lg overflow-x-auto whitespace-pre-wrap"><%= MazarynWeb.AiLive.DatasetShow.format_metadata_value(value) %></pre>
-                      <% true -> %>
-                        <%= MazarynWeb.AiLive.DatasetShow.format_metadata_value(value) %>
-                    <% end %>
+                <%= if key not in ["last_download", "original_file_path", :last_download, :original_file_path] do %>
+                  <div class="flex items-start py-3 border-b border-slate-100 last:border-0">
+                    <div class="w-1/3 font-medium text-slate-700 break-words"><%= key %></div>
+                    <div class="w-2/3 text-slate-600">
+                      <%= cond do %>
+                        <% is_map(value) -> %>
+                          <pre class="text-sm bg-slate-50 p-3 rounded-lg overflow-x-auto whitespace-pre-wrap"><%= MazarynWeb.AiLive.DatasetShow.format_metadata_value(value) %></pre>
+                        <% is_list(value) -> %>
+                          <pre class="text-sm bg-slate-50 p-3 rounded-lg overflow-x-auto whitespace-pre-wrap"><%= MazarynWeb.AiLive.DatasetShow.format_metadata_value(value) %></pre>
+                        <% is_tuple(value) -> %>
+                          <%= MazarynWeb.AiLive.DatasetShow.format_metadata_value(value) %>
+                        <% true -> %>
+                          <%= MazarynWeb.AiLive.DatasetShow.format_metadata_value(value) %>
+                      <% end %>
+                    </div>
                   </div>
-                </div>
+                <% end %>
               <% end %>
             <% else %>
               <div class="text-center py-12">
@@ -263,43 +299,6 @@
                   </svg>
                 </div>
                 <p class="text-slate-500">No metadata available</p>
-              </div>
-            <% end %>
-          </div>
-        <% end %>
-
-        <%= if @active_tab == "versions" do %>
-          <div class="space-y-4">
-            <%= if length(@dataset.version_history || []) > 0 do %>
-              <%= for version <- @dataset.version_history do %>
-                <div class="bg-slate-50 rounded-xl p-4 border border-slate-200">
-                  <div class="flex items-start justify-between">
-                    <div class="flex-1">
-                      <div class="flex items-center space-x-3 mb-2">
-                        <h4 class="font-semibold text-slate-900">Version <%= version.version %></h4>
-                        <span class="px-2 py-1 bg-blue-100 text-blue-700 text-xs font-medium rounded-full">
-                          #<%= version.version_num %>
-                        </span>
-                      </div>
-                      <p class="text-sm text-slate-600 mb-2"><%= version.description || "No description" %></p>
-                      <div class="flex items-center space-x-4 text-xs text-slate-500">
-                        <span><%= Mazaryn.Schema.Dataset.format_datetime(version.timestamp) %></span>
-                        <%= if version.cid do %>
-                          <span class="font-mono"><%= String.slice(version.cid, 0..12) %>...</span>
-                        <% end %>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              <% end %>
-            <% else %>
-              <div class="text-center py-12">
-                <div class="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <svg class="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                </div>
-                <p class="text-slate-500">No version history available</p>
               </div>
             <% end %>
           </div>
@@ -339,7 +338,6 @@
   </div>
 </div>
 
-<!-- Delete Confirmation Modal -->
 <%= if @show_delete_modal do %>
   <div class="fixed inset-0 z-50 overflow-y-auto" phx-click="close_delete_modal">
     <div class="flex items-center justify-center min-h-screen px-4">

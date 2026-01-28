@@ -6,18 +6,39 @@ defmodule MazarynWeb.AiLive.Notebooks do
   alias Mazaryn.Schema.Notebook
   require Logger
 
-  def language_color("python"), do: "bg-blue-100 text-blue-700"
-  def language_color("r"), do: "bg-purple-100 text-purple-700"
-  def language_color("julia"), do: "bg-pink-100 text-pink-700"
-  def language_color("scala"), do: "bg-red-100 text-red-700"
-  def language_color("sql"), do: "bg-green-100 text-green-700"
-  def language_color(_), do: "bg-slate-100 text-slate-700"
+  def language_badge_color("python"), do: "px-2 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-700 border border-blue-200"
+  def language_badge_color("julia"), do: "px-2 py-1 text-xs font-medium rounded-full bg-purple-100 text-purple-700 border border-purple-200"
+  def language_badge_color("elixir"), do: "px-2 py-1 text-xs font-medium rounded-full bg-purple-100 text-purple-700 border border-purple-200"
+  def language_badge_color("rust"), do: "px-2 py-1 text-xs font-medium rounded-full bg-orange-100 text-orange-700 border border-orange-200"
+  def language_badge_color("r"), do: "px-2 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-700 border border-blue-200"
+  def language_badge_color(_), do: "px-2 py-1 text-xs font-medium rounded-full bg-slate-100 text-slate-700 border border-slate-200"
 
-  def type_color("analysis"), do: "bg-blue-100 text-blue-700"
-  def type_color("competition_submission"), do: "bg-green-100 text-green-700"
-  def type_color("tutorial"), do: "bg-purple-100 text-purple-700"
-  def type_color("research"), do: "bg-amber-100 text-amber-700"
-  def type_color(_), do: "bg-slate-100 text-slate-700"
+  def language_display_name("python"), do: "🐍 Python"
+  def language_display_name("julia"), do: "🔬 Julia"
+  def language_display_name("elixir"), do: "💧 Elixir"
+  def language_display_name("rust"), do: "🦀 Rust"
+  def language_display_name("r"), do: "📊 R"
+  def language_display_name(lang) when is_binary(lang), do: String.capitalize(lang)
+
+  def language_display_name(language) when is_atom(language) do
+    language_display_name(Atom.to_string(language))
+  end
+
+  def type_color("analysis"), do: "px-2 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-700 border border-blue-200"
+  def type_color("competition_submission"), do: "px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-700 border border-green-200"
+  def type_color("tutorial"), do: "px-2 py-1 text-xs font-medium rounded-full bg-purple-100 text-purple-700 border border-purple-200"
+  def type_color("research"), do: "px-2 py-1 text-xs font-medium rounded-full bg-amber-100 text-amber-700 border border-amber-200"
+  def type_color(_), do: "px-2 py-1 text-xs font-medium rounded-full bg-slate-100 text-slate-700 border border-slate-200"
+
+  def type_label("analysis"), do: "Analysis"
+  def type_label("competition_submission"), do: "Competition"
+  def type_label("tutorial"), do: "Tutorial"
+  def type_label("research"), do: "Research"
+  def type_label(type) when is_binary(type), do: String.capitalize(type)
+
+  def type_label(type) when is_atom(type) do
+    type_label(Atom.to_string(type))
+  end
 
   @impl true
   def mount(_params, %{"session_uuid" => session_uuid} = _session, socket) do
@@ -38,6 +59,7 @@ defmodule MazarynWeb.AiLive.Notebooks do
         |> assign(show_delete_modal: false)
         |> assign(delete_notebook_id: nil)
         |> assign(delete_notebook_title: "")
+        |> assign(delete_confirmation_text: "")
         |> assign(page: 1)
         |> assign(per_page: 12)
         |> assign(locale: "en")
@@ -49,72 +71,6 @@ defmodule MazarynWeb.AiLive.Notebooks do
          socket
          |> put_flash(:error, "Session expired")
          |> redirect(to: "/en/login")}
-    end
-  end
-
-  @impl true
-  def handle_event("open_delete_modal", %{"id" => notebook_id, "title" => title}, socket) do
-    {:noreply,
-     socket
-     |> assign(show_delete_modal: true)
-     |> assign(delete_notebook_id: notebook_id)
-     |> assign(delete_notebook_title: title)}
-  end
-
-  @impl true
-  def handle_event("close_delete_modal", _params, socket) do
-    {:noreply,
-     socket
-     |> assign(show_delete_modal: false)
-     |> assign(delete_notebook_id: nil)
-     |> assign(delete_notebook_title: "")}
-  end
-
-  @impl true
-  def handle_event("confirm_delete", _params, socket) do
-    notebook_id = socket.assigns.delete_notebook_id
-
-    Logger.info("=== Confirm Delete Notebook ===")
-    Logger.info("Notebook ID: #{inspect(notebook_id)}")
-
-    user_id = to_string(socket.assigns.user.id)
-    user_id_charlist = String.to_charlist(user_id)
-    notebook_id_charlist = String.to_charlist(notebook_id)
-
-    Logger.info("User ID charlist: #{inspect(user_id_charlist)}")
-    Logger.info("Notebook ID charlist: #{inspect(notebook_id_charlist)}")
-
-    case NotebookClient.delete_notebook(notebook_id_charlist, user_id_charlist) do
-      :ok ->
-        Logger.info("Notebook deleted successfully")
-        notebooks = load_notebooks(socket.assigns.user, socket.assigns.filter)
-        filtered = filter_notebooks(notebooks, socket.assigns.search_query, socket.assigns.filter)
-        sorted = sort_notebooks(filtered, socket.assigns.sort_by)
-
-        {:noreply,
-         socket
-         |> assign(notebooks: notebooks)
-         |> assign(filtered_notebooks: sorted)
-         |> assign(show_delete_modal: false)
-         |> assign(delete_notebook_id: nil)
-         |> assign(delete_notebook_title: "")
-         |> put_flash(:info, "Notebook deleted successfully")}
-
-      {:error, :unauthorized} ->
-        Logger.error("User not authorized to delete notebook")
-
-        {:noreply,
-         socket
-         |> assign(show_delete_modal: false)
-         |> put_flash(:error, "You are not authorized to delete this notebook")}
-
-      {:error, reason} ->
-        Logger.error("Failed to delete notebook: #{inspect(reason)}")
-
-        {:noreply,
-         socket
-         |> assign(show_delete_modal: false)
-         |> put_flash(:error, "Failed to delete notebook: #{inspect(reason)}")}
     end
   end
 
@@ -135,6 +91,10 @@ defmodule MazarynWeb.AiLive.Notebooks do
           |> assign(filter: "all")
           |> assign(sort_by: "recent")
           |> assign(show_create_modal: false)
+          |> assign(show_delete_modal: false)
+          |> assign(delete_notebook_id: nil)
+          |> assign(delete_notebook_title: "")
+          |> assign(delete_confirmation_text: "")
           |> assign(page: 1)
           |> assign(per_page: 12)
           |> assign(locale: "en")
@@ -187,6 +147,72 @@ defmodule MazarynWeb.AiLive.Notebooks do
   end
 
   @impl true
+  def handle_event("open_delete_modal", %{"id" => notebook_id, "title" => title}, socket) do
+    {:noreply,
+     assign(socket,
+       show_delete_modal: true,
+       delete_notebook_id: notebook_id,
+       delete_notebook_title: title,
+       delete_confirmation_text: ""
+     )}
+  end
+
+  @impl true
+  def handle_event("close_delete_modal", _params, socket) do
+    {:noreply,
+     assign(socket,
+       show_delete_modal: false,
+       delete_notebook_id: nil,
+       delete_notebook_title: "",
+       delete_confirmation_text: ""
+     )}
+  end
+
+  @impl true
+  def handle_event("update_delete_confirmation", %{"value" => value}, socket) do
+    {:noreply, assign(socket, delete_confirmation_text: value)}
+  end
+
+  @impl true
+  def handle_event("confirm_delete_notebook", _params, socket) do
+    notebook_id = socket.assigns.delete_notebook_id
+    expected_text = "delete " <> socket.assigns.delete_notebook_title
+
+    if String.downcase(socket.assigns.delete_confirmation_text) == String.downcase(expected_text) do
+      user_id = to_string(socket.assigns.user.id)
+      user_id_charlist = String.to_charlist(user_id)
+      notebook_id_charlist = String.to_charlist(notebook_id)
+
+      case NotebookClient.delete_notebook(notebook_id_charlist, user_id_charlist) do
+        :ok ->
+          notebooks = load_notebooks(socket.assigns.user, socket.assigns.filter)
+          filtered = filter_notebooks(notebooks, socket.assigns.search_query, socket.assigns.filter)
+          sorted = sort_notebooks(filtered, socket.assigns.sort_by)
+
+          {:noreply,
+           socket
+           |> assign(notebooks: notebooks)
+           |> assign(filtered_notebooks: sorted)
+           |> assign(show_delete_modal: false)
+           |> assign(delete_notebook_id: nil)
+           |> assign(delete_notebook_title: "")
+           |> assign(delete_confirmation_text: "")
+           |> put_flash(:info, "Notebook deleted successfully")}
+
+        {:error, reason} ->
+          {:noreply,
+           socket
+           |> assign(show_delete_modal: false)
+           |> put_flash(:error, "Failed to delete: #{inspect(reason)}")}
+      end
+    else
+      {:noreply,
+       socket
+       |> put_flash(:error, "Confirmation text doesn't match. Please type exactly: delete #{socket.assigns.delete_notebook_title}")}
+    end
+  end
+
+  @impl true
   def handle_event("stop_propagation", _params, socket) do
     {:noreply, socket}
   end
@@ -204,10 +230,7 @@ defmodule MazarynWeb.AiLive.Notebooks do
     _notebook_type = String.to_atom(Map.get(notebook_params, "type", "analysis"))
     visibility = String.to_atom(Map.get(notebook_params, "visibility", "public"))
 
-    environment = %{
-      "python_version" => Map.get(notebook_params, "python_version", "3.10"),
-      "gpu_enabled" => Map.get(notebook_params, "gpu_enabled", "false") == "true"
-    }
+    environment = %{}
 
     tags = parse_tags(Map.get(notebook_params, "tags", ""))
 
@@ -243,49 +266,6 @@ defmodule MazarynWeb.AiLive.Notebooks do
          |> assign(notebooks: notebooks)
          |> assign(filtered_notebooks: sorted)
          |> put_flash(:info, "Notebook created successfully!")}
-    end
-  end
-
-  @impl true
-  def handle_event("delete_notebook", %{"id" => notebook_id}, socket) do
-    Logger.info("=== Delete Notebook Requested ===")
-    Logger.info("Notebook ID: #{inspect(notebook_id)}")
-    Logger.info("User struct: #{inspect(socket.assigns.user)}")
-
-    user_id = to_string(socket.assigns.user.id)
-    user_id_charlist = String.to_charlist(user_id)
-    notebook_id_charlist = String.to_charlist(notebook_id)
-
-    Logger.info("User ID string: #{user_id}")
-    Logger.info("User ID charlist: #{inspect(user_id_charlist)}")
-    Logger.info("Notebook ID charlist: #{inspect(notebook_id_charlist)}")
-
-    case NotebookClient.delete_notebook(notebook_id_charlist, user_id_charlist) do
-      :ok ->
-        Logger.info("Notebook deleted successfully")
-        notebooks = load_notebooks(socket.assigns.user, socket.assigns.filter)
-        filtered = filter_notebooks(notebooks, socket.assigns.search_query, socket.assigns.filter)
-        sorted = sort_notebooks(filtered, socket.assigns.sort_by)
-
-        {:noreply,
-         socket
-         |> assign(notebooks: notebooks)
-         |> assign(filtered_notebooks: sorted)
-         |> put_flash(:info, "Notebook deleted successfully")}
-
-      {:error, :unauthorized} ->
-        Logger.error("User not authorized to delete notebook")
-
-        {:noreply,
-         socket
-         |> put_flash(:error, "You are not authorized to delete this notebook")}
-
-      {:error, reason} ->
-        Logger.error("Failed to delete notebook: #{inspect(reason)}")
-
-        {:noreply,
-         socket
-         |> put_flash(:error, "Failed to delete notebook: #{inspect(reason)}")}
     end
   end
 
@@ -405,7 +385,7 @@ defmodule MazarynWeb.AiLive.Notebooks do
         NotebookClient.get_most_forked_notebooks(20)
         |> convert_notebooks()
 
-      language when language in ["python", "r", "julia", "scala", "sql"] ->
+      language when language in ["python", "julia", "elixir", "rust", "r"] ->
         NotebookClient.get_notebooks_by_language(String.to_atom(language))
         |> convert_notebooks()
 
