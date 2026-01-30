@@ -66,7 +66,8 @@
     import_model_card/2,
 
     validate_model_file/1,
-    get_supported_frameworks/0
+    get_supported_frameworks/0,
+    decode_model_id/1
 ]).
 
 -include("../ml_records.hrl").
@@ -86,7 +87,8 @@
 
 create_model(CreatorId, Title, Description, Framework, TaskType, ModelFile, License, Tags, Visibility, PerformanceMetrics) ->
     Fun = fun() ->
-        Id = nanoid:gen(),
+        PlainId = nanoid:gen(),
+        Id = encode_id(PlainId),
         Now = calendar:universal_time(),
 
         FileContent = if
@@ -162,6 +164,13 @@ create_model(CreatorId, Title, Description, Framework, TaskType, ModelFile, Lice
         {aborted, Reason} ->
             {error, {transaction_failed, Reason}}
     end.
+
+encode_id(PlainId) when is_binary(PlainId) ->
+    encode_id(binary_to_list(PlainId));
+encode_id(PlainId) when is_list(PlainId) ->
+    "id:" ++ PlainId;
+encode_id(PlainId) ->
+    encode_id(to_string(PlainId)).
 
 create_model_concurrent(CreatorId, Title, Description, Framework, TaskType, ModelFile, License, Tags, Visibility, PerformanceMetrics) ->
     IdFuture = spawn_monitor(fun() -> exit({result, nanoid:gen()}) end),
@@ -315,34 +324,53 @@ update_model(ModelId, CreatorId, NewTitle, NewDescription, NewFramework, NewTask
         {aborted, Reason} -> {error, {transaction_failed, Reason}}
     end.
 
-delete_model(ModelId, UserId) ->
-    Fun = fun() ->
-        case mnesia:read({model, ModelId}) of
-            [] ->
-                {error, model_not_found};
-            [Model] ->
-                case Model#model.creator_id of
-                    UserId ->
-                        mnesia:delete({model, ModelId}),
+    delete_model(ModelId, UserId) ->
+        Fun = fun() ->
+            DecodedModelId = decode_model_id(ModelId),
+            DecodedUserId = decode_model_id(UserId),
 
-                        case mnesia:read({user, UserId}) of
-                            [User] ->
-                                UpdatedModels = lists:delete(ModelId, User#user.datasets),
-                                mnesia:write(User#user{datasets = UpdatedModels});
-                            [] -> ok
-                        end,
+            case mnesia:read({model, DecodedModelId}) of
+                [] ->
+                    {error, model_not_found};
+                [Model] ->
+                    ModelCreatorId = Model#model.creator_id,
 
-                        ok;
-                    _ ->
-                        {error, unauthorized}
-                end
-        end
-    end,
+                    NormalizedCreatorId = normalize_for_comparison(ModelCreatorId),
+                    NormalizedUserId = normalize_for_comparison(DecodedUserId),
 
-    case mnesia:transaction(Fun) of
-        {atomic, Result} -> Result;
-        {aborted, Reason} -> {error, {transaction_failed, Reason}}
-    end.
+                    case NormalizedCreatorId =:= NormalizedUserId of
+                        true ->
+                            mnesia:delete({model, Model#model.id}),
+
+                            case mnesia:read({user, DecodedUserId}) of
+                                [User] ->
+                                    UpdatedModels = lists:delete(Model#model.id, User#user.datasets),
+                                    mnesia:write(User#user{datasets = UpdatedModels});
+                                [] ->
+                                    ok
+                            end,
+
+                            ok;
+                        false ->
+                            {error, unauthorized}
+                    end
+            end
+        end,
+
+        case mnesia:transaction(Fun) of
+            {atomic, Result} ->
+                Result;
+            {aborted, Reason} ->
+                {error, {transaction_failed, Reason}}
+        end.
+
+    normalize_for_comparison(Id) when is_list(Id) ->
+        case string:prefix(Id, "id:") of
+            nomatch -> Id;
+            Rest -> Rest
+        end;
+    normalize_for_comparison(Id) ->
+        normalize_for_comparison(to_string(Id)).
 
 upload_model_file(ModelId, FilePath) ->
     case validate_model_file(FilePath) of
@@ -394,18 +422,19 @@ upload_model_file(ModelId, FilePath) ->
             end
     end.
 
-get_model_by_id(ModelId) ->
-    Fun = fun() ->
-        case mnesia:read({model, ModelId}) of
-            [] -> {error, model_not_found};
-            [Model] -> Model
-        end
-    end,
+    get_model_by_id(ModelId) ->
+        DecodedId = ensure_list(ModelId),
+        Fun = fun() ->
+            case mnesia:read({model, DecodedId}) of
+                [] -> {error, model_not_found};
+                [Model] -> Model
+            end
+        end,
+        case mnesia:transaction(Fun) of
+            {atomic, Result} -> Result;
+            {aborted, Reason} -> {error, {transaction_failed, Reason}}
+        end.
 
-    case mnesia:transaction(Fun) of
-        {atomic, Result} -> Result;
-        {aborted, Reason} -> {error, {transaction_failed, Reason}}
-    end.
 
 get_models_by_creator(CreatorId) ->
     Fun = fun() ->
@@ -1493,3 +1522,46 @@ write_model_with_retry(Model, UserId, RetriesLeft) when RetriesLeft > 0 ->
     end;
 write_model_with_retry(_Model, _UserId, 0) ->
     {error, max_retries_exceeded}.
+
+    decode_model_id(EncodedId) when is_binary(EncodedId) ->
+        decode_model_id(binary_to_list(EncodedId));
+
+    decode_model_id(EncodedId) when is_list(EncodedId) ->
+
+        case string:prefix(EncodedId, "id:") of
+            nomatch ->
+                Result = "id:" ++ EncodedId,
+                Result;
+            _ ->
+                EncodedId
+        end;
+
+    decode_model_id(EncodedId) ->
+        decode_model_id(to_string(EncodedId)).
+
+    remove_all_prefixes(String, Prefix) ->
+        case string:prefix(String, Prefix) of
+            nomatch -> String;
+            Rest -> remove_all_prefixes(Rest, Prefix)
+        end.
+
+        is_base64(String) ->
+            Re = "^[A-Za-z0-9+/]+={0,2}$",
+            case re:run(String, Re) of
+                {match, _} -> true;
+                _ -> false
+            end.
+
+        add_base64_padding(String) ->
+            Len = length(String),
+            case Len rem 4 of
+                0 -> String;
+                2 -> String ++ "==";
+                3 -> String ++ "=";
+                _ -> String
+            end.
+
+        to_string(Term) when is_binary(Term) -> binary_to_list(Term);
+        to_string(Term) when is_list(Term) -> Term;
+        to_string(Term) when is_atom(Term) -> atom_to_list(Term);
+        to_string(Term) -> lists:flatten(io_lib:format("~p", [Term])).

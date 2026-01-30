@@ -1,10 +1,9 @@
 defmodule MazarynWeb.Router do
   use MazarynWeb, :router
-
   import MazarynWeb.Plug.Session,
     only: [redirect_unauthorized: 2, validate_session: 2, check_if_admin: 2]
-
   import MazarynWeb.Plug.CheckAllowedUser
+
   @env Application.compile_env(:mazaryn, :env)
 
   pipeline :browser do
@@ -61,12 +60,10 @@ defmodule MazarynWeb.Router do
 
   scope "/en/api" do
     pipe_through(:api)
-
     forward("/graphiql", Absinthe.Plug.GraphiQL,
       schema: MazarynWeb.Schema,
       interface: :simple
     )
-
     forward("/", Absinthe.Plug, schema: MazarynWeb.Schema)
   end
 
@@ -74,6 +71,7 @@ defmodule MazarynWeb.Router do
 
   scope "/:locale", MazarynWeb do
     pipe_through(:browser)
+
     get("/logout", LogoutController, :index)
     get("/confirm/:token", ConfirmAccountController, :index)
     get("/verify-email/:token", EmailVerificationController, :verify, as: :email_verification)
@@ -108,6 +106,7 @@ defmodule MazarynWeb.Router do
 
   scope "/:locale", MazarynWeb do
     pipe_through(:restricted)
+
     get("/downloads/:id/file", DownloadController, :download_file)
     get("/ai/datasets/:dataset_id/zip", DatasetZipController, :serve)
 
@@ -130,32 +129,41 @@ defmodule MazarynWeb.Router do
       live("/livestreams/:id/dashboard", MediaLive.Livestream.Dashboard, :dashboard)
       live("/livestreams/go-live/camera", MediaLive.Livestream.GoLive, :camera)
       live("/livestreams/:id/watch-vod", MediaLive.Livestream.VodWatch, :show)
+
       live("/ai", AiLive.Index)
+
       live("/ai/datasets", AiLive.Datasets, :index)
       live("/ai/datasets/new", AiLive.DatasetNew, :new)
       live("/ai/datasets/:id", AiLive.DatasetShow, :show)
       live("/ai/datasets/:id/edit", AiLive.DatasetEdit, :edit)
       live("/ai/datasets/:id/versions", AiLive.DatasetVersions, :versions)
       live("/ai/datasets/:id/collaborators", AiLive.DatasetCollaborators, :collaborators)
+
       live("/ai/competitions", AiLive.Competitions, :index)
-      live("/ai/competitions/new", AiLive.CompetitionNew, :new)
+      # live("/ai/competitions/new", AiLive.CompetitionNew, :new)
       live("/ai/competitions/:id", AiLive.CompetitionShow, :show)
-      live("/ai/competitions/:id/edit", AiLive.CompetitionEdit, :edit)
+      # live("/ai/competitions/:id/edit", AiLive.CompetitionEdit, :edit)
       live("/ai/competitions/:id/leaderboard", AiLive.CompetitionLeaderboard, :leaderboard)
-      live("/ai/competitions/:id/submit", AiLive.CompetitionSubmit, :submit)
-      live("/ai/competitions/:id/teams", AiLive.CompetitionTeams, :teams)
+      # live("/ai/competitions/:id/submit", AiLive.CompetitionSubmit, :submit)
+      # live("/ai/competitions/:id/teams", AiLive.CompetitionTeams, :teams)
+
       live("/ai/notebooks", AiLive.Notebooks, :index)
       live("/ai/notebooks/:id", AiLive.NotebookShow, :show)
+
       live("/ai/models", AiLive.Models, :index)
-      live("/ai/models/:id", AiLive.ModelShow, :show)
+      live("/ai/models/:id", AiLive.ModelShow, :show)           # ← this must be active
+
       # live("/ai/models/new", AiLive.ModelNew, :new)
       # live("/ai/models/:id/edit", AiLive.ModelEdit, :edit)
       # live("/ai/models/:id/versions", AiLive.ModelVersions, :versions)
       # live("/ai/models/:id/deploy", AiLive.ModelDeploy, :deploy)
+
       # live("/ai/discussions", AiLive.Discussions, :index)
       # live("/ai/discussions/new", AiLive.DiscussionNew, :new)
       # live("/ai/discussions/:id", AiLive.DiscussionShow, :show)
+
       live("/downloads", DownloadManagerLive.Index, :index)
+
       live("/ai/learning", AiLive.Learning.Index, :index)
       live("/ai/learning/become-instructor", AiLive.Learning.BecomeInstructor, :new)
       live("/ai/learning/instructor/dashboard", AiLive.Learning.InstructorDashboard, :dashboard)
@@ -167,62 +175,62 @@ defmodule MazarynWeb.Router do
       live("/ai/learning/paths/:path_id/modules", AiLive.Learning.ModulesIndex, :index)
       live("/ai/learning/paths/:path_id/modules/new", AiLive.Learning.ModuleNew, :new)
       live("/ai/learning/paths/:path_id/modules/:id/edit", AiLive.Learning.ModuleEdit, :edit)
-
       live(
         "/ai/learning/paths/:path_id/modules/:module_id/lessons",
         AiLive.Learning.LessonsIndex,
         :index
       )
-
       live(
         "/ai/learning/paths/:path_id/modules/:module_id/lessons/new",
         AiLive.Learning.LessonNew,
         :new
       )
-
       live(
         "/ai/learning/paths/:path_id/modules/:module_id/lessons/:id/edit",
         AiLive.Learning.LessonEdit,
         :edit
       )
-
       live(
         "/ai/learning/paths/:path_id/modules/:module_id/lessons/:lesson_id",
         AiLive.Learning.LessonView,
         :show
       )
-
       live(
         "/ai/learning/paths/:path_id/modules/:module_id/lessons/:lesson_id/quiz/new",
         AiLive.Learning.QuizNew,
         :new
       )
-
       live("/ai/learning/paths/:path_id/quizzes/:quiz_id", AiLive.Learning.QuizTake, :take)
       live("/ai/learning/paths/:path_id/edit", AiLive.Learning.PathEdit, :edit)
       live("/ai/learning/paths/:path_id", AiLive.Learning.PathShow, :show)
+
       live("/groups", GroupLive.Index, :index)
       live("/groups/:id", GroupLive.Show, :show)
       live("/groups/:id/settings", GroupLive.Settings, :settings)
       live("/groups/:id/members", GroupLive.Members, :members)
       live("/groups/:id/invites", GroupLive.Invites, :invites)
+
       live("/channels", ChannelLive.Index, :index)
       live("/channels/:id", ChannelLive.Show, :show)
       live("/channels/:id/settings", ChannelLive.Settings, :settings)
       live("/channels/:id/subscribers", ChannelLive.Subscribers, :subscribers)
       live("/channels/:id/invites", ChannelLive.Invites, :invites)
+
       live("/jobs", JobLive.Index, :index)
       live("/jobs/saved", JobLive.Saved, :saved)
       live("/jobs/:id", JobLive.Show, :show)
+
       live "/resumes", ResumeLive.Index, :index
       live "/resumes/builder", ResumeLive.Builder, :new
       live "/resumes/:id", ResumeLive.Show, :show
       live "/resumes/:id/edit", ResumeLive.Builder, :edit
+
       live("/business", BusinessLive.Index, :index)
       live("/business/:id", BusinessLive.Show, :show)
       live("/business/:id/team", BusinessLive.TeamManagement, :team)
       live("/business/:id/analytics", BusinessLive.Analytics, :analytics)
       live("/business/:id/jobs", BusinessLive.Jobs, :jobs)
+
       live("/weather", WeatherLive.Index)
 
       scope "/chats" do

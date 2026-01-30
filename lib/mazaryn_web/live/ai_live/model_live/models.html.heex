@@ -32,7 +32,6 @@
           </div>
         </div>
       </div>
-
       <button
         phx-click="open_create_modal"
         class="flex items-center space-x-2 px-6 py-3 bg-gradient-to-r from-orange-600 to-amber-600 text-white font-medium rounded-xl hover:from-orange-700 hover:to-amber-700 transition-all shadow-lg shadow-orange-200 hover:shadow-xl hover:shadow-orange-300"
@@ -197,6 +196,11 @@
     <% else %>
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <%= for model <- @filtered_models do %>
+          <%
+            model_id = model.id
+            path = ~p"/#{@locale}/ai/models/#{model_id}"
+          %>
+
           <div class="bg-white rounded-2xl shadow-sm border border-slate-200 hover:shadow-lg transition-all duration-200 overflow-hidden group">
             <div class="p-6">
               <div class="flex items-start justify-between mb-4">
@@ -206,14 +210,14 @@
                   </h3>
                   <div class="flex items-center space-x-2 mt-2">
                     <span class={"px-2 py-1 text-xs font-medium rounded-full #{MazarynWeb.AiLive.Models.framework_color(model.framework)}"}>
-                      <%= String.replace(model.framework || "unknown", "_", " ") |> String.capitalize() %>
+                      <%= String.replace(to_string(model.framework || "unknown"), "_", " ") |> String.capitalize() %>
                     </span>
-                    <span class={"px-2 py-1 text-xs font-medium rounded-full #{MazarynWeb.AiLive.Models.task_color(model.task_type)}"}>
+                    <span class={"px-2 py-1 text-xs font-medium rounded-full #{MazarynWeb.AiLive.Models.task_color(to_string(model.task_type))}"}>
                       <%= String.replace(to_string(model.task_type || "unknown"), "_", " ") |> String.capitalize() %>
                     </span>
                   </div>
                 </div>
-                <div class="flex flex-col items-end space-y-2">
+                <div class="flex items-center space-x-2">
                   <%= if Mazaryn.Schema.Model.is_public?(model) do %>
                     <span class="px-2 py-1 bg-green-100 text-green-700 text-xs font-medium rounded-full">Public</span>
                   <% else %>
@@ -280,14 +284,15 @@
               <div class="flex items-center justify-between pt-4 border-t border-slate-100">
                 <div class="flex items-center space-x-2">
                   <.link
-                    navigate={~p"/#{@locale}/ai/models/#{model.id}"}
+                    navigate={path}
                     class="px-4 py-2 bg-orange-600 text-white text-sm font-medium rounded-lg hover:bg-orange-700 transition-colors"
                   >
                     View Details
                   </.link>
+
                   <button
                     phx-click="download_model"
-                    phx-value-id={model.id}
+                    phx-value-id={model_id}
                     class="p-2 text-slate-400 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition-colors"
                     title="Download"
                   >
@@ -299,9 +304,9 @@
 
                 <%= if model.creator_id == to_string(@user.id) do %>
                   <button
-                    phx-click="delete_model"
-                    phx-value-id={model.id}
-                    data-confirm="Are you sure you want to delete this model?"
+                    phx-click="open_delete_modal"
+                    phx-value-id={model_id}
+                    phx-value-title={model.title}
                     class="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                     title="Delete"
                   >
@@ -323,7 +328,6 @@
   <div class="fixed inset-0 z-50 overflow-y-auto" phx-click="close_create_modal">
     <div class="flex items-center justify-center min-h-screen px-4">
       <div class="fixed inset-0 bg-black bg-opacity-50 transition-opacity"></div>
-
       <div class="relative bg-white rounded-2xl shadow-xl max-w-2xl w-full p-8 transform transition-all" phx-click="stop_propagation">
         <div class="flex items-center justify-between mb-6">
           <h2 class="text-2xl font-bold text-slate-900">Upload New Model</h2>
@@ -336,7 +340,6 @@
             </svg>
           </button>
         </div>
-
         <form phx-submit="create_model" phx-change="validate_upload" class="space-y-6">
           <div>
             <label class="block text-sm font-medium text-slate-700 mb-2">Model Title *</label>
@@ -348,7 +351,6 @@
               class="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
             />
           </div>
-
           <div>
             <label class="block text-sm font-medium text-slate-700 mb-2">Description</label>
             <textarea
@@ -358,7 +360,6 @@
               class="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 resize-none"
             ></textarea>
           </div>
-
           <div>
             <label class="block text-sm font-medium text-slate-700 mb-2">Upload Model File *</label>
             <div
@@ -380,7 +381,6 @@
                 </div>
                 <.live_file_input upload={@uploads.model_file} class="hidden" />
               </label>
-
               <%= for entry <- @uploads.model_file.entries do %>
                 <div class="mt-6 bg-gradient-to-r from-orange-50 to-amber-50 rounded-xl p-4 border border-orange-200">
                   <div class="flex items-center justify-between">
@@ -421,7 +421,6 @@
               <% end %>
             </div>
           </div>
-
           <div class="grid grid-cols-2 gap-4">
             <div>
               <label class="block text-sm font-medium text-slate-700 mb-2">Framework *</label>
@@ -439,7 +438,6 @@
                 <option value="huggingface">HuggingFace</option>
               </select>
             </div>
-
             <div>
               <label class="block text-sm font-medium text-slate-700 mb-2">Task Type *</label>
               <select
@@ -457,7 +455,6 @@
               </select>
             </div>
           </div>
-
           <div class="grid grid-cols-2 gap-4">
             <div>
               <label class="block text-sm font-medium text-slate-700 mb-2">License</label>
@@ -473,7 +470,6 @@
                 <option value="proprietary">Proprietary</option>
               </select>
             </div>
-
             <div>
               <label class="block text-sm font-medium text-slate-700 mb-2">Visibility</label>
               <select
@@ -485,7 +481,6 @@
               </select>
             </div>
           </div>
-
           <div>
             <label class="block text-sm font-medium text-slate-700 mb-2">Tags (comma-separated)</label>
             <input
@@ -495,7 +490,6 @@
               class="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
             />
           </div>
-
           <div class="flex items-center justify-end space-x-3 pt-4 border-t border-slate-100">
             <button
               type="button"
@@ -513,6 +507,51 @@
             </button>
           </div>
         </form>
+      </div>
+    </div>
+  </div>
+<% end %>
+
+<%= if @show_delete_modal do %>
+  <div class="fixed inset-0 z-50 overflow-y-auto" phx-click="cancel_delete">
+    <div class="flex items-center justify-center min-h-screen px-4">
+      <div class="fixed inset-0 bg-black bg-opacity-50 transition-opacity"></div>
+      <div class="relative bg-white rounded-2xl shadow-xl max-w-lg w-full p-6 transform transition-all" phx-click="stop_propagation">
+        <div class="flex items-start">
+          <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100">
+            <svg class="h-6 w-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+          </div>
+          <div class="ml-4">
+            <h3 class="text-lg font-medium text-gray-900">Delete Model</h3>
+            <div class="mt-2">
+              <p class="text-sm text-gray-500">
+                Are you sure you want to delete "<%= @model_to_delete[:title] %>"?
+              </p>
+              <p class="mt-2 text-sm text-red-600 font-medium">
+                This action cannot be undone. All model data will be permanently removed.
+              </p>
+            </div>
+          </div>
+        </div>
+        <div class="mt-6 flex justify-end space-x-3">
+          <button
+            phx-click="cancel_delete"
+            type="button"
+            class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500"
+          >
+            Cancel
+          </button>
+          <button
+            phx-click="confirm_delete"
+            phx-value-id={@model_to_delete[:id]}
+            type="button"
+            class="px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+          >
+            Delete
+          </button>
+        </div>
       </div>
     </div>
   </div>
