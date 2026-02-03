@@ -1,6 +1,8 @@
+use actix::prelude::*;
 use actix_cors::Cors;
 use actix_web::{middleware, web, App, HttpServer};
 use log::info;
+use std::collections::HashMap;
 use std::sync::Arc;
 use tokio::main;
 use tokio::sync::Mutex;
@@ -11,9 +13,7 @@ mod media_video;
 mod notebook;
 mod sfu;
 mod signaling;
-mod webrtc;
 
-use crate::webrtc::RTCPeerConnection;
 use download_manager::{DownloadConfig, DownloadManager};
 use media_video::{
     api::MediaVideoState, AnalyticsManager, MediaPlayer, MediaPlayerConfig, MediaStorage,
@@ -29,8 +29,10 @@ async fn main() -> std::io::Result<()> {
 
     info!("Starting rustcode service on port 2020");
 
-    let peer_connection = Arc::new(Mutex::new(None::<Arc<RTCPeerConnection>>));
-    let peer_connection_data = web::Data::new(peer_connection);
+    let signaling_sessions: Arc<
+        Mutex<HashMap<String, HashMap<String, Addr<signaling::SignalingServer>>>>,
+    > = Arc::new(Mutex::new(HashMap::new()));
+    let signaling_sessions_data = web::Data::new(signaling_sessions);
 
     let storage_path = std::path::PathBuf::from("/tmp/mazaryn_downloads");
     std::fs::create_dir_all(&storage_path).expect("Failed to create storage directory");
@@ -119,7 +121,7 @@ async fn main() -> std::io::Result<()> {
         App::new()
             .wrap(cors)
             .wrap(middleware::Logger::default())
-            .app_data(peer_connection_data.clone())
+            .app_data(signaling_sessions_data.clone())
             .service(api::initiate_call)
             .service(api::accept_call)
             .service(api::end_call)

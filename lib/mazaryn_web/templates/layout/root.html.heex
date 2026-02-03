@@ -1,22 +1,11 @@
 <!DOCTYPE html>
-<html
-  lang="en"
-  class={
-    if(@conn.request_path =~ "/videos",
-      do: "bg-[#282932] text-white",
-      else: "bg-white text-black"
-    )
-  }
->
+<html lang="en">
   <head>
-    <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-0879L9H8C2">
-    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-0879L9H8C2"></script>
     <script>
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
       gtag('js', new Date());
-
       gtag('config', 'G-0879L9H8C2', { 'debug_mode': true });
     </script>
     <meta charset="utf-8" />
@@ -25,31 +14,45 @@
     <meta name="google-site-verification" content="ZvDAlOOIA5Cja3i3G-RkAOczEX4LeQ82XmgooN1ypiw" />
     <%= csrf_meta_tag() %>
     <%= live_title_tag(assigns[:page_title] || "Mazaryn",
-      suffix: " · an Online community which empower users to explore their Talents "
+      suffix: " · Social Network"
     ) %>
     <link phx-track-static rel="stylesheet" href={~p"/assets/app.css"} />
-    <link
-      phx-track-static
-      href="//fonts.googleapis.com/css?family=Open+Sans:400,600,300"
-      rel="stylesheet"
-      type="text/css"
-    />
-    <script
-      defer
-      phx-track-static
-      type="text/javascript"
-      src="//ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"
-    >
-    </script>
-    <script
-      defer
-      phx-track-static
-      type="text/javascript"
-      src={~p"/assets/app.js"}
-    >
-    </script>
+    <link href="//fonts.googleapis.com/css?family=Open+Sans:400,600,300" rel="stylesheet" type="text/css" />
+    <script defer phx-track-static type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+    <script defer phx-track-static type="text/javascript" src={~p"/assets/app.js"}></script>
+    <style>
+      @keyframes float {
+        0%, 100% { transform: translateY(0px); }
+        50% { transform: translateY(-10px); }
+      }
+      @keyframes pulse-glow {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.7; }
+      }
+      .animate-float { animation: float 3s ease-in-out infinite; }
+      .animate-pulse-glow { animation: pulse-glow 2s ease-in-out infinite; }
+
+      #interactive-bg {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: -1;
+      }
+
+      .particle {
+        position: absolute;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(236,72,153,0.1) 0%, rgba(244,63,94,0.05) 70%, transparent 100%);
+        pointer-events: none;
+      }
+    </style>
   </head>
-  <body>
+  <body class="bg-gradient-to-br from-pink-50 via-white to-rose-50 min-h-screen">
+    <div id="interactive-bg"></div>
+
     <div class="loader">
       <div class="strip-holder">
         <div class="strip-1"></div>
@@ -58,146 +61,242 @@
       </div>
     </div>
 
-    <a id="top"></a>
-    <%= @inner_content %>
+    <div x-data="{ mobileMenuOpen: false }" class="min-h-screen flex flex-col">
+      <%= if @conn.request_path == "/" or @conn.request_path =~ ~r/^\/[a-z]{2}$/ do %>
+        <nav class="bg-white/80 backdrop-blur-md border-b border-pink-100 shadow-sm sticky top-0 z-50">
+          <div class="flex items-center justify-between max-w-6xl w-[90%] mx-auto px-0 py-4">
+            <a href="/" class="flex items-center space-x-2 group">
+              <div class="w-10 h-10 bg-gradient-to-br from-pink-500 to-rose-500 rounded-xl group-hover:scale-110 transition-transform duration-300 shadow-md"></div>
+              <span class="text-2xl font-bold bg-gradient-to-r from-pink-600 to-rose-600 bg-clip-text text-transparent">Mazaryn</span>
+            </a>
 
-    <footer>
-      <div class={
-        ["py-[1em] md:py-[0.6em]"] ++
-          if(@conn.request_path =~ "/videos",
-            do: ["bg-[#282932] text-white"],
-            else: ["bg-white text-black"]
-          )
-      }>
-        <div class="flex flex-col md:flex-row justify-between w-[90%] md:max-w-[800px] -md:w-[50%] mx-auto">
-          <ul class={
-            ["w-[100%] grid grid-cols-3 md:flex justify-between items-center"] ++
-              if(@conn.request_path =~ "/videos",
-                do: ["bg-[#282932] text-white"],
-                else: ["bg-white text-blue-700 hover:text-blue-800"]
-              )
-          }>
-            <li class="my-[10px] md:my-0">
-              <a class="block text-center capitalize" href={~p"/#{@locale}"}>
-                <%= gettext("Mazaryn") %>
-              </a>
-            </li>
-            <li class="my-[10px] md:my-0">
-              <a class="block text-center capitalize" href={~p"/#{@locale}/blog"}>
-                <%= gettext("Blog") %>
-              </a>
-            </li>
-            <li class="my-[10px] md:my-0">
-              <a class="block text-center capitalize" href={~p"/#{@locale}/contact"}>
-                <%= gettext("Contact") %>
-              </a>
-            </li>
-            <li class="my-[10px] md:my-0">
-              <a class="block text-center capitalize" href={~p"/#{@locale}/about"}>
-                <%= gettext("About") %>
-              </a>
-            </li>
-            <li class="my-[10px] md:my-0">
-              <a class="block text-center capitalize" href={~p"/#{@locale}/careers"}>
-                <%= gettext("Careers") %>
-              </a>
-            </li>
-            <li class="my-[10px] md:my-0">
-              <a class="block text-center  capitalize" href={~p"/#{@locale}/privacy-policy"}>
-                <%= gettext("Privacy policy") %>
-              </a>
-            </li>
-          </ul>
-          <div class="ml-4 mr-2">
-            <small class="py-[20px] md:py-0 block text-center text-sm opacity-[0.8] capitalize md:whitespace-pre">
-              <%= gettext("©2022 Mazaryn Social") %> 11
-            </small>
-          </div>
-          <div
-            x-data="{ open: false }"
-            class={
-              ["language-selector p-2 rounded-lg flex items-center"] ++
-                if(@conn.request_path =~ "/videos",
-                  do: ["bg-[#282932]"],
-                  else: ["bg-white"]
-                )
-            }
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              class="feather feather-globe mr-2"
-            >
-              <circle cx="12" cy="12" r="10"></circle>
-              <line x1="2" y1="12" x2="22" y2="12"></line>
-              <path d="M12 2a15.3 15.3 0 0 1 4.39 10H7.61A15.3 15.3 0 0 1 12 2z"></path>
-              <path d="M12 22a15.3 15.3 0 0 1-4.39-10H16.4A15.3 15.3 0 0 1 12 22z"></path>
-            </svg>
-            <div x-show="!open" x-on:click="open = true" class="p-2">
-              <%= case Gettext.get_locale(MazarynWeb.Gettext) do
-                "en" -> "English"
-                "fa" -> "Persian"
-                "ru" -> "Russian"
-                "zh" -> "Chinese"
-                "ar" -> "Arabic"
-                "az" -> "Azerbaijani"
-                "es" -> "Spanish"
-                "vi" -> "Vietnamese"
-                "hi" -> "Hindi"
-                "de" -> "German"
-                "fr" -> "French"
-                "it" -> "Italian"
-                "pt" -> "Portuguese"
-                "fil" -> "Filipino"
-                "id" -> "Indonesian"
-              end %>
+            <div class="hidden md:flex items-center space-x-8">
+              <a href="/login" class="text-gray-700 hover:text-pink-600 transition-colors duration-200 font-medium">Login</a>
+              <a href="/signup" class="px-6 py-2 bg-gradient-to-r from-pink-500 to-rose-500 text-white rounded-lg hover:shadow-lg hover:scale-105 transition-all duration-300 font-medium shadow-md">Sign Up</a>
             </div>
-            <div
-              id="dropdown"
-              class="z-10 absolute col-span-full sm:col-span-3 mt-1 max-h-60 overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm"
-            >
-              <ul x-show="open" role="listbox" tabindex="-1">
-                <li :for={
-                  locale <-
-                    ~w(en fa ru zh ar az es vi hi de fr it pt fil id) -- [@conn.assigns.locale]
-                }>
-                  <a
-                    href={set_locale(locale, @conn)}
-                    x-on:click="open = !open"
-                    type="button"
-                    class="inline-flex w-full px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
-                  >
-                    <%= case locale do
-                      "en" -> "English"
-                      "fa" -> "Persian"
-                      "ru" -> "Russian"
-                      "zh" -> "Chinese"
-                      "ar" -> "Arabic"
-                      "az" -> "Azerbaijani"
-                      "es" -> "Spanish"
-                      "vi" -> "Vietnamese"
-                      "hi" -> "Hindi"
-                      "de" -> "German"
-                      "fr" -> "French"
-                      "it" -> "Italian"
-                      "pt" -> "Portuguese"
-                      "fil" -> "Filipino"
-                      "id" -> "Indonesian"
-                    end %>
-                  </a>
-                </li>
-              </ul>
+
+            <button @click="mobileMenuOpen = !mobileMenuOpen" class="md:hidden p-2 rounded-lg hover:bg-pink-50 transition-colors duration-200">
+              <svg class="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
+          </div>
+
+          <div x-show="mobileMenuOpen" class="md:hidden bg-white border-t border-pink-100 shadow-lg">
+            <div class="px-4 py-3 space-y-2">
+              <a href="/login" class="block py-3 text-gray-700 hover:text-pink-600 border-b border-pink-50">Login</a>
+              <a href="/signup" class="block py-3 text-pink-600 font-medium">Sign Up</a>
+            </div>
+          </div>
+        </nav>
+      <% end %>
+
+      <main class="flex-grow">
+        <%= @inner_content %>
+      </main>
+
+      <footer class="bg-white border-t border-pink-100 mt-auto">
+        <div class="py-8">
+          <div class="flex flex-col md:flex-row justify-between items-center max-w-6xl w-[90%] mx-auto">
+            <ul class="grid grid-cols-3 md:flex justify-between items-center space-x-0 md:space-x-8 mb-6 md:mb-0">
+              <li class="my-2 md:my-0">
+                <a class="block text-center text-gray-700 hover:text-pink-600 transition-colors duration-200" href="/">
+                  Mazaryn
+                </a>
+              </li>
+              <li class="my-2 md:my-0">
+                <a class="block text-center text-gray-700 hover:text-pink-600 transition-colors duration-200" href="/blog">
+                  Blog
+                </a>
+              </li>
+              <li class="my-2 md:my-0">
+                <a class="block text-center text-gray-700 hover:text-pink-600 transition-colors duration-200" href="/contact">
+                  Contact
+                </a>
+              </li>
+              <li class="my-2 md:my-0">
+                <a class="block text-center text-gray-700 hover:text-pink-600 transition-colors duration-200" href="/about">
+                  About
+                </a>
+              </li>
+              <li class="my-2 md:my-0">
+                <a class="block text-center text-gray-700 hover:text-pink-600 transition-colors duration-200" href="/careers">
+                  Careers
+                </a>
+              </li>
+              <li class="my-2 md:my-0">
+                <a class="block text-center text-gray-700 hover:text-pink-600 transition-colors duration-200" href="/privacy-policy">
+                  Privacy
+                </a>
+              </li>
+            </ul>
+
+            <div class="flex items-center space-x-4">
+              <div x-data="{ open: false }" class="relative language-selector p-2 rounded-lg flex items-center bg-white">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  class="mr-2"
+                >
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <line x1="2" y1="12" x2="22" y2="12"></line>
+                  <path d="M12 2a15.3 15.3 0 0 1 4.39 10H7.61A15.3 15.3 0 0 1 12 2z"></path>
+                  <path d="M12 22a15.3 15.3 0 0 1-4.39-10H16.4A15.3 15.3 0 0 1 12 22z"></path>
+                </svg>
+                <div x-show="!open" x-on:click="open = true" class="cursor-pointer p-2 text-sm text-gray-700">
+                  <%= case Gettext.get_locale(MazarynWeb.Gettext) do
+                    "en" -> "English"
+                    "fa" -> "Persian"
+                    "ru" -> "Russian"
+                    "zh" -> "Chinese"
+                    "ar" -> "Arabic"
+                    "az" -> "Azerbaijani"
+                    "es" -> "Spanish"
+                    "vi" -> "Vietnamese"
+                    "hi" -> "Hindi"
+                    "de" -> "German"
+                    "fr" -> "French"
+                    "it" -> "Italian"
+                    "pt" -> "Portuguese"
+                    "fil" -> "Filipino"
+                    "id" -> "Indonesian"
+                  end %>
+                </div>
+                <div
+                  x-show="open"
+                  x-on:click.outside="open = false"
+                  class="absolute bottom-full mb-2 right-0 z-10 max-h-60 overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm"
+                >
+                  <ul role="listbox" tabindex="-1">
+                    <li :for={
+                      locale <-
+                        ~w(en fa ru zh ar az es vi hi de fr it pt fil id) -- [@conn.assigns.locale]
+                    }>
+                      <a
+                        href={set_locale(locale, @conn)}
+                        x-on:click="open = false"
+                        type="button"
+                        class="inline-flex w-full px-4 py-2 hover:bg-pink-50 hover:text-pink-600 text-gray-700 transition-colors duration-200"
+                      >
+                        <%= case locale do
+                          "en" -> "English"
+                          "fa" -> "Persian"
+                          "ru" -> "Russian"
+                          "zh" -> "Chinese"
+                          "ar" -> "Arabic"
+                          "az" -> "Azerbaijani"
+                          "es" -> "Spanish"
+                          "vi" -> "Vietnamese"
+                          "hi" -> "Hindi"
+                          "de" -> "German"
+                          "fr" -> "French"
+                          "it" -> "Italian"
+                          "pt" -> "Portuguese"
+                          "fil" -> "Filipino"
+                          "id" -> "Indonesian"
+                        end %>
+                      </a>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+
+              <small class="text-sm text-gray-600">
+                ©2023 Mazaryn
+              </small>
             </div>
           </div>
         </div>
-      </div>
-    </footer>
+      </footer>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        const bg = document.getElementById('interactive-bg');
+        const particles = [];
+        let mouseX = 0;
+        let mouseY = 0;
+
+        for (let i = 0; i < 15; i++) {
+          const particle = document.createElement('div');
+          particle.classList.add('particle');
+
+          const size = Math.random() * 200 + 100;
+          particle.style.width = `${size}px`;
+          particle.style.height = `${size}px`;
+
+          particle.style.left = `${Math.random() * 100}%`;
+          particle.style.top = `${Math.random() * 100}%`;
+
+          const hue = Math.random() * 20 + 330;
+          particle.style.background = `radial-gradient(circle, hsla(${hue}, 100%, 70%, 0.05) 0%, hsla(${hue}, 100%, 60%, 0.02) 70%, transparent 100%)`;
+
+          particle.style.animation = `float ${Math.random() * 10 + 15}s ease-in-out infinite`;
+          particle.style.animationDelay = `${Math.random() * 5}s`;
+
+          bg.appendChild(particle);
+          particles.push({
+            element: particle,
+            x: parseFloat(particle.style.left),
+            y: parseFloat(particle.style.top),
+            vx: 0,
+            vy: 0,
+            size: size
+          });
+        }
+
+        document.addEventListener('mousemove', function(e) {
+          mouseX = (e.clientX / window.innerWidth) * 2 - 1;
+          mouseY = (e.clientY / window.innerHeight) * 2 - 1;
+        });
+
+        function animateParticles() {
+          particles.forEach(particle => {
+            const dx = mouseX * 100 - particle.x;
+            const dy = mouseY * 100 - particle.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+
+            if (distance < 150) {
+              const force = (150 - distance) / 150;
+              particle.vx -= (dx / distance) * force * 0.3;
+              particle.vy -= (dy / distance) * force * 0.3;
+            }
+
+            particle.vx *= 0.95;
+            particle.vy *= 0.95;
+
+            particle.x += particle.vx;
+            particle.y += particle.vy;
+
+            particle.x = Math.max(-50, Math.min(150, particle.x));
+            particle.y = Math.max(-50, Math.min(150, particle.y));
+
+            particle.element.style.left = `${particle.x}%`;
+            particle.element.style.top = `${particle.y}%`;
+
+            const sizeChange = distance < 100 ? 1.2 : 1;
+            particle.element.style.transform = `scale(${sizeChange})`;
+          });
+
+          requestAnimationFrame(animateParticles);
+        }
+
+        animateParticles();
+
+        window.addEventListener('load', function() {
+          setTimeout(function() {
+            document.querySelector('.loader').style.display = 'none';
+          }, 500);
+        });
+      });
+    </script>
   </body>
 </html>

@@ -8,6 +8,7 @@ defmodule Mazaryn.Chats do
   alias :chat_server, as: ChatDB
   import Ecto.Query
   alias Mazaryn.Repo
+  require Logger
 
   def create_chat(%User{id: actor_id}, %User{id: recipient_id}, params) do
     if actor_id == recipient_id do
@@ -32,14 +33,53 @@ defmodule Mazaryn.Chats do
   def create_chat(_actor, _recipient, _params), do: {:error, :invalid_chat_participants}
 
   def get_by_chat_id(id) do
+    Logger.info("📋 ========================================")
+    Logger.info("📋 [GET CHAT BY ID] Looking up chat by call_id: #{id}")
+
     case ChatDB.get_chat_by_call_id(id) do
-      {:chat, id, ai_chat_id, user_id, recipient_id, body, media, bot, date_created, date_updated, call_id, call_type, call_status, call_link, call_start_time, call_end_time, timeout_ref, data} ->
-        Chat.erl_changeset({:chat, id, ai_chat_id, user_id, recipient_id, body, media, bot, date_created, date_updated, call_id, call_type, call_status, call_link, call_start_time, call_end_time, timeout_ref, data})
+      {:chat, chat_id, ai_chat_id, user_id, recipient_id, body, media, bot, date_created,
+       date_updated, call_id, call_type, call_status, call_link, call_start_time, call_end_time,
+       timeout_ref, data} ->
+        Logger.info("✅ [GET CHAT BY ID] Chat found: #{chat_id}")
+        Logger.info("📋 [GET CHAT BY ID] Call ID: #{call_id}")
+        Logger.info("📋 [GET CHAT BY ID] Call link: #{call_link}")
+        Logger.info("📋 [GET CHAT BY ID] Call status: #{call_status}")
+
+        chat = %Chat{
+          id: to_string(chat_id),
+          user_id: to_string(user_id),
+          recipient_id: to_string(recipient_id),
+          body: to_string(body),
+          media: if(media == :undefined or media == "", do: nil, else: to_string(media)),
+          bot: to_string(bot),
+          date_created: date_created,
+          date_updated: date_updated,
+          call_id: to_string(call_id),
+          call_type: to_string(call_type),
+          call_status: to_string(call_status),
+          call_link: to_string(call_link),
+          call_start_time: call_start_time,
+          call_end_time: call_end_time,
+          data: data
+        }
+
+        Logger.info("✅ [GET CHAT BY ID] Chat struct created successfully")
+        Logger.info("📋 ========================================")
+        {:ok, chat}
+
       :notfound ->
+        Logger.warning("⚠️ [GET CHAT BY ID] Chat not found")
+        Logger.info("📋 ========================================")
         {:error, :notfound}
+
       :chat_not_exist ->
+        Logger.warning("⚠️ [GET CHAT BY ID] Chat does not exist")
+        Logger.info("📋 ========================================")
         {:error, :notfound}
-      _ ->
+
+      other ->
+        Logger.error("❌ [GET CHAT BY ID] Invalid chat record: #{inspect(other)}")
+        Logger.info("📋 ========================================")
         {:error, :invalid_chat_record}
     end
   end
@@ -121,35 +161,86 @@ defmodule Mazaryn.Chats do
   end
 
   def start_video_call(%User{id: actor_id}, %User{id: recipient_id}) do
+    Logger.info("📞 ========================================")
+    Logger.info("📞 [START VIDEO CALL] Initiating video call")
+    Logger.info("📞 [START VIDEO CALL] Actor ID: #{inspect(actor_id)}")
+    Logger.info("📞 [START VIDEO CALL] Recipient ID: #{inspect(recipient_id)}")
+
     if actor_id == recipient_id do
+      Logger.warning("⚠️ [START VIDEO CALL] Self-call not allowed")
+      Logger.info("📞 ========================================")
       {:error, :self_call_not_allowed}
     else
       try do
+        Logger.info("📞 [START VIDEO CALL] Calling ChatDB.start_video_call")
         call_id = ChatDB.start_video_call(actor_id, recipient_id)
+        Logger.info("✅ [START VIDEO CALL] Call started successfully")
+        Logger.info("📞 [START VIDEO CALL] Call ID: #{call_id}")
+        Logger.info("📞 ========================================")
         {:ok, call_id}
       catch
-        {:error, reason} -> {:error, reason}
+        {:error, reason} ->
+          Logger.error("❌ [START VIDEO CALL] Error: #{inspect(reason)}")
+          Logger.info("📞 ========================================")
+          {:error, reason}
+
+        error ->
+          Logger.error("❌ [START VIDEO CALL] Unexpected error: #{inspect(error)}")
+          Logger.info("📞 ========================================")
+          {:error, error}
       end
     end
   end
 
   @spec accept_call(binary()) :: {:ok, binary()} | {:error, term()}
   def accept_call(call_id) do
+    Logger.info("✅ ========================================")
+    Logger.info("✅ [ACCEPT CALL] Accepting video call")
+    Logger.info("✅ [ACCEPT CALL] Call ID: #{call_id}")
+
     try do
-      call_id = ChatDB.accept_call(call_id)
-      {:ok, call_id}
+      Logger.info("✅ [ACCEPT CALL] Calling ChatDB.accept_call")
+      result = ChatDB.accept_call(call_id)
+      Logger.info("✅ [ACCEPT CALL] Call accepted successfully")
+      Logger.info("✅ [ACCEPT CALL] Result: #{inspect(result)}")
+      Logger.info("✅ ========================================")
+      {:ok, result}
     catch
-      {:error, reason} -> {:error, reason}
+      {:error, reason} ->
+        Logger.error("❌ [ACCEPT CALL] Error: #{inspect(reason)}")
+        Logger.info("✅ ========================================")
+        {:error, reason}
+
+      error ->
+        Logger.error("❌ [ACCEPT CALL] Unexpected error: #{inspect(error)}")
+        Logger.info("✅ ========================================")
+        {:error, error}
     end
   end
 
   @spec end_call(binary()) :: {:ok, binary()} | {:error, term()}
   def end_call(call_id) do
+    Logger.info("🔴 ========================================")
+    Logger.info("🔴 [END CALL] Ending video call")
+    Logger.info("🔴 [END CALL] Call ID: #{call_id}")
+
     try do
-      call_id = ChatDB.end_video_call(call_id)
-      {:ok, call_id}
+      Logger.info("🔴 [END CALL] Calling ChatDB.end_video_call")
+      result = ChatDB.end_video_call(call_id)
+      Logger.info("✅ [END CALL] Call ended successfully")
+      Logger.info("🔴 [END CALL] Result: #{inspect(result)}")
+      Logger.info("🔴 ========================================")
+      {:ok, result}
     catch
-      {:error, reason} -> {:error, reason}
+      {:error, reason} ->
+        Logger.error("❌ [END CALL] Error: #{inspect(reason)}")
+        Logger.info("🔴 ========================================")
+        {:error, reason}
+
+      error ->
+        Logger.error("❌ [END CALL] Unexpected error: #{inspect(error)}")
+        Logger.info("🔴 ========================================")
+        {:error, error}
     end
   end
 end

@@ -1,279 +1,954 @@
-<!-- navigation -->
-<.live_component
-  module={MazarynWeb.HomeLive.NavComponent}
-  id="navigation"
-  user={@user}
-  search={@search}
-  locale={@locale}
-/>
-<!-- Three columns -->
-<div class="flex flex-wrap h-screen min-h-screen">
-  <div class="w-full lg:w-1/6 bg-gray-100 py-10 pl-10">
-    <.live_component
-      module={MazarynWeb.HomeLive.LeftSidebarComponent}
-      id="leftsidebar"
-      user={@user}
-      locale={@locale}
-    />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --clr-rose: #e11d48;
+    --clr-pink: #ec4899;
+    --clr-pink-light: #f9a8d4;
+    --clr-pink-pale: #fdf2f8;
+    --clr-pink-glow: rgba(236, 72, 153, 0.18);
+    --clr-surface: #ffffff;
+    --clr-surface-alt: #fafafa;
+    --clr-border: #f0f0f2;
+    --clr-text: #1a1a2e;
+    --clr-text-muted: #6b7280;
+    --clr-text-faint: #9ca3af;
+    --clr-green: #10b981;
+    --clr-red: #ef4444;
+    --clr-shadow: rgba(0,0,0,0.06);
+    --radius-sm: 10px;
+    --radius-md: 14px;
+    --radius-lg: 20px;
+    --radius-xl: 28px;
+    --font-display: 'Playfair Display', Georgia, serif;
+    --font-body: 'Inter', -apple-system, sans-serif;
+  }
+
+  * {
+    font-family: var(--font-body);
+  }
+
+  .chat-sidebar {
+    width: 340px;
+    min-width: 340px;
+    background: var(--clr-surface);
+    border-right: 1px solid var(--clr-border);
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    position: relative;
+  }
+
+  .sidebar-header {
+    position: relative;
+    padding: 28px 24px 24px;
+    background: linear-gradient(145deg, #fdf2f8 0%, #fff0f6 50%, #fdf2f8 100%);
+    border-bottom: 1px solid var(--clr-border);
+    overflow: hidden;
+  }
+
+  .sidebar-header::before {
+    content: '';
+    position: absolute;
+    top: -40px;
+    right: -40px;
+    width: 140px;
+    height: 140px;
+    background: radial-gradient(circle, rgba(236,72,153,0.12) 0%, transparent 70%);
+    border-radius: 50%;
+    pointer-events: none;
+  }
+
+  .sidebar-header::after {
+    content: '';
+    position: absolute;
+    bottom: -30px;
+    left: -20px;
+    width: 100px;
+    height: 100px;
+    background: radial-gradient(circle, rgba(225,29,72,0.08) 0%, transparent 70%);
+    border-radius: 50%;
+    pointer-events: none;
+  }
+
+  .sidebar-header-title {
+    font-family: var(--font-display);
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--clr-text);
+    letter-spacing: -0.02em;
+    position: relative;
+    z-index: 1;
+    line-height: 1.2;
+  }
+
+  .sidebar-header-title span {
+    background: linear-gradient(135deg, var(--clr-rose), var(--clr-pink));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .sidebar-header-sub {
+    font-size: 0.8rem;
+    color: var(--clr-text-muted);
+    margin-top: 4px;
+    font-weight: 400;
+    position: relative;
+    z-index: 1;
+    letter-spacing: 0.01em;
+  }
+
+  .sidebar-search-wrap {
+    position: relative;
+    z-index: 1;
+    margin-top: 18px;
+  }
+
+  .chat-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: var(--clr-surface);
+    overflow: hidden;
+    position: relative;
+  }
+
+  .chat-main::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 60% 40% at 80% 20%, rgba(236,72,153,0.035) 0%, transparent 70%),
+      radial-gradient(ellipse 50% 50% at 10% 80%, rgba(225,29,72,0.03) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .video-call-overlay {
+    position: fixed;
+    inset: 0;
+    background: linear-gradient(145deg, #0f0f1a 0%, #1a1a2e 40%, #16162a 100%);
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+
+  .video-call-card {
+    position: relative;
+    width: 100%;
+    max-width: 1100px;
+    background: #1a1a2e;
+    border-radius: 24px;
+    overflow: hidden;
+    box-shadow: 0 32px 64px rgba(0,0,0,0.4);
+    border: 1px solid rgba(255,255,255,0.06);
+  }
+
+  .video-call-close {
+    position: absolute;
+    top: 18px;
+    right: 18px;
+    z-index: 10;
+    width: 40px;
+    height: 40px;
+    background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s;
+  }
+
+  .video-call-close:hover {
+    background: rgba(239,68,68,0.25);
+    border-color: rgba(239,68,68,0.4);
+  }
+
+  .video-area {
+    padding: 24px;
+  }
+
+  .video-remote-wrap {
+    position: relative;
+    aspect-ratio: 16/9;
+    background: #111;
+    border-radius: 18px;
+    overflow: hidden;
+    border: 1px solid rgba(255,255,255,0.08);
+  }
+
+  .video-remote-wrap video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .video-badge {
+    position: absolute;
+    bottom: 16px;
+    left: 16px;
+    background: rgba(15,15,26,0.75);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    color: #fff;
+    padding: 8px 16px;
+    border-radius: 40px;
+    font-size: 0.78rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+
+  .video-badge-dot {
+    width: 8px;
+    height: 8px;
+    background: #3b82f6;
+    border-radius: 50%;
+    animation: pulse-dot 1.8s infinite;
+  }
+
+  .video-badge-dot.green { background: var(--clr-green); }
+
+  @keyframes pulse-dot {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  .video-local-wrap {
+    position: absolute;
+    bottom: 16px;
+    right: 16px;
+    width: 200px;
+    height: 150px;
+    background: #111;
+    border-radius: 14px;
+    overflow: hidden;
+    border: 2px solid rgba(255,255,255,0.12);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+  }
+
+  .video-local-wrap video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .video-controls {
+    background: #151527;
+    padding: 24px;
+    border-top: 1px solid rgba(255,255,255,0.06);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+  }
+
+  .video-status-connected {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .video-status-connected span {
+    color: var(--clr-green);
+    font-size: 0.85rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+  }
+
+  .video-ringing-area {
+    text-align: center;
+  }
+
+  .video-ringing-icon {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 18px;
+  }
+
+  .video-ringing-ping {
+    position: absolute;
+    border-radius: 50%;
+    animation: ring-ping 2s infinite;
+  }
+
+  .video-ringing-ping.caller { width: 64px; height: 64px; background: rgba(236,72,153,0.2); }
+  .video-ringing-ping.receiver { width: 80px; height: 80px; background: rgba(16,185,129,0.2); }
+
+  @keyframes ring-ping {
+    0% { transform: scale(1); opacity: 0.6; }
+    100% { transform: scale(1.5); opacity: 0; }
+  }
+
+  .video-ringing-circle {
+    position: relative;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .video-ringing-circle.caller { width: 64px; height: 64px; background: var(--clr-pink); }
+  .video-ringing-circle.receiver { width: 80px; height: 80px; background: var(--clr-green); }
+
+  .video-ringing-circle svg { color: #fff; }
+
+  .video-ringing-text {
+    color: #fff;
+    font-size: 1.15rem;
+    font-weight: 600;
+    margin-top: 4px;
+  }
+
+  .video-btn-row {
+    display: flex;
+    gap: 14px;
+    margin-top: 8px;
+  }
+
+  .video-btn {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 28px;
+    border-radius: 14px;
+    border: none;
+    color: #fff;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+  }
+
+  .video-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(0,0,0,0.3); }
+
+  .video-btn.cancel { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15); }
+  .video-btn.cancel:hover { background: rgba(255,255,255,0.15); }
+  .video-btn.accept { background: var(--clr-green); }
+  .video-btn.accept:hover { background: #059669; }
+  .video-btn.decline { background: var(--clr-red); }
+  .video-btn.decline:hover { background: #dc2626; }
+  .video-btn.end { background: var(--clr-red); }
+  .video-btn.end:hover { background: #dc2626; }
+
+  .video-error-banner {
+    background: rgba(239,68,68,0.15);
+    border: 1px solid rgba(239,68,68,0.3);
+    color: #fca5a5;
+    padding: 12px 20px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .nav-bar {
+    width: 100%;
+    background: linear-gradient(135deg, #fdf2f8 0%, #fff0f6 50%, #fce7f3 100%);
+    border-bottom: 2px solid rgba(236, 72, 153, 0.15);
+    padding: 14px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: relative;
+    z-index: 10;
+    box-shadow: 0 2px 12px rgba(236, 72, 153, 0.08);
+  }
+
+  .nav-bar::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 100%;
+    background:
+      radial-gradient(ellipse 40% 60% at 20% 50%, rgba(236, 72, 153, 0.06) 0%, transparent 60%),
+      radial-gradient(ellipse 50% 70% at 80% 50%, rgba(225, 29, 72, 0.04) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: -1;
+  }
+
+  .nav-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .nav-right {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .nav-back-btn {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 16px;
+    border-radius: 12px;
+    border: none;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.7));
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    color: var(--clr-pink);
+    font-weight: 600;
+    font-size: 0.88rem;
+    box-shadow: 0 2px 8px rgba(236, 72, 153, 0.12);
+    border: 1px solid rgba(236, 72, 153, 0.15);
+  }
+
+  .nav-back-btn:hover {
+    background: linear-gradient(135deg, var(--clr-pink), var(--clr-rose));
+    color: #fff;
+    transform: translateX(-3px) scale(1.02);
+    box-shadow: 0 4px 16px rgba(236, 72, 153, 0.25);
+  }
+
+  .nav-back-btn svg {
+    transition: transform 0.3s ease;
+  }
+
+  .nav-back-btn:hover svg {
+    transform: translateX(-2px);
+  }
+
+  .nav-home-text {
+    font-weight: 600;
+    font-size: 0.88rem;
+    letter-spacing: 0.02em;
+  }
+
+  .nav-user-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    padding: 8px 16px;
+    border-radius: 14px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.7));
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(236, 72, 153, 0.15);
+    box-shadow: 0 2px 8px rgba(236, 72, 153, 0.12);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .nav-user-info::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(236, 72, 153, 0.1), transparent);
+    transition: left 0.5s;
+  }
+
+  .nav-user-info:hover::before {
+    left: 100%;
+  }
+
+  .nav-user-info:hover {
+    background: linear-gradient(135deg, #fff, #fdf2f8);
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 6px 20px rgba(236, 72, 153, 0.2);
+    border-color: rgba(236, 72, 153, 0.3);
+  }
+
+  .nav-avatar-wrap {
+    position: relative;
+  }
+
+  .nav-avatar {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #fff;
+    box-shadow: 0 3px 10px rgba(236, 72, 153, 0.25);
+    transition: all 0.3s ease;
+  }
+
+  .nav-user-info:hover .nav-avatar {
+    transform: scale(1.1);
+    box-shadow: 0 4px 14px rgba(236, 72, 153, 0.35);
+  }
+
+  .nav-avatar-glow {
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--clr-pink), var(--clr-rose));
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    z-index: -1;
+    filter: blur(8px);
+  }
+
+  .nav-user-info:hover .nav-avatar-glow {
+    opacity: 0.6;
+  }
+
+  .nav-username {
+    font-size: 0.92rem;
+    font-weight: 600;
+    background: linear-gradient(135deg, var(--clr-pink), var(--clr-rose));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-transform: capitalize;
+    transition: all 0.3s ease;
+  }
+
+  .nav-user-info:hover .nav-username {
+    background: linear-gradient(135deg, var(--clr-rose), #be185d);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  @keyframes shimmer {
+    0% { background-position: -200% center; }
+    100% { background-position: 200% center; }
+  }
+
+  .nav-user-info:hover .nav-username {
+    background: linear-gradient(90deg, var(--clr-rose), var(--clr-pink), var(--clr-rose));
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: shimmer 2s linear infinite;
+  }
+
+  .nav-video-call-wrapper {
+    position: relative;
+  }
+
+  .nav-video-call-btn {
+    position: relative;
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    border: none;
+    background: linear-gradient(135deg, #ec4899 0%, #e11d48 100%);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(236, 72, 153, 0.25);
+  }
+
+  .nav-video-call-btn::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background: radial-gradient(circle, rgba(255,255,255,0.4) 0%, transparent 70%);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    transition: width 0.4s, height 0.4s;
+  }
+
+  .nav-video-call-btn:hover::before {
+    width: 120px;
+    height: 120px;
+  }
+
+  .nav-video-call-btn::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.2) 0%, transparent 50%);
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  .nav-video-call-btn:hover::after {
+    opacity: 1;
+  }
+
+  .nav-video-call-btn:not(.disabled):hover {
+    transform: translateY(-2px) scale(1.05);
+    box-shadow: 0 8px 20px rgba(236, 72, 153, 0.4);
+  }
+
+  .nav-video-call-btn:not(.disabled):active {
+    transform: translateY(0) scale(1);
+    box-shadow: 0 4px 12px rgba(236, 72, 153, 0.3);
+  }
+
+  .nav-video-call-btn svg {
+    position: relative;
+    z-index: 1;
+    transition: transform 0.3s;
+  }
+
+  .nav-video-call-btn:not(.disabled):hover svg {
+    transform: scale(1.1);
+  }
+
+  .nav-video-call-btn.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: linear-gradient(135deg, #d1d5db 0%, #9ca3af 100%);
+    box-shadow: none;
+    pointer-events: none;
+  }
+
+  .nav-video-call-btn.disabled::before,
+  .nav-video-call-btn.disabled::after {
+    display: none;
+  }
+
+  .nav-video-call-tooltip {
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1a1a2e;
+    color: #fff;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 0.72rem;
+    font-weight: 500;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s, transform 0.2s;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    z-index: 100;
+  }
+
+  .nav-video-call-tooltip::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 5px solid transparent;
+    border-top-color: #1a1a2e;
+  }
+
+  .nav-video-call-wrapper:hover .nav-video-call-tooltip {
+    opacity: 1;
+    transform: translateX(-50%) translateY(-2px);
+  }
+
+  .nav-video-call-btn.disabled + .nav-video-call-tooltip {
+    background: #6b7280;
+  }
+
+  .nav-video-call-btn.disabled + .nav-video-call-tooltip::after {
+    border-top-color: #6b7280;
+  }
+</style>
+
+<div class="nav-bar" id="main-navbar" style={"display: #{if @show_video_call, do: "none", else: "flex"};"}>
+  <div class="nav-left">
+    <%= link to: Routes.live_path(@socket, MazarynWeb.HomeLive.Home, @locale), class: "nav-back-btn" do %>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M19 12H5M12 19l-7-7 7-7"/>
+      </svg>
+      <span class="nav-home-text">Home</span>
+    <% end %>
   </div>
-  <!-- middle column -->
-  <div class="w-full lg:w-3/6 bg-gray-100 p-10">
-    <!-- search top navigation -->
-    <.live_component
-      module={MazarynWeb.SearchLive.Components.SearchTopNavigationComponent}
-      id="search_top_navigation_component"
-    />
-    <!-- chat list -->
-    <div class="social-box w-full rounded-[20px] bg-white white:bg-gray-800 flex items-center justify-between px-2 mt-5 mb-5">
-      <.chat
-        recipient={@current_recipient}
-        actor={@user}
-        messages={@messages}
-        call_id={@call_id}
-        call_status={@call_status}
-        call_link={@call_link}
-        caller_username={@caller_username}
-      />
+  <div class="nav-right">
+    <%= if @blank_chat? || (assigns[:current_recipient] && @current_recipient.id == @user.id) do %>
+      <div class="nav-video-call-wrapper">
+        <button
+          class="nav-video-call-btn disabled"
+          disabled
+          type="button"
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M15.75 10.5l4.72-4.72a.75.75 0 011.28.53v11.38a.75.75 0 01-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 002.25-2.25v-9a2.25 2.25 0 00-2.25-2.25h-9A2.25 2.25 0 002.25 7.5v9a2.25 2.25 0 002.25 2.25z"/>
+          </svg>
+        </button>
+        <div class="nav-video-call-tooltip">
+          <%= if @blank_chat? do %>
+            Select a contact to call
+          <% else %>
+            Cannot call yourself
+          <% end %>
+        </div>
+      </div>
+    <% else %>
+      <div class="nav-video-call-wrapper">
+        <button
+          phx-click="start-video-call"
+          class="nav-video-call-btn"
+          type="button"
+          id="navbar-video-btn"
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M15.75 10.5l4.72-4.72a.75.75 0 011.28.53v11.38a.75.75 0 01-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 002.25-2.25v-9a2.25 2.25 0 00-2.25-2.25h-9A2.25 2.25 0 002.25 7.5v9a2.25 2.25 0 002.25 2.25z"/>
+          </svg>
+        </button>
+        <div class="nav-video-call-tooltip">
+          Start video call with <%= @current_recipient.username %>
+        </div>
+      </div>
+    <% end %>
+
+    <%= link to: Routes.live_path(@socket, MazarynWeb.UserLive.Profile, @locale, @user.username), class: "nav-user-info" do %>
+      <span class="nav-username"><%= @user.username %></span>
+      <div class="nav-avatar-wrap">
+        <div class="nav-avatar-glow"></div>
+        <img
+          src={if @user.avatar_url, do: @user.avatar_url, else: ~p"/images/default-user.svg"}
+          alt="User avatar"
+          class="nav-avatar"
+        />
+      </div>
+    <% end %>
+  </div>
+</div>
+
+<div class="fixed inset-0 bg-gray-50" style={"padding-top: #{if @show_video_call, do: "0", else: "64px"};"}>
+  <div style="height:100%; max-width:1400px; margin:0 auto; display:flex; overflow:hidden; padding:0 16px;">
+    <div style="flex:1; display:flex; overflow:hidden; height:100%;">
+
+      <div class="chat-sidebar">
+        <div class="sidebar-header">
+          <h1 class="sidebar-header-title">Messages <span>& Chats</span></h1>
+          <p class="sidebar-header-sub">Stay connected with your world</p>
+          <div class="sidebar-search-wrap">
+            <.live_component
+              module={MazarynWeb.SearchLive.Components.SearchTopNavigationComponent}
+              id="search_top_navigation_component"
+            />
+          </div>
+        </div>
+
+        <div style="flex:1; overflow:hidden; display:flex; flex-direction:column; min-height:0;">
+          <div style="flex:1; overflow-y:auto;">
+            <.chat_list
+              locale={@locale}
+              contacts={@contacts}
+              title="Recent Chats"
+              show_search={false}
+            />
+            <.chat_list
+              contacts={@recent_chat_recepients}
+              title=""
+              locale={@locale}
+              show_search={true}
+              search_query={@search_query}
+            />
+          </div>
+        </div>
+      </div>
+
+      <div class="chat-main" style="flex:1; display:flex; flex-direction:column; overflow:hidden; position:relative;">
+        <div style="flex:1; overflow:hidden; position:relative; z-index:1;">
+          <div style="height:100%; overflow:hidden; display:flex; flex-direction:column;">
+            <.chat
+              recipient={@current_recipient}
+              actor={@user}
+              messages={@messages}
+              call_id={@call_id}
+              call_status={@call_status}
+              call_link={@call_link}
+              caller_username={@caller_username}
+            />
+          </div>
+        </div>
+        <div style="flex-shrink:0; padding:16px 20px 20px; background:#fff; position:relative; z-index:1; border-top: 1px solid var(--clr-border);">
+          <.live_component
+            module={MazarynWeb.ChatsLive.Components.MessageInput}
+            user={@user}
+            recipient={@current_recipient}
+            id="message_box"
+            editting_message={@editting_message}
+          />
+        </div>
+      </div>
     </div>
-   
-    <%= if @show_video_call do %>
-      <div
-        id="video-call-container"
-        phx-hook="VideoCall"
-        phx-update="ignore"
-        data-username={@user.username}
-        data-current-recipient-username={@current_recipient.username}
-        class="fixed inset-0 bg-gradient-to-br from-gray-900 to-gray-800 bg-opacity-95 z-[1000] flex items-center justify-center p-4"
-        style="display: flex !important; visibility: visible !important; opacity: 1 !important;"
-      >
-        <div class="relative w-full max-w-5xl bg-gray-900 rounded-3xl overflow-hidden shadow-2xl border border-gray-700 backdrop-blur-sm">
-          
-          <button
-            phx-click="end-video-call"
-            phx-value-call_id={@call_id}
-            class="absolute top-6 right-6 z-10 group bg-gray-800/80 hover:bg-red-500/90 text-white rounded-full p-3 transition-all duration-300 hover:scale-110 hover:rotate-90 backdrop-blur-sm border border-gray-600/50 hover:border-red-400/50 shadow-lg"
-            aria-label="Close video call"
-            type="button"
-            onclick="event.preventDefault()"
-          >
-            <svg class="w-5 h-5 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path>
-            </svg>
-          </button>
-          
-          <div class="p-6">
-            <% is_self_call = @user.username == @current_recipient.username %>
-            <% local_video_class = if is_self_call, do: "w-full max-w-3xl mx-auto", else: "lg:w-1/2 w-full inline-block p-2" %>
-            <!-- Local video -->
-            <div class={"relative aspect-video bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl overflow-hidden shadow-xl border border-gray-700/50 #{local_video_class}"} style="display: block !important; visibility: visible !important;">
+  </div>
+
+  <%= if @show_video_call do %>
+    <div
+      id="video-call-container"
+      phx-hook="VideoCall"
+      phx-update="ignore"
+      data-username={@user.username}
+      data-user-id={@user.id}
+      data-current-recipient-username={@current_recipient.username}
+      data-current-recipient-id={@current_recipient.id}
+      data-call-id={@call_id}
+      data-is-caller={if @caller_username == @user.username, do: "true", else: "false"}
+      class="video-call-overlay"
+    >
+      <div class="video-call-card">
+        <button
+          phx-click="end-video-call"
+          phx-value-call_id={@call_id}
+          class="video-call-close"
+          aria-label="Close video call"
+          type="button"
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+            <path d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+
+        <div class="video-area">
+          <div class="video-remote-wrap">
+            <video
+              id="remote-video"
+              autoplay
+              playsinline
+              webkit-playsinline
+            ></video>
+            <div class="video-badge">
+              <div class="video-badge-dot"></div>
+              <%= @current_recipient.username %>
+            </div>
+            <div class="video-local-wrap">
               <video
                 id="local-video"
                 autoplay
                 muted
                 playsinline
                 webkit-playsinline
-                class="w-full h-full object-cover"
-                style="display: block !important; visibility: visible !important; opacity: 1 !important;"
               ></video>
-              <div class="absolute bottom-4 left-4 bg-gray-900/90 text-white px-4 py-2 rounded-xl text-sm font-semibold backdrop-blur-md border border-gray-700/50 shadow-lg">
-                <div class="flex items-center gap-2">
-                  <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                  You
-                </div>
+              <div class="video-badge" style="bottom:10px; left:10px; padding:6px 12px; font-size:0.7rem;">
+                <div class="video-badge-dot green"></div>
+                You
               </div>
             </div>
-            <%= unless is_self_call do %>
-              <div class="relative aspect-video bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl overflow-hidden shadow-xl border border-gray-700/50 lg:w-1/2 w-full inline-block p-2">
-                <video
-                  id="remote-video"
-                  autoplay
-                  playsinline
-                  webkit-playsinline
-                  class="w-full h-full object-cover"
-                ></video>
-                <div class="absolute bottom-4 left-4 bg-gray-900/90 text-white px-4 py-2 rounded-xl text-sm font-semibold backdrop-blur-md border border-gray-700/50 shadow-lg">
-                  <div class="flex items-center gap-2">
-                    <div class="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
-                    <%= @current_recipient.username %>
-                  </div>
-                </div>
-              </div>
-            <% end %>
           </div>
-         
-          <div class="bg-gradient-to-r from-gray-800/95 to-gray-900/95 backdrop-blur-md p-8 flex flex-col items-center gap-6 border-t border-gray-700/50">
-            
-            <%= if @flash[:error] do %>
-              <div class="bg-gradient-to-r from-red-500 to-red-600 text-white px-6 py-3 rounded-2xl text-sm font-medium shadow-lg border border-red-400/30 backdrop-blur-sm animate-pulse">
-                <div class="flex items-center gap-3">
-                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+        </div>
+
+        <div class="video-controls">
+          <%= if @flash[:error] do %>
+            <div class="video-error-banner">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"/>
+              </svg>
+              <%= @flash[:error] %>
+            </div>
+          <% end %>
+
+          <%= if @call_status == "ringing" and @caller_username == @user.username do %>
+            <div class="video-ringing-area">
+              <div class="video-ringing-icon">
+                <div class="video-ringing-ping caller"></div>
+                <div class="video-ringing-circle caller">
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
                   </svg>
-                  <%= @flash[:error] %>
                 </div>
               </div>
-            <% end %>
-            
-            <%= if @call_status == "ringing" and @caller_username == @user.username do %>
-              <div class="text-center space-y-4">
-                <div class="relative">
-                  <div class="w-16 h-16 bg-blue-500/20 rounded-full animate-ping absolute"></div>
-                  <div class="w-16 h-16 bg-blue-500/40 rounded-full animate-pulse relative flex items-center justify-center">
-                    <svg class="w-8 h-8 text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path>
-                    </svg>
-                  </div>
-                </div>
-                <p class="text-white text-xl font-semibold tracking-wide">
-                  Calling <%= @current_recipient.username %>...
-                </p>
-                <div class="w-12 h-1 bg-gradient-to-r from-blue-400 to-purple-500 rounded-full animate-pulse mx-auto"></div>
-              </div>
-              <div class="flex gap-4 mt-6">
-                <button
-                  phx-click="end-video-call"
-                  phx-value-call_id={@call_id}
-                  class="group flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-gray-600 to-gray-700 text-white rounded-2xl hover:from-gray-700 hover:to-gray-800 transition-all duration-300 font-semibold shadow-xl hover:shadow-2xl transform hover:scale-105 border border-gray-500/30"
-                  type="button"
-                  onclick="event.preventDefault()"
-                >
-                  <svg class="w-5 h-5 transition-transform group-hover:rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path>
-                  </svg>
-                  Cancel Call
-                </button>
-              </div>
-            <% end %>
-            
-            <%= if @call_status == "ringing" and @caller_username != @user.username do %>
-              <div class="text-center space-y-4">
-                <div class="relative">
-                  <div class="w-20 h-20 bg-green-500/20 rounded-full animate-ping absolute"></div>
-                  <div class="w-20 h-20 bg-gradient-to-r from-green-400 to-blue-500 rounded-full animate-pulse relative flex items-center justify-center shadow-2xl">
-                    <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path>
-                    </svg>
-                  </div>
-                </div>
-                <p class="text-white text-xl font-semibold tracking-wide">
-                  Incoming call from <%= @caller_username %>
-                </p>
-                <div class="w-16 h-1 bg-gradient-to-r from-green-400 to-blue-500 rounded-full animate-pulse mx-auto"></div>
-              </div>
-              <div class="flex gap-6 mt-8">
-                <button
-                  phx-click="accept-video-call"
-                  phx-value-call_id={@call_id}
-                  class="group relative flex items-center gap-3 px-10 py-4 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-2xl hover:from-green-600 hover:to-emerald-700 transition-all duration-300 font-semibold shadow-xl hover:shadow-2xl transform hover:scale-105 border border-green-400/30 overflow-hidden"
-                  type="button"
-                  onclick="event.preventDefault()"
-                >
-                  <div class="absolute inset-0 bg-gradient-to-r from-green-400/20 to-emerald-500/20 transform -skew-x-12 group-hover:skew-x-12 transition-transform duration-500"></div>
-                  <svg class="w-6 h-6 relative z-10 transition-transform group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path>
-                  </svg>
-                  <span class="relative z-10">Accept</span>
-                </button>
-                <button
-                  phx-click="end-video-call"
-                  phx-value-call_id={@call_id}
-                  class="group relative flex items-center gap-3 px-10 py-4 bg-gradient-to-r from-red-500 to-rose-600 text-white rounded-2xl hover:from-red-600 hover:to-rose-700 transition-all duration-300 font-semibold shadow-xl hover:shadow-2xl transform hover:scale-105 border border-red-400/30 overflow-hidden"
-                  type="button"
-                  onclick="event.preventDefault()"
-                >
-                  <div class="absolute inset-0 bg-gradient-to-r from-red-400/20 to-rose-500/20 transform skew-x-12 group-hover:-skew-x-12 transition-transform duration-500"></div>
-                  <svg class="w-6 h-6 relative z-10 transition-transform group-hover:rotate-45" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path>
-                  </svg>
-                  <span class="relative z-10">Decline</span>
-                </button>
-              </div>
-            <% end %>
-            
-            <%= if @call_status == "connected" do %>
-              <div class="text-center space-y-4 mb-4">
-                <div class="flex items-center justify-center gap-3">
-                  <div class="w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
-                  <p class="text-green-400 text-lg font-semibold">Connected</p>
-                  <div class="w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
-                </div>
-              </div>
-              <div class="flex gap-4">
-                <button
-                  phx-click="end-video-call"
-                  phx-value-call_id={@call_id}
-                  class="group relative flex items-center gap-3 px-10 py-4 bg-gradient-to-r from-red-500 to-rose-600 text-white rounded-2xl hover:from-red-600 hover:to-rose-700 transition-all duration-300 font-semibold shadow-xl hover:shadow-2xl transform hover:scale-105 border border-red-400/30 overflow-hidden"
-                  type="button"
-                  onclick="event.preventDefault()"
-                >
-                  <div class="absolute inset-0 bg-gradient-to-r from-red-400/20 to-rose-500/20 transform skew-x-12 group-hover:-skew-x-12 transition-transform duration-500"></div>
-                  <svg class="w-6 h-6 relative z-10 transition-transform group-hover:rotate-45" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M16 8l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2M3 12h16m-7-4v8"></path>
-                  </svg>
-                  <span class="relative z-10">End Call</span>
-                </button>
-              </div>
-            <% end %>
-            
-            <%= if @call_status != "connected" do %>
+              <p class="video-ringing-text">Calling <%= @current_recipient.username %>…</p>
+            </div>
+            <div class="video-btn-row">
               <button
-                phx-click="start-camera"
+                phx-click="end-video-call"
+                phx-value-call_id={@call_id}
+                class="video-btn cancel"
                 type="button"
-                class="group relative flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-2xl hover:from-blue-600 hover:to-indigo-700 transition-all duration-300 font-semibold shadow-xl hover:shadow-2xl transform hover:scale-105 border border-blue-400/30 overflow-hidden"
-                onclick="event.preventDefault(); event.stopPropagation();"
               >
-                <div class="absolute inset-0 bg-gradient-to-r from-blue-400/20 to-indigo-500/20 transform -skew-x-12 group-hover:skew-x-12 transition-transform duration-500"></div>
-                <svg class="w-6 h-6 relative z-10 transition-transform group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                  <path d="M6 18L18 6M6 6l12 12"/>
                 </svg>
-                <span class="relative z-10">Start Camera</span>
+                Cancel Call
               </button>
-            <% end %>
-          </div>
+            </div>
+          <% end %>
+
+          <%= if @call_status == "ringing" and @caller_username != @user.username do %>
+            <div class="video-ringing-area">
+              <div class="video-ringing-icon">
+                <div class="video-ringing-ping receiver"></div>
+                <div class="video-ringing-circle receiver">
+                  <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
+                  </svg>
+                </div>
+              </div>
+              <p class="video-ringing-text">Incoming call from <strong><%= @caller_username %></strong></p>
+            </div>
+            <div class="video-btn-row">
+              <button
+                phx-click="accept-video-call"
+                phx-value-call_id={@call_id}
+                class="video-btn accept"
+                type="button"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M5 13l4 4L19 7"/>
+                </svg>
+                Accept
+              </button>
+              <button
+                phx-click="end-video-call"
+                phx-value-call_id={@call_id}
+                class="video-btn decline"
+                type="button"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                  <path d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+                Decline
+              </button>
+            </div>
+          <% end %>
+
+          <%= if @call_status == "connected" do %>
+            <div class="video-status-connected">
+              <div class="video-badge-dot green"></div>
+              <span>Connected</span>
+              <div class="video-badge-dot green"></div>
+            </div>
+            <div class="video-btn-row">
+              <button
+                phx-click="end-video-call"
+                phx-value-call_id={@call_id}
+                class="video-btn end"
+                type="button"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M16 8l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2M3 12h16m-7-4v8"/>
+                </svg>
+                End Call
+              </button>
+            </div>
+          <% end %>
         </div>
       </div>
-    <% end %>
-    
-    <div class="bottom-1 w-full bg-white white:bg-gray-800 custom-box-shadow pr-8 pl-7 pb-7 pt-4 rounded-[20px]">
-      <.live_component
-        module={MazarynWeb.ChatsLive.Components.MessageInput}
-        user={@user}
-        recipient={@current_recipient}
-        id="message_box"
-        editting_message={@editting_message}
-      />
     </div>
-  </div>
-  
-  <div class="w-full lg:w-2/6 bg-gray-100 py-10 pr-10">
-    <.chat_list locale={@locale} contacts={@contacts} title="Chats" show_search={false} />
-    <.chat_list
-      contacts={@recent_chat_recepients}
-      title=""
-      locale={@locale}
-      show_search={true}
-      search_query={@search_query}
-    />
-    
-    <div class="mt-8 flex justify-center">
-      <button
-        phx-click="start-video-call"
-        class="group relative flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-purple-500 to-pink-600 text-white rounded-2xl hover:from-purple-600 hover:to-pink-700 transition-all duration-300 font-semibold shadow-xl hover:shadow-2xl transform hover:scale-105 border border-purple-400/30 overflow-hidden"
-        type="button"
-        onclick="event.preventDefault()"
-      >
-        <div class="absolute inset-0 bg-gradient-to-r from-purple-400/20 to-pink-500/20 transform -skew-x-12 group-hover:skew-x-12 transition-transform duration-500"></div>
-        <div class="relative z-10 flex items-center gap-3">
-          <div class="relative">
-            <svg class="w-6 h-6 transition-transform group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path>
-            </svg>
-            <div class="absolute -top-1 -right-1 w-3 h-3 bg-yellow-400 rounded-full animate-bounce"></div>
-          </div>
-          <span>Call Myself</span>
-        </div>
-      </button>
-    </div>
-  </div>
+  <% end %>
 </div>

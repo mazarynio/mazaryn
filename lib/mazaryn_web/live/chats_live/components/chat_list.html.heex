@@ -1,94 +1,279 @@
-<div class="social-box w-full bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 my-6 p-6 rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300">
-  
-  <div class="flex flex-row justify-between items-center mb-4">
-    <h1 class="flex items-center text-xl font-bold text-gray-800 dark:text-gray-100">
-      <i>
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-8 w-8 mr-3 fill-blue-500 dark:fill-blue-400">
-          <path d="M4.5 6.375a4.125 4.125 0 118.25 0 4.125 4.125 0 01-8.25 0zM14.25 8.625a3.375 3.375 0 116.75 0 3.375 3.375 0 01-6.75 0zM1.5 19.125a7.125 7.125 0 0114.25 0v.003l-.001.119a.75.75 0 01-.363.63 13.067 13.067 0 01-6.761 1.873c-2.472 0-4.786-.684-6.76-1.873a.75.75 0 01-.364-.63l-.001-.122zM17.25 19.128l-.001.144a2.25 2.25 0 01-.233.96 10.088 10.088 0 005.06-1.01.75.75 0 00.42-.643 4.875 4.875 0 00-6.957-4.611 8.586 8.586 0 011.71 5.157v.003z" />
-        </svg>
-      </i>
-      <%= @title %>
-    </h1>
-    <%= if @show_search do %>
-      <form
-        class="flex items-center w-full max-w-xs h-12 rounded-full px-4 bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 focus-within:ring-2 focus-within:ring-blue-300 dark:focus-within:ring-blue-500 transition-all duration-300"
-        phx-submit="search_following"
-        phx-change="search_following"
-      >
+<style>
+  .contact-list-wrapper {
+    background: var(--clr-surface);
+  }
+
+  .contact-list-header {
+    padding: 16px 20px 12px;
+    border-bottom: 1px solid var(--clr-border);
+  }
+
+  .contact-list-title {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--clr-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .contact-search-wrap {
+    padding: 12px 20px;
+    border-bottom: 1px solid var(--clr-border);
+  }
+
+  .contact-search-input {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1px solid var(--clr-border);
+    border-radius: 10px;
+    font-size: 0.82rem;
+    background: var(--clr-surface-alt);
+    transition: all 0.2s;
+  }
+
+  .contact-search-input:focus {
+    outline: none;
+    border-color: var(--clr-pink);
+    background: #fff;
+    box-shadow: 0 0 0 3px rgba(236,72,153,0.08);
+  }
+
+  .contact-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .contact-item {
+    display: block;
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--clr-border);
+    transition: background 0.15s;
+    cursor: pointer;
+  }
+
+  .contact-item:hover {
+    background: linear-gradient(to right, rgba(236,72,153,0.04), rgba(236,72,153,0.02));
+  }
+
+  .contact-item-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .contact-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .contact-avatar-wrap {
+    position: relative;
+    flex-shrink: 0;
+  }
+
+  .contact-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #fff;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+  }
+
+  .contact-avatar-status {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 12px;
+    height: 12px;
+    background: var(--clr-green);
+    border-radius: 50%;
+    border: 2px solid #fff;
+  }
+
+  .contact-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .contact-name {
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--clr-text);
+    text-transform: capitalize;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 2px;
+  }
+
+  .contact-subtitle {
+    font-size: 0.72rem;
+    color: var(--clr-text-faint);
+  }
+
+  .contact-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .contact-video-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    border: none;
+    background: linear-gradient(135deg, var(--clr-pink), var(--clr-rose));
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .contact-video-btn::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.3);
+    transform: translate(-50%, -50%);
+    transition: width 0.3s, height 0.3s;
+  }
+
+  .contact-video-btn:hover::before {
+    width: 100px;
+    height: 100px;
+  }
+
+  .contact-video-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(236,72,153,0.35);
+  }
+
+  .contact-arrow {
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+
+  .contact-item:hover .contact-arrow {
+    opacity: 1;
+  }
+
+  .empty-contacts {
+    padding: 40px 20px;
+    text-align: center;
+  }
+
+  .empty-contacts-icon {
+    width: 48px;
+    height: 48px;
+    margin: 0 auto 12px;
+    background: linear-gradient(135deg, #fdf2f8, #fff0f6);
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(236,72,153,0.12);
+  }
+
+  .empty-contacts h4 {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--clr-text);
+    margin-bottom: 4px;
+  }
+
+  .empty-contacts p {
+    font-size: 0.7rem;
+    color: var(--clr-text-faint);
+  }
+</style>
+
+<div class="contact-list-wrapper">
+  <%= if @title != "" do %>
+    <div class="contact-list-header">
+      <h3 class="contact-list-title"><%= @title %></h3>
+    </div>
+  <% end %>
+
+  <%= if @show_search do %>
+    <div class="contact-search-wrap">
+      <form phx-submit="search_following" phx-change="search_following">
         <input
-          type="search_query"
-          autocomplete="off"
-          placeholder="Search contacts..."
+          type="text"
           name="search_query"
           value={@search_query}
-          class="w-full p-0 text-base font-medium text-gray-800 dark:text-gray-200 placeholder:text-gray-400 dark:placeholder:text-gray-500 bg-transparent outline-none border-none focus:ring-0"
+          placeholder="Search contacts..."
+          class="contact-search-input"
+          autocomplete="off"
         />
-        <button type="submit">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5 fill-gray-400 dark:fill-gray-500 hover:fill-blue-500 dark:hover:fill-blue-400 transition-colors duration-200">
-            <path fill-rule="evenodd" d="M10.5 3.75a6.75 6.75 0 100 13.5 6.75 6.75 0 000-13.5zM2.25 10.5a8.25 8.25 0 1114.59 5.28l4.69 4.69a.75.75 0 11-1.06 1.06l-4.69-4.69A8.25 8.25 0 012.25 10.5z" clip-rule="evenodd" />
-          </svg>
-        </button>
       </form>
-    <% end %>
-    <a href="#" class="text-base font-semibold text-blue-500 dark:text-blue-400 hover:text-blue-600 dark:hover:text-blue-300 transition-colors duration-200">See more</a>
-  </div>
-  
-  <!-- Divider -->
-  <div class="border-t border-gray-200 dark:border-gray-700 mb-6"></div>
-  
-  <!-- Chat List -->
-  <div class="flex flex-col space-y-4">
-    <ul class="w-full space-y-3">
+    </div>
+  <% end %>
+
+  <%= if Enum.empty?(@contacts) do %>
+    <div class="empty-contacts">
+      <div class="empty-contacts-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--clr-pink)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+        </svg>
+      </div>
+      <h4>No contacts found</h4>
+      <p>Start searching to find people</p>
+    </div>
+  <% else %>
+    <ul class="contact-list">
       <%= for user <- @contacts do %>
-        <.link patch={~p"/#{@locale}/chats/#{to_string(user.id)}"} class="block">
-          <li class="group flex items-center justify-between p-4 bg-gradient-to-r from-gray-50 to-white dark:from-gray-800 dark:to-gray-900 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-300 shadow-sm hover:shadow-md">
-            <div class="flex items-center space-x-4">
-             
-              <div class="relative flex-shrink-0 group-hover:rotate-3 transition-transform duration-300">
-                <img 
-                  src={handle_avatar(user) || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='url(%23grad)'%3E%3Cpath d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/%3E%3Cdefs%3E%3ClinearGradient id='grad' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%23e5e7eb;stop-opacity:1'/%3E%3Cstop offset='100%25' style='stop-color:%239ca3af;stop-opacity:1'/%3E%3C/linearGradient%3E%3C/defs%3E%3C/svg%3E"} 
-                  alt="User avatar" 
-                  class="w-12 h-12 rounded-full object-cover ring-2 ring-gradient-to-r from-gray-300 to-gray-500 dark:from-gray-500 dark:to-gray-700 shadow-[0_0_6px_rgba(75,85,99,0.4)] dark:shadow-[0_0_6px_rgba(75,85,99,0.3)] group-hover:ring-gray-400 dark:group-hover:ring-gray-600 transition-all duration-300" 
-                />
+        <.link patch={~p"/#{@locale}/chats/#{to_string(user.id)}"} class="contact-item">
+          <li>
+            <div class="contact-item-inner">
+              <div class="contact-left">
+                <div class="contact-avatar-wrap">
+                  <img
+                    src={handle_avatar(user) || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23ec4899'%3E%3Cpath d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/%3E%3C/svg%3E"}
+                    alt="User avatar"
+                    class="contact-avatar"
+                  />
+                  <div class="contact-avatar-status"></div>
+                </div>
+                <div class="contact-info">
+                  <div class="contact-name"><%= user.username %></div>
+                  <div class="contact-subtitle">Click to start chatting</div>
+                </div>
               </div>
-           
-              <span class="relative text-lg font-bold bg-gradient-to-r from-blue-500 to-indigo-600 dark:from-blue-400 dark:to-indigo-500 bg-clip-text text-transparent group-hover:scale-105 group-hover:text-blue-400 dark:group-hover:text-blue-300 transition-all duration-300 before:content-[''] before:absolute before:bottom-0 before:left-0 before:w-0 before:h-[2px] before:bg-blue-400 dark:before:bg-blue-300 before:transition-all before:duration-300 group-hover:before:w-full">
-                <%= user.username %>
-              </span>
-            </div>
-            
-            <div class="flex space-x-3">
-              
-              <button
-                type="button"
-                class="relative flex items-center px-5 py-2.5 bg-gradient-to-r from-blue-300 to-blue-700 hover:from-blue-400 hover:to-blue-800 text-white font-semibold text-sm rounded-full shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300"
-              >
-                <div class="absolute inset-0 bg-gradient-to-r from-blue-200/20 to-blue-600/20 transform -skew-x-12 group-hover:skew-x-12 transition-transform duration-500"></div>
-                <i class="relative z-10">
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-5 w-5 mr-2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v6m3-3H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+              <div class="contact-actions">
+                <button
+                  phx-click="start-video-call"
+                  phx-value-recipient_id={to_string(user.id)}
+                  class="contact-video-btn"
+                  type="button"
+                  onclick="event.preventDefault(); event.stopPropagation();"
+                  title="Start video call"
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="position:relative; z-index:1;">
+                    <path d="M15.75 10.5l4.72-4.72a.75.75 0 011.28.53v11.38a.75.75 0 01-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 002.25-2.25v-9a2.25 2.25 0 00-2.25-2.25h-9A2.25 2.25 0 002.25 7.5v9a2.25 2.25 0 002.25 2.25z"/>
                   </svg>
-                </i>
-                <span class="relative z-10">Start Chat</span>
-              </button>
-              
-              <button
-                phx-click="start-video-call"
-                phx-value-recipient_id={to_string(user.id)}
-                class="relative flex items-center px-5 py-2.5 bg-gradient-to-r from-green-300 to-green-700 hover:from-green-400 hover:to-green-800 text-white font-semibold text-sm rounded-full shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300"
-              >
-                <div class="absolute inset-0 bg-gradient-to-r from-green-200/20 to-green-600/20 transform -skew-x-12 group-hover:skew-x-12 transition-transform duration-500"></div>
-                <i class="relative z-10">
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-5 w-5 mr-2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5l4.72-4.72a.75.75 0 011.28.53v11.38a.75.75 0 01-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 002.25-2.25v-9a2.25 2.25 0 00-2.25-2.25h-9A2.25 2.25 0 002.25 7.5v9a2.25 2.25 0 002.25 2.25z" />
-                  </svg>
-                </i>
-                <span class="relative z-10">Video Call</span>
-              </button>
+                </button>
+                <svg class="contact-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--clr-pink)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M9 5l7 7-7 7"/>
+                </svg>
+              </div>
             </div>
           </li>
         </.link>
       <% end %>
     </ul>
-  </div>
+  <% end %>
 </div>

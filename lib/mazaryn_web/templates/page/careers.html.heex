@@ -1,33 +1,138 @@
-<header class="bg-black">
+<header class="bg-gradient-to-r from-pink-500 to-rose-500">
   <div class="flex md:px-4 items-center justify-between max-w-[1440px] w-[90%] mx-auto px-0 py-6 md:px-4 lg:px-8">
-    <div class="flex justify-left items-center text-2xl md:text-3xl leading-0 font-thin text-[#E5E5E5]">
+    <div class="flex justify-left items-center text-2xl md:text-3xl leading-0 font-thin text-white">
       <img
         class="relative h-[42px] md:h-auto brightness-150"
         src={~p"/images/logo.png"}
         alt="Elixir Social Network"
       /> <span class="ml-[10px]"><%= gettext("Careers") %></span>
     </div>
-    <a class="text-[16px] text-[#D3D3D3] hover:text-[#fff]" href="/blog">
+    <a class="text-[16px] text-white/90 hover:text-white transition-colors duration-200" href="/blog">
       <%= gettext("Blog") %>
     </a>
   </div>
 </header>
 
-<section class="relative">
-  <div class="w-[95%] md:w-[90%] m-auto md:m-unset md:w-100 items-center py-[4em]">
-    <h1 class="text-2xl md:text-5xl leading-[1.8rem] md:leading-10 md:leading-9 text-center text-black min-w-[260px] font-[600] mt-auto mb-[0.875em]">
-      <%= gettext("Mazaryn Careers") %>
-    </h1>
-    <p class="max-w-[320px] text-center md:max-w-[700px] mx-auto text-black">
-      <%= gettext("We're Hiring! We're looking for talented people to join our team.") %>
-    </p>
-    <div class="btn-group flex items-center justify-center pt-2 pb-2 my-[1em] md:my-[2em]">
-      <a
-        class="bg-gradient-to-r from-[#13B980] to-blue-500 hover:bg-gradient-to-l hover:from-[#13B980] hover:to-blue-500 text-white capitalize py-3 px-14 rounded-md"
-        href="mailto:mazaryn.biz@gmail.com"
-      >
-        <%= gettext("Apply") %>
-      </a>
+<section class="bg-gradient-to-br from-pink-50 via-white to-rose-50 min-h-[calc(100vh-200px)]">
+  <div class="max-w-6xl w-[90%] mx-auto py-16 md:py-24">
+    <div class="text-center mb-16">
+      <div class="inline-flex items-center px-4 py-2 mb-6 text-sm bg-gradient-to-r from-pink-100 to-rose-100 text-pink-700 rounded-full shadow-sm">
+        <div class="w-2 h-2 bg-gradient-to-r from-pink-500 to-rose-500 rounded-full mr-2"></div>
+        Join Our Team
+      </div>
+
+      <h1 class="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
+        <span class="block">Build The Future</span>
+        <span class="block mt-2 bg-gradient-to-r from-pink-500 via-rose-500 to-pink-500 bg-clip-text text-transparent">
+          With Mazaryn
+        </span>
+      </h1>
+
+      <p class="text-lg md:text-xl text-gray-600 max-w-2xl mx-auto">
+        <%= gettext("We're Hiring! We're looking for talented people to join our team.") %>
+      </p>
+    </div>
+
+    <div class="grid md:grid-cols-3 gap-8 mb-16">
+      <div class="p-6 bg-white/60 backdrop-blur-sm rounded-2xl shadow-lg border border-pink-100 hover:shadow-xl transition-shadow duration-300">
+        <div class="w-12 h-12 mb-4 rounded-xl bg-gradient-to-br from-pink-100 to-rose-100 flex items-center justify-center">
+          <svg class="w-6 h-6 text-pink-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+          </svg>
+        </div>
+        <h3 class="text-xl font-bold text-gray-900 mb-2">Remote First</h3>
+        <p class="text-gray-600 text-sm">Work from anywhere in the world with our fully distributed team</p>
+      </div>
+
+      <div class="p-6 bg-white/60 backdrop-blur-sm rounded-2xl shadow-lg border border-pink-100 hover:shadow-xl transition-shadow duration-300">
+        <div class="w-12 h-12 mb-4 rounded-xl bg-gradient-to-br from-pink-100 to-rose-100 flex items-center justify-center">
+          <svg class="w-6 h-6 text-pink-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </div>
+        <h3 class="text-xl font-bold text-gray-900 mb-2">Flexible Hours</h3>
+        <p class="text-gray-600 text-sm">Choose your own schedule and work when you're most productive</p>
+      </div>
+
+      <div class="p-6 bg-white/60 backdrop-blur-sm rounded-2xl shadow-lg border border-pink-100 hover:shadow-xl transition-shadow duration-300">
+        <div class="w-12 h-12 mb-4 rounded-xl bg-gradient-to-br from-pink-100 to-rose-100 flex items-center justify-center">
+          <svg class="w-6 h-6 text-pink-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+          </svg>
+        </div>
+        <h3 class="text-xl font-bold text-gray-900 mb-2">Innovation Focus</h3>
+        <p class="text-gray-600 text-sm">Work on cutting-edge technology and shape the future of social networking</p>
+      </div>
+    </div>
+
+    <div class="mb-16">
+      <div class="p-8 bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-pink-100">
+        <h3 class="text-2xl font-bold text-gray-900 mb-6 text-center">What We Look For</h3>
+        <div class="grid md:grid-cols-2 gap-6">
+          <div class="flex items-start space-x-3">
+            <div class="w-6 h-6 rounded-full bg-gradient-to-r from-pink-500 to-rose-500 flex items-center justify-center flex-shrink-0 mt-1">
+              <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <div>
+              <h4 class="font-semibold text-gray-900 mb-1">Passion for Technology</h4>
+              <p class="text-sm text-gray-600">Deep interest in decentralized systems, blockchain, and AI</p>
+            </div>
+          </div>
+
+          <div class="flex items-start space-x-3">
+            <div class="w-6 h-6 rounded-full bg-gradient-to-r from-pink-500 to-rose-500 flex items-center justify-center flex-shrink-0 mt-1">
+              <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <div>
+              <h4 class="font-semibold text-gray-900 mb-1">Collaborative Spirit</h4>
+              <p class="text-sm text-gray-600">Work well with distributed teams and open source communities</p>
+            </div>
+          </div>
+
+          <div class="flex items-start space-x-3">
+            <div class="w-6 h-6 rounded-full bg-gradient-to-r from-pink-500 to-rose-500 flex items-center justify-center flex-shrink-0 mt-1">
+              <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <div>
+              <h4 class="font-semibold text-gray-900 mb-1">Problem Solver</h4>
+              <p class="text-sm text-gray-600">Creative thinking and ability to tackle complex challenges</p>
+            </div>
+          </div>
+
+          <div class="flex items-start space-x-3">
+            <div class="w-6 h-6 rounded-full bg-gradient-to-r from-pink-500 to-rose-500 flex items-center justify-center flex-shrink-0 mt-1">
+              <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <div>
+              <h4 class="font-semibold text-gray-900 mb-1">Self-Motivated</h4>
+              <p class="text-sm text-gray-600">Take initiative and drive projects forward independently</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="text-center">
+      <div class="inline-block p-8 bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-pink-100 max-w-2xl mx-auto">
+        <h3 class="text-2xl font-bold text-gray-900 mb-4">Ready to Join Us?</h3>
+        <p class="text-gray-600 mb-6">
+          Send your resume and portfolio to our HR team. We'd love to hear from you!
+        </p>
+        <a
+          href="mailto:mazaryn.biz@gmail.com"
+          class="inline-block px-8 py-3 bg-gradient-to-r from-pink-500 to-rose-500 text-white rounded-lg hover:shadow-2xl hover:scale-105 transition-all duration-300 font-medium shadow-lg capitalize"
+        >
+          <%= gettext("Apply Now") %>
+        </a>
+      </div>
     </div>
   </div>
 </section>

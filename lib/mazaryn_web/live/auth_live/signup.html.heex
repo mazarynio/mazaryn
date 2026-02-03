@@ -1,200 +1,371 @@
-<div class="signup h-full md:h-screen flex-col md:flex-row">
-  <div class="split left">
-    <div class="welcome-left-title">
-      <img
-        class="logo mb-5 mr-auto md:mr-0 brightness-150"
-        src={~p"/images/logo.png"}
-        alt=""
-        title=""
-      />
-    </div>
-    <div class="welcome-left-text hidden md:block h-[25vh] md:h-full top-[100%] md:top-[82%]">
-      <p class="relative md:static left-0 font-[600] bottom-[-40px] max-w-[310px] md:max-w-[420px] leading-[2.4rem] text-color-[#E5E5E5] md:full mx-auto md:mx-0">
-        Hey <span class="font-[400] text-[#FFF]">Noble</span>
-        👋 <br />
-        <span>
-          Join <span class="font-[400] text-[#FFF]">us</span>
-          to level <span class="font-[400] text-[#FFF]">up!</span>
-        </span>
-      </p>
-    </div>
-    <div class="welcome-layer-style"></div>
-    <div class="welcome-left-logo"></div>
+<div class="min-h-screen bg-gradient-to-br from-pink-50 via-white to-rose-50 flex items-center justify-center p-4">
+  <div class="absolute inset-0">
+    <div id="interactive-bg"></div>
+    <div class="absolute top-1/4 left-1/4 w-64 h-64 bg-gradient-to-r from-pink-300 to-transparent rounded-full blur-3xl opacity-20"></div>
+    <div class="absolute bottom-1/4 right-1/4 w-96 h-96 bg-gradient-to-l from-rose-300 to-transparent rounded-full blur-3xl opacity-20"></div>
   </div>
 
-  <div class="split right h-[60vh] md:h-full">
-    <div class="centered">
-      <div class="form-container md:w-[540px]">
-        <div class="form-header">
-          <%= gettext("Sign Up") %>
+  <div class="relative z-10 w-full max-w-6xl">
+    <div class="grid md:grid-cols-2 gap-8 items-center">
+      <div class="hidden md:block">
+        <div class="space-y-8">
+          <a href="/" class="flex items-center space-x-3 group">
+            <div class="w-12 h-12 bg-gradient-to-br from-pink-500 to-rose-500 rounded-xl group-hover:scale-110 transition-transform duration-300 shadow-lg"></div>
+            <span class="text-3xl font-bold bg-gradient-to-r from-pink-600 to-rose-600 bg-clip-text text-transparent">Mazaryn</span>
+          </a>
+
+          <div class="mt-12">
+            <div class="inline-flex items-center px-4 py-2 mb-6 text-sm bg-gradient-to-r from-pink-100 to-rose-100 text-pink-700 rounded-full shadow-sm">
+              <div class="w-2 h-2 bg-gradient-to-r from-pink-500 to-rose-500 rounded-full mr-2"></div>
+              IPFS Based Social Network
+            </div>
+
+            <h2 class="text-4xl font-bold text-gray-900 mb-4">
+              Start Your
+              <span class="block mt-2 bg-gradient-to-r from-pink-500 to-rose-500 bg-clip-text text-transparent">
+                Journey Today
+              </span>
+            </h2>
+
+            <p class="text-lg text-gray-600 max-w-md">
+              Join our decentralized community and connect with like-minded individuals in a secure, privacy-focused environment.
+            </p>
+          </div>
+
+          <div class="mt-12">
+            <div class="flex items-center space-x-3 text-gray-700">
+              <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-pink-100 to-rose-100 flex items-center justify-center">
+                <div class="w-3 h-3 bg-gradient-to-r from-pink-500 to-rose-500 rounded-full"></div>
+              </div>
+              <span>Decentralized IPFS storage</span>
+            </div>
+            <div class="flex items-center space-x-3 text-gray-700 mt-4">
+              <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-pink-100 to-rose-100 flex items-center justify-center">
+                <div class="w-3 h-3 bg-gradient-to-r from-pink-500 to-rose-500 rounded-full"></div>
+              </div>
+              <span>Full data ownership</span>
+            </div>
+            <div class="flex items-center space-x-3 text-gray-700 mt-4">
+              <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-pink-100 to-rose-100 flex items-center justify-center">
+                <div class="w-3 h-3 bg-gradient-to-r from-pink-500 to-rose-500 rounded-full"></div>
+              </div>
+              <span>No censorship, no tracking</span>
+            </div>
+            <div class="flex items-center space-x-3 text-gray-700 mt-4">
+              <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-pink-100 to-rose-100 flex items-center justify-center">
+                <div class="w-3 h-3 bg-gradient-to-r from-pink-500 to-rose-500 rounded-full"></div>
+              </div>
+              <span>Global community access</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-pink-100 p-8 md:p-12">
+        <div class="text-center mb-8">
+          <h1 class="text-3xl font-bold text-gray-900 mb-2">
+            <span class="bg-gradient-to-r from-pink-600 to-rose-600 bg-clip-text text-transparent">
+              Create Account
+            </span>
+          </h1>
+          <p class="text-gray-600">Join our decentralized social network</p>
         </div>
 
-        <div class="form-body w-[100%]">
-          <.form
-            :let={f}
-            for={@changeset}
-            phx-change="validate"
-            phx-submit="save"
-            class="form-body w-[100%]"
-            autocomplete="off"
-            autocapitalize="off"
-            spellcheck="false"
-          >
-            <div class="form-input-container">
-              <div>
-                <label class="form-input-label"><%= gettext("Username*") %></label>
-              </div>
-              <div class="w-[100%]">
-                <%= text_input(f, :username,
-                  class: "form-input",
-                  placeholder: "Your username",
-                  aria_describedby: "form_username_detail",
-                  aria_required: "true",
-                  autofocus: "1",
-                  phx_blur: :blur_username
-                ) %>
-              </div>
-
-              <div
-                aria-live="polite"
-                id="form_username_detail"
-                class={"#{detail_error f, @changeset, :username}"}
-              >
-                <span class="text-sm"><%= error_tag(f, :username) %></span>
+        <.form
+          :let={f}
+          for={@changeset}
+          phx-change="validate"
+          phx-submit="save"
+          class="space-y-6"
+          autocomplete="off"
+          autocapitalize="off"
+          spellcheck="false"
+        >
+          <!-- Username -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+              <%= gettext("Username") %> *
+            </label>
+            <div class="relative">
+              <%= text_input(f, :username,
+                class: "w-full px-4 py-3 border border-pink-200 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all duration-200",
+                placeholder: "Choose a username",
+                aria_describedby: "form_username_detail",
+                aria_required: "true",
+                autofocus: "1",
+                phx_blur: :blur_username
+              ) %>
+              <div class="absolute inset-y-0 right-0 flex items-center pr-3">
+                <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
               </div>
             </div>
-            <div class="form-input-container">
-              <div>
-                <label class="form-input-label"><%= gettext("Email*") %></label>
-              </div>
-              <div class="w-[100%]">
-                <%= email_input(f, :email,
-                  class: "form-input",
-                  placeholder: "Your email address",
-                  aria_describedby: "form_email_detail",
-                  aria_required: "true",
-                  phx_blur: :blur_email
-                ) %>
-              </div>
+            <div
+              aria-live="polite"
+              id="form_username_detail"
+              class={"mt-1 #{detail_error f, @changeset, :username}"}
+            >
+              <span class="text-sm text-red-600"><%= error_tag(f, :username) %></span>
+            </div>
+          </div>
 
-              <div
-                aria-live="polite"
-                id="form_email_detail"
-                class={"#{detail_error f, @changeset, :email}"}
-              >
-                <span class="text-sm"><%= error_tag(f, :email) %></span>
+          <!-- Email -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+              <%= gettext("Email Address") %> *
+            </label>
+            <div class="relative">
+              <%= email_input(f, :email,
+                class: "w-full px-4 py-3 border border-pink-200 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all duration-200",
+                placeholder: "your@email.com",
+                aria_describedby: "form_email_detail",
+                aria_required: "true",
+                phx_blur: :blur_email
+              ) %>
+              <div class="absolute inset-y-0 right-0 flex items-center pr-3">
+                <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                </svg>
               </div>
             </div>
+            <div
+              aria-live="polite"
+              id="form_email_detail"
+              class={"mt-1 #{detail_error f, @changeset, :email}"}
+            >
+              <span class="text-sm text-red-600"><%= error_tag(f, :email) %></span>
+            </div>
+          </div>
 
-            <div class="form-input-container">
-              <div>
-                <label class="form-input-label"><%= gettext("Password*") %></label>
-              </div>
-
-              <div class="w-[100%]">
-                <%= password_input(f, :password,
-                  value: input_value(f, :password),
-                  class: "form-input",
-                  placeholder: "••••••••",
-                  aria_describedby: "form_password_detail",
-                  aria_required: "true",
-                  phx_blur: :blur_password
-                ) %>
-              </div>
-              <div
-                aria-live="polite"
-                id="form_password_detail"
-                class={"#{detail_error f, @changeset, :password}"}
-              >
-                <span class="text-sm"><%= error_tag(f, :password) %></span>
+          <!-- Password -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+              <%= gettext("Password") %> *
+            </label>
+            <div class="relative">
+              <%= password_input(f, :password,
+                value: input_value(f, :password),
+                class: "w-full px-4 py-3 border border-pink-200 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all duration-200",
+                placeholder: "••••••••",
+                aria_describedby: "form_password_detail",
+                aria_required: "true",
+                phx_blur: :blur_password
+              ) %>
+              <div class="absolute inset-y-0 right-0 flex items-center pr-3">
+                <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
               </div>
             </div>
+            <div
+              aria-live="polite"
+              id="form_password_detail"
+              class={"mt-1 #{detail_error f, @changeset, :password}"}
+            >
+              <span class="text-sm text-red-600"><%= error_tag(f, :password) %></span>
+            </div>
+          </div>
 
-            <div class="form-input-container">
-              <div>
-                <label class="form-input-label"><%= gettext("Repeat Password*") %></label>
-              </div>
-
-              <div class="w-[100%]">
-                <%= password_input(f, :password_confirmation,
-                  value: input_value(f, :password_confirmation),
-                  class: "form-input",
-                  placeholder: "••••••••",
-                  aria_describedby: "form_password_confirmation_detail",
-                  aria_required: "true"
-                ) %>
-              </div>
-              <div
-                aria-live="polite"
-                id="form_password_confirmation_detail"
-                class={"#{detail_error f, @changeset, :password_confirmation}"}
-              >
-                <span class="text-sm"><%= error_tag(f, :password_confirmation) %></span>
+          <!-- Confirm Password -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+              <%= gettext("Confirm Password") %> *
+            </label>
+            <div class="relative">
+              <%= password_input(f, :password_confirmation,
+                value: input_value(f, :password_confirmation),
+                class: "w-full px-4 py-3 border border-pink-200 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all duration-200",
+                placeholder: "••••••••",
+                aria_describedby: "form_password_confirmation_detail",
+                aria_required: "true"
+              ) %>
+              <div class="absolute inset-y-0 right-0 flex items-center pr-3">
+                <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
               </div>
             </div>
+            <div
+              aria-live="polite"
+              id="form_password_confirmation_detail"
+              class={"mt-1 #{detail_error f, @changeset, :password_confirmation}"}
+            >
+              <span class="text-sm text-red-600"><%= error_tag(f, :password_confirmation) %></span>
+            </div>
+          </div>
 
-            <div class="grid gap-[10px] mt-[30px] mb-[25px]">
-              <div class="flex items-center">
-                <%= checkbox(f, :accepts_conditions, phx_click: "toggle", class: "rounded") %>
-                <label class="ml-2 text-sm font-medium text-gray-900">
-                  Agree to our <a
-                    href="#"
-                    class="text-blue-600 dark:text-blue-500 hover:underline"
-                  >terms of service</a>.
+          <!-- Terms Agreement -->
+          <div class="space-y-2">
+            <div class="flex items-start">
+              <div class="flex items-center h-5">
+                <%= checkbox(f, :accepts_conditions,
+                  phx_click: "toggle",
+                  class: "w-4 h-4 text-pink-600 border-pink-300 rounded focus:ring-pink-500 focus:ring-2"
+                ) %>
+              </div>
+              <div class="ml-3 text-sm">
+                <label class="text-gray-700">
+                  I agree to the
+                  <a href="#" class="text-pink-600 hover:text-pink-700 font-medium">Terms of Service</a>
+                  and
+                  <a href="#" class="text-pink-600 hover:text-pink-700 font-medium">Privacy Policy</a>
                 </label>
               </div>
-              <div
-                aria-live="polite"
-                id="form_accepts_conditions_detail"
-                class={"#{detail_error f, @changeset, :accepts_conditions} flex"}
-              >
-                <span class="text-sm"><%= error_tag(f, :accepts_conditions) %></span>
-              </div>
             </div>
+            <div
+              aria-live="polite"
+              id="form_accepts_conditions_detail"
+              class={"#{detail_error f, @changeset, :accepts_conditions}"}
+            >
+              <span class="text-sm text-red-600"><%= error_tag(f, :accepts_conditions) %></span>
+            </div>
+          </div>
 
-            <div class="btn-group flex items-center pt-2 pb-2">
-              <button
-                type="submit"
-                phx-disable-with="Submitting..."
-                phx-loading-states={~s{visible delayed->hidden}}
-                class="bg-blue-500 hover:bg-blue-700 text-white py-3 px-14 rounded-md"
-              >
-                Sign Up
-              </button>
+          <!-- Submit Button -->
+          <div>
+            <button
+              type="submit"
+              phx-disable-with="Creating account..."
+              phx-loading-states={~s{visible delayed->hidden}}
+              class="w-full py-3 px-4 bg-gradient-to-r from-pink-500 to-rose-500 text-white rounded-lg hover:shadow-lg hover:scale-[1.02] transition-all duration-300 font-medium shadow-md"
+            >
+              <%= gettext("Create Account") %>
+            </button>
+          </div>
 
+          <!-- Login Link -->
+          <div class="text-center">
+            <p class="text-gray-600">
+              Already have an account?
               <.link navigate={~p"/#{@locale}/login"}
                 phx-loading-states={~s{visible delayed->hidden}}
-                class="text-blue-600 pl-6">
-                Login
+                class="text-pink-600 hover:text-pink-700 font-medium ml-1">
+                <%= gettext("Sign In") %>
               </.link>
-            </div>
+            </p>
+          </div>
 
-            <%= hidden_input(f, :username_touched) %>
-            <%= hidden_input(f, :email_touched) %>
-            <%= hidden_input(f, :password_touched) %>
-            <%= hidden_input(f, :form_submitted) %>
-            <%= hidden_input(f, :form_disabled) %>
-          </.form>
+          <%= hidden_input(f, :username_touched) %>
+          <%= hidden_input(f, :email_touched) %>
+          <%= hidden_input(f, :password_touched) %>
+          <%= hidden_input(f, :form_submitted) %>
+          <%= hidden_input(f, :form_disabled) %>
+        </.form>
+
+        <div class="mt-8 pt-6 border-t border-pink-100">
+          <p class="text-sm text-gray-500 text-center">
+            Your data is stored securely on IPFS. You own your content.
+          </p>
         </div>
-        <div
-          id="signup-loader"
-          class="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-50 hidden"
-          phx:loading-states={~s{visible}}
-        >
-          <div class="bg-white p-4 rounded">Loading...</div>
-        </div>
+      </div>
+
+      <!-- Mobile header -->
+      <div class="md:hidden">
+        <a href="/" class="flex items-center space-x-3 mb-8">
+          <div class="w-10 h-10 bg-gradient-to-br from-pink-500 to-rose-500 rounded-xl"></div>
+          <span class="text-2xl font-bold bg-gradient-to-r from-pink-600 to-rose-600 bg-clip-text text-transparent">Mazaryn</span>
+        </a>
       </div>
     </div>
   </div>
+</div>
 
-  <div class="welcome-left-text mobile md:hidden">
-    <p class="absolute md:static left-[10%] font-[600] max-w-[310px] md:max-w-[420px] leading-[2.4rem] text-color-[#E5E5E5] md:full mx-auto md:mx-0">
-      Hey <span class="font-[400] text-[#FFF]">Noble</span>
-      👋 <br />
-      <span>
-        Join <span class="font-[400] text-[#FFF]">us</span>
-        to level <span class="font-[400] text-[#FFF]">up!</span>
-      </span>
-    </p>
+<!-- Loading overlay -->
+<div
+  id="signup-loader"
+  class="fixed inset-0 bg-gray-500/50 backdrop-blur-sm flex items-center justify-center z-50 hidden"
+  phx:loading-states={~s{visible}}
+>
+  <div class="bg-white p-6 rounded-xl shadow-lg border border-pink-100">
+    <div class="flex items-center space-x-3">
+      <div class="w-8 h-8 border-4 border-pink-200 rounded-full"></div>
+      <div class="w-8 h-8 border-4 border-pink-500 rounded-full animate-spin border-t-transparent"></div>
+      <span class="text-gray-700 font-medium">Creating your account...</span>
+    </div>
   </div>
 </div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Interactive background particles for signup page
+    const bg = document.getElementById('interactive-bg');
+    if (!bg) return;
+
+    const particles = [];
+    let mouseX = 0;
+    let mouseY = 0;
+
+    // Create particles
+    for (let i = 0; i < 10; i++) {
+      const particle = document.createElement('div');
+      particle.classList.add('particle');
+
+      const size = Math.random() * 150 + 80;
+      particle.style.width = `${size}px`;
+      particle.style.height = `${size}px`;
+
+      // Random starting position
+      particle.style.left = `${Math.random() * 100}%`;
+      particle.style.top = `${Math.random() * 100}%`;
+
+      // Random color variation
+      const hue = Math.random() * 20 + 330;
+      particle.style.background = `radial-gradient(circle, hsla(${hue}, 100%, 70%, 0.05) 0%, hsla(${hue}, 100%, 60%, 0.02) 70%, transparent 100%)`;
+
+      // Random animation
+      particle.style.animation = `float ${Math.random() * 10 + 15}s ease-in-out infinite`;
+      particle.style.animationDelay = `${Math.random() * 5}s`;
+
+      bg.appendChild(particle);
+      particles.push({
+        element: particle,
+        x: parseFloat(particle.style.left),
+        y: parseFloat(particle.style.top),
+        vx: 0,
+        vy: 0,
+        size: size
+      });
+    }
+
+    // Mouse movement tracking
+    document.addEventListener('mousemove', function(e) {
+      mouseX = (e.clientX / window.innerWidth) * 2 - 1;
+      mouseY = (e.clientY / window.innerHeight) * 2 - 1;
+    });
+
+    // Animate particles
+    function animateParticles() {
+      particles.forEach(particle => {
+        const dx = mouseX * 100 - particle.x;
+        const dy = mouseY * 100 - particle.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+
+        if (distance < 150) {
+          const force = (150 - distance) / 150;
+          particle.vx -= (dx / distance) * force * 0.2;
+          particle.vy -= (dy / distance) * force * 0.2;
+        }
+
+        particle.vx *= 0.96;
+        particle.vy *= 0.96;
+
+        particle.x += particle.vx;
+        particle.y += particle.vy;
+
+        particle.x = Math.max(-50, Math.min(150, particle.x));
+        particle.y = Math.max(-50, Math.min(150, particle.y));
+
+        particle.element.style.left = `${particle.x}%`;
+        particle.element.style.top = `${particle.y}%`;
+
+        const sizeChange = distance < 100 ? 1.15 : 1;
+        particle.element.style.transform = `scale(${sizeChange})`;
+      });
+
+      requestAnimationFrame(animateParticles);
+    }
+
+    animateParticles();
+  });
+</script>

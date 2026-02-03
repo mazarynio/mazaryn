@@ -1,274 +1,1011 @@
-<div class="flex-1 p-4 sm:p-8 flex flex-col h-96 bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 rounded-2xl shadow-lg">
-  <!-- Incoming Call Modal -->
-  <%= if @call_status == "ringing" && @caller_username do %>
-    <div class="fixed inset-0 bg-gray-600 bg-opacity-50 backdrop-blur-md flex items-center justify-center z-50">
-      <div class="bg-gradient-to-br from-gray-50 to-white dark:from-gray-700 dark:to-gray-800 p-8 rounded-xl shadow-xl animate-in duration-300 scale-95">
-        <h2 class="text-xl font-bold text-gray-800 dark:text-gray-100 mb-6 capitalize">Incoming Call from <%= @caller_username %></h2>
-        <div class="flex space-x-4">
+<style>
+  .chat-header {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 20px;
+    background: var(--clr-surface);
+    border-bottom: 1px solid var(--clr-border);
+    position: relative;
+    z-index: 2;
+  }
+
+  .chat-header-left {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .chat-avatar-wrap {
+    position: relative;
+    flex-shrink: 0;
+  }
+
+  .chat-avatar {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #fff;
+    box-shadow: 0 2px 8px rgba(236,72,153,0.2);
+  }
+
+  .chat-avatar-status {
+    position: absolute;
+    bottom: -1px;
+    right: -1px;
+    width: 13px;
+    height: 13px;
+    background: var(--clr-green);
+    border-radius: 50%;
+    border: 2.5px solid #fff;
+  }
+
+  .chat-header-info {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  .chat-header-name {
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--clr-text);
+    text-transform: capitalize;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    line-height: 1.4;
+  }
+
+  .chat-header-name .you-tag {
+    font-size: 0.62rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    background: linear-gradient(135deg, #fbbf24, #f59e0b);
+    color: #fff;
+    padding: 2px 7px;
+    border-radius: 20px;
+  }
+
+  .chat-header-country {
+    font-size: 0.72rem;
+    color: var(--clr-text-faint);
+    text-transform: capitalize;
+    margin-top: 1px;
+  }
+
+  .chat-header-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .call-status-pill {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(236,72,153,0.08);
+    border: 1px solid rgba(236,72,153,0.18);
+    padding: 5px 12px;
+    border-radius: 30px;
+  }
+
+  .call-status-pill .dot {
+    width: 6px;
+    height: 6px;
+    background: var(--clr-pink);
+    border-radius: 50%;
+    animation: pulse-dot 1.8s infinite;
+  }
+
+  .call-status-pill .label {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--clr-pink);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .video-call-btn-wrapper {
+    position: relative;
+  }
+
+  .video-call-btn {
+    position: relative;
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    border: none;
+    background: linear-gradient(135deg, #ec4899 0%, #e11d48 100%);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(236, 72, 153, 0.25);
+  }
+
+  .video-call-btn::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background: radial-gradient(circle, rgba(255,255,255,0.4) 0%, transparent 70%);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    transition: width 0.4s, height 0.4s;
+  }
+
+  .video-call-btn:hover::before {
+    width: 120px;
+    height: 120px;
+  }
+
+  .video-call-btn::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.2) 0%, transparent 50%);
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  .video-call-btn:hover::after {
+    opacity: 1;
+  }
+
+  .video-call-btn:hover {
+    transform: translateY(-2px) scale(1.05);
+    box-shadow: 0 8px 20px rgba(236, 72, 153, 0.4);
+  }
+
+  .video-call-btn:active {
+    transform: translateY(0) scale(1);
+    box-shadow: 0 4px 12px rgba(236, 72, 153, 0.3);
+  }
+
+  .video-call-btn svg {
+    position: relative;
+    z-index: 1;
+    transition: transform 0.3s;
+  }
+
+  .video-call-btn:hover svg {
+    transform: scale(1.1);
+  }
+
+  .video-call-btn.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: linear-gradient(135deg, #d1d5db 0%, #9ca3af 100%);
+    box-shadow: none;
+  }
+
+  .video-call-btn.disabled:hover {
+    transform: none;
+    box-shadow: none;
+  }
+
+  .video-call-btn.disabled::before,
+  .video-call-btn.disabled::after {
+    display: none;
+  }
+
+  .video-call-tooltip {
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1a1a2e;
+    color: #fff;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 0.72rem;
+    font-weight: 500;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s, transform 0.2s;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    z-index: 100;
+  }
+
+  .video-call-tooltip::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 5px solid transparent;
+    border-top-color: #1a1a2e;
+  }
+
+  .video-call-btn-wrapper:hover .video-call-tooltip {
+    opacity: 1;
+    transform: translateX(-50%) translateY(-2px);
+  }
+
+  .video-call-btn.disabled + .video-call-tooltip {
+    background: #6b7280;
+  }
+
+  .video-call-btn.disabled + .video-call-tooltip::after {
+    border-top-color: #6b7280;
+  }
+
+  .call-action-btn {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    color: #fff;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.25);
+  }
+
+  .call-action-btn::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, transparent 70%);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    transition: width 0.4s, height 0.4s;
+  }
+
+  .call-action-btn:hover::before {
+    width: 120px;
+    height: 120px;
+  }
+
+  .call-action-btn.end-btn {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  }
+
+  .call-action-btn.end-btn:hover {
+    transform: translateY(-2px) scale(1.05);
+    box-shadow: 0 8px 20px rgba(239, 68, 68, 0.4);
+  }
+
+  .call-action-btn.end-btn:active {
+    transform: translateY(0) scale(1);
+  }
+
+  .call-action-btn svg {
+    position: relative;
+    z-index: 1;
+    transition: transform 0.3s;
+  }
+
+  .call-action-btn:hover svg {
+    transform: rotate(90deg) scale(1.1);
+  }
+
+  @keyframes ripple {
+    0% {
+      transform: scale(1);
+      opacity: 0.6;
+    }
+    100% {
+      transform: scale(1.5);
+      opacity: 0;
+    }
+  }
+
+  .video-call-btn.calling::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 100%;
+    height: 100%;
+    border: 2px solid rgba(236, 72, 153, 0.6);
+    border-radius: 12px;
+    transform: translate(-50%, -50%);
+    animation: ripple 1.5s infinite;
+  }
+
+  .self-chat-notice {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px 20px;
+  }
+
+  .self-chat-notice-inner {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: #fffbeb;
+    border: 1px solid #fde68a;
+    border-radius: 14px;
+    padding: 14px 20px;
+    max-width: 340px;
+  }
+
+  .self-chat-notice-icon {
+    width: 40px;
+    height: 40px;
+    background: #fef3c7;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .self-chat-notice-text h4 {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--clr-text);
+    margin-bottom: 2px;
+  }
+
+  .self-chat-notice-text p {
+    font-size: 0.68rem;
+    color: var(--clr-text-muted);
+    line-height: 1.4;
+  }
+
+  .messages-scroll {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .messages-scroll::-webkit-scrollbar {
+    width: 4px;
+  }
+  .messages-scroll::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .messages-scroll::-webkit-scrollbar-thumb {
+    background: rgba(236,72,153,0.2);
+    border-radius: 4px;
+  }
+  .messages-scroll::-webkit-scrollbar-thumb:hover {
+    background: rgba(236,72,153,0.35);
+  }
+
+  .empty-state {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .empty-state-inner {
+    text-align: center;
+  }
+
+  .empty-state-icon {
+    width: 52px;
+    height: 52px;
+    background: linear-gradient(135deg, #fdf2f8, #fff0f6);
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 12px;
+    border: 1px solid rgba(236,72,153,0.12);
+  }
+
+  .empty-state-inner h4 {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--clr-text);
+    margin-bottom: 3px;
+  }
+
+  .empty-state-inner p {
+    font-size: 0.7rem;
+    color: var(--clr-text-faint);
+  }
+
+  .msg-row {
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+    animation: msg-in 0.22s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  }
+
+  .msg-row.received { flex-direction: row; }
+  .msg-row.sent { flex-direction: row-reverse; }
+
+  @keyframes msg-in {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .msg-avatar {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+    border: 1.5px solid #fff;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  }
+
+  .msg-avatar.sent-avatar {
+    border-color: rgba(236,72,153,0.2);
+  }
+
+  .msg-content {
+    display: flex;
+    flex-direction: column;
+    max-width: 320px;
+  }
+
+  .msg-row.sent .msg-content { align-items: flex-end; }
+
+  .msg-bubble-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .msg-row.sent .msg-bubble-row { flex-direction: row-reverse; }
+
+  .msg-bubble {
+    padding: 9px 14px;
+    border-radius: 18px;
+    font-size: 0.82rem;
+    line-height: 1.55;
+    text-transform: capitalize;
+    word-break: break-word;
+    max-width: 100%;
+  }
+
+  .msg-bubble.received {
+    background: #f3f4f6;
+    color: var(--clr-text);
+    border-bottom-left-radius: 4px;
+  }
+
+  .msg-bubble.sent {
+    background: linear-gradient(135deg, #ec4899, #e11d48);
+    color: #fff;
+    border-bottom-right-radius: 4px;
+    box-shadow: 0 2px 8px rgba(236,72,153,0.3);
+  }
+
+  .msg-sticker {
+    max-width: 100px;
+    height: auto;
+    border-radius: 12px;
+  }
+
+  .msg-menu-btn {
+    width: 24px;
+    height: 24px;
+    border-radius: 8px;
+    border: none;
+    background: transparent;
+    color: var(--clr-text-faint);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+    opacity: 0;
+  }
+
+  .msg-row:hover .msg-menu-btn {
+    opacity: 1;
+  }
+
+  .msg-menu-btn:hover {
+    background: #f3f4f6;
+    color: var(--clr-pink);
+  }
+
+  .msg-menu-dropdown {
+    position: absolute;
+    right: 0;
+    width: 150px;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 8px 28px rgba(0,0,0,0.12);
+    border: 1px solid var(--clr-border);
+    overflow: hidden;
+    z-index: 20;
+  }
+
+  .msg-menu-dropdown.top { top: 100%; margin-top: 4px; }
+  .msg-menu-dropdown.bottom { bottom: 100%; margin-bottom: 4px; }
+
+  .msg-menu-item {
+    width: 100%;
+    text-align: left;
+    padding: 9px 13px;
+    border: none;
+    background: transparent;
+    font-size: 0.75rem;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    transition: background 0.12s;
+  }
+
+  .msg-menu-item:hover { background: #f9fafb; }
+  .msg-menu-item.delete { color: var(--clr-red); }
+  .msg-menu-item.delete:hover { background: #fef2f2; }
+  .msg-menu-item .menu-icon { width: 15px; height: 15px; flex-shrink: 0; }
+  .msg-menu-item .menu-icon.pink { color: var(--clr-pink); }
+
+  .msg-menu-divider {
+    height: 1px;
+    background: var(--clr-border);
+    margin: 2px 0;
+  }
+
+  .msg-menu-pos {
+    position: relative;
+    flex-shrink: 0;
+  }
+
+  .incoming-call-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(15,15,26,0.75);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 50;
+    animation: fadeIn 0.3s ease-out;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  .incoming-call-card {
+    background: #fff;
+    border-radius: 24px;
+    box-shadow: 0 32px 64px rgba(0,0,0,0.3);
+    width: 100%;
+    max-width: 320px;
+    margin: 0 16px;
+    overflow: hidden;
+    border: 1px solid rgba(236,72,153,0.1);
+    animation: slideUp 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(40px) scale(0.9);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  .incoming-call-top {
+    padding: 32px 24px 24px;
+    text-align: center;
+    background: linear-gradient(135deg, #fdf2f8 0%, #fff 100%);
+  }
+
+  .incoming-call-icon-wrap {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+  }
+
+  .incoming-call-ping {
+    position: absolute;
+    width: 80px;
+    height: 80px;
+    background: rgba(236,72,153,0.2);
+    border-radius: 50%;
+    animation: ring-ping 2s infinite;
+  }
+
+  @keyframes ring-ping {
+    0% {
+      transform: scale(1);
+      opacity: 0.8;
+    }
+    100% {
+      transform: scale(1.4);
+      opacity: 0;
+    }
+  }
+
+  .incoming-call-circle {
+    position: relative;
+    width: 72px;
+    height: 72px;
+    background: linear-gradient(135deg, var(--clr-pink), var(--clr-rose));
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 8px 24px rgba(236,72,153,0.4);
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% {
+      transform: scale(1);
+    }
+    50% {
+      transform: scale(1.05);
+    }
+  }
+
+  .incoming-call-top h3 {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--clr-text);
+    margin-bottom: 6px;
+  }
+
+  .incoming-call-top p {
+    font-size: 0.8rem;
+    color: var(--clr-text-muted);
+    text-transform: capitalize;
+  }
+
+  .incoming-call-actions {
+    display: flex;
+    gap: 12px;
+    padding: 0 24px 28px;
+    background: #fff;
+  }
+
+  .incoming-call-btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 14px 0;
+    border-radius: 14px;
+    border: none;
+    color: #fff;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .incoming-call-btn::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background: rgba(255,255,255,0.3);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    transition: width 0.4s, height 0.4s;
+  }
+
+  .incoming-call-btn:hover::before {
+    width: 200px;
+    height: 200px;
+  }
+
+  .incoming-call-btn svg {
+    position: relative;
+    z-index: 1;
+  }
+
+  .incoming-call-btn.accept {
+    background: linear-gradient(135deg, var(--clr-green), #059669);
+    box-shadow: 0 4px 16px rgba(16, 185, 129, 0.3);
+  }
+
+  .incoming-call-btn.accept:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+  }
+
+  .incoming-call-btn.accept:active {
+    transform: translateY(0);
+  }
+
+  .incoming-call-btn.decline {
+    background: linear-gradient(135deg, var(--clr-red), #dc2626);
+    box-shadow: 0 4px 16px rgba(239, 68, 68, 0.3);
+  }
+
+  .incoming-call-btn.decline:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4);
+  }
+
+  .incoming-call-btn.decline:active {
+    transform: translateY(0);
+  }
+</style>
+
+<script>
+  console.log("💬💬💬 [CHAT COMPONENT] ========================================");
+  console.log("💬 [CHAT COMPONENT] Chat component loaded");
+  console.log("💬 [CHAT COMPONENT] Call status:", "<%= @call_status %>");
+  console.log("💬 [CHAT COMPONENT] Caller username:", "<%= @caller_username %>");
+  console.log("💬 [CHAT COMPONENT] Actor username:", "<%= @actor.username %>");
+  console.log("💬 [CHAT COMPONENT] Recipient ID:", "<%= @recipient.id %>");
+  console.log("💬 [CHAT COMPONENT] Actor ID:", "<%= @actor.id %>");
+  console.log("💬 [CHAT COMPONENT] Is self-chat?:", <%= @recipient.id == @actor.id %>);
+  console.log("💬💬💬 [CHAT COMPONENT] ========================================");
+</script>
+
+<div style="flex:1; display:flex; flex-direction:column; height:100%; background:#fff; position:relative;">
+
+  <%= if @call_status == "ringing" && @caller_username && @caller_username != @actor.username do %>
+    <div class="incoming-call-backdrop">
+      <div class="incoming-call-card">
+        <div class="incoming-call-top">
+          <div class="incoming-call-icon-wrap">
+            <div class="incoming-call-ping"></div>
+            <div class="incoming-call-circle">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:#fff;">
+                <path d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
+              </svg>
+            </div>
+          </div>
+          <h3>Incoming Call</h3>
+          <p><%= @caller_username %> is calling you</p>
+        </div>
+        <div class="incoming-call-actions">
           <button
             phx-click="accept-video-call"
             phx-value-call_id={@call_id}
-            class="relative px-6 py-3 bg-gradient-to-r from-green-400 to-emerald-600 hover:from-green-500 hover:to-emerald-700 text-white font-semibold rounded-full shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300"
+            class="incoming-call-btn accept"
           >
-            <div class="absolute inset-0 bg-gradient-to-r from-green-300/20 to-emerald-500/20 transform -skew-x-12 group-hover:skew-x-12 transition-transform duration-500"></div>
-            <span class="relative z-10">Accept</span>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M5 13l4 4L19 7"/>
+            </svg>
+            Accept
           </button>
           <button
             phx-click="end-video-call"
             phx-value-call_id={@call_id}
-            class="relative px-6 py-3 bg-gradient-to-r from-red-400 to-red-600 hover:from-red-500 hover:to-red-700 text-white font-semibold rounded-full shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300"
+            class="incoming-call-btn decline"
           >
-            <div class="absolute inset-0 bg-gradient-to-r from-red-300/20 to-red-500/20 transform -skew-x-12 group-hover:skew-x-12 transition-transform duration-500"></div>
-            <span class="relative z-10">Decline</span>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+              <path d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+            Decline
           </button>
         </div>
       </div>
     </div>
   <% end %>
 
-  <!-- Header Section -->
-  <div class="flex items-center justify-between py-4 border-b border-gray-200 dark:border-gray-700">
-    <div class="flex items-center space-x-4 group">
-      <div class="relative">
+  <div class="chat-header">
+    <div class="chat-header-left">
+      <div class="chat-avatar-wrap">
         <img
-          src={handle_avatar(@recipient) || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='url(%23grad)'%3E%3Cpath d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/%3E%3Cdefs%3E%3ClinearGradient id='grad' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%2360a5fa;stop-opacity:1'/%3E%3Cstop offset='100%25' style='stop-color:%23226ce3;stop-opacity:1'/%3E%3C/linearGradient%3E%3C/defs%3E%3C/svg%3E"}
+          src={handle_avatar(@recipient) || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23ec4899'%3E%3Cpath d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/%3E%3C/svg%3E"}
           alt="Recipient avatar"
-          class="w-12 h-12 sm:w-14 sm:h-14 rounded-full object-cover ring-2 ring-gradient-to-r from-blue-400 to-purple-500 dark:from-blue-500 dark:to-purple-600 shadow-[0_0_6px_rgba(59,130,246,0.5)] dark:shadow-[0_0_6px_rgba(59,130,246,0.3)] group-hover:ring-blue-500 dark:group-hover:ring-blue-600 group-hover:rotate-3 transition-all duration-300"
+          class="chat-avatar"
         />
+        <div class="chat-avatar-status"></div>
       </div>
-      <div class="flex flex-col leading-tight">
-        <div class="text-xl font-bold mt-1 flex items-center">
-          <span class="bg-gradient-to-r from-blue-500 to-indigo-600 dark:from-blue-400 dark:to-indigo-500 bg-clip-text text-transparent capitalize group-hover:scale-105 transition-all duration-300">
-            <%= @recipient.username %>
-          </span>
+      <div class="chat-header-info">
+        <div class="chat-header-name">
+          <%= @recipient.username %>
           <%= if @recipient.id == @actor.id do %>
-            <span class="text-sm bg-gradient-to-r from-yellow-300 to-yellow-500 text-white px-3 py-1 rounded-full ml-2 shadow-sm">
-              You
-            </span>
+            <span class="you-tag">You</span>
           <% end %>
         </div>
-        <span class="text-base text-gray-500 dark:text-gray-400 capitalize"><%= @recipient.country %></span>
+        <span class="chat-header-country"><%= @recipient.country %></span>
       </div>
     </div>
-    <div class="flex items-center space-x-3">
+
+    <div class="chat-header-right">
       <%= if @call_status do %>
-        <span class="text-sm font-medium text-gray-500 dark:text-gray-400">
-          <%= cond do %>
-            <% @call_status == :ringing -> %>
-              Ringing...
-            <% @call_status == :connected -> %>
-              Call Connected
-            <% true -> %>
-              
-          <% end %>
-        </span>
-      <% end %>
-      <%= if @call_status do %>
+        <div class="call-status-pill">
+          <div class="dot"></div>
+          <span class="label">
+            <%= cond do %>
+              <% @call_status == "ringing" -> %>Ringing
+              <% @call_status == "connected" -> %>Connected
+              <% true -> %><%= @call_status %>
+            <% end %>
+          </span>
+        </div>
         <button
           phx-click="end-video-call"
           phx-value-call_id={@call_id}
-          class="relative inline-flex items-center justify-center h-10 w-10 bg-gradient-to-r from-red-400 to-red-600 hover:from-red-500 hover:to-red-700 text-white rounded-full shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300"
+          class="call-action-btn end-btn"
+          type="button"
         >
-          <div class="absolute inset-0 bg-gradient-to-r from-red-300/20 to-red-500/20 transform -skew-x-12 group-hover:skew-x-12 transition-transform duration-500"></div>
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            class="h-6 w-6 relative z-10"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M6 18L18 6M6 6l12 12"
-            />
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+            <path d="M6 18L18 6M6 6l12 12"/>
           </svg>
         </button>
       <% else %>
-        <button
-          phx-click="start-video-call"
-          class="relative inline-flex items-center justify-center h-10 w-10 bg-gradient-to-r from-blue-300 to-blue-700 hover:from-blue-400 hover:to-blue-800 text-white rounded-full shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300"
-          disabled={@recipient.id == @actor.id}
-        >
-          <div class="absolute inset-0 bg-gradient-to-r from-blue-200/20 to-blue-600/20 transform -skew-x-12 group-hover:skew-x-12 transition-transform duration-500"></div>
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            class="h-6 w-6 relative z-10"
+        <div class="video-call-btn-wrapper">
+          <button
+            phx-click="start-video-call"
+            class={"video-call-btn #{if @recipient.id == @actor.id, do: "disabled"}"}
+            disabled={@recipient.id == @actor.id}
+            type="button"
+            id="chat-header-video-btn"
           >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
-            />
-          </svg>
-        </button>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M15.75 10.5l4.72-4.72a.75.75 0 011.28.53v11.38a.75.75 0 01-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 002.25-2.25v-9a2.25 2.25 0 00-2.25-2.25h-9A2.25 2.25 0 002.25 7.5v9a2.25 2.25 0 002.25 2.25z"/>
+            </svg>
+          </button>
+          <div class="video-call-tooltip">
+            <%= if @recipient.id == @actor.id do %>
+              Cannot call yourself
+            <% else %>
+              Start video call
+            <% end %>
+          </div>
+        </div>
+        <script>
+          <%= if @recipient.id == @actor.id do %>
+            console.log("⚠️ [CHAT HEADER] Video button DISABLED (self-chat)");
+          <% else %>
+            console.log("✅ [CHAT HEADER] Video button ENABLED");
+            console.log("✅ [CHAT HEADER] Can call: <%= @recipient.username %>");
+          <% end %>
+        </script>
       <% end %>
     </div>
   </div>
 
-  <!-- Self-Messaging Warning -->
   <%= if @recipient.id == @actor.id do %>
-    <div class="flex items-center justify-center p-6 bg-gradient-to-br from-yellow-50 to-yellow-100 dark:from-yellow-800 dark:to-yellow-700 rounded-xl shadow-md animate-slide-in">
-      <div class="flex items-center space-x-4">
-        <div class="flex-shrink-0">
-          <svg class="h-10 w-10 text-yellow-400 dark:text-yellow-300 animate-pulse" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-3.582 8-8 8a8.959 8.959 0 01-4.906-1.478l-3.094.492.492-3.094A8.959 8.959 0 013 12C3 7.582 6.582 4 12 4s8 3.582 8 8z" />
+    <div class="self-chat-notice">
+      <div class="self-chat-notice-inner">
+        <div class="self-chat-notice-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-3.582 8-8 8a8.959 8.959 0 01-4.906-1.478l-3.094.492.492-3.094A8.959 8.959 0 013 12C3 7.582 6.582 4 12 4s8 3.582 8 8z"/>
           </svg>
         </div>
-        <div class="text-center animate-bounce-slow">
-          <p class="text-xl font-semibold text-yellow-700 dark:text-yellow-200">Cannot Message Yourself</p>
-          <p class="text-sm text-yellow-600 dark:text-yellow-300">Select a different contact to start a conversation.</p>
+        <div class="self-chat-notice-text">
+          <h4>Cannot Message Yourself</h4>
+          <p>Select a different contact to start a conversation</p>
         </div>
       </div>
     </div>
   <% end %>
 
-  <!-- Video Call Section -->
-  <%= if @call_status do %>
-    <div class="flex flex-col sm:flex-row space-x-0 sm:space-x-4 p-4 bg-gray-100 dark:bg-gray-700 rounded-xl border border-gradient-to-r from-gray-200 to-gray-300 dark:from-gray-600 dark:to-gray-700">
-      <div class="w-full sm:w-1/2 mb-4 sm:mb-0">
-        <video id="local-video" autoplay playsinline muted class="w-full rounded-xl shadow-md"></video>
-        <p class="text-sm font-medium text-gray-500 dark:text-gray-400 mt-2 text-center">You</p>
-      </div>
-      <div class="w-full sm:w-1/2">
-        <video id="remote-video" autoplay playsinline class="w-full rounded-xl shadow-md"></video>
-        <p class="text-sm font-medium text-gray-500 dark:text-gray-400 mt-2 text-center capitalize"><%= @recipient.username %></p>
-      </div>
-    </div>
-  <% end %>
-
-  <div
-    class="flex flex-col space-y-4 p-3 overflow-y-auto scrollbar-thumb-blue-500 scrollbar-thumb-rounded scrollbar-track-gray-100 dark:scrollbar-track-gray-700 scrollbar-w-2"
-  >
+  <div class="messages-scroll">
     <%= if @recipient.id == @actor.id do %>
-      <div class="flex items-center justify-center p-8 text-gray-500 dark:text-gray-400">
-        <div class="text-center">
-          <svg class="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-3.582 8-8 8a8.959 8.959 0 01-4.906-1.478l-3.094.492.492-3.094A8.959 8.959 0 013 12C3 7.582 6.582 4 12 4s8 3.582 8 8z" />
-          </svg>
-          <p class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">No Messages to Display</p>
-          <p class="text-gray-500 dark:text-gray-400">Select a contact to start a conversation</p>
+      <div class="empty-state">
+        <div class="empty-state-inner">
+          <div class="empty-state-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--clr-pink)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-3.582 8-8 8a8.959 8.959 0 01-4.906-1.478l-3.094.492.492-3.094A8.959 8.959 0 013 12C3 7.582 6.582 4 12 4s8 3.582 8 8z"/>
+            </svg>
+          </div>
+          <h4>No Messages Yet</h4>
+          <p>Select a contact to start chatting</p>
         </div>
       </div>
     <% else %>
       <%= for {message, index} <- Enum.with_index(@messages) do %>
-        <% x_data = %{"openMenu" => false, "isTopMessage" => index < 3} %>
-        <div x-data={Jason.encode!(x_data)} class="relative group">
-          <div :if={message.user_id === "#{@recipient.id}"} class="chat-message">
-            <div class="flex items-end">
-              <div class="flex flex-col space-y-2 text-sm max-w-xs mx-2 order-2 items-start">
-                <div class="flex items-center space-x-2">
-                  <%# Parse message body for stickers %>
-                  <%= case Regex.run(~r/!\[sticker\]\((data:image\/svg\+xml;base64,[^)]+)\)/, message.body) do %>
-                    <% [_, sticker_url] -> %>
-                      <img src={sticker_url} alt="Sticker" class="max-w-[100px] h-auto rounded-lg" />
-                    <% nil -> %>
-                      <span class="px-4 py-2 rounded-lg bg-gradient-to-r from-gray-200 to-gray-300 dark:from-gray-600 dark:to-gray-700 text-gray-800 dark:text-gray-200 capitalize">
-                        <%= message.body %>
-                      </span>
-                  <% end %>
-                </div>
+        <% is_top = index < 3 %>
+        <div x-data="{openMenu: false}">
+          <div :if={message.user_id === "#{@recipient.id}"} class="msg-row received">
+            <img
+              src={handle_avatar(@recipient) || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23ec4899'%3E%3Cpath d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/%3E%3C/svg%3E"}
+              alt="Recipient avatar"
+              class="msg-avatar"
+            />
+            <div class="msg-content">
+              <div class="msg-bubble-row">
+                <%= case Regex.run(~r/!\[sticker\]\((data:image\/svg\+xml;base64,[^)]+)\)/, message.body) do %>
+                  <% [_, sticker_url] -> %>
+                    <img src={sticker_url} alt="Sticker" class="msg-sticker" />
+                  <% nil -> %>
+                    <div class="msg-bubble received">
+                      <%= message.body %>
+                    </div>
+                <% end %>
               </div>
-              <img
-                src={handle_avatar(@recipient) || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='url(%23grad)'%3E%3Cpath d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/%3E%3Cdefs%3E%3ClinearGradient id='grad' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%2360a5fa;stop-opacity:1'/%3E%3Cstop offset='100%25' style='stop-color:%23226ce3;stop-opacity:1'/%3E%3C/linearGradient%3E%3C/defs%3E%3C/svg%3E"}
-                alt="Recipient avatar"
-                class="w-6 h-6 rounded-full order-1 ring-2 ring-gradient-to-r from-blue-400 to-purple-500 dark:from-blue-500 dark:to-purple-600 shadow-[0_0_4px_rgba(59,130,246,0.5)] dark:shadow-[0_0_4px_rgba(59,130,246,0.3)] group-hover:ring-blue-500 dark:group-hover:ring-blue-600 transition-all duration-300"
-              />
             </div>
           </div>
 
-          <div :if={message.user_id == "#{@actor.id}"} class="chat-message">
-            <div class="flex items-end justify-end">
-              <div class="flex flex-col space-y-2 text-sm max-w-xs mx-2 order-1 items-end">
-                <div class="flex items-center space-x-2">
-                  <%# Parse message body for stickers %>
-                  <%= case Regex.run(~r/!\[sticker\]\((data:image\/svg\+xml;base64,[^)]+)\)/, message.body) do %>
-                    <% [_, sticker_url] -> %>
-                      <img src={sticker_url} alt="Sticker" class="max-w-[100px] h-auto rounded-lg" />
-                    <% nil -> %>
-                      <span class="px-4 py-2 rounded-lg bg-gradient-to-r from-green-300 to-green-500 dark:from-green-400 dark:to-green-600 text-white capitalize">
-                        <%= message.body %>
-                      </span>
-                  <% end %>
-                  <div class="relative">
-                    <button
-                      @click="openMenu = !openMenu"
-                      class="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 focus:outline-none transition-colors duration-200"
-                    >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        class="h-5 w-5"
-                        viewBox="0 0 20 20"
-                        fill="currentColor"
-                      >
-                        <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
-                      </svg>
-                    </button>
-                    <div
-                      x-show="openMenu"
-                      @click.outside="openMenu = false"
-                      x-transition:enter="transition ease-out duration-300"
-                      x-transition:enter-start="opacity-0 scale-90"
-                      x-transition:enter-end="opacity-100 scale-100"
-                      x-transition:leave="transition ease-in duration-200"
-                      x-transition:leave-start="opacity-100 scale-100"
-                      x-transition:leave-end="opacity-0 scale-90"
-                      x-bind:class="isTopMessage ? 'top-full mt-2' : 'bottom-full mb-2'"
-                      class="absolute z-20 right-0 w-48 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gradient-to-r from-blue-400 to-purple-500 dark:from-blue-500 dark:to-purple-600"
-                    >
-                      <button
-                        phx-click="edit-message"
-                        phx-value-message-id={message.id}
-                        class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-gray-100 transition-colors duration-200 flex items-center space-x-2"
-                      >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          class="h-4 w-4"
-                          viewBox="0 0 20 20"
-                          fill="currentColor"
-                        >
-                          <path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" />
-                          <path
-                            fill-rule="evenodd"
-                            d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z"
-                            clip-rule="evenodd"
-                          />
-                        </svg>
-                        <span>Edit Message</span>
-                      </button>
-                      <button
-                        phx-click="delete-message"
-                        phx-value-message-id={message.id}
-                        class="w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/50 hover:text-red-800 dark:hover:text-red-300 transition-colors duration-200 flex items-center space-x-2"
-                      >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          class="h-4 w-4"
-                          viewBox="0 0 20 20"
-                          fill="currentColor"
-                        >
-                          <path
-                            fill-rule="evenodd"
-                            d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
-                            clip-rule="evenodd"
-                          />
-                        </svg>
-                        <span>Delete Message</span>
-                      </button>
+          <div :if={message.user_id == "#{@actor.id}"} class="msg-row sent">
+            <img
+              src={handle_avatar(@actor) || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23ec4899'%3E%3Cpath d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/%3E%3C/svg%3E"}
+              alt="Actor avatar"
+              class="msg-avatar sent-avatar"
+            />
+            <div class="msg-content">
+              <div class="msg-bubble-row">
+                <%= case Regex.run(~r/!\[sticker\]\((data:image\/svg\+xml;base64,[^)]+)\)/, message.body) do %>
+                  <% [_, sticker_url] -> %>
+                    <img src={sticker_url} alt="Sticker" class="msg-sticker" />
+                  <% nil -> %>
+                    <div class="msg-bubble sent">
+                      <%= message.body %>
                     </div>
+                <% end %>
+                <div class="msg-menu-pos">
+                  <button
+                    @click="openMenu = !openMenu"
+                    class="msg-menu-btn"
+                  >
+                    <svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor">
+                      <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"/>
+                    </svg>
+                  </button>
+                  <div
+                    x-show="openMenu"
+                    @click.outside="openMenu = false"
+                    x-transition:enter="transition ease-out duration-150"
+                    x-transition:enter-start="opacity-0 scale-95"
+                    x-transition:enter-end="opacity-100 scale-100"
+                    x-transition:leave="transition ease-in duration-100"
+                    x-transition:leave-start="opacity-100 scale-100"
+                    x-transition:leave-end="opacity-0 scale-95"
+                    class={"msg-menu-dropdown #{if is_top, do: "top", else: "bottom"}"}
+                    style="display: none;"
+                  >
+                    <button
+                      phx-click="edit-message"
+                      phx-value-message-id={message.id}
+                      class="msg-menu-item"
+                    >
+                      <svg class="menu-icon pink" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z"/>
+                        <path fill-rule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clip-rule="evenodd"/>
+                      </svg>
+                      Edit
+                    </button>
+                    <div class="msg-menu-divider"></div>
+                    <button
+                      phx-click="delete-message"
+                      phx-value-message-id={message.id}
+                      class="msg-menu-item delete"
+                    >
+                      <svg class="menu-icon" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                      </svg>
+                      Delete
+                    </button>
                   </div>
                 </div>
               </div>
-              <img
-                src={handle_avatar(@actor) || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='url(%23grad)'%3E%3Cpath d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/%3E%3Cdefs%3E%3ClinearGradient id='grad' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%2360a5fa;stop-opacity:1'/%3E%3Cstop offset='100%25' style='stop-color:%23226ce3;stop-opacity:1'/%3E%3C/linearGradient%3E%3C/defs%3E%3C/svg%3E"}
-                alt="Actor avatar"
-                class="w-6 h-6 rounded-full order-2 ring-2 ring-gradient-to-r from-blue-400 to-purple-500 dark:from-blue-500 dark:to-purple-600 shadow-[0_0_4px_rgba(59,130,246,0.5)] dark:shadow-[0_0_4px_rgba(59,130,246,0.3)] group-hover:ring-blue-500 dark:group-hover:ring-blue-600 transition-all duration-300"
-              />
             </div>
           </div>
         </div>
@@ -276,72 +1013,3 @@
     <% end %>
   </div>
 </div>
-
-<style>
-  .scrollbar-w-2::-webkit-scrollbar {
-    width: 0.25rem;
-    height: 0.25rem;
-  }
-
-  .scrollbar-track-gray-100::-webkit-scrollbar-track {
-    background-color: #f7fafc;
-    background-color: rgba(247, 250, 252, 1);
-  }
-
-  .dark .scrollbar-track-gray-700::-webkit-scrollbar-track {
-    background-color: #374151;
-    background-color: rgba(55, 65, 81, 1);
-  }
-
-  .scrollbar-thumb-blue-500::-webkit-scrollbar-thumb {
-    background: linear-gradient(to bottom, #3b82f6, #1e40af);
-    border-radius: 0.25rem;
-  }
-
-  .scrollbar-thumb-rounded::-webkit-scrollbar-thumb {
-    border-radius: 0.25rem;
-  }
-
-  .animate-in {
-    animation: slideIn 0.3s ease-out;
-  }
-
-  @keyframes slideIn {
-    from {
-      transform: scale(0.95);
-      opacity: 0;
-    }
-    to {
-      transform: scale(1);
-      opacity: 1;
-    }
-  }
-
-  .animate-slide-in {
-    animation: slideInFromTop 0.5s ease-out;
-  }
-
-  @keyframes slideInFromTop {
-    from {
-      transform: translateY(-20px);
-      opacity: 0;
-    }
-    to {
-      transform: translateY(0);
-      opacity: 1;
-    }
-  }
-
-  .animate-bounce-slow {
-    animation: bounceSlow 2s ease-in-out infinite;
-  }
-
-  @keyframes bounceSlow {
-    0%, 100% {
-      transform: translateY(0);
-    }
-    50% {
-      transform: translateY(-5px);
-    }
-  }
-</style>

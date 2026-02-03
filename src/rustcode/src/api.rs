@@ -1,87 +1,98 @@
 use actix_web::{post, web, HttpResponse};
-   use log::info;
-   use serde::Deserialize;
-   use std::sync::Arc;
-   use tokio::sync::Mutex;
-   use webrtc::peer_connection::RTCPeerConnection;
-   use crate::webrtc::start_webrtc_session;
+use log::info;
+use serde::{Deserialize, Serialize};
 
-   #[derive(Deserialize)]
-   pub struct CallRequest {
-       pub user_id: String,
-       pub target_id: String,
-       pub call_id: String,
-   }
+#[derive(Deserialize, Debug)]
+pub struct CallRequest {
+    pub user_id: String,
+    pub target_id: String,
+    pub call_id: String,
+}
 
-   #[derive(Deserialize)]
-   pub struct EndCallRequest {
-       pub call_id: String,
-   }
+#[derive(Deserialize, Debug)]
+pub struct EndCallRequest {
+    pub call_id: String,
+}
 
-   #[post("/call/initiate")]
-   pub async fn initiate_call(
-       req: web::Json<CallRequest>,
-       peer_connection: web::Data<Arc<Mutex<Option<Arc<RTCPeerConnection>>>>>,
-   ) -> HttpResponse {
-       info!(
-           "Initiating video call: user_id={}, target_id={}, call_id={}",
-           req.user_id, req.target_id, req.call_id
-       );
+#[derive(Serialize)]
+struct CallResponse {
+    status: String,
+    call_id: String,
+    call_link: String,
+}
 
-       match start_webrtc_session(&req.user_id, &req.target_id, &req.call_id).await {
-           Ok(peer_conn) => {
-               let mut pc = peer_connection.lock().await;
-               *pc = Some(Arc::new(peer_conn));
-               HttpResponse::Ok().json(serde_json::json!({
-                   "status": "initiated",
-                   "call_id": req.call_id,
-                   "call_link": format!("ws://localhost:2020/ws/signaling/{}", req.call_id)
-               }))
-           }
-           Err(e) => {
-               log::error!("Failed to start WebRTC session: {}", e);
-               HttpResponse::InternalServerError().json(serde_json::json!({
-                   "error": format!("Failed to initiate call: {}", e)
-               }))
-           }
-       }
-   }
+#[derive(Serialize)]
+struct SimpleResponse {
+    status: String,
+    call_id: String,
+}
 
-   #[post("/call/accept")]
-   pub async fn accept_call(
-       req: web::Json<EndCallRequest>,
-       peer_connection: web::Data<Arc<Mutex<Option<Arc<RTCPeerConnection>>>>>,
-   ) -> HttpResponse {
-       info!("Accepting video call: call_id={}", req.call_id);
+#[post("/call/initiate")]
+pub async fn initiate_call(req: web::Json<CallRequest>) -> HttpResponse {
+    info!("========================================");
+    info!("[INITIATE CALL] Request received");
+    info!("[INITIATE CALL] user_id: {}", req.user_id);
+    info!("[INITIATE CALL] target_id: {}", req.target_id);
+    info!("[INITIATE CALL] call_id: {}", req.call_id);
+    info!("========================================");
 
-       let pc = peer_connection.lock().await;
-       if pc.is_none() {
-           log::error!("No peer connection found for call_id={}", req.call_id);
-           return HttpResponse::BadRequest().json(serde_json::json!({
-               "error": "No active call found"
-           }));
-       }
+    let call_link = format!("ws://localhost:2020/ws/signaling/{}", req.call_id);
 
-       HttpResponse::Ok().json(serde_json::json!({
-           "status": "connected",
-           "call_id": req.call_id
-       }))
-   }
+    info!("[INITIATE CALL] Generated call link: {}", call_link);
 
-   #[post("/call/end")]
-   pub async fn end_call(
-       req: web::Json<EndCallRequest>,
-       peer_connection: web::Data<Arc<Mutex<Option<Arc<RTCPeerConnection>>>>>,
-   ) -> HttpResponse {
-       info!("Ending video call: call_id={}", req.call_id);
+    let response = CallResponse {
+        status: "initiated".to_string(),
+        call_id: req.call_id.clone(),
+        call_link,
+    };
 
-       let mut pc = peer_connection.lock().await;
-       if let Some(peer_conn) = pc.take() {
-           let _ = peer_conn.close().await;
-       }
+    info!(
+        "[INITIATE CALL] Sending response: {:?}",
+        serde_json::to_string(&response)
+    );
+    info!("========================================");
 
-       HttpResponse::Ok().json(serde_json::json!({
-           "status": "ended",
-           "call_id": req.call_id
-       }))
-   }
+    HttpResponse::Ok().json(response)
+}
+
+#[post("/call/accept")]
+pub async fn accept_call(req: web::Json<EndCallRequest>) -> HttpResponse {
+    info!("========================================");
+    info!("[ACCEPT CALL] Request received");
+    info!("[ACCEPT CALL] call_id: {}", req.call_id);
+    info!("========================================");
+
+    let response = SimpleResponse {
+        status: "connected".to_string(),
+        call_id: req.call_id.clone(),
+    };
+
+    info!(
+        "[ACCEPT CALL] Sending response: {:?}",
+        serde_json::to_string(&response)
+    );
+    info!("========================================");
+
+    HttpResponse::Ok().json(response)
+}
+
+#[post("/call/end")]
+pub async fn end_call(req: web::Json<EndCallRequest>) -> HttpResponse {
+    info!("========================================");
+    info!("[END CALL] Request received");
+    info!("[END CALL] call_id: {}", req.call_id);
+    info!("========================================");
+
+    let response = SimpleResponse {
+        status: "ended".to_string(),
+        call_id: req.call_id.clone(),
+    };
+
+    info!(
+        "[END CALL] Sending response: {:?}",
+        serde_json::to_string(&response)
+    );
+    info!("========================================");
+
+    HttpResponse::Ok().json(response)
+}
