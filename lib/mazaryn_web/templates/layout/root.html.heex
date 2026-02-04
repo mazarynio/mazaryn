@@ -71,8 +71,8 @@
             </a>
 
             <div class="hidden md:flex items-center space-x-8">
-              <a href="/login" class="text-gray-700 hover:text-pink-600 transition-colors duration-200 font-medium">Login</a>
-              <a href="/signup" class="px-6 py-2 bg-gradient-to-r from-pink-500 to-rose-500 text-white rounded-lg hover:shadow-lg hover:scale-105 transition-all duration-300 font-medium shadow-md">Sign Up</a>
+              <a href="/login" class="text-gray-700 hover:text-pink-600 transition-colors duration-200 font-medium"><%= gettext("Login") %></a>
+              <a href="/signup" class="px-6 py-2 bg-gradient-to-r from-pink-500 to-rose-500 text-white rounded-lg hover:shadow-lg hover:scale-105 transition-all duration-300 font-medium shadow-md"><%= gettext("Sign Up") %></a>
             </div>
 
             <button @click="mobileMenuOpen = !mobileMenuOpen" class="md:hidden p-2 rounded-lg hover:bg-pink-50 transition-colors duration-200">
@@ -84,8 +84,8 @@
 
           <div x-show="mobileMenuOpen" class="md:hidden bg-white border-t border-pink-100 shadow-lg">
             <div class="px-4 py-3 space-y-2">
-              <a href="/login" class="block py-3 text-gray-700 hover:text-pink-600 border-b border-pink-50">Login</a>
-              <a href="/signup" class="block py-3 text-pink-600 font-medium">Sign Up</a>
+              <a href="/login" class="block py-3 text-gray-700 hover:text-pink-600 border-b border-pink-50"><%= gettext("Login") %></a>
+              <a href="/signup" class="block py-3 text-pink-600 font-medium"><%= gettext("Sign Up") %></a>
             </div>
           </div>
         </nav>
@@ -101,32 +101,32 @@
             <ul class="grid grid-cols-3 md:flex justify-between items-center space-x-0 md:space-x-8 mb-6 md:mb-0">
               <li class="my-2 md:my-0">
                 <a class="block text-center text-gray-700 hover:text-pink-600 transition-colors duration-200" href="/">
-                  Mazaryn
+                  <%= gettext("Mazaryn") %>
                 </a>
               </li>
               <li class="my-2 md:my-0">
                 <a class="block text-center text-gray-700 hover:text-pink-600 transition-colors duration-200" href="/blog">
-                  Blog
+                  <%= gettext("Blog") %>
                 </a>
               </li>
               <li class="my-2 md:my-0">
                 <a class="block text-center text-gray-700 hover:text-pink-600 transition-colors duration-200" href="/contact">
-                  Contact
+                  <%= gettext("Contact") %>
                 </a>
               </li>
               <li class="my-2 md:my-0">
                 <a class="block text-center text-gray-700 hover:text-pink-600 transition-colors duration-200" href="/about">
-                  About
+                  <%= gettext("About") %>
                 </a>
               </li>
               <li class="my-2 md:my-0">
                 <a class="block text-center text-gray-700 hover:text-pink-600 transition-colors duration-200" href="/careers">
-                  Careers
+                  <%= gettext("Careers") %>
                 </a>
               </li>
               <li class="my-2 md:my-0">
                 <a class="block text-center text-gray-700 hover:text-pink-600 transition-colors duration-200" href="/privacy-policy">
-                  Privacy
+                  <%= gettext("Privacy") %>
                 </a>
               </li>
             </ul>
@@ -156,6 +156,8 @@
                     "fa" -> "Persian"
                     "ru" -> "Russian"
                     "zh" -> "Chinese"
+                    "ja" -> "Japanese"
+                    "ko" -> "Korean"
                     "ar" -> "Arabic"
                     "az" -> "Azerbaijani"
                     "es" -> "Spanish"
@@ -177,7 +179,7 @@
                   <ul role="listbox" tabindex="-1">
                     <li :for={
                       locale <-
-                        ~w(en fa ru zh ar az es vi hi de fr it pt fil id) -- [@conn.assigns.locale]
+                        ~w(en fa ru zh ja ko ar az es vi hi de fr it pt fil id) -- [@conn.assigns.locale]
                     }>
                       <a
                         href={set_locale(locale, @conn)}
@@ -190,6 +192,8 @@
                           "fa" -> "Persian"
                           "ru" -> "Russian"
                           "zh" -> "Chinese"
+                          "ja" -> "Japanese"
+                          "ko" -> "Korean"
                           "ar" -> "Arabic"
                           "az" -> "Azerbaijani"
                           "es" -> "Spanish"

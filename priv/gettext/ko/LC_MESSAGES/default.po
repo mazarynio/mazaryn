@@ -1,4 +1,4 @@
-# German translations for mazaryn package.
+# Korean translations for mazaryn package.
 # Copyright (C) 2024 Mazaryn Team
 # This file is distributed under the same license as the mazaryn package.
 # Mazaryn Team <team@mazaryn.net>, 2024.
@@ -10,19 +10,19 @@ msgstr ""
 "POT-Creation-Date: 2024-01-15 10:30+0100\n"
 "PO-Revision-Date: 2024-01-15 10:45+0100\n"
 "Last-Translator: Mazaryn Translation Team <translations@mazaryn.net>\n"
-"Language-Team: German <de@mazaryn.net>\n"
-"Language: de\n"
+"Language-Team: Korean <ko@mazaryn.net>\n"
+"Language: ko\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
 "X-Generator: Poedit 3.4.2\n"
 
 #: lib/mazaryn_web/templates/layout/root.html.heex:119
 #: lib/mazaryn_web/templates/page/about.html.heex:16
 #, elixir-autogen, elixir-format
 msgid "About"
-msgstr "Über uns"
+msgstr "소개"
 
 #: lib/mazaryn_web/templates/layout/root.html.heex:109
 #: lib/mazaryn_web/templates/page/about.html.heex:19
@@ -31,13 +31,13 @@ msgstr "Über uns"
 #: lib/mazaryn_web/templates/page/privacy.html.heex:11
 #, elixir-autogen, elixir-format
 msgid "Blog"
-msgstr "Blog"
+msgstr "블로그"
 
 #: lib/mazaryn_web/templates/layout/root.html.heex:124
 #: lib/mazaryn_web/templates/page/careers.html.heex:8
 #, elixir-autogen, elixir-format
 msgid "Careers"
-msgstr "Karriere"
+msgstr "채용"
 
 #: lib/mazaryn_web/live/auth_live/login.html.heex:14
 #: lib/mazaryn_web/live/auth_live/login.html.heex:173
@@ -47,655 +47,655 @@ msgstr "Karriere"
 #: lib/mazaryn_web/templates/layout/root.html.heex:104
 #, elixir-autogen, elixir-format
 msgid "Mazaryn"
-msgstr "Mazaryn"
+msgstr "마자린"
 
 #: lib/mazaryn_web/templates/layout/root.html.heex:129
 #: lib/mazaryn_web/templates/page/privacy.html.heex:8
 #, elixir-autogen, elixir-format
 msgid "Privacy"
-msgstr "Datenschutz"
+msgstr "개인정보보호"
 
 #: lib/mazaryn_web/templates/page/privacy.html.heex:20
 #, elixir-autogen, elixir-format
 msgid "Privacy policy"
-msgstr "Datenschutzrichtlinie"
+msgstr "개인정보처리방침"
 
 #: lib/mazaryn_web/live/auth_live/login.html.heex:152
 #: lib/mazaryn_web/templates/layout/root.html.heex:75
 #: lib/mazaryn_web/templates/layout/root.html.heex:88
 #, elixir-autogen, elixir-format
 msgid "Sign Up"
-msgstr "Registrieren"
+msgstr "회원가입"
 
 #: lib/mazaryn_web/templates/page/contact.html.heex:32
 #, elixir-autogen, elixir-format
 msgid "Mazaryn Help channel will answer all your questions about our services, your account and more."
-msgstr "Der Mazaryn-Hilfekanal beantwortet alle Ihre Fragen zu unseren Diensten, Ihrem Konto und mehr."
+msgstr "마자린 도움말 채널은 당사 서비스, 귀하의 계정 등에 관한 모든 질문에 답변해 드립니다."
 
 #: lib/mazaryn_web/templates/page/contact.html.heex:8
 #, elixir-autogen, elixir-format
 msgid "Help"
-msgstr "Hilfe"
+msgstr "도움말"
 
 #: lib/mazaryn_web/templates/page/careers.html.heex:32
 #, elixir-autogen, elixir-format
 msgid "We're Hiring! We're looking for talented people to join our team."
-msgstr "Wir stellen ein! Wir suchen talentierte Menschen, die unser Team verstärken."
+msgstr "채용 중! 우리 팀에 합류할 재능 있는 분들을 찾고 있습니다."
 
 #: lib/mazaryn_web/live/auth_live/reset.html.heex:27
 #, elixir-autogen, elixir-format
 msgid "Reset Your Password"
-msgstr "Passwort zurücksetzen"
+msgstr "비밀번호 재설정"
 
 #: lib/mazaryn_web/live/auth_live/reset.html.heex:31
 #, elixir-autogen, elixir-format
 msgid "To request a new password, enter your email"
-msgstr "Um ein neues Passwort anzufordern, geben Sie Ihre E-Mail-Adresse ein"
+msgstr "새 비밀번호를 요청하려면 이메일을 입력하세요"
 
 #: lib/mazaryn_web/live/auth_live/reset.html.heex:55
 #, elixir-autogen, elixir-format
 msgid "Continue"
-msgstr "Weiter"
+msgstr "계속하기"
 
 #: lib/mazaryn_web/live/auth_live/reset.html.heex:38
 #, elixir-autogen, elixir-format
 msgid "Enter your email"
-msgstr "Geben Sie Ihre E-Mail-Adresse ein"
+msgstr "이메일 입력"
 
 #: lib/mazaryn_web/live/home_live/home.html.heex:191
 #: lib/mazaryn_web/live/home_live/home.html.heex:211
 #, elixir-autogen, elixir-format
 msgid "Follow"
-msgstr "Folgen"
+msgstr "팔로우"
 
 #: lib/mazaryn_web/live/home_live/home.html.heex:167
 #, elixir-autogen, elixir-format
 msgid "Trending"
-msgstr "Im Trend"
+msgstr "인기 급상승"
 
 #: lib/mazaryn_web/live/home_live/left_sidebar_component.ex:66
 #, elixir-autogen, elixir-format
 msgid "Chat"
-msgstr "Chat"
+msgstr "채팅"
 
 #: lib/mazaryn_web/live/home_live/left_sidebar_component.ex:216
 #, elixir-autogen, elixir-format
 msgid "Dashboard"
-msgstr "Dashboard"
+msgstr "대시보드"
 
 #: lib/mazaryn_web/live/home_live/left_sidebar_component.ex:290
 #, elixir-autogen, elixir-format
 msgid "Explore"
-msgstr "Entdecken"
+msgstr "탐색"
 
 #: lib/mazaryn_web/live/home_live/left_sidebar_component.ex:32
 #, elixir-autogen, elixir-format
 msgid "Home"
-msgstr "Startseite"
+msgstr "홈"
 
 #: lib/mazaryn_web/live/home_live/left_sidebar_component.ex:281
 #, elixir-autogen, elixir-format
 msgid "Manage Users"
-msgstr "Benutzer verwalten"
+msgstr "사용자 관리"
 
 #: lib/mazaryn_web/live/home_live/left_sidebar_component.ex:157
 #, elixir-autogen, elixir-format
 msgid "Settings"
-msgstr "Einstellungen"
+msgstr "설정"
 
 #: lib/mazaryn_web/templates/page/careers.html.heex:133
-#, elixir-autogen, elixir-format, fuzzy
+#, elixir-autogen, elixir-format
 msgid "Apply Now"
-msgstr "Jetzt bewerben"
+msgstr "지금 지원하기"
 
 #: lib/mazaryn_web/live/auth_live/signup.html.heex:169
 #, elixir-autogen, elixir-format
 msgid "Confirm Password"
-msgstr "Passwort bestätigen"
+msgstr "비밀번호 확인"
 
 #: lib/mazaryn_web/templates/page/contact.html.heex:87
-#, elixir-autogen, elixir-format, fuzzy
+#, elixir-autogen, elixir-format
 msgid "Contact Support"
-msgstr "Support kontaktieren"
+msgstr "지원 문의"
 
 #: lib/mazaryn_web/live/auth_live/signup.html.heex:68
 #: lib/mazaryn_web/live/auth_live/signup.html.heex:227
 #, elixir-autogen, elixir-format
 msgid "Create Account"
-msgstr "Konto erstellen"
+msgstr "계정 만들기"
 
 #: lib/mazaryn_web/live/auth_live/login.html.heex:81
 #: lib/mazaryn_web/live/auth_live/signup.html.heex:114
 #, elixir-autogen, elixir-format
 msgid "Email Address"
-msgstr "E-Mail-Adresse"
+msgstr "이메일 주소"
 
 #: lib/mazaryn_web/live/home_live/left_sidebar_component.ex:79
-#, elixir-autogen, elixir-format, fuzzy
+#, elixir-autogen, elixir-format
 msgid "Groups"
-msgstr "Gruppen"
+msgstr "그룹"
 
 #: lib/mazaryn_web/live/home_live/left_sidebar_component.ex:352
 #, elixir-autogen, elixir-format
 msgid "Jobs"
-msgstr "Jobs"
+msgstr "일자리"
 
 #: lib/mazaryn_web/live/home_live/left_sidebar_component.ex:182
-#, elixir-autogen, elixir-format, fuzzy
+#, elixir-autogen, elixir-format
 msgid "Mazaryn AI"
-msgstr "Mazaryn AI"
+msgstr "마자린 AI"
 
 #: lib/mazaryn_web/live/auth_live/login.html.heex:110
 #: lib/mazaryn_web/live/auth_live/signup.html.heex:141
-#, elixir-autogen, elixir-format, fuzzy
+#, elixir-autogen, elixir-format
 msgid "Password"
-msgstr "Passwort"
+msgstr "비밀번호"
 
 #: lib/mazaryn_web/live/auth_live/login.html.heex:144
 #: lib/mazaryn_web/live/auth_live/signup.html.heex:237
-#, elixir-autogen, elixir-format, fuzzy
+#, elixir-autogen, elixir-format
 msgid "Sign In"
-msgstr "Anmelden"
+msgstr "로그인"
 
 #: lib/mazaryn_web/live/auth_live/signup.html.heex:86
-#, elixir-autogen, elixir-format, fuzzy
+#, elixir-autogen, elixir-format
 msgid "Username"
-msgstr "Benutzername"
+msgstr "사용자 이름"
 
 #: lib/mazaryn_web/live/home_live/left_sidebar_component.ex:103
 #, elixir-autogen, elixir-format
 msgid "Videos"
-msgstr "Videos"
+msgstr "동영상"
 
 #: lib/mazaryn_web/live/home_live/left_sidebar_component.ex:130
 #, elixir-autogen, elixir-format
 msgid "Weather"
-msgstr "Wetter"
+msgstr "날씨"
 
 #: lib/mazaryn_web/templates/page/about.html.heex:63
 #, elixir-autogen, elixir-format
 msgid "AI Ecosystem"
-msgstr "KI-Ökosystem"
+msgstr "AI 생태계"
 
 #: lib/mazaryn_web/templates/page/about.html.heex:95
 #, elixir-autogen, elixir-format
 msgid "AI Ready"
-msgstr "KI-bereit"
+msgstr "AI 준비 완료"
 
 #: lib/mazaryn_web/templates/page/about.html.heex:29
 #, elixir-autogen, elixir-format
 msgid "About Our Vision"
-msgstr "Über unsere Vision"
+msgstr "우리의 비전에 대해"
 
 #: lib/mazaryn_web/templates/page/index.html.heex:32
 #, elixir-autogen, elixir-format
 msgid "Access Your Network"
-msgstr "Auf Ihr Netzwerk zugreifen"
+msgstr "네트워크 접속하기"
 
 #: lib/mazaryn_web/templates/page/about.html.heex:40
 #, elixir-autogen, elixir-format
 msgid "An open-source, privacy-first social network built for developers, creators, and innovators."
-msgstr "Ein Open-Source, datenschutzorientiertes soziales Netzwerk für Entwickler, Kreative und Innovatoren."
+msgstr "개발자, 크리에이터, 혁신가를 위해 구축된 오픈소스, 프라이버시 우선 소셜 네트워크입니다."
 
 #: lib/mazaryn_web/templates/page/index.html.heex:29
 #, elixir-autogen, elixir-format
 msgid "Begin Your Journey"
-msgstr "Beginnen Sie Ihre Reise"
+msgstr "여정 시작하기"
 
 #: lib/mazaryn_web/templates/page/about.html.heex:66
 #, elixir-autogen, elixir-format
 msgid "Beyond social interaction, Mazaryn fosters a collaborative AI environment where developers can host competitions, share machine learning models, and publish datasets within a trusted community."
-msgstr "Über soziale Interaktion hinaus fördert Mazaryn eine kollaborative KI-Umgebung, in der Entwickler Wettbewerbe veranstalten, maschinelle Lernmodelle teilen und Datensätze innerhalb einer vertrauenswürdigen Community veröffentlichen können."
+msgstr "소셜 상호작용을 넘어서, 마자린은 개발자가 대회를 주최하고, 머신러닝 모델을 공유하며, 신뢰할 수 있는 커뮤니티 내에서 데이터셋을 게시할 수 있는 협업 AI 환경을 조성합니다."
 
 #: lib/mazaryn_web/templates/page/contact.html.heex:57
 #, elixir-autogen, elixir-format
 msgid "Browse our guides and tutorials"
-msgstr "Durchsuchen Sie unsere Anleitungen und Tutorials"
+msgstr "가이드와 튜토리얼 둘러보기"
 
 #: lib/mazaryn_web/templates/page/careers.html.heex:25
 #, elixir-autogen, elixir-format
 msgid "Build The Future"
-msgstr "Die Zukunft gestalten"
+msgstr "미래를 구축하기"
 
 #: lib/mazaryn_web/templates/page/about.html.heex:136
 #, elixir-autogen, elixir-format
 msgid "Built by developers, for developers. Open source and transparent."
-msgstr "Von Entwicklern für Entwickler gebaut. Open-Source und transparent."
+msgstr "개발자가 개발자를 위해 구축했습니다. 오픈소스이고 투명합니다."
 
 #: lib/mazaryn_web/templates/page/careers.html.heex:54
 #, elixir-autogen, elixir-format
 msgid "Choose your own schedule and work when you're most productive"
-msgstr "Wählen Sie Ihren eigenen Zeitplan und arbeiten Sie, wenn Sie am produktivsten sind"
+msgstr "자신의 일정을 선택하고 가장 생산적인 시간에 일하기"
 
 #: lib/mazaryn_web/templates/page/careers.html.heex:91
 #, elixir-autogen, elixir-format
 msgid "Collaborative Spirit"
-msgstr "Kollaborativer Geist"
+msgstr "협력 정신"
 
 #: lib/mazaryn_web/templates/page/contact.html.heex:69
 #, elixir-autogen, elixir-format
 msgid "Community"
-msgstr "Community"
+msgstr "커뮤니티"
 
 #: lib/mazaryn_web/templates/page/about.html.heex:135
 #, elixir-autogen, elixir-format
 msgid "Community Driven"
-msgstr "Community-getrieben"
+msgstr "커뮤니티 주도"
 
 #: lib/mazaryn_web/templates/page/contact.html.heex:70
 #, elixir-autogen, elixir-format
 msgid "Connect with other users"
-msgstr "Mit anderen Nutzern verbinden"
+msgstr "다른 사용자와 연결하기"
 
 #: lib/mazaryn_web/templates/layout/root.html.heex:114
-#, elixir-autogen, elixir-format, fuzzy
+#, elixir-autogen, elixir-format
 msgid "Contact"
-msgstr "Kontakt"
+msgstr "연락하기"
 
 #: lib/mazaryn_web/templates/page/about.html.heex:106
 #, elixir-autogen, elixir-format
 msgid "Core Principles"
-msgstr "Grundprinzipien"
+msgstr "핵심 원칙"
 
 #: lib/mazaryn_web/templates/page/careers.html.heex:104
 #, elixir-autogen, elixir-format
 msgid "Creative thinking and ability to tackle complex challenges"
-msgstr "Kreatives Denken und Fähigkeit, komplexe Herausforderungen zu bewältigen"
+msgstr "창의적 사고와 복잡한 문제 해결 능력"
 
 #: lib/mazaryn_web/templates/page/about.html.heex:115
 #, elixir-autogen, elixir-format
 msgid "Data Ownership"
-msgstr "Dateneigentum"
+msgstr "데이터 소유권"
 
 #: lib/mazaryn_web/templates/page/careers.html.heex:80
 #, elixir-autogen, elixir-format
 msgid "Deep interest in decentralized systems, blockchain, and AI"
-msgstr "Tiefes Interesse an dezentralen Systemen, Blockchain und KI"
+msgstr "분산 시스템, 블록체인, AI에 대한 깊은 관심"
 
 #: lib/mazaryn_web/templates/page/about.html.heex:144
 #, elixir-autogen, elixir-format
 msgid "Designed with ethics and user sovereignty at its core, Mazaryn redefines online connection: no tracking, no surveillance, just innovation."
-msgstr "Mit Ethik und Nutzersouveränität im Kern entworfen, definiert Mazaryn Online-Verbindung neu: kein Tracking, keine Überwachung, nur Innovation."
+msgstr "윤리와 사용자 주권을 핵심으로 설계된 마자린은 온라인 연결을 재정의합니다: 추적 없음, 감시 없음, 오직 혁신만."
 
 #: lib/mazaryn_web/templates/page/about.html.heex:35
 #, elixir-autogen, elixir-format
 msgid "Digital Connection"
-msgstr "Digitale Verbindung"
+msgstr "디지털 연결"
 
 #: lib/mazaryn_web/templates/page/contact.html.heex:56
 #, elixir-autogen, elixir-format
 msgid "Documentation"
-msgstr "Dokumentation"
+msgstr "문서"
 
 #: lib/mazaryn_web/templates/page/index.html.heex:37
 #, elixir-autogen, elixir-format
 msgid "Elevated Connectivity"
-msgstr "Erhöhte Konnektivität"
+msgstr "향상된 연결성"
 
 #: lib/mazaryn_web/templates/page/contact.html.heex:43
 #, elixir-autogen, elixir-format
 msgid "Email Support"
-msgstr "E-Mail-Support"
+msgstr "이메일 지원"
 
 #: lib/mazaryn_web/templates/page/about.html.heex:126
 #, elixir-autogen, elixir-format
 msgid "End-to-end encryption and IPFS storage ensure maximum security."
-msgstr "Ende-zu-Ende-Verschlüsselung und IPFS-Speicherung gewährleisten maximale Sicherheit."
+msgstr "엔드투엔드 암호화와 IPFS 저장소가 최대 보안을 보장합니다."
 
 #: lib/mazaryn_web/templates/page/careers.html.heex:53
 #, elixir-autogen, elixir-format
 msgid "Flexible Hours"
-msgstr "Flexible Arbeitszeiten"
+msgstr "유연한 근무 시간"
 
 #: lib/mazaryn_web/templates/page/contact.html.heex:44
 #, elixir-autogen, elixir-format
 msgid "Get help via email with our support team"
-msgstr "Holen Sie sich per E-Mail Hilfe von unserem Support-Team"
+msgstr "지원팀에 이메일로 도움 받기"
 
 #: lib/mazaryn_web/templates/page/contact.html.heex:27
-#, elixir-autogen, elixir-format, fuzzy
+#, elixir-autogen, elixir-format
 msgid "Help You?"
-msgstr "Ihnen helfen?"
+msgstr "도와드릴까요?"
 
 #: lib/mazaryn_web/templates/page/contact.html.heex:25
 #, elixir-autogen, elixir-format
 msgid "How Can We"
-msgstr "Wie können wir"
+msgstr "어떻게 도와드릴까요"
 
 #: lib/mazaryn_web/live/auth_live/login.html.heex:20
 #: lib/mazaryn_web/live/auth_live/signup.html.heex:20
 #: lib/mazaryn_web/templates/page/index.html.heex:12
 #, elixir-autogen, elixir-format
 msgid "IPFS Based Social Network"
-msgstr "IPFS-basiertes soziales Netzwerk"
+msgstr "IPFS 기반 소셜 네트워크"
 
 #: lib/mazaryn_web/templates/page/about.html.heex:92
 #, elixir-autogen, elixir-format
 msgid "IPFS Powered"
-msgstr "IPFS-betrieben"
+msgstr "IPFS 구동"
 
 #: lib/mazaryn_web/templates/page/index.html.heex:43
 #, elixir-autogen, elixir-format
 msgid "IPFS-powered decentralized architecture"
-msgstr "IPFS-betriebene dezentrale Architektur"
+msgstr "IPFS 기반 분산형 아키텍처"
 
 #: lib/mazaryn_web/templates/page/careers.html.heex:63
 #, elixir-autogen, elixir-format
 msgid "Innovation Focus"
-msgstr "Innovationsfokus"
+msgstr "혁신 중심"
 
 #: lib/mazaryn_web/templates/page/index.html.heex:49
 #, elixir-autogen, elixir-format
 msgid "Intelligent, fluid user experience"
-msgstr "Intelligente, flüssige Benutzererfahrung"
+msgstr "지능적이고 유연한 사용자 경험"
 
 #: lib/mazaryn_web/templates/page/contact.html.heex:72
 #, elixir-autogen, elixir-format
 msgid "Join Community"
-msgstr "Community beitreten"
+msgstr "커뮤니티 가입하기"
 
 #: lib/mazaryn_web/templates/page/about.html.heex:149
 #, elixir-autogen, elixir-format
 msgid "Join Our Community"
-msgstr "Treten Sie unserer Community bei"
+msgstr "우리 커뮤니티 가입하기"
 
 #: lib/mazaryn_web/templates/page/careers.html.heex:21
 #, elixir-autogen, elixir-format
 msgid "Join Our Team"
-msgstr "Treten Sie unserem Team bei"
+msgstr "우리 팀 합류하기"
 
 #: lib/mazaryn_web/templates/layout/root.html.heex:74
 #: lib/mazaryn_web/templates/layout/root.html.heex:87
 #, elixir-autogen, elixir-format
 msgid "Login"
-msgstr "Anmelden"
+msgstr "로그인"
 
 #: lib/mazaryn_web/templates/page/about.html.heex:54
 #, elixir-autogen, elixir-format
 msgid "Mazaryn leverages the decentralized power of IPFS to give users full ownership of their content. No tracking, no surveillance—just secure uploads of images, videos, live streams, and datasets."
-msgstr "Mazaryn nutzt die dezentrale Kraft von IPFS, um Nutzern vollständige Eigentümerschaft über ihre Inhalte zu geben. Kein Tracking, keine Überwachung - nur sichere Uploads von Bildern, Videos, Live-Streams und Datensätzen."
+msgstr "마자린은 IPFS의 분산형 파워를 활용하여 사용자에게 콘텐츠의 완전한 소유권을 제공합니다. 추적 없음, 감시 없음—이미지, 동영상, 라이브 스트림, 데이터셋의 안전한 업로드만 제공합니다."
 
 #: lib/mazaryn_web/templates/page/about.html.heex:89
 #, elixir-autogen, elixir-format
 msgid "Open Source"
-msgstr "Open Source"
+msgstr "오픈소스"
 
 #: lib/mazaryn_web/templates/page/about.html.heex:79
 #, elixir-autogen, elixir-format
 msgid "Our Mission"
-msgstr "Unsere Mission"
+msgstr "우리의 사명"
 
 #: lib/mazaryn_web/templates/page/careers.html.heex:79
 #, elixir-autogen, elixir-format
 msgid "Passion for Technology"
-msgstr "Leidenschaft für Technologie"
+msgstr "기술에 대한 열정"
 
 #: lib/mazaryn_web/templates/page/about.html.heex:51
 #, elixir-autogen, elixir-format
 msgid "Privacy-First Architecture"
-msgstr "Datenschutz-orientierte Architektur"
+msgstr "프라이버시 우선 아키텍처"
 
 #: lib/mazaryn_web/templates/page/careers.html.heex:103
 #, elixir-autogen, elixir-format
 msgid "Problem Solver"
-msgstr "Problemlöser"
+msgstr "문제 해결사"
 
 #: lib/mazaryn_web/templates/page/about.html.heex:152
 #, elixir-autogen, elixir-format
 msgid "Read Our Blog"
-msgstr "Lesen Sie unseren Blog"
+msgstr "블로그 읽기"
 
 #: lib/mazaryn_web/templates/page/contact.html.heex:79
 #, elixir-autogen, elixir-format
 msgid "Ready to Get Started?"
-msgstr "Bereit zu beginnen?"
+msgstr "시작할 준비가 되셨나요?"
 
 #: lib/mazaryn_web/templates/page/careers.html.heex:125
 #, elixir-autogen, elixir-format
 msgid "Ready to Join Us?"
-msgstr "Bereit, sich uns anzuschließen?"
+msgstr "우리와 함께할 준비가 되셨나요?"
 
 #: lib/mazaryn_web/templates/page/about.html.heex:33
 #, elixir-autogen, elixir-format
 msgid "Redefining"
-msgstr "Neu definieren"
+msgstr "재정의하기"
 
 #: lib/mazaryn_web/templates/page/index.html.heex:23
 #, elixir-autogen, elixir-format
 msgid "Redefining digital interaction through decentralized architecture — cultivate meaningful connections, share authentic experiences, and unlock infinite possibilities in a seamlessly integrated ecosystem."
-msgstr "Digitale Interaktion durch dezentrale Architektur neu definieren — bedeutungsvolle Verbindungen pflegen, authentische Erfahrungen teilen und unendliche Möglichkeiten in einem nahtlos integrierten Ökosystem erschließen."
+msgstr "분산형 아키텍처를 통한 디지털 상호작용 재정의—의미 있는 연결을 구축하고, 진정한 경험을 공유하며, 완벽하게 통합된 생태계에서 무한한 가능성을 열어갑니다."
 
 #: lib/mazaryn_web/templates/page/careers.html.heex:43
 #, elixir-autogen, elixir-format
 msgid "Remote First"
-msgstr "Remote-First"
+msgstr "원격 근무 우선"
 
 #: lib/mazaryn_web/templates/page/index.html.heex:55
 #, elixir-autogen, elixir-format
 msgid "Seamless global community integration"
-msgstr "Nahtlose globale Community-Integration"
+msgstr "원활한 글로벌 커뮤니티 통합"
 
 #: lib/mazaryn_web/templates/page/about.html.heex:125
 #, elixir-autogen, elixir-format
 msgid "Security First"
-msgstr "Sicherheit zuerst"
+msgstr "보안 우선"
 
 #: lib/mazaryn_web/templates/page/careers.html.heex:115
 #, elixir-autogen, elixir-format
 msgid "Self-Motivated"
-msgstr "Selbstmotiviert"
+msgstr "자기 동기 부여"
 
 #: lib/mazaryn_web/templates/page/contact.html.heex:81
 #, elixir-autogen, elixir-format
 msgid "Send us a message and we'll get back to you as soon as possible."
-msgstr "Senden Sie uns eine Nachricht und wir melden uns so schnell wie möglich bei Ihnen."
+msgstr "메시지를 보내주시면 가능한 한 빨리 답변 드리겠습니다."
 
 #: lib/mazaryn_web/templates/page/careers.html.heex:127
 #, elixir-autogen, elixir-format
 msgid "Send your resume and portfolio to our HR team. We'd love to hear from you!"
-msgstr "Senden Sie Ihren Lebenslauf und Ihr Portfolio an unser HR-Team. Wir freuen uns auf Ihre Nachricht!"
+msgstr "이력서와 포트폴리오를 인사팀에 보내주세요. 연락 주시면 감사하겠습니다!"
 
 #: lib/mazaryn_web/templates/page/contact.html.heex:21
 #, elixir-autogen, elixir-format
 msgid "Support Center"
-msgstr "Support-Center"
+msgstr "지원 센터"
 
 #: lib/mazaryn_web/templates/page/careers.html.heex:116
 #, elixir-autogen, elixir-format
 msgid "Take initiative and drive projects forward independently"
-msgstr "Initiative ergreifen und Projekte unabhängig vorantreiben"
+msgstr "주도적으로 행동하고 프로젝트를 독립적으로 진행하기"
 
 #: lib/mazaryn_web/templates/page/about.html.heex:83
 #, elixir-autogen, elixir-format
 msgid "To create a transparent, community-driven platform where innovation thrives without compromising user sovereignty."
-msgstr "Eine transparente, community-getriebene Plattform schaffen, auf der Innovation gedeiht, ohne die Nutzersouveränität zu beeinträchtigen."
+msgstr "사용자 주권을 저해하지 않으면서 혁신이 번창하는 투명하고 커뮤니티 주도의 플랫폼을 만드는 것입니다."
 
 #: lib/mazaryn_web/templates/page/index.html.heex:18
 #, elixir-autogen, elixir-format
 msgid "Transcend Boundaries"
-msgstr "Grenzen überschreiten"
+msgstr "경계를 초월하기"
 
 #: lib/mazaryn_web/templates/page/contact.html.heex:59
 #, elixir-autogen, elixir-format
 msgid "View Docs"
-msgstr "Dokumentation ansehen"
+msgstr "문서 보기"
 
 #: lib/mazaryn_web/templates/page/careers.html.heex:70
 #, elixir-autogen, elixir-format
 msgid "What We Look For"
-msgstr "Wonach wir suchen"
+msgstr "우리가 찾는 인재"
 
 #: lib/mazaryn_web/templates/page/index.html.heex:16
 #, elixir-autogen, elixir-format
 msgid "Where Connections"
-msgstr "Wo Verbindungen"
+msgstr "연결의 장소"
 
 #: lib/mazaryn_web/templates/page/careers.html.heex:27
-#, elixir-autogen, elixir-format, fuzzy
+#, elixir-autogen, elixir-format
 msgid "With Mazaryn"
-msgstr "Mit Mazaryn"
+msgstr "마자린과 함께"
 
 #: lib/mazaryn_web/templates/page/careers.html.heex:44
 #, elixir-autogen, elixir-format
 msgid "Work from anywhere in the world with our fully distributed team"
-msgstr "Arbeiten Sie von überall auf der Welt mit unserem vollständig verteilten Team"
+msgstr "완전히 분산된 우리 팀과 함께 전 세계 어디서나 근무하기"
 
 #: lib/mazaryn_web/templates/page/careers.html.heex:64
 #, elixir-autogen, elixir-format
 msgid "Work on cutting-edge technology and shape the future of social networking"
-msgstr "An Spitzentechnologie arbeiten und die Zukunft sozialer Netzwerke gestalten"
+msgstr "최첨단 기술로 작업하고 소셜 네트워킹의 미래를 형성하기"
 
 #: lib/mazaryn_web/templates/page/careers.html.heex:92
 #, elixir-autogen, elixir-format
 msgid "Work well with distributed teams and open source communities"
-msgstr "Gut mit verteilten Teams und Open-Source-Communities arbeiten"
+msgstr "분산 팀과 오픈소스 커뮤니티와 잘 협업하기"
 
 #: lib/mazaryn_web/templates/page/about.html.heex:116
 #, elixir-autogen, elixir-format
 msgid "You own your content. We provide the decentralized infrastructure."
-msgstr "Sie besitzen Ihre Inhalte. Wir stellen die dezentrale Infrastruktur bereit."
+msgstr "귀하는 콘텐츠를 소유합니다. 우리는 분산형 인프라를 제공합니다."
 
 #: lib/mazaryn_web/live/auth_live/signup.html.heex:233
 #, elixir-autogen, elixir-format
 msgid "Already have an account?"
-msgstr ""
+msgstr "이미 계정이 있으신가요?"
 
 #: lib/mazaryn_web/live/auth_live/login.html.heex:165
 #, elixir-autogen, elixir-format
 msgid "By signing in, you agree to our Terms of Service and Privacy Policy"
-msgstr ""
+msgstr "로그인하면 이용약관과 개인정보처리방침에 동의하는 것으로 간주됩니다"
 
 #: lib/mazaryn_web/live/auth_live/signup.html.heex:91
 #, elixir-autogen, elixir-format
 msgid "Choose a username"
-msgstr ""
+msgstr "사용자 이름 선택"
 
 #: lib/mazaryn_web/live/auth_live/login.html.heex:26
 #, elixir-autogen, elixir-format
 msgid "Connect Again"
-msgstr ""
+msgstr "다시 연결하기"
 
 #: lib/mazaryn_web/live/auth_live/signup.html.heex:223
 #, elixir-autogen, elixir-format
 msgid "Creating account..."
-msgstr ""
+msgstr "계정 생성 중..."
 
 #: lib/mazaryn_web/live/auth_live/signup.html.heex:275
 #, elixir-autogen, elixir-format
 msgid "Creating your account..."
-msgstr ""
+msgstr "계정 생성 중..."
 
 #: lib/mazaryn_web/live/auth_live/signup.html.heex:40
 #, elixir-autogen, elixir-format
 msgid "Decentralized IPFS storage"
-msgstr ""
+msgstr "분산형 IPFS 저장소"
 
 #: lib/mazaryn_web/live/auth_live/login.html.heex:150
 #, elixir-autogen, elixir-format
 msgid "Don't have an account?"
-msgstr ""
+msgstr "계정이 없으신가요?"
 
 #: lib/mazaryn_web/live/auth_live/login.html.heex:112
 #, elixir-autogen, elixir-format
 msgid "Forgot password?"
-msgstr ""
+msgstr "비밀번호를 잊으셨나요?"
 
 #: lib/mazaryn_web/live/auth_live/signup.html.heex:46
 #, elixir-autogen, elixir-format
 msgid "Full data ownership"
-msgstr ""
+msgstr "완전한 데이터 소유권"
 
 #: lib/mazaryn_web/live/auth_live/signup.html.heex:58
 #, elixir-autogen, elixir-format
 msgid "Global community access"
-msgstr ""
+msgstr "글로벌 커뮤니티 접근"
 
 #: lib/mazaryn_web/live/auth_live/signup.html.heex:204
 #, elixir-autogen, elixir-format
 msgid "I agree to the"
-msgstr ""
+msgstr "다음에 동의합니다:"
 
 #: lib/mazaryn_web/live/auth_live/signup.html.heex:31
 #, elixir-autogen, elixir-format
 msgid "Join our decentralized community and connect with like-minded individuals in a secure, privacy-focused environment."
-msgstr ""
+msgstr "우리의 분산형 커뮤니티에 참여하고 안전하며 프라이버시 중심의 환경에서 같은 생각을 가진 사람들과 연결하세요."
 
 #: lib/mazaryn_web/live/auth_live/signup.html.heex:71
 #, elixir-autogen, elixir-format
 msgid "Join our decentralized social network"
-msgstr ""
+msgstr "우리의 분산형 소셜 네트워크에 참여하기"
 
 #: lib/mazaryn_web/live/auth_live/signup.html.heex:26
 #, elixir-autogen, elixir-format
 msgid "Journey Today"
-msgstr ""
+msgstr "오늘 여정 시작하기"
 
 #: lib/mazaryn_web/live/auth_live/signup.html.heex:52
 #, elixir-autogen, elixir-format
 msgid "No censorship, no tracking"
-msgstr ""
+msgstr "검열 없음, 추적 없음"
 
 #: lib/mazaryn_web/live/auth_live/signup.html.heex:207
-#, elixir-autogen, elixir-format, fuzzy
+#, elixir-autogen, elixir-format
 msgid "Privacy Policy"
-msgstr "Datenschutzrichtlinie"
+msgstr "개인정보처리방침"
 
 #: lib/mazaryn_web/live/auth_live/login.html.heex:46
 #, elixir-autogen, elixir-format
 msgid "Privacy-first design"
-msgstr ""
+msgstr "프라이버시 우선 디자인"
 
 #: lib/mazaryn_web/live/auth_live/login.html.heex:31
 #, elixir-autogen, elixir-format
 msgid "Reconnect with your community, share new experiences, and continue your journey in our decentralized network."
-msgstr ""
+msgstr "커뮤니티와 다시 연결하고 새로운 경험을 공유하며 우리의 분산형 네트워크에서 여정을 계속하세요."
 
 #: lib/mazaryn_web/live/auth_live/login.html.heex:52
-#, elixir-autogen, elixir-format, fuzzy
+#, elixir-autogen, elixir-format
 msgid "Seamless community integration"
-msgstr "Nahtlose globale Community-Integration"
+msgstr "원활한 커뮤니티 통합"
 
 #: lib/mazaryn_web/live/auth_live/login.html.heex:40
 #, elixir-autogen, elixir-format
 msgid "Secure IPFS-based storage"
-msgstr ""
+msgstr "안전한 IPFS 기반 저장소"
 
 #: lib/mazaryn_web/live/auth_live/login.html.heex:65
 #, elixir-autogen, elixir-format
 msgid "Sign in to your account to continue"
-msgstr ""
+msgstr "계속하려면 계정에 로그인하세요"
 
 #: lib/mazaryn_web/live/auth_live/login.html.heex:141
 #, elixir-autogen, elixir-format
 msgid "Signing in..."
-msgstr ""
+msgstr "로그인 중..."
 
 #: lib/mazaryn_web/live/auth_live/signup.html.heex:24
 #, elixir-autogen, elixir-format
 msgid "Start Your"
-msgstr ""
+msgstr "당신의"
 
 #: lib/mazaryn_web/live/auth_live/signup.html.heex:205
 #, elixir-autogen, elixir-format
 msgid "Terms of Service"
-msgstr ""
+msgstr "이용약관"
 
 #: lib/mazaryn_web/live/auth_live/login.html.heex:62
 #, elixir-autogen, elixir-format
 msgid "Welcome Back"
-msgstr ""
+msgstr "다시 오신 것을 환영합니다"
 
 #: lib/mazaryn_web/live/auth_live/login.html.heex:24
 #, elixir-autogen, elixir-format
 msgid "Welcome Back,"
-msgstr ""
+msgstr "다시 오신 것을 환영합니다,"
 
 #: lib/mazaryn_web/live/auth_live/signup.html.heex:251
 #, elixir-autogen, elixir-format
 msgid "Your data is stored securely on IPFS. You own your content."
-msgstr ""
+msgstr "귀하의 데이터는 IPFS에 안전하게 저장됩니다. 귀하가 콘텐츠를 소유합니다."
 
 #: lib/mazaryn_web/live/auth_live/signup.html.heex:206
 #, elixir-autogen, elixir-format
 msgid "and"
-msgstr ""
+msgstr "및"

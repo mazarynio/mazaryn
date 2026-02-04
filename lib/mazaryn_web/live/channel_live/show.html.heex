@@ -1,3 +1,544 @@
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --clr-rose: #e11d48;
+    --clr-pink: #ec4899;
+    --clr-blue: #3b82f6;
+    --clr-indigo: #6366f1;
+    --clr-surface: #ffffff;
+    --clr-surface-alt: #fafafa;
+    --clr-border: #f0f0f2;
+    --clr-text: #1a1a2e;
+    --clr-text-muted: #6b7280;
+    --clr-text-faint: #9ca3af;
+    --clr-green: #10b981;
+    --clr-red: #ef4444;
+    --radius-sm: 10px;
+    --radius-md: 14px;
+    --radius-lg: 20px;
+    --radius-xl: 28px;
+    --font-display: 'Playfair Display', Georgia, serif;
+    --font-body: 'Inter', -apple-system, sans-serif;
+  }
+
+  * {
+    font-family: var(--font-body);
+  }
+
+  .channel-container {
+    min-height: 100vh;
+    background: linear-gradient(145deg, #eff6ff 0%, #f0f9ff 50%, #eff6ff 100%);
+    position: relative;
+  }
+
+  .channel-container::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 60% 40% at 80% 20%, rgba(99,102,241,0.04) 0%, transparent 70%),
+      radial-gradient(ellipse 50% 50% at 10% 80%, rgba(59,130,246,0.035) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .channel-content {
+    position: relative;
+    z-index: 1;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 40px 24px;
+  }
+
+  .channel-back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 20px;
+    border-radius: 14px;
+    background: rgba(255,255,255,0.9);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(99,102,241,0.15);
+    color: var(--clr-indigo);
+    font-weight: 600;
+    font-size: 0.88rem;
+    transition: all 0.3s;
+    text-decoration: none;
+    box-shadow: 0 2px 8px rgba(99,102,241,0.12);
+    margin-bottom: 32px;
+  }
+
+  .channel-back-btn:hover {
+    background: linear-gradient(135deg, var(--clr-indigo), var(--clr-blue));
+    color: #fff;
+    transform: translateX(-3px);
+    box-shadow: 0 4px 16px rgba(99,102,241,0.25);
+  }
+
+  .channel-header {
+    background: rgba(255,255,255,0.9);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid var(--clr-border);
+    border-radius: var(--radius-xl);
+    padding: 40px;
+    margin-bottom: 32px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.06);
+  }
+
+  .channel-header-inner {
+    display: flex;
+    align-items: flex-start;
+    gap: 32px;
+  }
+
+  .channel-avatar {
+    position: relative;
+    flex-shrink: 0;
+  }
+
+  .channel-avatar-circle {
+    width: 120px;
+    height: 120px;
+    background: linear-gradient(135deg, var(--clr-indigo), var(--clr-blue));
+    border-radius: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 8px 32px rgba(99,102,241,0.3);
+    border: 4px solid #fff;
+  }
+
+  .channel-avatar-letter {
+    font-size: 3rem;
+    font-weight: 800;
+    color: #fff;
+    font-family: var(--font-display);
+  }
+
+  .channel-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .channel-name {
+    font-family: var(--font-display);
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--clr-text);
+    margin-bottom: 8px;
+    line-height: 1.2;
+  }
+
+  .channel-handle {
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: var(--clr-indigo);
+    margin-bottom: 20px;
+  }
+
+  .channel-stats {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 24px;
+  }
+
+  .channel-stat-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: rgba(255,255,255,0.7);
+    border: 1px solid var(--clr-border);
+    border-radius: var(--radius-md);
+    padding: 12px 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  }
+
+  .channel-stat-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .channel-stat-icon.indigo {
+    background: linear-gradient(135deg, rgba(99,102,241,0.15), rgba(79,70,229,0.1));
+    color: var(--clr-indigo);
+  }
+
+  .channel-stat-icon.blue {
+    background: linear-gradient(135deg, rgba(59,130,246,0.15), rgba(37,99,235,0.1));
+    color: var(--clr-blue);
+  }
+
+  .channel-stat-value {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--clr-text);
+  }
+
+  .channel-stat-label {
+    font-size: 0.75rem;
+    color: var(--clr-text-muted);
+    font-weight: 500;
+  }
+
+  .channel-privacy-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+  }
+
+  .channel-privacy-badge.private {
+    background: rgba(0,0,0,0.08);
+    color: var(--clr-text);
+  }
+
+  .channel-privacy-badge.public {
+    background: rgba(16,185,129,0.1);
+    color: var(--clr-green);
+  }
+
+  .channel-actions {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .channel-action-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 24px;
+    border-radius: var(--radius-md);
+    font-size: 0.88rem;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s;
+    text-decoration: none;
+  }
+
+  .channel-action-btn.primary {
+    background: linear-gradient(135deg, var(--clr-indigo), var(--clr-blue));
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(99,102,241,0.25);
+  }
+
+  .channel-action-btn.primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(99,102,241,0.35);
+  }
+
+  .channel-action-btn.secondary {
+    background: rgba(99,102,241,0.1);
+    color: var(--clr-indigo);
+    border: 1px solid rgba(99,102,241,0.2);
+  }
+
+  .channel-action-btn.secondary:hover {
+    background: rgba(99,102,241,0.15);
+  }
+
+  .channel-action-btn.danger {
+    background: rgba(239,68,68,0.1);
+    color: var(--clr-red);
+    border: 1px solid rgba(239,68,68,0.2);
+  }
+
+  .channel-action-btn.danger:hover {
+    background: rgba(239,68,68,0.15);
+  }
+
+  .channel-description {
+    background: rgba(255,255,255,0.7);
+    border: 1px solid var(--clr-border);
+    border-radius: var(--radius-lg);
+    padding: 24px;
+    margin-bottom: 32px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  }
+
+  .channel-description p {
+    font-size: 0.95rem;
+    color: var(--clr-text-muted);
+    line-height: 1.7;
+    margin: 0;
+  }
+
+  .channel-main-content {
+    background: rgba(255,255,255,0.9);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid var(--clr-border);
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.06);
+  }
+
+  .post-composer {
+    padding: 24px;
+    background: linear-gradient(135deg, rgba(99,102,241,0.05), rgba(59,130,246,0.05));
+    border-bottom: 1px solid var(--clr-border);
+  }
+
+  .post-composer-form {
+    display: flex;
+    gap: 12px;
+    align-items: flex-end;
+  }
+
+  .post-textarea {
+    flex: 1;
+    padding: 12px 16px;
+    border: 1px solid var(--clr-border);
+    border-radius: var(--radius-md);
+    font-size: 0.88rem;
+    resize: none;
+    background: #fff;
+    transition: all 0.2s;
+    font-family: var(--font-body);
+  }
+
+  .post-textarea:focus {
+    outline: none;
+    border-color: var(--clr-indigo);
+    box-shadow: 0 0 0 3px rgba(99,102,241,0.08);
+  }
+
+  .post-send-btn {
+    padding: 12px 28px;
+    border-radius: var(--radius-md);
+    border: none;
+    background: linear-gradient(135deg, var(--clr-indigo), var(--clr-blue));
+    color: #fff;
+    font-weight: 600;
+    font-size: 0.88rem;
+    cursor: pointer;
+    transition: all 0.3s;
+    box-shadow: 0 4px 12px rgba(99,102,241,0.25);
+  }
+
+  .post-send-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(99,102,241,0.35);
+  }
+
+  .posts-area {
+    max-height: 600px;
+    overflow-y: auto;
+    padding: 24px;
+  }
+
+  .posts-area::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .posts-area::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .posts-area::-webkit-scrollbar-thumb {
+    background: rgba(99,102,241,0.2);
+    border-radius: 4px;
+  }
+
+  .posts-area::-webkit-scrollbar-thumb:hover {
+    background: rgba(99,102,241,0.35);
+  }
+
+  .post-item {
+    background: #fff;
+    border: 1px solid var(--clr-border);
+    border-radius: var(--radius-lg);
+    padding: 20px;
+    margin-bottom: 16px;
+    transition: all 0.2s;
+    position: relative;
+  }
+
+  .post-item:hover {
+    box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+    border-color: rgba(99,102,241,0.2);
+  }
+
+  .post-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+
+  .post-author {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .post-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #fff;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  }
+
+  .post-avatar-placeholder {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--clr-indigo), var(--clr-blue));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-weight: 700;
+    font-size: 1rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  }
+
+  .post-author-info h4 {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--clr-text);
+    margin: 0 0 2px 0;
+    text-transform: capitalize;
+  }
+
+  .post-author-info p {
+    font-size: 0.72rem;
+    color: var(--clr-text-faint);
+    margin: 0;
+  }
+
+  .post-delete {
+    padding: 6px;
+    border-radius: 8px;
+    border: none;
+    background: transparent;
+    color: var(--clr-text-faint);
+    cursor: pointer;
+    transition: all 0.2s;
+    opacity: 0;
+  }
+
+  .post-item:hover .post-delete {
+    opacity: 1;
+  }
+
+  .post-delete:hover {
+    background: rgba(239,68,68,0.1);
+    color: var(--clr-red);
+  }
+
+  .post-content {
+    font-size: 0.88rem;
+    color: var(--clr-text);
+    line-height: 1.6;
+    margin-bottom: 12px;
+    word-break: break-word;
+  }
+
+  .post-reactions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .reaction-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 20px;
+    border: 1px solid var(--clr-border);
+    background: rgba(250,250,250,0.7);
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 0.8rem;
+  }
+
+  .reaction-btn:hover {
+    background: rgba(99,102,241,0.1);
+    border-color: rgba(99,102,241,0.3);
+  }
+
+  .reaction-emoji {
+    font-size: 1rem;
+  }
+
+  .reaction-count {
+    font-weight: 600;
+    color: var(--clr-text);
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 80px 20px;
+  }
+
+  .empty-state-icon {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 20px;
+    background: linear-gradient(135deg, rgba(99,102,241,0.1), rgba(59,130,246,0.08));
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(99,102,241,0.15);
+  }
+
+  .empty-state h3 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--clr-text);
+    margin-bottom: 8px;
+  }
+
+  .empty-state p {
+    font-size: 0.95rem;
+    color: var(--clr-text-muted);
+  }
+
+  @media (max-width: 768px) {
+    .channel-header-inner {
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+
+    .channel-name {
+      font-size: 2rem;
+    }
+
+    .channel-stats {
+      justify-content: center;
+    }
+
+    .channel-actions {
+      justify-content: center;
+      width: 100%;
+    }
+
+    .channel-action-btn {
+      flex: 1;
+    }
+  }
+</style>
+
 <.live_component
   module={MazarynWeb.HomeLive.NavComponent}
   id="navigation"
@@ -6,81 +547,81 @@
   locale={@locale}
 />
 
-<div class="min-h-screen bg-gradient-to-b from-indigo-50 via-blue-50 to-purple-50">
-  <div class="relative overflow-hidden">
-    <div class="absolute inset-0 bg-gradient-to-br from-indigo-400/20 via-blue-300/20 to-purple-400/20"></div>
-    <div class="relative max-w-7xl mx-auto px-6 py-16 lg:py-20">
-      <div class="text-center mb-12">
-        <.link navigate={~p"/#{@locale}/channels"} class="inline-flex items-center gap-2 text-gray-700 hover:text-indigo-600 transition">
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-          </svg>
-          Back to Channels
-        </.link>
-      </div>
+<div class="channel-container">
+  <div class="channel-content">
+    <.link navigate={~p"/#{@locale}/channels"} class="channel-back-btn">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M19 12H5M12 19l-7-7 7-7"/>
+      </svg>
+      Back to Channels
+    </.link>
 
-      <div class="flex flex-col md:flex-row items-center md:items-end gap-10">
-        <div class="relative">
-          <div class="w-32 h-32 bg-gradient-to-br from-indigo-500 to-blue-500 rounded-3xl shadow-2xl flex items-center justify-center border-6 border-white">
-            <span class="text-6xl font-black text-white"><%= String.first(@channel.name) |> String.upcase() %></span>
+    <div class="channel-header">
+      <div class="channel-header-inner">
+        <div class="channel-avatar">
+          <div class="channel-avatar-circle">
+            <span class="channel-avatar-letter"><%= String.first(@channel.name) |> String.upcase() %></span>
           </div>
         </div>
 
-        <div class="text-center md:text-left flex-1">
-          <h1 class="text-5xl lg:text-6xl font-black text-gray-900 mb-4"><%= @channel.name %></h1>
-          <p class="text-2xl text-indigo-600 font-semibold mb-6">@<%= @channel.unique_name %></p>
+        <div class="channel-info">
+          <h1 class="channel-name"><%= @channel.name %></h1>
+          <p class="channel-handle">@<%= @channel.unique_name %></p>
 
-          <div class="flex flex-wrap justify-center md:justify-start gap-6 mb-8">
-            <div class="flex items-center gap-3 bg-white/80 backdrop-blur-sm px-6 py-4 rounded-2xl shadow-md">
-              <div class="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center">
-                <svg class="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+          <div class="channel-stats">
+            <div class="channel-stat-card">
+              <div class="channel-stat-icon indigo">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
                 </svg>
               </div>
               <div>
-                <p class="text-2xl font-bold text-gray-900"><%= @channel.subscriber_count %></p>
-                <p class="text-sm text-gray-600">Subscribers</p>
+                <div class="channel-stat-value"><%= @channel.subscriber_count %></div>
+                <div class="channel-stat-label">Subscribers</div>
               </div>
             </div>
 
             <%= if @channel.category && @channel.category != "" do %>
-              <div class="flex items-center gap-3 bg-white/80 backdrop-blur-sm px-6 py-4 rounded-2xl shadow-md">
-                <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                  <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+              <div class="channel-stat-card">
+                <div class="channel-stat-icon blue">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/>
                   </svg>
                 </div>
                 <div>
-                  <p class="text-xl font-bold text-gray-900 capitalize"><%= @channel.category %></p>
-                  <p class="text-sm text-gray-600">Category</p>
+                  <div class="channel-stat-value" style="text-transform: capitalize;"><%= @channel.category %></div>
+                  <div class="channel-stat-label">Category</div>
                 </div>
               </div>
             <% end %>
 
             <%= if @channel.privacy == :private do %>
-              <span class="px-6 py-4 bg-black/10 backdrop-blur-sm text-gray-800 font-medium rounded-2xl flex items-center gap-2">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+              <span class="channel-privacy-badge private">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
                 </svg>
-                Private Channel
+                Private
               </span>
             <% else %>
-              <span class="px-6 py-4 bg-white/30 backdrop-blur-sm text-gray-800 font-medium rounded-2xl">
-                Public Channel
+              <span class="channel-privacy-badge public">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                Public
               </span>
             <% end %>
           </div>
 
-          <div class="flex flex-wrap justify-center md:justify-start gap-4">
+          <div class="channel-actions">
             <%= if @is_subscriber do %>
               <%= if @is_owner do %>
                 <.link
                   navigate={~p"/#{@locale}/channels/#{@channel.id}/settings"}
-                  class="px-8 py-4 bg-gray-100 text-gray-800 rounded-2xl font-semibold hover:bg-gray-200 transition flex items-center gap-2"
+                  class="channel-action-btn secondary"
                 >
-                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                    <path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
                   </svg>
                   Settings
                 </.link>
@@ -89,34 +630,37 @@
               <%= if @is_admin do %>
                 <.link
                   navigate={~p"/#{@locale}/channels/#{@channel.id}/subscribers"}
-                  class="px-8 py-4 bg-blue-100 text-blue-700 rounded-2xl font-semibold hover:bg-blue-200 transition flex items-center gap-2"
+                  class="channel-action-btn secondary"
                 >
-                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
                   </svg>
                   Subscribers
                 </.link>
 
                 <.link
                   navigate={~p"/#{@locale}/channels/#{@channel.id}/invites"}
-                  class="px-8 py-4 bg-indigo-100 text-indigo-700 rounded-2xl font-semibold hover:bg-indigo-200 transition flex items-center gap-2"
+                  class="channel-action-btn secondary"
                 >
-                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
                   </svg>
                   Manage Invites
                 </.link>
               <% end %>
 
               <%= unless @is_owner do %>
-                <button phx-click="unsubscribe_channel" data-confirm="Are you sure?" class="px-8 py-4 bg-red-100 text-red-700 rounded-2xl font-semibold hover:bg-red-200 transition">
+                <button phx-click="unsubscribe_channel" data-confirm="Are you sure you want to unsubscribe from this channel?" class="channel-action-btn danger">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4m7 14l5-5-5-5m5 5H9"/>
+                  </svg>
                   Unsubscribe
                 </button>
               <% end %>
             <% else %>
-              <button phx-click="subscribe_channel" class="group inline-flex items-center gap-3 px-10 py-5 bg-gradient-to-r from-indigo-600 to-blue-600 text-white font-bold rounded-2xl shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300">
-                <svg class="w-7 h-7 group-hover:rotate-90 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 4v16m8-8H4" />
+              <button phx-click="subscribe_channel" class="channel-action-btn primary">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 4v16m8-8H4"/>
                 </svg>
                 Subscribe
               </button>
@@ -124,107 +668,116 @@
           </div>
         </div>
       </div>
-
-      <%= if @channel.description && @channel.description != "" do %>
-        <div class="mt-12 p-8 bg-white/70 backdrop-blur-sm rounded-3xl border border-white/50 max-w-4xl mx-auto">
-          <p class="text-lg text-gray-700 leading-relaxed text-center"><%= @channel.description %></p>
-        </div>
-      <% end %>
     </div>
-  </div>
 
-  <div class="max-w-5xl mx-auto px-6 py-12">
-    <div class="bg-white/90 backdrop-blur-md rounded-3xl shadow-xl border border-white/50 overflow-hidden">
+    <%= if @channel.description && @channel.description != "" do %>
+      <div class="channel-description">
+        <p><%= @channel.description %></p>
+      </div>
+    <% end %>
+
+    <div class="channel-main-content">
       <%= if @is_admin do %>
-        <div class="p-6 bg-gradient-to-r from-indigo-50 to-blue-50 border-b border-gray-200">
-          <form phx-submit="create_post" class="flex gap-4">
+        <div class="post-composer">
+          <form phx-submit="create_post" class="post-composer-form">
             <textarea
               name="content"
               value={@post_content}
               phx-change="update_post_content"
               placeholder="Share something with your subscribers..."
               rows="2"
-              class="flex-1 px-6 py-4 bg-white border border-gray-300 rounded-2xl focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 resize-none transition text-base"
+              class="post-textarea"
             ></textarea>
-            <button type="submit" class="px-8 py-4 bg-gradient-to-r from-indigo-600 to-blue-600 text-white rounded-2xl font-bold hover:shadow-lg transition self-end">
+            <button type="submit" class="post-send-btn">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display: inline-block; margin-right: 6px;">
+                <path d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
+              </svg>
               Post
             </button>
           </form>
         </div>
       <% end %>
 
-      <div class="max-h-[600px] overflow-y-auto p-6 space-y-5" id="posts-container">
+      <div class="posts-area" id="posts-container">
         <%= if @posts == [] do %>
-          <div class="text-center py-20">
-            <div class="w-28 h-28 mx-auto mb-8 bg-gradient-to-br from-indigo-100 to-blue-100 rounded-full flex items-center justify-center">
-              <svg class="w-14 h-14 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+          <div class="empty-state">
+            <div class="empty-state-icon">
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--clr-indigo)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"/>
               </svg>
             </div>
-            <h3 class="text-3xl font-bold text-gray-900 mb-3">No posts yet</h3>
-            <p class="text-gray-500 text-lg">Be the first to post!</p>
+            <h3>No posts yet</h3>
+            <p>Be the first to post!</p>
           </div>
         <% else %>
           <%= for post <- Enum.reverse(@posts) do %>
             <% user_info = get_user_info(post.user_id) %>
             <% is_own_post = post.user_id == extract_user_id(@user) %>
 
-            <div class="group p-6 bg-white rounded-2xl shadow-sm hover:shadow-md transition border border-gray-100">
-              <div class="flex gap-4">
-                <.link navigate={~p"/#{@locale}/#{user_info.username}"} class="flex-shrink-0">
-                  <%= if user_info.avatar_url != "/images/default-avatar.png" do %>
-                    <img
-                      src={user_info.avatar_url}
-                      alt={user_info.username}
-                      class="w-12 h-12 rounded-full object-cover shadow-md hover:ring-2 hover:ring-indigo-500 transition"
-                      onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
-                    />
-                    <div class="hidden w-12 h-12 bg-gradient-to-br from-indigo-500 to-blue-500 rounded-full items-center justify-center shadow-md">
-                      <span class="text-xl font-bold text-white">
+            <div class="post-item">
+              <div class="post-header">
+                <div class="post-author">
+                  <.link navigate={~p"/#{@locale}/#{user_info.username}"}>
+                    <%= if user_info.avatar_url != "/images/default-avatar.png" do %>
+                      <img
+                        src={user_info.avatar_url}
+                        alt={user_info.username}
+                        class="post-avatar"
+                        onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+                      />
+                      <div class="post-avatar-placeholder" style="display: none;">
                         <%= String.first(user_info.username) |> String.upcase() %>
-                      </span>
-                    </div>
-                  <% else %>
-                    <div class="w-12 h-12 bg-gradient-to-br from-indigo-500 to-blue-500 rounded-full flex items-center justify-center shadow-md hover:ring-2 hover:ring-indigo-500 transition">
-                      <span class="text-xl font-bold text-white">
+                      </div>
+                    <% else %>
+                      <div class="post-avatar-placeholder">
                         <%= String.first(user_info.username) |> String.upcase() %>
-                      </span>
-                    </div>
-                  <% end %>
-                </.link>
+                      </div>
+                    <% end %>
+                  </.link>
 
-                <div class="flex-1 min-w-0">
-                  <div class="flex items-center justify-between mb-3">
-                    <div>
-                      <.link navigate={~p"/#{@locale}/#{user_info.username}"} class="font-bold text-gray-900 text-lg capitalize hover:text-indigo-600 transition">
+                  <div class="post-author-info">
+                    <h4>
+                      <.link navigate={~p"/#{@locale}/#{user_info.username}"} style="text-decoration: none; color: inherit;">
                         <%= user_info.username %>
                       </.link>
-                      <p class="text-sm text-gray-500"><%= format_datetime(post.date_created) %></p>
-                    </div>
-
-                    <%= if is_own_post || @is_admin do %>
-                      <button phx-click="delete_post" phx-value-post_id={post.id} data-confirm="Delete this post?" class="opacity-0 group-hover:opacity-100 p-2 hover:bg-red-50 rounded-lg text-red-600 transition">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2.126 2.126 0 0116.138 21H7.862a2.126 2.126 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                        </svg>
-                      </button>
-                    <% end %>
-                  </div>
-
-                  <p class="text-gray-700 leading-relaxed mb-4 break-words"><%= post.content %></p>
-
-                  <div class="flex items-center gap-3 flex-wrap">
-                    <%= for reaction_type <- [:like, :love, :laugh, :wow] do %>
-                      <% count = Map.get(post.reaction_counts, reaction_type, 0) %>
-                      <button phx-click="react_to_post" phx-value-post_id={post.id} phx-value-reaction={reaction_type} class="px-4 py-2 bg-gray-50 hover:bg-indigo-100 rounded-full transition flex items-center gap-2 text-sm">
-                        <span class="text-lg"><%= reaction_emoji(reaction_type) %></span>
-                        <%= if count > 0 do %>
-                          <span class="font-semibold text-gray-700"><%= count %></span>
-                        <% end %>
-                      </button>
-                    <% end %>
+                    </h4>
+                    <p><%= format_datetime(post.date_created) %></p>
                   </div>
                 </div>
+
+                <%= if is_own_post || @is_admin do %>
+                  <button
+                    phx-click="delete_post"
+                    phx-value-post_id={post.id}
+                    data-confirm="Are you sure you want to delete this post?"
+                    class="post-delete"
+                  >
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M19 7l-.867 12.142A2.126 2.126 0 0116.138 21H7.862a2.126 2.126 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                    </svg>
+                  </button>
+                <% end %>
+              </div>
+
+              <div class="post-content">
+                <%= post.content %>
+              </div>
+
+              <div class="post-reactions">
+                <%= for reaction_type <- [:like, :love, :laugh, :wow] do %>
+                  <% count = Map.get(post.reaction_counts, reaction_type, 0) %>
+                  <button
+                    phx-click="react_to_post"
+                    phx-value-post_id={post.id}
+                    phx-value-reaction={reaction_type}
+                    class="reaction-btn"
+                  >
+                    <span class="reaction-emoji"><%= reaction_emoji(reaction_type) %></span>
+                    <%= if count > 0 do %>
+                      <span class="reaction-count"><%= count %></span>
+                    <% end %>
+                  </button>
+                <% end %>
               </div>
             </div>
           <% end %>
@@ -236,5 +789,7 @@
 
 <script>
   const container = document.getElementById('posts-container');
-  if (container) container.scrollTop = container.scrollHeight;
+  if (container) {
+    container.scrollTop = container.scrollHeight;
+  }
 </script>

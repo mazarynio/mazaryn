@@ -108,7 +108,9 @@ config :mazaryn, Mazaryn.Gettext,
     "it",
     "pt",
     "fil",
-    "id"
+    "id",
+    "ja",
+    "ko"
   ]
 
 config :mazaryn, :media,

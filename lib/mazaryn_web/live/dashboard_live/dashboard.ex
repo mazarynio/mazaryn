@@ -228,14 +228,6 @@ defmodule MazarynWeb.DashboardLive.Dashboard do
   defp get_level_description(level) when level >= 5, do: "Growing User"
   defp get_level_description(_), do: "New Member"
 
-  defp get_level_color(level) when level >= 50, do: "from-purple-600 to-pink-600"
-  defp get_level_color(level) when level >= 40, do: "from-indigo-600 to-purple-600"
-  defp get_level_color(level) when level >= 30, do: "from-blue-600 to-indigo-600"
-  defp get_level_color(level) when level >= 20, do: "from-green-600 to-blue-600"
-  defp get_level_color(level) when level >= 10, do: "from-yellow-600 to-green-600"
-  defp get_level_color(level) when level >= 5, do: "from-orange-600 to-yellow-600"
-  defp get_level_color(_), do: "from-gray-600 to-gray-700"
-
   defp format_number(num) when num >= 1_000_000 do
     "#{Float.round(num / 1_000_000, 1)}M"
   end
