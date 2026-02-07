@@ -27,8 +27,8 @@
 
 -behaviour(gen_server).
 -define(SERVER, ?MODULE).
--record(state, {worker_pool_size = 100, 
-                worker_pool = []}). 
+-record(state, {worker_pool_size = 100,
+                worker_pool = []}).
 
 
 %% @doc Start the user server
@@ -41,8 +41,8 @@ create_account(Username, Password, Email) ->
 
 create_account_concurrent(Username, Password, Email) ->
     RequestId = make_ref(),
-    gen_server:cast({global, ?MODULE}, {create_account_concurrent, 
-                                  Username, Password, Email, 
+    gen_server:cast({global, ?MODULE}, {create_account_concurrent,
+                                  Username, Password, Email,
                                   {self(), RequestId}}),
     receive
         {account_creation_result, RequestId, Result} -> Result
@@ -52,7 +52,7 @@ create_account_concurrent(Username, Password, Email) ->
 
 %% @doc User login
 login(Email, Password) ->
-    gen_server:call({global, ?MODULE}, {login, Email, Password}). 
+    gen_server:call({global, ?MODULE}, {login, Email, Password}).
 
 %% @doc Insert notification for a user
 insert_notif(UserID, Message) ->
@@ -241,6 +241,15 @@ get_user_by_verification_token(Token) ->
 mark_user_as_verified(UserId) ->
     gen_server:call({global, ?MODULE}, {mark_user_as_verified, UserId}).
 
+set_password_reset_token(UserId, Token) ->
+    gen_server:call({global, ?MODULE}, {set_password_reset_token, UserId, Token}).
+
+verify_password_reset_token(Token) ->
+    gen_server:call({global, ?MODULE}, {verify_password_reset_token, Token}).
+
+reset_password_with_token(Token, NewPassword) ->
+    gen_server:call({global, ?MODULE}, {reset_password_with_token, Token, NewPassword}).
+
 %%====================================================================
 %% gen_server callbacks
 %%====================================================================
@@ -267,15 +276,15 @@ worker_loop() ->
             Result = userdb:insert_concurrent(Username, Password, Email),
             gen_server:reply(From, Result),
             worker_loop();
-        
+
         {create_account_async, Username, Password, Email, {Pid, RequestId}} ->
             Result = userdb:insert_concurrent(Username, Password, Email),
             Pid ! {account_creation_result, RequestId, Result},
             worker_loop();
-            
+
         {stop, From} ->
             From ! {stopped, self()};
-            
+
         Other ->
             ?LOG_WARNING("Worker received unknown message: ~p", [Other]),
             worker_loop()
@@ -488,11 +497,23 @@ handle_call({mark_user_as_verified, UserId}, _From, State) ->
     Res = userdb:mark_user_as_verified(UserId),
     {reply, Res, State};
 
+handle_call({set_password_reset_token, UserId, Token}, _From, State) ->
+    Res = userdb:set_password_reset_token(UserId, Token),
+    {reply, Res, State};
+
+handle_call({verify_password_reset_token, Token}, _From, State) ->
+    Res = userdb:verify_password_reset_token(Token),
+    {reply, Res, State};
+
+handle_call({reset_password_with_token, Token, NewPassword}, _From, State) ->
+    Res = userdb:reset_password_with_token(Token, NewPassword),
+    {reply, Res, State};
+
 handle_call(_Request, _From, State) ->
     {reply, {error, unknown_call}, State}.
 
 %% @doc Handle casts
-handle_cast({create_account_concurrent, Username, Password, Email, {Pid, RequestId}}, 
+handle_cast({create_account_concurrent, Username, Password, Email, {Pid, RequestId}},
            State = #state{worker_pool = [Worker|RestWorkers]}) ->
     Worker ! {create_account_async, Username, Password, Email, {Pid, RequestId}},
     {noreply, State#state{worker_pool = RestWorkers ++ [Worker]}};

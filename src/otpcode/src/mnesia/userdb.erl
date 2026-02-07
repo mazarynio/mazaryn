@@ -56,7 +56,10 @@
     set_verification_token/2,
     verify_email_token/1,
     get_user_by_verification_token/1,
-    mark_user_as_verified/1
+    mark_user_as_verified/1,
+    set_password_reset_token/2,
+    verify_password_reset_token/1,
+    reset_password_with_token/2
 ]).
 -define(LIMIT_SEARCH, 50).
 -define(MAX_RETRIES, 10).
@@ -905,3 +908,51 @@ mark_user_as_verified(UserId) ->
         {atomic, {error, Reason}} -> {error, Reason};
         {aborted, Reason} -> {error, Reason}
     end.
+
+    set_password_reset_token(UserId, Token) ->
+        Fun = fun() ->
+            case mnesia:read(user, UserId) of
+                [] -> {error, user_not_found};
+                [User] ->
+                    UpdatedUser = User#user{verification_token = Token,
+                                            date_updated = calendar:universal_time()},
+                    mnesia:write(UpdatedUser),
+                    ok
+            end
+        end,
+        case mnesia:transaction(Fun) of
+            {atomic, ok} -> ok;
+            {atomic, {error, Reason}} -> {error, Reason};
+            {aborted, Reason} -> {error, Reason}
+        end.
+
+    verify_password_reset_token(Token) ->
+        Fun = fun() ->
+            case mnesia:match_object(#user{verification_token = Token, _ = '_'}) of
+                [] -> {error, token_not_found};
+                [User] -> {ok, User#user.id}
+            end
+        end,
+        case mnesia:transaction(Fun) of
+            {atomic, {ok, UserId}} -> {ok, UserId};
+            {atomic, {error, Reason}} -> {error, Reason};
+            {aborted, Reason} -> {error, Reason}
+        end.
+
+    reset_password_with_token(Token, NewPassword) ->
+        Fun = fun() ->
+            case mnesia:match_object(#user{verification_token = Token, _ = '_'}) of
+                [] -> {error, token_not_found};
+                [User] ->
+                    UpdatedUser = User#user{password = erlpass:hash(NewPassword),
+                                            verification_token = undefined,
+                                            date_updated = calendar:universal_time()},
+                    mnesia:write(UpdatedUser),
+                    {ok, password_reset}
+            end
+        end,
+        case mnesia:transaction(Fun) of
+            {atomic, {ok, password_reset}} -> {ok, password_reset};
+            {atomic, {error, Reason}} -> {error, Reason};
+            {aborted, Reason} -> {error, Reason}
+        end.

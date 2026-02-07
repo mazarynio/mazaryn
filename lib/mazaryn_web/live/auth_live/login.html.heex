@@ -109,7 +109,9 @@
               <label class="block text-sm font-medium text-gray-700">
                 <%= gettext("Password") %> *
               </label>
-              <%= link(gettext("Forgot password?"), to: "/reset", class: "text-sm text-pink-600 hover:text-pink-700") %>
+              <.link navigate={~p"/#{@locale}/reset"} class="text-sm text-pink-600 hover:text-pink-700">
+                <%= gettext("Forgot password?") %>
+              </.link>
             </div>
             <div class="relative">
               <%= password_input(f, :password,

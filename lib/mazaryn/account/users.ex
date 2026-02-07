@@ -298,8 +298,9 @@ defmodule Account.Users do
             :ok ->
               Logger.debug("✓ Verification token set successfully")
 
+              is_production = System.get_env("PHX_HOST") == "mazaryn.io"
               send_emails = Application.get_env(:mazaryn, :email)[:send_emails]
-              Logger.debug("Step 4: Email sending enabled? #{send_emails}")
+              Logger.debug("Step 4: Email sending enabled? #{send_emails}, Production? #{is_production}")
 
               if send_emails do
                 Logger.debug("Step 5: Preparing verification email...")
@@ -333,7 +334,17 @@ defmodule Account.Users do
                 end
               else
                 Logger.info("Email sending disabled in config - skipping verification email")
-                {:ok, user_id}
+                Logger.info("Development mode - marking user as verified automatically")
+
+                case Core.UserClient.mark_user_as_verified(user_id) do
+                  :ok ->
+                    Logger.info("✓ User marked as verified (dev mode)")
+                    {:ok, user_id}
+
+                  {:error, reason} ->
+                    Logger.error("✗ Failed to mark user as verified: #{inspect(reason)}")
+                    {:ok, user_id}
+                end
               end
 
             {:error, reason} ->
@@ -388,6 +399,110 @@ defmodule Account.Users do
     end
   end
 
+  def request_password_reset(email) do
+    Logger.info("Password reset requested for email: #{email}")
+
+    try do
+      case one_by_email(email) do
+        {:ok, user} ->
+          Logger.info("✓ User found for password reset - id: #{user.id}")
+
+          reset_token = User.generate_verification_token()
+          Logger.debug("✓ Reset token generated: #{String.slice(reset_token, 0..10)}...")
+
+          case Core.UserClient.set_password_reset_token(user.id, reset_token) do
+            :ok ->
+              Logger.debug("✓ Reset token set successfully")
+
+              send_emails = Application.get_env(:mazaryn, :email)[:send_emails]
+
+              if send_emails do
+                host = Application.get_env(:mazaryn, MazarynWeb.Endpoint)[:url][:host]
+                reset_url = "https://#{host}/en/reset-password/#{reset_token}"
+                Logger.info("Reset URL: #{reset_url}")
+
+                case UserNotifier.deliver_password_reset_email(%{email: email, username: user.username}, reset_url) do
+                  {:ok, _} ->
+                    Logger.info("✓ Password reset email sent to #{email}")
+                    {:ok, :email_sent}
+
+                  {:error, reason} ->
+                    Logger.error("✗ Failed to send password reset email: #{inspect(reason)}")
+                    {:error, :email_send_failed}
+                end
+              else
+                Logger.info("Email sending disabled - returning success anyway (dev mode)")
+                {:ok, :email_sent}
+              end
+
+            {:error, reason} ->
+              Logger.error("✗ Failed to set reset token: #{inspect(reason)}")
+              {:error, :token_setup_failed}
+          end
+
+        {:error, :user_not_exist} ->
+          Logger.warning("✗ Password reset requested for non-existent email: #{email}")
+          {:error, :user_not_found}
+
+        {:error, reason} ->
+          Logger.error("✗ User lookup failed during password reset: #{inspect(reason)}")
+          {:error, reason}
+      end
+    rescue
+      error ->
+        Logger.error("✗ Exception during password reset request: #{inspect(error)}")
+        {:error, :reset_failed}
+    end
+  end
+
+  def verify_reset_token(token) do
+    Logger.info("Verifying reset token: #{String.slice(token, 0..10)}...")
+
+    try do
+      case Core.UserClient.verify_password_reset_token(token) do
+        {:ok, user_id} ->
+          Logger.info("✓ Valid reset token for user: #{user_id}")
+          {:ok, user_id}
+
+        {:error, :token_not_found} ->
+          Logger.warning("✗ Invalid reset token")
+          {:error, :invalid_token}
+
+        {:error, reason} ->
+          Logger.error("✗ Token verification failed: #{inspect(reason)}")
+          {:error, reason}
+      end
+    rescue
+      error ->
+        Logger.error("✗ Exception during token verification: #{inspect(error)}")
+        {:error, :verification_failed}
+    end
+  end
+
+  def reset_password_with_token(token, new_password) do
+    Logger.info("Resetting password with token: #{String.slice(token, 0..10)}...")
+
+    try do
+      case Core.UserClient.reset_password_with_token(token, new_password) do
+        {:ok, :password_reset} ->
+          Logger.info("✓ Password reset successful")
+          {:ok, :password_reset}
+
+        {:error, :token_not_found} ->
+          Logger.warning("✗ Invalid token during password reset")
+          {:error, :invalid_token}
+
+        {:error, reason} ->
+          Logger.error("✗ Password reset failed: #{inspect(reason)}")
+          {:error, reason}
+      end
+    rescue
+      error ->
+        Logger.error("✗ Exception during password reset: #{inspect(error)}")
+        {:error, :reset_failed}
+    end
+  end
+
   def login(email, pass) do
     Logger.info("login attempt - email: #{email}")
 
@@ -401,33 +516,11 @@ defmodule Account.Users do
           is_production = System.get_env("PHX_HOST") == "mazaryn.io"
           Logger.debug("Environment: #{if is_production, do: "PRODUCTION", else: "DEVELOPMENT"}")
 
-          if is_production do
-            if user.verified do
-              Logger.debug("Step 2: User is verified, proceeding with login...")
-
-              case UserClient.login(email, pass) do
-                :logged_in ->
-                  Logger.info("✓✓✓ Login successful for #{email}")
-                  {:ok, :logged_in}
-
-                {:error, :timeout} ->
-                  Logger.warning("✗ Login timed out for #{email}")
-                  {:error, :timeout}
-
-                {:error, reason} ->
-                  Logger.error("✗ Login failed for #{email}: #{inspect(reason)}")
-                  {:error, reason}
-
-                res ->
-                  Logger.error("✗ Unexpected login result for #{email}: #{inspect(res)}")
-                  {:error, res}
-              end
-            else
-              Logger.warning("✗ Login blocked - account not verified: #{email}")
-              {:error, :email_not_verified}
-            end
+          if is_production and not user.verified do
+            Logger.warning("✗ Login blocked - account not verified: #{email}")
+            {:error, :email_not_verified}
           else
-            Logger.debug("Development mode - skipping verification check")
+            Logger.debug("Step 2: User verification check passed, proceeding with login...")
 
             case UserClient.login(email, pass) do
               :logged_in ->

@@ -140,18 +140,20 @@ defmodule MazarynWeb.AuthLive.Signup do
             )
         end
 
-        Logger.debug("Inserting session token for key: #{key}")
-        insert_session_token(key, email)
+        is_production = System.get_env("PHX_HOST") == "mazaryn.io"
 
-        Logger.debug("Scheduling redirect to approve page")
-        Process.send_after(self(), {:redirect_to_approve, locale}, 200)
+        success_message = if is_production do
+          "Account created successfully! Please check your email to verify your account before logging in."
+        else
+          "Account created successfully! You can now log in."
+        end
+
+        Logger.debug("Scheduling redirect to login page")
+        Process.send_after(self(), {:redirect_to_login, locale}, 200)
 
         {:noreply,
          socket
-         |> put_flash(
-           :info,
-           "Account created successfully! Please check your email to verify your account."
-         )
+         |> put_flash(:info, success_message)
          |> assign(:user_created, true)
          |> assign(:changeset, changeset)}
 
@@ -232,17 +234,17 @@ defmodule MazarynWeb.AuthLive.Signup do
   end
 
   @impl true
-  def handle_info({:redirect_to_approve, locale}, socket) do
+  def handle_info({:redirect_to_login, locale}, socket) do
     Logger.info(
       "Redirect triggered - locale: #{locale}, user_created: #{Map.get(socket.assigns, :user_created, false)}"
     )
 
     if Map.get(socket.assigns, :user_created, false) do
-      Logger.info("✓ Redirecting to approve page")
-      {:noreply, push_navigate(socket, to: ~p"/#{locale}/approve")}
-    else
-      Logger.warn("✗ Redirect aborted - user not created, redirecting to login instead")
+      Logger.info("✓ Redirecting to login page")
       {:noreply, push_navigate(socket, to: ~p"/#{locale}/login")}
+    else
+      Logger.warn("✗ Redirect aborted - user not created")
+      {:noreply, socket}
     end
   end
 

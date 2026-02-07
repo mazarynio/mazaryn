@@ -102,7 +102,7 @@ defmodule Account.User do
         {:user, id, p2p_node_address, ipfs_key, ai_user_id, business_id, ads_id, quantum_id,
          username, password, email, address, knode, media, posts, blog_post, notif, following,
          follower, blocked, saved_posts, reposts, other_info, private, date_created, date_updated,
-         avatar_url, banner_url, token_id, chat, verified, report, level, last_activity, suspend,
+         avatar_url, banner_url, token_id, chat, verified, verification_token, report, level, last_activity, suspend,
          datasets, competitions, groups, data} = _user
       ) do
     avatar_url =
@@ -161,6 +161,7 @@ defmodule Account.User do
       notif: notif,
       chat: chat,
       verified: verified,
+      verification_token: verification_token,
       report: report,
       level: level,
       last_activity: last_activity,
@@ -201,7 +202,7 @@ defmodule Account.User do
         {:user, id, p2p_node_address, ipfs_key, ai_user_id, business_id, ads_id, quantum_id,
          username, password, email, address, knode, media, posts, blog_post, notif, following,
          follower, blocked, saved_posts, reposts, other_info, private, date_created, date_updated,
-         avatar_url, banner_url, token_id, chat, verified, report, level, last_activity, suspend,
+         avatar_url, banner_url, token_id, chat, verified, verification_token, report, level, last_activity, suspend,
          datasets, competitions, groups, data} = _user
       ) do
     try do
@@ -210,7 +211,7 @@ defmodule Account.User do
           {:user, id, p2p_node_address, ipfs_key, ai_user_id, business_id, ads_id, quantum_id,
            username, password, email, address, knode, media, posts, blog_post, notif, following,
            follower, blocked, saved_posts, reposts, other_info, private, date_created,
-           date_updated, avatar_url, banner_url, token_id, chat, verified, report, level,
+           date_updated, avatar_url, banner_url, token_id, chat, verified, verification_token, report, level,
            last_activity, suspend, datasets, competitions, groups, data}
         )
 

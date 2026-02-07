@@ -1,46 +1,32 @@
 defmodule MazarynWeb.EmailVerificationController do
   use MazarynWeb, :controller
-
   alias Account.Users
   require Logger
 
-  def verify(conn, %{"token" => token, "locale" => locale}) do
-    case Users.verify_email(token) do
-      {:ok, _user_id} ->
-        conn
-        |> put_flash(:info, "Your email has been verified successfully! You can now log in.")
-        |> redirect(to: ~p"/#{locale}/login")
-
-      {:error, :invalid_token} ->
-        conn
-        |> put_flash(:error, "Invalid or expired verification token. Please request a new verification email.")
-        |> redirect(to: ~p"/#{locale}/signup")
-
-      {:error, reason} ->
-        Logger.error("Email verification failed: #{inspect(reason)}")
-        conn
-        |> put_flash(:error, "Verification failed. Please try again or contact support.")
-        |> redirect(to: ~p"/#{locale}/signup")
-    end
-  end
-
   def verify(conn, %{"token" => token}) do
+    Logger.info("Email verification attempt - token: #{String.slice(token, 0..10)}...")
+
     case Users.verify_email(token) do
-      {:ok, _user_id} ->
+      {:ok, user_id} ->
+        Logger.info("✓ Email verified successfully for user #{user_id}")
+
         conn
         |> put_flash(:info, "Your email has been verified successfully! You can now log in.")
-        |> redirect(to: ~p"/en/login")
+        |> redirect(to: "/#{conn.assigns.locale}/verification-success")
 
       {:error, :invalid_token} ->
+        Logger.warning("✗ Invalid verification token")
+
         conn
-        |> put_flash(:error, "Invalid or expired verification token. Please request a new verification email.")
-        |> redirect(to: ~p"/en/signup")
+        |> put_flash(:error, "Invalid or expired verification link. Please try signing up again.")
+        |> redirect(to: "/#{conn.assigns.locale}/signup")
 
       {:error, reason} ->
-        Logger.error("Email verification failed: #{inspect(reason)}")
+        Logger.error("✗ Email verification failed: #{inspect(reason)}")
+
         conn
         |> put_flash(:error, "Verification failed. Please try again or contact support.")
-        |> redirect(to: ~p"/en/signup")
+        |> redirect(to: "/#{conn.assigns.locale}/signup")
     end
   end
 end

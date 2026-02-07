@@ -31,7 +31,6 @@ defmodule Core.UserClient do
     :user_server.set_user_info(username, fields, values)
   end
 
-  ## Get User Informations using Username
   def get_user(username) do
     :user_server.get_user(username)
   end
@@ -44,22 +43,18 @@ defmodule Core.UserClient do
     :user_server.get_user_in_transaction(username)
   end
 
-  ## Get all Users on the Network
   def get_all() do
     :user_server.get_users()
   end
 
-  ## Get Password using UserID
   def get_pass(id) do
     :user_server.get_password(id)
   end
 
-  ## Get User information by User Email
   def get_user_by_email(email) do
     :user_server.get_user_by_email(email)
   end
 
-  ## Get User by UserID
   def get_user_by_id(id) do
     case id do
       {:error, _reason} = error ->
@@ -86,7 +81,6 @@ defmodule Core.UserClient do
     :userdb.get_user_token(user_id)
   end
 
-  ## Change Password Using Username, Current Password and New Password
   def change_pass(username, current_pass, new_pass) do
     :user_server.change_password(username, current_pass, new_pass)
   end
@@ -99,17 +93,14 @@ defmodule Core.UserClient do
     :user_server.change_username(username, current_pass, new_username)
   end
 
-  ## Remove User Permanently using Username
   def delete_user(username) do
     :user_server.delete_user(username)
   end
 
-  # id = MyID, following = UserID
   def follow(id, following) do
     :user_server.follow(id, following)
   end
 
-  # id = MyID, following = UserID
   def unfollow(id, following) do
     :user_server.unfollow(id, following)
   end
@@ -122,7 +113,6 @@ defmodule Core.UserClient do
     :user_server.unfollow_multiple(id, others)
   end
 
-  ## Save Post using MyID and PostID
   def save_post(id, postId) do
     :user_server.save_post(id, postId)
   end
@@ -171,12 +161,10 @@ defmodule Core.UserClient do
     :user_server.get_user_info(username, fields)
   end
 
-  ## Block user using MyID and UserID
   def block(id, blocked) do
     :user_server.block(id, blocked)
   end
 
-  ## Unblock user using MyID and UserID
   def unblock(id, unblocked) do
     :user_server.unblock(id, unblocked)
   end
@@ -242,5 +230,17 @@ defmodule Core.UserClient do
 
   def mark_user_as_verified(user_id) do
     :user_server.mark_user_as_verified(user_id)
+  end
+
+  def set_password_reset_token(user_id, token) do
+    :user_server.set_password_reset_token(user_id, token)
+  end
+
+  def verify_password_reset_token(token) do
+    :user_server.verify_password_reset_token(token)
+  end
+
+  def reset_password_with_token(token, new_password) do
+    :user_server.reset_password_with_token(token, new_password)
   end
 end

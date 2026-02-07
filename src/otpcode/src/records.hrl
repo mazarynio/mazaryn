@@ -28,6 +28,7 @@
                 token_id,
                 chat = [],
                 verified = true,
+                verification_token,
                 report = [],
                 level, % Includes 20 Levels based on User Activity
                 last_activity,

@@ -103,6 +103,79 @@ defmodule Account.UserNotifier do
   end
 
   @doc """
+  Deliver password reset instructions.
+  """
+  def deliver_password_reset_email(user, url) do
+    text_body = """
+    Hi #{user.username || user.email},
+
+    You recently requested to reset your password for your Mazaryn account.
+
+    Click the link below to reset your password:
+
+    #{url}
+
+    This password reset link will expire in 1 hour.
+
+    If you didn't request a password reset, please ignore this email. Your password will remain unchanged.
+
+    Best regards,
+    The Mazaryn Team
+    """
+
+    html_body = """
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+      <div style="text-align: center; margin-bottom: 30px;">
+        <h1 style="color: #2563eb; margin-bottom: 10px;">Password Reset Request</h1>
+      </div>
+
+      <div style="background-color: #f8fafc; padding: 30px; border-radius: 8px; border-left: 4px solid #2563eb;">
+        <h2 style="color: #1e40af; margin-bottom: 20px;">Reset Your Password</h2>
+        <p style="color: #374151; line-height: 1.6; margin-bottom: 25px;">
+          Hi #{user.username || user.email},
+        </p>
+        <p style="color: #374151; line-height: 1.6; margin-bottom: 25px;">
+          We received a request to reset your password for your Mazaryn account.
+          Click the button below to choose a new password:
+        </p>
+
+        <div style="text-align: center; margin: 30px 0;">
+          <a href="#{url}"
+             style="background-color: #2563eb; color: white; padding: 14px 30px; text-decoration: none;
+                    border-radius: 6px; font-weight: bold; display: inline-block;">
+            Reset Password
+          </a>
+        </div>
+
+        <p style="color: #6b7280; font-size: 14px; line-height: 1.6; margin-bottom: 20px;">
+          <strong>Note:</strong> This password reset link will expire in 1 hour for security reasons.
+        </p>
+
+        <p style="color: #6b7280; font-size: 14px; line-height: 1.6;">
+          If you can't click the button above, copy and paste this URL into your browser:
+          <br>
+          <span style="word-break: break-all; color: #2563eb;">#{url}</span>
+        </p>
+      </div>
+
+      <div style="margin-top: 30px; text-align: center; color: #6b7280; font-size: 14px;">
+        <p>If you didn't request a password reset, please ignore this email. Your password will remain unchanged.</p>
+        <p style="margin-top: 10px;">For security reasons, if you continue to receive these emails, please contact our support team.</p>
+        <p style="margin-top: 20px;">
+          Best regards,<br>
+          <strong>The Mazaryn Team</strong>
+        </p>
+      </div>
+    </div>
+    """
+
+    case deliver(user.email, "Reset your Mazaryn password", text_body, html_body) do
+      {:ok, _} -> {:ok, :email_sent}
+      {:error, reason} -> {:error, reason}
+    end
+  end
+
+  @doc """
   Deliver instructions to confirm account.
   """
   def deliver_confirmation_instructions(user, url) do

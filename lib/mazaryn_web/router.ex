@@ -93,7 +93,9 @@ defmodule MazarynWeb.Router do
       live("/blog/ai-nft", BlogLive.Post.AINFT)
       live("/blog/blockchain", BlogLive.Post.Blockchain)
       live("/reset", AuthLive.Reset)
+      live("/reset-password/:token", AuthLive.ResetPassword)
       live("/signup", AuthLive.Signup)
+      live("/verification-success", AuthLive.VerificationSuccess)
     end
 
     get("/", PageController, :index)
@@ -151,7 +153,7 @@ defmodule MazarynWeb.Router do
       live("/ai/notebooks/:id", AiLive.NotebookShow, :show)
 
       live("/ai/models", AiLive.Models, :index)
-      live("/ai/models/:id", AiLive.ModelShow, :show)           # ← this must be active
+      live("/ai/models/:id", AiLive.ModelShow, :show)
 
       # live("/ai/models/new", AiLive.ModelNew, :new)
       # live("/ai/models/:id/edit", AiLive.ModelEdit, :edit)
