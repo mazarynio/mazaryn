@@ -32,7 +32,13 @@ config :mime, :types, %{
   "application/x-joblib" => ["joblib"],
   "application/zip" => ["zip"],
   "video/x-matroska" => ["mkv"],
-  "video/x-msvideo" => ["avi"]
+  "video/x-msvideo" => ["avi"],
+  "audio/flac" => ["flac"],
+  "audio/wav" => ["wav"],
+  "audio/x-m4a" => ["m4a"],
+  "audio/ogg" => ["ogg"],
+  "audio/x-aiff" => ["aiff"],
+  "audio/x-alac" => ["alac"]
 }
 
 config :logger, level: :warning
@@ -57,6 +63,7 @@ config :mazaryn, MazarynWeb.Endpoint,
   live_view: [signing_salt: "un3aCFjC"]
 
 config :swoosh, :api_client, false
+
 config :swoosh, :local, true
 
 config :mazaryn, MazarynWeb.Gettext,

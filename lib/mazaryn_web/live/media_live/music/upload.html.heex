@@ -1,0 +1,294 @@
+<div class="min-h-screen bg-[#27282e]">
+  <div class="fixed top-0 left-0 right-0 z-50 h-16 bg-gradient-to-b from-[#151620] to-[#151620] shadow-lg border-b border-gray-700">
+    <div class="flex items-center justify-between h-full px-8 max-w-[1800px] mx-auto">
+      <div class="flex items-center gap-4">
+        <.link navigate={~p"/#{@locale}/home"} class="flex items-center gap-3">
+          <span class="text-white text-2xl font-bold font-['Poppins']">Mazaryn</span>
+          <div class="flex gap-2">
+            <div class="w-2 h-2 bg-blue-500 rounded-full"></div>
+            <div class="w-2 h-2 bg-blue-500 rounded-full"></div>
+          </div>
+        </.link>
+        <div class="h-8 w-px bg-gray-600 mx-2"></div>
+        <div class="flex items-center gap-2">
+          <svg class="w-5 h-5 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-6-3a2 2 0 11-4 0 2 2 0 014 0zm-2 4a5 5 0 00-4.546 2.916A5.986 5.986 0 0010 16a5.986 5.986 0 004.546-2.084A5 5 0 0010 11z" clip-rule="evenodd" />
+          </svg>
+          <span class="text-white text-lg font-semibold font-['Poppins']">Music Upload</span>
+        </div>
+      </div>
+      <div class="flex items-center gap-4">
+        <%= if @username do %>
+          <div class="flex items-center gap-3 px-4 py-2 bg-[#323340] rounded-lg">
+            <div class="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center">
+              <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
+              </svg>
+            </div>
+            <span class="text-white text-base font-['Poppins']"><%= @username %></span>
+          </div>
+        <% else %>
+          <div class="flex items-center gap-3 px-4 py-2 bg-[#323340] rounded-lg">
+            <span class="text-white text-base font-['Poppins']">Guest</span>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  </div>
+
+  <div class="pt-20 px-8 pb-8 max-w-[1800px] mx-auto">
+    <div class="mb-8">
+      <h1 class="text-white text-4xl font-bold font-['Poppins'] mb-2">Upload Music</h1>
+      <p class="text-[#c5c7c8] text-lg font-['Poppins']">Share your tracks with the Mazaryn community</p>
+    </div>
+
+    <%= if not @is_artist and @artist_status == nil do %>
+      <div class="bg-[#323340] rounded-xl p-8 mb-8">
+        <div class="flex items-start gap-4">
+          <div class="flex-1">
+            <h2 class="text-white text-2xl font-bold font-['Poppins'] mb-2">Become an Artist</h2>
+            <p class="text-[#c5c7c8] text-base font-['Poppins'] mb-4">
+              You need to be an approved artist to upload music. Apply now to start sharing your tracks!
+            </p>
+            <%= if not @show_request_form do %>
+              <button
+                phx-click="show_request_form"
+                class="px-6 py-3 bg-blue-500 hover:bg-blue-600 rounded-lg text-white text-base font-semibold font-['Poppins'] transition-colors"
+              >
+                Apply for Artist Status
+              </button>
+            <% end %>
+          </div>
+        </div>
+
+        <%= if @show_request_form do %>
+          <div class="mt-6 pt-6 border-t border-gray-600">
+            <h3 class="text-white text-xl font-bold font-['Poppins'] mb-4">Artist Application</h3>
+            <form
+              id="artist-application-form"
+              phx-change="update_field"
+              phx-submit="submit_artist_request"
+              class="space-y-4"
+            >
+              <div>
+                <label class="block text-white text-sm font-semibold font-['Poppins'] mb-2">
+                  Artist Name *
+                </label>
+                <input
+                  type="text"
+                  name="artist_name"
+                  value={@artist_name}
+                  placeholder="Your stage name"
+                  class="w-full px-4 py-3 bg-[#3a3b4a] rounded-lg text-white placeholder-[#aaaaaa] focus:outline-none focus:ring-2 focus:ring-blue-500 font-['Poppins']"
+                />
+              </div>
+              <div>
+                <label class="block text-white text-sm font-semibold font-['Poppins'] mb-2">
+                  Bio *
+                </label>
+                <textarea
+                  name="bio"
+                  rows="4"
+                  placeholder="Tell us about yourself and your music"
+                  class="w-full px-4 py-3 bg-[#3a3b4a] rounded-lg text-white placeholder-[#aaaaaa] focus:outline-none focus:ring-2 focus:ring-blue-500 font-['Poppins']"
+                ><%= @bio %></textarea>
+              </div>
+              <div>
+                <label class="block text-white text-sm font-semibold font-['Poppins'] mb-2">
+                  Experience *
+                </label>
+                <textarea
+                  name="experience"
+                  rows="3"
+                  placeholder="Your musical background, years of experience, etc."
+                  class="w-full px-4 py-3 bg-[#3a3b4a] rounded-lg text-white placeholder-[#aaaaaa] focus:outline-none focus:ring-2 focus:ring-blue-500 font-['Poppins']"
+                ><%= @experience %></textarea>
+              </div>
+              <div>
+                <label class="block text-white text-sm font-semibold font-['Poppins'] mb-2">
+                  Proof Links
+                </label>
+                <textarea
+                  name="proof_links"
+                  rows="2"
+                  placeholder="Links to your music, social media, portfolio (one per line)"
+                  class="w-full px-4 py-3 bg-[#3a3b4a] rounded-lg text-white placeholder-[#aaaaaa] focus:outline-none focus:ring-2 focus:ring-blue-500 font-['Poppins']"
+                ><%= @proof_links %></textarea>
+              </div>
+              <div>
+                <label class="block text-white text-sm font-semibold font-['Poppins'] mb-2">
+                  Genres *
+                </label>
+                <input
+                  type="text"
+                  name="genres"
+                  value={@genres}
+                  placeholder="e.g., Rock, Jazz, Electronic, Hip-Hop"
+                  class="w-full px-4 py-3 bg-[#3a3b4a] rounded-lg text-white placeholder-[#aaaaaa] focus:outline-none focus:ring-2 focus:ring-blue-500 font-['Poppins']"
+                />
+              </div>
+              <details>
+                <summary class="text-[#555] text-xs cursor-pointer hover:text-[#888] select-none">
+                  🔍 Debug: current form values
+                </summary>
+                <pre class="text-[#888] text-xs mt-1 bg-[#1a1b20] rounded p-2 overflow-auto">artist_name: "<%= @artist_name %>"
+bio: "<%= @bio %>"
+experience: "<%= @experience %>"
+proof_links: "<%= @proof_links %>"
+genres: "<%= @genres %>"</pre>
+              </details>
+              <div class="flex gap-3 pt-4">
+                <button
+                  type="submit"
+                  class="px-6 py-3 bg-green-500 hover:bg-green-600 rounded-lg text-white text-base font-semibold font-['Poppins'] transition-colors"
+                >
+                  Submit Application
+                </button>
+                <button
+                  type="button"
+                  phx-click="hide_request_form"
+                  class="px-6 py-3 bg-[#3a3b4a] hover:bg-[#404152] rounded-lg text-white text-base font-semibold font-['Poppins'] transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+
+    <%= if @is_artist do %>
+      <div class="bg-[#323340] rounded-xl p-8">
+        <h2 class="text-white text-2xl font-bold font-['Poppins'] mb-6">Upload Your Music</h2>
+        <div class="mb-6">
+          <label class="block text-white text-sm font-semibold font-['Poppins'] mb-2">Privacy Setting</label>
+          <div class="flex gap-4">
+            <label class="flex items-center gap-2">
+              <input
+                type="radio"
+                name="privacy_radio"
+                value="public"
+                phx-click="set_privacy"
+                phx-value-value="public"
+                checked={@privacy == "public"}
+                class="w-4 h-4 text-blue-500 bg-[#3a3b4a] border-gray-600 focus:ring-blue-500"
+              />
+              <span class="text-white text-base font-['Poppins']">Public</span>
+            </label>
+            <label class="flex items-center gap-2">
+              <input
+                type="radio"
+                name="privacy_radio"
+                value="private"
+                phx-click="set_privacy"
+                phx-value-value="private"
+                checked={@privacy == "private"}
+                class="w-4 h-4 text-blue-500 bg-[#3a3b4a] border-gray-600 focus:ring-blue-500"
+              />
+              <span class="text-white text-base font-['Poppins']">Private</span>
+            </label>
+          </div>
+        </div>
+        <div class="mb-6">
+          <label class="block text-white text-sm font-semibold font-['Poppins'] mb-2">
+            Select Audio Files (Max 10 files, 500MB each)
+          </label>
+          <div class="relative">
+            <label
+              for={@uploads.music_files.ref}
+              class="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-600 rounded-lg cursor-pointer hover:border-blue-500 transition-colors bg-[#3a3b4a]"
+            >
+              <div class="flex flex-col items-center justify-center pt-5 pb-6">
+                <svg class="w-8 h-8 mb-3 text-[#c5c7c8]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                </svg>
+                <p class="mb-2 text-sm text-[#c5c7c8] font-['Poppins']">
+                  <span class="font-semibold">Click to upload</span> or drag and drop
+                </p>
+                <p class="text-xs text-[#aaaaaa] font-['Poppins']">
+                  FLAC, WAV, M4A, OGG, MP3, AIFF (Max 500MB)
+                </p>
+              </div>
+              <.live_file_input upload={@uploads.music_files} class="hidden" />
+            </label>
+          </div>
+          <%= for entry <- @uploads.music_files.entries do %>
+            <div class="mt-4 p-4 bg-[#3a3b4a] rounded-lg">
+              <div class="flex items-center justify-between mb-2">
+                <div class="flex items-center gap-2">
+                  <svg class="w-5 h-5 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M18 3a1 1 0 00-1.196-.98l-10 2A1 1 0 006 5v9.114A4.369 4.369 0 005 14c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V7.82l8-1.6v5.894A4.37 4.37 0 0015 12c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V3z" />
+                  </svg>
+                  <span class="text-white text-sm font-['Poppins']"><%= entry.client_name %></span>
+                  <span class="text-[#aaaaaa] text-xs font-['Poppins']">(<%= format_file_size(entry.client_size) %>)</span>
+                </div>
+                <button
+                  type="button"
+                  phx-click="cancel_upload"
+                  phx-value-ref={entry.ref}
+                  class="text-red-500 hover:text-red-400"
+                >
+                  <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                  </svg>
+                </button>
+              </div>
+              <div class="w-full h-2 bg-[#27282e] rounded-full overflow-hidden">
+                <div
+                  class="h-full bg-blue-500 rounded-full transition-all duration-300"
+                  style={"width: #{entry.progress}%"}
+                ></div>
+              </div>
+              <div class="flex justify-end mt-1">
+                <span class="text-[#aaaaaa] text-xs font-['Poppins']"><%= entry.progress %>%</span>
+              </div>
+            </div>
+          <% end %>
+          <%= if length(@uploads.music_files.entries) > 0 do %>
+            <div class="mt-6">
+              <button
+                type="button"
+                phx-click="upload_files"
+                class="w-full px-6 py-3 bg-green-500 hover:bg-green-600 rounded-lg text-white text-base font-semibold font-['Poppins'] transition-colors"
+              >
+                Upload <%= length(@uploads.music_files.entries) %> File<%= if length(@uploads.music_files.entries) != 1, do: "s" %>
+              </button>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+
+    <%= if @artist_status == "pending" do %>
+      <div class="bg-[#323340] rounded-xl p-8 text-center">
+        <svg class="w-16 h-16 text-yellow-500 mx-auto mb-4" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd" />
+        </svg>
+        <h2 class="text-white text-2xl font-bold font-['Poppins'] mb-2">Application Pending</h2>
+        <p class="text-[#c5c7c8] text-base font-['Poppins']">
+          Your artist application is currently under review. You'll be notified once it's approved.
+        </p>
+      </div>
+    <% end %>
+
+    <%= if @artist_status == "rejected" do %>
+      <div class="bg-[#323340] rounded-xl p-8 text-center">
+        <svg class="w-16 h-16 text-red-500 mx-auto mb-4" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+        </svg>
+        <h2 class="text-white text-2xl font-bold font-['Poppins'] mb-2">Application Not Approved</h2>
+        <p class="text-[#c5c7c8] text-base font-['Poppins'] mb-4">
+          Your artist application was not approved at this time. You can submit a new application.
+        </p>
+        <button
+          type="button"
+          phx-click="show_request_form"
+          class="px-6 py-3 bg-blue-500 hover:bg-blue-600 rounded-lg text-white text-base font-semibold font-['Poppins'] transition-colors"
+        >
+          Apply Again
+        </button>
+      </div>
+    <% end %>
+  </div>
+</div>

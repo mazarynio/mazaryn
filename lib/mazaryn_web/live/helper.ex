@@ -16,14 +16,135 @@ defmodule MazarynWeb.Live.Helper do
     """
   end
 
-  def handle_avatar(user) do
-    avatar_url = user.avatar_url
-    if avatar_url do
-      Mazaryn.config([:media, :ipfs_gateway]) <> avatar_url
-    else
-       ~p"/images/default-user.svg"
+  def get_username(nil), do: ""
+
+  def get_username(%Account.User{} = user) do
+    case user.username do
+      u when is_binary(u) and u != "" -> u
+      u when is_list(u) -> List.to_string(u)
+      _ -> ""
     end
   end
+
+  def get_username(user) when is_tuple(user) do
+    if tuple_size(user) > 8 do
+      username = elem(user, 8)
+
+      case username do
+        u when is_list(u) ->
+          str = List.to_string(u)
+          if String.starts_with?(str, ["/ip4", "/ip6"]), do: "", else: str
+
+        u when is_binary(u) ->
+          if String.starts_with?(u, ["/ip4", "/ip6"]), do: "", else: u
+
+        _ ->
+          ""
+      end
+    else
+      ""
+    end
+  end
+
+  def get_username(_), do: ""
+
+  def get_user_id(nil), do: ""
+
+  def get_user_id(%Account.User{} = user) do
+    case user.id do
+      id when is_list(id) -> List.to_string(id)
+      id when is_binary(id) -> id
+      _ -> ""
+    end
+  end
+
+  def get_user_id(user) when is_tuple(user) do
+    if tuple_size(user) > 1 do
+      id = elem(user, 1)
+
+      case id do
+        id when is_list(id) -> List.to_string(id)
+        id when is_binary(id) -> id
+        _ -> ""
+      end
+    else
+      ""
+    end
+  end
+
+  def get_user_id(_), do: ""
+
+  def handle_avatar(nil), do: ~p"/images/default-user.svg"
+
+  def handle_avatar(%Account.User{} = user) do
+    cond do
+      user.avatar_url && user.avatar_url != "" ->
+        avatar_url =
+          if is_list(user.avatar_url),
+            do: List.to_string(user.avatar_url),
+            else: user.avatar_url
+
+        if String.starts_with?(avatar_url, ["http://", "https://", "/"]) do
+          avatar_url
+        else
+          gateway = Mazaryn.config([:media, :ipfs_gateway]) || "https://ipfs.io/ipfs/"
+          gateway <> avatar_url
+        end
+
+      true ->
+        ~p"/images/default-user.svg"
+    end
+  end
+
+  def handle_avatar(user) when is_tuple(user) do
+    if tuple_size(user) > 17 do
+      avatar_url = elem(user, 17)
+
+      if avatar_url && avatar_url != "" do
+        avatar_str = if is_list(avatar_url), do: List.to_string(avatar_url), else: avatar_url
+
+        if String.starts_with?(avatar_str, ["http://", "https://", "/"]) do
+          avatar_str
+        else
+          gateway = Mazaryn.config([:media, :ipfs_gateway]) || "https://ipfs.io/ipfs/"
+          gateway <> avatar_str
+        end
+      else
+        ~p"/images/default-user.svg"
+      end
+    else
+      ~p"/images/default-user.svg"
+    end
+  end
+
+  def handle_avatar(_), do: ~p"/images/default-user.svg"
+
+  def get_user_from_session(%{"session_uuid" => session_uuid}) when session_uuid != nil do
+    case Account.Users.get_by_session_uuid(session_uuid) do
+      {:ok, user} -> user
+      _ -> nil
+    end
+  end
+
+  def get_user_from_session(%{"user_id" => user_id}) when user_id != nil do
+    charlist_id = if is_list(user_id), do: user_id, else: String.to_charlist(user_id)
+
+    case Core.UserClient.get_user_by_id(charlist_id) do
+      {:error, _} -> nil
+      user_tuple when is_tuple(user_tuple) -> user_tuple
+      _ -> nil
+    end
+  end
+
+  def get_user_from_session(_), do: nil
+
+  def is_admin_user(username) when is_binary(username) and username != "" do
+    admin_usernames = ["arvand", "mazaryn", "zaryn"]
+    normalized = username |> String.trim() |> String.downcase()
+    Enum.member?(admin_usernames, normalized)
+  end
+
+  def is_admin_user(_), do: false
 
   def is_disabled(changeset) do
     if Ecto.Changeset.get_field(changeset, :form_disabled) == true do
@@ -151,15 +272,6 @@ defmodule MazarynWeb.Live.Helper do
         nil
     end
   end
-
-  @doc """
-  <button phx-click={Phoenix.LiveView.JS.toggle(to: "#modal")}>Open Modal</button>
-
-
-  <.modal>
-    ...content
-  </modal>
-  """
 
   def modal(assigns) do
     ~H"""

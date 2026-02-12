@@ -2,360 +2,1146 @@ defmodule MazarynWeb.HomeLive.LeftSidebarComponent do
   use MazarynWeb, :live_component
   use Phoenix.VerifiedRoutes, endpoint: MazarynWeb.Endpoint, router: MazarynWeb.Router
 
-  def render(assigns) do
-    current_user = assigns.user.username |> String.to_charlist()
+  @impl true
+  def mount(socket) do
+    {:ok, assign(socket, :time_of_day, get_time_of_day())}
+  end
 
+  defp get_time_of_day do
+    hour = :calendar.local_time() |> elem(1) |> elem(0)
+
+    cond do
+      hour < 6 -> :night
+      hour < 12 -> :morning
+      hour < 18 -> :afternoon
+      true -> :evening
+    end
+  end
+
+  defp get_daily_quote do
+    quotes = [
+      "The only way to do great work is to love what you do. - Steve Jobs",
+      "Innovation distinguishes between a leader and a follower. - Steve Jobs",
+      "Your time is limited, don't waste it living someone else's life. - Steve Jobs",
+      "Stay hungry, stay foolish. - Steve Jobs",
+      "The future belongs to those who believe in the beauty of their dreams. - Eleanor Roosevelt",
+      "The best way to predict the future is to create it. - Peter Drucker",
+      "Success is not final, failure is not fatal: it is the courage to continue that counts. - Winston Churchill",
+      "Don't watch the clock; do what it does. Keep going. - Sam Levenson",
+      "The only limit to our realization of tomorrow will be our doubts of today. - Franklin D. Roosevelt",
+      "It does not matter how slowly you go as long as you do not stop. - Confucius",
+      "Quality is not an act, it is a habit. - Aristotle",
+      "The mind is everything. What you think you become. - Buddha",
+      "Life is 10% what happens to us and 90% how we react to it. - Charles R. Swindoll",
+      "The way to get started is to quit talking and begin doing. - Walt Disney",
+      "The journey of a thousand miles begins with one step. - Lao Tzu",
+      "Believe you can and you're halfway there. - Theodore Roosevelt",
+      "I have not failed. I've just found 10,000 ways that won't work. - Thomas Edison",
+      "Everything you've ever wanted is on the other side of fear. - George Addair",
+      "The harder I work, the more luck I seem to have. - Thomas Jefferson",
+      "Don't be afraid to give up the good to go for the great. - John D. Rockefeller"
+    ]
+
+    today = Date.utc_today()
+    day_of_year = today.day + today.month * 31
+    Enum.at(quotes, rem(day_of_year, length(quotes)))
+  end
+
+  @impl true
+  def update(assigns, socket) do
+    time_of_day = assigns[:time_of_day] || socket.assigns[:time_of_day] || :afternoon
+
+    colors =
+      case time_of_day do
+        :morning ->
+          %{
+            theme: "morning-theme",
+            gradient: "bg-gradient-to-br from-amber-50 via-rose-100 to-blue-100",
+            card_bg: "bg-gradient-to-br from-white/90 via-amber-50/90 to-rose-50/90",
+            border:
+              "border-2 border-white/30 border-gradient-to-r from-amber-200/50 via-rose-200/50 to-blue-200/50",
+            accent: "bg-gradient-to-r from-amber-400 via-rose-400 to-blue-400",
+            icon: "🌅",
+            happy_icon: "✨"
+          }
+
+        :afternoon ->
+          %{
+            theme: "afternoon-theme",
+            gradient: "bg-gradient-to-br from-cyan-50/80 via-fuchsia-100/80 to-pink-100/80",
+            card_bg: "bg-gradient-to-br from-white/90 via-cyan-50/90 to-fuchsia-50/90",
+            border:
+              "border-2 border-white/30 border-gradient-to-r from-cyan-200/50 via-fuchsia-200/50 to-pink-200/50",
+            accent: "bg-gradient-to-r from-cyan-400 via-fuchsia-400 to-pink-400",
+            icon: "☀️",
+            happy_icon: "🌟"
+          }
+
+        :evening ->
+          %{
+            theme: "evening-theme",
+            gradient: "bg-gradient-to-br from-violet-50/80 via-purple-100/80 to-rose-100/80",
+            card_bg: "bg-gradient-to-br from-white/90 via-violet-50/90 to-purple-50/90",
+            border:
+              "border-2 border-white/30 border-gradient-to-r from-violet-200/50 via-purple-200/50 to-rose-200/50",
+            accent: "bg-gradient-to-r from-violet-400 via-purple-400 to-rose-400",
+            icon: "🌇",
+            happy_icon: "🌠"
+          }
+
+        :night ->
+          %{
+            theme: "night-theme",
+            gradient: "bg-gradient-to-br from-indigo-900/30 via-purple-900/30 to-blue-900/30",
+            card_bg: "bg-gradient-to-br from-gray-900/90 via-indigo-900/90 to-purple-900/90",
+            border:
+              "border-2 border-white/10 border-gradient-to-r from-indigo-500/20 via-purple-500/20 to-blue-500/20",
+            accent: "bg-gradient-to-r from-indigo-500 via-purple-500 to-blue-500",
+            icon: "🌙",
+            happy_icon: "🌌"
+          }
+      end
+
+    socket =
+      socket
+      |> assign(assigns)
+      |> assign(:time_of_day, time_of_day)
+      |> assign(:colors, colors)
+      |> assign(:daily_quote, get_daily_quote())
+
+    {:ok, socket}
+  end
+
+  def render(assigns) do
     ~H"""
-    <div>
-      <div class="social-box w-full bg-gradient-to-br from-indigo-100 via-purple-200 to-pink-200 py-6 px-5 rounded-[20px] shadow-sm hover:shadow-lg transition-all duration-300">
-        <div class="flex justify-between align-center items-center">
-          <div class="flex justify-center items-center">
-            <ul>
-              <li class="flex align-center items-center mx-2 mb-7">
-                <%= live_redirect to: Routes.live_path(@socket, MazarynWeb.HomeLive.Home, @locale),
-                               replace: false, class: "group flex align-center items-start text-base text-gray-800 font-semibold hover:text-blue-700 transition-colors" do %>
-                  <i>
-                    <svg
-                      class="h-5 w-5 mr-3.5 fill-gray-700 group-hover:fill-blue-700 transition-colors"
-                      width="20"
-                      height="20"
-                      viewBox="0 0 20 20"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        d="M19.6488 7.86157L17.1463 5.82204V2.56025C17.1463 2.19294 16.8474 1.89407 16.4801 1.89407H14.9055C14.5382 1.89407 14.2393 2.19294 14.2393 2.56025V3.45274L10.8955 0.72753C10.6537 0.530462 10.3349 0.421875 9.99789 0.421875C9.66226 0.421875 9.34497 0.529796 9.10442 0.725834L0.351262 7.86151C-0.046447 8.18558 -0.0225857 8.46785 0.0270144 8.60727C0.0764932 8.74638 0.235831 8.97978 0.746729 8.97978H1.94531V18.3636C1.94531 19.0333 2.48867 19.5781 3.15654 19.5781H6.94164C7.60389 19.5781 8.1226 19.0446 8.1226 18.3636V14.5155C8.1226 14.1857 8.42571 13.8853 8.7585 13.8853H11.3021C11.6193 13.8853 11.8774 14.168 11.8774 14.5155V18.3636C11.8774 19.0219 12.446 19.5781 13.1189 19.5781H16.8435C17.5114 19.5781 18.0547 19.0333 18.0547 18.3636V8.97978H19.2533C19.7642 8.97978 19.9235 8.74638 19.973 8.60727C20.0226 8.46785 20.0465 8.18558 19.6488 7.86157Z"
-                      />
-                    </svg>
-                  </i>
-                  <div class="text-gray-800 group-hover:text-blue-700 transition-colors">
-                    <%= gettext("Home") %>
-                  </div>
-                <% end %>
-              </li>
-              <li class="flex align-center items-center mx-2 mb-7">
-                <.link
-                  navigate={~p"/chats"}
-                  class="group flex items-start text-base text-gray-800 font-semibold hover:text-blue-700 transition-colors"
-                >
-                  <i>
-                    <svg
-                      class="h-5 w-5 mr-3.5 fill-gray-700 group-hover:fill-blue-700 transition-colors"
-                      width="20"
-                      height="20"
-                      viewBox="0 0 20 20"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <g clip-path="url(#clip0_390_1350)">
-                        <path
-                          d="M19.1328 17.2236C18.5592 16.9973 18.0578 16.6081 17.6961 16.1015C19.1126 15.1443 20.0003 13.7723 20.0003 12.2479C20.0003 10.5798 18.9375 9.09385 17.2818 8.13477C17.1069 12.1761 12.8179 15.0539 7.9919 15.0539C7.58572 15.0539 7.1832 15.033 6.78516 14.9936C8.0419 16.4887 10.2939 17.4853 12.8634 17.4853C13.8006 17.4853 14.6955 17.3525 15.5154 17.1115C16.249 17.798 17.2926 18.131 18.3518 17.9139C18.6362 17.8556 18.9041 17.7613 19.1516 17.6366C19.2313 17.5965 19.2801 17.5133 19.276 17.4241C19.2719 17.3348 19.2159 17.2564 19.1328 17.2236Z"
-                        />
-                        <path
-                          d="M15.9831 7.88507C15.9831 4.64616 12.4052 2.02051 7.99157 2.02051C3.57796 2.02051 0 4.64616 0 7.88507C0 9.59189 0.993913 11.1282 2.57987 12.1999C2.16378 12.7828 1.58261 13.2268 0.918435 13.477C0.835 13.5085 0.777739 13.5858 0.772174 13.6748C0.766609 13.7638 0.813826 13.8478 0.892739 13.8894C1.40926 14.1613 1.98974 14.3032 2.56978 14.3032C3.49617 14.3032 4.36878 13.9423 5.022 13.3311C5.94009 13.6009 6.94213 13.7496 7.99161 13.7496C12.4052 13.7496 15.9831 11.124 15.9831 7.88507Z"
-                        />
-                      </g>
-                      <defs>
-                        <clipPath id="clip0_390_1350">
-                          <rect width="20" height="20" />
-                        </clipPath>
-                      </defs>
-                    </svg>
-                  </i>
-                  <div class="text-gray-800 group-hover:text-blue-700 transition-colors">
-                    <%= gettext("Chat") %>
-                  </div>
-                </.link>
-              </li>
-              <li class="flex align-center items-center mx-2 mb-7">
-                <.link
-                  navigate={~p"/#{@locale}/groups"}
-                  class="group flex items-start text-base text-gray-800 font-semibold hover:text-blue-700 transition-colors"
-                >
-                  <i>
-                    <%= icon("hero-users-solid", class: "h-6 w-5 mr-3.5 fill-gray-700 group-hover:fill-blue-700 transition-colors") %>
-                  </i>
-                  <div class="text-gray-800 group-hover:text-blue-700 transition-colors">
-                    <%= gettext("Groups") %>
-                  </div>
-                </.link>
-              </li>
-              <li class="flex align-center items-center mx-2 mb-7">
-                <.link
-                  navigate={~p"/#{@locale}/videos"}
-                  class="group flex items-start text-base text-gray-800 font-semibold hover:text-blue-700 transition-colors"
-                >
-                  <i>
-                    <svg
-                      class="h-5 w-5 mr-3.5 fill-gray-700 group-hover:fill-blue-700 transition-colors"
-                      width="20"
-                      height="20"
-                      viewBox="0 0 20 20"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        d="M2 4C2 2.89543 2.89543 2 4 2H16C17.1046 2 18 2.89543 18 4V16C18 17.1046 17.1046 18 16 18H4C2.89543 18 2 17.1046 2 16V4ZM8 6L14 10L8 14V6Z"
-                      />
-                    </svg>
-                  </i>
-                  <div class="text-gray-800 group-hover:text-blue-700 transition-colors">
-                    <%= gettext("Videos") %>
-                  </div>
-                </.link>
-              </li>
-              <li class="flex align-center items-center mx-2 mb-7">
-                <.link
-                  navigate={~p"/#{@locale}/weather"}
-                  class="group flex items-start text-base text-gray-800 font-semibold hover:text-blue-700 transition-colors"
-                >
-                  <i>
-                    <svg
-                      class="h-5 w-5 mr-3.5 fill-gray-700 group-hover:fill-blue-700 transition-colors"
-                      width="20"
-                      height="20"
-                      viewBox="0 0 20 20"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        d="M15.833 12.5C17.214 12.5 18.333 11.381 18.333 10C18.333 8.619 17.214 7.5 15.833 7.5C15.756 7.5 15.679 7.503 15.603 7.509C15.064 5.445 13.193 3.889 10.972 3.889C8.25 3.889 6.042 6.097 6.042 8.819V8.889C4.375 9.181 3.125 10.639 3.125 12.361C3.125 14.292 4.681 15.847 6.611 15.847H15.833C17.214 15.847 18.333 14.728 18.333 13.347C18.333 12.847 18.125 12.403 17.806 12.069C17.181 12.347 16.528 12.5 15.833 12.5Z"
-                      />
-                      <path
-                        d="M12 5.208C12.347 4.861 12.5 4.403 12.5 3.889C12.5 2.847 11.681 2 10.625 2C9.569 2 8.75 2.847 8.75 3.889C8.75 4.403 8.903 4.861 9.25 5.208C7.875 5.542 6.736 6.375 5.972 7.5H7.069C7.681 6.875 8.542 6.458 9.514 6.458C11.389 6.458 12.917 7.986 12.917 9.861C12.917 10.833 12.5 11.694 11.875 12.306V13.403C12.997 12.639 13.833 11.5 14.167 10.125C14.514 10.472 14.972 10.625 15.486 10.625C16.528 10.625 17.375 9.806 17.375 8.75C17.375 7.694 16.528 6.875 15.486 6.875C14.972 6.875 14.514 7.028 14.167 7.375C13.833 6 12.997 4.861 12 5.208Z"
-                      />
-                    </svg>
-                  </i>
-                  <div class="text-gray-800 group-hover:text-blue-700 transition-colors">
-                    <%= gettext("Weather") %>
-                  </div>
-                </.link>
-              </li>
-              <li class="flex align-center items-center mx-2">
-                <.link
-                  navigate={~p"/#{@locale}/settings"}
-                  class="group flex items-start text-base text-gray-800 font-semibold hover:text-blue-700 transition-colors"
-                >
-                  <i>
-                    <svg
-                      class="h-6 w-5 mr-3.5 fill-gray-700 group-hover:fill-blue-700 transition-colors"
-                      width="20"
-                      height="20"
-                      viewBox="0 0 20 20"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        d="M10 11.25C10.6904 11.25 11.25 10.6904 11.25 10C11.25 9.30964 10.6904 8.75 10 8.75C9.30964 8.75 8.75 9.30964 8.75 10C8.75 10.6904 9.30964 11.25 10 11.25Z"
-                      />
-                      <path
-                        d="M18.2425 8.60032L17.5842 6.50033C17.5131 6.25762 17.3939 6.03172 17.2336 5.83609C17.0733 5.64047 16.8753 5.47913 16.6513 5.36169C16.4274 5.24426 16.182 5.17314 15.93 5.15257C15.6779 5.13201 15.4243 5.16242 15.1842 5.24199L14.9009 5.33366C14.6789 5.40703 14.4425 5.42565 14.2118 5.38792C13.9811 5.35019 13.7629 5.25724 13.5759 5.11699L13.4842 5.05033C13.3017 4.91064 13.1546 4.73001 13.0547 4.52302C12.9548 4.31602 12.905 4.08845 12.9092 3.85866V3.62533C12.9133 3.10201 12.7095 2.59848 12.3426 2.22533C12.168 2.04904 11.9604 1.90896 11.7316 1.81314C11.5028 1.71733 11.2573 1.66766 11.0092 1.66699H8.88422C8.37436 1.67358 7.88776 1.88132 7.53034 2.24498C7.17293 2.60864 6.97364 3.09877 6.97588 3.60866V3.80866C6.97508 4.05055 6.92001 4.28918 6.81473 4.50696C6.70944 4.72474 6.55663 4.91612 6.36755 5.06699L6.25922 5.15033C6.05034 5.30834 5.80602 5.41296 5.54751 5.45507C5.289 5.49719 5.02412 5.47554 4.77588 5.39199C4.5479 5.3131 4.30627 5.28128 4.06563 5.29847C3.82499 5.31566 3.59034 5.38149 3.37588 5.49199C3.1526 5.60281 2.9545 5.7584 2.79393 5.94908C2.63337 6.13975 2.51376 6.36143 2.44255 6.60033L1.75922 8.76699C1.60075 9.25549 1.64139 9.78678 1.87231 10.2455C2.10322 10.7042 2.50578 11.0533 2.99255 11.217H3.12588C3.35043 11.3011 3.55197 11.4371 3.71414 11.6137C3.87631 11.7903 3.99453 12.0027 4.05922 12.2337L4.10922 12.367C4.20211 12.6221 4.23318 12.8956 4.19986 13.165C4.16654 13.4345 4.06979 13.6922 3.91755 13.917C3.6094 14.3366 3.47942 14.861 3.55589 15.376C3.63236 15.891 3.90909 16.355 4.32588 16.667L6.05088 17.9753C6.37751 18.2128 6.77208 18.3385 7.17588 18.3337C7.28396 18.3442 7.39281 18.3442 7.50088 18.3337C7.75097 18.2852 7.98857 18.1864 8.19918 18.0431C8.4098 17.8998 8.58901 17.7152 8.72588 17.5003L8.91755 17.2253C9.052 17.0325 9.2299 16.8739 9.4369 16.7624C9.6439 16.651 9.8742 16.5897 10.1092 16.5837C10.3555 16.5776 10.5993 16.634 10.8179 16.7477C11.0365 16.8614 11.2227 17.0285 11.3592 17.2337L11.4592 17.3753C11.6013 17.5868 11.7852 17.7669 11.9995 17.9046C12.2138 18.0423 12.4541 18.1347 12.7054 18.1761C12.9568 18.2175 13.214 18.207 13.4611 18.1452C13.7083 18.0834 13.9402 17.9717 14.1426 17.817L15.8342 16.5503C16.2342 16.2397 16.5002 15.7878 16.5777 15.2873C16.6551 14.7868 16.5382 14.2757 16.2509 13.8587L16.0342 13.542C15.9039 13.3407 15.8186 13.1136 15.7841 12.8763C15.7496 12.639 15.7667 12.3971 15.8342 12.167C15.9031 11.9207 16.0308 11.6949 16.2065 11.509C16.3822 11.3232 16.6005 11.1829 16.8425 11.1003L17.0092 11.042C17.4915 10.8746 17.8898 10.5263 18.1199 10.0707C18.3501 9.61507 18.3941 9.08779 18.2425 8.60032ZM10.0009 12.917C9.42402 12.917 8.86011 12.7459 8.38047 12.4254C7.90083 12.105 7.52699 11.6494 7.30623 11.1165C7.08548 10.5835 7.02772 9.99709 7.14026 9.43131C7.2528 8.86553 7.53059 8.34583 7.93849 7.93793C8.34639 7.53003 8.86609 7.25224 9.43187 7.1397C9.99765 7.02716 10.5841 7.08492 11.117 7.30568C11.65 7.52643 12.1055 7.90027 12.426 8.37991C12.7465 8.85955 12.9176 9.42346 12.9176 10.0003C12.9176 10.7739 12.6103 11.5157 12.0633 12.0627C11.5163 12.6097 10.7744 12.917 10.0009 12.917Z"
-                      />
-                    </svg>
-                  </i>
-                  <div class="text-gray-800 group-hover:text-blue-700 transition-colors">
-                    <%= gettext("Settings") %>
-                  </div>
-                </.link>
-              </li>
-              <li class="flex align-center items-center mx-2 mt-7">
-                <.link
-                  navigate={~p"/#{@locale}/ai"}
-                  class="group flex items-start text-base text-gray-800 font-semibold hover:text-blue-700 transition-colors"
-                >
-                  <i>
-                    <svg
-                      class="h-6 w-6 mr-3.5 fill-gray-700 group-hover:fill-blue-700 transition-colors"
-                      width="20"
-                      height="20"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"
-                      />
-                    </svg>
-                  </i>
-                  <div class="text-gray-800 group-hover:text-blue-700 transition-colors">
-                    <div class="flex items-center space-x-2">
-                      <span><%= gettext("Mazaryn AI") %></span>
-                      <span class="px-1.5 py-0.5 bg-gradient-to-r from-violet-600 to-indigo-600 text-white text-xs font-bold rounded-md">NEW</span>
-                    </div>
-                  </div>
-                </.link>
-              </li>
-            </ul>
-          </div>
-        </div>
+    <div
+      class="relative w-64 h-full overflow-hidden"
+      id="revolutionary-sidebar"
+      phx-hook="GlassSidebar"
+    >
+      <div class="absolute inset-0 glass-background">
+        <div class="floating-blob blob-1"></div>
+        <div class="floating-blob blob-2"></div>
+        <div class="floating-blob blob-3"></div>
+        <div class="floating-blob blob-4"></div>
+
+        <div class="grid-lines"></div>
+
+        <div class="particle-system"></div>
       </div>
-      <div class="social-box w-full bg-gradient-to-br from-indigo-200 via-purple-200 to-pink-200 py-6 px-5 my-8 rounded-[20px] shadow-sm hover:shadow-lg transition-all duration-300">
-        <div class="flex justify-between align-center items-center">
-          <div class="flex justify-center items-center">
-            <ul>
-              <li class="flex align-center items-center group mx-2 mb-7">
-                <.link
-                  navigate={~p"/dashboard"}
-                  class="group flex items-center text-base text-gray-800 font-semibold hover:text-blue-700 transition-colors"
-                >
-                  <i>
-                    <svg
-                      class="h-6 w-5 mr-3.5 fill-gray-700 group-hover:fill-blue-700 transition-colors"
-                      width="20"
-                      height="18"
-                      viewBox="0 0 20 18"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        d="M18.75 8.375V6.5C18.75 5.80961 18.1903 5.25 17.5 5.25H3.75C3.06063 5.25 2.5 4.68937 2.5 4C2.5 3.31063 3.06063 2.75 3.75 2.75H17.5C18.1903 2.75 18.75 2.19031 18.75 1.5C18.75 0.809687 18.1903 0.25 17.5 0.25H3.75C1.68211 0.25 0 1.93215 0 4V5.25V15.25C0 16.6307 1.11937 17.75 2.5 17.75H17.5C18.1903 17.75 18.75 17.1904 18.75 16.5V14.625C19.4403 14.625 20 14.0654 20 13.375V9.625C20 8.93461 19.4403 8.375 18.75 8.375ZM16.875 12.75C16.1847 12.75 15.625 12.1904 15.625 11.5C15.625 10.8096 16.1847 10.25 16.875 10.25C17.5653 10.25 18.125 10.8096 18.125 11.5C18.125 12.1904 17.5653 12.75 16.875 12.75Z"
-                      />
-                    </svg>
-                  </i>
-                  <div class="text-gray-800 group-hover:text-blue-700 transition-colors">
-                    <%= gettext("Dashboard") %>
-                  </div>
-                </.link>
-              </li>
-              <li class="flex align-center items-center mx-2 mb-7">
-                <a
-                  href="home"
-                  class="group flex items-center text-base text-gray-800 font-semibold hover:text-blue-700 transition-colors"
-                >
-                  <i>
-                    <svg
-                      class="h-5 w-5 mr-3.5 fill-gray-700 group-hover:fill-blue-700 transition-colors"
-                      width="16"
-                      height="18"
-                      viewBox="0 0 16 18"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        d="M15 7H16V18H0V7H1V5C1 2.24 3.24 -2.23031e-07 6 -2.23031e-07C6.71 -2.23031e-07 7.39 0.15 8 0.42C8.6301 0.142126 9.31135 -0.000934361 10 -2.23031e-07C12.76 -2.23031e-07 15 2.24 15 5V7ZM3 5V7H5V5C5 3.87 5.39 2.84 6.02 2H6C4.35 2 3 3.35 3 5ZM13 7V5C13 3.35 11.65 2 10 2H9.98C10.6376 2.86228 10.9957 3.91562 11 5V7H13ZM8 2.78C7.39 3.33 7 4.12 7 5V7H9V5C9 4.12 8.61 3.33 8 2.78Z"
-                      />
-                    </svg>
-                  </i>
-                  <div class="text-gray-800 group-hover:text-blue-700 transition-colors">
-                    My Products
-                  </div>
-                </a>
-              </li>
-              <li class="flex align-center items-center mx-2 group">
-                <%= live_redirect to: Routes.live_path(@socket, MazarynWeb.UserLive.Profile, @locale, @user.username), replace: false, class: "group flex items-center text-base text-gray-800 font-semibold" do %>
-                  <%= if @user.avatar_url do %>
-                    <img
-                      src={Path.join(Mazaryn.config([:media, :ipfs_gateway]), @user.avatar_url)}
-                      class="h-8 w-8 mr-3.5 object-cover rounded-full ring-2 ring-white group-hover:ring-blue-400 transition-all"
-                    />
-                  <% else %>
-                    <img
-                      alt="Default user"
-                      src={Routes.static_path(@socket, "/images/default-user.svg")}
-                      class="opacity-70 h-5 w-5 mr-3.5 rounded-full ring-2 ring-white group-hover:ring-blue-400 transition-all"
-                    />
-                  <% end %>
-                  <div class="leading-6 text-gray-800 group-hover:text-blue-700 transition-colors">
-                    @<%= @user.username %>
-                  </div>
-                <% end %>
-              </li>
-            </ul>
-          </div>
-        </div>
-      </div>
-      <%= if Enum.member?(ManageUser.get_admin_list(), current_user) do %>
-        <div class="social-box w-full bg-gradient-to-br from-indigo-200 via-purple-200 to-pink-200 py-6 px-5 my-8 rounded-[20px] shadow-sm hover:shadow-lg transition-all duration-300">
-          <div class="flex justify-between align-center items-center">
-            <div class="flex justify-center items-center">
-              <ul>
-                <li class="flex align-center items-center mx-2 mb-7">
-                  <.link
-                    navigate={~p"/manage"}
-                    class="group flex items-center text-base text-gray-800 font-semibold hover:text-blue-700 transition-colors"
-                  >
-                    <i>
-                      <%= icon("hero-users-solid", class: "h-6 w-5 mr-3.5 fill-gray-700 group-hover:fill-blue-700 transition-colors") %>
-                    </i>
-                    <div class="text-gray-800 group-hover:text-blue-700 transition-colors">
-                      <%= gettext("Manage Users") %>
-                    </div>
-                  </.link>
-                </li>
-              </ul>
+
+      <div class="relative z-10 h-full flex flex-col p-4 space-y-4 overflow-y-auto scrollbar-hidden">
+
+        <div class="quote-card group">
+          <div class="quote-overlay"></div>
+          <div class="relative z-10 p-4">
+            <div class="flex items-center mb-3">
+              <div class="quote-icon-container">
+                <svg class="quote-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M3 21C3 17.6863 5.68629 15 9 15H11.5M3 21V13C3 8.58172 6.58172 5 11 5H13C17.4183 5 21 8.58172 21 13V21"
+                        stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                  <path d="M11.5 21C11.5 17.6863 14.1863 15 17.5 15H20M11.5 21V13C11.5 8.58172 15.0817 5 19.5 5H21.5"
+                        stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                  <path d="M12.5 10C12.5 9.17157 13.1716 8.5 14 8.5H16C16.8284 8.5 17.5 9.17157 17.5 10C17.5 10.8284 16.8284 11.5 16 11.5H14C13.1716 11.5 12.5 10.8284 12.5 10Z"
+                        stroke="currentColor" stroke-width="1.5"/>
+                  <path d="M4.5 10C4.5 9.17157 5.17157 8.5 6 8.5H8C8.82843 8.5 9.5 9.17157 9.5 10C9.5 10.8284 8.82843 11.5 8 11.5H6C5.17157 11.5 4.5 10.8284 4.5 10Z"
+                        stroke="currentColor" stroke-width="1.5"/>
+                </svg>
+              </div>
+              <div class="ml-3">
+                <h3 class="font-bold text-sm text-gray-900">
+                  <span class="gradient-text">Daily Wisdom</span>
+                </h3>
+                <p class="text-gray-600 text-xs mt-0.5">
+                  <%= Timex.format!(Timex.now(), "%A, %B %d", :strftime) %>
+                </p>
+              </div>
+            </div>
+
+            <div class="mt-3">
+              <div class="quote-text">
+                <%= @daily_quote %>
+              </div>
+              <div class="flex items-center justify-between mt-3">
+                <div class="quote-author">
+                  <svg class="w-4 h-4 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                  </svg>
+                  <span class="text-xs text-gray-600 ml-1">Inspiring</span>
+                </div>
+                <button class="refresh-quote-btn" title="New Quote">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
+                </button>
+              </div>
             </div>
           </div>
         </div>
-      <% end %>
-      <div class="font-medium text-base leading-6 text-gray-800"><%= gettext("Explore") %></div>
-      <div class="social-box w-full bg-gradient-to-br from-indigo-200 via-purple-200 to-pink-200 py-6 px-5 my-6 rounded-[20px] shadow-sm hover:shadow-lg transition-all duration-300">
-        <div class="flex justify-between align-center items-center">
-          <div class="flex justify-center items-center">
-            <ul>
-              <li class="flex align-center items-center group mx-2 mb-7">
-                <.link
-                  navigate={~p"/#{@locale}"}
-                  class="group flex items-start text-base text-gray-800 font-semibold group-hover:text-blue-700 transition-colors"
-                >
-                  <i>
-                    <svg
-                      class="h-5 w-5 mr-3 fill-gray-700 group-hover:fill-blue-700 transition-colors"
-                      width="20"
-                      height="20"
-                      viewBox="0 0 20 20"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <g clip-path="url(#clip0_120_636)">
-                        <path
-                          d="M10 0C4.47715 0 0 4.47715 0 10C0 15.5229 4.47715 20 10 20C15.5229 20 20 15.5229 20 10C20 4.47715 15.5229 0 10 0ZM6.8396 4.35547C9.85633 4.36898 12.0833 7.37903 15.6567 5.06713V11.1169C12.7697 14.004 10.0626 9.33178 5.84472 10.4797V15.6445H4.34325V5.06713C5.25033 4.54343 6.07063 4.35203 6.8396 4.35547Z"
-                        />
-                      </g>
-                      <defs>
-                        <clipPath id="clip0_120_636">
-                          <rect width="20" height="20" />
-                        </clipPath>
-                      </defs>
-                    </svg>
-                  </i>
-                  <div class="leading-6 text-gray-800 group-hover:text-blue-700 transition-colors">Pages</div>
-                </.link>
-              </li>
-              <li class="flex align-center items-center group mx-2 mb-7">
-                <.link
-                  navigate={~p"/#{@locale}/jobs"}
-                  class="group flex items-start text-base text-gray-800 font-semibold hover:text-blue-700 transition-colors"
-                >
-                  <i>
-                    <svg
-                      class="h-5 w-5 mr-3 fill-gray-700 group-hover:fill-blue-700 transition-colors"
-                      width="20"
-                      height="20"
-                      viewBox="0 0 20 20"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        d="M17.9003 15.6656C17.5712 15.3365 17.1331 15.1835 16.7013 15.2087L15.5443 14.0517C16.0138 13.4522 16.4016 12.794 16.7013 12.0855C17.1541 11.0124 17.3847 9.87421 17.3847 8.70252C17.3847 7.53083 17.1541 6.39057 16.7013 5.31949C16.2633 4.28404 15.6365 3.35549 14.838 2.5569C14.0394 1.7583 13.1108 1.13158 12.0754 0.693506C11.0022 0.240759 9.86402 0.0101929 8.69235 0.0101929C7.52065 0.0101929 6.3804 0.240759 5.30932 0.693506C4.27387 1.12948 3.34532 1.7562 2.54672 2.5548C1.74813 3.3534 1.12141 4.28195 0.683334 5.3174C0.230566 6.3906 0 7.52875 0 8.70044C0 9.87212 0.230566 11.0124 0.683313 12.0835C1.12139 13.1189 1.74811 14.0475 2.5467 14.8461C3.3453 15.6447 4.27385 16.2714 5.3093 16.7094C6.38248 17.1622 7.52063 17.3928 8.69233 17.3928C9.864 17.3928 11.0043 17.1622 12.0753 16.7094C12.7922 16.4055 13.4587 16.0136 14.0645 15.5336L15.2194 16.6885C15.1964 17.1203 15.3473 17.5583 15.6764 17.8874L17.3176 19.5286C17.6236 19.8347 18.026 19.9898 18.4285 19.9898C18.8309 19.9898 19.2333 19.8368 19.5394 19.5286C20.1535 18.9145 20.1535 17.9189 19.5394 17.3047L17.9003 15.6656ZM14.0477 12.553C13.8402 12.8381 13.6097 13.1105 13.356 13.3641C13.1087 13.6115 12.8446 13.8358 12.5679 14.037C11.4486 14.8544 10.1029 15.2946 8.69021 15.2946C6.92743 15.2946 5.27155 14.6092 4.02649 13.3621C2.78144 12.117 2.09393 10.459 2.09393 8.69835C2.09393 6.93766 2.77934 5.27969 4.02649 4.03463C5.27155 2.78958 6.92953 2.10207 8.69021 2.10207C10.4509 2.10207 12.1089 2.78748 13.3539 4.03463C14.599 5.27969 15.2865 6.93766 15.2865 8.69835C15.2886 10.1027 14.8547 11.4379 14.0477 12.553Z"
-                      />
-                      <path
-                        d="M8.09069 4.05978H9.29592C9.67321 4.05978 9.98552 4.35741 10.0442 4.74309H11.0985C11.0315 3.77681 10.2496 3.01175 9.29592 3.01175H8.09069C7.13699 3.01175 6.35516 3.77681 6.28809 4.74309H7.3424C7.39899 4.35532 7.7134 4.05978 8.09069 4.05978Z"
-                      />
-                      <path
-                        d="M11.103 5.26709H10.055H7.33009H6.28207H4.57379C4.25519 5.26709 3.89676 5.57102 3.70183 5.76176C3.58026 5.90848 3.5572 6.00909 3.56768 6.12228C3.64524 6.87476 4.14619 7.58323 4.99509 8.14078C5.74757 8.63335 6.69289 8.95824 7.72415 9.0819C8.03855 9.11963 8.36344 9.14059 8.69043 9.14059C9.29618 9.14059 9.88729 9.07352 10.4406 8.94566C11.168 8.77798 11.8303 8.50549 12.3879 8.14078C13.2368 7.58323 13.7356 6.87267 13.8153 6.12228C13.8279 6.007 13.765 5.84141 13.6811 5.76176C13.4862 5.57102 13.1278 5.26709 12.8092 5.26709H11.103Z"
-                      />
-                      <path
-                        d="M12.8508 8.84295C12.3435 9.17622 11.7608 9.44242 11.1278 9.63107C10.3711 9.85954 9.54532 9.97903 8.69222 9.97903C8.63144 9.97903 8.56856 9.97903 8.50777 9.97692C7.01119 9.94759 5.60683 9.54722 4.53363 8.84295C4.08088 8.54531 3.70569 8.20575 3.41224 7.83056C3.34098 7.73833 3.28857 7.7551 3.28857 7.87036V10.7923C3.28857 11.5322 3.86289 12.1338 4.57136 12.1338H10.6604H12.8089C13.0415 12.1338 13.2595 12.0688 13.4461 11.9556C13.8317 11.725 14.0916 11.2911 14.0916 10.7923V7.87248C14.0916 7.7572 14.0392 7.74043 13.968 7.83265C13.6787 8.20573 13.3035 8.54531 12.8508 8.84295Z"
-                      />
-                    </svg>
-                  </i>
-                  <div class="leading-6 text-gray-800 group-hover:text-blue-700 transition-colors"><%= gettext("Jobs") %></div>
-                </.link>
-              </li>
-            </ul>
+
+        <div class="navigation-grid">
+          <div class="grid-header">
+            <h4 class="text-sm font-bold text-gray-900 truncate">
+              <span class="text-base">⚡</span> Navigation
+            </h4>
+          </div>
+
+          <div class="grid-layout">
+            <.link navigate={~p"/#{@locale}/home"} class="nav-grid-item group" title="Home">
+              <div class="nav-icon-container">
+                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M3 9L12 2L21 9V20C21 20.5304 20.7893 21.0391 20.4142 21.4142C20.0391 21.7893 19.5304 22 19 22H5C4.46957 22 3.96086 21.7893 3.58579 21.4142C3.21071 21.0391 3 20.5304 3 20V9Z"
+                        stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M9 22V12H15V22" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </div>
+              <span class="nav-label">Home</span>
+            </.link>
+
+            <!-- Chat -->
+            <.link navigate={~p"/chats"} class="nav-grid-item group" title="Chat">
+              <div class="nav-icon-container">
+                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M21 11.5C21.0034 12.8199 20.6951 14.1219 20.1 15.3C19.3944 16.7118 18.3098 17.8992 16.9674 18.7293C15.6251 19.5594 14.0782 19.9994 12.5 20C11.1801 20.0034 9.87812 19.6951 8.7 19.1L3 21L4.9 15.3C4.30493 14.1219 3.99656 12.8199 4 11.5C4.00061 9.92179 4.44061 8.37488 5.27072 7.03258C6.10083 5.69028 7.28825 4.6056 8.7 3.90003C9.87812 3.30496 11.1801 2.99659 12.5 3.00003H13C15.0843 3.11502 17.053 3.99479 18.5291 5.47089C20.0052 6.94699 20.885 8.91568 21 11V11.5Z"
+                        stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </div>
+              <span class="nav-label">Chat</span>
+              <div class="nav-indicator pulse"></div>
+            </.link>
+
+            <.link navigate={~p"/#{@locale}/groups"} class="nav-grid-item group" title="Groups">
+              <div class="nav-icon-container">
+                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M17 21V19C17 17.9391 16.5786 16.9217 15.8284 16.1716C15.0783 15.4214 14.0609 15 13 15H5C3.93913 15 2.92172 15.4214 2.17157 16.1716C1.42143 16.9217 1 17.9391 1 19V21"
+                        stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M9 11C11.2091 11 13 9.20914 13 7C13 4.79086 11.2091 3 9 3C6.79086 3 5 4.79086 5 7C5 9.20914 6.79086 11 9 11Z"
+                        stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M23 21V19C22.9993 18.1137 22.7044 17.2528 22.1614 16.5523C21.6184 15.8519 20.8581 15.3516 20 15.13"
+                        stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M16 3.13C16.8604 3.35031 17.623 3.85071 18.1676 4.55232C18.7122 5.25392 19.0078 6.11683 19.0078 7.005C19.0078 7.89318 18.7122 8.75608 18.1676 9.45769C17.623 10.1593 16.8604 10.6597 16 10.88"
+                        stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </div>
+              <span class="nav-label">Groups</span>
+            </.link>
+
+            <!-- Video -->
+            <.link navigate={~p"/#{@locale}/videos"} class="nav-grid-item group" title="Video">
+              <div class="nav-icon-container">
+                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M23 7L16 12L23 17V7Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                  <rect x="1" y="5" width="15" height="14" rx="2" stroke="currentColor" stroke-width="1.5"/>
+                </svg>
+              </div>
+              <span class="nav-label">Video</span>
+            </.link>
+
+            <!-- Music -->
+            <.link navigate={~p"/#{@locale}/music"} class="nav-grid-item group" title="Music">
+              <div class="nav-icon-container">
+                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M9 18V5L21 3V16" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                  <circle cx="6" cy="18" r="3" stroke="currentColor" stroke-width="1.5"/>
+                  <circle cx="18" cy="16" r="3" stroke="currentColor" stroke-width="1.5"/>
+                </svg>
+              </div>
+              <span class="nav-label">Music</span>
+            </.link>
+
+            <!-- Weather -->
+            <.link navigate={~p"/#{@locale}/weather"} class="nav-grid-item group" title="Weather">
+              <div class="nav-icon-container">
+                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12 2V4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                  <path d="M12 20V22" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                  <path d="M4 12H2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                  <path d="M22 12H20" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                  <path d="M19.071 19.071L17.657 17.657" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                  <path d="M6.343 6.343L4.929 4.929" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                  <path d="M19.071 4.929L17.657 6.343" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                  <path d="M6.343 17.657L4.929 19.071" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                  <path d="M8 12C8 9.79086 9.79086 8 12 8C14.2091 8 16 9.79086 16 12C16 14.2091 14.2091 16 12 16C9.79086 16 8 14.2091 8 12Z"
+                        stroke="currentColor" stroke-width="1.5"/>
+                </svg>
+              </div>
+              <span class="nav-label">Weather</span>
+            </.link>
+
+            <!-- AI Assistant -->
+            <.link navigate={~p"/#{@locale}/ai"} class="nav-grid-item group featured" title="AI Assistant">
+              <div class="nav-icon-container">
+                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </div>
+              <span class="nav-label">AI</span>
+              <div class="nav-badge featured">PRO</div>
+            </.link>
+
+            <!-- Jobs -->
+            <.link navigate={~p"/#{@locale}/jobs"} class="nav-grid-item group" title="Jobs">
+              <div class="nav-icon-container">
+                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <rect x="2" y="7" width="20" height="14" rx="2" stroke="currentColor" stroke-width="1.5"/>
+                  <path d="M16 21V5C16 3.89543 15.1046 3 14 3H10C8.89543 3 8 3.89543 8 5V7" stroke="currentColor" stroke-width="1.5"/>
+                </svg>
+              </div>
+              <span class="nav-label">Jobs</span>
+            </.link>
+          </div>
+        </div>
+
+        <!-- Quick Actions Panel -->
+        <div class="quick-actions">
+          <div class="actions-header">
+            <h4 class="text-xs font-semibold text-gray-900">Quick Actions</h4>
+            <button class="action-btn" title="Add new">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+              </svg>
+            </button>
+          </div>
+          <div class="actions-grid">
+            <.link navigate={~p"/dashboard"} class="action-item" title="Dashboard">
+              <div class="action-icon">📊</div>
+              <span class="action-text">Dashboard</span>
+            </.link>
+            <.link navigate={~p"/#{@locale}/settings"} class="action-item" title="Settings">
+              <div class="action-icon">⚙️</div>
+              <span class="action-text">Settings</span>
+            </.link>
+            <.link navigate={~p"/notifications"} class="action-item" title="Notifications">
+              <div class="action-icon">🔔</div>
+              <span class="action-text">Alerts</span>
+              <div class="notification-badge"></div>
+            </.link>
+            <.link navigate={~p"/help"} class="action-item" title="Help">
+              <div class="action-icon">❓</div>
+              <span class="action-text">Help</span>
+            </.link>
+          </div>
+        </div>
+
+        <!-- Admin Panel -->
+        <%= if Enum.member?(ManageUser.get_admin_list(), String.to_charlist(@user.username)) do %>
+          <div class="admin-panel">
+            <div class="admin-header">
+              <div class="admin-badge">ADMIN</div>
+              <h4 class="text-xs font-semibold text-gray-900 truncate">Control Panel</h4>
+            </div>
+            <.link navigate={~p"/manage"} class="admin-action" title="Manage Users">
+              <svg class="admin-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15Z"
+                      stroke="currentColor" stroke-width="1.5"/>
+                <path d="M19.4 15C19.2669 15.3031 19.1337 15.6062 19.0006 15.9094C18.5363 16.9373 18.3041 17.4512 17.8906 17.8171C17.4771 18.183 16.921 18.366 15.8087 18.732L15 19C13.5 19.5 12 20 10.5 19.5L9.19133 19.068C8.07898 18.702 7.5228 18.519 7.1093 18.1531C6.6958 17.7872 6.46361 17.2733 5.99922 16.2454C5.86441 15.9394 5.72959 15.6333 5.59478 15.3273C5.22222 14.4972 5.03594 14.0821 5.03723 13.6466C5.03851 13.211 5.22728 12.7971 5.60482 11.9692C5.74132 11.6662 5.87782 11.3632 6.01432 11.0602C6.47871 10.0323 6.7109 9.51837 7.1244 9.15248C7.5379 8.78658 8.09409 8.60361 9.20644 8.23766L10 8C11.5 7.5 13 7 14.5 7.5L15.8087 7.93202C16.921 8.29798 17.4772 8.48095 17.8907 8.84685C18.3042 9.21274 18.5364 9.72666 19.0008 10.7546C19.1373 11.0599 19.2738 11.3652 19.4103 11.6705C19.7822 12.4988 19.9681 12.9129 19.9668 13.3485C19.9655 13.7841 19.7771 14.1983 19.4 15Z"
+                      stroke="currentColor" stroke-width="1.5"/>
+              </svg>
+              <span class="truncate">Manage Users</span>
+              <svg class="w-3.5 h-3.5 ml-auto flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+              </svg>
+            </.link>
+          </div>
+        <% end %>
+
+        <!-- Time & Status -->
+        <div class="status-bar">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-2">
+              <div class="network-indicator">
+                <div class="network-dot"></div>
+                <span class="text-xs text-gray-600">Online</span>
+              </div>
+              <div class="battery-indicator">
+                <div class="battery-level" style="width: 85%"></div>
+              </div>
+            </div>
+            <div class="digital-clock">
+              <span class="time-text"></span>
+            </div>
           </div>
         </div>
       </div>
+
+      <!-- Inline Styles -->
+      <style>
+        /* Revolutionary Base Styles */
+        #revolutionary-sidebar {
+          width: 256px;
+          min-width: 256px;
+          background: rgba(255, 255, 255, 0.1);
+          backdrop-filter: blur(20px);
+          -webkit-backdrop-filter: blur(20px);
+          border-right: 1px solid rgba(255, 255, 255, 0.2);
+          box-shadow:
+            10px 0 40px rgba(0, 0, 0, 0.1),
+            inset 1px 0 0 rgba(255, 255, 255, 0.1);
+        }
+
+        /* Glass Background */
+        .glass-background {
+          background: linear-gradient(
+            135deg,
+            rgba(255, 255, 255, 0.1) 0%,
+            rgba(255, 255, 255, 0.05) 100%
+          );
+          backdrop-filter: blur(25px);
+          -webkit-backdrop-filter: blur(25px);
+        }
+
+        /* Floating Blobs */
+        .floating-blob {
+          position: absolute;
+          border-radius: 50%;
+          filter: blur(30px);
+          opacity: 0.25;
+          animation: float-blob 20s ease-in-out infinite;
+        }
+
+        .blob-1 {
+          width: 120px;
+          height: 120px;
+          background: linear-gradient(45deg, #3b82f6, #8b5cf6);
+          top: -50px;
+          left: -60px;
+          animation-delay: 0s;
+        }
+
+        .blob-2 {
+          width: 90px;
+          height: 90px;
+          background: linear-gradient(45deg, #ec4899, #f59e0b);
+          top: 60%;
+          right: -30px;
+          animation-delay: 5s;
+        }
+
+        .blob-3 {
+          width: 70px;
+          height: 70px;
+          background: linear-gradient(45deg, #10b981, #06b6d4);
+          bottom: -30px;
+          left: 50%;
+          animation-delay: 10s;
+        }
+
+        .blob-4 {
+          width: 80px;
+          height: 80px;
+          background: linear-gradient(45deg, #f97316, #eab308);
+          top: 30%;
+          left: 20%;
+          animation-delay: 15s;
+        }
+
+        @keyframes float-blob {
+          0%, 100% {
+            transform: translate(0, 0) scale(1);
+          }
+          33% {
+            transform: translate(20px, -20px) scale(1.05);
+          }
+          66% {
+            transform: translate(-15px, 15px) scale(0.95);
+          }
+        }
+
+        /* Grid Lines */
+        .grid-lines {
+          position: absolute;
+          inset: 0;
+          background-image:
+            linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+          background-size: 16px 16px;
+          mask-image: radial-gradient(ellipse at center, black 30%, transparent 70%);
+          -webkit-mask-image: radial-gradient(ellipse at center, black 30%, transparent 70%);
+        }
+
+        /* Particle System */
+        .particle-system {
+          position: absolute;
+          width: 100%;
+          height: 100%;
+        }
+
+        .particle-system::before {
+          content: '';
+          position: absolute;
+          width: 100%;
+          height: 100%;
+          background-image:
+            radial-gradient(circle at 20% 30%, rgba(255, 255, 255, 0.08) 0.5px, transparent 0.5px),
+            radial-gradient(circle at 60% 70%, rgba(255, 255, 255, 0.08) 0.5px, transparent 0.5px);
+          background-size: 80px 80px;
+          animation: particle-float 80s linear infinite;
+        }
+
+        @keyframes particle-float {
+          from {
+            background-position: 0 0;
+          }
+          to {
+            background-position: 80px 80px;
+          }
+        }
+
+        /* Quote Card */
+        .quote-card {
+          position: relative;
+          background: rgba(255, 255, 255, 0.12);
+          backdrop-filter: blur(8px);
+          border-radius: 14px;
+          border: 1px solid rgba(255, 255, 255, 0.15);
+          overflow: hidden;
+          transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .quote-card:hover {
+          transform: translateY(-1px);
+          box-shadow:
+            0 10px 25px rgba(0, 0, 0, 0.08),
+            0 0 0 1px rgba(255, 255, 255, 0.25);
+        }
+
+        .quote-overlay {
+          position: absolute;
+          inset: 0;
+          background: linear-gradient(
+            45deg,
+            transparent 0%,
+            rgba(255, 255, 255, 0.08) 50%,
+            transparent 100%
+          );
+          animation: hologram-scan 3s linear infinite;
+        }
+
+        @keyframes hologram-scan {
+          0% {
+            transform: translateX(-100%);
+          }
+          100% {
+            transform: translateX(100%);
+          }
+        }
+
+        .quote-icon-container {
+          width: 40px;
+          height: 40px;
+          border-radius: 10px;
+          background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(139, 92, 246, 0.1));
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .quote-icon {
+          width: 24px;
+          height: 24px;
+          color: #3b82f6;
+        }
+
+        .quote-text {
+          font-size: 13px;
+          line-height: 1.4;
+          color: #374151;
+          font-style: italic;
+          position: relative;
+          padding-left: 16px;
+          border-left: 2px solid rgba(59, 130, 246, 0.3);
+        }
+
+        .quote-text::before {
+          content: "❝";
+          position: absolute;
+          left: 0;
+          top: -4px;
+          color: rgba(59, 130, 246, 0.5);
+          font-size: 18px;
+        }
+
+        .quote-author {
+          display: flex;
+          align-items: center;
+        }
+
+        .refresh-quote-btn {
+          width: 28px;
+          height: 28px;
+          border-radius: 8px;
+          background: rgba(255, 255, 255, 0.08);
+          border: 1px solid rgba(255, 255, 255, 0.15);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: all 0.2s;
+        }
+
+        .refresh-quote-btn:hover {
+          background: rgba(255, 255, 255, 0.15);
+          transform: rotate(45deg);
+        }
+
+        .gradient-text {
+          background: linear-gradient(45deg, #3b82f6, #8b5cf6, #ec4899);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
+          animation: gradient-shift 5s ease infinite;
+          background-size: 200% 200%;
+        }
+
+        @keyframes gradient-shift {
+          0%, 100% {
+            background-position: 0% 50%;
+          }
+          50% {
+            background-position: 100% 50%;
+          }
+        }
+
+        .navigation-grid {
+          background: rgba(255, 255, 255, 0.08);
+          backdrop-filter: blur(8px);
+          border-radius: 14px;
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          padding: 12px;
+        }
+
+        .grid-header {
+          margin-bottom: 12px;
+          padding: 0 4px;
+        }
+
+        .grid-layout {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 10px;
+        }
+
+        .nav-grid-item {
+          position: relative;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          padding: 12px 6px;
+          border-radius: 10px;
+          background: rgba(255, 255, 255, 0.05);
+          border: 1px solid transparent;
+          transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+          text-decoration: none;
+          color: #374151;
+        }
+
+        .nav-grid-item:hover {
+          background: rgba(255, 255, 255, 0.12);
+          border-color: rgba(255, 255, 255, 0.18);
+          transform: translateY(-1px) scale(1.02);
+          box-shadow:
+            0 6px 12px rgba(0, 0, 0, 0.08),
+            inset 0 1px 0 rgba(255, 255, 255, 0.08);
+        }
+
+        .nav-grid-item.featured {
+          background: linear-gradient(
+            135deg,
+            rgba(59, 130, 246, 0.08),
+            rgba(139, 92, 246, 0.08)
+          );
+          border-color: rgba(59, 130, 246, 0.15);
+        }
+
+        .nav-grid-item.featured:hover {
+          background: linear-gradient(
+            135deg,
+            rgba(59, 130, 246, 0.15),
+            rgba(139, 92, 246, 0.15)
+          );
+        }
+
+        .nav-icon-container {
+          width: 40px;
+          height: 40px;
+          border-radius: 10px;
+          background: rgba(255, 255, 255, 0.08);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          margin-bottom: 6px;
+          transition: all 0.25s ease;
+        }
+
+        .nav-grid-item:hover .nav-icon-container {
+          background: rgba(255, 255, 255, 0.15);
+          transform: scale(1.08) rotate(3deg);
+        }
+
+        .nav-icon {
+          width: 20px;
+          height: 20px;
+          color: #4b5563;
+        }
+
+        .nav-label {
+          font-size: 11px;
+          font-weight: 600;
+          color: #374151;
+          transition: all 0.25s ease;
+        }
+
+        .nav-grid-item:hover .nav-label {
+          color: #1f2937;
+        }
+
+        .nav-badge {
+          position: absolute;
+          top: 6px;
+          right: 6px;
+          padding: 1px 4px;
+          border-radius: 8px;
+          background: #3b82f6;
+          color: white;
+          font-size: 9px;
+          font-weight: bold;
+          line-height: 1.2;
+        }
+
+        .nav-badge.featured {
+          background: linear-gradient(45deg, #3b82f6, #8b5cf6);
+        }
+
+        .nav-indicator {
+          position: absolute;
+          top: 6px;
+          left: 6px;
+          width: 5px;
+          height: 5px;
+          border-radius: 50%;
+          background: #10b981;
+        }
+
+        .nav-indicator.pulse::before {
+          content: '';
+          position: absolute;
+          inset: -1px;
+          border-radius: 50%;
+          background: #10b981;
+          animation: pulse 2s ease-out infinite;
+        }
+
+        @keyframes pulse {
+          0% {
+            transform: scale(0.8);
+            opacity: 0.4;
+          }
+          70% {
+            transform: scale(1.3);
+            opacity: 0;
+          }
+          100% {
+            transform: scale(0.8);
+            opacity: 0;
+          }
+        }
+
+        /* Quick Actions */
+        .quick-actions {
+          background: rgba(255, 255, 255, 0.08);
+          backdrop-filter: blur(8px);
+          border-radius: 14px;
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          padding: 12px;
+        }
+
+        .actions-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 10px;
+          padding: 0 2px;
+        }
+
+        .action-btn {
+          width: 24px;
+          height: 24px;
+          border-radius: 6px;
+          background: rgba(255, 255, 255, 0.08);
+          border: 1px solid rgba(255, 255, 255, 0.15);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: all 0.2s;
+        }
+
+        .action-btn:hover {
+          background: rgba(255, 255, 255, 0.15);
+        }
+
+        .actions-grid {
+          display: grid;
+          grid-template-columns: repeat(2, 1fr);
+          gap: 6px;
+        }
+
+        .action-item {
+          display: flex;
+          align-items: center;
+          padding: 10px;
+          border-radius: 10px;
+          background: rgba(255, 255, 255, 0.05);
+          border: 1px solid transparent;
+          transition: all 0.2s;
+          text-decoration: none;
+          color: #374151;
+          position: relative;
+        }
+
+        .action-item:hover {
+          background: rgba(255, 255, 255, 0.1);
+          border-color: rgba(255, 255, 255, 0.15);
+          transform: translateX(1px);
+        }
+
+        .action-icon {
+          margin-right: 10px;
+          font-size: 16px;
+          flex-shrink: 0;
+        }
+
+        .action-text {
+          font-size: 13px;
+          font-weight: 500;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+
+        .notification-badge {
+          position: absolute;
+          top: 6px;
+          right: 6px;
+          width: 16px;
+          height: 16px;
+          border-radius: 50%;
+          background: #ef4444;
+          color: white;
+          font-size: 9px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-weight: bold;
+        }
+
+        /* Admin Panel */
+        .admin-panel {
+          background: linear-gradient(
+            135deg,
+            rgba(245, 158, 11, 0.08),
+            rgba(217, 70, 239, 0.08)
+          );
+          backdrop-filter: blur(8px);
+          border-radius: 14px;
+          border: 1px solid rgba(245, 158, 11, 0.15);
+          padding: 12px;
+        }
+
+        .admin-header {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          margin-bottom: 10px;
+          padding: 0 2px;
+        }
+
+        .admin-badge {
+          padding: 2px 6px;
+          border-radius: 6px;
+          background: linear-gradient(45deg, #f59e0b, #d946ef);
+          color: white;
+          font-size: 9px;
+          font-weight: bold;
+          flex-shrink: 0;
+        }
+
+        .admin-action {
+          display: flex;
+          align-items: center;
+          padding: 10px;
+          border-radius: 10px;
+          background: rgba(255, 255, 255, 0.05);
+          border: 1px solid transparent;
+          transition: all 0.2s;
+          text-decoration: none;
+          color: #374151;
+          gap: 8px;
+        }
+
+        .admin-action:hover {
+          background: rgba(255, 255, 255, 0.1);
+          border-color: rgba(255, 255, 255, 0.15);
+          transform: translateX(2px);
+        }
+
+        .admin-icon {
+          width: 16px;
+          height: 16px;
+          color: #f59e0b;
+          flex-shrink: 0;
+        }
+
+        /* Status Bar */
+        .status-bar {
+          background: rgba(255, 255, 255, 0.08);
+          backdrop-filter: blur(8px);
+          border-radius: 14px;
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          padding: 10px 12px;
+        }
+
+        .network-indicator {
+          display: flex;
+          align-items: center;
+          gap: 4px;
+        }
+
+        .network-dot {
+          width: 5px;
+          height: 5px;
+          border-radius: 50%;
+          background: #10b981;
+        }
+
+        .battery-indicator {
+          width: 36px;
+          height: 14px;
+          border: 1px solid rgba(0, 0, 0, 0.15);
+          border-radius: 3px;
+          padding: 2px;
+          position: relative;
+        }
+
+        .battery-level {
+          height: 100%;
+          background: linear-gradient(90deg, #10b981, #3b82f6);
+          border-radius: 2px;
+          transition: width 0.3s ease;
+        }
+
+        .digital-clock {
+          font-family: 'JetBrains Mono', monospace;
+          font-size: 13px;
+          font-weight: 600;
+          color: #374151;
+        }
+
+        .time-text::after {
+          content: attr(data-time);
+        }
+
+        /* Scrollbar Hidden */
+        .scrollbar-hidden {
+          scrollbar-width: none;
+          -ms-overflow-style: none;
+        }
+
+        .scrollbar-hidden::-webkit-scrollbar {
+          display: none;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1024px) {
+          #revolutionary-sidebar {
+            width: 240px;
+            min-width: 240px;
+          }
+
+          .grid-layout {
+            gap: 8px;
+          }
+
+          .nav-grid-item {
+            padding: 10px 4px;
+          }
+        }
+
+        @media (max-width: 768px) {
+          #revolutionary-sidebar {
+            width: 100%;
+            min-width: 100%;
+            height: auto;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            top: auto;
+            z-index: 50;
+            backdrop-filter: blur(30px);
+            border-right: none;
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+          }
+
+          .grid-layout {
+            grid-template-columns: repeat(4, 1fr);
+            overflow-x: auto;
+            padding-bottom: 8px;
+          }
+
+          .quote-card,
+          .quick-actions,
+          .admin-panel {
+            display: none;
+          }
+        }
+
+        /* Compact Mobile View */
+        @media (max-width: 640px) {
+          #revolutionary-sidebar {
+            padding: 0;
+          }
+
+          .grid-layout {
+            grid-template-columns: repeat(8, 1fr);
+            gap: 4px;
+          }
+
+          .nav-grid-item {
+            padding: 8px 2px;
+          }
+
+          .nav-icon-container {
+            width: 32px;
+            height: 32px;
+            margin-bottom: 4px;
+          }
+
+          .nav-icon {
+            width: 16px;
+            height: 16px;
+          }
+
+          .nav-label {
+            font-size: 10px;
+          }
+        }
+      </style>
+
+      <script>
+        class GlassSidebar {
+          constructor() {
+            this.sidebar = document.getElementById('revolutionary-sidebar');
+            this.particleSystem = this.sidebar.querySelector('.particle-system');
+            this.init();
+          }
+
+          init() {
+            this.createParticles();
+            this.updateTime();
+            this.setupInteractions();
+          }
+
+          createParticles() {
+            const particles = 15;
+            for (let i = 0; i < particles; i++) {
+              const particle = document.createElement('div');
+              particle.className = 'particle';
+
+              const size = Math.random() * 3 + 1;
+              const x = Math.random() * 100;
+              const y = Math.random() * 100;
+              const duration = Math.random() * 8 + 8;
+              const delay = Math.random() * 4;
+
+              particle.style.cssText = `
+                width: ${size}px;
+                height: ${size}px;
+                left: ${x}%;
+                top: ${y}%;
+                background: rgba(255, 255, 255, ${Math.random() * 0.15});
+                animation: float ${duration}s ease-in-out ${delay}s infinite;
+                position: absolute;
+                border-radius: 50%;
+              `;
+
+              this.particleSystem.appendChild(particle);
+            }
+          }
+
+          updateTime() {
+            const timeElement = document.querySelector('.time-text');
+            if (!timeElement) return;
+
+            const update = () => {
+              const now = new Date();
+              const hours = String(now.getHours()).padStart(2, '0');
+              const minutes = String(now.getMinutes()).padStart(2, '0');
+              const timeString = `${hours}:${minutes}`;
+
+              timeElement.textContent = timeString;
+              timeElement.setAttribute('data-time', timeString);
+            };
+
+            update();
+            setInterval(update, 60000);
+          }
+
+          setupInteractions() {
+            // Quote refresh button
+            const refreshBtn = document.querySelector('.refresh-quote-btn');
+            if (refreshBtn) {
+              refreshBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                refreshBtn.style.transform = 'rotate(180deg)';
+                setTimeout(() => {
+                  refreshBtn.style.transform = 'rotate(0deg)';
+                }, 300);
+              });
+            }
+
+            // Hover effects for grid items
+            const gridItems = document.querySelectorAll('.nav-grid-item');
+            gridItems.forEach(item => {
+              item.addEventListener('mouseenter', () => {
+                const icon = item.querySelector('.nav-icon-container');
+                if (icon) {
+                  icon.style.transform = 'scale(1.08) rotate(3deg)';
+                }
+              });
+
+              item.addEventListener('mouseleave', () => {
+                const icon = item.querySelector('.nav-icon-container');
+                if (icon) {
+                  icon.style.transform = 'scale(1) rotate(0deg)';
+                }
+              });
+            });
+
+            // Subtle parallax effect
+            this.sidebar.addEventListener('mousemove', (e) => {
+              const { left, top, width, height } = this.sidebar.getBoundingClientRect();
+              const x = (e.clientX - left) / width;
+              const y = (e.clientY - top) / height;
+
+              const moveX = (x - 0.5) * 6;
+              const moveY = (y - 0.5) * 6;
+
+              this.sidebar.style.transform = `perspective(800px) rotateY(${moveX}deg) rotateX(${-moveY}deg)`;
+            });
+
+            this.sidebar.addEventListener('mouseleave', () => {
+              this.sidebar.style.transform = 'perspective(800px) rotateY(0deg) rotateX(0deg)';
+            });
+          }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+          new GlassSidebar();
+        });
+
+        window.GlassSidebar = GlassSidebar;
+      </script>
     </div>
     """
   end

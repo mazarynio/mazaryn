@@ -1,0 +1,410 @@
+<div class="min-h-screen bg-[#27282e]">
+  <div class="fixed top-0 left-0 right-0 z-50 h-16 bg-gradient-to-b from-[#151620] to-[#151620] shadow-lg">
+    <div class="flex items-center justify-between h-full px-16 max-w-[1440px] mx-auto">
+      <.link navigate={~p"/#{@locale}/home"} class="flex items-center gap-3">
+        <span class="text-white text-4xl font-bold font-['Poppins']">Mazaryn</span>
+        <div class="flex gap-3">
+          <div class="w-2 h-2 bg-blue-500 rounded-full"></div>
+          <div class="w-2 h-2 bg-blue-500 rounded-full"></div>
+        </div>
+      </.link>
+      <div class="flex items-center gap-5">
+        <form phx-submit="search" class="w-[588px]">
+          <div class="relative">
+            <input
+              type="text"
+              name="query"
+              value={@search_query}
+              placeholder="Search Music"
+              class="w-full px-5 py-2 pl-12 bg-[#323340] rounded-lg border-2 border-[#323340] text-white placeholder-[#aaaaaa] focus:outline-none focus:border-blue-500"
+            />
+            <Heroicons.magnifying_glass class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#aaaaaa]" />
+          </div>
+        </form>
+        <.link
+          navigate={~p"/#{@locale}/notifications"}
+          class="w-10 h-10 bg-[#323340] rounded-full flex items-center justify-center hover:bg-[#3a3b4a] transition-colors"
+        >
+          <Heroicons.bell solid class="w-5 h-5 text-[#aaaaaa]" />
+        </.link>
+      </div>
+      <div class="flex items-center gap-5">
+        <%= if @is_admin do %>
+          <.link
+            navigate={~p"/#{@locale}/artist-requests"}
+            class="px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded-lg text-white text-sm font-semibold font-['Poppins'] transition-colors flex items-center gap-2"
+          >
+            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M10 1.944A11.954 11.954 0 012.166 5C2.056 5.649 2 6.319 2 7c0 5.225 3.34 9.67 8 11.317C14.66 16.67 18 12.225 18 7c0-.682-.057-1.35-.166-2.001A11.954 11.954 0 0110 1.944zM13 7a1 1 0 10-2 0v3.586l-1.293-1.293a1 1 0 10-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L13 10.586V7z" clip-rule="evenodd" />
+            </svg>
+            <span>Admin Panel</span>
+          </.link>
+        <% end %>
+        <.link
+          navigate={~p"/#{@locale}/music/upload"}
+          class="px-4 py-2 bg-blue-500 hover:bg-blue-600 rounded-lg text-white text-sm font-semibold font-['Poppins'] transition-colors flex items-center gap-2"
+        >
+          <Heroicons.musical_note class="w-4 h-4" />
+          <span>Become an Artist</span>
+        </.link>
+        <div class="h-10 px-4 bg-[#323340] rounded-lg flex items-center gap-2">
+          <img src="/images/mazaryn-symbol.svg" class="w-5 h-5" alt="Mazaryn coin" />
+          <span class="text-white text-base font-['Poppins']">0.1</span>
+        </div>
+        <%= if @user do %>
+          <div class="relative" x-data="{ open: false }">
+            <button @click="open = !open" class="flex items-center gap-3 px-4 h-10 bg-[#323340] rounded-lg hover:bg-[#3a3b4a] transition-colors">
+              <% avatar_url = MazarynWeb.Live.Helper.handle_avatar(@user) %>
+              <%= if avatar_url && avatar_url != "" && avatar_url != "/images/default-avatar.png" do %>
+                <img
+                  src={avatar_url}
+                  class="w-8 h-8 rounded-full object-cover"
+                  alt="User avatar"
+                  onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+                />
+                <div class="hidden w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 items-center justify-center">
+                  <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
+                  </svg>
+                </div>
+              <% else %>
+                <div class="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center">
+                  <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
+                  </svg>
+                </div>
+              <% end %>
+              <span class="text-white text-base font-['Poppins']"><%= @username %></span>
+              <Heroicons.chevron_down class="w-4 h-4 text-[#aaaaaa]" />
+            </button>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  </div>
+
+  <div class="flex max-w-[1440px] mx-auto pt-20">
+    <aside class="fixed left-16 top-24 w-60">
+      <div class="space-y-6">
+        <h2 class="text-[#c5c7c8] text-xl font-semibold font-['Poppins']">Music</h2>
+        <div class="bg-[#323340] rounded-[20px] shadow-lg p-7 space-y-7">
+          <.link
+            navigate={~p"/#{@locale}/music"}
+            class="flex items-center gap-5 text-blue-500 hover:translate-x-1 transition-transform"
+          >
+            <Heroicons.home solid class="w-5 h-5" />
+            <span class="text-xl font-semibold font-['Poppins']">Home</span>
+          </.link>
+          <.link
+            navigate={~p"/#{@locale}/music/artists"}
+            class="flex items-center gap-5 text-[#c5c7c8] hover:text-white hover:translate-x-1 transition-all"
+          >
+            <Heroicons.user_group solid class="w-5 h-5" />
+            <span class="text-xl font-semibold font-['Poppins']">Artist</span>
+          </.link>
+          <.link
+            navigate={~p"/#{@locale}/music/albums"}
+            class="flex items-center gap-5 text-[#c5c7c8] hover:text-white hover:translate-x-1 transition-all"
+          >
+            <Heroicons.squares_2x2 solid class="w-5 h-5" />
+            <span class="text-xl font-semibold font-['Poppins']">Album</span>
+          </.link>
+        </div>
+        <h2 class="text-[#c5c7c8] text-xl font-semibold font-['Poppins']">Playlist</h2>
+        <div class="bg-[#323340] rounded-[20px] shadow-lg p-7">
+          <.link
+            navigate={~p"/#{@locale}/music/playlists"}
+            class="flex items-center gap-5 text-[#c5c7c8] hover:text-white hover:translate-x-1 transition-all"
+          >
+            <Heroicons.queue_list solid class="w-5 h-5" />
+            <span class="text-xl font-semibold font-['Poppins']">Playlist</span>
+          </.link>
+        </div>
+      </div>
+    </aside>
+
+    <main class="ml-80 mr-16 flex-1 py-8 space-y-8">
+      <section>
+        <div class="flex justify-between items-start mb-7">
+          <div class="flex items-center gap-2.5">
+            <h2 class="w-44 text-[#c5c7c8] text-xl font-semibold font-['Poppins'] leading-6">Recently Played</h2>
+          </div>
+          <button
+            phx-click="see_all_recently_played"
+            class="text-blue-500 text-base font-semibold font-['Poppins'] leading-6 hover:text-blue-400 transition-colors"
+          >
+            See All
+          </button>
+        </div>
+        <div class="flex items-start gap-2.5 overflow-x-auto pb-4">
+          <%= for track <- @recently_played do %>
+            <div
+              phx-click="play_track"
+              phx-value-id={track.id}
+              class="flex-shrink-0 w-48 cursor-pointer hover:-translate-y-2 transition-transform duration-300"
+            >
+              <div class="relative mb-5">
+                <img
+                  src={track.album_cover}
+                  class="w-48 h-40 rounded-md object-cover"
+                  alt={track.title}
+                  onerror="this.onerror=null; this.src='https://placehold.co/200x160';"
+                />
+                <%= if Map.get(track, :is_playing, false) do %>
+                  <div class="absolute bottom-4 left-1/2 -translate-x-1/2 w-14 h-14 bg-blue-500 rounded-[50px] flex items-center justify-center">
+                    <Heroicons.play_pause solid class="w-5 h-6 text-white" />
+                  </div>
+                <% end %>
+              </div>
+              <div class="flex flex-col items-start">
+                <h3 class="w-48 text-white text-base font-semibold font-['Poppins'] leading-6 line-clamp-1">
+                  <%= track.title %>
+                </h3>
+                <p class="text-[#c5c7c8] text-sm font-normal font-['Poppins'] leading-6">
+                  <%= track.artist %>
+                </p>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      </section>
+
+      <div class="flex gap-7">
+        <section class="flex-1">
+          <div class="flex items-center gap-2.5 mb-7">
+            <h2 class="w-44 text-[#c5c7c8] text-xl font-semibold font-['Poppins'] leading-6">Trending</h2>
+          </div>
+          <div class="flex flex-col gap-2.5">
+            <%= for track <- @trending_tracks do %>
+              <div
+                phx-click="play_track"
+                phx-value-id={track.id}
+                class="flex justify-between items-center py-3 px-2 hover:bg-[#323340] rounded-lg transition-colors cursor-pointer"
+              >
+                <div class="flex items-start gap-2.5">
+                  <div>
+                    <img
+                      src={track.album_cover}
+                      class="w-24 h-14 rounded-md object-cover"
+                      alt={track.title}
+                      onerror="this.onerror=null; this.src='https://placehold.co/92x60';"
+                    />
+                  </div>
+                  <div>
+                    <h4 class="w-48 text-white text-base font-semibold font-['Poppins'] leading-6 line-clamp-1">
+                      <%= track.title %>
+                    </h4>
+                    <p class="text-[#c5c7c8] text-sm font-normal font-['Poppins'] leading-6">
+                      <%= track.artist %>
+                    </p>
+                  </div>
+                </div>
+                <div class="flex items-center gap-5">
+                  <span class="text-[#c5c7c8] text-base font-normal font-['Poppins'] leading-6">
+                    <%= track.duration %>
+                  </span>
+                  <button
+                    phx-click="add_to_queue"
+                    phx-value-id={track.id}
+                    class="w-8 h-8 flex items-center justify-center hover:bg-[#404040] rounded-full transition-colors"
+                  >
+                    <Heroicons.ellipsis_vertical class="w-4 h-4 text-white" />
+                  </button>
+                </div>
+              </div>
+            <% end %>
+          </div>
+        </section>
+        <section>
+          <div class="flex justify-between items-start mb-7">
+            <div class="flex items-center gap-2.5">
+              <h2 class="w-44 text-[#c5c7c8] text-xl font-semibold font-['Poppins'] leading-6">Popular Albums</h2>
+            </div>
+            <button
+              phx-click="see_all_popular_albums"
+              class="text-blue-500 text-base font-semibold font-['Poppins'] leading-6 hover:text-blue-400 transition-colors"
+            >
+              See All
+            </button>
+          </div>
+          <div class="flex items-start gap-2.5">
+            <%= for album <- @popular_albums do %>
+              <div
+                phx-click="view_album"
+                phx-value-id={album.id}
+                class="w-48 cursor-pointer hover:-translate-y-2 transition-transform duration-300"
+              >
+                <img
+                  src={album.album_cover}
+                  class="w-48 h-48 rounded-md object-cover mb-5"
+                  alt={album.title}
+                  onerror="this.onerror=null; this.src='https://placehold.co/200x200';"
+                />
+                <div class="flex flex-col items-start">
+                  <h3 class="w-48 text-white text-base font-semibold font-['Poppins'] leading-6 line-clamp-1">
+                    <%= album.title %>
+                  </h3>
+                  <p class="text-[#c5c7c8] text-sm font-normal font-['Poppins'] leading-6">
+                    <%= album.artist %>
+                  </p>
+                </div>
+              </div>
+            <% end %>
+          </div>
+        </section>
+      </div>
+
+      <section>
+        <div class="flex justify-between items-start mb-7">
+          <div class="flex items-center gap-2.5">
+            <h2 class="w-44 text-[#c5c7c8] text-xl font-semibold font-['Poppins'] leading-6">Popular Artists</h2>
+          </div>
+          <button
+            phx-click="see_all_popular_artists"
+            class="text-blue-500 text-base font-semibold font-['Poppins'] leading-6 hover:text-blue-400 transition-colors"
+          >
+            See All
+          </button>
+        </div>
+        <div class="flex items-start gap-2.5 overflow-x-auto pb-4">
+          <%= for artist <- @popular_artists do %>
+            <div
+              phx-click="view_artist"
+              phx-value-id={artist.id}
+              class="flex-shrink-0 w-48 cursor-pointer hover:-translate-y-2 transition-transform duration-300"
+            >
+              <img
+                src={artist.avatar}
+                class="w-48 h-48 rounded-[200px] object-cover mb-5"
+                alt={artist.name}
+                onerror="this.onerror=null; this.src='https://placehold.co/200x200';"
+              />
+              <div class="flex flex-col items-start">
+                <h3 class="w-48 text-white text-base font-semibold font-['Poppins'] leading-6 line-clamp-1">
+                  <%= artist.name %>
+                </h3>
+                <p class="text-[#c5c7c8] text-sm font-normal font-['Poppins'] leading-6">
+                  <%= artist.genre %>
+                </p>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      </section>
+
+      <section>
+        <div class="flex justify-between items-start mb-7">
+          <div class="flex items-center gap-2.5">
+            <h2 class="w-44 text-[#c5c7c8] text-xl font-semibold font-['Poppins'] leading-6">Workout</h2>
+          </div>
+          <button
+            phx-click="see_all_workout"
+            class="text-blue-500 text-base font-semibold font-['Poppins'] leading-6 hover:text-blue-400 transition-colors"
+          >
+            See All
+          </button>
+        </div>
+        <div class="flex items-start gap-2.5 overflow-x-auto pb-4">
+          <%= for track <- @workout_playlist do %>
+            <div
+              phx-click="play_track"
+              phx-value-id={track.id}
+              class="flex-shrink-0 w-48 cursor-pointer hover:-translate-y-2 transition-transform duration-300"
+            >
+              <img
+                src={track.album_cover}
+                class="w-48 h-40 rounded-md object-cover mb-5"
+                alt={track.title}
+                onerror="this.onerror=null; this.src='https://placehold.co/200x160';"
+              />
+              <div class="flex flex-col items-start">
+                <h3 class="w-48 text-white text-base font-semibold font-['Poppins'] leading-6 line-clamp-1">
+                  <%= track.title %>
+                </h3>
+                <p class="text-[#c5c7c8] text-sm font-normal font-['Poppins'] leading-6">
+                  <%= track.artist %>
+                </p>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      </section>
+
+      <section>
+        <div class="flex justify-between items-start mb-7">
+          <div class="flex items-center gap-2.5">
+            <h2 class="w-44 text-[#c5c7c8] text-xl font-semibold font-['Poppins'] leading-6">Chill</h2>
+          </div>
+          <button
+            phx-click="see_all_chill"
+            class="text-blue-500 text-base font-semibold font-['Poppins'] leading-6 hover:text-blue-400 transition-colors"
+          >
+            See All
+          </button>
+        </div>
+        <div class="flex items-start gap-2.5 overflow-x-auto pb-4">
+          <%= for track <- @chill_playlist do %>
+            <div
+              phx-click="play_track"
+              phx-value-id={track.id}
+              class="flex-shrink-0 w-48 cursor-pointer hover:-translate-y-2 transition-transform duration-300"
+            >
+              <img
+                src={track.album_cover}
+                class="w-48 h-40 rounded-md object-cover mb-5"
+                alt={track.title}
+                onerror="this.onerror=null; this.src='https://placehold.co/200x160';"
+              />
+              <div class="flex flex-col items-start">
+                <h3 class="w-48 text-white text-base font-semibold font-['Poppins'] leading-6 line-clamp-1">
+                  <%= track.title %>
+                </h3>
+                <p class="text-[#c5c7c8] text-sm font-normal font-['Poppins'] leading-6">
+                  <%= track.artist %>
+                </p>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      </section>
+
+      <section>
+        <div class="flex justify-between items-start mb-7">
+          <div class="flex items-center gap-2.5">
+            <h2 class="w-44 text-[#c5c7c8] text-xl font-semibold font-['Poppins'] leading-6">Study</h2>
+          </div>
+          <button
+            phx-click="see_all_study"
+            class="text-blue-500 text-base font-semibold font-['Poppins'] leading-6 hover:text-blue-400 transition-colors"
+          >
+            See All
+          </button>
+        </div>
+        <div class="flex items-start gap-2.5 overflow-x-auto pb-4">
+          <%= for track <- @study_playlist do %>
+            <div
+              phx-click="play_track"
+              phx-value-id={track.id}
+              class="flex-shrink-0 w-48 cursor-pointer hover:-translate-y-2 transition-transform duration-300"
+            >
+              <img
+                src={track.album_cover}
+                class="w-48 h-40 rounded-md object-cover mb-5"
+                alt={track.title}
+                onerror="this.onerror=null; this.src='https://placehold.co/200x160';"
+              />
+              <div class="flex flex-col items-start">
+                <h3 class="w-48 text-white text-base font-semibold font-['Poppins'] leading-6 line-clamp-1">
+                  <%= track.title %>
+                </h3>
+                <p class="text-[#c5c7c8] text-sm font-normal font-['Poppins'] leading-6">
+                  <%= track.artist %>
+                </p>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      </section>
+    </main>
+  </div>
+</div>

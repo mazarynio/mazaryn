@@ -1058,6 +1058,12 @@
     date_created
 }).
 
+-record(ai_music, {
+    id,
+    music_id,
+    date_created
+}).
+
 -record(media_view, {
     id,
     media_id,
@@ -1549,4 +1555,16 @@
     premium_tier_only = false,
     date_created,
     data = #{}
+}).
+
+-record(artist_request, {
+    id,
+    user_id,
+    username,
+    status,
+    requested_at,
+    reviewed_at,
+    reviewed_by,
+    request_data = #{},
+    rejection_reason
 }).

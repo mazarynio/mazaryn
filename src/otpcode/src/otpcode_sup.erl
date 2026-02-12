@@ -19,7 +19,7 @@
 -define(TABLES, [post, notif, user, blog_post, comment, blog_comment, like, reply, chat, media, report, knode, business, ads, quantum,
  ai_user, ai_post, ai_chat, ai_media, ai_business, ai_ads, p2p_node,
  pin_info, pin_params, pin_history, bulk_operation, scheduled_job, rate_limiter_usage, pin_info_lookup, pin_health, storage_quota, presence,
- dataset, competition, notebook, model, video, music, album, playlist, ai_video, media_view, livestream,
+ dataset, competition, notebook, model, video, music, album, playlist, ai_video, ai_music, media_view, livestream,
  learning_path, learning_resource, learning_module, lesson, user_learning_progress, quiz, quiz_question, quiz_attempt, exercise,
  exercise_submission, project, project_submission, certificate, badge, user_badge, enrollment, user_completion,
  discussion_post, study_group, mentor_session, live_class, instructor_profile, admin_action, time_tracking, bookmark,
@@ -30,7 +30,7 @@
  job_posting, resume, work_experience, education, job_application, interview_stage, saved_job, job_alert,
  talent_pool, candidate_search, recruiter_contact, skill, skill_endorsement, skill_assessment, company_review,
  interview_prep, job_market_insights, user_job_analytics, job_message, background_check, employment_verification,
- job_referral, job_board_settings, leaderboard]).
+ job_referral, job_board_settings, leaderboard, artist, artist_request]).
 
 start_link() ->
     case initialize() of
@@ -363,6 +363,7 @@ table_attributes(music) -> record_info(fields, music);
 table_attributes(album) -> record_info(fields, album);
 table_attributes(playlist) -> record_info(fields, playlist);
 table_attributes(ai_video) -> record_info(fields, ai_video);
+table_attributes(ai_music) -> record_info(fields, ai_music);
 table_attributes(media_view) -> record_info(fields, media_view);
 table_attributes(livestream) -> record_info(fields, livestream);
 table_attributes(learning_path) -> record_info(fields, learning_path);
@@ -438,4 +439,6 @@ table_attributes(background_check) -> record_info(fields, background_check);
 table_attributes(employment_verification) -> record_info(fields, employment_verification);
 table_attributes(job_referral) -> record_info(fields, job_referral);
 table_attributes(job_board_settings) -> record_info(fields, job_board_settings);
-table_attributes(leaderboard) -> record_info(fields, leaderboard).
+table_attributes(leaderboard) -> record_info(fields, leaderboard);
+table_attributes(artist) -> record_info(fields, artist);
+table_attributes(artist_request) -> record_info(fields, artist_request).

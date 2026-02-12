@@ -1,0 +1,302 @@
+<div class="min-h-screen bg-[#27282e]">
+  <div class="fixed top-0 left-0 right-0 z-50 h-16 bg-[#151620] shadow-lg border-b border-gray-700">
+    <div class="flex items-center justify-between h-full px-8 max-w-[1800px] mx-auto">
+      <div class="flex items-center gap-4">
+        <.link navigate={~p"/#{@locale}/home"} class="flex items-center gap-3">
+          <span class="text-white text-2xl font-bold font-['Poppins']">Mazaryn</span>
+          <div class="flex gap-1">
+            <div class="w-2 h-2 bg-blue-500 rounded-full"></div>
+            <div class="w-2 h-2 bg-blue-500 rounded-full"></div>
+          </div>
+        </.link>
+        <div class="h-8 w-px bg-gray-600 mx-2"></div>
+        <div class="flex items-center gap-2">
+          <svg class="w-5 h-5 text-purple-400" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 1.944A11.954 11.954 0 012.166 5C2.056 5.649 2 6.319 2 7c0 5.225 3.34 9.67 8 11.317C14.66 16.67 18 12.225 18 7c0-.682-.057-1.35-.166-2.001A11.954 11.954 0 0110 1.944z" clip-rule="evenodd" />
+          </svg>
+          <span class="text-white text-lg font-semibold font-['Poppins']">Admin Panel</span>
+        </div>
+      </div>
+      <div class="flex items-center gap-4">
+        <.link navigate={~p"/#{@locale}/music"} class="px-4 py-2 bg-[#323340] hover:bg-[#3a3b4a] rounded-lg text-[#c5c7c8] hover:text-white text-sm font-semibold transition-colors flex items-center gap-2">
+          <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd" />
+          </svg>
+          Back to Music
+        </.link>
+        <%= if length(@requests) > 0 do %>
+          <div class="flex items-center gap-2 px-4 py-2 bg-yellow-500/20 rounded-lg">
+            <svg class="w-5 h-5 text-yellow-500" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+            </svg>
+            <span class="text-yellow-500 text-sm font-semibold">
+              <%= length(@requests) %> Pending<%= if length(@requests) != 1, do: " Requests", else: " Request" %>
+            </span>
+          </div>
+        <% end %>
+        <%= if @username && @username != "" do %>
+          <div class="flex items-center gap-3 px-4 py-2 bg-[#323340] rounded-lg">
+            <div class="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center">
+              <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
+              </svg>
+            </div>
+            <span class="text-white text-base font-['Poppins']"><%= @username %></span>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  </div>
+
+  <div class="pt-20 px-8 pb-8 max-w-[1800px] mx-auto">
+    <div class="mb-8">
+      <h1 class="text-white text-4xl font-bold font-['Poppins'] mb-2">Artist Request Management</h1>
+      <p class="text-[#c5c7c8] text-lg font-['Poppins']">Review and manage artist applications for the Mazaryn platform</p>
+    </div>
+
+    <div class="grid grid-cols-3 gap-8">
+      <div class="col-span-1 space-y-4">
+        <div class="bg-[#323340] rounded-xl p-4">
+          <div class="flex items-center gap-2 mb-4">
+            <svg class="w-5 h-5 text-[#c5c7c8]" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z" clip-rule="evenodd" />
+            </svg>
+            <span class="text-white text-base font-semibold font-['Poppins']">Filter</span>
+          </div>
+          <button
+            phx-click="change_filter"
+            phx-value-filter="pending"
+            class={"w-full px-4 py-2 rounded-lg text-left transition-colors #{if @filter == "pending", do: "bg-blue-500 text-white", else: "text-[#c5c7c8] hover:bg-[#3a3b4a]"}"}
+          >
+            <div class="flex items-center justify-between">
+              <span class="text-sm font-['Poppins']">Pending</span>
+              <%= if @filter == "pending" do %>
+                <span class="px-2 py-1 bg-white/20 rounded text-xs font-bold"><%= length(@requests) %></span>
+              <% end %>
+            </div>
+          </button>
+        </div>
+
+        <%= if @loading do %>
+          <div class="bg-[#323340] rounded-xl p-8 text-center">
+            <div class="animate-spin w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full mx-auto mb-3"></div>
+            <p class="text-[#c5c7c8] text-sm font-['Poppins']">Loading requests...</p>
+          </div>
+        <% else %>
+          <%= if @requests == [] do %>
+            <div class="bg-[#323340] rounded-xl p-8 text-center">
+              <p class="text-white text-lg font-semibold font-['Poppins'] mb-1">No Pending Requests</p>
+              <p class="text-[#c5c7c8] text-sm font-['Poppins']">All caught up! Check back later.</p>
+            </div>
+          <% else %>
+            <%= for request <- @requests do %>
+              <div
+                phx-click="select_request"
+                phx-value-id={to_string(request.id)}
+                class={"bg-[#323340] rounded-xl p-5 cursor-pointer transition-all duration-200 #{if @selected_request && to_string(@selected_request.id) == to_string(request.id), do: "ring-2 ring-purple-500 shadow-lg", else: "hover:bg-[#3a3b4a]"}"}
+              >
+                <div class="flex items-start justify-between mb-2">
+                  <div class="flex-1 min-w-0 pr-2">
+                    <h3 class="text-white text-base font-bold font-['Poppins'] truncate">
+                      <%= if request.artist_name && request.artist_name != "",
+                            do: request.artist_name,
+                            else: "(no artist name)" %>
+                    </h3>
+                    <p class="text-blue-400 text-sm font-['Poppins']">@<%= request.username %></p>
+                  </div>
+                  <span class="flex-shrink-0 px-2 py-1 bg-yellow-500/20 text-yellow-400 text-xs font-bold rounded-full">
+                    Pending
+                  </span>
+                </div>
+                <%= if request.genres && request.genres != "" do %>
+                  <p class="text-[#c5c7c8] text-xs font-['Poppins'] truncate mb-1">🎵 <%= request.genres %></p>
+                <% end %>
+                <%= if request.requested_at do %>
+                  <p class="text-[#888] text-xs font-['Poppins']">⏱ <%= request.requested_at %></p>
+                <% end %>
+                <p class="text-[#555] text-xs font-mono mt-1 truncate">id: <%= to_string(request.id) %></p>
+              </div>
+            <% end %>
+          <% end %>
+        <% end %>
+      </div>
+
+      <div class="col-span-2">
+        <%= if @selected_request do %>
+          <div class="bg-[#323340] rounded-xl p-8 shadow-xl">
+            <div class="flex items-start justify-between mb-6">
+              <div class="flex-1 min-w-0 mr-4">
+                <h2 class="text-white text-3xl font-bold font-['Poppins'] mb-1">
+                  <%= if @selected_request.artist_name && @selected_request.artist_name != "",
+                        do: @selected_request.artist_name,
+                        else: "(no artist name)" %>
+                </h2>
+                <p class="text-blue-400 text-base font-['Poppins']">@<%= @selected_request.username %></p>
+                <div class="flex items-center gap-2 mt-2 flex-wrap">
+                  <span class="px-3 py-1 bg-yellow-500/20 text-yellow-400 text-xs font-bold rounded-full">
+                    <%= @selected_request.status %>
+                  </span>
+                  <%= if @selected_request.requested_at do %>
+                    <span class="text-[#aaa] text-xs font-['Poppins']">
+                      Submitted: <%= @selected_request.requested_at %>
+                    </span>
+                  <% end %>
+                </div>
+                <details class="mt-2">
+                  <summary class="text-[#555] text-xs cursor-pointer hover:text-[#888]">🔍 Debug: raw request data</summary>
+                  <pre class="text-[#888] text-xs mt-1 bg-[#1a1b20] rounded p-2 overflow-auto max-h-32"><%= inspect(@selected_request) %></pre>
+                </details>
+              </div>
+              <button
+                phx-click="close_detail"
+                class="flex-shrink-0 text-[#c5c7c8] hover:text-white p-1 hover:bg-[#3a3b4a] rounded-lg transition-colors"
+              >
+                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                </svg>
+              </button>
+            </div>
+
+            <div class="space-y-4">
+              <%= if @selected_request.genres && @selected_request.genres != "" do %>
+                <div class="bg-[#3a3b4a] rounded-lg p-4">
+                  <h3 class="text-white text-sm font-bold font-['Poppins'] mb-2 flex items-center gap-2">
+                    <svg class="w-4 h-4 text-purple-400" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M18 3a1 1 0 00-1.196-.98l-10 2A1 1 0 006 5v9.114A4.369 4.369 0 005 14c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V7.82l8-1.6v5.894A4.37 4.37 0 0015 12c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V3z" />
+                    </svg>
+                    Genres
+                  </h3>
+                  <div class="flex flex-wrap gap-2">
+                    <%= for genre <- String.split(@selected_request.genres, ~r/[,\n]/, trim: true) do %>
+                      <span class="px-3 py-1 bg-purple-500/20 text-purple-300 text-sm rounded-full border border-purple-500/30">
+                        <%= String.trim(genre) %>
+                      </span>
+                    <% end %>
+                  </div>
+                </div>
+              <% end %>
+
+              <%= if @selected_request.bio && @selected_request.bio != "" do %>
+                <div class="bg-[#3a3b4a] rounded-lg p-4">
+                  <h3 class="text-white text-sm font-bold font-['Poppins'] mb-2 flex items-center gap-2">
+                    <svg class="w-4 h-4 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-6-3a2 2 0 11-4 0 2 2 0 014 0zm-2 4a5 5 0 00-4.546 2.916A5.986 5.986 0 0010 16a5.986 5.986 0 004.546-2.084A5 5 0 0010 11z" clip-rule="evenodd" />
+                    </svg>
+                    Artist Bio
+                  </h3>
+                  <p class="text-[#c5c7c8] text-sm font-['Poppins'] whitespace-pre-wrap leading-relaxed">
+                    <%= @selected_request.bio %>
+                  </p>
+                </div>
+              <% end %>
+
+              <%= if @selected_request.experience && @selected_request.experience != "" do %>
+                <div class="bg-[#3a3b4a] rounded-lg p-4">
+                  <h3 class="text-white text-sm font-bold font-['Poppins'] mb-2 flex items-center gap-2">
+                    <svg class="w-4 h-4 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M6 6V5a3 3 0 013-3h2a3 3 0 013 3v1h2a2 2 0 012 2v3.57A22.952 22.952 0 0110 13a22.95 22.95 0 01-8-1.43V8a2 2 0 012-2h2zm2-1a1 1 0 011-1h2a1 1 0 011 1v1H8V5zm1 5a1 1 0 011-1h.01a1 1 0 110 2H10a1 1 0 01-1-1z" clip-rule="evenodd" />
+                    </svg>
+                    Experience
+                  </h3>
+                  <p class="text-[#c5c7c8] text-sm font-['Poppins'] whitespace-pre-wrap leading-relaxed">
+                    <%= @selected_request.experience %>
+                  </p>
+                </div>
+              <% end %>
+
+              <%= if @selected_request.proof_links && @selected_request.proof_links != "" do %>
+                <div class="bg-[#3a3b4a] rounded-lg p-4">
+                  <h3 class="text-white text-sm font-bold font-['Poppins'] mb-2 flex items-center gap-2">
+                    <svg class="w-4 h-4 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M12.586 4.586a2 2 0 112.828 2.828l-3 3a2 2 0 01-2.828 0 1 1 0 00-1.414 1.414 4 4 0 005.656 0l3-3a4 4 0 00-5.656-5.656l-1.5 1.5a1 1 0 101.414 1.414l1.5-1.5zm-5 5a2 2 0 012.828 0 1 1 0 101.414-1.414 4 4 0 00-5.656 0l-3 3a4 4 0 105.656 5.656l1.5-1.5a1 1 0 10-1.414-1.414l-1.5 1.5a2 2 0 11-2.828-2.828l3-3z" clip-rule="evenodd" />
+                    </svg>
+                    Proof Links
+                  </h3>
+                  <div class="space-y-2">
+                    <%= for raw_link <- String.split(@selected_request.proof_links, ~r/[\n,]/, trim: true) do %>
+                      <% link = String.trim(raw_link) %>
+                      <%= if link != "" do %>
+                        <a
+                          href={if String.starts_with?(link, "http"), do: link, else: "https://#{link}"}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          class="flex items-center gap-2 px-4 py-2 bg-[#323340] rounded-lg hover:bg-[#404152] transition-colors group"
+                        >
+                          <svg class="w-4 h-4 text-blue-400 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z" />
+                            <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z" />
+                          </svg>
+                          <span class="text-blue-400 group-hover:text-blue-300 text-sm break-all flex-1"><%= link %></span>
+                        </a>
+                      <% end %>
+                    <% end %>
+                  </div>
+                </div>
+              <% end %>
+
+              <%= if (is_nil(@selected_request.bio) || @selected_request.bio == "") &&
+                     (is_nil(@selected_request.experience) || @selected_request.experience == "") &&
+                     (is_nil(@selected_request.genres) || @selected_request.genres == "") &&
+                     (is_nil(@selected_request.proof_links) || @selected_request.proof_links == "") do %>
+                <div class="bg-[#3a3b4a] rounded-lg p-6 text-center">
+                  <p class="text-[#c5c7c8] text-sm font-['Poppins']">
+                    No additional details were provided. Check the debug panel above for raw data.
+                  </p>
+                </div>
+              <% end %>
+
+              <div class="pt-4 border-t-2 border-[#3a3b4a] space-y-4">
+                <button
+                  phx-click="approve_request"
+                  phx-value-id={to_string(@selected_request.id)}
+                  class="w-full px-8 py-4 bg-green-500 hover:bg-green-600 active:bg-green-700 rounded-xl text-white text-lg font-bold font-['Poppins'] transition-all flex items-center justify-center gap-3 shadow-lg hover:shadow-green-500/25"
+                >
+                  <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                  </svg>
+                  Approve Artist Application
+                </button>
+
+                <div class="space-y-2">
+                  <label class="block text-[#c5c7c8] text-sm font-semibold font-['Poppins']">
+                    Rejection Reason <span class="text-red-400">(required)</span>
+                  </label>
+                  <textarea
+                    name="rejection_reason"
+                    phx-change="update_rejection_reason"
+                    placeholder="Explain why this application is being rejected..."
+                    rows="4"
+                    class="w-full px-4 py-3 bg-[#3a3b4a] rounded-lg text-white placeholder-[#666] focus:outline-none focus:ring-2 focus:ring-red-500 font-['Poppins'] text-sm resize-none"
+                  ><%= @rejection_reason %></textarea>
+                  <p class="text-[#555] text-xs font-['Poppins']">
+                    Current value: "<%= @rejection_reason %>" (length: <%= String.length(@rejection_reason) %>)
+                  </p>
+                  <button
+                    phx-click="reject_request"
+                    phx-value-id={to_string(@selected_request.id)}
+                    class="w-full px-8 py-4 bg-red-500 hover:bg-red-600 active:bg-red-700 rounded-xl text-white text-lg font-bold font-['Poppins'] transition-all flex items-center justify-center gap-3 shadow-lg hover:shadow-red-500/25"
+                  >
+                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                    </svg>
+                    Reject Application
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        <% else %>
+          <div class="bg-[#323340] rounded-xl flex flex-col items-center justify-center min-h-[500px]">
+            <div class="w-20 h-20 bg-[#3a3b4a] rounded-full flex items-center justify-center mb-5">
+              <svg class="w-10 h-10 text-[#555]" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3z" />
+              </svg>
+            </div>
+            <p class="text-white text-xl font-bold font-['Poppins'] mb-2">Select a Request</p>
+            <p class="text-[#aaa] text-sm font-['Poppins']">Click on an application from the left panel to review it</p>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>

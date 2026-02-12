@@ -1,0 +1,232 @@
+<div class="min-h-screen bg-[#27282e]">
+  <div class="fixed top-0 left-0 right-0 z-50 h-16 bg-gradient-to-b from-[#151620] to-[#151620] shadow-lg">
+    <div class="flex items-center justify-between h-full px-16 max-w-[1440px] mx-auto">
+      <.link navigate={~p"/#{@locale}/home"} class="flex items-center gap-3">
+        <span class="text-white text-4xl font-bold font-['Poppins']">Mazaryn</span>
+        <div class="flex gap-3">
+          <div class="w-2 h-2 bg-blue-500 rounded-full"></div>
+          <div class="w-2 h-2 bg-blue-500 rounded-full"></div>
+        </div>
+      </.link>
+      <div class="flex items-center gap-5">
+        <form phx-submit="search" class="w-[588px]">
+          <div class="relative">
+            <input
+              type="text"
+              name="search"
+              value={@search_query}
+              placeholder="Search Music"
+              class="w-full px-5 py-2 pl-12 bg-[#323340] rounded-lg border-2 border-[#323340] text-white placeholder-[#aaaaaa] focus:outline-none focus:border-blue-500"
+            />
+            <div class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5">
+              <div class="w-3.5 h-3.5 outline outline-2 outline-offset-[-1px] outline-[#aaaaaa]"></div>
+              <div class="w-1 h-1 left-[13.88px] top-[13.88px] absolute outline outline-2 outline-offset-[-1px] outline-[#aaaaaa]"></div>
+            </div>
+          </div>
+        </form>
+        <.link
+          navigate={~p"/#{@locale}/notifications"}
+          class="w-10 h-10 bg-[#323340] rounded-full flex items-center justify-center hover:bg-[#3a3b4a] transition-colors"
+        >
+          <div class="px-0.5 py-[5px]">
+            <div class="w-7 h-5 bg-[#aaaaaa]"></div>
+          </div>
+        </.link>
+      </div>
+      <div class="flex items-center gap-5">
+        <div class="h-10 px-4 bg-[#323340] rounded-lg flex items-center gap-2">
+          <img src="/images/mazaryn-symbol.svg" class="w-5 h-5" alt="Mazaryn coin" />
+          <span class="text-white text-base font-['Poppins']">0.23</span>
+        </div>
+        <%= if @user do %>
+          <div class="flex items-center gap-5">
+            <div class="w-10 h-10 bg-[#323340] rounded-full"></div>
+            <div class="w-5 h-5">
+              <div class="w-3.5 h-4 left-[3.10px] top-0 absolute bg-[#aaaaaa]"></div>
+              <div class="w-1 h-1 left-[7.94px] top-[15.87px] absolute bg-[#aaaaaa]"></div>
+            </div>
+            <div class="w-36 h-10 bg-[#323340] rounded-lg"></div>
+            <span class="text-white text-base font-['Poppins']"><%= @user.username %></span>
+            <div class="w-10 h-10 bg-stone-300 rounded-full"></div>
+            <div class="w-3 h-[5px] outline outline-1 outline-offset-[-0.50px] outline-white"></div>
+            <div class="w-10 h-10 bg-stone-300 rounded-full"></div>
+            <img class="w-16 h-16" src="https://placehold.co/61x61" />
+          </div>
+        <% end %>
+      </div>
+    </div>
+  </div>
+  <div class="flex max-w-[1440px] mx-auto pt-20">
+    <aside class="fixed left-16 top-24 w-60">
+      <div class="space-y-6">
+        <h2 class="text-[#c5c7c8] text-xl font-semibold font-['Poppins']">Music</h2>
+        <div class="bg-[#323340] rounded-[20px] shadow-lg p-7 space-y-7">
+          <.link
+            navigate={~p"/#{@locale}/music"}
+            class="flex items-center gap-5 text-[#c5c7c8] hover:text-white hover:translate-x-1 transition-all"
+          >
+            <div class="w-5 h-5">
+              <div class="w-5 h-5 left-0 top-[0.42px] absolute bg-[#c5c7c8]"></div>
+            </div>
+            <span class="text-xl font-semibold font-['Poppins']">Home</span>
+          </.link>
+          <.link
+            navigate={~p"/#{@locale}/music/artists"}
+            class="flex items-center gap-5 text-[#c5c7c8] hover:text-white hover:translate-x-1 transition-all"
+          >
+            <div class="w-5 h-5">
+              <div class="w-4 h-3.5 left-[2.50px] top-[3.33px] absolute bg-[#c5c7c8]"></div>
+            </div>
+            <span class="text-xl font-semibold font-['Poppins']">Artist</span>
+          </.link>
+          <.link
+            navigate={~p"/#{@locale}/music/albums"}
+            class="flex items-center gap-5 text-[#c5c7c8] hover:text-white hover:translate-x-1 transition-all"
+          >
+            <div class="w-5 h-5">
+              <div class="w-3.5 h-3.5 left-[2.50px] top-[2.50px] absolute bg-[#c5c7c8]"></div>
+            </div>
+            <span class="text-xl font-semibold font-['Poppins']">Album</span>
+          </.link>
+        </div>
+        <h2 class="text-[#c5c7c8] text-xl font-semibold font-['Poppins']">Playlist</h2>
+        <div class="bg-[#323340] rounded-[20px] shadow-lg p-7">
+          <.link
+            navigate={~p"/#{@locale}/music/playlists"}
+            class="flex items-center gap-5 text-[#c5c7c8] hover:text-white hover:translate-x-1 transition-all"
+          >
+            <div class="w-5 h-5">
+              <div class="w-4 h-4 left-[1.25px] top-[1.25px] absolute bg-[#c5c7c8]"></div>
+            </div>
+            <span class="text-xl font-semibold font-['Poppins']">Playlist</span>
+          </.link>
+        </div>
+      </div>
+    </aside>
+    <main class="ml-80 mr-16 flex-1 py-8 space-y-7">
+      <section>
+        <div class="inline-flex justify-start items-center gap-5 mb-7">
+          <.link navigate={~p"/#{@locale}/music"} class="p-2.5 origin-top-left -rotate-180 bg-[#323340] rounded-[50px] flex justify-start items-start gap-2.5 hover:bg-[#3a3b4a] transition-colors">
+            <div class="px-2 py-2.5 origin-top-left rotate-90 inline-flex flex-col justify-start items-start gap-2.5 overflow-hidden">
+              <div class="w-1.5 h-3 outline outline-[3.13px] outline-offset-[-1.56px] outline-white"></div>
+            </div>
+          </.link>
+          <h2 class="w-44 text-[#c5c7c8] text-xl font-semibold font-['Poppins'] leading-6">Song</h2>
+        </div>
+        <div class="w-full p-7 bg-gradient-to-l from-blue-800 to-slate-500 rounded-md flex flex-col justify-start items-start gap-2.5 mb-7">
+          <div class="inline-flex justify-start items-end gap-7">
+            <img class="w-48 h-48 rounded-md object-cover" src={@song.cover_image} alt={@song.title} />
+            <div class="inline-flex flex-col justify-start items-start gap-2.5">
+              <div class="w-96 text-white text-3xl font-bold font-['Poppins'] leading-8"><%= @song.title %></div>
+              <div class="inline-flex justify-start items-start gap-2.5">
+                <div class="flex justify-start items-center gap-2.5">
+                  <img class="w-5 h-5 rounded-[30px] object-cover" src={@song.artist_avatar} alt={@song.artist} />
+                  <div class="text-white text-base font-semibold font-['Poppins'] leading-6"><%= @song.artist %></div>
+                </div>
+                <div class="text-white text-base font-normal font-['Poppins'] leading-6"><%= @song.year %></div>
+                <div class="text-white text-base font-normal font-['Poppins'] leading-6"><%= @song.duration %></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="inline-flex justify-start items-center gap-5 mb-7">
+          <button phx-click="play_song" class="w-14 h-14 bg-blue-500 rounded-[50px] flex items-center justify-center hover:bg-blue-600 transition-colors">
+            <div class="w-5 h-6 bg-white"></div>
+          </button>
+          <button phx-click="like_song" class="w-7 h-7 cursor-pointer hover:opacity-80 transition-opacity">
+            <div class="w-6 h-6 bg-white"></div>
+          </button>
+          <div class="h-7 p-[5px] cursor-pointer hover:opacity-80 transition-opacity">
+            <div class="w-[5px] h-[5px] bg-stone-300 rounded-full"></div>
+            <div class="w-[5px] h-[5px] bg-stone-300 rounded-full"></div>
+            <div class="w-[5px] h-[5px] bg-stone-300 rounded-full"></div>
+          </div>
+        </div>
+        <div class="mb-7">
+          <h3 class="w-20 text-white text-xl font-semibold font-['Poppins'] leading-6 mb-4">Lyrics</h3>
+          <div class="text-[#c5c7c8] text-sm font-normal font-['Poppins'] leading-6 whitespace-pre-line mb-4"><%= @song.lyrics %></div>
+          <div class="inline-flex justify-start items-center gap-2.5">
+            <img class="w-24 h-24 rounded-[100px] object-cover" src={@song.artist_avatar} alt={@song.artist} />
+            <div class="inline-flex flex-col justify-start items-start gap-[5px]">
+              <div class="text-white text-base font-normal font-['Poppins'] leading-6">Artist</div>
+              <div class="text-white text-base font-semibold font-['Poppins'] leading-6"><%= @song.artist %></div>
+            </div>
+          </div>
+        </div>
+        <div class="flex flex-col justify-start items-start gap-5">
+          <h3 class="w-44 text-[#c5c7c8] text-xl font-semibold font-['Poppins'] leading-6">Recommended</h3>
+          <%= for track <- @recommended_tracks do %>
+            <div class="self-stretch inline-flex justify-start items-center gap-5 py-2 hover:bg-[#323340] rounded-lg transition-colors">
+              <div class="w-80 flex justify-start items-center gap-5">
+                <div class="flex justify-start items-center gap-2.5">
+                  <div class="w-14 h-14">
+                    <img class="w-14 h-14 rounded-md object-cover" src={track.cover} alt={track.title} />
+                  </div>
+                  <div class="inline-flex flex-col justify-start items-start">
+                    <div class="w-48 text-white text-base font-semibold font-['Poppins'] leading-6 line-clamp-1"><%= track.title %></div>
+                  </div>
+                </div>
+              </div>
+              <div class="flex-1 flex justify-end">
+                <div class="text-[#c5c7c8] text-base font-normal font-['Poppins'] leading-6"><%= track.duration %></div>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      </section>
+    </main>
+  </div>
+  <div class="fixed bottom-0 left-0 right-0 h-24 bg-[#323340] border-t border-[#404040]">
+    <div class="max-w-[1440px] mx-auto px-4 h-full flex items-center justify-between">
+      <div class="flex items-center">
+        <div class="w-16 h-16 bg-white rounded overflow-hidden">
+          <img
+            src="https://placehold.co/72x72"
+            class="w-16 h-16 rounded-md object-cover"
+            alt="Now playing"
+          />
+        </div>
+        <div class="p-3 flex items-center gap-3">
+          <div>
+            <h4 class="w-48 text-white text-base font-semibold font-['Poppins'] leading-6">
+              JKRS - It's a Fine Day
+            </h4>
+            <p class="text-[#c5c7c8] text-sm font-normal font-['Poppins'] leading-6">
+              Weeknd
+            </p>
+          </div>
+          <div class="w-5 h-5">
+            <div class="w-4 h-4 left-[1.67px] top-[2.50px] absolute bg-white"></div>
+          </div>
+        </div>
+      </div>
+      <div class="flex flex-col items-center">
+        <div class="flex flex-col items-start gap-[5px]">
+          <div class="w-[660px] relative">
+            <div class="w-[660px] h-[5px] bg-[#505050]/70 rounded-[999px]"></div>
+            <div class="w-96 h-[5px] absolute top-0 left-0 bg-blue-500 rounded-[999px]"></div>
+          </div>
+          <div class="w-[661px] px-4 flex justify-between items-start">
+            <span class="text-white text-sm font-normal font-['Poppins'] leading-6">3:56</span>
+            <span class="text-white text-sm font-normal font-['Poppins'] leading-6">1:55</span>
+          </div>
+        </div>
+        <div class="flex items-center gap-4 mt-2">
+          <div class="w-3 h-3">
+            <div class="w-3 h-2.5 left-[1.02px] top-[1.83px] absolute bg-white"></div>
+          </div>
+          <div class="w-3.5 h-3 origin-top-left -rotate-180 bg-white border-white"></div>
+          <div class="w-4 h-5 bg-white"></div>
+          <div class="w-3.5 h-3 bg-white border-white"></div>
+          <div class="w-3 h-3">
+            <div class="w-3 h-2.5 left-0 top-0 absolute bg-white"></div>
+          </div>
+        </div>
+      </div>
+      <div class="h-full py-1 flex items-center gap-2.5">
+        <div class="w-36 h-[5px] bg-[#505050] rounded"></div>
+        <div class="w-24 h-[5px] bg-blue-500 rounded"></div>
+      </div>
+    </div>
+  </div>
+</div>

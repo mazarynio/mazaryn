@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Application Submitted - Mazaryn</title>
+  <link phx-track-static rel="stylesheet" href={~p"/assets/app.css"}/>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      background: #27282e;
+      font-family: 'Poppins', sans-serif;
+    }
+  </style>
+</head>
+<body class="bg-[#27282e]">
+  <div class="min-h-screen bg-[#27282e] flex items-center justify-center p-8">
+    <div class="max-w-2xl w-full">
+      <div class="bg-[#323340] rounded-[20px] shadow-2xl p-12 text-center">
+
+        <div class="flex justify-center mb-6">
+          <div class="w-24 h-24 bg-green-500/20 rounded-full flex items-center justify-center">
+            <svg class="w-16 h-16 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+            </svg>
+          </div>
+        </div>
+
+        <h1 class="text-white text-3xl font-bold font-['Poppins'] mb-4">
+          Application Submitted Successfully!
+        </h1>
+
+        <p class="text-[#c5c7c8] text-lg font-['Poppins'] mb-8 leading-relaxed">
+          Thank you for applying to become an artist on Mazaryn. Your application has been received and is now under review by our admin team.
+        </p>
+
+        <div class="bg-[#3a3b4a] rounded-lg p-6 mb-8">
+          <h2 class="text-white text-xl font-semibold font-['Poppins'] mb-4">
+            What happens next?
+          </h2>
+
+          <div class="space-y-4 text-left">
+            <div class="flex items-start gap-3">
+              <div class="w-8 h-8 bg-blue-500/20 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                <span class="text-blue-500 text-sm font-bold">1</span>
+              </div>
+              <div>
+                <h3 class="text-white text-base font-semibold font-['Poppins']">Review Process</h3>
+                <p class="text-[#c5c7c8] text-sm font-['Poppins']">
+                  Our team will carefully review your application, experience, and proof links.
+                </p>
+              </div>
+            </div>
+
+            <div class="flex items-start gap-3">
+              <div class="w-8 h-8 bg-blue-500/20 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                <span class="text-blue-500 text-sm font-bold">2</span>
+              </div>
+              <div>
+                <h3 class="text-white text-base font-semibold font-['Poppins']">Decision</h3>
+                <p class="text-[#c5c7c8] text-sm font-['Poppins']">
+                  You'll receive a notification once your application has been reviewed (typically within 2-3 business days).
+                </p>
+              </div>
+            </div>
+
+            <div class="flex items-start gap-3">
+              <div class="w-8 h-8 bg-blue-500/20 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                <span class="text-blue-500 text-sm font-bold">3</span>
+              </div>
+              <div>
+                <h3 class="text-white text-base font-semibold font-['Poppins']">Get Started</h3>
+                <p class="text-[#c5c7c8] text-sm font-['Poppins']">
+                  Once approved, you'll be able to upload and share your music with the Mazaryn community!
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+          <a
+            href={"/" <> @locale <> "/music"}
+            class="px-8 py-3 bg-blue-500 rounded-lg text-white text-base font-semibold font-['Poppins'] hover:bg-blue-600 transition-colors"
+          >
+            Explore Music
+          </a>
+
+          <a
+            href={"/" <> @locale <> "/home"}
+            class="px-8 py-3 bg-[#3a3b4a] rounded-lg text-white text-base font-semibold font-['Poppins'] hover:bg-[#404152] transition-colors"
+          >
+            Back to Home
+          </a>
+        </div>
+
+        <div class="mt-8 pt-8 border-t border-gray-600">
+          <p class="text-[#aaaaaa] text-sm font-['Poppins']">
+            Questions? Contact us at
+            <a href="mailto:support@mazaryn.com" class="text-blue-500 hover:text-blue-400">
+              support@mazaryn.com
+            </a>
+          </p>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</body>
+</html>

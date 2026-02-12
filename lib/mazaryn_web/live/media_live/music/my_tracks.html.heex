@@ -1,0 +1,205 @@
+<div class="min-h-screen bg-[#27282e]">
+  <div class="fixed top-0 left-0 right-0 z-50 h-16 bg-gradient-to-b from-[#151620] to-[#151620] shadow-lg">
+    <div class="flex items-center justify-between h-full px-16 max-w-[1440px] mx-auto">
+      <.link navigate={~p"/#{@locale}/home"} class="flex items-center gap-3">
+        <span class="text-white text-4xl font-bold font-['Poppins']">Mazaryn</span>
+        <div class="flex gap-3">
+          <div class="w-2 h-2 bg-blue-500 rounded-full"></div>
+          <div class="w-2 h-2 bg-blue-500 rounded-full"></div>
+        </div>
+      </.link>
+      <div class="flex items-center gap-5">
+        <form phx-submit="search" class="w-[588px]">
+          <div class="relative">
+            <input
+              type="text"
+              name="query"
+              value={@search_query}
+              placeholder="Search Your Tracks"
+              class="w-full px-5 py-2 pl-12 bg-[#323340] rounded-lg border-2 border-[#323340] text-white placeholder-[#aaaaaa] focus:outline-none focus:border-blue-500"
+            />
+            <Heroicons.magnifying_glass class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#aaaaaa]" />
+          </div>
+        </form>
+        <.link
+          navigate={~p"/#{@locale}/notifications"}
+          class="w-10 h-10 bg-[#323340] rounded-full flex items-center justify-center hover:bg-[#3a3b4a] transition-colors"
+        >
+          <Heroicons.bell solid class="w-5 h-5 text-[#aaaaaa]" />
+        </.link>
+      </div>
+      <div class="flex items-center gap-5">
+        <div class="h-10 px-4 bg-[#323340] rounded-lg flex items-center gap-2">
+          <img src="/images/mazaryn-symbol.svg" class="w-5 h-5" alt="Mazaryn coin" />
+          <span class="text-white text-base font-['Poppins']">0.1</span>
+        </div>
+        <%= if @user do %>
+          <div class="relative" x-data="{ open: false }">
+            <button @click="open = !open" class="flex items-center gap-3 px-4 h-10 bg-[#323340] rounded-lg hover:bg-[#3a3b4a] transition-colors">
+              <% avatar_url = MazarynWeb.Live.Helper.handle_avatar(@user) %>
+              <%= if avatar_url && avatar_url != "" && avatar_url != "/images/default-avatar.png" do %>
+                <img
+                  src={avatar_url}
+                  class="w-8 h-8 rounded-full object-cover"
+                  alt="User avatar"
+                  onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+                />
+                <div class="hidden w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 items-center justify-center">
+                  <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
+                  </svg>
+                </div>
+              <% else %>
+                <div class="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center">
+                  <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
+                  </svg>
+                </div>
+              <% end %>
+              <span class="text-white text-base font-['Poppins']"><%= MazarynWeb.Live.Helper.get_username(@user) %></span>
+              <Heroicons.chevron_down class="w-4 h-4 text-[#aaaaaa]" />
+            </button>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  </div>
+  <div class="flex max-w-[1440px] mx-auto pt-20">
+    <aside class="fixed left-16 top-24 w-60">
+      <div class="space-y-6">
+        <h2 class="text-[#c5c7c8] text-xl font-semibold font-['Poppins']">Music</h2>
+        <div class="bg-[#323340] rounded-[20px] shadow-lg p-7 space-y-7">
+          <.link
+            navigate={~p"/#{@locale}/music"}
+            class="flex items-center gap-5 text-[#c5c7c8] hover:text-white hover:translate-x-1 transition-all"
+          >
+            <Heroicons.home solid class="w-5 h-5" />
+            <span class="text-xl font-semibold font-['Poppins']">Home</span>
+          </.link>
+          <.link
+            navigate={~p"/#{@locale}/music/artists"}
+            class="flex items-center gap-5 text-[#c5c7c8] hover:text-white hover:translate-x-1 transition-all"
+          >
+            <Heroicons.user_group solid class="w-5 h-5" />
+            <span class="text-xl font-semibold font-['Poppins']">Artist</span>
+          </.link>
+          <.link
+            navigate={~p"/#{@locale}/music/albums"}
+            class="flex items-center gap-5 text-[#c5c7c8] hover:text-white hover:translate-x-1 transition-all"
+          >
+            <Heroicons.squares_2x2 solid class="w-5 h-5" />
+            <span class="text-xl font-semibold font-['Poppins']">Album</span>
+          </.link>
+          <.link
+            navigate={~p"/#{@locale}/music/upload"}
+            class="flex items-center gap-5 text-[#c5c7c8] hover:text-white hover:translate-x-1 transition-all"
+          >
+            <Heroicons.arrow_up_tray solid class="w-5 h-5" />
+            <span class="text-xl font-semibold font-['Poppins']">Upload</span>
+          </.link>
+        </div>
+        <h2 class="text-[#c5c7c8] text-xl font-semibold font-['Poppins']">Playlist</h2>
+        <div class="bg-[#323340] rounded-[20px] shadow-lg p-7">
+          <.link
+            navigate={~p"/#{@locale}/music/playlists"}
+            class="flex items-center gap-5 text-[#c5c7c8] hover:text-white hover:translate-x-1 transition-all"
+          >
+            <Heroicons.queue_list solid class="w-5 h-5" />
+            <span class="text-xl font-semibold font-['Poppins']">Playlist</span>
+          </.link>
+        </div>
+      </div>
+    </aside>
+    <main class="ml-80 mr-16 flex-1 py-8 space-y-5">
+      <section>
+        <div class="px-2.5 py-3 bg-[#323340] rounded-[20px] shadow-lg flex items-start gap-2.5 mb-7">
+          <.link
+            navigate={~p"/#{@locale}/music/upload"}
+            class="w-28 h-10 p-2.5 rounded-[10px] flex justify-center items-center gap-2.5 hover:bg-[#3a3b4a] transition-colors"
+          >
+            <div class="text-[#c5c7c8] text-base font-normal font-['Poppins'] uppercase leading-6">UPLOAD</div>
+          </.link>
+          <.link
+            navigate={~p"/#{@locale}/music/my-tracks"}
+            class="h-10 p-2.5 bg-[#3a3b4a] rounded-[10px] flex justify-center items-center gap-2.5"
+          >
+            <div class="text-white text-base font-normal font-['Poppins'] uppercase leading-6">Your tracks</div>
+          </.link>
+        </div>
+        <h2 class="text-white text-xl font-semibold font-['Poppins'] leading-6 mb-5">Tracks (<%= length(@tracks) %>)</h2>
+        <%= if length(@selected_tracks) > 0 do %>
+          <button
+            phx-click="add_to_playlist"
+            class="px-5 py-2.5 rounded-[10px] outline outline-2 outline-offset-[-2px] outline-gray-600 flex items-center gap-2.5 hover:bg-[#3a3b4a] transition-colors mb-7"
+          >
+            <Heroicons.plus class="w-5 h-5 text-[#c5c7c8]" />
+            <div class="text-[#c5c7c8] text-sm font-bold font-['Roboto']">Add <%= length(@selected_tracks) %> to playlist</div>
+          </button>
+        <% end %>
+        <%= if @tracks == [] do %>
+          <div class="flex flex-col items-center justify-center py-20">
+            <Heroicons.musical_note class="w-20 h-20 text-[#c5c7c8] mb-4" />
+            <p class="text-[#c5c7c8] text-lg font-['Poppins']">No tracks uploaded yet</p>
+            <.link
+              navigate={~p"/#{@locale}/music/upload"}
+              class="mt-4 px-6 py-3 bg-blue-500 rounded-lg text-white text-base font-semibold font-['Poppins'] hover:bg-blue-600 transition-colors"
+            >
+              Upload Your First Track
+            </.link>
+          </div>
+        <% else %>
+          <div class="flex flex-col gap-2.5">
+            <%= for track <- @tracks do %>
+              <div class="flex justify-between items-center p-3 hover:bg-[#323340] rounded-lg transition-colors group">
+                <div class="flex items-start gap-2.5">
+                  <div class="flex items-center gap-2.5">
+                    <input
+                      type="checkbox"
+                      id={"track_#{track.id}"}
+                      phx-click="toggle_track_selection"
+                      phx-value-value={track.id}
+                      checked={track.id in @selected_tracks}
+                      class="w-5 h-5 bg-[#3a3b4a] rounded border border-gray-600 checked:bg-blue-500 checked:border-blue-500 cursor-pointer"
+                    />
+                    <div class="relative">
+                      <img
+                        src={track.cover_image}
+                        class="w-24 h-14 rounded-md object-cover"
+                        alt={track.title}
+                        onerror="this.onerror=null; this.src='https://placehold.co/92x60';"
+                      />
+                      <button
+                        phx-click="play_track"
+                        phx-value-id={track.id}
+                        class="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-md"
+                      >
+                        <Heroicons.play_solid class="w-6 h-6 text-white" />
+                      </button>
+                    </div>
+                  </div>
+                  <div class="flex flex-col">
+                    <div class="w-48 text-white text-base font-semibold font-['Poppins'] leading-6 line-clamp-1"><%= track.title %></div>
+                    <div class="text-[#c5c7c8] text-sm font-normal font-['Poppins'] leading-6"><%= track.artist %></div>
+                    <div class="text-[#aaaaaa] text-xs font-normal font-['Poppins'] leading-6"><%= track.plays %> plays</div>
+                  </div>
+                </div>
+                <div class="flex items-center gap-5">
+                  <div class="text-[#c5c7c8] text-base font-normal font-['Poppins'] leading-6"><%= track.duration %></div>
+                  <div class="text-[#c5c7c8] text-base font-normal font-['Poppins'] leading-6"><%= track.uploaded_at %></div>
+                  <button
+                    phx-click="delete_track"
+                    phx-value-id={track.id}
+                    data-confirm="Are you sure you want to delete this track?"
+                    class="opacity-0 group-hover:opacity-100 transition-opacity text-red-500 hover:text-red-600"
+                  >
+                    <Heroicons.trash class="w-5 h-5" />
+                  </button>
+                </div>
+              </div>
+            <% end %>
+          </div>
+        <% end %>
+      </section>
+    </main>
+  </div>
+</div>

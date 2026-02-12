@@ -5,6 +5,7 @@
   search={@search}
   locale={@locale}
 />
+
 <%= if @show_weather_modal do %>
   <.live_component
     module={MazarynWeb.HomeLive.WeatherComponent}
@@ -14,6 +15,7 @@
     error={@weather_error}
   />
 <% end %>
+
 <div class="bg-[#FAFAFA]">
   <div class="flex flex-wrap w-[90%] max-w-[1440px] mx-auto">
     <div class="w-full lg:w-[18%] py-6">
@@ -24,6 +26,7 @@
         locale={@locale}
       />
     </div>
+
     <div class="w-full lg:w-[54%] py-6 pl-11 pr-8">
       <div class="w-full text-sm leading-tight">
         <div class="flex justify-between align-center items-center py-5">
@@ -102,6 +105,7 @@
           </div>
         </div>
       </div>
+
       <div class="w-full bg-white white:bg-gray-800 custom-box-shadow pr-8 pl-7 pb-7 pt-4 rounded-[20px]">
         <.live_component
           module={MazarynWeb.HomeLive.CreatePostComponent}
@@ -110,6 +114,7 @@
           user={@user}
         />
       </div>
+
       <div class="flex flex-wrap justify-center align-center mb-6">
         <%= for post <- @posts do %>
           <.live_component
@@ -122,98 +127,1177 @@
         <% end %>
       </div>
     </div>
+
     <div class="w-full lg:w-[28%] py-6">
-      <.link navigate={~p"/#{@locale}/#{@user.username}"} class="block">
-        <div class="w-full bg-gradient-to-br from-indigo-200 via-purple-200 to-pink-200 text-gray-800 custom-box-shadow py-8 px-7 rounded-[20px] my-7 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 cursor-pointer">
-          <div class="flex flex-col items-center text-center">
-            <div class="w-24 h-24 rounded-full overflow-hidden border-4 border-white shadow-lg mb-4">
-              <%= if @user.avatar_url do %>
-                <img src={Path.join(Mazaryn.config([:media, :ipfs_gateway]), @user.avatar_url)} alt="Profile" class="w-full h-full object-cover" />
-              <% else %>
-                <div class="w-full h-full bg-white/40 flex items-center justify-center">
-                  <svg class="w-12 h-12 text-gray-700/70" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
-                  </svg>
-                </div>
-              <% end %>
+      <div class="quantum-profile-card" id="quantum-profile-card" phx-hook="QuantumProfileCard">
+        <div class="absolute inset-0 glass-background">
+          <div class="floating-blob blob-1"></div>
+          <div class="floating-blob blob-2"></div>
+          <div class="floating-blob blob-3"></div>
+          <div class="grid-lines"></div>
+          <div class="particle-system"></div>
+        </div>
+
+        <div class="relative z-10">
+          <div class="holographic-avatar-container">
+            <div class="avatar-orbit-ring">
+              <div class="orbit-dot dot-1"></div>
+              <div class="orbit-dot dot-2"></div>
+              <div class="orbit-dot dot-3"></div>
             </div>
-            <h3 class="text-xl font-bold mb-2">Set your profile picture</h3>
-            <p class="text-sm opacity-90 mb-4">Complete your profile to get started</p>
-            <div class="inline-flex items-center px-6 py-3 bg-white/50 backdrop-blur rounded-full hover:bg-white/70 transition-all">
-              <span class="font-medium">Go to Profile →</span>
-            </div>
+
+            <%= if @user.avatar_url do %>
+              <img
+                src={Path.join(Mazaryn.config([:media, :ipfs_gateway]), @user.avatar_url)}
+                alt="Profile"
+                class="avatar-image"
+              />
+            <% else %>
+              <div class="avatar-placeholder">
+                <svg class="avatar-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12 15C14.2091 15 16 13.2091 16 11C16 8.79086 14.2091 7 12 7C9.79086 7 8 8.79086 8 11C8 13.2091 9.79086 15 12 15Z"
+                        stroke="currentColor" stroke-width="1.5"/>
+                  <path d="M6 21C6 17.134 9.13401 14 13 14H11C6.58172 14 3 17.5817 3 22"
+                        stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                  <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.5"/>
+                </svg>
+              </div>
+            <% end %>
+
+            <div class="avatar-glow"></div>
+            <div class="hologram-scan"></div>
+          </div>
+
+          <div class="quantum-content">
+            <h3 class="profile-title">
+              <span class="gradient-text">Complete Your Identity</span>
+            </h3>
+            <p class="profile-subtitle">
+              Add a profile picture to stand out
+            </p>
+
+            <.link navigate={~p"/#{@locale}/#{@user.username}"} class="quantum-upload-btn">
+              <div class="upload-icon">
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M21 15V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V15"
+                        stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M17 8L12 3L7 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M12 3V15" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </div>
+              <span class="upload-text">Update Photo</span>
+              <div class="upload-arrow">
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M5 12H19M19 12L12 5M19 12L12 19" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </div>
+            </.link>
           </div>
         </div>
-      </.link>
+      </div>
 
-      <div class="w-full bg-gradient-to-br from-indigo-100 via-purple-100 to-pink-100 text-gray-800 custom-box-shadow py-7 pl-8 pr-7 rounded-[20px] my-7 hover:shadow-2xl transition-all duration-300">
-        <div class="flex flex-row justify-between">
-          <h1 class="block flex items-center text-l font-semibold">
-            <i>
-              <svg
-                class="h-7 w-7 mr-3 fill-orange-500"
-                width="22"
-                height="24"
-                viewBox="0 0 22 24"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M17.625 6.99959C17.625 8.87459 17 11.3746 14 12.3746C14.875 10.2496 15 8.12459 14.375 6.12459C13.5 3.49959 10.625 1.49959 8.625 0.374594C8.125 -0.000406042 7.25 0.499594 7.375 1.24959C7.375 2.62459 7 4.62459 4.875 6.74959C2.125 9.49959 0.75 12.3746 0.75 15.1246C0.75 18.7496 3.25 23.2496 8.25 23.2496C3.25 18.2496 7 13.8746 7 13.8746C8 21.2496 13.25 23.2496 15.75 23.2496C17.875 23.2496 22 21.7496 22 15.2496C22 11.3746 20.375 8.37459 19 6.62459C18.625 5.99959 17.75 6.37459 17.625 6.99959Z"
-                  fill="#FF7A00"
-                />
-              </svg>
-            </i>
-            <%= gettext("Trending") %>
-          </h1>
-          <.link navigate={~p"/#{@locale}/hashtag"} class="block text-base text-[#4385F5] hover:underline">
-            See more
-          </.link>
+      <div class="quantum-trending-card" id="quantum-trending-card" phx-hook="QuantumTrendingCard">
+        <div class="absolute inset-0 glass-background trending">
+          <div class="floating-blob blob-4"></div>
+          <div class="floating-blob blob-5"></div>
+          <div class="floating-blob blob-6"></div>
+          <div class="grid-lines"></div>
+          <div class="particle-system"></div>
         </div>
-        <div class="border-[#E0E0E0] border border-b-0 mt-6 mb-7"></div>
-        <ul class="w-full space-y-6">
-          <li>
-            <div class="flex justify-between items-center">
-              <div class="flex flex-col">
-                <.link
-                  navigate={~p"/#{@locale}/hashtag/tech"}
-                  class="text-base text-[#5D5F63] font-semibold hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200"
-                >
-                  #TECH
-                </.link>
-                <span class="text-sm text-[#9CA3AF]">0 posts</span>
+
+        <div class="relative z-10">
+          <div class="trending-header">
+            <div class="trending-title-container">
+              <div class="trending-icon">
+                <svg class="trending-icon-svg" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M2 12L7 2L12.5 8.5L18 2L22 12"
+                        stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M2 22H22" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                  <path d="M5 22V15H9V22" stroke="currentColor" stroke-width="1.5"/>
+                  <path d="M15 22V15H19V22" stroke="currentColor" stroke-width="1.5"/>
+                </svg>
               </div>
-              <button
-                type="button"
-                class="inline-flex items-center px-4 py-2.5 border border-gray-300 text-gray-500 font-medium text-xs leading-tight uppercase rounded-lg transition duration-150 ease-in-out hover:bg-gray-50"
-              >
-                <Heroicons.plus_circle outline class="h-5 w-5 mr-2" />
-                <%= gettext("Follow") %>
+              <h4 class="trending-title">
+                <span class="gradient-text">Trending Now</span>
+              </h4>
+            </div>
+
+            <.link navigate={~p"/#{@locale}/hashtag"} class="trending-explore">
+              Explore
+              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M5 12H19M19 12L12 5M19 12L12 19" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </.link>
+          </div>
+
+          <div class="trending-timeline">
+            <div class="timeline-track"></div>
+            <div class="timeline-marker"></div>
+          </div>
+
+          <div class="trending-grid">
+            <div class="trending-item quantum-item">
+              <div class="trending-rank">
+                <div class="rank-indicator">01</div>
+                <div class="trend-direction up">
+                  <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M7 11L12 6L17 11M7 17L12 12L17 17" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </div>
+              </div>
+
+              <.link navigate={~p"/#{@locale}/hashtag/tech"} class="trending-tag">
+                #TECH
+              </.link>
+
+              <button class="quantum-follow-btn" phx-click="follow_hashtag" phx-value-hashtag="tech">
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12 4V20M4 12H20" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span>Follow</span>
               </button>
             </div>
-          </li>
-          <li>
-            <div class="flex justify-between items-center">
-              <div class="flex flex-col">
-                <.link
-                  navigate={~p"/#{@locale}/hashtag/ai"}
-                  class="text-base text-[#5D5F63] font-semibold hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200"
-                >
-                  #AI
-                </.link>
-                <span class="text-sm text-[#9CA3AF]">0 posts</span>
+
+            <div class="trending-item quantum-item">
+              <div class="trending-rank">
+                <div class="rank-indicator">02</div>
+                <div class="trend-direction up">
+                  <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M7 11L12 6L17 11M7 17L12 12L17 17" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </div>
               </div>
-              <button
-                type="button"
-                class="inline-flex items-center px-4 py-2.5 border border-gray-300 text-gray-500 font-medium text-xs leading-tight uppercase rounded-lg transition duration-150 ease-in-out hover:bg-gray-50"
-              >
-                <Heroicons.plus_circle outline class="h-5 w-5 mr-2" />
-                <%= gettext("Follow") %>
+
+              <.link navigate={~p"/#{@locale}/hashtag/ai"} class="trending-tag">
+                #AI
+              </.link>
+
+              <button class="quantum-follow-btn" phx-click="follow_hashtag" phx-value-hashtag="ai">
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12 4V20M4 12H20" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span>Follow</span>
               </button>
             </div>
-          </li>
-        </ul>
+          </div>
+
+          <div class="quantum-discovery">
+            <button class="discovery-btn" phx-click="discover_more_trends">
+              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2Z"
+                      stroke="currentColor" stroke-width="1.5"/>
+                <path d="M12 8V16M8 12H16" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              <span>Discover More</span>
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 </div>
+
+<style>
+  /* Quantum Profile Card - Matching Left Sidebar */
+  .quantum-profile-card {
+    position: relative;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    overflow: hidden;
+    margin-bottom: 24px;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow:
+      0 20px 60px rgba(99, 102, 241, 0.15),
+      inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    padding: 24px;
+    text-align: center;
+  }
+
+  .quantum-profile-card:hover {
+    transform: translateY(-4px);
+    box-shadow:
+      0 30px 80px rgba(99, 102, 241, 0.25),
+      inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  }
+
+  /* Glass Background */
+  .glass-background {
+    background: linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.1) 0%,
+      rgba(255, 255, 255, 0.05) 100%
+    );
+    backdrop-filter: blur(25px);
+    -webkit-backdrop-filter: blur(25px);
+  }
+
+  /* Floating Blobs */
+  .floating-blob {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(30px);
+    opacity: 0.25;
+    animation: float-blob 20s ease-in-out infinite;
+  }
+
+  .blob-1 {
+    width: 120px;
+    height: 120px;
+    background: linear-gradient(45deg, #3b82f6, #8b5cf6);
+    top: -50px;
+    left: -60px;
+    animation-delay: 0s;
+  }
+
+  .blob-2 {
+    width: 90px;
+    height: 90px;
+    background: linear-gradient(45deg, #ec4899, #f59e0b);
+    top: 60%;
+    right: -30px;
+    animation-delay: 5s;
+  }
+
+  .blob-3 {
+    width: 70px;
+    height: 70px;
+    background: linear-gradient(45deg, #10b981, #06b6d4);
+    bottom: -30px;
+    left: 50%;
+    animation-delay: 10s;
+  }
+
+  .blob-4 {
+    width: 100px;
+    height: 100px;
+    background: linear-gradient(45deg, #f97316, #eab308);
+    top: -40px;
+    left: 20%;
+    animation-delay: 0s;
+  }
+
+  .blob-5 {
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(45deg, #d946ef, #8b5cf6);
+    bottom: -30px;
+    right: 20%;
+    animation-delay: 8s;
+  }
+
+  .blob-6 {
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(45deg, #06b6d4, #10b981);
+    top: 50%;
+    left: -20px;
+    animation-delay: 16s;
+  }
+
+  @keyframes float-blob {
+    0%, 100% {
+      transform: translate(0, 0) scale(1);
+    }
+    33% {
+      transform: translate(20px, -20px) scale(1.05);
+    }
+    66% {
+      transform: translate(-15px, 15px) scale(0.95);
+    }
+  }
+
+  /* Grid Lines */
+  .grid-lines {
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+    background-size: 16px 16px;
+    mask-image: radial-gradient(ellipse at center, black 30%, transparent 70%);
+    -webkit-mask-image: radial-gradient(ellipse at center, black 30%, transparent 70%);
+  }
+
+  /* Particle System */
+  .particle-system {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+  }
+
+  .particle-system::before {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background-image:
+      radial-gradient(circle at 20% 30%, rgba(255, 255, 255, 0.08) 0.5px, transparent 0.5px),
+      radial-gradient(circle at 60% 70%, rgba(255, 255, 255, 0.08) 0.5px, transparent 0.5px);
+    background-size: 80px 80px;
+    animation: particle-float 80s linear infinite;
+  }
+
+  @keyframes particle-float {
+    from {
+      background-position: 0 0;
+    }
+    to {
+      background-position: 80px 80px;
+    }
+  }
+
+  /* Holographic Avatar */
+  .holographic-avatar-container {
+    position: relative;
+    width: 100px;
+    height: 100px;
+    margin: 0 auto 20px;
+  }
+
+  .avatar-orbit-ring {
+    position: absolute;
+    inset: -10px;
+    border: 2px dashed rgba(59, 130, 246, 0.3);
+    border-radius: 50%;
+    animation: orbit-rotate 15s linear infinite;
+  }
+
+  @keyframes orbit-rotate {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
+  .orbit-dot {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: linear-gradient(45deg, #3b82f6, #8b5cf6);
+    filter: drop-shadow(0 0 6px currentColor);
+  }
+
+  .orbit-dot.dot-1 {
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    animation: dot-pulse-1 3s ease-in-out infinite;
+  }
+
+  .orbit-dot.dot-2 {
+    top: 50%;
+    right: 10px;
+    transform: translateY(-50%);
+    animation: dot-pulse-2 4s ease-in-out infinite;
+  }
+
+  .orbit-dot.dot-3 {
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    animation: dot-pulse-3 5s ease-in-out infinite;
+  }
+
+  @keyframes dot-pulse-1 {
+    0%, 100% { transform: translateX(-50%) scale(1); }
+    50% { transform: translateX(-50%) scale(1.2); }
+  }
+
+  @keyframes dot-pulse-2 {
+    0%, 100% { transform: translateY(-50%) scale(1); }
+    50% { transform: translateY(-50%) scale(1.3); }
+  }
+
+  @keyframes dot-pulse-3 {
+    0%, 100% { transform: translateX(-50%) scale(1); }
+    50% { transform: translateX(-50%) scale(1.1); }
+  }
+
+  .avatar-image {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    box-shadow:
+      0 0 40px rgba(99, 102, 241, 0.4),
+      inset 0 0 20px rgba(255, 255, 255, 0.1);
+  }
+
+  .avatar-placeholder {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6, #ec4899);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    box-shadow:
+      0 0 40px rgba(99, 102, 241, 0.4),
+      inset 0 0 20px rgba(255, 255, 255, 0.1);
+  }
+
+  .avatar-icon {
+    width: 48px;
+    height: 48px;
+    color: white;
+  }
+
+  .avatar-glow {
+    position: absolute;
+    inset: -8px;
+    border-radius: 50%;
+    background: linear-gradient(45deg,
+      rgba(59, 130, 246, 0.2),
+      rgba(139, 92, 246, 0.2),
+      rgba(236, 72, 153, 0.2));
+    filter: blur(15px);
+    z-index: -1;
+    animation: glow-pulse 3s ease-in-out infinite;
+  }
+
+  @keyframes glow-pulse {
+    0%, 100% { opacity: 0.5; }
+    50% { opacity: 0.8; }
+  }
+
+  .hologram-scan {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      45deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.1) 50%,
+      transparent 100%
+    );
+    animation: hologram-scan 3s linear infinite;
+    border-radius: 50%;
+    z-index: 1;
+  }
+
+  @keyframes hologram-scan {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+  }
+
+  /* Quantum Content */
+  .quantum-content {
+    width: 100%;
+  }
+
+  .profile-title {
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    color: #1f2937; /* Dark gray instead of white */
+  }
+
+  .profile-subtitle {
+    color: #6b7280; /* Medium gray */
+    font-size: 14px;
+    margin-bottom: 24px;
+    line-height: 1.5;
+  }
+
+  .gradient-text {
+    background: linear-gradient(45deg, #3b82f6, #8b5cf6, #ec4899);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: gradient-shift 5s ease infinite;
+    background-size: 200% 200%;
+  }
+
+  @keyframes gradient-shift {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+
+  .quantum-upload-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 16px 24px;
+    background: linear-gradient(135deg,
+      rgba(59, 130, 246, 0.15),
+      rgba(139, 92, 246, 0.15));
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    color: #1f2937;
+    font-weight: 600;
+    font-size: 14px;
+    text-decoration: none;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .quantum-upload-btn:hover {
+    background: linear-gradient(135deg,
+      rgba(59, 130, 246, 0.25),
+      rgba(139, 92, 246, 0.25));
+    transform: translateY(-2px);
+    box-shadow:
+      0 10px 25px rgba(59, 130, 246, 0.3),
+      0 0 0 2px rgba(255, 255, 255, 0.1);
+  }
+
+  .quantum-upload-btn::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(
+      45deg,
+      transparent 30%,
+      rgba(255, 255, 255, 0.15) 50%,
+      transparent 70%
+    );
+    animation: quantum-shine 3s linear infinite;
+    z-index: 1;
+  }
+
+  @keyframes quantum-shine {
+    0% { transform: rotate(0deg) translateY(-100%); }
+    100% { transform: rotate(360deg) translateY(-100%); }
+  }
+
+  .upload-icon {
+    z-index: 2;
+  }
+
+  .upload-icon svg {
+    width: 20px;
+    height: 20px;
+    color: #1f2937;
+  }
+
+  .upload-text {
+    z-index: 2;
+  }
+
+  .upload-arrow {
+    margin-left: auto;
+    z-index: 2;
+  }
+
+  .upload-arrow svg {
+    width: 16px;
+    height: 16px;
+    color: #1f2937;
+  }
+
+  .quantum-trending-card {
+    position: relative;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    overflow: hidden;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow:
+      0 20px 60px rgba(245, 158, 11, 0.15),
+      inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    padding: 24px;
+  }
+
+  .quantum-trending-card:hover {
+    transform: translateY(-4px);
+    box-shadow:
+      0 30px 80px rgba(245, 158, 11, 0.25),
+      inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  }
+
+  .glass-background.trending {
+    background: linear-gradient(
+      135deg,
+      rgba(245, 158, 11, 0.1) 0%,
+      rgba(217, 70, 239, 0.1) 50%,
+      rgba(6, 182, 212, 0.1) 100%
+    );
+  }
+
+  .trending-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+
+  .trending-title-container {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .trending-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(217, 70, 239, 0.2));
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .trending-icon-svg {
+    width: 20px;
+    height: 20px;
+    color: #f59e0b;
+  }
+
+  .trending-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: #1f2937;
+  }
+
+  .trending-explore {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+    color: #f59e0b;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.3s;
+  }
+
+  .trending-explore:hover {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.3);
+    transform: translateX(4px);
+  }
+
+  .trending-explore svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  /* Trending Timeline */
+  .trending-timeline {
+    height: 2px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 1px;
+    position: relative;
+    margin-bottom: 20px;
+    overflow: hidden;
+  }
+
+  .timeline-track {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg,
+      transparent 0%,
+      rgba(245, 158, 11, 0.6) 50%,
+      transparent 100%);
+    animation: timeline-scroll 3s linear infinite;
+  }
+
+  @keyframes timeline-scroll {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+  }
+
+  .timeline-marker {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    transform: translateY(-50%);
+    width: 6px;
+    height: 6px;
+    background: linear-gradient(45deg, #f59e0b, #d946ef);
+    border-radius: 50%;
+    filter: drop-shadow(0 0 6px #f59e0b);
+    animation: timeline-marker 4s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  }
+
+  @keyframes timeline-marker {
+    0%, 100% { left: 0; transform: translateY(-50%) scale(1); }
+    50% { left: calc(100% - 6px); transform: translateY(-50%) scale(1.2); }
+  }
+
+  /* Trending Grid */
+  .trending-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .trending-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .trending-item:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.2);
+    transform: translateX(4px);
+  }
+
+  .trending-rank {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0;
+  }
+
+  .rank-indicator {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 14px;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+  }
+
+  .trend-direction {
+    width: 16px;
+    height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .trend-direction svg {
+    width: 12px;
+    height: 12px;
+    color: #10b981;
+  }
+
+  .trend-direction.up svg {
+    color: #10b981;
+  }
+
+  .trend-direction.down svg {
+    color: #ef4444;
+    transform: rotate(180deg);
+  }
+
+  .trending-tag {
+    flex: 1;
+    font-size: 16px;
+    font-weight: 700;
+    color: #1f2937;
+    text-decoration: none;
+    transition: all 0.3s;
+  }
+
+  .trending-tag:hover {
+    color: #f59e0b;
+    transform: translateX(2px);
+  }
+
+  .quantum-follow-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    color: #1f2937;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    flex-shrink: 0;
+  }
+
+  .quantum-follow-btn:hover {
+    background: rgba(59, 130, 246, 0.2);
+    border-color: rgba(59, 130, 246, 0.3);
+    transform: scale(1.05);
+  }
+
+  .quantum-follow-btn svg {
+    width: 12px;
+    height: 12px;
+    color: #1f2937;
+  }
+
+  .quantum-discovery {
+    text-align: center;
+  }
+
+  .discovery-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 24px;
+    background: linear-gradient(135deg,
+      rgba(99, 102, 241, 0.1),
+      rgba(168, 85, 247, 0.1));
+    border: 1px solid rgba(99, 102, 241, 0.2);
+    border-radius: 12px;
+    color: #1f2937;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .discovery-btn:hover {
+    background: linear-gradient(135deg,
+      rgba(99, 102, 241, 0.2),
+      rgba(168, 85, 247, 0.2));
+    border-color: rgba(99, 102, 241, 0.3);
+    transform: translateY(-2px);
+  }
+
+  .discovery-btn svg {
+    width: 18px;
+    height: 18px;
+    color: #1f2937;
+  }
+
+  /* Responsive Design */
+  @media (max-width: 1024px) {
+    .quantum-profile-card,
+    .quantum-trending-card {
+      margin-bottom: 20px;
+    }
+
+    .holographic-avatar-container {
+      width: 80px;
+      height: 80px;
+    }
+
+    .trending-item {
+      padding: 12px;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .w-full.lg\\:w-\\[28\\%\\] {
+      width: 100% !important;
+      padding: 0 16px;
+    }
+
+    .quantum-profile-card,
+    .quantum-trending-card {
+      max-width: 400px;
+      margin: 0 auto 20px;
+    }
+
+    .trending-header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 16px;
+    }
+
+    .trending-explore {
+      align-self: stretch;
+      justify-content: center;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .quantum-profile-card,
+    .quantum-trending-card {
+      padding: 20px;
+    }
+
+    .trending-item {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 12px;
+    }
+
+    .trending-rank {
+      flex-direction: row;
+      width: 100%;
+      justify-content: space-between;
+    }
+
+    .quantum-follow-btn {
+      align-self: stretch;
+      justify-content: center;
+    }
+
+    .holographic-avatar-container {
+      width: 64px;
+      height: 64px;
+    }
+
+    .avatar-orbit-ring {
+      inset: -8px;
+    }
+  }
+</style>
+
+<script>
+  // Quantum Profile Card Hook
+  class QuantumProfileCard {
+    constructor(el) {
+      this.el = el;
+      this.init();
+    }
+
+    init() {
+      this.createParticles();
+      this.setupParallax();
+      this.setupAnimations();
+    }
+
+    createParticles() {
+      const particleSystem = this.el.querySelector('.particle-system');
+      if (!particleSystem) return;
+
+      const particleCount = 12;
+      for (let i = 0; i < particleCount; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'profile-particle';
+
+        const size = Math.random() * 3 + 1;
+        const x = Math.random() * 100;
+        const y = Math.random() * 100;
+        const duration = Math.random() * 8 + 8;
+        const delay = Math.random() * 4;
+
+        particle.style.cssText = `
+          position: absolute;
+          width: ${size}px;
+          height: ${size}px;
+          left: ${x}%;
+          top: ${y}%;
+          background: rgba(255, 255, 255, ${Math.random() * 0.15});
+          border-radius: 50%;
+          filter: blur(${size / 2}px);
+          animation: profile-particle-float ${duration}s ease-in-out ${delay}s infinite;
+        `;
+
+        particleSystem.appendChild(particle);
+      }
+
+      // Add CSS for particle animation
+      if (!document.querySelector('#profile-particle-styles')) {
+        const style = document.createElement('style');
+        style.id = 'profile-particle-styles';
+        style.textContent = `
+          @keyframes profile-particle-float {
+            0%, 100% {
+              transform: translate(0, 0);
+              opacity: 0.3;
+            }
+            50% {
+              transform: translate(${Math.random() * 15 - 7.5}px, ${Math.random() * 15 - 7.5}px);
+              opacity: 0.8;
+            }
+          }
+        `;
+        document.head.appendChild(style);
+      }
+    }
+
+    setupParallax() {
+      this.el.addEventListener('mousemove', (e) => {
+        const rect = this.el.getBoundingClientRect();
+        const x = (e.clientX - rect.left) / rect.width;
+        const y = (e.clientY - rect.top) / rect.height;
+
+        const moveX = (x - 0.5) * 8;
+        const moveY = (y - 0.5) * 8;
+
+        this.el.style.transform = `perspective(1000px) rotateY(${moveX}deg) rotateX(${-moveY}deg) translateY(-4px)`;
+      });
+
+      this.el.addEventListener('mouseleave', () => {
+        this.el.style.transform = 'perspective(1000px) rotateY(0deg) rotateX(0deg) translateY(0)';
+      });
+    }
+
+    setupAnimations() {
+      const uploadBtn = this.el.querySelector('.quantum-upload-btn');
+      if (uploadBtn) {
+        uploadBtn.addEventListener('click', (e) => {
+          if (!e.target.closest('a')) {
+            e.preventDefault();
+            this.animateButton(uploadBtn);
+          }
+        });
+      }
+    }
+
+    animateButton(button) {
+      button.style.transform = 'scale(0.95)';
+      setTimeout(() => {
+        button.style.transform = '';
+      }, 150);
+    }
+  }
+
+  class QuantumTrendingCard {
+    constructor(el) {
+      this.el = el;
+      this.init();
+    }
+
+    init() {
+      this.createParticles();
+      this.setupParallax();
+      this.setupInteractions();
+    }
+
+    createParticles() {
+      const particleSystem = this.el.querySelector('.particle-system');
+      if (!particleSystem) return;
+
+      const particleCount = 15;
+      for (let i = 0; i < particleCount; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'trending-particle';
+
+        const size = Math.random() * 2 + 1;
+        const x = Math.random() * 100;
+        const y = Math.random() * 100;
+        const duration = Math.random() * 6 + 6;
+        const delay = Math.random() * 3;
+
+        particle.style.cssText = `
+          position: absolute;
+          width: ${size}px;
+          height: ${size}px;
+          left: ${x}%;
+          top: ${y}%;
+          background: linear-gradient(45deg,
+            rgba(245, 158, 11, ${Math.random() * 0.2}),
+            rgba(217, 70, 239, ${Math.random() * 0.2}));
+          border-radius: 50%;
+          filter: blur(${size}px);
+          animation: trending-particle-float ${duration}s ease-in-out ${delay}s infinite;
+        `;
+
+        particleSystem.appendChild(particle);
+      }
+
+      if (!document.querySelector('#trending-particle-styles')) {
+        const style = document.createElement('style');
+        style.id = 'trending-particle-styles';
+        style.textContent = `
+          @keyframes trending-particle-float {
+            0%, 100% {
+              transform: translate(0, 0) scale(1);
+              opacity: 0.2;
+            }
+            50% {
+              transform: translate(${Math.random() * 10 - 5}px, ${Math.random() * 10 - 5}px) scale(1.2);
+              opacity: 0.5;
+            }
+          }
+        `;
+        document.head.appendChild(style);
+      }
+    }
+
+    setupParallax() {
+      this.el.addEventListener('mousemove', (e) => {
+        const rect = this.el.getBoundingClientRect();
+        const x = (e.clientX - rect.left) / rect.width;
+        const y = (e.clientY - rect.top) / rect.height;
+
+        const moveX = (x - 0.5) * 6;
+        const moveY = (y - 0.5) * 6;
+
+        this.el.style.transform = `perspective(1000px) rotateY(${moveX}deg) rotateX(${-moveY}deg) translateY(-4px)`;
+      });
+
+      this.el.addEventListener('mouseleave', () => {
+        this.el.style.transform = 'perspective(1000px) rotateY(0deg) rotateX(0deg) translateY(0)';
+      });
+    }
+
+    setupInteractions() {
+      const followBtns = this.el.querySelectorAll('.quantum-follow-btn');
+      followBtns.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.preventDefault();
+          this.animateFollow(btn);
+        });
+      });
+
+      const discoveryBtn = this.el.querySelector('.discovery-btn');
+      if (discoveryBtn) {
+        discoveryBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          this.animateDiscovery(discoveryBtn);
+        });
+      }
+    }
+
+    animateFollow(button) {
+      button.style.transform = 'scale(0.95)';
+
+      const icon = button.querySelector('svg');
+      if (icon) {
+        icon.style.transform = 'rotate(45deg)';
+      }
+
+      setTimeout(() => {
+        button.style.transform = '';
+        if (icon) {
+          icon.style.transform = '';
+        }
+      }, 200);
+    }
+
+    animateDiscovery(button) {
+      button.style.transform = 'scale(0.95)';
+
+      const icon = button.querySelector('svg');
+      if (icon) {
+        icon.style.transform = 'rotate(180deg)';
+      }
+
+      setTimeout(() => {
+        button.style.transform = '';
+        if (icon) {
+          icon.style.transform = '';
+        }
+      }, 300);
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const profileCards = document.querySelectorAll('#quantum-profile-card');
+    profileCards.forEach(card => {
+      new QuantumProfileCard(card);
+    });
+
+    const trendingCards = document.querySelectorAll('#quantum-trending-card');
+    trendingCards.forEach(card => {
+      new QuantumTrendingCard(card);
+    });
+  });
+
+  window.QuantumProfileCard = QuantumProfileCard;
+  window.QuantumTrendingCard = QuantumTrendingCard;
+</script>
