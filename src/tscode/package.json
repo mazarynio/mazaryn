@@ -1,0 +1,27 @@
+{
+  "name": "tscode",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "@solana-program/compute-budget": "^0.13.0",
+    "@solana-program/memo": "^0.11.0",
+    "@solana-program/system": "^0.11.0",
+    "@solana-program/token": "^0.10.0",
+    "@solana/client": "^1.7.0",
+    "@solana/kit": "^6.0.1",
+    "@solana/web3-compat": "^0.0.21",
+    "tsx": "^4.21.0"
+  }
+}
