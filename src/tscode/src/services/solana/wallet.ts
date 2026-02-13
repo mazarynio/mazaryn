@@ -1,13 +1,12 @@
-import { generateKeyPair, generateKeyPairSigner } from "@solana/kit";
+import { generateKeyPairSigner } from "@solana/kit";
 
 export class AccountManager {
   async createKeyPairSigner() {
     try {
       const wallet = await generateKeyPairSigner();
+      console.log("Wallet created", wallet);
     } catch (error) {
       console.log("Something went wrong", error);
     }
   }
 }
-
-console.log("Not implemented yet...!");
