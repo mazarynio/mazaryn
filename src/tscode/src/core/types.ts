@@ -67,3 +67,5 @@ export interface ErrorResponse {
   error: string;
   details?: unknown;
 }
+
+export type Cluster = "devnet" | "testnet" | "mainnet-beta";
