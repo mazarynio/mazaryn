@@ -556,6 +556,7 @@
 -record(artist, {
     id,
     user_id,
+    name,
     stage_name,
     bio,
     profile_image_cid,
@@ -566,10 +567,12 @@
     monthly_listeners = 0,
     total_plays = 0,
     followers = [],
+    follower_count = 0,
     top_tracks = [],
     albums = [],
     singles = [],
     collaborations = [],
+    created_at,
     date_created,
     data = #{}
 }).

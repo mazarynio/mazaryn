@@ -4198,6 +4198,7 @@ create_music_version(MusicId, UserId, NewMusicFile, ChangeDescription) ->
                             {aborted, Reason} -> {error, {transaction_failed, Reason}}
                         end.
 
+                        %% Artist Request Management Functions
                         create_artist_request(UserId, Username, RequestData) ->
                             NormalizedUserId = normalize_id(UserId),
                             NormalizedUsername = normalize_id(Username),
@@ -4205,8 +4206,9 @@ create_music_version(MusicId, UserId, NewMusicFile, ChangeDescription) ->
                             error_logger:info_msg("[create_artist_request] userId=~p username=~p data=~p",
                                                   [NormalizedUserId, NormalizedUsername, RequestData]),
 
-                            error_logger:info_msg("[create_artist_request] RequestData keys=~p",
-                                                  [maps:keys(RequestData)]),
+                            NormalizedRequestData = normalize_request_data(RequestData),
+
+                            error_logger:info_msg("[create_artist_request] NormalizedRequestData=~p", [NormalizedRequestData]),
 
                             case userdb:get_user_by_id(NormalizedUserId) of
                                 user_not_exist -> {error, user_not_found};
@@ -4226,7 +4228,7 @@ create_music_version(MusicId, UserId, NewMusicFile, ChangeDescription) ->
                                                 requested_at     = Now,
                                                 reviewed_at      = undefined,
                                                 reviewed_by      = undefined,
-                                                request_data     = RequestData,
+                                                request_data     = NormalizedRequestData,
                                                 rejection_reason = undefined
                                             },
 
@@ -4241,142 +4243,165 @@ create_music_version(MusicId, UserId, NewMusicFile, ChangeDescription) ->
                                     end
                             end.
 
+                        normalize_request_data(Data) when is_map(Data) ->
+                            maps:fold(fun(Key, Value, Acc) ->
+                                StringKey = case Key of
+                                    K when is_atom(K) -> atom_to_list(K);
+                                    K when is_binary(K) -> binary_to_list(K);
+                                    K when is_list(K) -> K;
+                                    _ -> lists:flatten(io_lib:format("~p", [Key]))
+                                end,
+                                maps:put(StringKey, Value, Acc)
+                            end, #{}, Data);
+                        normalize_request_data(Data) ->
+                            Data.
+
+                        get_pending_artist_requests() ->
+                            F = fun() ->
+                                mnesia:match_object(#artist_request{status = pending, _ = '_'})
+                            end,
+
+                            case mnesia:transaction(F) of
+                                {atomic, Requests} ->
+                                    error_logger:info_msg("[get_pending_artist_requests] Found ~p requests", [length(Requests)]),
+                                    {ok, Requests};
+                                {aborted, Reason}  ->
+                                    error_logger:error_msg("[get_pending_artist_requests] Failed: ~p", [Reason]),
+                                    {error, Reason}
+                            end.
+
                         get_artist_request_status(UserId) ->
                             NormalizedUserId = normalize_id(UserId),
 
                             F = fun() ->
-                                mnesia:match_object(#artist_request{user_id = NormalizedUserId, _ = '_'})
+                                case mnesia:match_object(#artist_request{user_id = NormalizedUserId, _ = '_'}) of
+                                    [] -> not_found;
+                                    [Request | _] -> Request#artist_request.status
+                                end
                             end,
 
                             case mnesia:transaction(F) of
-                                {atomic, [Request | _]} -> {ok, Request#artist_request.status};
-                                {atomic, []}            -> {error, not_found};
-                                {aborted, _Reason}      -> {error, database_error}
+                                {atomic, not_found} -> {error, not_found};
+                                {atomic, Status}    -> {ok, Status};
+                                {aborted, Reason}   -> {error, Reason}
                             end.
 
                         approve_artist_request(RequestId, AdminUsername) ->
                             NormalizedRequestId = normalize_id(RequestId),
-                            NormalizedAdmin     = normalize_username(AdminUsername),
+                            NormalizedAdminUsername = normalize_id(AdminUsername),
 
                             error_logger:info_msg("[approve_artist_request] requestId=~p admin=~p",
-                                                  [NormalizedRequestId, NormalizedAdmin]),
+                                                  [NormalizedRequestId, NormalizedAdminUsername]),
 
-                            AdminUsernames = ["arvand", "mazaryn", "zaryn"],
-
-                            case lists:member(NormalizedAdmin, AdminUsernames) of
+                            case is_admin(NormalizedAdminUsername) of
                                 false ->
-                                    error_logger:error_msg("[approve_artist_request] UNAUTHORIZED admin=~p not in ~p",
-                                                           [NormalizedAdmin, AdminUsernames]),
+                                    error_logger:error_msg("[approve_artist_request] Not admin: ~p", [NormalizedAdminUsername]),
                                     {error, unauthorized};
                                 true ->
                                     F = fun() ->
                                         case mnesia:read(artist_request, NormalizedRequestId) of
+                                            [] ->
+                                                {error, not_found};
                                             [Request] ->
-                                                UserId      = Request#artist_request.user_id,
-                                                Username    = Request#artist_request.username,
-                                                RequestData = Request#artist_request.request_data,
-                                                Now         = calendar:universal_time(),
-
-                                                error_logger:info_msg("[approve_artist_request] RequestData=~p", [RequestData]),
-                                                error_logger:info_msg("[approve_artist_request] RequestData keys=~p", [maps:keys(RequestData)]),
+                                                Now = calendar:universal_time(),
 
                                                 UpdatedRequest = Request#artist_request{
-                                                    status      = approved,
+                                                    status = approved,
                                                     reviewed_at = Now,
-                                                    reviewed_by = NormalizedAdmin
+                                                    reviewed_by = NormalizedAdminUsername
                                                 },
+                                                mnesia:write(UpdatedRequest),
 
-                                                ArtistName = get_map_value(RequestData, artist_name, <<"artist_name">>, Username),
-                                                Bio        = get_map_value(RequestData, bio,         <<"bio">>,         ""),
-                                                GenresRaw  = get_map_value(RequestData, genres,      <<"genres">>,      ""),
+                                                UserId = Request#artist_request.user_id,
+                                                Username = Request#artist_request.username,
+                                                RequestData = Request#artist_request.request_data,
 
-                                                error_logger:info_msg("[approve_artist_request] Extracted: ArtistName=~p Bio=~p GenresRaw=~p",
-                                                                       [ArtistName, Bio, GenresRaw]),
-
-                                                Genres = case GenresRaw of
-                                                    G when is_binary(G) -> string:split(binary_to_list(G), ",", all);
-                                                    G when is_list(G)   -> string:split(G, ",", all);
-                                                    _                   -> []
-                                                end,
+                                                ArtistName = get_map_value(RequestData, "artist_name", Username),
+                                                Bio = get_map_value(RequestData, "bio", ""),
+                                                Genres = get_map_value(RequestData, "genres", ""),
 
                                                 ArtistId = nanoid:gen(),
 
                                                 Artist = #artist{
-                                                    id               = ArtistId,
-                                                    user_id          = UserId,
-                                                    stage_name       = ArtistName,
-                                                    bio              = Bio,
-                                                    profile_image_cid = undefined,
-                                                    banner_image_cid  = undefined,
-                                                    verified          = false,
-                                                    genres            = Genres,
-                                                    social_links      = #{},
-                                                    monthly_listeners = 0,
-                                                    total_plays       = 0,
-                                                    followers         = [],
-                                                    top_tracks        = [],
-                                                    albums            = [],
-                                                    singles           = [],
-                                                    collaborations    = [],
-                                                    date_created      = Now,
-                                                    data              = #{}
+                                                    id = ArtistId,
+                                                    user_id = UserId,
+                                                    name = ArtistName,
+                                                    stage_name = ArtistName,
+                                                    bio = Bio,
+                                                    genres = parse_genres(Genres),
+                                                    verified = false,
+                                                    follower_count = 0,
+                                                    created_at = Now,
+                                                    date_created = Now
                                                 },
 
-                                                mnesia:write(UpdatedRequest),
                                                 mnesia:write(Artist),
-                                                {ok, ArtistId};
-                                            [] ->
-                                                error_logger:error_msg("[approve_artist_request] NOT FOUND id=~p", [NormalizedRequestId]),
-                                                {error, not_found}
+                                                error_logger:info_msg("[approve_artist_request] Created artist: ~p", [ArtistId]),
+
+                                                {ok, ArtistId}
                                         end
                                     end,
 
                                     case mnesia:transaction(F) of
                                         {atomic, {ok, ArtistId}} -> {ok, ArtistId};
                                         {atomic, {error, Reason}} -> {error, Reason};
-                                        {aborted, Reason} -> {error, {transaction_failed, Reason}}
+                                        {aborted, Reason} ->
+                                            error_logger:error_msg("[approve_artist_request] Transaction failed: ~p", [Reason]),
+                                            {error, Reason}
                                     end
                             end.
 
                         reject_artist_request(RequestId, AdminUsername, Reason) ->
                             NormalizedRequestId = normalize_id(RequestId),
-                            NormalizedAdmin     = normalize_username(AdminUsername),
-                            NormalizedReason    = normalize_id(Reason),
+                            NormalizedAdminUsername = normalize_id(AdminUsername),
+                            NormalizedReason = normalize_id(Reason),
 
                             error_logger:info_msg("[reject_artist_request] requestId=~p admin=~p reason=~p",
-                                                  [NormalizedRequestId, NormalizedAdmin, NormalizedReason]),
+                                                  [NormalizedRequestId, NormalizedAdminUsername, NormalizedReason]),
 
-                            AdminUsernames = ["arvand", "mazaryn", "zaryn"],
-
-                            case lists:member(NormalizedAdmin, AdminUsernames) of
+                            case is_admin(NormalizedAdminUsername) of
                                 false ->
-                                    error_logger:error_msg("[reject_artist_request] UNAUTHORIZED admin=~p", [NormalizedAdmin]),
+                                    error_logger:error_msg("[reject_artist_request] Not admin: ~p", [NormalizedAdminUsername]),
                                     {error, unauthorized};
                                 true ->
                                     F = fun() ->
                                         case mnesia:read(artist_request, NormalizedRequestId) of
+                                            [] ->
+                                                error_logger:error_msg("[reject_artist_request] Request not found: ~p", [NormalizedRequestId]),
+                                                {error, not_found};
                                             [Request] ->
                                                 Now = calendar:universal_time(),
+
                                                 UpdatedRequest = Request#artist_request{
-                                                    status           = rejected,
-                                                    reviewed_at      = Now,
-                                                    reviewed_by      = NormalizedAdmin,
+                                                    status = rejected,
+                                                    reviewed_at = Now,
+                                                    reviewed_by = NormalizedAdminUsername,
                                                     rejection_reason = NormalizedReason
                                                 },
+
                                                 mnesia:write(UpdatedRequest),
-                                                {ok, rejected};
-                                            [] ->
-                                                error_logger:error_msg("[reject_artist_request] NOT FOUND id=~p", [NormalizedRequestId]),
-                                                {error, not_found}
+                                                error_logger:info_msg("[reject_artist_request] Request rejected successfully"),
+                                                ok
                                         end
                                     end,
 
                                     case mnesia:transaction(F) of
-                                        {atomic, {ok, rejected}} -> {ok, rejected};
-                                        {atomic, {error, R}}     -> {error, R};
-                                        {aborted, R}             -> {error, {transaction_failed, R}}
+                                        {atomic, ok} -> {ok, rejected};
+                                        {atomic, {error, Reason}} -> {error, Reason};
+                                        {aborted, Reason} ->
+                                            error_logger:error_msg("[reject_artist_request] Transaction failed: ~p", [Reason]),
+                                            {error, Reason}
                                     end
                             end.
+
+                        is_admin(Username) when is_list(Username) ->
+                            NormalizedUsername = string:to_lower(string:trim(Username)),
+                            AdminUsernames = ["arvand", "mazaryn", "zaryn"],
+                            lists:member(NormalizedUsername, AdminUsernames);
+                        is_admin(Username) when is_binary(Username) ->
+                            is_admin(binary_to_list(Username));
+                        is_admin(_) ->
+                            false.
 
                         get_artist_by_user_id(UserId) ->
                             NormalizedUserId = normalize_id(UserId),
@@ -4386,36 +4411,40 @@ create_music_version(MusicId, UserId, NewMusicFile, ChangeDescription) ->
                             end,
 
                             case mnesia:transaction(F) of
+                                {atomic, []} -> {error, not_found};
                                 {atomic, [Artist | _]} -> {ok, Artist};
-                                {atomic, []}           -> {error, not_found};
-                                {aborted, _Reason}     -> {error, database_error}
+                                {aborted, Reason} -> {error, Reason}
                             end.
 
-                        get_pending_artist_requests() ->
-                            F = fun() ->
-                                mnesia:match_object(#artist_request{status = pending, _ = '_'})
-                            end,
-
-                            case mnesia:transaction(F) of
-                                {atomic, Requests} -> {ok, Requests};
-                                {aborted, _Reason} -> {error, database_error}
-                            end.
-
-                        get_map_value(Map, AtomKey, BinaryKey, Default) ->
-                            case maps:find(AtomKey, Map) of
-                                {ok, V} -> V;
-                                error   ->
+                        get_map_value(Map, Key, Default) when is_map(Map) ->
+                            case maps:find(Key, Map) of
+                                {ok, Value} -> Value;
+                                error ->
+                                    BinaryKey = list_to_binary(Key),
                                     case maps:find(BinaryKey, Map) of
-                                        {ok, V} -> V;
-                                        error   -> Default
+                                        {ok, Value} -> Value;
+                                        error ->
+                                            try
+                                                AtomKey = list_to_atom(Key),
+                                                maps:get(AtomKey, Map, Default)
+                                            catch
+                                                _:_ -> Default
+                                            end
                                     end
-                            end.
+                            end;
+                        get_map_value(_, _, Default) ->
+                            Default.
 
-                        normalize_id(Id) when is_binary(Id) -> binary_to_list(Id);
-                        normalize_id(Id) when is_list(Id)   -> Id;
-                        normalize_id(Id) when is_atom(Id)   -> atom_to_list(Id);
-                        normalize_id(Id)                    -> lists:flatten(io_lib:format("~p", [Id])).
+                        parse_genres(Genres) when is_list(Genres) ->
+                            Parts = string:tokens(Genres, ",\n"),
+                            [string:trim(Part) || Part <- Parts, string:trim(Part) =/= ""];
+                        parse_genres(Genres) when is_binary(Genres) ->
+                            parse_genres(binary_to_list(Genres));
+                        parse_genres(_) ->
+                            [].
 
-                        normalize_username(U) when is_binary(U) -> string:to_lower(string:trim(binary_to_list(U)));
-                        normalize_username(U) when is_list(U)   -> string:to_lower(string:trim(U));
-                        normalize_username(_)                   -> "".
+                            normalize_id(Id) when is_list(Id) -> Id;
+                            normalize_id(Id) when is_binary(Id) -> binary_to_list(Id);
+                            normalize_id(Id) when is_atom(Id) -> atom_to_list(Id);
+                            normalize_id(Id) when is_integer(Id) -> integer_to_list(Id);
+                            normalize_id(Id) -> lists:flatten(io_lib:format("~p", [Id])).

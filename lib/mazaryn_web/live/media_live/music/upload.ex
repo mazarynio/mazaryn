@@ -4,8 +4,6 @@ defmodule MazarynWeb.MediaLive.Music.Upload do
 
   @impl true
   def mount(_params, session, socket) do
-    Logger.info("🎵 UPLOAD MOUNT STARTED")
-
     {user_id, username, user_tuple} = get_user_from_session(session)
 
     charlist_user_id =
@@ -16,7 +14,6 @@ defmodule MazarynWeb.MediaLive.Music.Upload do
       end
 
     is_artist = check_artist_status(charlist_user_id)
-    Logger.info("🎵 user=#{inspect(username)}, is_artist=#{inspect(is_artist)}")
 
     {:ok,
      socket
@@ -69,46 +66,54 @@ defmodule MazarynWeb.MediaLive.Music.Upload do
     do: {:noreply, assign(socket, :show_request_form, true)}
 
   @impl true
-  def handle_event("hide_request_form", _params, socket),
-    do: {:noreply, assign(socket, :show_request_form, false)}
-
-  @impl true
-  def handle_event("update_field", params, socket) do
-    Logger.info("🎵 [update_field] params=#{inspect(params)}")
-
-    known = ["artist_name", "bio", "experience", "proof_links", "genres"]
-
-    socket =
-      Enum.reduce(known, socket, fn field, acc ->
-        case Map.fetch(params, field) do
-          {:ok, value} ->
-            Logger.info("🎵 [update_field] #{field}=#{inspect(value)}")
-            assign(acc, String.to_atom(field), value)
-
-          :error ->
-            acc
-        end
-      end)
-
-    {:noreply, socket}
+  def handle_event("hide_request_form", _params, socket) do
+    {:noreply,
+     socket
+     |> assign(:show_request_form, false)
+     |> assign(:artist_name, "")
+     |> assign(:bio, "")
+     |> assign(:experience, "")
+     |> assign(:proof_links, "")
+     |> assign(:genres, "")}
   end
 
   @impl true
-  def handle_event("submit_artist_request", params, socket) do
-    Logger.info("🎵 SUBMIT ARTIST REQUEST")
-    Logger.info("🎵 params=#{inspect(params)}")
-
+  def handle_event("update_field", params, socket) do
     artist_name = Map.get(params, "artist_name", socket.assigns.artist_name)
     bio = Map.get(params, "bio", socket.assigns.bio)
     experience = Map.get(params, "experience", socket.assigns.experience)
     proof_links = Map.get(params, "proof_links", socket.assigns.proof_links)
     genres = Map.get(params, "genres", socket.assigns.genres)
 
-    Logger.info("🎵 artist_name=#{inspect(artist_name)}")
-    Logger.info("🎵 bio=#{inspect(bio)}")
-    Logger.info("🎵 experience=#{inspect(experience)}")
-    Logger.info("🎵 proof_links=#{inspect(proof_links)}")
-    Logger.info("🎵 genres=#{inspect(genres)}")
+    {:noreply,
+     socket
+     |> assign(:artist_name, artist_name)
+     |> assign(:bio, bio)
+     |> assign(:experience, experience)
+     |> assign(:proof_links, proof_links)
+     |> assign(:genres, genres)}
+  end
+
+  @impl true
+  def handle_event("validate_artist_request", %{"artist" => params}, socket) do
+    socket =
+      socket
+      |> assign(:artist_name, Map.get(params, "name", ""))
+      |> assign(:bio, Map.get(params, "bio", ""))
+      |> assign(:experience, Map.get(params, "experience", ""))
+      |> assign(:proof_links, Map.get(params, "proof_links", ""))
+      |> assign(:genres, Map.get(params, "genres", ""))
+
+    {:noreply, socket}
+  end
+
+  @impl true
+  def handle_event("submit_artist_request", params, socket) do
+    artist_name = Map.get(params, "artist_name", "")
+    bio = Map.get(params, "bio", "")
+    experience = Map.get(params, "experience", "")
+    proof_links = Map.get(params, "proof_links", "")
+    genres = Map.get(params, "genres", "")
 
     charlist_user_id = socket.assigns.charlist_user_id
     username = socket.assigns.username
@@ -124,25 +129,15 @@ defmodule MazarynWeb.MediaLive.Music.Upload do
             genres: genres
           }
 
-          Logger.info("🎵 request_data=#{inspect(request_data)}")
-
           case :musicdb.create_artist_request(charlist_user_id, username, request_data) do
-            {:ok, request_id} ->
-              Logger.info("🎵 ✅ Created request #{inspect(request_id)}")
-
-              {:noreply,
-               socket
-               |> put_flash(:info, "Artist application submitted successfully!")
-               |> redirect(to: "/#{socket.assigns.locale}/music/artist-request-success")}
+            {:ok, _request_id} ->
+              {:noreply, redirect(socket, to: "/#{socket.assigns.locale}/music/artist-request-success")}
 
             {:error, :already_exists} ->
               {:noreply, put_flash(socket, :error, "You already have a pending request.")}
 
             {:error, reason} ->
-              Logger.error("🎵 ❌ #{inspect(reason)}")
-
-              {:noreply,
-               put_flash(socket, :error, "Failed to submit request: #{inspect(reason)}")}
+              {:noreply, put_flash(socket, :error, "Failed to submit request: #{inspect(reason)}")}
           end
 
         _ ->
@@ -174,15 +169,15 @@ defmodule MazarynWeb.MediaLive.Music.Upload do
                      file_name,
                      username,
                      "Unknown Album",
+                     path,
                      0,
                      [],
                      privacy,
                      true,
                      false,
-                     false,
                      false
                    ) do
-                music_id when is_binary(music_id) ->
+                music_id when is_binary(music_id) or is_list(music_id) ->
                   {:ok, %{id: music_id, name: file_name, size: entry.client_size}}
 
                 {:error, reason} ->
@@ -284,15 +279,6 @@ defmodule MazarynWeb.MediaLive.Music.Upload do
   defp normalize_username(v) when is_binary(v), do: v
   defp normalize_username(v) when is_atom(v), do: Atom.to_string(v)
   defp normalize_username(_), do: "Unknown"
-
-  def get_username(user_id) when is_binary(user_id) do
-    case Core.UserClient.get_user_by_id(user_id) do
-      t when is_tuple(t) -> normalize_username(elem(t, 8))
-      _ -> "Unknown"
-    end
-  end
-
-  def get_username(_), do: "Unknown"
 
   def format_file_size(b) when b < 1024, do: "#{b} B"
   def format_file_size(b) when b < 1_048_576, do: "#{Float.round(b / 1024, 1)} KB"

@@ -114,7 +114,6 @@
                 <%= if request.requested_at do %>
                   <p class="text-[#888] text-xs font-['Poppins']">⏱ <%= request.requested_at %></p>
                 <% end %>
-                <p class="text-[#555] text-xs font-mono mt-1 truncate">id: <%= to_string(request.id) %></p>
               </div>
             <% end %>
           <% end %>
@@ -142,10 +141,6 @@
                     </span>
                   <% end %>
                 </div>
-                <details class="mt-2">
-                  <summary class="text-[#555] text-xs cursor-pointer hover:text-[#888]">🔍 Debug: raw request data</summary>
-                  <pre class="text-[#888] text-xs mt-1 bg-[#1a1b20] rounded p-2 overflow-auto max-h-32"><%= inspect(@selected_request) %></pre>
-                </details>
               </div>
               <button
                 phx-click="close_detail"
@@ -240,7 +235,7 @@
                      (is_nil(@selected_request.proof_links) || @selected_request.proof_links == "") do %>
                 <div class="bg-[#3a3b4a] rounded-lg p-6 text-center">
                   <p class="text-[#c5c7c8] text-sm font-['Poppins']">
-                    No additional details were provided. Check the debug panel above for raw data.
+                    No additional details were provided.
                   </p>
                 </div>
               <% end %>
@@ -257,23 +252,19 @@
                   Approve Artist Application
                 </button>
 
-                <div class="space-y-2">
+                <.form for={%{}} as={:rejection} phx-change="validate_rejection" phx-submit="reject_request" class="space-y-2">
                   <label class="block text-[#c5c7c8] text-sm font-semibold font-['Poppins']">
                     Rejection Reason <span class="text-red-400">(required)</span>
                   </label>
                   <textarea
-                    name="rejection_reason"
-                    phx-change="update_rejection_reason"
+                    name="rejection[reason]"
+                    value={@rejection_reason}
                     placeholder="Explain why this application is being rejected..."
                     rows="4"
                     class="w-full px-4 py-3 bg-[#3a3b4a] rounded-lg text-white placeholder-[#666] focus:outline-none focus:ring-2 focus:ring-red-500 font-['Poppins'] text-sm resize-none"
                   ><%= @rejection_reason %></textarea>
-                  <p class="text-[#555] text-xs font-['Poppins']">
-                    Current value: "<%= @rejection_reason %>" (length: <%= String.length(@rejection_reason) %>)
-                  </p>
                   <button
-                    phx-click="reject_request"
-                    phx-value-id={to_string(@selected_request.id)}
+                    type="submit"
                     class="w-full px-8 py-4 bg-red-500 hover:bg-red-600 active:bg-red-700 rounded-xl text-white text-lg font-bold font-['Poppins'] transition-all flex items-center justify-center gap-3 shadow-lg hover:shadow-red-500/25"
                   >
                     <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
@@ -281,7 +272,7 @@
                     </svg>
                     Reject Application
                   </button>
-                </div>
+                </.form>
               </div>
             </div>
           </div>
