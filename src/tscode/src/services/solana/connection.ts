@@ -1,4 +1,8 @@
-import { createSolanaRpc, createSolanaRpcSubscriptions } from "@solana/kit";
+import {
+  createSolanaRpc,
+  createSolanaRpcSubscriptions,
+  type Signature,
+} from "@solana/kit";
 import { config } from "../../config/index.js";
 import { logger } from "../../core/logger.js";
 
@@ -10,7 +14,9 @@ export class SolanaConnection {
     this.rpc = createSolanaRpc(config.solanaRpcUrl);
     const wsUrl = config.solanaRpcUrl
       .replace("https://", "wss://")
-      .replace("http://", "ws://");
+      .replace("http://", "ws://")
+      .replace("8899", "8900"); // for local dev
+
     this.rpcSubscriptions = createSolanaRpcSubscriptions(wsUrl);
     logger.info("Solana RPC connection initialized");
   }
@@ -31,10 +37,11 @@ export class SolanaConnection {
     return await this.rpc.getBalance(addressString as any).send();
   }
 
-  async getTransaction(signature: string) {
+  async getTransaction(signature: Signature) {
     return await this.rpc
       .getTransaction(signature, {
         maxSupportedTransactionVersion: 0,
+        encoding: "json",
       })
       .send();
   }

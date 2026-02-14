@@ -9,11 +9,14 @@ import {
   getSignatureFromTransaction,
   lamports,
   createKeyPairSignerFromBytes,
+  airdropFactory,
+  createSolanaRpcSubscriptions,
+  address,
 } from "@solana/kit";
 import { getTransferSolInstruction } from "@solana-program/system";
-import { Keypair } from "@solana/web3.js";
+import { Keypair, type Cluster } from "@solana/web3.js";
 import bs58 from "bs58";
-import { solanaConnection } from "./connection.js";
+import { SolanaConnection, solanaConnection } from "./connection.js";
 import { logger } from "../../core/logger.js";
 import type {
   CreateWalletRequest,
@@ -25,6 +28,7 @@ import type {
   GetTransactionResponse,
   WalletInfo,
 } from "../../core/types.js";
+import { config } from "../../config/index.js";
 
 interface StoredWallet {
   keypair: Keypair;
@@ -56,7 +60,7 @@ export class WalletManager {
         keypair,
         signer,
         userId: req.user_id,
-        walletName: req.wallet_name,
+        walletName: req.wallet_name ?? "", // check here so that request will always have wallet_name
         createdAt: Date.now(),
       });
 
@@ -93,7 +97,7 @@ export class WalletManager {
         keypair,
         signer,
         userId: req.user_id,
-        walletName: req.wallet_name,
+        walletName: req.wallet_name ?? "",
         createdAt: Date.now(),
       });
 
@@ -246,7 +250,7 @@ export class WalletManager {
       wallet_id: walletId,
       public_key: publicKey,
       user_id: wallet.userId,
-      wallet_name: wallet.walletName,
+      wallet_name: wallet.walletName ?? "",
       created_at: wallet.createdAt,
     };
   }
@@ -275,6 +279,38 @@ export class WalletManager {
     }
 
     return true;
+  }
+
+  // only test with local validator
+  async requestAirdrop({
+    amount,
+    recipient,
+  }: {
+    amount: number;
+    recipient: string;
+  }) {
+    try {
+      const solanaConnection = new SolanaConnection();
+      const rpcSubscriptions = solanaConnection.getRpcSubscriptions();
+      const rpc = solanaConnection.getRpc();
+      // logger.info("sending from", config);
+
+      const airdrop = airdropFactory({
+        rpc,
+        rpcSubscriptions,
+      });
+
+      const signature = await airdrop({
+        recipientAddress: address(recipient),
+        lamports: lamports(BigInt(amount * 1_000_000_000)),
+        commitment: "confirmed",
+      });
+
+      logger.info(`Airdrop successful: ${signature}`);
+      return signature;
+    } catch (error) {
+      logger.error("Airdrop request failed both testnet and production", error);
+    }
   }
 
   private generateWalletId(): string {
