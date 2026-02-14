@@ -12,6 +12,7 @@ import {
   airdropFactory,
   createSolanaRpcSubscriptions,
   address,
+  type Signature,
 } from "@solana/kit";
 import { getTransferSolInstruction } from "@solana-program/system";
 import { Keypair, type Cluster } from "@solana/web3.js";
@@ -202,7 +203,9 @@ export class WalletManager {
     try {
       logger.info("Getting transaction:", signature);
 
-      const transaction = await solanaConnection.getTransaction(signature);
+      const transaction = await solanaConnection.getTransaction(
+        signature as Signature,
+      );
 
       if (!transaction) {
         throw new Error("Transaction not found");
@@ -293,8 +296,8 @@ export class WalletManager {
       const solanaConnection = new SolanaConnection();
       const rpcSubscriptions = solanaConnection.getRpcSubscriptions();
       const rpc = solanaConnection.getRpc();
-      // logger.info("sending from", config);
 
+      // @ts-ignore
       const airdrop = airdropFactory({
         rpc,
         rpcSubscriptions,
