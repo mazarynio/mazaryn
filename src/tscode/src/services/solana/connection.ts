@@ -38,6 +38,28 @@ export class SolanaConnection {
       })
       .send();
   }
+
+  async getParsedTokenAccountsByOwner(owner: string, programId: string) {
+    return await this.rpc
+      .getTokenAccountsByOwner(
+        owner as any,
+        { programId: programId as any },
+        { encoding: "jsonParsed" },
+      )
+      .send();
+  }
+
+  async getParsedAccountInfo(address: string) {
+    return await this.rpc
+      .getAccountInfo(address as any, {
+        encoding: "jsonParsed",
+      })
+      .send();
+  }
+
+  async getAccountInfo(address: string) {
+    return await this.rpc.getAccountInfo(address as any).send();
+  }
 }
 
 export const solanaConnection = new SolanaConnection();

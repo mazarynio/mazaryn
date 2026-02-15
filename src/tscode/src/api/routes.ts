@@ -1,13 +1,21 @@
 import express from "express";
 import { walletManager } from "../services/solana/wallet.js";
+import { tokenManager } from "../services/solana/token.js";
+import { nftManager } from "../services/solana/nft.js";
 import { logger } from "../core/logger.js";
 import type {
   CreateWalletRequest,
   ImportWalletRequest,
   GetBalanceRequest,
   TransferRequest,
+  TransferTokenRequest,
+  TransferNFTRequest,
   ErrorResponse,
 } from "../core/types.js";
+
+BigInt.prototype.toJSON = function () {
+  return this.toString();
+};
 
 export const walletRoutes = express.Router();
 
@@ -173,6 +181,166 @@ walletRoutes.delete("/:wallet_id", async (req, res) => {
     const errorResponse: ErrorResponse = {
       error: error instanceof Error ? error.message : "Unknown error",
       details: error,
+    };
+    res.status(500).json(errorResponse);
+  }
+});
+
+walletRoutes.post("/token/accounts", async (req, res) => {
+  try {
+    const { public_key } = req.body;
+    logger.info("Get token accounts request for:", public_key);
+
+    const result = await tokenManager.getTokenAccounts(public_key);
+    res.json(result);
+  } catch (error) {
+    logger.error("Get token accounts error:", error);
+    const errorResponse: ErrorResponse = {
+      error: error instanceof Error ? error.message : "Unknown error",
+      details: error,
+    };
+    res.status(500).json(errorResponse);
+  }
+});
+
+walletRoutes.post("/token/balance", async (req, res) => {
+  try {
+    const { public_key, token_mint } = req.body;
+    logger.info(
+      "Get token balance request for:",
+      public_key,
+      "token:",
+      token_mint,
+    );
+
+    const result = await tokenManager.getTokenBalance(public_key, token_mint);
+    res.json(result);
+  } catch (error) {
+    logger.error("Get token balance error:", error);
+    const errorResponse: ErrorResponse = {
+      error: error instanceof Error ? error.message : "Unknown error",
+      details: error,
+    };
+    res.status(500).json(errorResponse);
+  }
+});
+
+walletRoutes.post("/token/transfer", async (req, res) => {
+  try {
+    const request = req.body as TransferTokenRequest;
+    logger.info("Token transfer request from wallet:", request.from_wallet_id);
+
+    const walletInfo = walletManager.getWalletSigner(request.from_wallet_id);
+    if (!walletInfo) {
+      const errorResponse: ErrorResponse = { error: "Wallet not found" };
+      return res.status(404).json(errorResponse);
+    }
+
+    const result = await tokenManager.transferToken(
+      walletInfo.signer,
+      walletInfo.publicKey,
+      request,
+    );
+    res.json(result);
+  } catch (error) {
+    logger.error("Token transfer error:", error);
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
+    const errorResponse: ErrorResponse = {
+      error: errorMessage,
+    };
+    res.status(500).json(errorResponse);
+  }
+});
+
+walletRoutes.post("/token/create-account", async (req, res) => {
+  try {
+    const { wallet_id, token_mint } = req.body;
+    logger.info("Create token account request for wallet:", wallet_id);
+
+    const walletInfo = walletManager.getWalletSigner(wallet_id);
+    if (!walletInfo) {
+      const errorResponse: ErrorResponse = { error: "Wallet not found" };
+      return res.status(404).json(errorResponse);
+    }
+
+    const result = await tokenManager.createTokenAccount(
+      walletInfo.signer,
+      walletInfo.publicKey,
+      token_mint,
+    );
+    res.json(result);
+  } catch (error) {
+    logger.error("Create token account error:", error);
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
+    const errorResponse: ErrorResponse = {
+      error: errorMessage,
+    };
+    res.status(500).json(errorResponse);
+  }
+});
+
+walletRoutes.post("/nft/list", async (req, res) => {
+  try {
+    const { public_key } = req.body;
+    logger.info("Get NFTs request for:", public_key);
+
+    const result = await nftManager.getNFTs(public_key);
+    res.json(result);
+  } catch (error) {
+    logger.error("Get NFTs error:", error);
+    const errorResponse: ErrorResponse = {
+      error: error instanceof Error ? error.message : "Unknown error",
+      details: error,
+    };
+    res.status(500).json(errorResponse);
+  }
+});
+
+walletRoutes.post("/nft/metadata", async (req, res) => {
+  try {
+    const { mint_address } = req.body;
+    logger.info("Get NFT metadata request for:", mint_address);
+
+    const result = await nftManager.getNFTMetadata(mint_address);
+    res.json(result);
+  } catch (error) {
+    logger.error("Get NFT metadata error:", error);
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
+    const errorResponse: ErrorResponse = {
+      error: errorMessage === "NFT not found" ? "NFT not found" : errorMessage,
+    };
+    res
+      .status(errorMessage === "NFT not found" ? 404 : 500)
+      .json(errorResponse);
+  }
+});
+
+walletRoutes.post("/nft/transfer", async (req, res) => {
+  try {
+    const request = req.body as TransferNFTRequest;
+    logger.info("NFT transfer request from wallet:", request.from_wallet_id);
+
+    const walletInfo = walletManager.getWalletSigner(request.from_wallet_id);
+    if (!walletInfo) {
+      const errorResponse: ErrorResponse = { error: "Wallet not found" };
+      return res.status(404).json(errorResponse);
+    }
+
+    const result = await nftManager.transferNFT(
+      walletInfo.signer,
+      walletInfo.publicKey,
+      request,
+    );
+    res.json(result);
+  } catch (error) {
+    logger.error("NFT transfer error:", error);
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
+    const errorResponse: ErrorResponse = {
+      error: errorMessage,
     };
     res.status(500).json(errorResponse);
   }

@@ -15,6 +15,7 @@ import { Keypair } from "@solana/web3.js";
 import bs58 from "bs58";
 import { solanaConnection } from "./connection.js";
 import { logger } from "../../core/logger.js";
+import { walletDatabase } from "../database/database.js";
 import type {
   CreateWalletRequest,
   CreateWalletResponse,
@@ -26,21 +27,39 @@ import type {
   WalletInfo,
 } from "../../core/types.js";
 
-interface StoredWallet {
+interface CachedWallet {
   keypair: Keypair;
   signer: Awaited<ReturnType<typeof createKeyPairSignerFromBytes>>;
-  userId: string;
-  walletName?: string;
-  createdAt: number;
 }
 
 export class WalletManager {
-  private wallets: Map<string, StoredWallet>;
-  private userWallets: Map<string, string[]>;
+  private walletCache: Map<string, CachedWallet>;
 
   constructor() {
-    this.wallets = new Map();
-    this.userWallets = new Map();
+    this.walletCache = new Map();
+    this.loadWalletsFromDatabase();
+  }
+
+  private async loadWalletsFromDatabase(): Promise<void> {
+    try {
+      const wallets = walletDatabase.getAllWallets();
+      logger.info(`Loading ${wallets.length} wallets from database`);
+
+      for (const wallet of wallets) {
+        const privateKeyBytes = bs58.decode(wallet.private_key);
+        const keypair = Keypair.fromSecretKey(privateKeyBytes);
+        const signer = await createKeyPairSignerFromBytes(privateKeyBytes);
+
+        this.walletCache.set(wallet.wallet_id, {
+          keypair,
+          signer,
+        });
+      }
+
+      logger.info(`Successfully loaded ${wallets.length} wallets into cache`);
+    } catch (error) {
+      logger.error("Failed to load wallets from database:", error);
+    }
   }
 
   async createWallet(req: CreateWalletRequest): Promise<CreateWalletResponse> {
@@ -50,28 +69,31 @@ export class WalletManager {
       const keypair = Keypair.generate();
       const signer = await createKeyPairSignerFromBytes(keypair.secretKey);
       const publicKey = keypair.publicKey.toBase58();
+      const privateKey = bs58.encode(keypair.secretKey);
       const walletId = this.generateWalletId();
+      const createdAt = Date.now();
 
-      this.wallets.set(walletId, {
-        keypair,
-        signer,
-        userId: req.user_id,
-        walletName: req.wallet_name,
-        createdAt: Date.now(),
+      walletDatabase.saveWallet({
+        wallet_id: walletId,
+        user_id: req.user_id,
+        public_key: publicKey,
+        private_key: privateKey,
+        wallet_name: req.wallet_name,
+        created_at: createdAt,
       });
 
-      if (!this.userWallets.has(req.user_id)) {
-        this.userWallets.set(req.user_id, []);
-      }
-      this.userWallets.get(req.user_id)!.push(walletId);
+      this.walletCache.set(walletId, {
+        keypair,
+        signer,
+      });
 
-      logger.info("Wallet created successfully:", walletId);
+      logger.info("Wallet created and persisted:", walletId);
 
       return {
         wallet_id: walletId,
         public_key: publicKey,
         user_id: req.user_id,
-        created_at: Date.now(),
+        created_at: createdAt,
       };
     } catch (error) {
       logger.error("Failed to create wallet:", error);
@@ -88,27 +110,29 @@ export class WalletManager {
       const signer = await createKeyPairSignerFromBytes(privateKeyBytes);
       const publicKey = keypair.publicKey.toBase58();
       const walletId = this.generateWalletId();
+      const createdAt = Date.now();
 
-      this.wallets.set(walletId, {
-        keypair,
-        signer,
-        userId: req.user_id,
-        walletName: req.wallet_name,
-        createdAt: Date.now(),
+      walletDatabase.saveWallet({
+        wallet_id: walletId,
+        user_id: req.user_id,
+        public_key: publicKey,
+        private_key: req.private_key,
+        wallet_name: req.wallet_name,
+        created_at: createdAt,
       });
 
-      if (!this.userWallets.has(req.user_id)) {
-        this.userWallets.set(req.user_id, []);
-      }
-      this.userWallets.get(req.user_id)!.push(walletId);
+      this.walletCache.set(walletId, {
+        keypair,
+        signer,
+      });
 
-      logger.info("Wallet imported successfully:", walletId);
+      logger.info("Wallet imported and persisted:", walletId);
 
       return {
         wallet_id: walletId,
         public_key: publicKey,
         user_id: req.user_id,
-        created_at: Date.now(),
+        created_at: createdAt,
       };
     } catch (error) {
       logger.error("Failed to import wallet:", error);
@@ -121,7 +145,6 @@ export class WalletManager {
       logger.info("Getting balance for:", publicKey);
 
       const balance = await solanaConnection.getBalance(publicKey);
-
       const LAMPORTS_PER_SOL = 1_000_000_000n;
 
       return {
@@ -139,13 +162,13 @@ export class WalletManager {
     try {
       logger.info("Processing transfer from wallet:", req.from_wallet_id);
 
-      const wallet = this.wallets.get(req.from_wallet_id);
-      if (!wallet) {
-        throw new Error("Wallet not found");
+      const cachedWallet = this.walletCache.get(req.from_wallet_id);
+      if (!cachedWallet) {
+        throw new Error("Wallet not found in cache");
       }
 
-      const signer = wallet.signer;
-      const fromAddress = wallet.keypair.publicKey.toBase58();
+      const signer = cachedWallet.signer;
+      const fromAddress = cachedWallet.keypair.publicKey.toBase58();
       const toAddress = req.to_public_key as any;
 
       const rpc = solanaConnection.getRpc();
@@ -222,12 +245,12 @@ export class WalletManager {
 
   async exportPrivateKey(walletId: string): Promise<string> {
     try {
-      const wallet = this.wallets.get(walletId);
+      const wallet = walletDatabase.getWallet(walletId);
       if (!wallet) {
         throw new Error("Wallet not found");
       }
 
-      return bs58.encode(wallet.keypair.secretKey);
+      return wallet.private_key;
     } catch (error) {
       logger.error("Failed to export private key:", error);
       throw error;
@@ -235,46 +258,48 @@ export class WalletManager {
   }
 
   async getWalletInfo(walletId: string): Promise<WalletInfo | null> {
-    const wallet = this.wallets.get(walletId);
+    const wallet = walletDatabase.getWallet(walletId);
     if (!wallet) {
       return null;
     }
 
-    const publicKey = wallet.keypair.publicKey.toBase58();
-
     return {
-      wallet_id: walletId,
-      public_key: publicKey,
-      user_id: wallet.userId,
-      wallet_name: wallet.walletName,
-      created_at: wallet.createdAt,
+      wallet_id: wallet.wallet_id,
+      public_key: wallet.public_key,
+      user_id: wallet.user_id,
+      wallet_name: wallet.wallet_name,
+      created_at: wallet.created_at,
     };
   }
 
   async getUserWallets(userId: string): Promise<WalletInfo[]> {
-    const walletIds = this.userWallets.get(userId) || [];
-    const wallets = await Promise.all(
-      walletIds.map((id) => this.getWalletInfo(id)),
-    );
-    return wallets.filter((info): info is WalletInfo => info !== null);
+    const wallets = walletDatabase.getUserWallets(userId);
+    return wallets.map((w) => ({
+      wallet_id: w.wallet_id,
+      public_key: w.public_key,
+      user_id: w.user_id,
+      wallet_name: w.wallet_name,
+      created_at: w.created_at,
+    }));
   }
 
   deleteWallet(walletId: string, userId: string): boolean {
-    const wallet = this.wallets.get(walletId);
-    if (!wallet || wallet.userId !== userId) {
-      return false;
+    const success = walletDatabase.deleteWallet(walletId, userId);
+    if (success) {
+      this.walletCache.delete(walletId);
     }
+    return success;
+  }
 
-    this.wallets.delete(walletId);
-    const userWalletList = this.userWallets.get(userId);
-    if (userWalletList) {
-      const index = userWalletList.indexOf(walletId);
-      if (index > -1) {
-        userWalletList.splice(index, 1);
-      }
+  getWalletSigner(walletId: string): { signer: any; publicKey: string } | null {
+    const cachedWallet = this.walletCache.get(walletId);
+    if (!cachedWallet) {
+      return null;
     }
-
-    return true;
+    return {
+      signer: cachedWallet.signer,
+      publicKey: cachedWallet.keypair.publicKey.toBase58(),
+    };
   }
 
   private generateWalletId(): string {
