@@ -2,35 +2,35 @@
 -author("Zaryn Technologies").
 
 -export([
-    create_wallet/1,
     create_wallet/2,
-    import_wallet/2,
+    create_wallet/3,
     import_wallet/3,
+    import_wallet/4,
     get_balance/1,
-    transfer/3,
     transfer/4,
+    transfer/5,
     get_transaction/1,
-    get_wallet_info/1,
-    get_user_wallets/1,
-    export_private_key/1,
+    get_wallet_info/2,
+    get_user_wallets/2,
+    export_private_key/2,
     delete_wallet/2,
     get_token_accounts/1,
     get_token_balance/2,
-    transfer_token/4,
     transfer_token/5,
-    create_token_account/2,
+    transfer_token/6,
+    create_token_account/3,
     get_nfts/1,
     get_nft_metadata/1,
-    transfer_nft/3
+    transfer_nft/4
 ]).
 
 -define(SOLANA_API_BASE, "http://localhost:3020").
 -define(DEFAULT_TIMEOUT, 30000).
 
-create_wallet(UserId) ->
-    create_wallet(UserId, undefined).
+create_wallet(Token, UserId) ->
+    create_wallet(Token, UserId, undefined).
 
-create_wallet(UserId, WalletName) ->
+create_wallet(Token, UserId, WalletName) ->
     RequestBody = case WalletName of
         undefined ->
             #{user_id => ensure_binary(UserId)};
@@ -42,7 +42,8 @@ create_wallet(UserId, WalletName) ->
     end,
     Json = jsx:encode(RequestBody),
     ApiUrl = ?SOLANA_API_BASE ++ "/wallet/create",
-    case httpc:request(post, {ApiUrl, [], "application/json", Json},
+    Headers = auth_headers(Token),
+    case httpc:request(post, {ApiUrl, Headers, "application/json", Json},
                       [{timeout, ?DEFAULT_TIMEOUT}], []) of
         {ok, {{_, 200, _}, _, ResponseBody}} ->
             case jsx:decode(list_to_binary(ResponseBody), [return_maps]) of
@@ -56,16 +57,20 @@ create_wallet(UserId, WalletName) ->
                 _ ->
                     {error, invalid_response}
             end;
+        {ok, {{_, 401, _}, _, _}} ->
+            {error, unauthorized};
+        {ok, {{_, 403, _}, _, _}} ->
+            {error, forbidden};
         {ok, {{_, StatusCode, _}, _, ErrorBody}} ->
             {error, {http_error, StatusCode, ErrorBody}};
         {error, Reason} ->
             {error, Reason}
     end.
 
-import_wallet(UserId, PrivateKey) ->
-    import_wallet(UserId, PrivateKey, undefined).
+import_wallet(Token, UserId, PrivateKey) ->
+    import_wallet(Token, UserId, PrivateKey, undefined).
 
-import_wallet(UserId, PrivateKey, WalletName) ->
+import_wallet(Token, UserId, PrivateKey, WalletName) ->
     RequestBody = case WalletName of
         undefined ->
             #{
@@ -81,7 +86,8 @@ import_wallet(UserId, PrivateKey, WalletName) ->
     end,
     Json = jsx:encode(RequestBody),
     ApiUrl = ?SOLANA_API_BASE ++ "/wallet/import",
-    case httpc:request(post, {ApiUrl, [], "application/json", Json},
+    Headers = auth_headers(Token),
+    case httpc:request(post, {ApiUrl, Headers, "application/json", Json},
                       [{timeout, ?DEFAULT_TIMEOUT}], []) of
         {ok, {{_, 200, _}, _, ResponseBody}} ->
             case jsx:decode(list_to_binary(ResponseBody), [return_maps]) of
@@ -95,6 +101,10 @@ import_wallet(UserId, PrivateKey, WalletName) ->
                 _ ->
                     {error, invalid_response}
             end;
+        {ok, {{_, 401, _}, _, _}} ->
+            {error, unauthorized};
+        {ok, {{_, 403, _}, _, _}} ->
+            {error, forbidden};
         {ok, {{_, StatusCode, _}, _, ErrorBody}} ->
             {error, {http_error, StatusCode, ErrorBody}};
         {error, Reason} ->
@@ -124,10 +134,10 @@ get_balance(PublicKey) ->
             {error, Reason}
     end.
 
-transfer(FromWalletId, ToPublicKey, AmountLamports) ->
-    transfer(FromWalletId, ToPublicKey, AmountLamports, undefined).
+transfer(Token, FromWalletId, ToPublicKey, AmountLamports) ->
+    transfer(Token, FromWalletId, ToPublicKey, AmountLamports, undefined).
 
-transfer(FromWalletId, ToPublicKey, AmountLamports, Memo) ->
+transfer(Token, FromWalletId, ToPublicKey, AmountLamports, Memo) ->
     RequestBody = case Memo of
         undefined ->
             #{
@@ -145,7 +155,8 @@ transfer(FromWalletId, ToPublicKey, AmountLamports, Memo) ->
     end,
     Json = jsx:encode(RequestBody),
     ApiUrl = ?SOLANA_API_BASE ++ "/wallet/transfer",
-    case httpc:request(post, {ApiUrl, [], "application/json", Json},
+    Headers = auth_headers(Token),
+    case httpc:request(post, {ApiUrl, Headers, "application/json", Json},
                       [{timeout, ?DEFAULT_TIMEOUT}], []) of
         {ok, {{_, 200, _}, _, ResponseBody}} ->
             case jsx:decode(list_to_binary(ResponseBody), [return_maps]) of
@@ -161,6 +172,10 @@ transfer(FromWalletId, ToPublicKey, AmountLamports, Memo) ->
                 _ ->
                     {error, invalid_response}
             end;
+        {ok, {{_, 401, _}, _, _}} ->
+            {error, unauthorized};
+        {ok, {{_, 403, _}, _, _}} ->
+            {error, forbidden};
         {ok, {{_, 500, _}, _, ErrorBody}} ->
             parse_error_response(ErrorBody);
         {ok, {{_, StatusCode, _}, _, ErrorBody}} ->
@@ -194,9 +209,10 @@ get_transaction(Signature) ->
             {error, Reason}
     end.
 
-get_wallet_info(WalletId) ->
+get_wallet_info(Token, WalletId) ->
     ApiUrl = ?SOLANA_API_BASE ++ "/wallet/info/" ++ ensure_string(WalletId),
-    case httpc:request(get, {ApiUrl, []}, [{timeout, ?DEFAULT_TIMEOUT}], []) of
+    Headers = auth_headers(Token),
+    case httpc:request(get, {ApiUrl, Headers}, [{timeout, ?DEFAULT_TIMEOUT}], []) of
         {ok, {{_, 200, _}, _, ResponseBody}} ->
             case jsx:decode(list_to_binary(ResponseBody), [return_maps]) of
                 #{<<"wallet_id">> := WId} = Response ->
@@ -213,6 +229,10 @@ get_wallet_info(WalletId) ->
                 _ ->
                     {error, invalid_response}
             end;
+        {ok, {{_, 401, _}, _, _}} ->
+            {error, unauthorized};
+        {ok, {{_, 403, _}, _, _}} ->
+            {error, forbidden};
         {ok, {{_, 404, _}, _, _}} ->
             {error, not_found};
         {ok, {{_, StatusCode, _}, _, ErrorBody}} ->
@@ -221,9 +241,10 @@ get_wallet_info(WalletId) ->
             {error, Reason}
     end.
 
-get_user_wallets(UserId) ->
+get_user_wallets(Token, UserId) ->
     ApiUrl = ?SOLANA_API_BASE ++ "/wallet/user/" ++ ensure_string(UserId),
-    case httpc:request(get, {ApiUrl, []}, [{timeout, ?DEFAULT_TIMEOUT}], []) of
+    Headers = auth_headers(Token),
+    case httpc:request(get, {ApiUrl, Headers}, [{timeout, ?DEFAULT_TIMEOUT}], []) of
         {ok, {{_, 200, _}, _, ResponseBody}} ->
             case jsx:decode(list_to_binary(ResponseBody), [return_maps]) of
                 #{<<"wallets">> := Wallets} ->
@@ -243,15 +264,20 @@ get_user_wallets(UserId) ->
                 _ ->
                     {error, invalid_response}
             end;
+        {ok, {{_, 401, _}, _, _}} ->
+            {error, unauthorized};
+        {ok, {{_, 403, _}, _, _}} ->
+            {error, forbidden};
         {ok, {{_, StatusCode, _}, _, ErrorBody}} ->
             {error, {http_error, StatusCode, ErrorBody}};
         {error, Reason} ->
             {error, Reason}
     end.
 
-export_private_key(WalletId) ->
+export_private_key(Token, WalletId) ->
     ApiUrl = ?SOLANA_API_BASE ++ "/wallet/export/" ++ ensure_string(WalletId),
-    case httpc:request(post, {ApiUrl, [], "application/json", "{}"},
+    Headers = auth_headers(Token),
+    case httpc:request(post, {ApiUrl, Headers, "application/json", "{}"},
                       [{timeout, ?DEFAULT_TIMEOUT}], []) of
         {ok, {{_, 200, _}, _, ResponseBody}} ->
             case jsx:decode(list_to_binary(ResponseBody), [return_maps]) of
@@ -260,20 +286,27 @@ export_private_key(WalletId) ->
                 _ ->
                     {error, invalid_response}
             end;
+        {ok, {{_, 401, _}, _, _}} ->
+            {error, unauthorized};
+        {ok, {{_, 403, _}, _, _}} ->
+            {error, forbidden};
         {ok, {{_, StatusCode, _}, _, ErrorBody}} ->
             {error, {http_error, StatusCode, ErrorBody}};
         {error, Reason} ->
             {error, Reason}
     end.
 
-delete_wallet(WalletId, UserId) ->
-    RequestBody = #{user_id => ensure_binary(UserId)},
-    Json = jsx:encode(RequestBody),
+delete_wallet(Token, WalletId) ->
     ApiUrl = ?SOLANA_API_BASE ++ "/wallet/" ++ ensure_string(WalletId),
-    case httpc:request(delete, {ApiUrl, [], "application/json", Json},
+    Headers = auth_headers(Token),
+    case httpc:request(delete, {ApiUrl, Headers, "application/json", "{}"},
                       [{timeout, ?DEFAULT_TIMEOUT}], []) of
         {ok, {{_, 200, _}, _, _}} ->
             deleted;
+        {ok, {{_, 401, _}, _, _}} ->
+            {error, unauthorized};
+        {ok, {{_, 403, _}, _, _}} ->
+            {error, forbidden};
         {ok, {{_, 404, _}, _, _}} ->
             {error, not_found};
         {ok, {{_, StatusCode, _}, _, ErrorBody}} ->
@@ -342,10 +375,10 @@ get_token_balance(PublicKey, TokenMint) ->
             {error, Reason}
     end.
 
-transfer_token(FromWalletId, ToPublicKey, TokenMint, Amount) ->
-    transfer_token(FromWalletId, ToPublicKey, TokenMint, Amount, undefined).
+transfer_token(Token, FromWalletId, ToPublicKey, TokenMint, Amount) ->
+    transfer_token(Token, FromWalletId, ToPublicKey, TokenMint, Amount, undefined).
 
-transfer_token(FromWalletId, ToPublicKey, TokenMint, Amount, Memo) ->
+transfer_token(Token, FromWalletId, ToPublicKey, TokenMint, Amount, Memo) ->
     RequestBody = case Memo of
         undefined ->
             #{
@@ -365,7 +398,8 @@ transfer_token(FromWalletId, ToPublicKey, TokenMint, Amount, Memo) ->
     end,
     Json = jsx:encode(RequestBody),
     ApiUrl = ?SOLANA_API_BASE ++ "/wallet/token/transfer",
-    case httpc:request(post, {ApiUrl, [], "application/json", Json},
+    Headers = auth_headers(Token),
+    case httpc:request(post, {ApiUrl, Headers, "application/json", Json},
                       [{timeout, ?DEFAULT_TIMEOUT}], []) of
         {ok, {{_, 200, _}, _, ResponseBody}} ->
             case jsx:decode(list_to_binary(ResponseBody), [return_maps]) of
@@ -382,6 +416,10 @@ transfer_token(FromWalletId, ToPublicKey, TokenMint, Amount, Memo) ->
                 _ ->
                     {error, invalid_response}
             end;
+        {ok, {{_, 401, _}, _, _}} ->
+            {error, unauthorized};
+        {ok, {{_, 403, _}, _, _}} ->
+            {error, forbidden};
         {ok, {{_, 500, _}, _, ErrorBody}} ->
             parse_error_response(ErrorBody);
         {ok, {{_, StatusCode, _}, _, ErrorBody}} ->
@@ -390,14 +428,15 @@ transfer_token(FromWalletId, ToPublicKey, TokenMint, Amount, Memo) ->
             {error, Reason}
     end.
 
-create_token_account(WalletId, TokenMint) ->
+create_token_account(Token, WalletId, TokenMint) ->
     RequestBody = #{
         wallet_id => ensure_binary(WalletId),
         token_mint => ensure_binary(TokenMint)
     },
     Json = jsx:encode(RequestBody),
     ApiUrl = ?SOLANA_API_BASE ++ "/wallet/token/create-account",
-    case httpc:request(post, {ApiUrl, [], "application/json", Json},
+    Headers = auth_headers(Token),
+    case httpc:request(post, {ApiUrl, Headers, "application/json", Json},
                       [{timeout, ?DEFAULT_TIMEOUT}], []) of
         {ok, {{_, 200, _}, _, ResponseBody}} ->
             case jsx:decode(list_to_binary(ResponseBody), [return_maps]) of
@@ -411,6 +450,10 @@ create_token_account(WalletId, TokenMint) ->
                 _ ->
                     {error, invalid_response}
             end;
+        {ok, {{_, 401, _}, _, _}} ->
+            {error, unauthorized};
+        {ok, {{_, 403, _}, _, _}} ->
+            {error, forbidden};
         {ok, {{_, 500, _}, _, ErrorBody}} ->
             parse_error_response(ErrorBody);
         {ok, {{_, StatusCode, _}, _, ErrorBody}} ->
@@ -418,6 +461,173 @@ create_token_account(WalletId, TokenMint) ->
         {error, Reason} ->
             {error, Reason}
     end.
+
+get_nfts(PublicKey) ->
+    RequestBody = #{public_key => ensure_binary(PublicKey)},
+    Json = jsx:encode(RequestBody),
+    ApiUrl = ?SOLANA_API_BASE ++ "/wallet/nft/list",
+    case httpc:request(post, {ApiUrl, [], "application/json", Json},
+                      [{timeout, ?DEFAULT_TIMEOUT}], []) of
+        {ok, {{_, 200, _}, _, ResponseBody}} ->
+            case jsx:decode(list_to_binary(ResponseBody), [return_maps]) of
+                #{<<"nfts">> := NFTs} = Response ->
+                    ParsedNFTs = lists:map(fun(NFT) ->
+                        #{
+                            mint => binary_to_list(maps:get(<<"mint">>, NFT)),
+                            token_account => binary_to_list(maps:get(<<"token_account">>, NFT)),
+                            owner => binary_to_list(maps:get(<<"owner">>, NFT)),
+                            name => binary_to_list(maps:get(<<"name">>, NFT)),
+                            symbol => binary_to_list(maps:get(<<"symbol">>, NFT)),
+                            uri => binary_to_list(maps:get(<<"uri">>, NFT)),
+                            metadata => case maps:get(<<"metadata">>, NFT, undefined) of
+                                undefined -> undefined;
+                                Meta -> parse_nft_metadata(Meta)
+                            end,
+                            image => case maps:get(<<"image">>, NFT, undefined) of
+                                undefined -> undefined;
+                                Img -> binary_to_list(Img)
+                            end,
+                            description => case maps:get(<<"description">>, NFT, undefined) of
+                                undefined -> undefined;
+                                Desc -> binary_to_list(Desc)
+                            end
+                        }
+                    end, NFTs),
+                    {ok, #{
+                        public_key => binary_to_list(maps:get(<<"public_key">>, Response)),
+                        nfts => ParsedNFTs
+                    }};
+                _ ->
+                    {error, invalid_response}
+            end;
+        {ok, {{_, StatusCode, _}, _, ErrorBody}} ->
+            {error, {http_error, StatusCode, ErrorBody}};
+        {error, Reason} ->
+            {error, Reason}
+    end.
+
+get_nft_metadata(MintAddress) ->
+    RequestBody = #{mint_address => ensure_binary(MintAddress)},
+    Json = jsx:encode(RequestBody),
+    ApiUrl = ?SOLANA_API_BASE ++ "/wallet/nft/metadata",
+    case httpc:request(post, {ApiUrl, [], "application/json", Json},
+                      [{timeout, ?DEFAULT_TIMEOUT}], []) of
+        {ok, {{_, 200, _}, _, ResponseBody}} ->
+            case jsx:decode(list_to_binary(ResponseBody), [return_maps]) of
+                #{<<"metadata">> := Metadata} = Response ->
+                    {ok, #{
+                        mint => binary_to_list(maps:get(<<"mint">>, Response)),
+                        metadata => parse_nft_metadata(Metadata),
+                        external_metadata => case maps:get(<<"external_metadata">>, Response, undefined) of
+                            undefined -> undefined;
+                            ExtMeta -> parse_external_metadata(ExtMeta)
+                        end
+                    }};
+                _ ->
+                    {error, invalid_response}
+            end;
+        {ok, {{_, 404, _}, _, _}} ->
+            {error, nft_not_found};
+        {ok, {{_, StatusCode, _}, _, ErrorBody}} ->
+            parse_error_response(ErrorBody);
+        {error, Reason} ->
+            {error, Reason}
+    end.
+
+transfer_nft(Token, FromWalletId, ToPublicKey, MintAddress) ->
+    RequestBody = #{
+        from_wallet_id => ensure_binary(FromWalletId),
+        to_public_key => ensure_binary(ToPublicKey),
+        mint_address => ensure_binary(MintAddress)
+    },
+    Json = jsx:encode(RequestBody),
+    ApiUrl = ?SOLANA_API_BASE ++ "/wallet/nft/transfer",
+    Headers = auth_headers(Token),
+    case httpc:request(post, {ApiUrl, Headers, "application/json", Json},
+                      [{timeout, ?DEFAULT_TIMEOUT}], []) of
+        {ok, {{_, 200, _}, _, ResponseBody}} ->
+            case jsx:decode(list_to_binary(ResponseBody), [return_maps]) of
+                #{<<"signature">> := Signature} = Response ->
+                    {ok, #{
+                        signature => binary_to_list(Signature),
+                        from_public_key => binary_to_list(maps:get(<<"from_public_key">>, Response)),
+                        to_public_key => binary_to_list(maps:get(<<"to_public_key">>, Response)),
+                        mint_address => binary_to_list(maps:get(<<"mint_address">>, Response)),
+                        status => binary_to_list(maps:get(<<"status">>, Response)),
+                        timestamp => maps:get(<<"timestamp">>, Response)
+                    }};
+                _ ->
+                    {error, invalid_response}
+            end;
+        {ok, {{_, 401, _}, _, _}} ->
+            {error, unauthorized};
+        {ok, {{_, 403, _}, _, _}} ->
+            {error, forbidden};
+        {ok, {{_, 500, _}, _, ErrorBody}} ->
+            parse_error_response(ErrorBody);
+        {ok, {{_, StatusCode, _}, _, ErrorBody}} ->
+            {error, {http_error, StatusCode, ErrorBody}};
+        {error, Reason} ->
+            {error, Reason}
+    end.
+
+parse_nft_metadata(Metadata) ->
+    #{
+        name => binary_to_list(maps:get(<<"name">>, Metadata)),
+        symbol => binary_to_list(maps:get(<<"symbol">>, Metadata)),
+        uri => binary_to_list(maps:get(<<"uri">>, Metadata)),
+        seller_fee_basis_points => maps:get(<<"seller_fee_basis_points">>, Metadata),
+        creators => lists:map(fun(Creator) ->
+            #{
+                address => binary_to_list(maps:get(<<"address">>, Creator)),
+                verified => maps:get(<<"verified">>, Creator),
+                share => maps:get(<<"share">>, Creator)
+            }
+        end, maps:get(<<"creators">>, Metadata, [])),
+        collection => case maps:get(<<"collection">>, Metadata, undefined) of
+            undefined -> undefined;
+            Coll -> #{
+                verified => maps:get(<<"verified">>, Coll),
+                key => binary_to_list(maps:get(<<"key">>, Coll))
+            }
+        end,
+        uses => case maps:get(<<"uses">>, Metadata, undefined) of
+            undefined -> undefined;
+            Uses -> #{
+                use_method => binary_to_list(maps:get(<<"use_method">>, Uses)),
+                remaining => maps:get(<<"remaining">>, Uses),
+                total => maps:get(<<"total">>, Uses)
+            }
+        end
+    }.
+
+parse_external_metadata(ExtMeta) ->
+    #{
+        name => case maps:get(<<"name">>, ExtMeta, undefined) of
+            undefined -> undefined;
+            N -> binary_to_list(N)
+        end,
+        description => case maps:get(<<"description">>, ExtMeta, undefined) of
+            undefined -> undefined;
+            D -> binary_to_list(D)
+        end,
+        image => case maps:get(<<"image">>, ExtMeta, undefined) of
+            undefined -> undefined;
+            I -> binary_to_list(I)
+        end,
+        attributes => case maps:get(<<"attributes">>, ExtMeta, undefined) of
+            undefined -> undefined;
+            Attrs -> lists:map(fun(Attr) ->
+                #{
+                    trait_type => binary_to_list(maps:get(<<"trait_type">>, Attr)),
+                    value => case maps:get(<<"value">>, Attr) of
+                        V when is_binary(V) -> binary_to_list(V);
+                        V -> V
+                    end
+                }
+            end, Attrs)
+        end
+    }.
 
 parse_error_response(ErrorBody) ->
     try
@@ -435,167 +645,8 @@ parse_error_response(ErrorBody) ->
         _:_ -> {error, invalid_error_response}
     end.
 
-    get_nfts(PublicKey) ->
-        RequestBody = #{public_key => ensure_binary(PublicKey)},
-        Json = jsx:encode(RequestBody),
-        ApiUrl = ?SOLANA_API_BASE ++ "/wallet/nft/list",
-        case httpc:request(post, {ApiUrl, [], "application/json", Json},
-                          [{timeout, ?DEFAULT_TIMEOUT}], []) of
-            {ok, {{_, 200, _}, _, ResponseBody}} ->
-                case jsx:decode(list_to_binary(ResponseBody), [return_maps]) of
-                    #{<<"nfts">> := NFTs} = Response ->
-                        ParsedNFTs = lists:map(fun(NFT) ->
-                            #{
-                                mint => binary_to_list(maps:get(<<"mint">>, NFT)),
-                                token_account => binary_to_list(maps:get(<<"token_account">>, NFT)),
-                                owner => binary_to_list(maps:get(<<"owner">>, NFT)),
-                                name => binary_to_list(maps:get(<<"name">>, NFT)),
-                                symbol => binary_to_list(maps:get(<<"symbol">>, NFT)),
-                                uri => binary_to_list(maps:get(<<"uri">>, NFT)),
-                                metadata => case maps:get(<<"metadata">>, NFT, undefined) of
-                                    undefined -> undefined;
-                                    Meta -> parse_nft_metadata(Meta)
-                                end,
-                                image => case maps:get(<<"image">>, NFT, undefined) of
-                                    undefined -> undefined;
-                                    Img -> binary_to_list(Img)
-                                end,
-                                description => case maps:get(<<"description">>, NFT, undefined) of
-                                    undefined -> undefined;
-                                    Desc -> binary_to_list(Desc)
-                                end
-                            }
-                        end, NFTs),
-                        {ok, #{
-                            public_key => binary_to_list(maps:get(<<"public_key">>, Response)),
-                            nfts => ParsedNFTs
-                        }};
-                    _ ->
-                        {error, invalid_response}
-                end;
-            {ok, {{_, StatusCode, _}, _, ErrorBody}} ->
-                {error, {http_error, StatusCode, ErrorBody}};
-            {error, Reason} ->
-                {error, Reason}
-        end.
-
-        get_nft_metadata(MintAddress) ->
-            RequestBody = #{mint_address => ensure_binary(MintAddress)},
-            Json = jsx:encode(RequestBody),
-            ApiUrl = ?SOLANA_API_BASE ++ "/wallet/nft/metadata",
-            case httpc:request(post, {ApiUrl, [], "application/json", Json},
-                              [{timeout, ?DEFAULT_TIMEOUT}], []) of
-                {ok, {{_, 200, _}, _, ResponseBody}} ->
-                    case jsx:decode(list_to_binary(ResponseBody), [return_maps]) of
-                        #{<<"metadata">> := Metadata} = Response ->
-                            {ok, #{
-                                mint => binary_to_list(maps:get(<<"mint">>, Response)),
-                                metadata => parse_nft_metadata(Metadata),
-                                external_metadata => case maps:get(<<"external_metadata">>, Response, undefined) of
-                                    undefined -> undefined;
-                                    ExtMeta -> parse_external_metadata(ExtMeta)
-                                end
-                            }};
-                        _ ->
-                            {error, invalid_response}
-                    end;
-                {ok, {{_, 404, _}, _, _}} ->
-                    {error, nft_not_found};
-                {ok, {{_, StatusCode, _}, _, ErrorBody}} ->
-                    parse_error_response(ErrorBody);
-                {error, Reason} ->
-                    {error, Reason}
-            end.
-
-    transfer_nft(FromWalletId, ToPublicKey, MintAddress) ->
-        RequestBody = #{
-            from_wallet_id => ensure_binary(FromWalletId),
-            to_public_key => ensure_binary(ToPublicKey),
-            mint_address => ensure_binary(MintAddress)
-        },
-        Json = jsx:encode(RequestBody),
-        ApiUrl = ?SOLANA_API_BASE ++ "/wallet/nft/transfer",
-        case httpc:request(post, {ApiUrl, [], "application/json", Json},
-                          [{timeout, ?DEFAULT_TIMEOUT}], []) of
-            {ok, {{_, 200, _}, _, ResponseBody}} ->
-                case jsx:decode(list_to_binary(ResponseBody), [return_maps]) of
-                    #{<<"signature">> := Signature} = Response ->
-                        {ok, #{
-                            signature => binary_to_list(Signature),
-                            from_public_key => binary_to_list(maps:get(<<"from_public_key">>, Response)),
-                            to_public_key => binary_to_list(maps:get(<<"to_public_key">>, Response)),
-                            mint_address => binary_to_list(maps:get(<<"mint_address">>, Response)),
-                            status => binary_to_list(maps:get(<<"status">>, Response)),
-                            timestamp => maps:get(<<"timestamp">>, Response)
-                        }};
-                    _ ->
-                        {error, invalid_response}
-                end;
-            {ok, {{_, 500, _}, _, ErrorBody}} ->
-                parse_error_response(ErrorBody);
-            {ok, {{_, StatusCode, _}, _, ErrorBody}} ->
-                {error, {http_error, StatusCode, ErrorBody}};
-            {error, Reason} ->
-                {error, Reason}
-        end.
-
-    parse_nft_metadata(Metadata) ->
-        #{
-            name => binary_to_list(maps:get(<<"name">>, Metadata)),
-            symbol => binary_to_list(maps:get(<<"symbol">>, Metadata)),
-            uri => binary_to_list(maps:get(<<"uri">>, Metadata)),
-            seller_fee_basis_points => maps:get(<<"seller_fee_basis_points">>, Metadata),
-            creators => lists:map(fun(Creator) ->
-                #{
-                    address => binary_to_list(maps:get(<<"address">>, Creator)),
-                    verified => maps:get(<<"verified">>, Creator),
-                    share => maps:get(<<"share">>, Creator)
-                }
-            end, maps:get(<<"creators">>, Metadata, [])),
-            collection => case maps:get(<<"collection">>, Metadata, undefined) of
-                undefined -> undefined;
-                Coll -> #{
-                    verified => maps:get(<<"verified">>, Coll),
-                    key => binary_to_list(maps:get(<<"key">>, Coll))
-                }
-            end,
-            uses => case maps:get(<<"uses">>, Metadata, undefined) of
-                undefined -> undefined;
-                Uses -> #{
-                    use_method => binary_to_list(maps:get(<<"use_method">>, Uses)),
-                    remaining => maps:get(<<"remaining">>, Uses),
-                    total => maps:get(<<"total">>, Uses)
-                }
-            end
-        }.
-
-    parse_external_metadata(ExtMeta) ->
-        #{
-            name => case maps:get(<<"name">>, ExtMeta, undefined) of
-                undefined -> undefined;
-                N -> binary_to_list(N)
-            end,
-            description => case maps:get(<<"description">>, ExtMeta, undefined) of
-                undefined -> undefined;
-                D -> binary_to_list(D)
-            end,
-            image => case maps:get(<<"image">>, ExtMeta, undefined) of
-                undefined -> undefined;
-                I -> binary_to_list(I)
-            end,
-            attributes => case maps:get(<<"attributes">>, ExtMeta, undefined) of
-                undefined -> undefined;
-                Attrs -> lists:map(fun(Attr) ->
-                    #{
-                        trait_type => binary_to_list(maps:get(<<"trait_type">>, Attr)),
-                        value => case maps:get(<<"value">>, Attr) of
-                            V when is_binary(V) -> binary_to_list(V);
-                            V -> V
-                        end
-                    }
-                end, Attrs)
-            end
-        }.
+auth_headers(Token) ->
+    [{"Authorization", "Bearer " ++ ensure_string(Token)}].
 
 ensure_binary(Value) when is_binary(Value) -> Value;
 ensure_binary(Value) when is_list(Value) -> list_to_binary(Value);

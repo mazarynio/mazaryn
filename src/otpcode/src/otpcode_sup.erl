@@ -1,6 +1,7 @@
 -module(otpcode_sup).
 
 -include("records.hrl").
+-include("wallet_records.hrl").
 -include("business.hrl").
 -include("job_records.hrl").
 -include("ml_records.hrl").
@@ -30,7 +31,8 @@
  job_posting, resume, work_experience, education, job_application, interview_stage, saved_job, job_alert,
  talent_pool, candidate_search, recruiter_contact, skill, skill_endorsement, skill_assessment, company_review,
  interview_prep, job_market_insights, user_job_analytics, job_message, background_check, employment_verification,
- job_referral, job_board_settings, leaderboard, artist, artist_request]).
+ job_referral, job_board_settings, leaderboard, artist, artist_request,
+ solana_wallet, solana_transaction, solana_airdrop, solana_airdrop_recipient, solana_stake_account, solana_token_account, solana_nft]).
 
 start_link() ->
     case initialize() of
@@ -271,7 +273,13 @@ create_table_indexes() ->
                        {job_posting, poster_id}, {job_posting, status}, {resume, user_id},
                        {job_application, job_posting_id}, {job_application, applicant_user_id},
                        {job_application, status}, {saved_job, user_id}, {job_alert, user_id},
-                       {skill_endorsement, user_id}, {company_review, business_id}],
+                       {skill_endorsement, user_id}, {company_review, business_id},
+                       {solana_wallet, user_id}, {solana_wallet, public_key},
+                       {solana_transaction, wallet_id}, {solana_transaction, user_id}, {solana_transaction, signature},
+                       {solana_airdrop, wallet_id}, {solana_airdrop, user_id},
+                       {solana_stake_account, wallet_id}, {solana_stake_account, user_id}, {solana_stake_account, stake_account_address},
+                       {solana_token_account, wallet_id}, {solana_token_account, user_id},
+                       {solana_nft, wallet_id}, {solana_nft, user_id}],
     Results = [create_index(Table, Field) || {Table, Field} <- IndexesToCreate],
     case lists:all(fun(Result) -> Result == ok end, Results) of
         true -> ok;
@@ -441,4 +449,11 @@ table_attributes(job_referral) -> record_info(fields, job_referral);
 table_attributes(job_board_settings) -> record_info(fields, job_board_settings);
 table_attributes(leaderboard) -> record_info(fields, leaderboard);
 table_attributes(artist) -> record_info(fields, artist);
-table_attributes(artist_request) -> record_info(fields, artist_request).
+table_attributes(artist_request) -> record_info(fields, artist_request);
+table_attributes(solana_wallet) -> record_info(fields, solana_wallet);
+table_attributes(solana_transaction) -> record_info(fields, solana_transaction);
+table_attributes(solana_airdrop) -> record_info(fields, solana_airdrop);
+table_attributes(solana_airdrop_recipient) -> record_info(fields, solana_airdrop_recipient);
+table_attributes(solana_stake_account) -> record_info(fields, solana_stake_account);
+table_attributes(solana_token_account) -> record_info(fields, solana_token_account);
+table_attributes(solana_nft) -> record_info(fields, solana_nft).

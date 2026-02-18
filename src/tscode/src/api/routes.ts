@@ -2,6 +2,7 @@ import express from "express";
 import { walletManager } from "../services/solana/wallet.js";
 import { tokenManager } from "../services/solana/token.js";
 import { nftManager } from "../services/solana/nft.js";
+import { authenticate } from "../middleware/auth.js";
 import { logger } from "../core/logger.js";
 import type {
   CreateWalletRequest,
@@ -19,9 +20,14 @@ BigInt.prototype.toJSON = function () {
 
 export const walletRoutes = express.Router();
 
-walletRoutes.post("/create", async (req, res) => {
+walletRoutes.post("/create", authenticate, async (req: any, res) => {
   try {
     const request = req.body as CreateWalletRequest;
+
+    if (request.user_id !== req.user!.user_id) {
+      return res.status(403).json({ error: "Unauthorized: user_id mismatch" });
+    }
+
     logger.info("Create wallet request received for user:", request.user_id);
 
     const result = await walletManager.createWallet(request);
@@ -36,9 +42,14 @@ walletRoutes.post("/create", async (req, res) => {
   }
 });
 
-walletRoutes.post("/import", async (req, res) => {
+walletRoutes.post("/import", authenticate, async (req: AuthRequest, res) => {
   try {
     const request = req.body as ImportWalletRequest;
+
+    if (request.user_id !== req.user!.user_id) {
+      return res.status(403).json({ error: "Unauthorized: user_id mismatch" });
+    }
+
     logger.info("Import wallet request received for user:", request.user_id);
 
     const result = await walletManager.importWallet(request);
@@ -70,10 +81,19 @@ walletRoutes.post("/balance", async (req, res) => {
   }
 });
 
-walletRoutes.post("/transfer", async (req, res) => {
+walletRoutes.post("/transfer", authenticate, async (req: AuthRequest, res) => {
   try {
     const request = req.body as TransferRequest;
     logger.info("Transfer request from wallet:", request.from_wallet_id);
+
+    const walletInfo = await walletManager.getWalletInfo(
+      request.from_wallet_id,
+    );
+    if (!walletInfo || walletInfo.user_id !== req.user!.user_id) {
+      return res
+        .status(403)
+        .json({ error: "Unauthorized: wallet does not belong to user" });
+    }
 
     const result = await walletManager.transfer(request);
     res.json(result);
@@ -104,87 +124,123 @@ walletRoutes.get("/transaction/:signature", async (req, res) => {
   }
 });
 
-walletRoutes.get("/info/:wallet_id", async (req, res) => {
-  try {
-    const walletId = req.params.wallet_id;
-    logger.info("Get wallet info request for:", walletId);
+walletRoutes.get(
+  "/info/:wallet_id",
+  authenticate,
+  async (req: AuthRequest, res) => {
+    try {
+      const walletId = req.params.wallet_id;
+      logger.info("Get wallet info request for:", walletId);
 
-    const result = await walletManager.getWalletInfo(walletId);
-    if (!result) {
-      const errorResponse: ErrorResponse = { error: "Wallet not found" };
-      return res.status(404).json(errorResponse);
-    }
+      const result = await walletManager.getWalletInfo(walletId);
+      if (!result) {
+        const errorResponse: ErrorResponse = { error: "Wallet not found" };
+        return res.status(404).json(errorResponse);
+      }
 
-    res.json(result);
-  } catch (error) {
-    logger.error("Get wallet info error:", error);
-    const errorResponse: ErrorResponse = {
-      error: error instanceof Error ? error.message : "Unknown error",
-      details: error,
-    };
-    res.status(500).json(errorResponse);
-  }
-});
+      if (result.user_id !== req.user!.user_id) {
+        return res
+          .status(403)
+          .json({ error: "Unauthorized: wallet does not belong to user" });
+      }
 
-walletRoutes.get("/user/:user_id", async (req, res) => {
-  try {
-    const userId = req.params.user_id;
-    logger.info("Get user wallets request for:", userId);
-
-    const result = await walletManager.getUserWallets(userId);
-    res.json({ user_id: userId, wallets: result });
-  } catch (error) {
-    logger.error("Get user wallets error:", error);
-    const errorResponse: ErrorResponse = {
-      error: error instanceof Error ? error.message : "Unknown error",
-      details: error,
-    };
-    res.status(500).json(errorResponse);
-  }
-});
-
-walletRoutes.post("/export/:wallet_id", async (req, res) => {
-  try {
-    const walletId = req.params.wallet_id;
-    logger.info("Export private key request for:", walletId);
-
-    const privateKey = await walletManager.exportPrivateKey(walletId);
-    res.json({ wallet_id: walletId, private_key: privateKey });
-  } catch (error) {
-    logger.error("Export private key error:", error);
-    const errorResponse: ErrorResponse = {
-      error: error instanceof Error ? error.message : "Unknown error",
-      details: error,
-    };
-    res.status(500).json(errorResponse);
-  }
-});
-
-walletRoutes.delete("/:wallet_id", async (req, res) => {
-  try {
-    const walletId = req.params.wallet_id;
-    const userId = req.body.user_id;
-
-    logger.info("Delete wallet request:", walletId);
-
-    const success = walletManager.deleteWallet(walletId, userId);
-    if (!success) {
+      res.json(result);
+    } catch (error) {
+      logger.error("Get wallet info error:", error);
       const errorResponse: ErrorResponse = {
-        error: "Wallet not found or unauthorized",
+        error: error instanceof Error ? error.message : "Unknown error",
+        details: error,
       };
-      return res.status(404).json(errorResponse);
+      res.status(500).json(errorResponse);
     }
+  },
+);
 
-    res.json({ status: "deleted", wallet_id: walletId });
-  } catch (error) {
-    logger.error("Delete wallet error:", error);
-    const errorResponse: ErrorResponse = {
-      error: error instanceof Error ? error.message : "Unknown error",
-      details: error,
-    };
-    res.status(500).json(errorResponse);
-  }
-});
+walletRoutes.get(
+  "/user/:user_id",
+  authenticate,
+  async (req: AuthRequest, res) => {
+    try {
+      const userId = req.params.user_id;
+
+      if (userId !== req.user!.user_id) {
+        return res
+          .status(403)
+          .json({ error: "Unauthorized: cannot access other user's wallets" });
+      }
+
+      logger.info("Get user wallets request for:", userId);
+
+      const result = await walletManager.getUserWallets(userId);
+      res.json({ user_id: userId, wallets: result });
+    } catch (error) {
+      logger.error("Get user wallets error:", error);
+      const errorResponse: ErrorResponse = {
+        error: error instanceof Error ? error.message : "Unknown error",
+        details: error,
+      };
+      res.status(500).json(errorResponse);
+    }
+  },
+);
+
+walletRoutes.post(
+  "/export/:wallet_id",
+  authenticate,
+  async (req: AuthRequest, res) => {
+    try {
+      const walletId = req.params.wallet_id;
+      logger.info("Export private key request for:", walletId);
+
+      const walletInfo = await walletManager.getWalletInfo(walletId);
+      if (!walletInfo || walletInfo.user_id !== req.user!.user_id) {
+        return res
+          .status(403)
+          .json({ error: "Unauthorized: wallet does not belong to user" });
+      }
+
+      const privateKey = await walletManager.exportPrivateKey(walletId);
+      res.json({ wallet_id: walletId, private_key: privateKey });
+    } catch (error) {
+      logger.error("Export private key error:", error);
+      const errorResponse: ErrorResponse = {
+        error: error instanceof Error ? error.message : "Unknown error",
+        details: error,
+      };
+      res.status(500).json(errorResponse);
+    }
+  },
+);
+
+walletRoutes.delete(
+  "/:wallet_id",
+  authenticate,
+  async (req: AuthRequest, res) => {
+    try {
+      const walletId = req.params.wallet_id;
+      const userId = req.user!.user_id;
+
+      logger.info("Delete wallet request:", walletId);
+
+      const success = walletManager.deleteWallet(walletId, userId);
+      if (!success) {
+        const errorResponse: ErrorResponse = {
+          error: "Wallet not found or unauthorized",
+        };
+        return res.status(404).json(errorResponse);
+      }
+
+      res.json({ status: "deleted", wallet_id: walletId });
+    } catch (error) {
+      logger.error("Delete wallet error:", error);
+      const errorResponse: ErrorResponse = {
+        error: error instanceof Error ? error.message : "Unknown error",
+        details: error,
+      };
+      res.status(500).json(errorResponse);
+    }
+  },
+);
 
 walletRoutes.post("/token/accounts", async (req, res) => {
   try {
@@ -225,61 +281,88 @@ walletRoutes.post("/token/balance", async (req, res) => {
   }
 });
 
-walletRoutes.post("/token/transfer", async (req, res) => {
-  try {
-    const request = req.body as TransferTokenRequest;
-    logger.info("Token transfer request from wallet:", request.from_wallet_id);
+walletRoutes.post(
+  "/token/transfer",
+  authenticate,
+  async (req: AuthRequest, res) => {
+    try {
+      const request = req.body as TransferTokenRequest;
+      logger.info(
+        "Token transfer request from wallet:",
+        request.from_wallet_id,
+      );
 
-    const walletInfo = walletManager.getWalletSigner(request.from_wallet_id);
-    if (!walletInfo) {
-      const errorResponse: ErrorResponse = { error: "Wallet not found" };
-      return res.status(404).json(errorResponse);
+      const walletInfo = await walletManager.getWalletInfo(
+        request.from_wallet_id,
+      );
+      if (!walletInfo || walletInfo.user_id !== req.user!.user_id) {
+        return res
+          .status(403)
+          .json({ error: "Unauthorized: wallet does not belong to user" });
+      }
+
+      const signerInfo = walletManager.getWalletSigner(request.from_wallet_id);
+      if (!signerInfo) {
+        const errorResponse: ErrorResponse = { error: "Wallet not found" };
+        return res.status(404).json(errorResponse);
+      }
+
+      const result = await tokenManager.transferToken(
+        signerInfo.signer,
+        signerInfo.publicKey,
+        request,
+      );
+      res.json(result);
+    } catch (error) {
+      logger.error("Token transfer error:", error);
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error";
+      const errorResponse: ErrorResponse = {
+        error: errorMessage,
+      };
+      res.status(500).json(errorResponse);
     }
+  },
+);
 
-    const result = await tokenManager.transferToken(
-      walletInfo.signer,
-      walletInfo.publicKey,
-      request,
-    );
-    res.json(result);
-  } catch (error) {
-    logger.error("Token transfer error:", error);
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
-    const errorResponse: ErrorResponse = {
-      error: errorMessage,
-    };
-    res.status(500).json(errorResponse);
-  }
-});
+walletRoutes.post(
+  "/token/create-account",
+  authenticate,
+  async (req: AuthRequest, res) => {
+    try {
+      const { wallet_id, token_mint } = req.body;
+      logger.info("Create token account request for wallet:", wallet_id);
 
-walletRoutes.post("/token/create-account", async (req, res) => {
-  try {
-    const { wallet_id, token_mint } = req.body;
-    logger.info("Create token account request for wallet:", wallet_id);
+      const walletInfo = await walletManager.getWalletInfo(wallet_id);
+      if (!walletInfo || walletInfo.user_id !== req.user!.user_id) {
+        return res
+          .status(403)
+          .json({ error: "Unauthorized: wallet does not belong to user" });
+      }
 
-    const walletInfo = walletManager.getWalletSigner(wallet_id);
-    if (!walletInfo) {
-      const errorResponse: ErrorResponse = { error: "Wallet not found" };
-      return res.status(404).json(errorResponse);
+      const signerInfo = walletManager.getWalletSigner(wallet_id);
+      if (!signerInfo) {
+        const errorResponse: ErrorResponse = { error: "Wallet not found" };
+        return res.status(404).json(errorResponse);
+      }
+
+      const result = await tokenManager.createTokenAccount(
+        signerInfo.signer,
+        signerInfo.publicKey,
+        token_mint,
+      );
+      res.json(result);
+    } catch (error) {
+      logger.error("Create token account error:", error);
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error";
+      const errorResponse: ErrorResponse = {
+        error: errorMessage,
+      };
+      res.status(500).json(errorResponse);
     }
-
-    const result = await tokenManager.createTokenAccount(
-      walletInfo.signer,
-      walletInfo.publicKey,
-      token_mint,
-    );
-    res.json(result);
-  } catch (error) {
-    logger.error("Create token account error:", error);
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
-    const errorResponse: ErrorResponse = {
-      error: errorMessage,
-    };
-    res.status(500).json(errorResponse);
-  }
-});
+  },
+);
 
 walletRoutes.post("/nft/list", async (req, res) => {
   try {
@@ -318,30 +401,43 @@ walletRoutes.post("/nft/metadata", async (req, res) => {
   }
 });
 
-walletRoutes.post("/nft/transfer", async (req, res) => {
-  try {
-    const request = req.body as TransferNFTRequest;
-    logger.info("NFT transfer request from wallet:", request.from_wallet_id);
+walletRoutes.post(
+  "/nft/transfer",
+  authenticate,
+  async (req: AuthRequest, res) => {
+    try {
+      const request = req.body as TransferNFTRequest;
+      logger.info("NFT transfer request from wallet:", request.from_wallet_id);
 
-    const walletInfo = walletManager.getWalletSigner(request.from_wallet_id);
-    if (!walletInfo) {
-      const errorResponse: ErrorResponse = { error: "Wallet not found" };
-      return res.status(404).json(errorResponse);
+      const walletInfo = await walletManager.getWalletInfo(
+        request.from_wallet_id,
+      );
+      if (!walletInfo || walletInfo.user_id !== req.user!.user_id) {
+        return res
+          .status(403)
+          .json({ error: "Unauthorized: wallet does not belong to user" });
+      }
+
+      const signerInfo = walletManager.getWalletSigner(request.from_wallet_id);
+      if (!signerInfo) {
+        const errorResponse: ErrorResponse = { error: "Wallet not found" };
+        return res.status(404).json(errorResponse);
+      }
+
+      const result = await nftManager.transferNFT(
+        signerInfo.signer,
+        signerInfo.publicKey,
+        request,
+      );
+      res.json(result);
+    } catch (error) {
+      logger.error("NFT transfer error:", error);
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error";
+      const errorResponse: ErrorResponse = {
+        error: errorMessage,
+      };
+      res.status(500).json(errorResponse);
     }
-
-    const result = await nftManager.transferNFT(
-      walletInfo.signer,
-      walletInfo.publicKey,
-      request,
-    );
-    res.json(result);
-  } catch (error) {
-    logger.error("NFT transfer error:", error);
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
-    const errorResponse: ErrorResponse = {
-      error: errorMessage,
-    };
-    res.status(500).json(errorResponse);
-  }
-});
+  },
+);

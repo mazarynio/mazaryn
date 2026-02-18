@@ -61,3 +61,6 @@ mazaryn-front
 .iex.exs
 /src/tscode/node_modules
 /src/tscode/package-lock.json
+/src/tscode/data
+/src/tscode/.env
+/src/golangcode/myapp

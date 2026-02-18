@@ -16,6 +16,7 @@ import bs58 from "bs58";
 import { solanaConnection } from "./connection.js";
 import { logger } from "../../core/logger.js";
 import { walletDatabase } from "../database/database.js";
+import { encryptionService } from "../security/encryption.js";
 import type {
   CreateWalletRequest,
   CreateWalletResponse,
@@ -46,17 +47,26 @@ export class WalletManager {
       logger.info(`Loading ${wallets.length} wallets from database`);
 
       for (const wallet of wallets) {
-        const privateKeyBytes = bs58.decode(wallet.private_key);
-        const keypair = Keypair.fromSecretKey(privateKeyBytes);
-        const signer = await createKeyPairSignerFromBytes(privateKeyBytes);
+        try {
+          const decryptedPrivateKey = encryptionService.decrypt(
+            wallet.encrypted_private_key,
+          );
+          const privateKeyBytes = bs58.decode(decryptedPrivateKey);
+          const keypair = Keypair.fromSecretKey(privateKeyBytes);
+          const signer = await createKeyPairSignerFromBytes(privateKeyBytes);
 
-        this.walletCache.set(wallet.wallet_id, {
-          keypair,
-          signer,
-        });
+          this.walletCache.set(wallet.wallet_id, {
+            keypair,
+            signer,
+          });
+        } catch (error) {
+          logger.error(`Failed to load wallet ${wallet.wallet_id}:`, error);
+        }
       }
 
-      logger.info(`Successfully loaded ${wallets.length} wallets into cache`);
+      logger.info(
+        `Successfully loaded ${this.walletCache.size} wallets into cache`,
+      );
     } catch (error) {
       logger.error("Failed to load wallets from database:", error);
     }
@@ -70,6 +80,7 @@ export class WalletManager {
       const signer = await createKeyPairSignerFromBytes(keypair.secretKey);
       const publicKey = keypair.publicKey.toBase58();
       const privateKey = bs58.encode(keypair.secretKey);
+      const encryptedPrivateKey = encryptionService.encrypt(privateKey);
       const walletId = this.generateWalletId();
       const createdAt = Date.now();
 
@@ -77,9 +88,10 @@ export class WalletManager {
         wallet_id: walletId,
         user_id: req.user_id,
         public_key: publicKey,
-        private_key: privateKey,
+        encrypted_private_key: encryptedPrivateKey,
         wallet_name: req.wallet_name,
         created_at: createdAt,
+        updated_at: createdAt,
       });
 
       this.walletCache.set(walletId, {
@@ -109,6 +121,7 @@ export class WalletManager {
       const keypair = Keypair.fromSecretKey(privateKeyBytes);
       const signer = await createKeyPairSignerFromBytes(privateKeyBytes);
       const publicKey = keypair.publicKey.toBase58();
+      const encryptedPrivateKey = encryptionService.encrypt(req.private_key);
       const walletId = this.generateWalletId();
       const createdAt = Date.now();
 
@@ -116,9 +129,10 @@ export class WalletManager {
         wallet_id: walletId,
         user_id: req.user_id,
         public_key: publicKey,
-        private_key: req.private_key,
+        encrypted_private_key: encryptedPrivateKey,
         wallet_name: req.wallet_name,
         created_at: createdAt,
+        updated_at: createdAt,
       });
 
       this.walletCache.set(walletId, {
@@ -250,7 +264,10 @@ export class WalletManager {
         throw new Error("Wallet not found");
       }
 
-      return wallet.private_key;
+      const decryptedPrivateKey = encryptionService.decrypt(
+        wallet.encrypted_private_key,
+      );
+      return decryptedPrivateKey;
     } catch (error) {
       logger.error("Failed to export private key:", error);
       throw error;
