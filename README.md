@@ -31,7 +31,21 @@
    cargo build
    cargo run 
 
-5. **Clone and Setup**:
+5. **Setup TypeScript Server**
+   ```bash
+   npm install -g typescript
+   cd mazaryn/src/tscode
+   npm install
+   Create environment file:
+   cp .env.example .env
+   Generate secure secrets:
+   openssl rand -hex 32
+   Paste the generated values into:
+   ENCRYPTION_KEY=
+   JWT_SECRET=
+   npm run dev
+
+6. **Clone and Setup**:
    ```bash
    git clone https://github.com/mazarynio/mazaryn
    cd mazaryn
