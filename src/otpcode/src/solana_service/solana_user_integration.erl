@@ -118,32 +118,26 @@ verify_wallet_ownership(WalletId, Username) ->
             end
     end.
 
-create_wallet_for_user(Username) ->
-    create_wallet_for_user(Username, undefined).
+    create_wallet_for_user(Username) ->
+        create_wallet_for_user(Username, undefined).
 
-create_wallet_for_user(Username, Label) ->
-    case userdb:get_user(Username) of
-        not_exist -> {error, user_not_found};
-        error -> {error, user_fetch_failed};
-        User ->
-            TempKey = crypto:strong_rand_bytes(32),
-            TempIV = crypto:strong_rand_bytes(16),
-            TempAuthTag = crypto:strong_rand_bytes(16),
-            TempPublicKey = base64:encode(crypto:strong_rand_bytes(32)),
+    create_wallet_for_user(Username, Label) ->
+        case userdb:get_user(Username) of
+            not_exist -> {error, user_not_found};
+            error -> {error, user_fetch_failed};
+            User ->
+                TempPassword = crypto:strong_rand_bytes(32),
 
-            case solana_walletdb:create_wallet(
-                User#user.id,
-                binary_to_list(TempPublicKey),
-                base64:encode(TempKey),
-                base64:encode(TempIV),
-                base64:encode(TempAuthTag),
-                Label
-            ) of
-                {ok, WalletId} ->
-                    {ok, WalletId, needs_typescript_sync};
-                {error, _} = Error -> Error
-            end
-    end.
+                case solana_walletdb:create_wallet(
+                    User#user.id,
+                    Label,
+                    TempPassword
+                ) of
+                    {ok, WalletId, PublicKey} ->
+                        {ok, WalletId, PublicKey, needs_password_setup};
+                    {error, _} = Error -> Error
+                end
+        end.
 
 import_wallet_for_user(Username, PrivateKey) ->
     import_wallet_for_user(Username, PrivateKey, undefined).

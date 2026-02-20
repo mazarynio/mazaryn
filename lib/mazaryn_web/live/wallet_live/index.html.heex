@@ -1,0 +1,555 @@
+<.live_component
+  module={MazarynWeb.HomeLive.NavComponent}
+  id="navigation"
+  user={@current_user}
+  search=""
+  locale={@locale}
+/>
+
+<div class="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950">
+  <div class="max-w-7xl mx-auto px-6 py-10">
+
+    <div class="mb-10">
+      <div class="flex items-center justify-between">
+        <div>
+          <h1 class="text-4xl font-bold text-white tracking-tight">Web3 Wallet</h1>
+          <p class="text-slate-400 mt-1 text-base">Manage your crypto assets across multiple networks</p>
+        </div>
+        <.link
+          navigate={~p"/#{@locale}/home"}
+          class="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white transition-all text-sm font-medium"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+          </svg>
+          Back to Home
+        </.link>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
+      <div class="bg-gradient-to-br from-violet-600 to-indigo-700 rounded-2xl p-5 shadow-xl shadow-violet-900/30">
+        <div class="flex items-center justify-between mb-3">
+          <span class="text-violet-200 text-sm font-medium">Total Balance</span>
+          <div class="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center">
+            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+        </div>
+        <div class="text-3xl font-bold text-white">$0.00</div>
+        <div class="text-violet-200 text-xs mt-1">Across all wallets</div>
+      </div>
+
+      <div class="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl p-5 shadow-xl border border-slate-700/50">
+        <div class="flex items-center justify-between mb-3">
+          <span class="text-slate-400 text-sm font-medium">Solana Wallets</span>
+          <div class="w-8 h-8 bg-purple-500/20 rounded-lg flex items-center justify-center">
+            <svg class="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+            </svg>
+          </div>
+        </div>
+        <div class="text-3xl font-bold text-white"><%= length(@solana_wallets) %></div>
+        <div class="text-slate-400 text-xs mt-1">Active wallets</div>
+      </div>
+
+      <div class="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl p-5 shadow-xl border border-slate-700/50">
+        <div class="flex items-center justify-between mb-3">
+          <span class="text-slate-400 text-sm font-medium">Transactions</span>
+          <div class="w-8 h-8 bg-blue-500/20 rounded-lg flex items-center justify-center">
+            <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+            </svg>
+          </div>
+        </div>
+        <div class="text-3xl font-bold text-white">0</div>
+        <div class="text-slate-400 text-xs mt-1">Total transactions</div>
+      </div>
+
+      <div class="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl p-5 shadow-xl border border-slate-700/50">
+        <div class="flex items-center justify-between mb-3">
+          <span class="text-slate-400 text-sm font-medium">NFTs Owned</span>
+          <div class="w-8 h-8 bg-pink-500/20 rounded-lg flex items-center justify-center">
+            <svg class="w-4 h-4 text-pink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+          </div>
+        </div>
+        <div class="text-3xl font-bold text-white">0</div>
+        <div class="text-slate-400 text-xs mt-1">Across collections</div>
+      </div>
+    </div>
+
+    <div class="flex items-center gap-2 mb-6 bg-slate-900/60 rounded-2xl p-1.5 w-fit border border-slate-800">
+      <button
+        phx-click="switch_wallet_tab"
+        phx-value-tab="solana"
+        class={"px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 #{if @active_wallet_tab == "solana", do: "bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-lg shadow-purple-900/40", else: "text-slate-400 hover:text-white"}"}
+      >
+        <div class="flex items-center gap-2">
+          <div class="w-4 h-4 rounded-full bg-gradient-to-br from-purple-400 to-indigo-500"></div>
+          Solana
+        </div>
+      </button>
+      <button
+        phx-click="switch_wallet_tab"
+        phx-value-tab="ethereum"
+        class={"px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 #{if @active_wallet_tab == "ethereum", do: "bg-gradient-to-r from-blue-600 to-cyan-600 text-white shadow-lg shadow-blue-900/40", else: "text-slate-400 hover:text-white"}"}
+      >
+        <div class="flex items-center gap-2">
+          <div class="w-4 h-4 rounded-full bg-gradient-to-br from-blue-400 to-cyan-500"></div>
+          Ethereum
+        </div>
+      </button>
+      <button
+        phx-click="switch_wallet_tab"
+        phx-value-tab="bitcoin"
+        class={"px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 #{if @active_wallet_tab == "bitcoin", do: "bg-gradient-to-r from-orange-500 to-amber-600 text-white shadow-lg shadow-orange-900/40", else: "text-slate-400 hover:text-white"}"}
+      >
+        <div class="flex items-center gap-2">
+          <div class="w-4 h-4 rounded-full bg-gradient-to-br from-orange-400 to-amber-500"></div>
+          Bitcoin
+        </div>
+      </button>
+      <button
+        phx-click="switch_wallet_tab"
+        phx-value-tab="other"
+        class={"px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 #{if @active_wallet_tab == "other", do: "bg-gradient-to-r from-slate-600 to-slate-700 text-white shadow-lg", else: "text-slate-400 hover:text-white"}"}
+      >
+        <div class="flex items-center gap-2">
+          <div class="w-4 h-4 rounded-full bg-gradient-to-br from-slate-400 to-slate-500"></div>
+          Other
+        </div>
+      </button>
+    </div>
+
+    <%= if @active_wallet_tab == "solana" do %>
+      <div class="flex items-center justify-between mb-5">
+        <h2 class="text-xl font-bold text-white">Your Solana Wallets</h2>
+        <div class="flex items-center gap-3">
+          <button
+            phx-click="open_import_modal"
+            class="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-slate-300 hover:bg-slate-700 hover:text-white transition-all text-sm font-medium"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+            </svg>
+            Import Wallet
+          </button>
+          <button
+            phx-click="open_create_modal"
+            class="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 text-white hover:from-purple-700 hover:to-indigo-700 transition-all text-sm font-semibold shadow-lg shadow-purple-900/30"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            </svg>
+            New Wallet
+          </button>
+        </div>
+      </div>
+
+      <%= if length(@solana_wallets) == 0 do %>
+        <div class="bg-slate-900/60 border border-slate-800 rounded-3xl p-16 text-center">
+          <div class="w-20 h-20 bg-purple-500/10 rounded-2xl flex items-center justify-center mx-auto mb-5">
+            <svg class="w-10 h-10 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+            </svg>
+          </div>
+          <h3 class="text-xl font-bold text-white mb-2">No Solana Wallets Yet</h3>
+          <p class="text-slate-400 max-w-sm mx-auto mb-6 text-sm leading-relaxed">
+            Create your first Solana wallet to start sending, receiving, and managing your SOL tokens and NFTs.
+          </p>
+          <div class="flex items-center justify-center gap-3">
+            <button
+              phx-click="open_create_modal"
+              class="flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-semibold text-sm hover:from-purple-700 hover:to-indigo-700 transition-all shadow-lg shadow-purple-900/30"
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+              </svg>
+              Create Wallet
+            </button>
+            <button
+              phx-click="open_import_modal"
+              class="flex items-center gap-2 px-6 py-3 rounded-xl bg-slate-800 border border-slate-700 text-slate-300 font-semibold text-sm hover:bg-slate-700 hover:text-white transition-all"
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+              </svg>
+              Import Wallet
+            </button>
+          </div>
+        </div>
+      <% else %>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+          <%= for wallet <- @solana_wallets do %>
+            <%
+              pk  = to_string(wallet.public_key  || "")
+              wid = to_string(wallet.wallet_id   || "")
+              lbl = to_string(wallet.label        || "Solana Wallet")
+              pk_short = if String.length(pk) > 16,
+                do: String.slice(pk, 0, 8) <> "...." <> String.slice(pk, -8, 8),
+                else: pk
+            %>
+            <div class={"relative overflow-hidden rounded-3xl p-6 shadow-xl transition-all duration-300 hover:-translate-y-1 #{if wallet.is_primary, do: "bg-gradient-to-br from-purple-900/80 via-indigo-900/80 to-slate-900/80 border border-purple-500/40", else: "bg-slate-900/60 border border-slate-800 hover:border-slate-700"}"}>
+              <%= if wallet.is_primary do %>
+                <div class="absolute top-4 right-4">
+                  <span class="px-2.5 py-1 bg-purple-500/20 border border-purple-500/30 text-purple-300 text-xs font-semibold rounded-full">
+                    Primary
+                  </span>
+                </div>
+              <% end %>
+
+              <div class="flex items-start gap-4 mb-5">
+                <div class={"w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 #{if wallet.is_primary, do: "bg-gradient-to-br from-purple-500 to-indigo-600 shadow-lg shadow-purple-900/50", else: "bg-slate-800"}"}>
+                  <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                  </svg>
+                </div>
+                <div class="flex-1 min-w-0">
+                  <h3 class="text-white font-bold text-lg leading-tight"><%= lbl %></h3>
+                  <div class="flex items-center gap-2 mt-1">
+                    <span class="text-slate-400 text-xs font-mono truncate"><%= pk_short %></span>
+                    <button
+                      class="text-slate-500 hover:text-slate-300 transition-colors flex-shrink-0"
+                      onclick={"navigator.clipboard.writeText('#{pk}')"}
+                    >
+                      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="mb-5">
+                <div class="text-slate-500 text-xs font-medium mb-1">SOL Balance</div>
+                <div class="text-3xl font-bold text-white">
+                  0.000 <span class="text-lg text-slate-400 font-semibold">SOL</span>
+                </div>
+                <div class="text-slate-500 text-xs mt-0.5">≈ $0.00 USD</div>
+              </div>
+
+              <div class="flex items-center gap-2 flex-wrap">
+                <.link
+                  navigate={~p"/#{@locale}/wallet/#{wid}"}
+                  class="flex items-center gap-1.5 px-3.5 py-2 bg-white/10 hover:bg-white/15 rounded-xl text-white text-xs font-semibold transition-all"
+                >
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                  </svg>
+                  Details
+                </.link>
+
+                <.link
+                  navigate={~p"/#{@locale}/wallet/#{wid}/send"}
+                  class="flex items-center gap-1.5 px-3.5 py-2 bg-white/10 hover:bg-white/15 rounded-xl text-white text-xs font-semibold transition-all"
+                >
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                  </svg>
+                  Send
+                </.link>
+
+                <.link
+                  navigate={~p"/#{@locale}/wallet/#{wid}/transactions"}
+                  class="flex items-center gap-1.5 px-3.5 py-2 bg-white/10 hover:bg-white/15 rounded-xl text-white text-xs font-semibond transition-all"
+                >
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                  </svg>
+                  History
+                </.link>
+
+                <button
+                  phx-click="open_export_modal"
+                  phx-value-wallet_id={wid}
+                  class="flex items-center gap-1.5 px-3.5 py-2 bg-white/10 hover:bg-white/15 rounded-xl text-white text-xs font-semibold transition-all"
+                >
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                  </svg>
+                  Export Key
+                </button>
+
+                <%= if not wallet.is_primary do %>
+                  <button
+                    phx-click="set_primary_wallet"
+                    phx-value-wallet_id={wid}
+                    class="flex items-center gap-1.5 px-3.5 py-2 bg-purple-500/20 hover:bg-purple-500/30 border border-purple-500/30 rounded-xl text-purple-300 text-xs font-semibold transition-all"
+                  >
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3l14 9-14 9V3z" />
+                    </svg>
+                    Set Primary
+                  </button>
+                <% end %>
+
+                <button
+                  phx-click="delete_wallet"
+                  phx-value-wallet_id={wid}
+                  data-confirm="Are you sure you want to delete this wallet? This action cannot be undone."
+                  class="flex items-center gap-1.5 px-3.5 py-2 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 rounded-xl text-red-400 text-xs font-semibold transition-all"
+                >
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                  Delete
+                </button>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      <% end %>
+    <% end %>
+
+    <%= if @active_wallet_tab == "ethereum" do %>
+      <div class="bg-slate-900/60 border border-slate-800 rounded-3xl p-16 text-center">
+        <div class="w-20 h-20 bg-blue-500/10 rounded-2xl flex items-center justify-center mx-auto mb-5">
+          <svg class="w-10 h-10 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 2L2 12l10 10 10-10L12 2z" />
+          </svg>
+        </div>
+        <h3 class="text-xl font-bold text-white mb-2">Ethereum Wallet</h3>
+        <p class="text-slate-400 max-w-sm mx-auto mb-3 text-sm leading-relaxed">
+          Ethereum wallet support is coming soon. You'll be able to manage ETH, ERC-20 tokens, and NFTs.
+        </p>
+        <span class="inline-flex items-center px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-semibold">Coming Soon</span>
+      </div>
+    <% end %>
+
+    <%= if @active_wallet_tab == "bitcoin" do %>
+      <div class="bg-slate-900/60 border border-slate-800 rounded-3xl p-16 text-center">
+        <div class="w-20 h-20 bg-orange-500/10 rounded-2xl flex items-center justify-center mx-auto mb-5">
+          <svg class="w-10 h-10 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </div>
+        <h3 class="text-xl font-bold text-white mb-2">Bitcoin Wallet</h3>
+        <p class="text-slate-400 max-w-sm mx-auto mb-3 text-sm leading-relaxed">
+          Bitcoin wallet support is coming soon. You'll be able to manage BTC and track your holdings.
+        </p>
+        <span class="inline-flex items-center px-3 py-1 rounded-full bg-orange-500/10 border border-orange-500/20 text-orange-400 text-xs font-semibold">Coming Soon</span>
+      </div>
+    <% end %>
+
+    <%= if @active_wallet_tab == "other" do %>
+      <div class="bg-slate-900/60 border border-slate-800 rounded-3xl p-16 text-center">
+        <div class="w-20 h-20 bg-slate-700/50 rounded-2xl flex items-center justify-center mx-auto mb-5">
+          <svg class="w-10 h-10 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+          </svg>
+        </div>
+        <h3 class="text-xl font-bold text-white mb-2">More Networks</h3>
+        <p class="text-slate-400 max-w-sm mx-auto mb-3 text-sm leading-relaxed">
+          Support for Polygon, BNB Chain, Avalanche, and more networks is on the roadmap.
+        </p>
+        <span class="inline-flex items-center px-3 py-1 rounded-full bg-slate-700/50 border border-slate-600/30 text-slate-400 text-xs font-semibold">Coming Soon</span>
+      </div>
+    <% end %>
+
+  </div>
+</div>
+
+<%= if @show_create_modal do %>
+  <div class="fixed inset-0 z-50 overflow-y-auto" phx-click="close_create_modal">
+    <div class="flex items-center justify-center min-h-screen px-4">
+      <div class="fixed inset-0 bg-black/70 backdrop-blur-sm"></div>
+      <div
+        class="relative bg-slate-900 border border-slate-700 rounded-3xl shadow-2xl max-w-md w-full p-8"
+        phx-click="stop_propagation"
+      >
+        <div class="flex items-center gap-3 mb-6">
+          <div class="w-10 h-10 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-xl flex items-center justify-center">
+            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            </svg>
+          </div>
+          <div>
+            <h2 class="text-xl font-bold text-white">Create Solana Wallet</h2>
+            <p class="text-slate-400 text-sm">A new keypair will be generated securely</p>
+          </div>
+          <button
+            phx-click="close_create_modal"
+            class="ml-auto p-2 text-slate-500 hover:text-slate-300 hover:bg-slate-800 rounded-xl transition-colors"
+          >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        <%= if Map.get(@form_errors, :general) do %>
+          <div class="mb-4 px-4 py-3 bg-red-500/10 border border-red-500/20 rounded-xl">
+            <p class="text-red-400 text-sm"><%= @form_errors.general %></p>
+          </div>
+        <% end %>
+
+        <form phx-submit="create_wallet" phx-change="validate_create" class="space-y-5">
+          <div>
+            <label class="block text-sm font-medium text-slate-300 mb-2">Wallet Label</label>
+            <input
+              type="text"
+              name="label"
+              value={@create_label}
+              placeholder="e.g. My Main Wallet"
+              class={"w-full px-4 py-3 bg-slate-800 border rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all #{if Map.get(@form_errors, :label), do: "border-red-500", else: "border-slate-700"}"}
+            />
+            <%= if Map.get(@form_errors, :label) do %>
+              <p class="mt-1.5 text-red-400 text-xs"><%= @form_errors.label %></p>
+            <% end %>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-slate-300 mb-2">Encryption Password</label>
+            <input
+              type="password"
+              name="password"
+              value={@create_password}
+              placeholder="Min. 8 characters"
+              class={"w-full px-4 py-3 bg-slate-800 border rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all #{if Map.get(@form_errors, :password), do: "border-red-500", else: "border-slate-700"}"}
+            />
+            <%= if Map.get(@form_errors, :password) do %>
+              <p class="mt-1.5 text-red-400 text-xs"><%= @form_errors.password %></p>
+            <% end %>
+            <p class="mt-2 text-slate-500 text-xs leading-relaxed">
+              This password encrypts your private key. Store it safely — it cannot be recovered.
+            </p>
+          </div>
+
+          <div class="flex items-center gap-3 pt-2">
+            <button
+              type="button"
+              phx-click="close_create_modal"
+              class="flex-1 px-4 py-3 bg-slate-800 border border-slate-700 text-slate-300 font-semibold rounded-xl hover:bg-slate-700 transition-all text-sm"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={@creating}
+              class="flex-1 px-4 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-semibold rounded-xl hover:from-purple-700 hover:to-indigo-700 transition-all text-sm shadow-lg shadow-purple-900/30 disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              <%= if @creating do %>
+                <span class="flex items-center justify-center gap-2">
+                  <svg class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                  </svg>
+                  Creating...
+                </span>
+              <% else %>
+                Create Wallet
+              <% end %>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+<% end %>
+
+<%= if @show_export_modal do %>
+  <div class="fixed inset-0 z-50 overflow-y-auto" phx-click="close_export_modal">
+    <div class="flex items-center justify-center min-h-screen px-4">
+      <div class="fixed inset-0 bg-black/70 backdrop-blur-sm"></div>
+      <div
+        class="relative bg-slate-900 border border-slate-700 rounded-3xl shadow-2xl max-w-md w-full p-8"
+        phx-click="stop_propagation"
+      >
+        <div class="flex items-center gap-3 mb-6">
+          <div class="w-10 h-10 bg-gradient-to-br from-amber-500 to-orange-600 rounded-xl flex items-center justify-center">
+            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+            </svg>
+          </div>
+          <div>
+            <h2 class="text-xl font-bold text-white">Export Private Key</h2>
+            <p class="text-slate-400 text-sm">Enter your password to decrypt</p>
+          </div>
+          <button
+            phx-click="close_export_modal"
+            class="ml-auto p-2 text-slate-500 hover:text-slate-300 hover:bg-slate-800 rounded-xl transition-colors"
+          >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        <div class="mb-5 px-4 py-3 bg-amber-500/10 border border-amber-500/20 rounded-xl">
+          <div class="flex items-start gap-2">
+            <svg class="w-4 h-4 text-amber-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+            <p class="text-amber-300 text-xs leading-relaxed">
+              Never share your private key. Anyone with this key has full control of your wallet.
+            </p>
+          </div>
+        </div>
+
+        <%= if @exported_key do %>
+          <% exported_key_str = to_string(@exported_key) %>
+          <div class="mb-5">
+            <label class="block text-sm font-medium text-slate-300 mb-2">Your Private Key</label>
+            <div class="relative">
+              <textarea
+                readonly
+                rows="3"
+                class="w-full px-4 py-3 bg-slate-800 border border-green-500/30 rounded-xl text-green-400 text-xs font-mono resize-none focus:outline-none"
+              ><%= exported_key_str %></textarea>
+              <button
+                onclick={"navigator.clipboard.writeText('#{exported_key_str}')"}
+                class="absolute top-2 right-2 p-1.5 bg-slate-700 hover:bg-slate-600 rounded-lg transition-colors"
+              >
+                <svg class="w-3.5 h-3.5 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                </svg>
+              </button>
+            </div>
+            <p class="mt-2 text-slate-500 text-xs">Copy and store this key in a secure location.</p>
+          </div>
+          <button
+            phx-click="close_export_modal"
+            class="w-full px-4 py-3 bg-slate-800 border border-slate-700 text-slate-300 font-semibold rounded-xl hover:bg-slate-700 transition-all text-sm"
+          >
+            Done
+          </button>
+        <% else %>
+          <form phx-submit="export_key" phx-change="validate_export" class="space-y-5">
+            <div>
+              <label class="block text-sm font-medium text-slate-300 mb-2">Wallet Password</label>
+              <input
+                type="password"
+                name="password"
+                value={@export_password}
+                placeholder="Enter your wallet password"
+                class={"w-full px-4 py-3 bg-slate-800 border rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500 transition-all #{if Map.get(@form_errors, :password), do: "border-red-500", else: "border-slate-700"}"}
+              />
+              <%= if Map.get(@form_errors, :password) do %>
+                <p class="mt-1.5 text-red-400 text-xs"><%= @form_errors.password %></p>
+              <% end %>
+            </div>
+            <div class="flex items-center gap-3">
+              <button
+                type="button"
+                phx-click="close_export_modal"
+                class="flex-1 px-4 py-3 bg-slate-800 border border-slate-700 text-slate-300 font-semibold rounded-xl hover:bg-slate-700 transition-all text-sm"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                class="flex-1 px-4 py-3 bg-gradient-to-r from-amber-500 to-orange-600 text-white font-semibold rounded-xl hover:from-amber-600 hover:to-orange-700 transition-all text-sm shadow-lg shadow-orange-900/30"
+              >
+                Decrypt & Export
+              </button>
+            </div>
+          </form>
+        <% end %>
+      </div>
+    </div>
+  </div>
+<% end %>

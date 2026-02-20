@@ -240,3 +240,12 @@
     type => worker,
     modules => [leaderboard_server]
 }).
+
+-define(SOLANA_WALLET_SERVER, #{
+    id => solana_wallet_server,
+    start => {solana_wallet_server, start_link, []},
+    restart => permanent,
+    shutdown => 5000,
+    type => worker,
+    modules => [solana_wallet_server]
+}).

@@ -1,0 +1,220 @@
+<.live_component
+  module={MazarynWeb.HomeLive.NavComponent}
+  id="navigation"
+  user={@current_user}
+  search=""
+  locale={@locale}
+/>
+
+<div class="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950">
+  <div class="max-w-5xl mx-auto px-6 py-10">
+
+    <div class="flex items-center gap-3 mb-8">
+      <.link
+        navigate={~p"/#{@locale}/wallet/#{@wallet_id}"}
+        class="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white transition-all text-sm font-medium"
+      >
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+        </svg>
+        Back to Wallet
+      </.link>
+    </div>
+
+    <div class="flex items-center justify-between mb-8">
+      <div>
+        <h1 class="text-3xl font-bold text-white">Airdrops</h1>
+        <p class="text-slate-400 mt-1 text-sm">Request and track SOL airdrops for <span class="font-mono"><%= to_string(@wallet.label || "this wallet") %></span></p>
+      </div>
+      <button
+        phx-click="open_new_airdrop_modal"
+        class="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 text-white text-sm font-semibold hover:from-purple-700 hover:to-indigo-700 transition-all shadow-lg shadow-purple-900/30"
+      >
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+        </svg>
+        Request Airdrop
+      </button>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+      <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-5">
+        <div class="text-slate-400 text-xs mb-1">Total Airdrops</div>
+        <div class="text-2xl font-bold text-white"><%= length(@airdrops) %></div>
+      </div>
+      <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-5">
+        <div class="text-slate-400 text-xs mb-1">Completed</div>
+        <div class="text-2xl font-bold text-green-400">
+          <%= Enum.count(@airdrops, &(to_string(&1.status || "") == "completed")) %>
+        </div>
+      </div>
+      <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-5">
+        <div class="text-slate-400 text-xs mb-1">Pending</div>
+        <div class="text-2xl font-bold text-yellow-400">
+          <%= Enum.count(@airdrops, &(to_string(&1.status || "") == "pending")) %>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-slate-900/60 border border-slate-800 rounded-3xl p-6">
+      <div class="flex items-center justify-between mb-5">
+        <h2 class="text-white font-bold text-lg">Airdrop History</h2>
+        <button phx-click="refresh" class="text-slate-400 hover:text-white text-xs transition-colors">↻ Refresh</button>
+      </div>
+
+      <%= if length(@airdrops) == 0 do %>
+        <div class="text-center py-16">
+          <div class="w-16 h-16 bg-purple-500/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <svg class="w-8 h-8 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v13m0-13V6a4 4 0 00-4-4H5.45a4 4 0 00-3.971 3.53l-.02.2A4 4 0 005 10h7zm0 0V5.5A2.5 2.5 0 0114.5 3h.05A2.5 2.5 0 0117 5.5V8h-5z" />
+            </svg>
+          </div>
+          <h3 class="text-white font-bold text-lg mb-2">No Airdrops Yet</h3>
+          <p class="text-slate-400 text-sm mb-5">Request a devnet airdrop to get started with SOL tokens.</p>
+          <button
+            phx-click="open_new_airdrop_modal"
+            class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 text-white text-sm font-semibold"
+          >
+            Request Airdrop
+          </button>
+        </div>
+      <% else %>
+        <div class="space-y-3">
+          <%= for airdrop <- @airdrops do %>
+            <% aid = to_string(airdrop.airdrop_id || "") %>
+            <div class="flex items-center justify-between p-4 bg-slate-800/50 border border-slate-700/50 rounded-2xl hover:border-slate-600 transition-all cursor-pointer" phx-click="select_airdrop" phx-value-id={aid}>
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-purple-500/20 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <svg class="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v13m0-13V6a4 4 0 00-4-4H5.45a4 4 0 00-3.971 3.53l-.02.2A4 4 0 005 10h7zm0 0V5.5A2.5 2.5 0 0114.5 3h.05A2.5 2.5 0 0117 5.5V8h-5z" />
+                  </svg>
+                </div>
+                <div>
+                  <div class="text-white font-semibold"><%= to_string(airdrop.amount || "0") %> SOL</div>
+                  <div class="text-slate-500 text-xs"><%= format_datetime(airdrop.created_at) %></div>
+                </div>
+              </div>
+              <div class="flex items-center gap-3">
+                <%= if airdrop.memo && to_string(airdrop.memo) != "" do %>
+                  <span class="text-slate-500 text-xs hidden sm:block truncate max-w-xs"><%= to_string(airdrop.memo) %></span>
+                <% end %>
+                <span class={"px-2.5 py-1 rounded-full text-xs font-semibold #{status_class(to_string(airdrop.status || ""))}"}>
+                  <%= to_string(airdrop.status || "unknown") %>
+                </span>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+
+  </div>
+</div>
+
+<%= if @show_new_airdrop_modal do %>
+  <div class="fixed inset-0 z-50 overflow-y-auto" phx-click="close_new_airdrop_modal">
+    <div class="flex items-center justify-center min-h-screen px-4">
+      <div class="fixed inset-0 bg-black/70 backdrop-blur-sm"></div>
+      <div class="relative bg-slate-900 border border-slate-700 rounded-3xl shadow-2xl max-w-md w-full p-8" phx-click="stop_propagation">
+        <div class="flex items-center gap-3 mb-6">
+          <div class="w-10 h-10 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-xl flex items-center justify-center">
+            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            </svg>
+          </div>
+          <div>
+            <h2 class="text-xl font-bold text-white">Request Airdrop</h2>
+            <p class="text-slate-400 text-sm">Devnet SOL only</p>
+          </div>
+          <button phx-click="close_new_airdrop_modal" class="ml-auto p-2 text-slate-500 hover:text-slate-300 hover:bg-slate-800 rounded-xl transition-colors">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        <%= if Map.get(@form_errors, :general) do %>
+          <div class="mb-4 px-4 py-3 bg-red-500/10 border border-red-500/20 rounded-xl">
+            <p class="text-red-400 text-sm"><%= @form_errors.general %></p>
+          </div>
+        <% end %>
+
+        <form phx-submit="request_airdrop" phx-change="validate_airdrop" class="space-y-5">
+          <div>
+            <label class="block text-sm font-medium text-slate-300 mb-2">Amount (SOL)</label>
+            <input
+              type="text"
+              name="amount"
+              value={@airdrop_amount}
+              placeholder="e.g. 1.0"
+              class={"w-full px-4 py-3 bg-slate-800 border rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all #{if Map.get(@form_errors, :amount), do: "border-red-500", else: "border-slate-700"}"}
+            />
+            <%= if Map.get(@form_errors, :amount) do %>
+              <p class="mt-1.5 text-red-400 text-xs"><%= @form_errors.amount %></p>
+            <% end %>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-slate-300 mb-2">Memo <span class="text-slate-600 font-normal">(optional)</span></label>
+            <input
+              type="text"
+              name="memo"
+              value={@airdrop_memo}
+              placeholder="Add a note..."
+              class="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all"
+            />
+          </div>
+
+          <div class="flex items-center gap-3 pt-2">
+            <button type="button" phx-click="close_new_airdrop_modal" class="flex-1 px-4 py-3 bg-slate-800 border border-slate-700 text-slate-300 font-semibold rounded-xl hover:bg-slate-700 transition-all text-sm">Cancel</button>
+            <button type="submit" disabled={@submitting} class="flex-1 px-4 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-semibold rounded-xl hover:from-purple-700 hover:to-indigo-700 transition-all text-sm shadow-lg shadow-purple-900/30 disabled:opacity-60">
+              <%= if @submitting, do: "Requesting...", else: "Request Airdrop" %>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+<% end %>
+
+<%= if @selected_airdrop do %>
+  <div class="fixed inset-0 z-50 overflow-y-auto" phx-click="close_airdrop_detail">
+    <div class="flex items-center justify-center min-h-screen px-4">
+      <div class="fixed inset-0 bg-black/70 backdrop-blur-sm"></div>
+      <div class="relative bg-slate-900 border border-slate-700 rounded-3xl shadow-2xl max-w-md w-full p-8" phx-click="stop_propagation">
+        <div class="flex items-center justify-between mb-6">
+          <h2 class="text-xl font-bold text-white">Airdrop Details</h2>
+          <button phx-click="close_airdrop_detail" class="p-2 text-slate-500 hover:text-slate-300 hover:bg-slate-800 rounded-xl transition-colors">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        <div class="space-y-3">
+          <div class="flex justify-between py-2.5 border-b border-slate-800">
+            <span class="text-slate-500 text-sm">Amount</span>
+            <span class="text-white font-bold"><%= to_string(@selected_airdrop.amount || "0") %> SOL</span>
+          </div>
+          <div class="flex justify-between py-2.5 border-b border-slate-800">
+            <span class="text-slate-500 text-sm">Status</span>
+            <span class={"px-2.5 py-1 rounded-full text-xs font-semibold #{status_class(to_string(@selected_airdrop.status || ""))}"}><%= to_string(@selected_airdrop.status || "unknown") %></span>
+          </div>
+          <div class="flex justify-between py-2.5 border-b border-slate-800">
+            <span class="text-slate-500 text-sm">Created</span>
+            <span class="text-slate-300 text-sm"><%= format_datetime(@selected_airdrop.created_at) %></span>
+          </div>
+          <%= if @selected_airdrop.memo && to_string(@selected_airdrop.memo) != "" do %>
+            <div class="flex justify-between py-2.5 border-b border-slate-800">
+              <span class="text-slate-500 text-sm">Memo</span>
+              <span class="text-slate-300 text-sm"><%= to_string(@selected_airdrop.memo) %></span>
+            </div>
+          <% end %>
+          <div class="flex justify-between py-2.5">
+            <span class="text-slate-500 text-sm">Airdrop ID</span>
+            <span class="text-slate-400 text-xs font-mono"><%= truncate_key(@selected_airdrop.airdrop_id) %></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+<% end %>

@@ -1,0 +1,106 @@
+<.live_component
+  module={MazarynWeb.HomeLive.NavComponent}
+  id="navigation"
+  user={@current_user}
+  search=""
+  locale={@locale}
+/>
+
+<div class="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950 flex items-center justify-center px-6 py-10">
+  <div class="w-full max-w-md">
+
+    <div class="flex items-center gap-3 mb-8">
+      <.link
+        navigate={~p"/#{@locale}/wallet"}
+        class="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white transition-all text-sm font-medium"
+      >
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+        </svg>
+        Back
+      </.link>
+    </div>
+
+    <div class="bg-slate-900/60 border border-slate-800 rounded-3xl p-8 shadow-2xl">
+      <div class="flex items-center gap-3 mb-6">
+        <div class="w-12 h-12 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg shadow-purple-900/50">
+          <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+          </svg>
+        </div>
+        <div>
+          <h1 class="text-2xl font-bold text-white">Create Solana Wallet</h1>
+          <p class="text-slate-400 text-sm">A new Ed25519 keypair will be generated securely</p>
+        </div>
+      </div>
+
+      <%= if Map.get(@form_errors, :general) do %>
+        <div class="mb-5 px-4 py-3 bg-red-500/10 border border-red-500/20 rounded-xl">
+          <p class="text-red-400 text-sm"><%= @form_errors.general %></p>
+        </div>
+      <% end %>
+
+      <form phx-submit="create_wallet" phx-change="validate" class="space-y-5">
+        <div>
+          <label class="block text-sm font-medium text-slate-300 mb-2">Wallet Label</label>
+          <input
+            type="text"
+            name="label"
+            value={@label}
+            placeholder="e.g. My Main Wallet"
+            autofocus
+            class={"w-full px-4 py-3 bg-slate-800 border rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all #{if Map.get(@form_errors, :label), do: "border-red-500", else: "border-slate-700"}"}
+          />
+          <%= if Map.get(@form_errors, :label) do %>
+            <p class="mt-1.5 text-red-400 text-xs"><%= @form_errors.label %></p>
+          <% end %>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-slate-300 mb-2">Encryption Password</label>
+          <input
+            type="password"
+            name="password"
+            value={@password}
+            placeholder="Min. 8 characters"
+            class={"w-full px-4 py-3 bg-slate-800 border rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all #{if Map.get(@form_errors, :password), do: "border-red-500", else: "border-slate-700"}"}
+          />
+          <%= if Map.get(@form_errors, :password) do %>
+            <p class="mt-1.5 text-red-400 text-xs"><%= @form_errors.password %></p>
+          <% end %>
+          <p class="mt-2 text-slate-500 text-xs leading-relaxed">
+            This password encrypts your private key locally. It cannot be recovered if lost.
+          </p>
+        </div>
+
+        <div class="pt-1">
+          <button
+            type="submit"
+            disabled={@creating}
+            class="w-full px-4 py-3.5 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold rounded-xl hover:from-purple-700 hover:to-indigo-700 transition-all shadow-lg shadow-purple-900/30 disabled:opacity-60 disabled:cursor-not-allowed text-sm"
+          >
+            <%= if @creating do %>
+              <span class="flex items-center justify-center gap-2">
+                <svg class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                </svg>
+                Creating Wallet...
+              </span>
+            <% else %>
+              Create Wallet
+            <% end %>
+          </button>
+        </div>
+      </form>
+
+      <div class="mt-6 pt-5 border-t border-slate-800 text-center">
+        <p class="text-slate-500 text-sm">
+          Already have a wallet?
+          <.link navigate={~p"/#{@locale}/wallet/import"} class="text-purple-400 hover:text-purple-300 font-medium">Import it</.link>
+        </p>
+      </div>
+    </div>
+
+  </div>
+</div>

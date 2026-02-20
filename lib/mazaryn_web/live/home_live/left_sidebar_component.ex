@@ -187,6 +187,7 @@ defmodule MazarynWeb.HomeLive.LeftSidebarComponent do
           </div>
 
           <div class="grid-layout">
+            <!-- Home -->
             <.link navigate={~p"/#{@locale}/home"} class="nav-grid-item group" title="Home">
               <div class="nav-icon-container">
                 <svg class="nav-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -210,6 +211,7 @@ defmodule MazarynWeb.HomeLive.LeftSidebarComponent do
               <div class="nav-indicator pulse"></div>
             </.link>
 
+            <!-- Groups -->
             <.link navigate={~p"/#{@locale}/groups"} class="nav-grid-item group" title="Groups">
               <div class="nav-icon-container">
                 <svg class="nav-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -290,6 +292,20 @@ defmodule MazarynWeb.HomeLive.LeftSidebarComponent do
                 </svg>
               </div>
               <span class="nav-label">Jobs</span>
+            </.link>
+
+            <!-- Wallet (Web3) -->
+            <.link navigate={~p"/#{@locale}/wallet"} class="nav-grid-item group web3" title="Web3 Wallet">
+              <div class="nav-icon-container">
+                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M3 10H21M3 10V18C3 19.1046 3.89543 20 5 20H19C20.1046 20 21 19.1046 21 18V10M3 10V8C3 6.89543 3.89543 6 5 6H19C20.1046 6 21 6.89543 21 8V10"
+                        stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M16 15C16 15.5523 15.5523 16 15 16C14.4477 16 14 15.5523 14 15C14 14.4477 14.4477 14 15 14C15.5523 14 16 14.4477 16 15Z"
+                        fill="currentColor"/>
+                </svg>
+              </div>
+              <span class="nav-label">Wallet</span>
+              <div class="nav-badge web3">W3</div>
             </.link>
           </div>
         </div>
@@ -662,6 +678,36 @@ defmodule MazarynWeb.HomeLive.LeftSidebarComponent do
           );
         }
 
+        /* Wallet / Web3 item */
+        .nav-grid-item.web3 {
+          background: linear-gradient(
+            135deg,
+            rgba(139, 92, 246, 0.08),
+            rgba(99, 102, 241, 0.08)
+          );
+          border-color: rgba(139, 92, 246, 0.15);
+        }
+
+        .nav-grid-item.web3:hover {
+          background: linear-gradient(
+            135deg,
+            rgba(139, 92, 246, 0.18),
+            rgba(99, 102, 241, 0.18)
+          );
+          border-color: rgba(139, 92, 246, 0.35);
+          box-shadow:
+            0 6px 16px rgba(139, 92, 246, 0.15),
+            inset 0 1px 0 rgba(255, 255, 255, 0.08);
+        }
+
+        .nav-grid-item.web3 .nav-icon {
+          color: #8b5cf6;
+        }
+
+        .nav-badge.web3 {
+          background: linear-gradient(45deg, #8b5cf6, #6366f1);
+        }
+
         .nav-icon-container {
           width: 40px;
           height: 40px;
@@ -1003,7 +1049,7 @@ defmodule MazarynWeb.HomeLive.LeftSidebarComponent do
           }
 
           .grid-layout {
-            grid-template-columns: repeat(8, 1fr);
+            grid-template-columns: repeat(9, 1fr);
             gap: 4px;
           }
 

@@ -380,8 +380,8 @@ test_user_wallet_queries() ->
     User = userdb:get_user_by_id(UserId),
     true = User#user.username =:= Username,
 
-    {ok, WalletId1, needs_typescript_sync} = solana_user_integration:create_wallet_for_user(Username, "Grace Main"),
-    {ok, WalletId2, needs_typescript_sync} = solana_user_integration:create_wallet_for_user(Username, "Grace Trading"),
+    {ok, WalletId1, _PublicKey1, needs_password_setup} = solana_user_integration:create_wallet_for_user(Username, "Grace Main"),
+    {ok, WalletId2, _PublicKey2, needs_password_setup} = solana_user_integration:create_wallet_for_user(Username, "Grace Trading"),
 
     {ok, UserWallets} = solana_user_integration:get_user_solana_wallets(Username),
     true = length(UserWallets) =:= 2,
@@ -396,7 +396,7 @@ test_user_wallet_queries() ->
     true = Owner#user.id =:= UserId,
     true = Owner#user.username =:= Username,
 
-    ok = solana_user_integration:link_wallet_to_user(WalletId1, Username),
+    {ok, already_linked} = solana_user_integration:link_wallet_to_user(WalletId1, Username),
 
     {ok, _Count, WalletBalances} = solana_user_integration:get_user_solana_balance(Username),
     true = length(WalletBalances) =:= 2,

@@ -247,6 +247,18 @@ defmodule MazarynWeb.Router do
       live("/business/:id/analytics", BusinessLive.Analytics, :analytics)
       live("/business/:id/jobs", BusinessLive.Jobs, :jobs)
       live("/weather", WeatherLive.Index)
+      live("/wallet", WalletLive.Index, :index)
+      live("/wallet/import", WalletLive.Import, :import)
+      live("/wallet/create", WalletLive.Create, :create)
+      live("/wallet/:wallet_id", WalletLive.Show, :show)
+      live("/wallet/:wallet_id/send", WalletLive.Send, :send)
+      live("/wallet/:wallet_id/transactions", WalletLive.Transactions, :index)
+      live("/wallet/:wallet_id/nfts", WalletLive.NFTs, :index)
+      live("/wallet/:wallet_id/tokens", WalletLive.Tokens, :index)
+      live("/wallet/:wallet_id/stake", WalletLive.Stake, :index)
+      live("/wallet/:wallet_id/stake/new", WalletLive.Stake, :new)
+      live("/wallet/:wallet_id/airdrop", WalletLive.Airdrop, :index)
+      live("/wallet/:wallet_id/airdrop/new", WalletLive.Airdrop, :new)
 
       scope "/chats" do
         live("/", ChatsLive.Index, :index)

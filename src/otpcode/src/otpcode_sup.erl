@@ -162,7 +162,8 @@ init([]) ->
         ?PIN_POST_SERVER,
         ?STORAGE_QUOTA_SERVER,
         ?RATE_LIMITER_SERVER,
-        ?CONTENT_CACHE
+        ?CONTENT_CACHE,
+        ?SOLANA_WALLET_SERVER
     ],
     {ok, {SupFlags, ChildSpecs}}.
 
@@ -261,32 +262,33 @@ wait_for_tables() ->
             {error, {wait_for_tables_failed, Reason}}
     end.
 
-create_table_indexes() ->
-    IndexesToCreate = [{user, username}, {user, email}, {enrollment, user_id}, {enrollment, path_id},
-                       {user_completion, user_id}, {instructor_profile, user_id}, {admin_action, admin_username},
-                       {admin_action, content_type}, {admin_action, content_id}, {bookmark, user_id},
-                       {bookmark, resource_id}, {resource_rating, resource_id}, {resource_rating, user_id},
-                       {lesson_progress, user_id}, {lesson_progress, lesson_id}, {module_progress, user_id},
-                       {module_progress, module_id}, {content_comment, content_id}, {content_reaction, content_id},
-                       {student_question, lesson_id}, {question_answer, question_id}, {path_review, path_id},
-                       {learning_notification, user_id}, {video_upload_session, lesson_id},
-                       {job_posting, poster_id}, {job_posting, status}, {resume, user_id},
-                       {job_application, job_posting_id}, {job_application, applicant_user_id},
-                       {job_application, status}, {saved_job, user_id}, {job_alert, user_id},
-                       {skill_endorsement, user_id}, {company_review, business_id},
-                       {solana_wallet, user_id}, {solana_wallet, public_key},
-                       {solana_transaction, wallet_id}, {solana_transaction, user_id}, {solana_transaction, signature},
-                       {solana_airdrop, wallet_id}, {solana_airdrop, user_id},
-                       {solana_stake_account, wallet_id}, {solana_stake_account, user_id}, {solana_stake_account, stake_account_address},
-                       {solana_token_account, wallet_id}, {solana_token_account, user_id},
-                       {solana_nft, wallet_id}, {solana_nft, user_id}],
-    Results = [create_index(Table, Field) || {Table, Field} <- IndexesToCreate],
-    case lists:all(fun(Result) -> Result == ok end, Results) of
-        true -> ok;
-        false ->
-            logger:info("Some indexes already exist or couldn't be created: ~p", [Results]),
-            ok
-    end.
+    create_table_indexes() ->
+        IndexesToCreate = [{user, username}, {user, email}, {enrollment, user_id}, {enrollment, path_id},
+                           {user_completion, user_id}, {instructor_profile, user_id}, {admin_action, admin_username},
+                           {admin_action, content_type}, {admin_action, content_id}, {bookmark, user_id},
+                           {bookmark, resource_id}, {resource_rating, resource_id}, {resource_rating, user_id},
+                           {lesson_progress, user_id}, {lesson_progress, lesson_id}, {module_progress, user_id},
+                           {module_progress, module_id}, {content_comment, content_id}, {content_reaction, content_id},
+                           {student_question, lesson_id}, {question_answer, question_id}, {path_review, path_id},
+                           {learning_notification, user_id}, {video_upload_session, lesson_id},
+                           {job_posting, poster_id}, {job_posting, status}, {resume, user_id},
+                           {job_application, job_posting_id}, {job_application, applicant_user_id},
+                           {job_application, status}, {saved_job, user_id}, {job_alert, user_id},
+                           {skill_endorsement, user_id}, {company_review, business_id},
+                           {solana_wallet, user_id}, {solana_wallet, public_key},
+                           {solana_transaction, wallet_id}, {solana_transaction, user_id}, {solana_transaction, signature},
+                           {solana_airdrop, wallet_id}, {solana_airdrop, user_id},
+                           {solana_airdrop_recipient, airdrop_id},
+                           {solana_stake_account, wallet_id}, {solana_stake_account, user_id}, {solana_stake_account, stake_account_address},
+                           {solana_token_account, wallet_id}, {solana_token_account, user_id},
+                           {solana_nft, wallet_id}, {solana_nft, user_id}],
+        Results = [create_index(Table, Field) || {Table, Field} <- IndexesToCreate],
+        case lists:all(fun(Result) -> Result == ok end, Results) of
+            true -> ok;
+            false ->
+                logger:info("Some indexes already exist or couldn't be created: ~p", [Results]),
+                ok
+        end.
 
 create_index(Table, Field) ->
     case mnesia:table_info(Table, attributes) of

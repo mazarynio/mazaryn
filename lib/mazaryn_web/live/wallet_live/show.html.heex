@@ -1,0 +1,437 @@
+<.live_component
+  module={MazarynWeb.HomeLive.NavComponent}
+  id="navigation"
+  user={@current_user}
+  search=""
+  locale={@locale}
+/>
+
+<div class="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950">
+  <div class="max-w-7xl mx-auto px-6 py-10">
+
+    <div class="flex items-center gap-3 mb-8">
+      <.link
+        navigate={~p"/#{@locale}/wallet"}
+        class="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white transition-all text-sm font-medium"
+      >
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+        </svg>
+        All Wallets
+      </.link>
+      <svg class="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+      </svg>
+      <span class="text-slate-400 text-sm truncate max-w-xs"><%= to_string(@wallet.label || "Wallet") %></span>
+    </div>
+
+    <%
+      pk       = to_string(@wallet.public_key || "")
+      wid      = to_string(@wallet.wallet_id  || "")
+      lbl      = to_string(@wallet.label      || "Solana Wallet")
+      pk_short = if String.length(pk) > 16,
+                   do: String.slice(pk, 0, 8) <> "...." <> String.slice(pk, -8, 8),
+                   else: pk
+    %>
+
+    <div class={"relative overflow-hidden rounded-3xl p-8 mb-8 shadow-2xl #{if @wallet.is_primary, do: "bg-gradient-to-br from-purple-900/90 via-indigo-900/90 to-slate-900/90 border border-purple-500/40", else: "bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 border border-slate-700"}"}>
+      <div class="flex items-start justify-between mb-6">
+        <div class="flex items-center gap-4">
+          <div class={"w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0 #{if @wallet.is_primary, do: "bg-gradient-to-br from-purple-500 to-indigo-600 shadow-lg", else: "bg-slate-800"}"}>
+            <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+            </svg>
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <h1 class="text-2xl font-bold text-white"><%= lbl %></h1>
+              <%= if @wallet.is_primary do %>
+                <span class="px-2 py-0.5 bg-purple-500/20 border border-purple-500/30 text-purple-300 text-xs font-semibold rounded-full">Primary</span>
+              <% end %>
+            </div>
+            <div class="flex items-center gap-2 mt-1">
+              <span class="text-slate-400 text-sm font-mono"><%= pk_short %></span>
+              <button onclick={"navigator.clipboard.writeText('#{pk}')"} class="text-slate-600 hover:text-slate-300 transition-colors">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <button
+            phx-click="open_update_label_modal"
+            class="flex items-center gap-1.5 px-3 py-2 bg-white/10 hover:bg-white/15 rounded-xl text-white text-xs font-semibold transition-all"
+          >
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+            </svg>
+            Rename
+          </button>
+          <%= if not @wallet.is_primary do %>
+            <button
+              phx-click="set_primary"
+              class="flex items-center gap-1.5 px-3 py-2 bg-purple-500/20 hover:bg-purple-500/30 border border-purple-500/30 rounded-xl text-purple-300 text-xs font-semibold transition-all"
+            >
+              Set Primary
+            </button>
+          <% end %>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <div class="bg-white/5 rounded-2xl p-4">
+          <div class="text-slate-400 text-xs mb-1">SOL Balance</div>
+          <div class="text-2xl font-bold text-white">0.000</div>
+          <div class="text-slate-500 text-xs">≈ $0.00</div>
+        </div>
+        <div class="bg-white/5 rounded-2xl p-4">
+          <div class="text-slate-400 text-xs mb-1">Transactions</div>
+          <div class="text-2xl font-bold text-white"><%= length(@transactions) %></div>
+          <div class="text-slate-500 text-xs">Total</div>
+        </div>
+        <div class="bg-white/5 rounded-2xl p-4">
+          <div class="text-slate-400 text-xs mb-1">Tokens</div>
+          <div class="text-2xl font-bold text-white"><%= length(@tokens) %></div>
+          <div class="text-slate-500 text-xs">SPL tokens</div>
+        </div>
+        <div class="bg-white/5 rounded-2xl p-4">
+          <div class="text-slate-400 text-xs mb-1">NFTs</div>
+          <div class="text-2xl font-bold text-white"><%= length(@nfts) %></div>
+          <div class="text-slate-500 text-xs">Collected</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="flex items-center gap-1 mb-6 bg-slate-900/60 rounded-2xl p-1.5 w-fit border border-slate-800">
+      <%= for {tab, label, icon} <- [
+        {"overview",     "Overview",     "M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"},
+        {"transactions", "Transactions", "M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"},
+        {"tokens",       "Tokens",       "M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"},
+        {"nfts",         "NFTs",         "M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"},
+        {"stakes",       "Staking",      "M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"}
+      ] do %>
+        <button
+          phx-click="switch_tab"
+          phx-value-tab={tab}
+          class={"flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 #{if @active_tab == tab, do: "bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-lg shadow-purple-900/40", else: "text-slate-400 hover:text-white"}"}
+        >
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d={icon} />
+          </svg>
+          <%= label %>
+        </button>
+      <% end %>
+    </div>
+
+    <%= if @active_tab == "overview" do %>
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="lg:col-span-2 space-y-5">
+          <div class="bg-slate-900/60 border border-slate-800 rounded-3xl p-6">
+            <h3 class="text-white font-bold mb-4">Wallet Details</h3>
+            <div class="space-y-3">
+              <div class="flex items-start justify-between py-2.5 border-b border-slate-800">
+                <span class="text-slate-500 text-sm">Public Key</span>
+                <div class="flex items-center gap-2">
+                  <span class="text-slate-300 text-xs font-mono break-all text-right max-w-xs"><%= pk %></span>
+                  <button onclick={"navigator.clipboard.writeText('#{pk}')"} class="text-slate-600 hover:text-slate-300 flex-shrink-0">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+              <div class="flex items-center justify-between py-2.5 border-b border-slate-800">
+                <span class="text-slate-500 text-sm">Wallet ID</span>
+                <span class="text-slate-300 text-xs font-mono"><%= truncate_key(@wallet.wallet_id) %></span>
+              </div>
+              <div class="flex items-center justify-between py-2.5 border-b border-slate-800">
+                <span class="text-slate-500 text-sm">Created</span>
+                <span class="text-slate-300 text-sm"><%= format_datetime(@wallet.created_at) %></span>
+              </div>
+              <div class="flex items-center justify-between py-2.5 border-b border-slate-800">
+                <span class="text-slate-500 text-sm">Last Used</span>
+                <span class="text-slate-300 text-sm"><%= format_datetime(@wallet.last_used) %></span>
+              </div>
+              <div class="flex items-center justify-between py-2.5">
+                <span class="text-slate-500 text-sm">Primary Wallet</span>
+                <span class={"px-2.5 py-1 rounded-full text-xs font-semibold #{if @wallet.is_primary, do: "bg-purple-500/20 border border-purple-500/30 text-purple-300", else: "bg-slate-700/50 border border-slate-600/30 text-slate-400"}"}>
+                  <%= if @wallet.is_primary, do: "Yes", else: "No" %>
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-slate-900/60 border border-slate-800 rounded-3xl p-6">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-white font-bold">Recent Transactions</h3>
+              <button phx-click="switch_tab" phx-value-tab="transactions" class="text-purple-400 text-xs hover:text-purple-300">View all →</button>
+            </div>
+            <%= if length(@transactions) == 0 do %>
+              <div class="text-center py-8">
+                <p class="text-slate-500 text-sm">No transactions yet</p>
+                <.link navigate={~p"/#{@locale}/wallet/#{wid}/send"} class="inline-block mt-3 text-purple-400 text-xs hover:text-purple-300">Send your first transaction →</.link>
+              </div>
+            <% else %>
+              <div class="space-y-2">
+                <%= for tx <- Enum.take(@transactions, 5) do %>
+                  <div class="flex items-center justify-between p-3 bg-slate-800/50 rounded-xl">
+                    <div class="flex items-center gap-3">
+                      <div class="w-8 h-8 bg-slate-700 rounded-lg flex items-center justify-center text-sm">
+                        <%= tx_type_icon(to_string(tx.tx_type || "")) %>
+                      </div>
+                      <div>
+                        <div class="text-white text-sm font-medium capitalize"><%= to_string(tx.tx_type || "transaction") %></div>
+                        <div class="text-slate-500 text-xs font-mono"><%= truncate_key(tx.signature) %></div>
+                      </div>
+                    </div>
+                    <div class="text-right">
+                      <div class="text-white text-sm font-bold"><%= to_string(tx.amount || "—") %></div>
+                      <span class={"px-1.5 py-0.5 rounded text-xs font-semibold #{tx_status_class(to_string(tx.status || ""))}"}>
+                        <%= to_string(tx.status || "unknown") %>
+                      </span>
+                    </div>
+                  </div>
+                <% end %>
+              </div>
+            <% end %>
+          </div>
+        </div>
+
+        <div class="space-y-5">
+          <div class="bg-slate-900/60 border border-slate-800 rounded-3xl p-6">
+            <h3 class="text-white font-bold mb-4">Quick Actions</h3>
+            <div class="space-y-2">
+              <.link navigate={~p"/#{@locale}/wallet/#{wid}/send"} class="flex items-center gap-3 p-3 bg-gradient-to-r from-purple-600/20 to-indigo-600/20 border border-purple-500/20 rounded-xl hover:from-purple-600/30 hover:to-indigo-600/30 transition-all">
+                <div class="w-8 h-8 bg-purple-500/20 rounded-lg flex items-center justify-center">
+                  <svg class="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                  </svg>
+                </div>
+                <span class="text-white text-sm font-semibold">Send SOL</span>
+              </.link>
+              <.link navigate={~p"/#{@locale}/wallet/#{wid}/transactions"} class="flex items-center gap-3 p-3 bg-slate-800/60 rounded-xl hover:bg-slate-800 transition-all">
+                <div class="w-8 h-8 bg-slate-700 rounded-lg flex items-center justify-center">
+                  <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                  </svg>
+                </div>
+                <span class="text-white text-sm font-semibold">Transaction History</span>
+              </.link>
+              <.link navigate={~p"/#{@locale}/wallet/#{wid}/stake"} class="flex items-center gap-3 p-3 bg-slate-800/60 rounded-xl hover:bg-slate-800 transition-all">
+                <div class="w-8 h-8 bg-green-500/20 rounded-lg flex items-center justify-center">
+                  <svg class="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+                  </svg>
+                </div>
+                <span class="text-white text-sm font-semibold">Staking</span>
+              </.link>
+              <.link navigate={~p"/#{@locale}/wallet/#{wid}/nfts"} class="flex items-center gap-3 p-3 bg-slate-800/60 rounded-xl hover:bg-slate-800 transition-all">
+                <div class="w-8 h-8 bg-pink-500/20 rounded-lg flex items-center justify-center">
+                  <svg class="w-4 h-4 text-pink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                </div>
+                <span class="text-white text-sm font-semibold">NFT Collection</span>
+              </.link>
+            </div>
+          </div>
+
+          <%= if length(@stakes) > 0 do %>
+            <div class="bg-green-900/20 border border-green-500/20 rounded-3xl p-6">
+              <h3 class="text-white font-bold mb-3">Staking Summary</h3>
+              <div class="text-2xl font-bold text-green-400 mb-1">
+                <%= @stakes
+                    |> Enum.map(&((&1.staked_amount || "0") |> to_string() |> Float.parse() |> then(fn
+                      {v, _} -> v
+                      :error -> 0.0
+                    end)))
+                    |> Enum.sum()
+                    |> :erlang.float_to_binary(decimals: 3) %> SOL
+              </div>
+              <div class="text-green-600 text-xs">Staked across <%= length(@stakes) %> accounts</div>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+
+    <%= if @active_tab == "transactions" do %>
+      <div class="bg-slate-900/60 border border-slate-800 rounded-3xl p-6">
+        <div class="flex items-center justify-between mb-5">
+          <h3 class="text-white font-bold text-lg">Transaction History</h3>
+          <div class="flex items-center gap-3">
+            <button phx-click="refresh_transactions" class="text-slate-400 hover:text-white text-xs transition-colors">↻ Refresh</button>
+            <.link navigate={~p"/#{@locale}/wallet/#{wid}/transactions"} class="text-purple-400 hover:text-purple-300 text-xs">Full view →</.link>
+          </div>
+        </div>
+        <%= if length(@transactions) == 0 do %>
+          <div class="text-center py-16">
+            <p class="text-slate-500 mb-3">No transactions yet</p>
+            <.link navigate={~p"/#{@locale}/wallet/#{wid}/send"} class="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-xl text-sm font-semibold">Send SOL</.link>
+          </div>
+        <% else %>
+          <div class="space-y-2">
+            <%= for tx <- @transactions do %>
+              <div class="flex items-center justify-between p-4 bg-slate-800/50 border border-slate-700/50 rounded-2xl">
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 bg-slate-700 rounded-xl flex items-center justify-center text-lg"><%= tx_type_icon(to_string(tx.tx_type || "")) %></div>
+                  <div>
+                    <div class="text-white font-semibold capitalize"><%= to_string(tx.tx_type || "transaction") %></div>
+                    <div class="text-slate-500 text-xs font-mono"><%= truncate_key(tx.signature) %></div>
+                  </div>
+                </div>
+                <div class="text-right">
+                  <div class="text-white font-bold"><%= to_string(tx.amount || "—") %> SOL</div>
+                  <span class={"px-2 py-0.5 rounded-full text-xs font-semibold #{tx_status_class(to_string(tx.status || ""))}"}>
+                    <%= to_string(tx.status || "unknown") %>
+                  </span>
+                </div>
+              </div>
+            <% end %>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+
+    <%= if @active_tab == "tokens" do %>
+      <div class="bg-slate-900/60 border border-slate-800 rounded-3xl p-6">
+        <div class="flex items-center justify-between mb-5">
+          <h3 class="text-white font-bold text-lg">SPL Tokens</h3>
+          <div class="flex items-center gap-3">
+            <button phx-click="refresh_tokens" class="text-slate-400 hover:text-white text-xs transition-colors">↻ Refresh</button>
+            <.link navigate={~p"/#{@locale}/wallet/#{wid}/tokens"} class="text-purple-400 hover:text-purple-300 text-xs">Full view →</.link>
+          </div>
+        </div>
+        <%= if length(@tokens) == 0 do %>
+          <div class="text-center py-16"><p class="text-slate-500 text-sm">No SPL token accounts found</p></div>
+        <% else %>
+          <div class="space-y-2">
+            <%= for token <- @tokens do %>
+              <div class="flex items-center justify-between p-4 bg-slate-800/50 rounded-2xl">
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 bg-blue-500/20 rounded-xl flex items-center justify-center">
+                    <span class="text-blue-400 font-bold text-sm"><%= to_string(token.token_symbol || "?") |> String.slice(0, 2) |> String.upcase() %></span>
+                  </div>
+                  <div>
+                    <div class="text-white font-semibold"><%= to_string(token.token_symbol || "Unknown") %></div>
+                    <div class="text-slate-500 text-xs font-mono"><%= truncate_key(token.mint_address) %></div>
+                  </div>
+                </div>
+                <div class="text-white font-bold"><%= to_string(token.balance || "0") %></div>
+              </div>
+            <% end %>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+
+    <%= if @active_tab == "nfts" do %>
+      <div class="bg-slate-900/60 border border-slate-800 rounded-3xl p-6">
+        <div class="flex items-center justify-between mb-5">
+          <h3 class="text-white font-bold text-lg">NFT Collection</h3>
+          <div class="flex items-center gap-3">
+            <button phx-click="refresh_nfts" class="text-slate-400 hover:text-white text-xs transition-colors">↻ Refresh</button>
+            <.link navigate={~p"/#{@locale}/wallet/#{wid}/nfts"} class="text-purple-400 hover:text-purple-300 text-xs">Full view →</.link>
+          </div>
+        </div>
+        <%= if length(@nfts) == 0 do %>
+          <div class="text-center py-16"><p class="text-slate-500 text-sm">No NFTs in this wallet</p></div>
+        <% else %>
+          <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+            <%= for nft <- @nfts do %>
+              <div class="bg-slate-800/60 border border-slate-700 rounded-2xl overflow-hidden hover:border-purple-500/30 transition-all">
+                <div class="aspect-square bg-slate-700 flex items-center justify-center">
+                  <%= if nft.image_url do %>
+                    <img src={to_string(nft.image_url)} class="w-full h-full object-cover" alt={to_string(nft.name || "")} />
+                  <% else %>
+                    <svg class="w-10 h-10 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                  <% end %>
+                </div>
+                <div class="p-3">
+                  <div class="text-white font-semibold text-sm truncate"><%= to_string(nft.name || "Unnamed NFT") %></div>
+                  <div class="text-slate-500 text-xs truncate"><%= to_string(nft.collection_name || "") %></div>
+                </div>
+              </div>
+            <% end %>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+
+    <%= if @active_tab == "stakes" do %>
+      <div class="bg-slate-900/60 border border-slate-800 rounded-3xl p-6">
+        <div class="flex items-center justify-between mb-5">
+          <h3 class="text-white font-bold text-lg">Stake Accounts</h3>
+          <div class="flex items-center gap-3">
+            <button phx-click="refresh_stakes" class="text-slate-400 hover:text-white text-xs transition-colors">↻ Refresh</button>
+            <.link navigate={~p"/#{@locale}/wallet/#{wid}/stake"} class="text-purple-400 hover:text-purple-300 text-xs">Full view →</.link>
+          </div>
+        </div>
+        <%= if length(@stakes) == 0 do %>
+          <div class="text-center py-16">
+            <p class="text-slate-500 mb-3">No stake accounts</p>
+            <.link navigate={~p"/#{@locale}/wallet/#{wid}/stake/new"} class="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl text-sm font-semibold">Create Stake</.link>
+          </div>
+        <% else %>
+          <div class="space-y-3">
+            <%= for stake <- @stakes do %>
+              <div class="flex items-center justify-between p-4 bg-slate-800/50 border border-slate-700/50 rounded-2xl">
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 bg-green-500/20 rounded-xl flex items-center justify-center">
+                    <svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4" />
+                    </svg>
+                  </div>
+                  <div>
+                    <div class="text-white font-semibold"><%= to_string(stake.label || "Stake Account") %></div>
+                    <div class="text-slate-500 text-xs font-mono"><%= truncate_key(stake.validator_vote_account) %></div>
+                  </div>
+                </div>
+                <div class="text-right">
+                  <div class="text-white font-bold"><%= to_string(stake.staked_amount || "0") %> SOL</div>
+                  <div class="text-green-400 text-xs">+<%= to_string(stake.rewards_earned || "0") %> rewards</div>
+                </div>
+              </div>
+            <% end %>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+
+  </div>
+</div>
+
+<%= if @show_update_label_modal do %>
+  <div class="fixed inset-0 z-50 overflow-y-auto" phx-click="close_update_label_modal">
+    <div class="flex items-center justify-center min-h-screen px-4">
+      <div class="fixed inset-0 bg-black/70 backdrop-blur-sm"></div>
+      <div
+        class="relative bg-slate-900 border border-slate-700 rounded-3xl shadow-2xl max-w-sm w-full p-8"
+        phx-click="stop_propagation"
+      >
+        <h2 class="text-xl font-bold text-white mb-5">Rename Wallet</h2>
+        <form phx-submit="save_label" phx-change="validate_label" class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-slate-300 mb-2">New Label</label>
+            <input
+              type="text"
+              name="label"
+              value={@new_label}
+              placeholder="e.g. Trading Wallet"
+              class="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
+            />
+          </div>
+          <div class="flex items-center gap-3 pt-1">
+            <button type="button" phx-click="close_update_label_modal" class="flex-1 px-4 py-3 bg-slate-800 border border-slate-700 text-slate-300 font-semibold rounded-xl hover:bg-slate-700 transition-all text-sm">Cancel</button>
+            <button type="submit" class="flex-1 px-4 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-semibold rounded-xl text-sm">Save</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+<% end %>

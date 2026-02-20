@@ -1,0 +1,190 @@
+<.live_component
+  module={MazarynWeb.HomeLive.NavComponent}
+  id="navigation"
+  user={@current_user}
+  search=""
+  locale={@locale}
+/>
+
+<div class="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950">
+  <div class="max-w-7xl mx-auto px-6 py-10">
+
+    <div class="flex items-center gap-3 mb-8">
+      <.link
+        navigate={~p"/#{@locale}/wallet/#{@wallet_id}"}
+        class="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white transition-all text-sm font-medium"
+      >
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+        </svg>
+        Back to Wallet
+      </.link>
+      <svg class="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+      </svg>
+      <span class="text-slate-400 text-sm">Tokens</span>
+    </div>
+
+    <div class="flex items-center justify-between mb-6">
+      <div>
+        <h1 class="text-3xl font-bold text-white">SPL Tokens</h1>
+        <p class="text-slate-400 text-sm mt-1"><%= @wallet.label || "Wallet" %> · <%= length(@tokens) %> token accounts</p>
+      </div>
+      <button
+        phx-click="refresh"
+        class="flex items-center gap-2 px-4 py-2.5 bg-slate-800 border border-slate-700 text-slate-300 rounded-xl hover:bg-slate-700 hover:text-white transition-all text-sm font-medium"
+      >
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+        </svg>
+        Refresh
+      </button>
+    </div>
+
+    <div class="bg-slate-900/60 border border-slate-800 rounded-3xl p-6">
+      <div class="flex items-center gap-4 mb-6">
+        <div class="relative flex-1 max-w-md">
+          <input
+            type="text"
+            placeholder="Search by symbol, name or mint address..."
+            phx-keyup="search"
+            value={@search}
+            class="w-full pl-10 pr-4 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all"
+          />
+          <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+        </div>
+        <span class="text-slate-500 text-sm"><%= length(@filtered_tokens) %> results</span>
+      </div>
+
+      <%= if length(@filtered_tokens) == 0 do %>
+        <div class="text-center py-20">
+          <div class="w-16 h-16 bg-slate-800 rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <svg class="w-8 h-8 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <h4 class="text-white font-semibold mb-2">No Token Accounts</h4>
+          <p class="text-slate-500 text-sm max-w-xs mx-auto">
+            <%= if @search != "" do %>
+              No tokens match your search.
+            <% else %>
+              SPL token accounts associated with this wallet will appear here automatically.
+            <% end %>
+          </p>
+        </div>
+      <% else %>
+        <div class="space-y-3">
+          <%= for token <- @filtered_tokens do %>
+            <div
+              class="group flex items-center gap-4 p-4 bg-slate-800/50 border border-slate-700 rounded-2xl hover:border-blue-500/30 transition-all cursor-pointer"
+              phx-click="select_token"
+              phx-value-token_id={token.token_account_id}
+            >
+              <div class={"w-12 h-12 rounded-xl bg-gradient-to-br #{token_color(token.token_symbol)} flex items-center justify-center flex-shrink-0 shadow-lg"}>
+                <span class="text-white font-bold text-sm">
+                  <%= (to_string(token.token_symbol) |> String.slice(0, 2) |> String.upcase()) || "?" %>
+                </span>
+              </div>
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-2">
+                  <span class="text-white font-bold"><%= token.token_symbol || "Unknown" %></span>
+                  <%= if token.token_name do %>
+                    <span class="text-slate-500 text-sm"><%= token.token_name %></span>
+                  <% end %>
+                </div>
+                <div class="text-slate-600 text-xs font-mono mt-0.5"><%= truncate_key(token.mint_address) %></div>
+              </div>
+              <div class="text-right flex-shrink-0">
+                <div class="text-white font-bold text-lg"><%= token.balance || "0" %></div>
+                <div class="text-slate-500 text-xs">Last synced <%= format_datetime(token.last_synced) %></div>
+              </div>
+              <svg class="w-4 h-4 text-slate-600 group-hover:text-slate-400 transition-colors flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+              </svg>
+            </div>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>
+
+<%= if @selected_token do %>
+  <div class="fixed inset-0 z-50 overflow-y-auto" phx-click="close_token_modal">
+    <div class="flex items-center justify-center min-h-screen px-4">
+      <div class="fixed inset-0 bg-black/70 backdrop-blur-sm"></div>
+      <div
+        class="relative bg-slate-900 border border-slate-700 rounded-3xl shadow-2xl max-w-sm w-full p-8"
+        phx-click="stop_propagation"
+      >
+        <div class="flex items-center gap-4 mb-6">
+          <div class={"w-14 h-14 rounded-2xl bg-gradient-to-br #{token_color(@selected_token.token_symbol)} flex items-center justify-center shadow-lg"}>
+            <span class="text-white font-bold text-lg">
+              <%= (to_string(@selected_token.token_symbol) |> String.slice(0, 2) |> String.upcase()) || "?" %>
+            </span>
+          </div>
+          <div>
+            <h2 class="text-xl font-bold text-white"><%= @selected_token.token_symbol || "Unknown Token" %></h2>
+            <p class="text-slate-400 text-sm"><%= @selected_token.token_name || "SPL Token" %></p>
+          </div>
+          <button
+            phx-click="close_token_modal"
+            class="ml-auto p-2 text-slate-500 hover:text-slate-300 hover:bg-slate-800 rounded-xl transition-colors"
+          >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        <div class="bg-slate-800/60 rounded-2xl p-5 mb-5 text-center">
+          <div class="text-slate-500 text-xs mb-1">Balance</div>
+          <div class="text-4xl font-bold text-white"><%= @selected_token.balance || "0" %></div>
+          <div class="text-slate-500 text-sm mt-1"><%= @selected_token.token_symbol %></div>
+        </div>
+
+        <div class="space-y-3">
+          <div class="flex items-center justify-between py-2.5 border-b border-slate-800">
+            <span class="text-slate-500 text-sm">Mint Address</span>
+            <div class="flex items-center gap-2">
+              <span class="text-slate-300 text-xs font-mono"><%= truncate_key(@selected_token.mint_address) %></span>
+              <%= if @selected_token.mint_address do %>
+                <button
+                  onclick={"navigator.clipboard.writeText('#{@selected_token.mint_address}')"}
+                  class="p-1 text-slate-600 hover:text-slate-300 transition-colors"
+                >
+                  <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                  </svg>
+                </button>
+              <% end %>
+            </div>
+          </div>
+          <div class="flex items-center justify-between py-2.5 border-b border-slate-800">
+            <span class="text-slate-500 text-sm">Token Account</span>
+            <span class="text-slate-300 text-xs font-mono"><%= truncate_key(@selected_token.token_account_address) %></span>
+          </div>
+          <%= if @selected_token.decimals do %>
+            <div class="flex items-center justify-between py-2.5 border-b border-slate-800">
+              <span class="text-slate-500 text-sm">Decimals</span>
+              <span class="text-slate-300 text-sm"><%= @selected_token.decimals %></span>
+            </div>
+          <% end %>
+          <div class="flex items-center justify-between py-2.5">
+            <span class="text-slate-500 text-sm">Last Synced</span>
+            <span class="text-slate-300 text-sm"><%= format_datetime(@selected_token.last_synced) %></span>
+          </div>
+        </div>
+
+        <button
+          phx-click="close_token_modal"
+          class="w-full mt-6 px-4 py-3 bg-slate-800 border border-slate-700 text-slate-300 font-semibold rounded-xl hover:bg-slate-700 transition-all text-sm"
+        >
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+<% end %>
