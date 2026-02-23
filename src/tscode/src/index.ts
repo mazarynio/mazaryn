@@ -5,6 +5,16 @@ import { twoFARoutes } from "./api/two-fa-routes.js";
 import { airdropRoutes } from "./api/airdrop-routes.js";
 import { transactionRoutes } from "./api/transaction-routes.js";
 import { stakingRoutes } from "./api/staking-routes.js";
+import { nearAccountRoutes } from "./api/near-account-routes.js";
+import { nearTokenRoutes } from "./api/near-token-routes.js";
+import { nearStateRoutes } from "./api/near-state-routes.js";
+import { nearKeyRoutes } from "./api/near-keys-routes.js";
+import { nearTransactionRoutes } from "./api/near-transaction-routes.js";
+import { nearAdvancedRoutes } from "./api/near-advanced-routes.js";
+import { nearContractRoutes } from "./api/near-contract-routes.js";
+import { nearAuthRoutes } from "./api/near-auth-routes.js";
+import { nearStakingRoutes } from "./api/near-staking-routes.js";
+import { nearSocialRoutes } from "./api/near-social-routes.js";
 import { logger } from "./core/logger.js";
 import { config } from "./config/index.js";
 import { setupSecurityHeaders } from "./middleware/security-headers.js";
@@ -17,7 +27,6 @@ setupSecurityHeaders(app);
 
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
-
 app.set("trust proxy", true);
 
 app.use((req, res, next) => {
@@ -49,13 +58,24 @@ app.use("/airdrop", airdropRoutes);
 app.use("/transactions", transactionRoutes);
 app.use("/staking", stakingRoutes);
 
-app.get("/health", (req, res) => {
+app.use("/near/accounts", nearAccountRoutes);
+app.use("/near/tokens", nearTokenRoutes);
+app.use("/near/state", nearStateRoutes);
+app.use("/near/keys", nearKeyRoutes);
+app.use("/near/tx", nearTransactionRoutes);
+app.use("/near/advanced", nearAdvancedRoutes);
+app.use("/near/contracts", nearContractRoutes);
+app.use("/near/auth", nearAuthRoutes);
+app.use("/near/staking", nearStakingRoutes);
+app.use("/near/social", nearSocialRoutes);
+
+app.get("/health", (_req, res) => {
   res.json({
     status: "ok",
     timestamp: Date.now(),
     environment: config.nodeEnv,
-    service: "solana-wallet",
-    version: "5.0.0",
+    service: "solana-near-wallet",
+    version: "6.6.0",
     security_features: {
       encryption: "AES-256-GCM",
       password_hashing: "PBKDF2",
@@ -65,17 +85,62 @@ app.get("/health", (req, res) => {
       session_management: true,
     },
     features: {
-      wallet_operations: true,
-      spl_tokens: true,
-      nft_support: true,
-      airdrop_system: true,
-      transaction_history: true,
-      staking: true,
+      solana: {
+        wallet_operations: true,
+        spl_tokens: true,
+        nft_support: true,
+        airdrop_system: true,
+        transaction_history: true,
+        staking: true,
+      },
+      near: {
+        accounts: true,
+        tokens: true,
+        state: true,
+        keys: true,
+        transactions: true,
+        batch_actions: true,
+        contract_calls: true,
+        view_calls: true,
+        sign_and_broadcast: true,
+        seed_phrase: true,
+        function_call_keys: true,
+        epoch_prices: true,
+        meta_transactions: true,
+        implicit_accounts: true,
+        multi_key_signing: true,
+        contract_deployment: true,
+        global_contracts: true,
+        nep413_verification: true,
+        staking: true,
+        validator_queries: true,
+        social_db: true,
+        social_profile: true,
+        social_follow: true,
+        social_posts: true,
+        social_likes: true,
+        social_comments: true,
+        social_feed: true,
+        mazaryn_posts: true,
+        mazaryn_likes: true,
+        mazaryn_comments: true,
+        mazaryn_follow: true,
+        mazaryn_tips: true,
+        mazaryn_feed: true,
+      },
+    },
+    networks: {
+      solana: config.solanaRpcUrl,
+      near: {
+        network: config.nearNetwork,
+        rpc: config.nearRpcUrl,
+        failover_endpoints: config.nearFallbackRpcUrls.length,
+      },
     },
   });
 });
 
-app.get("/security-info", (req, res) => {
+app.get("/security-info", (_req, res) => {
   res.json({
     features: [
       "AES-256-GCM encryption for private keys",
@@ -89,6 +154,7 @@ app.get("/security-info", (req, res) => {
       "Session management and revocation",
       "Security headers (Helmet, CORS)",
       "Password complexity requirements",
+      "NEP-413 message verification for NEAR wallet login",
     ],
     recommendations: [
       "Enable 2FA for maximum security",
@@ -100,7 +166,7 @@ app.get("/security-info", (req, res) => {
   });
 });
 
-app.get("/audit/summary", (req, res) => {
+app.get("/audit/summary", (_req, res) => {
   try {
     if (!config.auditLogEnabled) {
       return res.status(503).json({ error: "Audit logging is disabled" });
@@ -146,6 +212,7 @@ app.get("/audit/summary", (req, res) => {
 
 app.use((req, res) => {
   const ip = req.ip || req.socket.remoteAddress || "unknown";
+
   auditLogger.logSuspiciousActivity(
     undefined,
     ip,
@@ -164,7 +231,7 @@ app.use(
     err: any,
     req: express.Request,
     res: express.Response,
-    next: express.NextFunction,
+    _next: express.NextFunction,
   ) => {
     logger.error("Unhandled error:", err);
 
@@ -186,24 +253,56 @@ app.use(
 );
 
 app.listen(config.port, () => {
-  logger.info(`Solana Wallet Service running on port ${config.port}`);
-  logger.info(`Environment: ${config.nodeEnv}`);
-  logger.info(`RPC URL: ${config.solanaRpcUrl}`);
-  logger.info(`Security Features:`);
-  logger.info(`  - Encryption: AES-256-GCM`);
-  logger.info(`  - 2FA: ${config.enable2FA ? "Enabled" : "Disabled"}`);
-  logger.info(`  - Rate Limiting: Enabled`);
+  logger.info(`  Port        : ${config.port}`);
+  logger.info(`  Environment : ${config.nodeEnv}`);
+  logger.info("───────────────────────────────────────────────────");
+  logger.info(`  Solana RPC  : ${config.solanaRpcUrl}`);
+  logger.info(`  NEAR Network: ${config.nearNetwork}`);
+  logger.info(`  NEAR RPC    : ${config.nearRpcUrl}`);
+  if (config.nearFallbackRpcUrls.length > 0) {
+    config.nearFallbackRpcUrls.forEach((url, i) =>
+      logger.info(`  NEAR Fallback [${i + 1}]: ${url}`),
+    );
+  }
+  logger.info("───────────────────────────────────────────────────");
+  logger.info("  Security:");
+  logger.info(`    Encryption      : AES-256-GCM`);
   logger.info(
-    `  - Audit Logging: ${config.auditLogEnabled ? "Enabled" : "Disabled"}`,
+    `    2FA             : ${config.enable2FA ? "Enabled" : "Disabled"}`,
   );
-  logger.info(`  - Session Management: Enabled`);
-  logger.info(`  - Account Lockout: ${config.maxLoginAttempts} attempts`);
-  logger.info(`Wallet Features:`);
-  logger.info(`  - Wallet Operations: Enabled`);
-  logger.info(`  - SPL Token Support: Enabled`);
-  logger.info(`  - NFT Support: Enabled`);
-  logger.info(`  - Airdrop System: Enabled`);
-  logger.info(`  - Transaction History: Enabled`);
-  logger.info(`  - Staking: Enabled`);
-  logger.info(`System Ready - Enterprise-Grade Security Active`);
+  logger.info(`    Rate Limiting   : Enabled`);
+  logger.info(
+    `    Audit Logging   : ${config.auditLogEnabled ? "Enabled" : "Disabled"}`,
+  );
+  logger.info(`    Session Mgmt    : Enabled`);
+  logger.info(
+    `    Account Lockout : after ${config.maxLoginAttempts} failed attempts`,
+  );
+  logger.info("───────────────────────────────────────────────────");
+  logger.info("  Solana routes:");
+  logger.info("    /auth/**");
+  logger.info("    /2fa/**");
+  logger.info("    /wallet/**");
+  logger.info("    /airdrop/**");
+  logger.info("    /transactions/**");
+  logger.info("    /staking/**");
+  logger.info("───────────────────────────────────────────────────");
+  logger.info("  NEAR routes:");
+  logger.info("    /near/accounts/**    named, sub-account, import, delete");
+  logger.info("    /near/tokens/**      NEAR, USDT, custom FTs");
+  logger.info("    /near/state/**       account state, balances, epoch prices");
+  logger.info("    /near/keys/**        FAK, FCK, seed phrase");
+  logger.info("    /near/tx/**          batch, call, view, sign, broadcast");
+  logger.info("    /near/advanced/**    meta-tx, implicit, multi-key");
+  logger.info("    /near/contracts/**   deploy, global deploy, use global");
+  logger.info("    /near/auth/**        NEP-413 message verification");
+  logger.info(
+    "    /near/staking/**     stake, unstake, withdraw, validator info",
+  );
+  logger.info(
+    "    /near/social/**      SocialDB + Mazaryn posts, likes, follows, tips",
+  );
+  logger.info("═══════════════════════════════════════════════════");
+  logger.info("  System ready.");
+  logger.info("═══════════════════════════════════════════════════");
 });

@@ -1,0 +1,257 @@
+<.live_component
+  module={MazarynWeb.HomeLive.NavComponent}
+  id="navigation"
+  user={@current_user}
+  search=""
+  locale={@locale}
+/>
+
+<div class="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-900">
+  <div class="max-w-7xl mx-auto px-6 py-10">
+
+    <div class="flex items-center gap-3 mb-8">
+      <.link
+        navigate={~p"/#{@locale}/near/#{@wallet_id}"}
+        class="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white transition-all text-sm font-medium"
+      >
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+        </svg>
+        Back to Wallet
+      </.link>
+      <svg class="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+      </svg>
+      <span class="text-slate-400 text-sm">Implicit Accounts</span>
+    </div>
+
+    <div class="flex items-center justify-between mb-6">
+      <div>
+        <h1 class="text-3xl font-bold text-white">Implicit Accounts</h1>
+        <p class="text-slate-400 text-sm mt-1">
+          <%= to_string(@wallet.label || "Wallet") %> · <%= to_string(@wallet.account_id || "") %>
+        </p>
+      </div>
+      <div class="flex items-center gap-3">
+        <button phx-click="refresh" class="flex items-center gap-2 px-4 py-2.5 bg-slate-800 border border-slate-700 text-slate-300 rounded-xl hover:bg-slate-700 hover:text-white transition-all text-sm font-medium">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
+          Refresh
+        </button>
+        <button phx-click="open_generate_modal" class="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-slate-600 to-slate-700 text-white rounded-xl hover:from-slate-700 hover:to-slate-800 border border-slate-600 transition-all text-sm font-semibold">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+          </svg>
+          Generate Account
+        </button>
+      </div>
+    </div>
+
+    <div class="mb-6 px-5 py-4 bg-slate-800/60 border border-slate-700 rounded-2xl">
+      <div class="flex items-start gap-3">
+        <svg class="w-5 h-5 text-slate-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <div>
+          <div class="text-slate-300 text-sm font-semibold mb-1">About Implicit Accounts</div>
+          <p class="text-slate-500 text-xs leading-relaxed">
+            Implicit accounts are 64-character hex strings derived from an ed25519 public key. They can receive NEAR without prior on-chain registration, but need at least <strong class="text-slate-400">0.001 NEAR</strong> deposited to become active. Once funded, they behave like any named account.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-3 gap-4 mb-6">
+      <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-5">
+        <div class="text-slate-400 text-sm font-medium mb-2">Total</div>
+        <div class="text-3xl font-bold text-white"><%= length(@implicit_accounts) %></div>
+      </div>
+      <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-5">
+        <div class="text-slate-400 text-sm font-medium mb-2">Funded</div>
+        <div class="text-3xl font-bold text-green-400">
+          <%= Enum.count(@implicit_accounts, fn a -> a.funded end) %>
+        </div>
+      </div>
+      <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-5">
+        <div class="text-slate-400 text-sm font-medium mb-2">Unfunded</div>
+        <div class="text-3xl font-bold text-yellow-400">
+          <%= Enum.count(@implicit_accounts, fn a -> not a.funded end) %>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-slate-900/60 border border-slate-800 rounded-3xl p-6">
+      <h2 class="text-white font-bold text-lg mb-5">Account List</h2>
+
+      <%= if length(@implicit_accounts) == 0 do %>
+        <div class="text-center py-20">
+          <div class="w-20 h-20 bg-slate-800 rounded-2xl flex items-center justify-center mx-auto mb-5">
+            <svg class="w-10 h-10 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+            </svg>
+          </div>
+          <h3 class="text-xl font-bold text-white mb-2">No Implicit Accounts</h3>
+          <p class="text-slate-400 max-w-sm mx-auto mb-6 text-sm leading-relaxed">
+            Generate an implicit account to receive NEAR before creating a named account.
+          </p>
+          <button phx-click="open_generate_modal" class="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-slate-600 to-slate-700 border border-slate-600 text-white font-semibold rounded-xl text-sm">
+            Generate Account
+          </button>
+        </div>
+      <% else %>
+        <div class="space-y-3">
+          <%= for account <- @implicit_accounts do %>
+            <div
+              class="group flex items-center gap-4 p-5 bg-slate-800/50 border border-slate-700 rounded-2xl hover:border-slate-600 transition-all cursor-pointer"
+              phx-click="select_account"
+              phx-value-implicit_id={to_string(account.implicit_id)}
+            >
+              <div class={"w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 #{if account.funded, do: "bg-green-500/20", else: "bg-yellow-500/20"}"}>
+                <svg class={"w-6 h-6 #{if account.funded, do: "text-green-400", else: "text-yellow-400"}"} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+              </div>
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-2 flex-wrap">
+                  <span class="text-white font-mono text-sm font-semibold truncate max-w-xs"><%= to_string(account.account_id || "") %></span>
+                  <span class={"px-2 py-0.5 rounded-full text-xs font-semibold #{if account.funded, do: "bg-green-500/10 border border-green-500/20 text-green-400", else: "bg-yellow-500/10 border border-yellow-500/20 text-yellow-400"}"}>
+                    <%= if account.funded, do: "Funded", else: "Unfunded" %>
+                  </span>
+                </div>
+                <div class="text-slate-600 text-xs mt-0.5">Created <%= format_datetime(account.created_at) %></div>
+              </div>
+              <div class="flex items-center gap-2 flex-shrink-0">
+                <button
+                  onclick={"navigator.clipboard.writeText('#{to_string(account.account_id || "")}')"}
+                  class="p-2 text-slate-600 hover:text-slate-300 transition-colors"
+                  phx-click="stop_propagation"
+                >
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                  </svg>
+                </button>
+                <svg class="w-4 h-4 text-slate-600 group-hover:text-slate-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                </svg>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+
+  </div>
+</div>
+
+<%= if @show_generate_modal do %>
+  <div class="fixed inset-0 z-50 overflow-y-auto" phx-click="close_generate_modal">
+    <div class="flex items-center justify-center min-h-screen px-4">
+      <div class="fixed inset-0 bg-black/70 backdrop-blur-sm"></div>
+      <div class="relative bg-slate-900 border border-slate-700 rounded-3xl shadow-2xl max-w-md w-full p-8" phx-click="stop_propagation">
+        <div class="flex items-center gap-3 mb-6">
+          <div class="w-10 h-10 bg-slate-700 rounded-xl flex items-center justify-center">
+            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+            </svg>
+          </div>
+          <div>
+            <h2 class="text-xl font-bold text-white">Generate Implicit Account</h2>
+            <p class="text-slate-400 text-sm">Creates a new 64-char hex account ID</p>
+          </div>
+          <button phx-click="close_generate_modal" class="ml-auto p-2 text-slate-500 hover:text-slate-300 hover:bg-slate-800 rounded-xl transition-colors">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        <%= if Map.get(@form_errors, :general) do %>
+          <div class="mb-4 px-4 py-3 bg-red-500/10 border border-red-500/20 rounded-xl">
+            <p class="text-red-400 text-sm"><%= @form_errors.general %></p>
+          </div>
+        <% end %>
+
+        <div class="mb-6 px-4 py-3 bg-slate-800/60 border border-slate-700 rounded-xl">
+          <p class="text-slate-400 text-xs leading-relaxed">
+            A random ed25519 keypair will be generated. The 64-character hex public key becomes your implicit account ID. Send at least 0.001 NEAR to this address to activate it on-chain.
+          </p>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <button phx-click="close_generate_modal" class="flex-1 px-4 py-3 bg-slate-800 border border-slate-700 text-slate-300 font-semibold rounded-xl hover:bg-slate-700 transition-all text-sm">Cancel</button>
+          <button phx-click="generate_implicit_account" disabled={@generating} class="flex-1 px-4 py-3 bg-gradient-to-r from-slate-600 to-slate-700 border border-slate-600 text-white font-semibold rounded-xl hover:from-slate-700 hover:to-slate-800 transition-all text-sm disabled:opacity-60 disabled:cursor-not-allowed">
+            <%= if @generating, do: "Generating...", else: "Generate" %>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+<% end %>
+
+<%= if @selected_account do %>
+  <div class="fixed inset-0 z-50 overflow-y-auto" phx-click="close_account_modal">
+    <div class="flex items-center justify-center min-h-screen px-4">
+      <div class="fixed inset-0 bg-black/70 backdrop-blur-sm"></div>
+      <div class="relative bg-slate-900 border border-slate-700 rounded-3xl shadow-2xl max-w-md w-full p-8" phx-click="stop_propagation">
+        <div class="flex items-center justify-between mb-6">
+          <div class="flex items-center gap-3">
+            <div class={"w-12 h-12 rounded-2xl flex items-center justify-center #{if @selected_account.funded, do: "bg-green-500/20", else: "bg-yellow-500/20"}"}>
+              <svg class={"w-6 h-6 #{if @selected_account.funded, do: "text-green-400", else: "text-yellow-400"}"} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              </svg>
+            </div>
+            <div>
+              <h2 class="text-lg font-bold text-white">Implicit Account</h2>
+              <span class={"px-2 py-0.5 rounded-full text-xs font-semibold #{if @selected_account.funded, do: "bg-green-500/10 border border-green-500/20 text-green-400", else: "bg-yellow-500/10 border border-yellow-500/20 text-yellow-400"}"}>
+                <%= if @selected_account.funded, do: "Funded", else: "Unfunded" %>
+              </span>
+            </div>
+          </div>
+          <button phx-click="close_account_modal" class="p-2 text-slate-500 hover:text-slate-300 hover:bg-slate-800 rounded-xl transition-colors">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        <div class="space-y-3 mb-6">
+          <div class="flex items-start justify-between py-2.5 border-b border-slate-800">
+            <span class="text-slate-500 text-sm flex-shrink-0">Account ID</span>
+            <div class="flex items-center gap-2 ml-4">
+              <span class="text-slate-300 text-xs font-mono break-all text-right"><%= to_string(@selected_account.account_id || "") %></span>
+              <button onclick={"navigator.clipboard.writeText('#{to_string(@selected_account.account_id || "")}')"} class="p-1 text-slate-600 hover:text-slate-300 flex-shrink-0">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                </svg>
+              </button>
+            </div>
+          </div>
+          <div class="flex items-center justify-between py-2.5 border-b border-slate-800">
+            <span class="text-slate-500 text-sm">Created</span>
+            <span class="text-slate-300 text-sm"><%= format_datetime(@selected_account.created_at) %></span>
+          </div>
+          <%= if @selected_account.funded_at do %>
+            <div class="flex items-center justify-between py-2.5 border-b border-slate-800">
+              <span class="text-slate-500 text-sm">Funded At</span>
+              <span class="text-slate-300 text-sm"><%= format_datetime(@selected_account.funded_at) %></span>
+            </div>
+          <% end %>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <button phx-click="close_account_modal" class="flex-1 px-4 py-3 bg-slate-800 border border-slate-700 text-slate-300 font-semibold rounded-xl hover:bg-slate-700 transition-all text-sm">Close</button>
+          <%= if not @selected_account.funded do %>
+            <button
+              phx-click="mark_funded"
+              phx-value-implicit_id={to_string(@selected_account.implicit_id)}
+              class="flex-1 px-4 py-3 bg-green-500/20 hover:bg-green-500/30 border border-green-500/30 text-green-300 font-semibold rounded-xl transition-all text-sm"
+            >
+              Mark as Funded
+            </button>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+<% end %>

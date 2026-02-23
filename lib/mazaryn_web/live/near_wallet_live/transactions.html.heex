@@ -1,0 +1,310 @@
+<.live_component
+  module={MazarynWeb.HomeLive.NavComponent}
+  id="navigation"
+  user={@current_user}
+  search=""
+  locale={@locale}
+/>
+
+<div class="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-emerald-950">
+  <div class="max-w-7xl mx-auto px-6 py-10">
+
+    <div class="flex items-center gap-3 mb-8">
+      <.link
+        navigate={~p"/#{@locale}/near/#{@wallet_id}"}
+        class="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white transition-all text-sm font-medium"
+      >
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+        </svg>
+        Back to Wallet
+      </.link>
+      <svg class="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+      </svg>
+      <span class="text-slate-400 text-sm">Transactions</span>
+    </div>
+
+    <div class="flex items-center justify-between mb-6">
+      <div>
+        <h1 class="text-3xl font-bold text-white">Transaction History</h1>
+        <p class="text-slate-400 text-sm mt-1">
+          <%= to_string(@wallet.label || "Wallet") %> · <%= to_string(@wallet.account_id || "") %> · <%= length(@transactions) %> total
+        </p>
+      </div>
+      <div class="flex items-center gap-3">
+        <.link
+          navigate={~p"/#{@locale}/near/#{@wallet_id}/send"}
+          class="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl hover:from-green-700 hover:to-emerald-700 transition-all text-sm font-semibold shadow-lg shadow-green-900/30"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+          </svg>
+          Send NEAR
+        </.link>
+        <button
+          phx-click="refresh"
+          class="flex items-center gap-2 px-4 py-2.5 bg-slate-800 border border-slate-700 text-slate-300 rounded-xl hover:bg-slate-700 hover:text-white transition-all text-sm font-medium"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
+          Refresh
+        </button>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+      <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-4">
+        <div class="text-slate-500 text-xs mb-1">Total</div>
+        <div class="text-2xl font-bold text-white"><%= length(@transactions) %></div>
+      </div>
+      <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-4">
+        <div class="text-slate-500 text-xs mb-1">Success</div>
+        <div class="text-2xl font-bold text-green-400">
+          <%= Enum.count(@transactions, fn t -> to_string(t.status || "") == "success" end) %>
+        </div>
+      </div>
+      <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-4">
+        <div class="text-slate-500 text-xs mb-1">Pending</div>
+        <div class="text-2xl font-bold text-yellow-400">
+          <%= Enum.count(@transactions, fn t -> to_string(t.status || "") == "pending" end) %>
+        </div>
+      </div>
+      <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-4">
+        <div class="text-slate-500 text-xs mb-1">Failed</div>
+        <div class="text-2xl font-bold text-red-400">
+          <%= Enum.count(@transactions, fn t -> to_string(t.status || "") == "failure" end) %>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-slate-900/60 border border-slate-800 rounded-3xl p-6">
+      <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-6">
+        <div class="relative flex-1 w-full">
+          <input
+            type="text"
+            placeholder="Search by hash, account ID or type..."
+            phx-keyup="search"
+            value={@search}
+            class="w-full pl-10 pr-4 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 transition-all"
+          />
+          <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+        </div>
+
+        <div class="flex items-center gap-2 flex-wrap">
+          <select
+            phx-change="filter_type"
+            name="value"
+            class="px-3 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+          >
+            <option value="all" selected={@filter_type == "all"}>All Types</option>
+            <option value="transfer" selected={@filter_type == "transfer"}>Transfer</option>
+            <option value="function_call" selected={@filter_type == "function_call"}>Contract Call</option>
+            <option value="stake" selected={@filter_type == "stake"}>Stake</option>
+            <option value="unstake" selected={@filter_type == "unstake"}>Unstake</option>
+            <option value="social_post" selected={@filter_type == "social_post"}>Social Post</option>
+            <option value="deploy" selected={@filter_type == "deploy"}>Deploy</option>
+          </select>
+
+          <select
+            phx-change="filter_status"
+            name="value"
+            class="px-3 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+          >
+            <option value="all" selected={@filter_status == "all"}>All Status</option>
+            <option value="success" selected={@filter_status == "success"}>Success</option>
+            <option value="pending" selected={@filter_status == "pending"}>Pending</option>
+            <option value="failure" selected={@filter_status == "failure"}>Failed</option>
+          </select>
+
+          <span class="text-slate-500 text-sm whitespace-nowrap"><%= length(@filtered_transactions) %> results</span>
+        </div>
+      </div>
+
+      <%= if length(@filtered_transactions) == 0 do %>
+        <div class="text-center py-20">
+          <div class="w-16 h-16 bg-slate-800 rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <svg class="w-8 h-8 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+            </svg>
+          </div>
+          <h4 class="text-white font-semibold mb-2">No Transactions Found</h4>
+          <p class="text-slate-500 text-sm max-w-xs mx-auto">
+            <%= if @search != "" or @filter_type != "all" or @filter_status != "all" do %>
+              No transactions match your current filters.
+            <% else %>
+              Transactions will appear here after you send or receive NEAR.
+            <% end %>
+          </p>
+          <%= if @search == "" and @filter_type == "all" and @filter_status == "all" do %>
+            <.link
+              navigate={~p"/#{@locale}/near/#{@wallet_id}/send"}
+              class="inline-flex items-center gap-2 mt-4 px-4 py-2 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl text-sm font-semibold"
+            >
+              Send NEAR
+            </.link>
+          <% end %>
+        </div>
+      <% else %>
+        <div class="space-y-2">
+          <%= for tx <- @filtered_transactions do %>
+            <div
+              class="group flex items-center gap-4 p-4 bg-slate-800/50 border border-slate-700 rounded-2xl hover:border-green-500/30 transition-all cursor-pointer"
+              phx-click="select_tx"
+              phx-value-tx_id={to_string(tx.tx_id)}
+            >
+              <div class={"w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 text-lg #{tx_type_color(to_string(tx.tx_type || ""))}"}>
+                <%= tx_type_icon(to_string(tx.tx_type || "")) %>
+              </div>
+
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-2 flex-wrap">
+                  <span class="text-white font-semibold text-sm capitalize">
+                    <%= String.replace(to_string(tx.tx_type || "transaction"), "_", " ") %>
+                  </span>
+                  <span class={"px-2 py-0.5 rounded-full text-xs font-semibold #{tx_status_class(to_string(tx.status || ""))}"}>
+                    <%= to_string(tx.status || "unknown") %>
+                  </span>
+                </div>
+                <div class="text-slate-500 text-xs font-mono mt-0.5 truncate">
+                  <%= truncate_key(tx.transaction_hash) %>
+                </div>
+                <%= if tx.receiver_id do %>
+                  <div class="text-slate-600 text-xs mt-0.5 truncate">
+                    To: <%= to_string(tx.receiver_id) %>
+                  </div>
+                <% end %>
+              </div>
+
+              <div class="text-right flex-shrink-0">
+                <div class="text-white font-bold text-sm">
+                  <%= if tx.amount_near, do: "#{to_string(tx.amount_near)} NEAR", else: "—" %>
+                </div>
+                <div class="text-slate-500 text-xs mt-0.5"><%= format_datetime(tx.created_at) %></div>
+              </div>
+
+              <svg class="w-4 h-4 text-slate-600 group-hover:text-slate-400 transition-colors flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+              </svg>
+            </div>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>
+
+<%= if @selected_tx do %>
+  <div class="fixed inset-0 z-50 overflow-y-auto" phx-click="close_tx_modal">
+    <div class="flex items-center justify-center min-h-screen px-4">
+      <div class="fixed inset-0 bg-black/70 backdrop-blur-sm"></div>
+      <div
+        class="relative bg-slate-900 border border-slate-700 rounded-3xl shadow-2xl max-w-md w-full p-8"
+        phx-click="stop_propagation"
+      >
+        <div class="flex items-center gap-4 mb-6">
+          <div class={"w-12 h-12 rounded-2xl flex items-center justify-center text-xl #{tx_type_color(to_string(@selected_tx.tx_type || ""))}"}>
+            <%= tx_type_icon(to_string(@selected_tx.tx_type || "")) %>
+          </div>
+          <div>
+            <h2 class="text-xl font-bold text-white capitalize">
+              <%= String.replace(to_string(@selected_tx.tx_type || "Transaction"), "_", " ") %>
+            </h2>
+            <span class={"px-2 py-0.5 rounded-full text-xs font-semibold #{tx_status_class(to_string(@selected_tx.status || ""))}"}>
+              <%= to_string(@selected_tx.status || "unknown") %>
+            </span>
+          </div>
+          <button
+            phx-click="close_tx_modal"
+            class="ml-auto p-2 text-slate-500 hover:text-slate-300 hover:bg-slate-800 rounded-xl transition-colors"
+          >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        <div class="space-y-3">
+          <div class="flex items-center justify-between py-2.5 border-b border-slate-800">
+            <span class="text-slate-500 text-sm">Amount</span>
+            <span class="text-white font-bold">
+              <%= if @selected_tx.amount_near, do: "#{to_string(@selected_tx.amount_near)} NEAR", else: "—" %>
+            </span>
+          </div>
+
+          <div class="flex items-start justify-between py-2.5 border-b border-slate-800">
+            <span class="text-slate-500 text-sm">Transaction Hash</span>
+            <div class="flex items-center gap-2 ml-4">
+              <span class="text-slate-300 text-xs font-mono break-all text-right max-w-48"><%= to_string(@selected_tx.transaction_hash || "—") %></span>
+              <%= if @selected_tx.transaction_hash do %>
+                <button
+                  onclick={"navigator.clipboard.writeText('#{to_string(@selected_tx.transaction_hash)}')"}
+                  class="p-1 text-slate-600 hover:text-slate-300 transition-colors flex-shrink-0"
+                >
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                  </svg>
+                </button>
+              <% end %>
+            </div>
+          </div>
+
+          <div class="flex items-start justify-between py-2.5 border-b border-slate-800">
+            <span class="text-slate-500 text-sm">From</span>
+            <span class="text-slate-300 text-xs font-mono break-all text-right max-w-48"><%= to_string(@selected_tx.from_account_id || "—") %></span>
+          </div>
+
+          <div class="flex items-start justify-between py-2.5 border-b border-slate-800">
+            <span class="text-slate-500 text-sm">To</span>
+            <span class="text-slate-300 text-xs font-mono break-all text-right max-w-48"><%= to_string(@selected_tx.receiver_id || "—") %></span>
+          </div>
+
+          <%= if @selected_tx.contract_id do %>
+            <div class="flex items-start justify-between py-2.5 border-b border-slate-800">
+              <span class="text-slate-500 text-sm">Contract</span>
+              <span class="text-slate-300 text-xs font-mono break-all text-right max-w-48"><%= to_string(@selected_tx.contract_id) %></span>
+            </div>
+          <% end %>
+
+          <%= if @selected_tx.method_name do %>
+            <div class="flex items-center justify-between py-2.5 border-b border-slate-800">
+              <span class="text-slate-500 text-sm">Method</span>
+              <span class="text-slate-300 text-xs font-mono"><%= to_string(@selected_tx.method_name) %></span>
+            </div>
+          <% end %>
+
+          <%= if @selected_tx.actions_count do %>
+            <div class="flex items-center justify-between py-2.5 border-b border-slate-800">
+              <span class="text-slate-500 text-sm">Actions</span>
+              <span class="text-slate-300 text-sm"><%= to_string(@selected_tx.actions_count) %></span>
+            </div>
+          <% end %>
+
+          <div class="flex items-center justify-between py-2.5 border-b border-slate-800">
+            <span class="text-slate-500 text-sm">Created</span>
+            <span class="text-slate-300 text-sm"><%= format_datetime(@selected_tx.created_at) %></span>
+          </div>
+
+          <%= if @selected_tx.error_message do %>
+            <div class="py-2.5">
+              <div class="text-slate-500 text-sm mb-1">Error</div>
+              <div class="px-3 py-2 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-xs font-mono break-all">
+                <%= to_string(@selected_tx.error_message) %>
+              </div>
+            </div>
+          <% end %>
+        </div>
+
+        <button
+          phx-click="close_tx_modal"
+          class="w-full mt-6 px-4 py-3 bg-slate-800 border border-slate-700 text-slate-300 font-semibold rounded-xl hover:bg-slate-700 transition-all text-sm"
+        >
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+<% end %>

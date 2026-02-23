@@ -32,7 +32,8 @@
  talent_pool, candidate_search, recruiter_contact, skill, skill_endorsement, skill_assessment, company_review,
  interview_prep, job_market_insights, user_job_analytics, job_message, background_check, employment_verification,
  job_referral, job_board_settings, leaderboard, artist, artist_request,
- solana_wallet, solana_transaction, solana_airdrop, solana_airdrop_recipient, solana_stake_account, solana_token_account, solana_nft]).
+ solana_wallet, solana_transaction, solana_airdrop, solana_airdrop_recipient, solana_stake_account, solana_token_account, solana_nft,
+ near_wallet, near_transaction, near_access_key, near_stake, near_implicit_account, near_social_post]).
 
 start_link() ->
     case initialize() of
@@ -163,7 +164,8 @@ init([]) ->
         ?STORAGE_QUOTA_SERVER,
         ?RATE_LIMITER_SERVER,
         ?CONTENT_CACHE,
-        ?SOLANA_WALLET_SERVER
+        ?SOLANA_WALLET_SERVER,
+        ?NEAR_WALLET_SERVER
     ],
     {ok, {SupFlags, ChildSpecs}}.
 
@@ -262,33 +264,51 @@ wait_for_tables() ->
             {error, {wait_for_tables_failed, Reason}}
     end.
 
-    create_table_indexes() ->
-        IndexesToCreate = [{user, username}, {user, email}, {enrollment, user_id}, {enrollment, path_id},
-                           {user_completion, user_id}, {instructor_profile, user_id}, {admin_action, admin_username},
-                           {admin_action, content_type}, {admin_action, content_id}, {bookmark, user_id},
-                           {bookmark, resource_id}, {resource_rating, resource_id}, {resource_rating, user_id},
-                           {lesson_progress, user_id}, {lesson_progress, lesson_id}, {module_progress, user_id},
-                           {module_progress, module_id}, {content_comment, content_id}, {content_reaction, content_id},
-                           {student_question, lesson_id}, {question_answer, question_id}, {path_review, path_id},
-                           {learning_notification, user_id}, {video_upload_session, lesson_id},
-                           {job_posting, poster_id}, {job_posting, status}, {resume, user_id},
-                           {job_application, job_posting_id}, {job_application, applicant_user_id},
-                           {job_application, status}, {saved_job, user_id}, {job_alert, user_id},
-                           {skill_endorsement, user_id}, {company_review, business_id},
-                           {solana_wallet, user_id}, {solana_wallet, public_key},
-                           {solana_transaction, wallet_id}, {solana_transaction, user_id}, {solana_transaction, signature},
-                           {solana_airdrop, wallet_id}, {solana_airdrop, user_id},
-                           {solana_airdrop_recipient, airdrop_id},
-                           {solana_stake_account, wallet_id}, {solana_stake_account, user_id}, {solana_stake_account, stake_account_address},
-                           {solana_token_account, wallet_id}, {solana_token_account, user_id},
-                           {solana_nft, wallet_id}, {solana_nft, user_id}],
-        Results = [create_index(Table, Field) || {Table, Field} <- IndexesToCreate],
-        case lists:all(fun(Result) -> Result == ok end, Results) of
-            true -> ok;
-            false ->
-                logger:info("Some indexes already exist or couldn't be created: ~p", [Results]),
-                ok
-        end.
+create_table_indexes() ->
+    IndexesToCreate = [
+        %% Core user indexes
+        {user, username}, {user, email},
+        %% Learning indexes
+        {enrollment, user_id}, {enrollment, path_id},
+        {user_completion, user_id}, {instructor_profile, user_id},
+        {admin_action, admin_username}, {admin_action, content_type}, {admin_action, content_id},
+        {bookmark, user_id}, {bookmark, resource_id},
+        {resource_rating, resource_id}, {resource_rating, user_id},
+        {lesson_progress, user_id}, {lesson_progress, lesson_id},
+        {module_progress, user_id}, {module_progress, module_id},
+        {content_comment, content_id}, {content_reaction, content_id},
+        {student_question, lesson_id}, {question_answer, question_id},
+        {path_review, path_id}, {learning_notification, user_id},
+        {video_upload_session, lesson_id},
+        %% Jobs indexes
+        {job_posting, poster_id}, {job_posting, status},
+        {resume, user_id},
+        {job_application, job_posting_id}, {job_application, applicant_user_id}, {job_application, status},
+        {saved_job, user_id}, {job_alert, user_id},
+        {skill_endorsement, user_id}, {company_review, business_id},
+        %% Solana indexes
+        {solana_wallet, user_id}, {solana_wallet, public_key},
+        {solana_transaction, wallet_id}, {solana_transaction, user_id}, {solana_transaction, signature},
+        {solana_airdrop, wallet_id}, {solana_airdrop, user_id},
+        {solana_airdrop_recipient, airdrop_id},
+        {solana_stake_account, wallet_id}, {solana_stake_account, user_id}, {solana_stake_account, stake_account_address},
+        {solana_token_account, wallet_id}, {solana_token_account, user_id},
+        {solana_nft, wallet_id}, {solana_nft, user_id},
+        %% NEAR indexes
+        {near_wallet, user_id}, {near_wallet, account_id},
+        {near_transaction, wallet_id}, {near_transaction, user_id},
+        {near_access_key, wallet_id}, {near_access_key, user_id},
+        {near_stake, wallet_id}, {near_stake, user_id},
+        {near_implicit_account, wallet_id}, {near_implicit_account, user_id},
+        {near_social_post, wallet_id}, {near_social_post, user_id}
+    ],
+    Results = [create_index(Table, Field) || {Table, Field} <- IndexesToCreate],
+    case lists:all(fun(Result) -> Result == ok end, Results) of
+        true -> ok;
+        false ->
+            logger:info("Some indexes already exist or couldn't be created: ~p", [Results]),
+            ok
+    end.
 
 create_index(Table, Field) ->
     case mnesia:table_info(Table, attributes) of
@@ -452,10 +472,18 @@ table_attributes(job_board_settings) -> record_info(fields, job_board_settings);
 table_attributes(leaderboard) -> record_info(fields, leaderboard);
 table_attributes(artist) -> record_info(fields, artist);
 table_attributes(artist_request) -> record_info(fields, artist_request);
+%% Solana
 table_attributes(solana_wallet) -> record_info(fields, solana_wallet);
 table_attributes(solana_transaction) -> record_info(fields, solana_transaction);
 table_attributes(solana_airdrop) -> record_info(fields, solana_airdrop);
 table_attributes(solana_airdrop_recipient) -> record_info(fields, solana_airdrop_recipient);
 table_attributes(solana_stake_account) -> record_info(fields, solana_stake_account);
 table_attributes(solana_token_account) -> record_info(fields, solana_token_account);
-table_attributes(solana_nft) -> record_info(fields, solana_nft).
+table_attributes(solana_nft) -> record_info(fields, solana_nft);
+%% NEAR
+table_attributes(near_wallet) -> record_info(fields, near_wallet);
+table_attributes(near_transaction) -> record_info(fields, near_transaction);
+table_attributes(near_access_key) -> record_info(fields, near_access_key);
+table_attributes(near_stake) -> record_info(fields, near_stake);
+table_attributes(near_implicit_account) -> record_info(fields, near_implicit_account);
+table_attributes(near_social_post) -> record_info(fields, near_social_post).

@@ -1,0 +1,384 @@
+<.live_component
+  module={MazarynWeb.HomeLive.NavComponent}
+  id="navigation"
+  user={@current_user}
+  search=""
+  locale={@locale}
+/>
+
+<div class="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-emerald-950">
+  <div class="max-w-7xl mx-auto px-6 py-10">
+
+    <div class="flex items-center gap-3 mb-8">
+      <.link
+        navigate={~p"/#{@locale}/near/#{@wallet_id}"}
+        class="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white transition-all text-sm font-medium"
+      >
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+        </svg>
+        Back to Wallet
+      </.link>
+      <svg class="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+      </svg>
+      <span class="text-slate-400 text-sm">Staking</span>
+    </div>
+
+    <div class="flex items-center justify-between mb-6">
+      <div>
+        <h1 class="text-3xl font-bold text-white">NEAR Staking</h1>
+        <p class="text-slate-400 text-sm mt-1">
+          <%= to_string(@wallet.label || "Wallet") %> · <%= to_string(@wallet.account_id || "") %>
+        </p>
+      </div>
+      <div class="flex items-center gap-3">
+        <button
+          phx-click="refresh"
+          class="flex items-center gap-2 px-4 py-2.5 bg-slate-800 border border-slate-700 text-slate-300 rounded-xl hover:bg-slate-700 hover:text-white transition-all text-sm font-medium"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
+          Refresh
+        </button>
+        <button
+          phx-click="open_new_stake_modal"
+          class="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl hover:from-green-700 hover:to-emerald-700 transition-all text-sm font-semibold shadow-lg shadow-green-900/30"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+          </svg>
+          Stake NEAR
+        </button>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+      <div class="bg-gradient-to-br from-green-900/40 to-emerald-900/40 border border-green-500/20 rounded-2xl p-5">
+        <div class="text-green-400 text-sm font-medium mb-2">Total Staked</div>
+        <div class="text-3xl font-bold text-white">
+          <%= :erlang.float_to_binary(total_staked(@stakes), decimals: 3) %> NEAR
+        </div>
+        <div class="text-green-600 text-xs mt-1">Active positions only</div>
+      </div>
+      <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-5">
+        <div class="text-slate-400 text-sm font-medium mb-2">Active Stakes</div>
+        <div class="text-3xl font-bold text-white">
+          <%= Enum.count(@stakes, fn s -> to_string(s.status || "") == "active" end) %>
+        </div>
+        <div class="text-slate-500 text-xs mt-1">Across validators</div>
+      </div>
+      <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-5">
+        <div class="text-slate-400 text-sm font-medium mb-2">Unstaking</div>
+        <div class="text-3xl font-bold text-yellow-400">
+          <%= Enum.count(@stakes, fn s -> to_string(s.status || "") == "unstaked" end) %>
+        </div>
+        <div class="text-slate-500 text-xs mt-1">Pending withdrawal</div>
+      </div>
+    </div>
+
+    <div class="mb-6 px-5 py-4 bg-blue-500/10 border border-blue-500/20 rounded-2xl">
+      <div class="flex items-start gap-3">
+        <svg class="w-5 h-5 text-blue-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <div>
+          <div class="text-blue-300 text-sm font-semibold mb-1">About NEAR Staking</div>
+          <p class="text-blue-300/70 text-xs leading-relaxed">
+            Staking NEAR tokens with validators helps secure the network and earns rewards. The minimum stake is 1 NEAR. Unstaking takes approximately 52–65 hours (2–3 epochs) before funds are available to withdraw.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-slate-900/60 border border-slate-800 rounded-3xl p-6">
+      <h2 class="text-white font-bold text-lg mb-5">Your Stake Positions</h2>
+
+      <%= if length(@stakes) == 0 do %>
+        <div class="text-center py-20">
+          <div class="w-20 h-20 bg-green-500/10 rounded-2xl flex items-center justify-center mx-auto mb-5">
+            <svg class="w-10 h-10 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+            </svg>
+          </div>
+          <h3 class="text-xl font-bold text-white mb-2">No Stakes Yet</h3>
+          <p class="text-slate-400 max-w-sm mx-auto mb-6 text-sm leading-relaxed">
+            Start staking your NEAR tokens to earn rewards and help secure the NEAR Protocol network.
+          </p>
+          <button
+            phx-click="open_new_stake_modal"
+            class="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white font-semibold rounded-xl hover:from-green-700 hover:to-emerald-700 transition-all text-sm shadow-lg shadow-green-900/30"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            </svg>
+            Stake NEAR
+          </button>
+        </div>
+      <% else %>
+        <div class="space-y-3">
+          <%= for stake <- @stakes do %>
+            <div
+              class="group flex items-center gap-4 p-5 bg-slate-800/50 border border-slate-700 rounded-2xl hover:border-green-500/30 transition-all cursor-pointer"
+              phx-click="select_stake"
+              phx-value-stake_id={to_string(stake.stake_id)}
+            >
+              <div class={"w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 #{if to_string(stake.status || "") == "active", do: "bg-green-500/20", else: "bg-yellow-500/20"}"}>
+                <svg class={"w-6 h-6 #{if to_string(stake.status || "") == "active", do: "text-green-400", else: "text-yellow-400"}"} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+                </svg>
+              </div>
+
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-2 flex-wrap">
+                  <span class="text-white font-bold"><%= to_string(stake.validator_account_id || "Unknown Validator") %></span>
+                  <span class={"px-2 py-0.5 rounded-full text-xs font-semibold #{stake_status_class(to_string(stake.status || ""))}"}>
+                    <%= to_string(stake.status || "unknown") %>
+                  </span>
+                </div>
+                <div class="text-slate-500 text-xs mt-0.5">Staked <%= format_datetime(stake.created_at) %></div>
+                <%= if stake.transaction_hash do %>
+                  <div class="text-slate-600 text-xs font-mono mt-0.5">Tx: <%= truncate_key(stake.transaction_hash) %></div>
+                <% end %>
+              </div>
+
+              <div class="text-right flex-shrink-0">
+                <div class="text-2xl font-bold text-white"><%= to_string(stake.amount_near || "0") %></div>
+                <div class="text-slate-400 text-xs">NEAR</div>
+              </div>
+
+              <svg class="w-4 h-4 text-slate-600 group-hover:text-slate-400 transition-colors flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+              </svg>
+            </div>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+
+  </div>
+</div>
+
+<%= if @show_new_stake_modal do %>
+  <div class="fixed inset-0 z-50 overflow-y-auto" phx-click="close_new_stake_modal">
+    <div class="flex items-center justify-center min-h-screen px-4">
+      <div class="fixed inset-0 bg-black/70 backdrop-blur-sm"></div>
+      <div
+        class="relative bg-slate-900 border border-slate-700 rounded-3xl shadow-2xl max-w-md w-full p-8"
+        phx-click="stop_propagation"
+      >
+        <div class="flex items-center gap-3 mb-6">
+          <div class="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center">
+            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+            </svg>
+          </div>
+          <div>
+            <h2 class="text-xl font-bold text-white">Stake NEAR</h2>
+            <p class="text-slate-400 text-sm">Delegate to a validator to earn rewards</p>
+          </div>
+          <button
+            phx-click="close_new_stake_modal"
+            class="ml-auto p-2 text-slate-500 hover:text-slate-300 hover:bg-slate-800 rounded-xl transition-colors"
+          >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        <%= if Map.get(@form_errors, :general) do %>
+          <div class="mb-4 px-4 py-3 bg-red-500/10 border border-red-500/20 rounded-xl">
+            <p class="text-red-400 text-sm"><%= @form_errors.general %></p>
+          </div>
+        <% end %>
+
+        <form phx-submit="create_stake" phx-change="validate_stake" class="space-y-5">
+          <div>
+            <label class="block text-sm font-medium text-slate-300 mb-2">Validator Account ID</label>
+            <input
+              type="text"
+              name="validator_account_id"
+              value={@validator_account_id}
+              placeholder="e.g. validator.pool.near"
+              class={"w-full px-4 py-3 bg-slate-800 border rounded-xl text-white placeholder-slate-500 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-green-500 transition-all #{if Map.get(@form_errors, :validator_account_id), do: "border-red-500", else: "border-slate-700"}"}
+            />
+            <%= if Map.get(@form_errors, :validator_account_id) do %>
+              <p class="mt-1.5 text-red-400 text-xs"><%= @form_errors.validator_account_id %></p>
+            <% end %>
+            <p class="mt-1.5 text-slate-600 text-xs">Find validators at nearblocks.io or near.org/staking</p>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-slate-300 mb-2">Amount to Stake (NEAR)</label>
+            <div class="relative">
+              <input
+                type="text"
+                name="stake_amount"
+                value={@stake_amount}
+                placeholder="0.00"
+                class={"w-full px-4 py-3 bg-slate-800 border rounded-xl text-white placeholder-slate-500 text-lg font-bold focus:outline-none focus:ring-2 focus:ring-green-500 transition-all pr-20 #{if Map.get(@form_errors, :stake_amount), do: "border-red-500", else: "border-slate-700"}"}
+              />
+              <span class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 font-semibold text-sm">NEAR</span>
+            </div>
+            <%= if Map.get(@form_errors, :stake_amount) do %>
+              <p class="mt-1.5 text-red-400 text-xs"><%= @form_errors.stake_amount %></p>
+            <% end %>
+            <div class="flex gap-2 mt-2">
+              <%= for amt <- ["1", "10", "50", "100"] do %>
+                <button
+                  type="button"
+                  phx-click="validate_stake"
+                  phx-value-stake_amount={amt}
+                  class="px-3 py-1.5 bg-slate-800 border border-slate-700 rounded-lg text-slate-300 text-xs font-semibold hover:bg-slate-700 hover:text-white transition-all"
+                >
+                  <%= amt %>
+                </button>
+              <% end %>
+            </div>
+            <p class="mt-2 text-slate-600 text-xs">Minimum stake: 1 NEAR</p>
+          </div>
+
+          <div class="px-4 py-3 bg-amber-500/10 border border-amber-500/20 rounded-xl">
+            <div class="flex items-start gap-2">
+              <svg class="w-4 h-4 text-amber-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+              <p class="text-amber-300 text-xs leading-relaxed">
+                Unstaking takes 52–65 hours. Your NEAR will be locked during this period and will not earn rewards once unstaking begins.
+              </p>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-3 pt-1">
+            <button
+              type="button"
+              phx-click="close_new_stake_modal"
+              class="flex-1 px-4 py-3 bg-slate-800 border border-slate-700 text-slate-300 font-semibold rounded-xl hover:bg-slate-700 transition-all text-sm"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={@staking}
+              class="flex-1 px-4 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white font-semibold rounded-xl hover:from-green-700 hover:to-emerald-700 transition-all text-sm shadow-lg shadow-green-900/30 disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              <%= if @staking do %>
+                <span class="flex items-center justify-center gap-2">
+                  <svg class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                  </svg>
+                  Staking...
+                </span>
+              <% else %>
+                Stake NEAR
+              <% end %>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+<% end %>
+
+<%= if @selected_stake do %>
+  <div class="fixed inset-0 z-50 overflow-y-auto" phx-click="close_stake_modal">
+    <div class="flex items-center justify-center min-h-screen px-4">
+      <div class="fixed inset-0 bg-black/70 backdrop-blur-sm"></div>
+      <div
+        class="relative bg-slate-900 border border-slate-700 rounded-3xl shadow-2xl max-w-md w-full p-8"
+        phx-click="stop_propagation"
+      >
+        <div class="flex items-center gap-4 mb-6">
+          <div class={"w-12 h-12 rounded-2xl flex items-center justify-center #{if to_string(@selected_stake.status || "") == "active", do: "bg-green-500/20", else: "bg-yellow-500/20"}"}>
+            <svg class={"w-6 h-6 #{if to_string(@selected_stake.status || "") == "active", do: "text-green-400", else: "text-yellow-400"}"} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4" />
+            </svg>
+          </div>
+          <div class="flex-1 min-w-0">
+            <h2 class="text-lg font-bold text-white truncate"><%= to_string(@selected_stake.validator_account_id || "Unknown Validator") %></h2>
+            <span class={"px-2 py-0.5 rounded-full text-xs font-semibold #{stake_status_class(to_string(@selected_stake.status || ""))}"}>
+              <%= to_string(@selected_stake.status || "unknown") %>
+            </span>
+          </div>
+          <button
+            phx-click="close_stake_modal"
+            class="p-2 text-slate-500 hover:text-slate-300 hover:bg-slate-800 rounded-xl transition-colors flex-shrink-0"
+          >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        <div class="bg-green-900/20 border border-green-500/20 rounded-2xl p-5 mb-5 text-center">
+          <div class="text-slate-400 text-xs mb-1">Staked Amount</div>
+          <div class="text-4xl font-bold text-white"><%= to_string(@selected_stake.amount_near || "0") %></div>
+          <div class="text-green-400 text-sm font-semibold mt-1">NEAR</div>
+        </div>
+
+        <div class="space-y-3 mb-6">
+          <div class="flex items-center justify-between py-2.5 border-b border-slate-800">
+            <span class="text-slate-500 text-sm">Staked On</span>
+            <span class="text-slate-300 text-sm"><%= format_datetime(@selected_stake.created_at) %></span>
+          </div>
+          <%= if @selected_stake.unstaked_at do %>
+            <div class="flex items-center justify-between py-2.5 border-b border-slate-800">
+              <span class="text-slate-500 text-sm">Unstaked On</span>
+              <span class="text-slate-300 text-sm"><%= format_datetime(@selected_stake.unstaked_at) %></span>
+            </div>
+          <% end %>
+          <%= if @selected_stake.withdrawn_at do %>
+            <div class="flex items-center justify-between py-2.5 border-b border-slate-800">
+              <span class="text-slate-500 text-sm">Withdrawn On</span>
+              <span class="text-slate-300 text-sm"><%= format_datetime(@selected_stake.withdrawn_at) %></span>
+            </div>
+          <% end %>
+          <%= if @selected_stake.transaction_hash do %>
+            <div class="flex items-start justify-between py-2.5 border-b border-slate-800">
+              <span class="text-slate-500 text-sm">Transaction</span>
+              <div class="flex items-center gap-2 ml-4">
+                <span class="text-slate-300 text-xs font-mono break-all text-right max-w-48"><%= to_string(@selected_stake.transaction_hash) %></span>
+                <button
+                  onclick={"navigator.clipboard.writeText('#{to_string(@selected_stake.transaction_hash)}')"}
+                  class="p-1 text-slate-600 hover:text-slate-300 transition-colors flex-shrink-0"
+                >
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          <% end %>
+          <%= if @selected_stake.validator_public_key do %>
+            <div class="flex items-start justify-between py-2.5">
+              <span class="text-slate-500 text-sm">Validator Key</span>
+              <span class="text-slate-300 text-xs font-mono break-all text-right max-w-48"><%= truncate_key(@selected_stake.validator_public_key) %></span>
+            </div>
+          <% end %>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <button
+            phx-click="close_stake_modal"
+            class="flex-1 px-4 py-3 bg-slate-800 border border-slate-700 text-slate-300 font-semibold rounded-xl hover:bg-slate-700 transition-all text-sm"
+          >
+            Close
+          </button>
+          <%= if to_string(@selected_stake.status || "") == "active" do %>
+            <button
+              phx-click="unstake"
+              phx-value-stake_id={to_string(@selected_stake.stake_id)}
+              data-confirm="Are you sure you want to unstake? This process takes 52–65 hours."
+              class="flex-1 px-4 py-3 bg-yellow-500/20 hover:bg-yellow-500/30 border border-yellow-500/30 text-yellow-300 font-semibold rounded-xl transition-all text-sm"
+            >
+              Unstake
+            </button>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+<% end %>

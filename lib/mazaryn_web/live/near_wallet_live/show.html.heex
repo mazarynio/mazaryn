@@ -1,0 +1,579 @@
+<.live_component
+  module={MazarynWeb.HomeLive.NavComponent}
+  id="navigation"
+  user={@current_user}
+  search=""
+  locale={@locale}
+/>
+
+<div class="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-emerald-950">
+  <div class="max-w-7xl mx-auto px-6 py-10">
+
+    <div class="flex items-center gap-3 mb-8">
+      <.link
+        navigate={~p"/#{@locale}/wallet"}
+        class="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white transition-all text-sm font-medium"
+      >
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+        </svg>
+        All Wallets
+      </.link>
+      <svg class="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+      </svg>
+      <span class="text-slate-400 text-sm truncate max-w-xs"><%= to_string(@wallet.label || "NEAR Wallet") %></span>
+    </div>
+
+    <%
+      aid     = to_string(@wallet.account_id || "")
+      wid     = to_string(@wallet.wallet_id  || "")
+      lbl     = to_string(@wallet.label      || "NEAR Wallet")
+      net     = to_string(@wallet.network    || "testnet")
+      aid_short = if String.length(aid) > 24,
+                    do: String.slice(aid, 0, 12) <> "...." <> String.slice(aid, -8, 8),
+                    else: aid
+    %>
+
+    <div class={"relative overflow-hidden rounded-3xl p-8 mb-8 shadow-2xl #{if @wallet.is_primary, do: "bg-gradient-to-br from-green-900/90 via-emerald-900/90 to-slate-900/90 border border-green-500/40", else: "bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 border border-slate-700"}"}>
+      <div class="flex items-start justify-between mb-6">
+        <div class="flex items-center gap-4">
+          <div class={"w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0 #{if @wallet.is_primary, do: "bg-gradient-to-br from-green-500 to-emerald-600 shadow-lg", else: "bg-slate-800"}"}>
+            <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+            </svg>
+          </div>
+          <div>
+            <div class="flex items-center gap-2 flex-wrap">
+              <h1 class="text-2xl font-bold text-white"><%= lbl %></h1>
+              <%= if @wallet.is_primary do %>
+                <span class="px-2 py-0.5 bg-green-500/20 border border-green-500/30 text-green-300 text-xs font-semibold rounded-full">Primary</span>
+              <% end %>
+              <span class={"px-2 py-0.5 rounded-full text-xs font-semibold #{if net == "mainnet", do: "bg-green-500/20 border border-green-500/30 text-green-300", else: "bg-yellow-500/20 border border-yellow-500/30 text-yellow-300"}"}>
+                <%= net %>
+              </span>
+            </div>
+            <div class="flex items-center gap-2 mt-1">
+              <span class="text-slate-400 text-sm font-mono"><%= aid_short %></span>
+              <button onclick={"navigator.clipboard.writeText('#{aid}')"} class="text-slate-600 hover:text-slate-300 transition-colors">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <button
+            phx-click="open_update_label_modal"
+            class="flex items-center gap-1.5 px-3 py-2 bg-white/10 hover:bg-white/15 rounded-xl text-white text-xs font-semibold transition-all"
+          >
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+            </svg>
+            Rename
+          </button>
+          <%= if not @wallet.is_primary do %>
+            <button
+              phx-click="set_primary"
+              class="flex items-center gap-1.5 px-3 py-2 bg-green-500/20 hover:bg-green-500/30 border border-green-500/30 rounded-xl text-green-300 text-xs font-semibold transition-all"
+            >
+              Set Primary
+            </button>
+          <% end %>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 sm:grid-cols-5 gap-4">
+        <div class="bg-white/5 rounded-2xl p-4">
+          <div class="text-slate-400 text-xs mb-1">NEAR Balance</div>
+          <div class="text-2xl font-bold text-white">0.000</div>
+          <div class="text-slate-500 text-xs">≈ $0.00</div>
+        </div>
+        <div class="bg-white/5 rounded-2xl p-4">
+          <div class="text-slate-400 text-xs mb-1">Transactions</div>
+          <div class="text-2xl font-bold text-white"><%= length(@transactions) %></div>
+          <div class="text-slate-500 text-xs">Total</div>
+        </div>
+        <div class="bg-white/5 rounded-2xl p-4">
+          <div class="text-slate-400 text-xs mb-1">Access Keys</div>
+          <div class="text-2xl font-bold text-white"><%= length(@access_keys) %></div>
+          <div class="text-slate-500 text-xs">Active</div>
+        </div>
+        <div class="bg-white/5 rounded-2xl p-4">
+          <div class="text-slate-400 text-xs mb-1">Stakes</div>
+          <div class="text-2xl font-bold text-white"><%= length(@stakes) %></div>
+          <div class="text-slate-500 text-xs">Validators</div>
+        </div>
+        <div class="bg-white/5 rounded-2xl p-4">
+          <div class="text-slate-400 text-xs mb-1">Social Posts</div>
+          <div class="text-2xl font-bold text-white"><%= length(@social_posts) %></div>
+          <div class="text-slate-500 text-xs">On-chain</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="flex items-center gap-1 mb-6 bg-slate-900/60 rounded-2xl p-1.5 w-fit border border-slate-800 flex-wrap">
+      <%= for {tab, label, icon} <- [
+        {"overview",          "Overview",         "M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"},
+        {"transactions",      "Transactions",     "M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"},
+        {"access_keys",       "Access Keys",      "M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"},
+        {"stakes",            "Staking",          "M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"},
+        {"social",            "Social",           "M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"},
+        {"implicit_accounts", "Implicit",         "M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"}
+      ] do %>
+        <button
+          phx-click="switch_tab"
+          phx-value-tab={tab}
+          class={"flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 #{if @active_tab == tab, do: "bg-gradient-to-r from-green-600 to-emerald-600 text-white shadow-lg shadow-green-900/40", else: "text-slate-400 hover:text-white"}"}
+        >
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d={icon} />
+          </svg>
+          <%= label %>
+        </button>
+      <% end %>
+    </div>
+
+    <%= if @active_tab == "overview" do %>
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="lg:col-span-2 space-y-5">
+          <div class="bg-slate-900/60 border border-slate-800 rounded-3xl p-6">
+            <h3 class="text-white font-bold mb-4">Wallet Details</h3>
+            <div class="space-y-3">
+              <div class="flex items-start justify-between py-2.5 border-b border-slate-800">
+                <span class="text-slate-500 text-sm">Account ID</span>
+                <div class="flex items-center gap-2">
+                  <span class="text-slate-300 text-sm font-mono break-all text-right max-w-xs"><%= aid %></span>
+                  <button onclick={"navigator.clipboard.writeText('#{aid}')"} class="text-slate-600 hover:text-slate-300 flex-shrink-0">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+              <div class="flex items-center justify-between py-2.5 border-b border-slate-800">
+                <span class="text-slate-500 text-sm">Wallet ID</span>
+                <span class="text-slate-300 text-xs font-mono"><%= truncate_key(@wallet.wallet_id) %></span>
+              </div>
+              <div class="flex items-center justify-between py-2.5 border-b border-slate-800">
+                <span class="text-slate-500 text-sm">Network</span>
+                <span class={"px-2.5 py-1 rounded-full text-xs font-semibold #{if net == "mainnet", do: "bg-green-500/20 border border-green-500/30 text-green-300", else: "bg-yellow-500/20 border border-yellow-500/30 text-yellow-300"}"}>
+                  <%= net %>
+                </span>
+              </div>
+              <div class="flex items-center justify-between py-2.5 border-b border-slate-800">
+                <span class="text-slate-500 text-sm">Created</span>
+                <span class="text-slate-300 text-sm"><%= format_datetime(@wallet.created_at) %></span>
+              </div>
+              <div class="flex items-center justify-between py-2.5 border-b border-slate-800">
+                <span class="text-slate-500 text-sm">Last Used</span>
+                <span class="text-slate-300 text-sm"><%= format_datetime(@wallet.last_used) %></span>
+              </div>
+              <div class="flex items-center justify-between py-2.5">
+                <span class="text-slate-500 text-sm">Primary Wallet</span>
+                <span class={"px-2.5 py-1 rounded-full text-xs font-semibold #{if @wallet.is_primary, do: "bg-green-500/20 border border-green-500/30 text-green-300", else: "bg-slate-700/50 border border-slate-600/30 text-slate-400"}"}>
+                  <%= if @wallet.is_primary, do: "Yes", else: "No" %>
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-slate-900/60 border border-slate-800 rounded-3xl p-6">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-white font-bold">Recent Transactions</h3>
+              <button phx-click="switch_tab" phx-value-tab="transactions" class="text-green-400 text-xs hover:text-green-300">View all →</button>
+            </div>
+            <%= if length(@transactions) == 0 do %>
+              <div class="text-center py-8">
+                <p class="text-slate-500 text-sm">No transactions yet</p>
+                <.link navigate={~p"/#{@locale}/near/#{wid}/send"} class="inline-block mt-3 text-green-400 text-xs hover:text-green-300">Send your first transaction →</.link>
+              </div>
+            <% else %>
+              <div class="space-y-2">
+                <%= for tx <- Enum.take(@transactions, 5) do %>
+                  <div class="flex items-center justify-between p-3 bg-slate-800/50 rounded-xl">
+                    <div class="flex items-center gap-3">
+                      <div class="w-8 h-8 bg-slate-700 rounded-lg flex items-center justify-center text-sm">
+                        <%= tx_type_icon(to_string(tx.tx_type || "")) %>
+                      </div>
+                      <div>
+                        <div class="text-white text-sm font-medium capitalize"><%= to_string(tx.tx_type || "transaction") %></div>
+                        <div class="text-slate-500 text-xs font-mono"><%= truncate_key(tx.transaction_hash) %></div>
+                      </div>
+                    </div>
+                    <div class="text-right">
+                      <div class="text-white text-sm font-bold"><%= to_string(tx.amount_near || "—") %> NEAR</div>
+                      <span class={"px-1.5 py-0.5 rounded text-xs font-semibold #{tx_status_class(to_string(tx.status || ""))}"}>
+                        <%= to_string(tx.status || "unknown") %>
+                      </span>
+                    </div>
+                  </div>
+                <% end %>
+              </div>
+            <% end %>
+          </div>
+        </div>
+
+        <div class="space-y-5">
+          <div class="bg-slate-900/60 border border-slate-800 rounded-3xl p-6">
+            <h3 class="text-white font-bold mb-4">Quick Actions</h3>
+            <div class="space-y-2">
+              <.link navigate={~p"/#{@locale}/near/#{wid}/send"} class="flex items-center gap-3 p-3 bg-gradient-to-r from-green-600/20 to-emerald-600/20 border border-green-500/20 rounded-xl hover:from-green-600/30 hover:to-emerald-600/30 transition-all">
+                <div class="w-8 h-8 bg-green-500/20 rounded-lg flex items-center justify-center">
+                  <svg class="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                  </svg>
+                </div>
+                <span class="text-white text-sm font-semibold">Send NEAR</span>
+              </.link>
+              <.link navigate={~p"/#{@locale}/near/#{wid}/transactions"} class="flex items-center gap-3 p-3 bg-slate-800/60 rounded-xl hover:bg-slate-800 transition-all">
+                <div class="w-8 h-8 bg-slate-700 rounded-lg flex items-center justify-center">
+                  <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                  </svg>
+                </div>
+                <span class="text-white text-sm font-semibold">Transaction History</span>
+              </.link>
+              <.link navigate={~p"/#{@locale}/near/#{wid}/stake"} class="flex items-center gap-3 p-3 bg-slate-800/60 rounded-xl hover:bg-slate-800 transition-all">
+                <div class="w-8 h-8 bg-green-500/20 rounded-lg flex items-center justify-center">
+                  <svg class="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+                  </svg>
+                </div>
+                <span class="text-white text-sm font-semibold">Staking</span>
+              </.link>
+              <.link navigate={~p"/#{@locale}/near/#{wid}/access-keys"} class="flex items-center gap-3 p-3 bg-slate-800/60 rounded-xl hover:bg-slate-800 transition-all">
+                <div class="w-8 h-8 bg-blue-500/20 rounded-lg flex items-center justify-center">
+                  <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                  </svg>
+                </div>
+                <span class="text-white text-sm font-semibold">Access Keys</span>
+              </.link>
+              <.link navigate={~p"/#{@locale}/near/#{wid}/social"} class="flex items-center gap-3 p-3 bg-slate-800/60 rounded-xl hover:bg-slate-800 transition-all">
+                <div class="w-8 h-8 bg-pink-500/20 rounded-lg flex items-center justify-center">
+                  <svg class="w-4 h-4 text-pink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+                  </svg>
+                </div>
+                <span class="text-white text-sm font-semibold">NEAR Social</span>
+              </.link>
+            </div>
+          </div>
+
+          <%= if length(@stakes) > 0 do %>
+            <div class="bg-green-900/20 border border-green-500/20 rounded-3xl p-6">
+              <h3 class="text-white font-bold mb-3">Staking Summary</h3>
+              <div class="text-2xl font-bold text-green-400 mb-1">
+                <%= @stakes
+                    |> Enum.map(fn s ->
+                      case s.amount_near do
+                        nil -> 0.0
+                        v when is_float(v) -> v
+                        v when is_integer(v) -> v * 1.0
+                        _ -> 0.0
+                      end
+                    end)
+                    |> Enum.sum()
+                    |> :erlang.float_to_binary(decimals: 3) %> NEAR
+              </div>
+              <div class="text-green-600 text-xs">Staked across <%= length(@stakes) %> validators</div>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+
+    <%= if @active_tab == "transactions" do %>
+      <div class="bg-slate-900/60 border border-slate-800 rounded-3xl p-6">
+        <div class="flex items-center justify-between mb-5">
+          <h3 class="text-white font-bold text-lg">Transaction History</h3>
+          <div class="flex items-center gap-3">
+            <button phx-click="refresh_transactions" class="text-slate-400 hover:text-white text-xs transition-colors">↻ Refresh</button>
+            <.link navigate={~p"/#{@locale}/near/#{wid}/transactions"} class="text-green-400 hover:text-green-300 text-xs">Full view →</.link>
+          </div>
+        </div>
+        <%= if length(@transactions) == 0 do %>
+          <div class="text-center py-16">
+            <p class="text-slate-500 mb-3">No transactions yet</p>
+            <.link navigate={~p"/#{@locale}/near/#{wid}/send"} class="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl text-sm font-semibold">Send NEAR</.link>
+          </div>
+        <% else %>
+          <div class="space-y-2">
+            <%= for tx <- @transactions do %>
+              <div class="flex items-center justify-between p-4 bg-slate-800/50 border border-slate-700/50 rounded-2xl">
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 bg-slate-700 rounded-xl flex items-center justify-center text-lg"><%= tx_type_icon(to_string(tx.tx_type || "")) %></div>
+                  <div>
+                    <div class="text-white font-semibold capitalize"><%= String.replace(to_string(tx.tx_type || "transaction"), "_", " ") %></div>
+                    <div class="text-slate-500 text-xs font-mono"><%= truncate_key(tx.transaction_hash) %></div>
+                    <%= if tx.receiver_id do %>
+                      <div class="text-slate-600 text-xs mt-0.5">To: <%= to_string(tx.receiver_id) %></div>
+                    <% end %>
+                  </div>
+                </div>
+                <div class="text-right">
+                  <div class="text-white font-bold"><%= to_string(tx.amount_near || "—") %> NEAR</div>
+                  <span class={"px-2 py-0.5 rounded-full text-xs font-semibold #{tx_status_class(to_string(tx.status || ""))}"}>
+                    <%= to_string(tx.status || "unknown") %>
+                  </span>
+                </div>
+              </div>
+            <% end %>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+
+    <%= if @active_tab == "access_keys" do %>
+      <div class="bg-slate-900/60 border border-slate-800 rounded-3xl p-6">
+        <div class="flex items-center justify-between mb-5">
+          <h3 class="text-white font-bold text-lg">Access Keys</h3>
+          <div class="flex items-center gap-3">
+            <button phx-click="refresh_access_keys" class="text-slate-400 hover:text-white text-xs transition-colors">↻ Refresh</button>
+            <.link navigate={~p"/#{@locale}/near/#{wid}/access-keys"} class="text-green-400 hover:text-green-300 text-xs">Full view →</.link>
+          </div>
+        </div>
+        <div class="mb-4 px-4 py-3 bg-blue-500/10 border border-blue-500/20 rounded-xl">
+          <div class="flex items-start gap-2">
+            <svg class="w-4 h-4 text-blue-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <p class="text-blue-300 text-xs leading-relaxed">
+              Full Access keys have complete control of your account. Function Call keys are scoped to specific contracts and methods.
+            </p>
+          </div>
+        </div>
+        <%= if length(@access_keys) == 0 do %>
+          <div class="text-center py-16">
+            <p class="text-slate-500 text-sm">No access keys found</p>
+          </div>
+        <% else %>
+          <div class="space-y-3">
+            <%= for key <- @access_keys do %>
+              <div class="flex items-center justify-between p-4 bg-slate-800/50 border border-slate-700/50 rounded-2xl">
+                <div class="flex items-center gap-3 flex-1 min-w-0">
+                  <div class="w-10 h-10 bg-slate-700 rounded-xl flex items-center justify-center flex-shrink-0">
+                    <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                    </svg>
+                  </div>
+                  <div class="flex-1 min-w-0">
+                    <div class="flex items-center gap-2 flex-wrap">
+                      <span class="text-white font-semibold text-sm font-mono truncate"><%= truncate_key(key.public_key) %></span>
+                      <span class={"px-2 py-0.5 rounded-full text-xs font-semibold #{key_type_class(to_string(key.key_type || ""))}"}>
+                        <%= to_string(key.key_type || "Unknown") %>
+                      </span>
+                    </div>
+                    <%= if key.contract_id do %>
+                      <div class="text-slate-500 text-xs mt-0.5">Contract: <%= to_string(key.contract_id) %></div>
+                    <% end %>
+                    <%= if key.label do %>
+                      <div class="text-slate-600 text-xs mt-0.5"><%= to_string(key.label) %></div>
+                    <% end %>
+                  </div>
+                </div>
+                <button
+                  phx-click="delete_access_key"
+                  phx-value-key_id={to_string(key.key_id)}
+                  data-confirm="Are you sure you want to delete this access key?"
+                  class="flex items-center gap-1.5 px-3 py-2 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 rounded-xl text-red-400 text-xs font-semibold transition-all flex-shrink-0 ml-3"
+                >
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                  Delete
+                </button>
+              </div>
+            <% end %>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+
+    <%= if @active_tab == "stakes" do %>
+      <div class="bg-slate-900/60 border border-slate-800 rounded-3xl p-6">
+        <div class="flex items-center justify-between mb-5">
+          <h3 class="text-white font-bold text-lg">Stake Accounts</h3>
+          <div class="flex items-center gap-3">
+            <button phx-click="refresh_stakes" class="text-slate-400 hover:text-white text-xs transition-colors">↻ Refresh</button>
+            <.link navigate={~p"/#{@locale}/near/#{wid}/stake/new"} class="flex items-center gap-1.5 px-3 py-2 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl text-xs font-semibold">
+              + New Stake
+            </.link>
+          </div>
+        </div>
+        <%= if length(@stakes) == 0 do %>
+          <div class="text-center py-16">
+            <p class="text-slate-500 mb-3">No stakes yet</p>
+            <.link navigate={~p"/#{@locale}/near/#{wid}/stake/new"} class="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl text-sm font-semibold">Stake NEAR</.link>
+          </div>
+        <% else %>
+          <div class="space-y-3">
+            <%= for stake <- @stakes do %>
+              <div class="flex items-center justify-between p-4 bg-slate-800/50 border border-slate-700/50 rounded-2xl">
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 bg-green-500/20 rounded-xl flex items-center justify-center">
+                    <svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4" />
+                    </svg>
+                  </div>
+                  <div>
+                    <div class="text-white font-semibold text-sm"><%= to_string(stake.validator_account_id || "Unknown Validator") %></div>
+                    <div class="text-slate-500 text-xs font-mono"><%= truncate_key(stake.transaction_hash) %></div>
+                    <div class="text-slate-600 text-xs mt-0.5">Since <%= format_datetime(stake.created_at) %></div>
+                  </div>
+                </div>
+                <div class="text-right">
+                  <div class="text-white font-bold"><%= to_string(stake.amount_near || "0") %> NEAR</div>
+                  <span class={"px-2 py-0.5 rounded-full text-xs font-semibold #{stake_status_class(to_string(stake.status || ""))}"}>
+                    <%= to_string(stake.status || "unknown") %>
+                  </span>
+                </div>
+              </div>
+            <% end %>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+
+    <%= if @active_tab == "social" do %>
+      <div class="bg-slate-900/60 border border-slate-800 rounded-3xl p-6">
+        <div class="flex items-center justify-between mb-5">
+          <h3 class="text-white font-bold text-lg">NEAR Social Posts</h3>
+          <div class="flex items-center gap-3">
+            <button phx-click="refresh_social_posts" class="text-slate-400 hover:text-white text-xs transition-colors">↻ Refresh</button>
+            <.link navigate={~p"/#{@locale}/near/#{wid}/social/new"} class="flex items-center gap-1.5 px-3 py-2 bg-gradient-to-r from-pink-600 to-rose-600 text-white rounded-xl text-xs font-semibold">
+              + New Post
+            </.link>
+          </div>
+        </div>
+        <%= if length(@social_posts) == 0 do %>
+          <div class="text-center py-16">
+            <p class="text-slate-500 mb-3">No social posts yet</p>
+            <.link navigate={~p"/#{@locale}/near/#{wid}/social/new"} class="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-pink-600 to-rose-600 text-white rounded-xl text-sm font-semibold">Create Post</.link>
+          </div>
+        <% else %>
+          <div class="space-y-3">
+            <%= for post <- @social_posts do %>
+              <div class="p-4 bg-slate-800/50 border border-slate-700/50 rounded-2xl">
+                <div class="flex items-start justify-between mb-2">
+                  <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 bg-pink-500/20 rounded-lg flex items-center justify-center flex-shrink-0">
+                      <svg class="w-4 h-4 text-pink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+                      </svg>
+                    </div>
+                    <div>
+                      <span class="text-slate-400 text-xs font-mono"><%= to_string(post.account_id || "") %></span>
+                      <div class="text-slate-600 text-xs"><%= format_datetime(post.created_at) %></div>
+                    </div>
+                  </div>
+                  <%= if post.block_height do %>
+                    <span class="text-slate-600 text-xs font-mono">Block #<%= to_string(post.block_height) %></span>
+                  <% end %>
+                </div>
+                <p class="text-white text-sm leading-relaxed"><%= to_string(post.text || "") %></p>
+                <%= if length(post.tags || []) > 0 do %>
+                  <div class="flex items-center gap-2 mt-2 flex-wrap">
+                    <%= for tag <- post.tags do %>
+                      <span class="px-2 py-0.5 bg-slate-700/50 border border-slate-600/30 text-slate-400 text-xs rounded-full">#<%= to_string(tag) %></span>
+                    <% end %>
+                  </div>
+                <% end %>
+                <%= if post.transaction_hash do %>
+                  <div class="mt-2 text-slate-600 text-xs font-mono">Tx: <%= truncate_key(post.transaction_hash) %></div>
+                <% end %>
+              </div>
+            <% end %>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+
+    <%= if @active_tab == "implicit_accounts" do %>
+      <div class="bg-slate-900/60 border border-slate-800 rounded-3xl p-6">
+        <div class="flex items-center justify-between mb-5">
+          <h3 class="text-white font-bold text-lg">Implicit Accounts</h3>
+          <div class="flex items-center gap-3">
+            <button phx-click="refresh_implicit_accounts" class="text-slate-400 hover:text-white text-xs transition-colors">↻ Refresh</button>
+            <.link navigate={~p"/#{@locale}/near/#{wid}/implicit-accounts"} class="text-green-400 hover:text-green-300 text-xs">Full view →</.link>
+          </div>
+        </div>
+        <div class="mb-4 px-4 py-3 bg-slate-800/60 border border-slate-700 rounded-xl">
+          <p class="text-slate-400 text-xs leading-relaxed">
+            Implicit accounts are derived from a public key (64 hex characters). They must receive at least 0.001 NEAR to be activated on-chain.
+          </p>
+        </div>
+        <%= if length(@implicit_accounts) == 0 do %>
+          <div class="text-center py-16">
+            <p class="text-slate-500 text-sm">No implicit accounts found</p>
+          </div>
+        <% else %>
+          <div class="space-y-3">
+            <%= for account <- @implicit_accounts do %>
+              <div class="flex items-center justify-between p-4 bg-slate-800/50 border border-slate-700/50 rounded-2xl">
+                <div class="flex items-center gap-3 flex-1 min-w-0">
+                  <div class={"w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 #{if account.funded, do: "bg-green-500/20", else: "bg-yellow-500/20"}"}>
+                    <svg class={"w-5 h-5 #{if account.funded, do: "text-green-400", else: "text-yellow-400"}"} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                  </div>
+                  <div class="flex-1 min-w-0">
+                    <div class="flex items-center gap-2">
+                      <span class="text-white font-semibold text-xs font-mono truncate"><%= truncate_key(account.account_id) %></span>
+                      <span class={"px-2 py-0.5 rounded-full text-xs font-semibold #{if account.funded, do: "bg-green-500/10 border border-green-500/20 text-green-400", else: "bg-yellow-500/10 border border-yellow-500/20 text-yellow-400"}"}>
+                        <%= if account.funded, do: "Funded", else: "Unfunded" %>
+                      </span>
+                    </div>
+                    <div class="text-slate-600 text-xs mt-0.5">Created <%= format_datetime(account.created_at) %></div>
+                  </div>
+                </div>
+                <button
+                  onclick={"navigator.clipboard.writeText('#{to_string(account.account_id || "")}')"}
+                  class="p-2 text-slate-600 hover:text-slate-300 transition-colors flex-shrink-0 ml-2"
+                >
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                  </svg>
+                </button>
+              </div>
+            <% end %>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+
+  </div>
+</div>
+
+<%= if @show_update_label_modal do %>
+  <div class="fixed inset-0 z-50 overflow-y-auto" phx-click="close_update_label_modal">
+    <div class="flex items-center justify-center min-h-screen px-4">
+      <div class="fixed inset-0 bg-black/70 backdrop-blur-sm"></div>
+      <div
+        class="relative bg-slate-900 border border-slate-700 rounded-3xl shadow-2xl max-w-sm w-full p-8"
+        phx-click="stop_propagation"
+      >
+        <h2 class="text-xl font-bold text-white mb-5">Rename Wallet</h2>
+        <form phx-submit="save_label" phx-change="validate_label" class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-slate-300 mb-2">New Label</label>
+            <input
+              type="text"
+              name="label"
+              value={@new_label}
+              placeholder="e.g. My NEAR Wallet"
+              class="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-green-500"
+            />
+          </div>
+          <div class="flex items-center gap-3 pt-1">
+            <button type="button" phx-click="close_update_label_modal" class="flex-1 px-4 py-3 bg-slate-800 border border-slate-700 text-slate-300 font-semibold rounded-xl hover:bg-slate-700 transition-all text-sm">Cancel</button>
+            <button type="submit" class="flex-1 px-4 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white font-semibold rounded-xl text-sm">Save</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+<% end %>

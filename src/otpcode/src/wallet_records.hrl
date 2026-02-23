@@ -116,3 +116,94 @@
     last_synced,
     metadata = #{}
 }).
+
+-record(near_wallet, {
+    wallet_id,
+    user_id,
+    label,
+    account_id,
+    encrypted_private_key,
+    encryption_iv,
+    encryption_tag,
+    network,
+    created_at,
+    last_used,
+    is_primary = false,
+    metadata = #{}
+}).
+
+-record(near_transaction, {
+    tx_id,
+    wallet_id,
+    user_id,
+    transaction_hash,
+    tx_type,
+    from_account_id,
+    receiver_id,
+    amount_near,
+    contract_id,
+    method_name,
+    status,
+    actions_count,
+    error_message,
+    created_at,
+    metadata = #{}
+}).
+
+-record(near_access_key, {
+    key_id,
+    wallet_id,
+    user_id,
+    public_key,
+    key_type,
+    contract_id,
+    method_names,
+    allowance_near,
+    label,
+    created_at,
+    metadata = #{}
+}).
+
+-record(near_stake, {
+    stake_id,
+    wallet_id,
+    user_id,
+    validator_account_id,
+    validator_public_key,
+    amount_near,
+    status,
+    transaction_hash,
+    created_at,
+    unstaked_at,
+    withdrawn_at,
+    metadata = #{}
+}).
+
+-record(near_implicit_account, {
+    implicit_id,
+    wallet_id,
+    user_id,
+    account_id,
+    encrypted_private_key,
+    encryption_iv,
+    encryption_tag,
+    funded = false,
+    created_at,
+    funded_at,
+    metadata = #{}
+}).
+
+-record(near_social_post, {
+    post_id,
+    wallet_id,
+    user_id,
+    account_id,
+    contract,
+    text,
+    media_urls = [],
+    tags = [],
+    transaction_hash,
+    block_height,
+    created_at,
+    metadata = #{}
+}).

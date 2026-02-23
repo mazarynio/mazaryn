@@ -1,15 +1,17 @@
 import dotenv from "dotenv";
-import path from "path";
-
 dotenv.config();
 
 interface Config {
   nodeEnv: string;
   port: number;
   solanaRpcUrl: string;
+  nearRpcUrl: string;
+  nearFallbackRpcUrls: string[];
+  nearNetwork: string;
   encryptionKey: string;
   jwtSecret: string;
   databasePath: string;
+  nearDatabasePath: string;
   maxLoginAttempts: number;
   accountLockoutDuration: number;
   rateLimitWindowMs: number;
@@ -33,13 +35,34 @@ function validateConfig(): Config {
     throw new Error("JWT_SECRET must be at least 32 characters long");
   }
 
+  const nearNetwork = process.env.NEAR_NETWORK || "testnet";
+
+  if (!["testnet", "mainnet"].includes(nearNetwork)) {
+    throw new Error("NEAR_NETWORK must be either testnet or mainnet");
+  }
+
+  const defaultNearRpc =
+    nearNetwork === "mainnet"
+      ? "https://rpc.mainnet.near.org"
+      : "https://test.rpc.fastnear.com";
+
+  const fallbackRpcRaw = process.env.NEAR_FALLBACK_RPC_URLS ?? "";
+  const nearFallbackRpcUrls = fallbackRpcRaw
+    .split(",")
+    .map((u) => u.trim())
+    .filter(Boolean);
+
   return {
     nodeEnv: process.env.NODE_ENV || "development",
     port: parseInt(process.env.PORT || "3020", 10),
     solanaRpcUrl: process.env.SOLANA_RPC_URL || "https://api.devnet.solana.com",
+    nearRpcUrl: process.env.NEAR_RPC_URL || defaultNearRpc,
+    nearFallbackRpcUrls,
+    nearNetwork,
     encryptionKey,
     jwtSecret,
     databasePath: process.env.DATABASE_PATH || "./data/wallets.db",
+    nearDatabasePath: process.env.NEAR_DB_PATH || "./data/near-wallets.db",
     maxLoginAttempts: parseInt(process.env.MAX_LOGIN_ATTEMPTS || "5", 10),
     accountLockoutDuration: parseInt(
       process.env.ACCOUNT_LOCKOUT_DURATION || "900000",

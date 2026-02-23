@@ -259,6 +259,17 @@ defmodule MazarynWeb.Router do
       live("/wallet/:wallet_id/stake/new", WalletLive.Stake, :new)
       live("/wallet/:wallet_id/airdrop", WalletLive.Airdrop, :index)
       live("/wallet/:wallet_id/airdrop/new", WalletLive.Airdrop, :new)
+      live("/near", NearWalletLive.Index, :index)
+      live("/near/create", NearWalletLive.Create, :create)
+      live("/near/:wallet_id", NearWalletLive.Show, :show)
+      live("/near/:wallet_id/send", NearWalletLive.Send, :send)
+      live("/near/:wallet_id/transactions", NearWalletLive.Transactions, :index)
+      live("/near/:wallet_id/access-keys", NearWalletLive.AccessKeys, :index)
+      live("/near/:wallet_id/stake", NearWalletLive.Stake, :index)
+      live("/near/:wallet_id/stake/new", NearWalletLive.Stake, :new)
+      live("/near/:wallet_id/social", NearWalletLive.Social, :index)
+      live("/near/:wallet_id/social/new", NearWalletLive.Social, :new)
+      live("/near/:wallet_id/implicit-accounts", NearWalletLive.ImplicitAccounts, :index)
 
       scope "/chats" do
         live("/", ChatsLive.Index, :index)

@@ -56,6 +56,19 @@
 
       <div class="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl p-5 shadow-xl border border-slate-700/50">
         <div class="flex items-center justify-between mb-3">
+          <span class="text-slate-400 text-sm font-medium">NEAR Wallets</span>
+          <div class="w-8 h-8 bg-green-500/20 rounded-lg flex items-center justify-center">
+            <svg class="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+            </svg>
+          </div>
+        </div>
+        <div class="text-3xl font-bold text-white"><%= length(@near_wallets) %></div>
+        <div class="text-slate-400 text-xs mt-1">Active wallets</div>
+      </div>
+
+      <div class="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl p-5 shadow-xl border border-slate-700/50">
+        <div class="flex items-center justify-between mb-3">
           <span class="text-slate-400 text-sm font-medium">Transactions</span>
           <div class="w-8 h-8 bg-blue-500/20 rounded-lg flex items-center justify-center">
             <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -65,19 +78,6 @@
         </div>
         <div class="text-3xl font-bold text-white">0</div>
         <div class="text-slate-400 text-xs mt-1">Total transactions</div>
-      </div>
-
-      <div class="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl p-5 shadow-xl border border-slate-700/50">
-        <div class="flex items-center justify-between mb-3">
-          <span class="text-slate-400 text-sm font-medium">NFTs Owned</span>
-          <div class="w-8 h-8 bg-pink-500/20 rounded-lg flex items-center justify-center">
-            <svg class="w-4 h-4 text-pink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-            </svg>
-          </div>
-        </div>
-        <div class="text-3xl font-bold text-white">0</div>
-        <div class="text-slate-400 text-xs mt-1">Across collections</div>
       </div>
     </div>
 
@@ -90,6 +90,16 @@
         <div class="flex items-center gap-2">
           <div class="w-4 h-4 rounded-full bg-gradient-to-br from-purple-400 to-indigo-500"></div>
           Solana
+        </div>
+      </button>
+      <button
+        phx-click="switch_wallet_tab"
+        phx-value-tab="near"
+        class={"px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 #{if @active_wallet_tab == "near", do: "bg-gradient-to-r from-green-600 to-emerald-600 text-white shadow-lg shadow-green-900/40", else: "text-slate-400 hover:text-white"}"}
+      >
+        <div class="flex items-center gap-2">
+          <div class="w-4 h-4 rounded-full bg-gradient-to-br from-green-400 to-emerald-500"></div>
+          NEAR
         </div>
       </button>
       <button
@@ -242,7 +252,6 @@
                   </svg>
                   Details
                 </.link>
-
                 <.link
                   navigate={~p"/#{@locale}/wallet/#{wid}/send"}
                   class="flex items-center gap-1.5 px-3.5 py-2 bg-white/10 hover:bg-white/15 rounded-xl text-white text-xs font-semibold transition-all"
@@ -252,17 +261,15 @@
                   </svg>
                   Send
                 </.link>
-
                 <.link
                   navigate={~p"/#{@locale}/wallet/#{wid}/transactions"}
-                  class="flex items-center gap-1.5 px-3.5 py-2 bg-white/10 hover:bg-white/15 rounded-xl text-white text-xs font-semibond transition-all"
+                  class="flex items-center gap-1.5 px-3.5 py-2 bg-white/10 hover:bg-white/15 rounded-xl text-white text-xs font-semibold transition-all"
                 >
                   <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                   </svg>
                   History
                 </.link>
-
                 <button
                   phx-click="open_export_modal"
                   phx-value-wallet_id={wid}
@@ -273,7 +280,6 @@
                   </svg>
                   Export Key
                 </button>
-
                 <%= if not wallet.is_primary do %>
                   <button
                     phx-click="set_primary_wallet"
@@ -286,11 +292,178 @@
                     Set Primary
                   </button>
                 <% end %>
-
                 <button
                   phx-click="delete_wallet"
                   phx-value-wallet_id={wid}
                   data-confirm="Are you sure you want to delete this wallet? This action cannot be undone."
+                  class="flex items-center gap-1.5 px-3.5 py-2 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 rounded-xl text-red-400 text-xs font-semibold transition-all"
+                >
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                  Delete
+                </button>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      <% end %>
+    <% end %>
+
+    <%= if @active_wallet_tab == "near" do %>
+      <div class="flex items-center justify-between mb-5">
+        <h2 class="text-xl font-bold text-white">Your NEAR Wallets</h2>
+        <button
+          phx-click="open_near_create_modal"
+          class="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-green-600 to-emerald-600 text-white hover:from-green-700 hover:to-emerald-700 transition-all text-sm font-semibold shadow-lg shadow-green-900/30"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+          </svg>
+          New NEAR Wallet
+        </button>
+      </div>
+
+      <%= if length(@near_wallets) == 0 do %>
+        <div class="bg-slate-900/60 border border-slate-800 rounded-3xl p-16 text-center">
+          <div class="w-20 h-20 bg-green-500/10 rounded-2xl flex items-center justify-center mx-auto mb-5">
+            <svg class="w-10 h-10 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+            </svg>
+          </div>
+          <h3 class="text-xl font-bold text-white mb-2">No NEAR Wallets Yet</h3>
+          <p class="text-slate-400 max-w-sm mx-auto mb-6 text-sm leading-relaxed">
+            Create your first NEAR wallet to start managing NEAR tokens, staking with validators, and posting to the NEAR Social network.
+          </p>
+          <button
+            phx-click="open_near_create_modal"
+            class="flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-green-600 to-emerald-600 text-white font-semibold text-sm hover:from-green-700 hover:to-emerald-700 transition-all shadow-lg shadow-green-900/30 mx-auto"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            </svg>
+            Create NEAR Wallet
+          </button>
+        </div>
+      <% else %>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+          <%= for wallet <- @near_wallets do %>
+            <%
+              aid = to_string(wallet.account_id || "")
+              wid = to_string(wallet.wallet_id  || "")
+              lbl = to_string(wallet.label      || "NEAR Wallet")
+              net = to_string(wallet.network    || "testnet")
+              aid_short = if String.length(aid) > 24,
+                do: String.slice(aid, 0, 12) <> "...." <> String.slice(aid, -8, 8),
+                else: aid
+            %>
+            <div class={"relative overflow-hidden rounded-3xl p-6 shadow-xl transition-all duration-300 hover:-translate-y-1 #{if wallet.is_primary, do: "bg-gradient-to-br from-green-900/80 via-emerald-900/80 to-slate-900/80 border border-green-500/40", else: "bg-slate-900/60 border border-slate-800 hover:border-slate-700"}"}>
+              <%= if wallet.is_primary do %>
+                <div class="absolute top-4 right-4">
+                  <span class="px-2.5 py-1 bg-green-500/20 border border-green-500/30 text-green-300 text-xs font-semibold rounded-full">
+                    Primary
+                  </span>
+                </div>
+              <% end %>
+
+              <div class="flex items-start gap-4 mb-5">
+                <div class={"w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 #{if wallet.is_primary, do: "bg-gradient-to-br from-green-500 to-emerald-600 shadow-lg shadow-green-900/50", else: "bg-slate-800"}"}>
+                  <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                  </svg>
+                </div>
+                <div class="flex-1 min-w-0">
+                  <h3 class="text-white font-bold text-lg leading-tight"><%= lbl %></h3>
+                  <div class="flex items-center gap-2 mt-1">
+                    <span class="text-slate-400 text-xs font-mono truncate"><%= aid_short %></span>
+                    <button
+                      class="text-slate-500 hover:text-slate-300 transition-colors flex-shrink-0"
+                      onclick={"navigator.clipboard.writeText('#{aid}')"}
+                    >
+                      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                      </svg>
+                    </button>
+                  </div>
+                  <div class="mt-1">
+                    <span class={"px-2 py-0.5 rounded-full text-xs font-semibold #{if net == "mainnet", do: "bg-green-500/20 border border-green-500/30 text-green-300", else: "bg-yellow-500/20 border border-yellow-500/30 text-yellow-300"}"}>
+                      <%= net %>
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="mb-5">
+                <div class="text-slate-500 text-xs font-medium mb-1">NEAR Balance</div>
+                <div class="text-3xl font-bold text-white">
+                  0.000 <span class="text-lg text-slate-400 font-semibold">NEAR</span>
+                </div>
+                <div class="text-slate-500 text-xs mt-0.5">≈ $0.00 USD</div>
+              </div>
+
+              <div class="flex items-center gap-2 flex-wrap">
+                <.link
+                  navigate={~p"/#{@locale}/near/#{wid}"}
+                  class="flex items-center gap-1.5 px-3.5 py-2 bg-white/10 hover:bg-white/15 rounded-xl text-white text-xs font-semibold transition-all"
+                >
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                  </svg>
+                  Details
+                </.link>
+                <.link
+                  navigate={~p"/#{@locale}/near/#{wid}/send"}
+                  class="flex items-center gap-1.5 px-3.5 py-2 bg-white/10 hover:bg-white/15 rounded-xl text-white text-xs font-semibold transition-all"
+                >
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                  </svg>
+                  Send
+                </.link>
+                <.link
+                  navigate={~p"/#{@locale}/near/#{wid}/transactions"}
+                  class="flex items-center gap-1.5 px-3.5 py-2 bg-white/10 hover:bg-white/15 rounded-xl text-white text-xs font-semibold transition-all"
+                >
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                  </svg>
+                  History
+                </.link>
+                <.link
+                  navigate={~p"/#{@locale}/near/#{wid}/stake"}
+                  class="flex items-center gap-1.5 px-3.5 py-2 bg-white/10 hover:bg-white/15 rounded-xl text-white text-xs font-semibold transition-all"
+                >
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+                  </svg>
+                  Stake
+                </.link>
+                <.link
+                  navigate={~p"/#{@locale}/near/#{wid}/social"}
+                  class="flex items-center gap-1.5 px-3.5 py-2 bg-white/10 hover:bg-white/15 rounded-xl text-white text-xs font-semibold transition-all"
+                >
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+                  </svg>
+                  Social
+                </.link>
+                <%= if not wallet.is_primary do %>
+                  <button
+                    phx-click="set_near_primary_wallet"
+                    phx-value-wallet_id={wid}
+                    class="flex items-center gap-1.5 px-3.5 py-2 bg-green-500/20 hover:bg-green-500/30 border border-green-500/30 rounded-xl text-green-300 text-xs font-semibold transition-all"
+                  >
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3l14 9-14 9V3z" />
+                    </svg>
+                    Set Primary
+                  </button>
+                <% end %>
+                <button
+                  phx-click="delete_near_wallet"
+                  phx-value-wallet_id={wid}
+                  data-confirm="Are you sure you want to delete this NEAR wallet? This action cannot be undone."
                   class="flex items-center gap-1.5 px-3.5 py-2 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 rounded-xl text-red-400 text-xs font-semibold transition-all"
                 >
                   <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -401,7 +574,6 @@
               <p class="mt-1.5 text-red-400 text-xs"><%= @form_errors.label %></p>
             <% end %>
           </div>
-
           <div>
             <label class="block text-sm font-medium text-slate-300 mb-2">Encryption Password</label>
             <input
@@ -418,7 +590,6 @@
               This password encrypts your private key. Store it safely — it cannot be recovered.
             </p>
           </div>
-
           <div class="flex items-center gap-3 pt-2">
             <button
               type="button"
@@ -549,6 +720,136 @@
             </div>
           </form>
         <% end %>
+      </div>
+    </div>
+  </div>
+<% end %>
+
+<%= if @show_near_create_modal do %>
+  <div class="fixed inset-0 z-50 overflow-y-auto" phx-click="close_near_create_modal">
+    <div class="flex items-center justify-center min-h-screen px-4">
+      <div class="fixed inset-0 bg-black/70 backdrop-blur-sm"></div>
+      <div
+        class="relative bg-slate-900 border border-slate-700 rounded-3xl shadow-2xl max-w-md w-full p-8"
+        phx-click="stop_propagation"
+      >
+        <div class="flex items-center gap-3 mb-6">
+          <div class="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center">
+            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            </svg>
+          </div>
+          <div>
+            <h2 class="text-xl font-bold text-white">Create NEAR Wallet</h2>
+            <p class="text-slate-400 text-sm">Register a human-readable account ID</p>
+          </div>
+          <button
+            phx-click="close_near_create_modal"
+            class="ml-auto p-2 text-slate-500 hover:text-slate-300 hover:bg-slate-800 rounded-xl transition-colors"
+          >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        <%= if Map.get(@form_errors, :general) do %>
+          <div class="mb-4 px-4 py-3 bg-red-500/10 border border-red-500/20 rounded-xl">
+            <p class="text-red-400 text-sm"><%= @form_errors.general %></p>
+          </div>
+        <% end %>
+
+        <form phx-submit="create_near_wallet" phx-change="validate_near_create" class="space-y-5">
+          <div>
+            <label class="block text-sm font-medium text-slate-300 mb-2">Account ID</label>
+            <input
+              type="text"
+              name="account_id"
+              value={@near_create_account_id}
+              placeholder="e.g. alice.near or alice.testnet"
+              class={"w-full px-4 py-3 bg-slate-800 border rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-green-500 transition-all font-mono text-sm #{if Map.get(@form_errors, :account_id), do: "border-red-500", else: "border-slate-700"}"}
+            />
+            <%= if Map.get(@form_errors, :account_id) do %>
+              <p class="mt-1.5 text-red-400 text-xs"><%= @form_errors.account_id %></p>
+            <% end %>
+            <p class="mt-2 text-slate-500 text-xs leading-relaxed">
+              Use <span class="text-slate-400 font-mono">yourname.near</span> for mainnet or <span class="text-slate-400 font-mono">yourname.testnet</span> for testnet.
+            </p>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-slate-300 mb-2">Wallet Label</label>
+            <input
+              type="text"
+              name="label"
+              value={@near_create_label}
+              placeholder="e.g. My NEAR Wallet"
+              class={"w-full px-4 py-3 bg-slate-800 border rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-green-500 transition-all #{if Map.get(@form_errors, :label), do: "border-red-500", else: "border-slate-700"}"}
+            />
+            <%= if Map.get(@form_errors, :label) do %>
+              <p class="mt-1.5 text-red-400 text-xs"><%= @form_errors.label %></p>
+            <% end %>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-slate-300 mb-2">Network</label>
+            <div class="flex items-center gap-3">
+              <label class={"flex-1 flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all #{if @near_create_network == "testnet", do: "bg-yellow-500/10 border-yellow-500/30", else: "bg-slate-800 border-slate-700 hover:border-slate-600"}"}>
+                <input
+                  type="radio"
+                  name="network"
+                  value="testnet"
+                  checked={@near_create_network == "testnet"}
+                  class="accent-yellow-500"
+                />
+                <div>
+                  <div class="text-white text-sm font-semibold">Testnet</div>
+                  <div class="text-slate-500 text-xs">For development & testing</div>
+                </div>
+              </label>
+              <label class={"flex-1 flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all #{if @near_create_network == "mainnet", do: "bg-green-500/10 border-green-500/30", else: "bg-slate-800 border-slate-700 hover:border-slate-600"}"}>
+                <input
+                  type="radio"
+                  name="network"
+                  value="mainnet"
+                  checked={@near_create_network == "mainnet"}
+                  class="accent-green-500"
+                />
+                <div>
+                  <div class="text-white text-sm font-semibold">Mainnet</div>
+                  <div class="text-slate-500 text-xs">Live NEAR network</div>
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-3 pt-2">
+            <button
+              type="button"
+              phx-click="close_near_create_modal"
+              class="flex-1 px-4 py-3 bg-slate-800 border border-slate-700 text-slate-300 font-semibold rounded-xl hover:bg-slate-700 transition-all text-sm"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={@near_creating}
+              class="flex-1 px-4 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white font-semibold rounded-xl hover:from-green-700 hover:to-emerald-700 transition-all text-sm shadow-lg shadow-green-900/30 disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              <%= if @near_creating do %>
+                <span class="flex items-center justify-center gap-2">
+                  <svg class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                  </svg>
+                  Creating...
+                </span>
+              <% else %>
+                Create NEAR Wallet
+              <% end %>
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   </div>

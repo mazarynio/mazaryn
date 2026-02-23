@@ -249,3 +249,12 @@
     type => worker,
     modules => [solana_wallet_server]
 }).
+
+-define(NEAR_WALLET_SERVER, #{
+    id => near_wallet_server,
+    start => {near_wallet_server, start_link, []},
+    restart => permanent,
+    shutdown => 5000,
+    type => worker,
+    modules => [near_wallet_server]
+}).

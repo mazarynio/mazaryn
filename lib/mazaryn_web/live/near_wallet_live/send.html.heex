@@ -1,0 +1,320 @@
+<.live_component
+  module={MazarynWeb.HomeLive.NavComponent}
+  id="navigation"
+  user={@current_user}
+  search=""
+  locale={@locale}
+/>
+
+<div class="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-emerald-950">
+  <div class="max-w-2xl mx-auto px-6 py-10">
+
+    <div class="flex items-center gap-3 mb-8">
+      <.link
+        navigate={~p"/#{@locale}/near/#{@wallet_id}"}
+        class="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white transition-all text-sm font-medium"
+      >
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+        </svg>
+        Back to Wallet
+      </.link>
+    </div>
+
+    <div class="flex items-center gap-4 mb-8">
+      <div class="flex items-center gap-2">
+        <div class={"w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold #{if @step == "form", do: "bg-gradient-to-br from-green-500 to-emerald-600 text-white", else: "bg-slate-700 text-slate-400"}"}>1</div>
+        <span class={"text-sm font-medium #{if @step == "form", do: "text-white", else: "text-slate-500"}"}>Details</span>
+      </div>
+      <div class="flex-1 h-px bg-slate-800"></div>
+      <div class="flex items-center gap-2">
+        <div class={"w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold #{if @step == "confirm", do: "bg-gradient-to-br from-green-500 to-emerald-600 text-white", else: "bg-slate-700 text-slate-400"}"}>2</div>
+        <span class={"text-sm font-medium #{if @step == "confirm", do: "text-white", else: "text-slate-500"}"}>Confirm</span>
+      </div>
+      <div class="flex-1 h-px bg-slate-800"></div>
+      <div class="flex items-center gap-2">
+        <div class={"w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold #{if @step in ["success", "error"], do: "bg-gradient-to-br from-green-500 to-emerald-600 text-white", else: "bg-slate-700 text-slate-400"}"}>3</div>
+        <span class={"text-sm font-medium #{if @step in ["success", "error"], do: "text-white", else: "text-slate-500"}"}>Done</span>
+      </div>
+    </div>
+
+    <%
+      aid     = to_string(@wallet.account_id || "")
+      lbl     = to_string(@wallet.label      || "NEAR Wallet")
+      net     = to_string(@wallet.network    || "testnet")
+      aid_short = if String.length(aid) > 20,
+                    do: String.slice(aid, 0, 12) <> "...",
+                    else: aid
+    %>
+
+    <%= if @step == "form" do %>
+      <div class="bg-slate-900/60 border border-slate-800 rounded-3xl p-8">
+        <div class="flex items-center gap-3 mb-6">
+          <div class="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center">
+            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+            </svg>
+          </div>
+          <div>
+            <h1 class="text-xl font-bold text-white">Send NEAR</h1>
+            <p class="text-slate-400 text-sm">
+              From: <span class="font-mono"><%= aid_short %></span>
+              <span class={"ml-2 px-1.5 py-0.5 rounded text-xs font-semibold #{if net == "mainnet", do: "bg-green-500/20 text-green-300", else: "bg-yellow-500/20 text-yellow-300"}"}>
+                <%= net %>
+              </span>
+            </p>
+          </div>
+        </div>
+
+        <div class="mb-5 flex items-center gap-2 flex-wrap">
+          <%= for {type, label} <- [{"transfer", "Transfer"}, {"function_call", "Contract Call"}, {"stake", "Stake"}] do %>
+            <button
+              phx-click="update_tx_type"
+              phx-value-type={type}
+              class={"px-3 py-1.5 rounded-xl text-xs font-semibold transition-all #{if @tx_type == type, do: "bg-green-600 text-white", else: "bg-slate-800 border border-slate-700 text-slate-400 hover:text-white"}"}
+            >
+              <%= label %>
+            </button>
+          <% end %>
+        </div>
+
+        <form phx-submit="preview" phx-change="validate" class="space-y-5">
+          <div>
+            <label class="block text-sm font-medium text-slate-300 mb-2">Receiver Account ID</label>
+            <input
+              type="text"
+              name="receiver_id"
+              value={@receiver_id}
+              placeholder="e.g. alice.near or alice.testnet"
+              class={"w-full px-4 py-3 bg-slate-800 border rounded-xl text-white placeholder-slate-500 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-green-500 transition-all #{if Map.get(@form_errors, :receiver_id), do: "border-red-500", else: "border-slate-700"}"}
+            />
+            <%= if Map.get(@form_errors, :receiver_id) do %>
+              <p class="mt-1.5 text-red-400 text-xs"><%= @form_errors.receiver_id %></p>
+            <% end %>
+            <p class="mt-1.5 text-slate-600 text-xs">Named account (alice.near) or 64-character implicit account</p>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-slate-300 mb-2">Amount (NEAR)</label>
+            <div class="relative">
+              <input
+                type="text"
+                name="amount"
+                value={@amount}
+                placeholder="0.00"
+                class={"w-full px-4 py-3 bg-slate-800 border rounded-xl text-white placeholder-slate-500 text-lg font-bold focus:outline-none focus:ring-2 focus:ring-green-500 transition-all pr-20 #{if Map.get(@form_errors, :amount), do: "border-red-500", else: "border-slate-700"}"}
+              />
+              <span class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 font-semibold text-sm">NEAR</span>
+            </div>
+            <%= if Map.get(@form_errors, :amount) do %>
+              <p class="mt-1.5 text-red-400 text-xs"><%= @form_errors.amount %></p>
+            <% end %>
+            <div class="flex gap-2 mt-2">
+              <%= for amt <- ["0.1", "1", "5", "10"] do %>
+                <button
+                  type="button"
+                  phx-click="update_amount"
+                  phx-value-amount={amt}
+                  class="px-3 py-1.5 bg-slate-800 border border-slate-700 rounded-lg text-slate-300 text-xs font-semibold hover:bg-slate-700 hover:text-white transition-all"
+                >
+                  <%= amt %>
+                </button>
+              <% end %>
+            </div>
+          </div>
+
+          <%= if @tx_type == "function_call" do %>
+            <div class="p-4 bg-slate-800/60 border border-slate-700 rounded-2xl space-y-4">
+              <div class="text-slate-400 text-xs font-semibold uppercase tracking-wide">Contract Call Options</div>
+              <div>
+                <label class="block text-sm font-medium text-slate-300 mb-2">Method Name</label>
+                <input
+                  type="text"
+                  name="method_name"
+                  placeholder="e.g. ft_transfer"
+                  class="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white placeholder-slate-500 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                />
+              </div>
+            </div>
+          <% end %>
+
+          <div>
+            <label class="block text-sm font-medium text-slate-300 mb-2">Memo <span class="text-slate-600 font-normal">(optional)</span></label>
+            <input
+              type="text"
+              name="memo"
+              value={@memo}
+              placeholder="Add a note..."
+              class="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 transition-all"
+            />
+          </div>
+
+          <input type="hidden" name="tx_type" value={@tx_type} />
+
+          <button
+            type="submit"
+            class="w-full px-4 py-3.5 bg-gradient-to-r from-green-600 to-emerald-600 text-white font-bold rounded-xl hover:from-green-700 hover:to-emerald-700 transition-all shadow-lg shadow-green-900/30 text-sm"
+          >
+            Preview Transaction →
+          </button>
+        </form>
+      </div>
+    <% end %>
+
+    <%= if @step == "confirm" do %>
+      <div class="bg-slate-900/60 border border-slate-800 rounded-3xl p-8">
+        <h2 class="text-xl font-bold text-white mb-6">Confirm Transaction</h2>
+
+        <div class="space-y-3 mb-6">
+          <div class="bg-slate-800/60 border border-slate-700 rounded-2xl p-4">
+            <div class="text-slate-500 text-xs mb-1">From</div>
+            <div class="text-white text-sm font-mono break-all"><%= aid %></div>
+            <div class="text-slate-400 text-xs mt-0.5"><%= lbl %></div>
+          </div>
+
+          <div class="flex justify-center">
+            <div class="w-8 h-8 bg-slate-800 border border-slate-700 rounded-full flex items-center justify-center">
+              <svg class="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+              </svg>
+            </div>
+          </div>
+
+          <div class="bg-slate-800/60 border border-slate-700 rounded-2xl p-4">
+            <div class="text-slate-500 text-xs mb-1">To</div>
+            <div class="text-white text-sm font-mono break-all"><%= @receiver_id %></div>
+          </div>
+
+          <div class="bg-green-900/20 border border-green-500/20 rounded-2xl p-4">
+            <div class="flex items-center justify-between">
+              <div>
+                <div class="text-slate-400 text-xs mb-1">Amount</div>
+                <div class="text-3xl font-bold text-white"><%= @amount %> <span class="text-lg text-slate-400">NEAR</span></div>
+              </div>
+              <div class="text-right">
+                <div class="text-slate-400 text-xs mb-1">Type</div>
+                <div class="px-3 py-1 bg-green-500/20 border border-green-500/30 text-green-300 rounded-full text-xs font-semibold capitalize"><%= String.replace(@tx_type, "_", " ") %></div>
+              </div>
+            </div>
+            <%= if @memo != "" do %>
+              <div class="mt-3 pt-3 border-t border-green-500/20">
+                <div class="text-slate-500 text-xs mb-0.5">Memo</div>
+                <div class="text-slate-300 text-sm"><%= @memo %></div>
+              </div>
+            <% end %>
+          </div>
+
+          <div class="bg-slate-800/60 border border-slate-700 rounded-2xl p-4">
+            <div class="text-slate-500 text-xs mb-1">Network</div>
+            <span class={"px-2.5 py-1 rounded-full text-xs font-semibold #{if net == "mainnet", do: "bg-green-500/20 border border-green-500/30 text-green-300", else: "bg-yellow-500/20 border border-yellow-500/30 text-yellow-300"}"}>
+              <%= net %>
+            </span>
+          </div>
+        </div>
+
+        <div class="mb-4 px-4 py-3 bg-amber-500/10 border border-amber-500/20 rounded-xl">
+          <div class="flex items-start gap-2">
+            <svg class="w-4 h-4 text-amber-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+            <p class="text-amber-300 text-xs leading-relaxed">
+              This transaction cannot be reversed once submitted. Please double-check the receiver account ID.
+            </p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <button
+            type="button"
+            phx-click="back_to_form"
+            class="flex-1 px-4 py-3 bg-slate-800 border border-slate-700 text-slate-300 font-semibold rounded-xl hover:bg-slate-700 transition-all text-sm"
+          >
+            ← Back
+          </button>
+          <button
+            type="button"
+            phx-click="confirm_send"
+            disabled={@submitting}
+            class="flex-2 flex-grow px-4 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white font-bold rounded-xl hover:from-green-700 hover:to-emerald-700 transition-all text-sm shadow-lg shadow-green-900/30 disabled:opacity-60 disabled:cursor-not-allowed"
+          >
+            <%= if @submitting do %>
+              <span class="flex items-center justify-center gap-2">
+                <svg class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                </svg>
+                Sending...
+              </span>
+            <% else %>
+              Send <%= @amount %> NEAR
+            <% end %>
+          </button>
+        </div>
+      </div>
+    <% end %>
+
+    <%= if @step == "success" do %>
+      <div class="bg-slate-900/60 border border-green-500/20 rounded-3xl p-8 text-center">
+        <div class="w-16 h-16 bg-green-500/10 rounded-2xl flex items-center justify-center mx-auto mb-5">
+          <svg class="w-8 h-8 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+          </svg>
+        </div>
+        <h2 class="text-2xl font-bold text-white mb-2">Transaction Sent!</h2>
+        <p class="text-slate-400 text-sm mb-6">Your transaction has been submitted to the NEAR network.</p>
+
+        <%= if @tx_result do %>
+          <div class="bg-slate-800/60 border border-slate-700 rounded-2xl p-4 mb-6 text-left">
+            <div class="text-slate-500 text-xs mb-1">Transaction ID</div>
+            <div class="text-green-400 text-xs font-mono break-all"><%= to_string(@tx_result) %></div>
+          </div>
+        <% end %>
+
+        <div class="flex items-center justify-center gap-3">
+          <button
+            phx-click="send_another"
+            class="px-5 py-2.5 bg-slate-800 border border-slate-700 text-slate-300 rounded-xl text-sm font-semibold hover:bg-slate-700 transition-all"
+          >
+            Send Another
+          </button>
+          <.link
+            navigate={~p"/#{@locale}/near/#{@wallet_id}/transactions"}
+            class="px-5 py-2.5 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl text-sm font-semibold"
+          >
+            View Transactions
+          </.link>
+        </div>
+      </div>
+    <% end %>
+
+    <%= if @step == "error" do %>
+      <div class="bg-slate-900/60 border border-red-500/20 rounded-3xl p-8 text-center">
+        <div class="w-16 h-16 bg-red-500/10 rounded-2xl flex items-center justify-center mx-auto mb-5">
+          <svg class="w-8 h-8 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </div>
+        <h2 class="text-2xl font-bold text-white mb-2">Transaction Failed</h2>
+        <p class="text-slate-400 text-sm mb-6">
+          <%= if @tx_result, do: to_string(@tx_result), else: "An error occurred while sending the transaction." %>
+        </p>
+
+        <div class="flex items-center justify-center gap-3">
+          <button
+            phx-click="back_to_form"
+            class="px-5 py-2.5 bg-slate-800 border border-slate-700 text-slate-300 rounded-xl text-sm font-semibold hover:bg-slate-700 transition-all"
+          >
+            Try Again
+          </button>
+          <.link
+            navigate={~p"/#{@locale}/near/#{@wallet_id}"}
+            class="px-5 py-2.5 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl text-sm font-semibold"
+          >
+            Back to Wallet
+          </.link>
+        </div>
+      </div>
+    <% end %>
+
+  </div>
+</div>

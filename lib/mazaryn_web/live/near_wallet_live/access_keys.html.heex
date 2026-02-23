@@ -1,0 +1,292 @@
+<.live_component
+  module={MazarynWeb.HomeLive.NavComponent}
+  id="navigation"
+  user={@current_user}
+  search=""
+  locale={@locale}
+/>
+
+<div class="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-blue-950">
+  <div class="max-w-7xl mx-auto px-6 py-10">
+
+    <div class="flex items-center gap-3 mb-8">
+      <.link
+        navigate={~p"/#{@locale}/near/#{@wallet_id}"}
+        class="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white transition-all text-sm font-medium"
+      >
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+        </svg>
+        Back to Wallet
+      </.link>
+      <svg class="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+      </svg>
+      <span class="text-slate-400 text-sm">Access Keys</span>
+    </div>
+
+    <div class="flex items-center justify-between mb-6">
+      <div>
+        <h1 class="text-3xl font-bold text-white">Access Keys</h1>
+        <p class="text-slate-400 text-sm mt-1">
+          <%= to_string(@wallet.label || "Wallet") %> · <%= to_string(@wallet.account_id || "") %>
+        </p>
+      </div>
+      <div class="flex items-center gap-3">
+        <button phx-click="refresh" class="flex items-center gap-2 px-4 py-2.5 bg-slate-800 border border-slate-700 text-slate-300 rounded-xl hover:bg-slate-700 hover:text-white transition-all text-sm font-medium">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
+          Refresh
+        </button>
+        <button phx-click="open_add_key_modal" class="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all text-sm font-semibold shadow-lg shadow-blue-900/30">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+          </svg>
+          Add Key
+        </button>
+      </div>
+    </div>
+
+    <div class="mb-6 px-5 py-4 bg-blue-500/10 border border-blue-500/20 rounded-2xl">
+      <div class="flex items-start gap-3">
+        <svg class="w-5 h-5 text-blue-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <div>
+          <div class="text-blue-300 text-sm font-semibold mb-1">About Access Keys</div>
+          <p class="text-blue-300/70 text-xs leading-relaxed">
+            <strong class="text-red-400">Full Access</strong> keys have complete control of your account including transferring funds and deleting the account.
+            <strong class="text-blue-400">Function Call</strong> keys are scoped to specific contracts and methods with an optional NEAR allowance.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-slate-900/60 border border-slate-800 rounded-3xl p-6">
+      <h2 class="text-white font-bold text-lg mb-5">Key List (<%= length(@access_keys) %>)</h2>
+
+      <%= if length(@access_keys) == 0 do %>
+        <div class="text-center py-20">
+          <div class="w-20 h-20 bg-blue-500/10 rounded-2xl flex items-center justify-center mx-auto mb-5">
+            <svg class="w-10 h-10 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+            </svg>
+          </div>
+          <h3 class="text-xl font-bold text-white mb-2">No Access Keys</h3>
+          <p class="text-slate-400 max-w-sm mx-auto mb-6 text-sm leading-relaxed">
+            No access keys have been registered for this wallet yet.
+          </p>
+          <button phx-click="open_add_key_modal" class="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-xl text-sm">
+            Add Access Key
+          </button>
+        </div>
+      <% else %>
+        <div class="space-y-3">
+          <%= for key <- @access_keys do %>
+            <div
+              class="group flex items-center gap-4 p-5 bg-slate-800/50 border border-slate-700 rounded-2xl hover:border-blue-500/30 transition-all cursor-pointer"
+              phx-click="select_key"
+              phx-value-key_id={to_string(key.key_id)}
+            >
+              <div class="w-12 h-12 bg-slate-700 rounded-2xl flex items-center justify-center flex-shrink-0">
+                <svg class="w-6 h-6 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                </svg>
+              </div>
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-2 flex-wrap">
+                  <span class="text-white font-mono text-sm font-semibold"><%= truncate_key(key.public_key) %></span>
+                  <span class={"px-2 py-0.5 rounded-full text-xs font-semibold #{key_type_class(to_string(key.key_type || ""))}"}>
+                    <%= to_string(key.key_type || "Unknown") %>
+                  </span>
+                </div>
+                <%= if key.label do %>
+                  <div class="text-slate-500 text-xs mt-0.5"><%= to_string(key.label) %></div>
+                <% end %>
+                <%= if key.contract_id do %>
+                  <div class="text-slate-600 text-xs mt-0.5 font-mono">Contract: <%= to_string(key.contract_id) %></div>
+                <% end %>
+                <div class="text-slate-700 text-xs mt-0.5">Added <%= format_datetime(key.created_at) %></div>
+              </div>
+              <div class="text-right flex-shrink-0">
+                <%= if key.allowance_near do %>
+                  <div class="text-white text-sm font-bold"><%= to_string(key.allowance_near) %> NEAR</div>
+                  <div class="text-slate-500 text-xs">Allowance</div>
+                <% end %>
+              </div>
+              <svg class="w-4 h-4 text-slate-600 group-hover:text-slate-400 transition-colors flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+              </svg>
+            </div>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+
+  </div>
+</div>
+
+<%= if @show_add_key_modal do %>
+  <div class="fixed inset-0 z-50 overflow-y-auto" phx-click="close_add_key_modal">
+    <div class="flex items-center justify-center min-h-screen px-4">
+      <div class="fixed inset-0 bg-black/70 backdrop-blur-sm"></div>
+      <div class="relative bg-slate-900 border border-slate-700 rounded-3xl shadow-2xl max-w-md w-full p-8" phx-click="stop_propagation">
+        <div class="flex items-center gap-3 mb-6">
+          <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center">
+            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            </svg>
+          </div>
+          <div>
+            <h2 class="text-xl font-bold text-white">Add Access Key</h2>
+            <p class="text-slate-400 text-sm">Register a new key for this account</p>
+          </div>
+          <button phx-click="close_add_key_modal" class="ml-auto p-2 text-slate-500 hover:text-slate-300 hover:bg-slate-800 rounded-xl transition-colors">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        <%= if Map.get(@form_errors, :general) do %>
+          <div class="mb-4 px-4 py-3 bg-red-500/10 border border-red-500/20 rounded-xl">
+            <p class="text-red-400 text-sm"><%= @form_errors.general %></p>
+          </div>
+        <% end %>
+
+        <form phx-submit="add_key" phx-change="validate_key" class="space-y-5">
+          <div>
+            <label class="block text-sm font-medium text-slate-300 mb-2">Public Key (ed25519)</label>
+            <input type="text" name="public_key" value={@new_key_public_key} placeholder="ed25519:..." class={"w-full px-4 py-3 bg-slate-800 border rounded-xl text-white placeholder-slate-500 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all #{if Map.get(@form_errors, :public_key), do: "border-red-500", else: "border-slate-700"}"} />
+            <%= if Map.get(@form_errors, :public_key) do %>
+              <p class="mt-1.5 text-red-400 text-xs"><%= @form_errors.public_key %></p>
+            <% end %>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-slate-300 mb-2">Label <span class="text-slate-600 font-normal">(optional)</span></label>
+            <input type="text" name="label" value={@new_key_label} placeholder="e.g. Mobile App Key" class="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-slate-300 mb-2">Key Type</label>
+            <div class="flex gap-3">
+              <label class={"flex-1 flex items-center gap-2 p-3 rounded-xl border cursor-pointer transition-all #{if @new_key_type == "FunctionCall", do: "bg-blue-500/10 border-blue-500/30", else: "bg-slate-800 border-slate-700"}"}>
+                <input type="radio" name="key_type" value="FunctionCall" checked={@new_key_type == "FunctionCall"} class="accent-blue-500" />
+                <div>
+                  <div class="text-white text-sm font-semibold">Function Call</div>
+                  <div class="text-slate-500 text-xs">Scoped to contract</div>
+                </div>
+              </label>
+              <label class={"flex-1 flex items-center gap-2 p-3 rounded-xl border cursor-pointer transition-all #{if @new_key_type == "FullAccess", do: "bg-red-500/10 border-red-500/30", else: "bg-slate-800 border-slate-700"}"}>
+                <input type="radio" name="key_type" value="FullAccess" checked={@new_key_type == "FullAccess"} class="accent-red-500" />
+                <div>
+                  <div class="text-red-400 text-sm font-semibold">Full Access</div>
+                  <div class="text-slate-500 text-xs">Dangerous</div>
+                </div>
+              </label>
+            </div>
+          </div>
+          <%= if @new_key_type == "FunctionCall" do %>
+            <div>
+              <label class="block text-sm font-medium text-slate-300 mb-2">Contract ID</label>
+              <input type="text" name="contract_id" value={@new_key_contract_id} placeholder="e.g. app.example.near" class={"w-full px-4 py-3 bg-slate-800 border rounded-xl text-white placeholder-slate-500 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all #{if Map.get(@form_errors, :contract_id), do: "border-red-500", else: "border-slate-700"}"} />
+              <%= if Map.get(@form_errors, :contract_id) do %>
+                <p class="mt-1.5 text-red-400 text-xs"><%= @form_errors.contract_id %></p>
+              <% end %>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-slate-300 mb-2">Allowance (NEAR) <span class="text-slate-600 font-normal">(optional)</span></label>
+              <input type="text" name="allowance" value={@new_key_allowance} placeholder="e.g. 0.25" class="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all" />
+            </div>
+          <% else %>
+            <input type="hidden" name="contract_id" value="" />
+            <input type="hidden" name="allowance" value="" />
+            <div class="px-4 py-3 bg-red-500/10 border border-red-500/20 rounded-xl">
+              <p class="text-red-400 text-xs leading-relaxed">⚠️ Full Access keys can perform any action including transferring all funds and deleting this account. Only add trusted keys.</p>
+            </div>
+          <% end %>
+          <div class="flex items-center gap-3 pt-1">
+            <button type="button" phx-click="close_add_key_modal" class="flex-1 px-4 py-3 bg-slate-800 border border-slate-700 text-slate-300 font-semibold rounded-xl hover:bg-slate-700 transition-all text-sm">Cancel</button>
+            <button type="submit" disabled={@adding_key} class="flex-1 px-4 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all text-sm disabled:opacity-60 disabled:cursor-not-allowed">
+              <%= if @adding_key, do: "Adding...", else: "Add Key" %>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+<% end %>
+
+<%= if @selected_key do %>
+  <div class="fixed inset-0 z-50 overflow-y-auto" phx-click="close_key_modal">
+    <div class="flex items-center justify-center min-h-screen px-4">
+      <div class="fixed inset-0 bg-black/70 backdrop-blur-sm"></div>
+      <div class="relative bg-slate-900 border border-slate-700 rounded-3xl shadow-2xl max-w-md w-full p-8" phx-click="stop_propagation">
+        <div class="flex items-center gap-4 mb-6">
+          <div class="w-12 h-12 bg-slate-800 rounded-2xl flex items-center justify-center">
+            <svg class="w-6 h-6 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+            </svg>
+          </div>
+          <div class="flex-1">
+            <h2 class="text-lg font-bold text-white">Key Details</h2>
+            <span class={"px-2 py-0.5 rounded-full text-xs font-semibold #{key_type_class(to_string(@selected_key.key_type || ""))}"}>
+              <%= to_string(@selected_key.key_type || "Unknown") %>
+            </span>
+          </div>
+          <button phx-click="close_key_modal" class="p-2 text-slate-500 hover:text-slate-300 hover:bg-slate-800 rounded-xl transition-colors">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        <div class="space-y-3 mb-6">
+          <div class="flex items-start justify-between py-2.5 border-b border-slate-800">
+            <span class="text-slate-500 text-sm">Public Key</span>
+            <div class="flex items-center gap-2 ml-4">
+              <span class="text-slate-300 text-xs font-mono break-all text-right max-w-48"><%= to_string(@selected_key.public_key || "—") %></span>
+              <button onclick={"navigator.clipboard.writeText('#{to_string(@selected_key.public_key || "")}')"} class="p-1 text-slate-600 hover:text-slate-300 flex-shrink-0">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                </svg>
+              </button>
+            </div>
+          </div>
+          <%= if @selected_key.label do %>
+            <div class="flex items-center justify-between py-2.5 border-b border-slate-800">
+              <span class="text-slate-500 text-sm">Label</span>
+              <span class="text-slate-300 text-sm"><%= to_string(@selected_key.label) %></span>
+            </div>
+          <% end %>
+          <%= if @selected_key.contract_id do %>
+            <div class="flex items-center justify-between py-2.5 border-b border-slate-800">
+              <span class="text-slate-500 text-sm">Contract</span>
+              <span class="text-slate-300 text-sm font-mono"><%= to_string(@selected_key.contract_id) %></span>
+            </div>
+          <% end %>
+          <%= if @selected_key.allowance_near do %>
+            <div class="flex items-center justify-between py-2.5 border-b border-slate-800">
+              <span class="text-slate-500 text-sm">Allowance</span>
+              <span class="text-slate-300 text-sm"><%= to_string(@selected_key.allowance_near) %> NEAR</span>
+            </div>
+          <% end %>
+          <div class="flex items-center justify-between py-2.5">
+            <span class="text-slate-500 text-sm">Added</span>
+            <span class="text-slate-300 text-sm"><%= format_datetime(@selected_key.created_at) %></span>
+          </div>
+        </div>
+        <div class="flex items-center gap-3">
+          <button phx-click="close_key_modal" class="flex-1 px-4 py-3 bg-slate-800 border border-slate-700 text-slate-300 font-semibold rounded-xl hover:bg-slate-700 transition-all text-sm">Close</button>
+          <button
+            phx-click="delete_key"
+            phx-value-key_id={to_string(@selected_key.key_id)}
+            data-confirm="Are you sure? Deleting a Full Access key may lock your account."
+            class="flex-1 px-4 py-3 bg-red-500/20 hover:bg-red-500/30 border border-red-500/30 text-red-400 font-semibold rounded-xl transition-all text-sm"
+          >
+            Delete Key
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+<% end %>

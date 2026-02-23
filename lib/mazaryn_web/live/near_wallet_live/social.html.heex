@@ -1,0 +1,405 @@
+<.live_component
+  module={MazarynWeb.HomeLive.NavComponent}
+  id="navigation"
+  user={@current_user}
+  search=""
+  locale={@locale}
+/>
+
+<div class="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-pink-950">
+  <div class="max-w-4xl mx-auto px-6 py-10">
+
+    <div class="flex items-center gap-3 mb-8">
+      <.link
+        navigate={~p"/#{@locale}/near/#{@wallet_id}"}
+        class="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white transition-all text-sm font-medium"
+      >
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+        </svg>
+        Back to Wallet
+      </.link>
+      <svg class="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+      </svg>
+      <span class="text-slate-400 text-sm">NEAR Social</span>
+    </div>
+
+    <div class="flex items-center justify-between mb-8">
+      <div>
+        <h1 class="text-3xl font-bold text-white">NEAR Social</h1>
+        <p class="text-slate-400 text-sm mt-1">
+          Posting as <span class="text-pink-400 font-mono"><%= to_string(@wallet.account_id || "") %></span>
+        </p>
+      </div>
+      <div class="flex items-center gap-3">
+        <button
+          phx-click="refresh"
+          class="flex items-center gap-2 px-4 py-2.5 bg-slate-800 border border-slate-700 text-slate-300 rounded-xl hover:bg-slate-700 hover:text-white transition-all text-sm font-medium"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
+          Refresh
+        </button>
+        <button
+          phx-click="open_new_post_modal"
+          class="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-pink-600 to-rose-600 text-white rounded-xl hover:from-pink-700 hover:to-rose-700 transition-all text-sm font-semibold shadow-lg shadow-pink-900/30"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+          </svg>
+          New Post
+        </button>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-3 gap-4 mb-8">
+      <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-5">
+        <div class="text-slate-400 text-sm font-medium mb-2">Total Posts</div>
+        <div class="text-3xl font-bold text-white"><%= length(@posts) %></div>
+        <div class="text-slate-500 text-xs mt-1">Published on-chain</div>
+      </div>
+      <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-5">
+        <div class="text-slate-400 text-sm font-medium mb-2">Tags Used</div>
+        <div class="text-3xl font-bold text-pink-400">
+          <%= @posts
+              |> Enum.flat_map(fn p -> p.tags || [] end)
+              |> Enum.uniq()
+              |> length() %>
+        </div>
+        <div class="text-slate-500 text-xs mt-1">Unique tags</div>
+      </div>
+      <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-5">
+        <div class="text-slate-400 text-sm font-medium mb-2">Contract</div>
+        <div class="text-lg font-bold text-white font-mono">social.near</div>
+        <div class="text-slate-500 text-xs mt-1">NEAR Social contract</div>
+      </div>
+    </div>
+
+    <div class="mb-6 px-5 py-4 bg-pink-500/10 border border-pink-500/20 rounded-2xl">
+      <div class="flex items-start gap-3">
+        <svg class="w-5 h-5 text-pink-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <div>
+          <div class="text-pink-300 text-sm font-semibold mb-1">About NEAR Social</div>
+          <p class="text-pink-300/70 text-xs leading-relaxed">
+            Posts are stored on-chain via the <span class="font-mono">social.near</span> contract and are permanent and public.
+            Each post costs a small amount of NEAR for storage. Tags help others discover your content across the NEAR ecosystem.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <%= if length(@posts) == 0 do %>
+      <div class="bg-slate-900/60 border border-slate-800 rounded-3xl p-16 text-center">
+        <div class="w-20 h-20 bg-pink-500/10 rounded-2xl flex items-center justify-center mx-auto mb-5">
+          <svg class="w-10 h-10 text-pink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+          </svg>
+        </div>
+        <h3 class="text-xl font-bold text-white mb-2">No Posts Yet</h3>
+        <p class="text-slate-400 max-w-sm mx-auto mb-6 text-sm leading-relaxed">
+          Share your thoughts on NEAR Social. Your posts will be stored permanently on the NEAR blockchain and visible to the whole ecosystem.
+        </p>
+        <button
+          phx-click="open_new_post_modal"
+          class="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-pink-600 to-rose-600 text-white font-semibold rounded-xl hover:from-pink-700 hover:to-rose-700 transition-all text-sm shadow-lg shadow-pink-900/30"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+          </svg>
+          Write First Post
+        </button>
+      </div>
+    <% else %>
+      <div class="space-y-4">
+        <%= for post <- @posts do %>
+          <div
+            class="group bg-slate-900/60 border border-slate-800 hover:border-pink-500/30 rounded-3xl p-6 cursor-pointer transition-all"
+            phx-click="select_post"
+            phx-value-post_id={to_string(post.post_id)}
+          >
+            <div class="flex items-start justify-between mb-3">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-gradient-to-br from-pink-500/30 to-rose-500/30 border border-pink-500/20 rounded-full flex items-center justify-center flex-shrink-0">
+                  <span class="text-pink-300 text-sm font-bold">
+                    <%= @wallet.account_id |> to_string() |> String.first() |> String.upcase() %>
+                  </span>
+                </div>
+                <div>
+                  <div class="text-white font-semibold text-sm font-mono">
+                    <%= to_string(post.account_id || @wallet.account_id || "") %>
+                  </div>
+                  <div class="text-slate-500 text-xs"><%= format_datetime(post.created_at) %></div>
+                </div>
+              </div>
+              <div class="flex items-center gap-2 flex-shrink-0">
+                <%= if post.block_height do %>
+                  <span class="text-slate-600 text-xs font-mono">Block #<%= to_string(post.block_height) %></span>
+                <% end %>
+                <svg class="w-4 h-4 text-slate-600 group-hover:text-slate-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                </svg>
+              </div>
+            </div>
+
+            <p class="text-slate-200 text-sm leading-relaxed mb-3 whitespace-pre-wrap">
+              <%= to_string(post.text || "") |> truncate_text(280) %>
+            </p>
+
+            <%= if length(post.tags || []) > 0 do %>
+              <div class="flex items-center gap-2 flex-wrap">
+                <%= for tag <- post.tags do %>
+                  <span class="px-2.5 py-1 bg-pink-500/10 border border-pink-500/20 text-pink-400 text-xs font-semibold rounded-full">
+                    #<%= to_string(tag) %>
+                  </span>
+                <% end %>
+              </div>
+            <% end %>
+
+            <%= if length(post.media_urls || []) > 0 do %>
+              <div class="mt-3 flex items-center gap-2">
+                <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                </svg>
+                <span class="text-slate-500 text-xs"><%= length(post.media_urls) %> attachment(s)</span>
+              </div>
+            <% end %>
+
+            <%= if post.transaction_hash do %>
+              <div class="mt-3 pt-3 border-t border-slate-800">
+                <span class="text-slate-600 text-xs font-mono">Tx: <%= truncate_key(post.transaction_hash) %></span>
+              </div>
+            <% end %>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+
+  </div>
+</div>
+
+<%= if @show_new_post_modal do %>
+  <div class="fixed inset-0 z-50 overflow-y-auto" phx-click="close_new_post_modal">
+    <div class="flex items-center justify-center min-h-screen px-4">
+      <div class="fixed inset-0 bg-black/70 backdrop-blur-sm"></div>
+      <div
+        class="relative bg-slate-900 border border-slate-700 rounded-3xl shadow-2xl max-w-lg w-full p-8"
+        phx-click="stop_propagation"
+      >
+        <div class="flex items-center gap-3 mb-6">
+          <div class="w-10 h-10 bg-gradient-to-br from-pink-500 to-rose-600 rounded-xl flex items-center justify-center">
+            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+            </svg>
+          </div>
+          <div>
+            <h2 class="text-xl font-bold text-white">New Post</h2>
+            <p class="text-slate-400 text-sm font-mono"><%= to_string(@wallet.account_id || "") %></p>
+          </div>
+          <button
+            phx-click="close_new_post_modal"
+            class="ml-auto p-2 text-slate-500 hover:text-slate-300 hover:bg-slate-800 rounded-xl transition-colors"
+          >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        <%= if Map.get(@form_errors, :general) do %>
+          <div class="mb-4 px-4 py-3 bg-red-500/10 border border-red-500/20 rounded-xl">
+            <p class="text-red-400 text-sm"><%= @form_errors.general %></p>
+          </div>
+        <% end %>
+
+        <form phx-submit="create_post" phx-change="validate_post" class="space-y-5">
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <label class="text-sm font-medium text-slate-300">What's on your mind?</label>
+              <span class={"text-xs font-mono #{chars_color(@chars_remaining)}"}>
+                <%= @chars_remaining %> remaining
+              </span>
+            </div>
+            <textarea
+              name="post_text"
+              rows="5"
+              placeholder="Share something with the NEAR community..."
+              class={"w-full px-4 py-3 bg-slate-800 border rounded-xl text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-pink-500 transition-all resize-none #{if Map.get(@form_errors, :post_text), do: "border-red-500", else: "border-slate-700"}"}
+            ><%= @post_text %></textarea>
+            <%= if Map.get(@form_errors, :post_text) do %>
+              <p class="mt-1.5 text-red-400 text-xs"><%= @form_errors.post_text %></p>
+            <% end %>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-slate-300 mb-2">
+              Tags <span class="text-slate-600 font-normal">(optional — comma or space separated)</span>
+            </label>
+            <input
+              type="text"
+              name="post_tags"
+              value={@post_tags}
+              placeholder="e.g. near, defi, nft, web3"
+              class="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-pink-500 transition-all"
+            />
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-slate-300 mb-2">
+              Media URLs <span class="text-slate-600 font-normal">(optional — one per line)</span>
+            </label>
+            <textarea
+              name="post_media_urls"
+              rows="2"
+              placeholder="https://example.com/image.png"
+              class="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-pink-500 transition-all resize-none"
+            ><%= @post_media_urls %></textarea>
+          </div>
+
+          <div class="px-4 py-3 bg-slate-800/60 border border-slate-700 rounded-xl">
+            <div class="flex items-start gap-2">
+              <svg class="w-4 h-4 text-slate-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <p class="text-slate-500 text-xs leading-relaxed">
+                This post will be stored permanently on the NEAR blockchain via <span class="font-mono text-slate-400">social.near</span>. It cannot be deleted once published.
+              </p>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-3 pt-1">
+            <button
+              type="button"
+              phx-click="close_new_post_modal"
+              class="flex-1 px-4 py-3 bg-slate-800 border border-slate-700 text-slate-300 font-semibold rounded-xl hover:bg-slate-700 transition-all text-sm"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={@posting or String.trim(@post_text) == ""}
+              class="flex-1 px-4 py-3 bg-gradient-to-r from-pink-600 to-rose-600 text-white font-semibold rounded-xl hover:from-pink-700 hover:to-rose-700 transition-all text-sm shadow-lg shadow-pink-900/30 disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              <%= if @posting do %>
+                <span class="flex items-center justify-center gap-2">
+                  <svg class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                  </svg>
+                  Publishing...
+                </span>
+              <% else %>
+                Publish Post
+              <% end %>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+<% end %>
+
+<%= if @selected_post do %>
+  <div class="fixed inset-0 z-50 overflow-y-auto" phx-click="close_post_modal">
+    <div class="flex items-center justify-center min-h-screen px-4">
+      <div class="fixed inset-0 bg-black/70 backdrop-blur-sm"></div>
+      <div
+        class="relative bg-slate-900 border border-slate-700 rounded-3xl shadow-2xl max-w-lg w-full p-8"
+        phx-click="stop_propagation"
+      >
+        <div class="flex items-center justify-between mb-6">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 bg-gradient-to-br from-pink-500/30 to-rose-500/30 border border-pink-500/20 rounded-full flex items-center justify-center">
+              <span class="text-pink-300 text-sm font-bold">
+                <%= @wallet.account_id |> to_string() |> String.first() |> String.upcase() %>
+              </span>
+            </div>
+            <div>
+              <div class="text-white font-semibold text-sm font-mono">
+                <%= to_string(@selected_post.account_id || @wallet.account_id || "") %>
+              </div>
+              <div class="text-slate-500 text-xs"><%= format_datetime(@selected_post.created_at) %></div>
+            </div>
+          </div>
+          <button
+            phx-click="close_post_modal"
+            class="p-2 text-slate-500 hover:text-slate-300 hover:bg-slate-800 rounded-xl transition-colors"
+          >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        <p class="text-slate-200 text-sm leading-relaxed mb-5 whitespace-pre-wrap">
+          <%= to_string(@selected_post.text || "") %>
+        </p>
+
+        <%= if length(@selected_post.tags || []) > 0 do %>
+          <div class="flex items-center gap-2 flex-wrap mb-5">
+            <%= for tag <- @selected_post.tags do %>
+              <span class="px-2.5 py-1 bg-pink-500/10 border border-pink-500/20 text-pink-400 text-xs font-semibold rounded-full">
+                #<%= to_string(tag) %>
+              </span>
+            <% end %>
+          </div>
+        <% end %>
+
+        <%= if length(@selected_post.media_urls || []) > 0 do %>
+          <div class="mb-5">
+            <div class="text-slate-500 text-xs font-medium mb-2">Attachments</div>
+            <div class="space-y-1">
+              <%= for url <- @selected_post.media_urls do %>
+                <div class="flex items-center gap-2 px-3 py-2 bg-slate-800 rounded-xl">
+                  <svg class="w-3.5 h-3.5 text-slate-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                  </svg>
+                  <span class="text-slate-400 text-xs font-mono truncate"><%= to_string(url) %></span>
+                </div>
+              <% end %>
+            </div>
+          </div>
+        <% end %>
+
+        <div class="space-y-2.5 pt-4 border-t border-slate-800">
+          <%= if @selected_post.block_height do %>
+            <div class="flex items-center justify-between">
+              <span class="text-slate-500 text-xs">Block Height</span>
+              <span class="text-slate-300 text-xs font-mono">#<%= to_string(@selected_post.block_height) %></span>
+            </div>
+          <% end %>
+          <%= if @selected_post.transaction_hash do %>
+            <div class="flex items-start justify-between gap-4">
+              <span class="text-slate-500 text-xs flex-shrink-0">Transaction</span>
+              <div class="flex items-center gap-2">
+                <span class="text-slate-300 text-xs font-mono break-all text-right"><%= to_string(@selected_post.transaction_hash) %></span>
+                <button
+                  onclick={"navigator.clipboard.writeText('#{to_string(@selected_post.transaction_hash)}')"}
+                  class="p-1 text-slate-600 hover:text-slate-300 transition-colors flex-shrink-0"
+                >
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          <% end %>
+          <div class="flex items-center justify-between">
+            <span class="text-slate-500 text-xs">Contract</span>
+            <span class="text-slate-300 text-xs font-mono"><%= to_string(@selected_post.contract || "social.near") %></span>
+          </div>
+        </div>
+
+        <button
+          phx-click="close_post_modal"
+          class="w-full mt-6 px-4 py-3 bg-slate-800 border border-slate-700 text-slate-300 font-semibold rounded-xl hover:bg-slate-700 transition-all text-sm"
+        >
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+<% end %>

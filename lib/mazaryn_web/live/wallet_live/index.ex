@@ -3,6 +3,7 @@ defmodule MazarynWeb.WalletLive.Index do
   require Logger
   alias Account.Users
   alias Mazaryn.SolanaWallets
+  alias Mazaryn.NearWallets
 
   @impl true
   def mount(_params, %{"session_uuid" => session_uuid} = _session, socket) do
@@ -14,16 +15,24 @@ defmodule MazarynWeb.WalletLive.Index do
             _ -> []
           end
 
+        near_wallets =
+          case NearWallets.get_user_wallets(user.id) do
+            {:ok, wallets} -> wallets
+            _ -> []
+          end
+
         {:ok,
          socket
          |> assign(:user, user)
          |> assign(:current_user, user)
          |> assign(:session_uuid, session_uuid)
          |> assign(:solana_wallets, solana_wallets)
+         |> assign(:near_wallets, near_wallets)
          |> assign(:active_wallet_tab, "solana")
          |> assign(:show_create_modal, false)
          |> assign(:show_import_modal, false)
          |> assign(:show_export_modal, false)
+         |> assign(:show_near_create_modal, false)
          |> assign(:create_label, "")
          |> assign(:create_password, "")
          |> assign(:import_public_key, "")
@@ -33,6 +42,10 @@ defmodule MazarynWeb.WalletLive.Index do
          |> assign(:exported_key, nil)
          |> assign(:creating, false)
          |> assign(:importing, false)
+         |> assign(:near_create_account_id, "")
+         |> assign(:near_create_label, "")
+         |> assign(:near_create_network, "testnet")
+         |> assign(:near_creating, false)
          |> assign(:form_errors, %{})}
 
       {:error, _} ->
@@ -105,6 +118,22 @@ defmodule MazarynWeb.WalletLive.Index do
   end
 
   @impl true
+  def handle_event("open_near_create_modal", _params, socket) do
+    {:noreply,
+     socket
+     |> assign(:show_near_create_modal, true)
+     |> assign(:near_create_account_id, "")
+     |> assign(:near_create_label, "")
+     |> assign(:near_create_network, "testnet")
+     |> assign(:form_errors, %{})}
+  end
+
+  @impl true
+  def handle_event("close_near_create_modal", _params, socket) do
+    {:noreply, assign(socket, :show_near_create_modal, false)}
+  end
+
+  @impl true
   def handle_event("validate_create", %{"label" => label, "password" => password}, socket) do
     {:noreply,
      socket
@@ -127,6 +156,20 @@ defmodule MazarynWeb.WalletLive.Index do
     {:noreply,
      socket
      |> assign(:export_password, password)
+     |> assign(:form_errors, %{})}
+  end
+
+  @impl true
+  def handle_event(
+        "validate_near_create",
+        %{"account_id" => account_id, "label" => label, "network" => network},
+        socket
+      ) do
+    {:noreply,
+     socket
+     |> assign(:near_create_account_id, account_id)
+     |> assign(:near_create_label, label)
+     |> assign(:near_create_network, network)
      |> assign(:form_errors, %{})}
   end
 
@@ -178,6 +221,64 @@ defmodule MazarynWeb.WalletLive.Index do
   end
 
   @impl true
+  def handle_event(
+        "create_near_wallet",
+        %{"account_id" => account_id, "label" => label, "network" => network},
+        socket
+      ) do
+    errors = %{}
+
+    errors =
+      if String.trim(account_id) == "",
+        do: Map.put(errors, :account_id, "Account ID is required"),
+        else: errors
+
+    errors =
+      if String.trim(label) == "",
+        do: Map.put(errors, :label, "Label is required"),
+        else: errors
+
+    if map_size(errors) > 0 do
+      {:noreply, assign(socket, :form_errors, errors)}
+    else
+      socket = assign(socket, :near_creating, true)
+
+      case NearWallets.create_wallet(socket.assigns.user.id, account_id, network, label) do
+        {:ok, _wallet_id} ->
+          wallets =
+            case NearWallets.get_user_wallets(socket.assigns.user.id) do
+              {:ok, w} -> w
+              _ -> []
+            end
+
+          {:noreply,
+           socket
+           |> assign(:near_creating, false)
+           |> assign(:show_near_create_modal, false)
+           |> assign(:near_create_account_id, "")
+           |> assign(:near_create_label, "")
+           |> assign(:near_create_network, "testnet")
+           |> assign(:near_wallets, wallets)
+           |> put_flash(:info, "NEAR wallet created successfully")}
+
+        {:error, "Account ID already exists"} ->
+          {:noreply,
+           socket
+           |> assign(:near_creating, false)
+           |> assign(:form_errors, %{account_id: "This account ID is already registered"})}
+
+        {:error, reason} ->
+          Logger.error("NEAR wallet creation failed: #{inspect(reason)}")
+
+          {:noreply,
+           socket
+           |> assign(:near_creating, false)
+           |> assign(:form_errors, %{general: "Failed to create NEAR wallet. Please try again."})}
+      end
+    end
+  end
+
+  @impl true
   def handle_event("export_key", %{"password" => password}, socket) do
     if String.trim(password) == "" do
       {:noreply, assign(socket, :form_errors, %{password: "Password is required"})}
@@ -220,6 +321,26 @@ defmodule MazarynWeb.WalletLive.Index do
   end
 
   @impl true
+  def handle_event("set_near_primary_wallet", %{"wallet_id" => wallet_id}, socket) do
+    case NearWallets.set_primary_wallet(socket.assigns.user.id, wallet_id) do
+      :ok ->
+        wallets =
+          case NearWallets.get_user_wallets(socket.assigns.user.id) do
+            {:ok, w} -> w
+            _ -> []
+          end
+
+        {:noreply,
+         socket
+         |> assign(:near_wallets, wallets)
+         |> put_flash(:info, "Primary NEAR wallet updated")}
+
+      {:error, _} ->
+        {:noreply, put_flash(socket, :error, "Failed to update primary NEAR wallet")}
+    end
+  end
+
+  @impl true
   def handle_event("delete_wallet", %{"wallet_id" => wallet_id}, socket) do
     case SolanaWallets.delete_wallet(wallet_id) do
       :ok ->
@@ -236,6 +357,26 @@ defmodule MazarynWeb.WalletLive.Index do
 
       {:error, _} ->
         {:noreply, put_flash(socket, :error, "Failed to delete wallet")}
+    end
+  end
+
+  @impl true
+  def handle_event("delete_near_wallet", %{"wallet_id" => wallet_id}, socket) do
+    case NearWallets.delete_wallet(wallet_id) do
+      :ok ->
+        wallets =
+          case NearWallets.get_user_wallets(socket.assigns.user.id) do
+            {:ok, w} -> w
+            _ -> []
+          end
+
+        {:noreply,
+         socket
+         |> assign(:near_wallets, wallets)
+         |> put_flash(:info, "NEAR wallet deleted")}
+
+      {:error, _} ->
+        {:noreply, put_flash(socket, :error, "Failed to delete NEAR wallet")}
     end
   end
 
