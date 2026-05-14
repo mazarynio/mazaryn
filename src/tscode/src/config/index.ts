@@ -8,6 +8,10 @@ interface Config {
   nearRpcUrl: string;
   nearFallbackRpcUrls: string[];
   nearNetwork: string;
+  aptosNetwork: string;
+  aptosNodeUrl: string;
+  aptosFaucetUrl: string;
+  aptosDatabasePath: string;
   encryptionKey: string;
   jwtSecret: string;
   databasePath: string;
@@ -52,6 +56,26 @@ function validateConfig(): Config {
     .map((u) => u.trim())
     .filter(Boolean);
 
+  const aptosNetwork = process.env.APTOS_NETWORK || "testnet";
+
+  if (!["mainnet", "testnet", "devnet", "local"].includes(aptosNetwork)) {
+    throw new Error("APTOS_NETWORK must be mainnet, testnet, devnet, or local");
+  }
+
+  const aptosNodeUrlDefaults: Record<string, string> = {
+    mainnet: "https://fullnode.mainnet.aptoslabs.com/v1",
+    testnet: "https://fullnode.testnet.aptoslabs.com/v1",
+    devnet: "https://fullnode.devnet.aptoslabs.com/v1",
+    local: "http://127.0.0.1:8080/v1",
+  };
+
+  const aptosFaucetUrlDefaults: Record<string, string> = {
+    mainnet: "",
+    testnet: "https://faucet.testnet.aptoslabs.com",
+    devnet: "https://faucet.devnet.aptoslabs.com",
+    local: "http://127.0.0.1:8081",
+  };
+
   return {
     nodeEnv: process.env.NODE_ENV || "development",
     port: parseInt(process.env.PORT || "3020", 10),
@@ -59,6 +83,12 @@ function validateConfig(): Config {
     nearRpcUrl: process.env.NEAR_RPC_URL || defaultNearRpc,
     nearFallbackRpcUrls,
     nearNetwork,
+    aptosNetwork,
+    aptosNodeUrl:
+      process.env.APTOS_NODE_URL || aptosNodeUrlDefaults[aptosNetwork],
+    aptosFaucetUrl:
+      process.env.APTOS_FAUCET_URL || aptosFaucetUrlDefaults[aptosNetwork],
+    aptosDatabasePath: process.env.APTOS_DB_PATH || "./data/aptos-wallets.db",
     encryptionKey,
     jwtSecret,
     databasePath: process.env.DATABASE_PATH || "./data/wallets.db",

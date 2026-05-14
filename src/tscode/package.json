@@ -20,10 +20,13 @@
   "devDependencies": {
     "@types/express": "^5.0.0",
     "@types/node": "^22.19.11",
+    "@types/better-sqlite3": "^7.6.12",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.3"
   },
   "dependencies": {
+    "@aptos-labs/ts-sdk": "^6.0.0",
+    "@mysten/sui": "^2.5.0",
     "@solana-program/compute-budget": "^0.13.0",
     "@solana-program/memo": "^0.11.0",
     "@solana-program/system": "^0.11.0",
@@ -55,6 +58,7 @@
     "speakeasy": "^2.0.0",
     "tsx": "^4.21.0",
     "uuid": "^13.0.0",
-    "viem": "^2.46.2"
+    "viem": "^2.46.2",
+    "mysten/sui": "^1.30.0"
   }
 }

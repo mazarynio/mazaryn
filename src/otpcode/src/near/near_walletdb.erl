@@ -5,6 +5,7 @@
 -export([
     create_wallet/5,
     create_wallet/6,
+    create_wallet/7,
     get_wallet/1,
     get_wallet_by_account_id/1,
     get_user_wallets/1,
@@ -48,9 +49,12 @@
 ]).
 
 create_wallet(UserId, AccountId, EncryptedPrivateKey, IV, Tag) ->
-    create_wallet(UserId, AccountId, EncryptedPrivateKey, IV, Tag, undefined).
+    create_wallet(UserId, AccountId, EncryptedPrivateKey, IV, Tag, undefined, get_network()).
 
 create_wallet(UserId, AccountId, EncryptedPrivateKey, IV, Tag, Label) ->
+    create_wallet(UserId, AccountId, EncryptedPrivateKey, IV, Tag, Label, get_network()).
+
+create_wallet(UserId, AccountId, EncryptedPrivateKey, IV, Tag, Label, Network) ->
     Fun = fun() ->
         case account_id_exists_internal(AccountId) of
             true ->
@@ -70,7 +74,7 @@ create_wallet(UserId, AccountId, EncryptedPrivateKey, IV, Tag, Label) ->
                     encrypted_private_key = EncryptedPrivateKey,
                     encryption_iv = IV,
                     encryption_tag = Tag,
-                    network = get_network(),
+                    network = Network,
                     created_at = Now,
                     last_used = Now,
                     is_primary = IsPrimary,

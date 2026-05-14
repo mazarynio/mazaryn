@@ -58,7 +58,7 @@
       <div class="bg-gradient-to-br from-green-900/40 to-emerald-900/40 border border-green-500/20 rounded-2xl p-5">
         <div class="text-green-400 text-sm font-medium mb-2">Total Staked</div>
         <div class="text-3xl font-bold text-white">
-          <%= :erlang.float_to_binary(total_staked(@stakes), decimals: 3) %> NEAR
+          <%= :erlang.float_to_binary(total_staked(@stakes) * 1.0, decimals: 3) %> NEAR
         </div>
         <div class="text-green-600 text-xs mt-1">Active positions only</div>
       </div>

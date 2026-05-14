@@ -258,3 +258,12 @@
     type => worker,
     modules => [near_wallet_server]
 }).
+
+-define(APTOS_WALLET_SERVER, #{
+    id => aptos_wallet_server,
+    start => {aptos_wallet_server, start_link, []},
+    restart => permanent,
+    shutdown => 5000,
+    type => worker,
+    modules => [aptos_wallet_server]
+}).

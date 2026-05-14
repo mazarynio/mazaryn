@@ -15,6 +15,13 @@ import { nearContractRoutes } from "./api/near-contract-routes.js";
 import { nearAuthRoutes } from "./api/near-auth-routes.js";
 import { nearStakingRoutes } from "./api/near-staking-routes.js";
 import { nearSocialRoutes } from "./api/near-social-routes.js";
+import { aptosAccountRoutes } from "./api/aptos-account-routes.js";
+import { aptosTransactionRoutes } from "./api/aptos-transaction-routes.js";
+import { aptosNFTRoutes } from "./api/aptos-nft-routes.js";
+import { aptosLedgerRoutes } from "./api/aptos-ledger-routes.js";
+import { aptosTokenRoutes } from "./api/aptos-token-routes.js";
+import { aptosStakingRoutes } from "./api/aptos-staking-routes.js";
+import suiRouter from "./api/sui-routes.js";
 import { logger } from "./core/logger.js";
 import { config } from "./config/index.js";
 import { setupSecurityHeaders } from "./middleware/security-headers.js";
@@ -69,13 +76,22 @@ app.use("/near/auth", nearAuthRoutes);
 app.use("/near/staking", nearStakingRoutes);
 app.use("/near/social", nearSocialRoutes);
 
+app.use("/aptos/accounts", aptosAccountRoutes);
+app.use("/aptos/transactions", aptosTransactionRoutes);
+app.use("/aptos/nft", aptosNFTRoutes);
+app.use("/aptos/tokens", aptosTokenRoutes);
+app.use("/aptos/staking", aptosStakingRoutes);
+app.use("/aptos", aptosLedgerRoutes);
+
+app.use("/sui", suiRouter);
+
 app.get("/health", (_req, res) => {
   res.json({
     status: "ok",
     timestamp: Date.now(),
     environment: config.nodeEnv,
-    service: "solana-near-wallet",
-    version: "6.6.0",
+    service: "solana-near-aptos-sui-wallet",
+    version: "9.0.0",
     security_features: {
       encryption: "AES-256-GCM",
       password_hashing: "PBKDF2",
@@ -128,6 +144,94 @@ app.get("/health", (_req, res) => {
         mazaryn_tips: true,
         mazaryn_feed: true,
       },
+      aptos: {
+        wallet_create: true,
+        wallet_import: true,
+        wallet_delete: true,
+        apt_balance: true,
+        fungible_asset_balance: true,
+        apt_transfer: true,
+        fungible_asset_transfer: true,
+        coin_transfer: true,
+        coin_balance: true,
+        coin_mint: true,
+        fa_metadata: true,
+        fa_activities: true,
+        view_function: true,
+        nft_collections: true,
+        nft_mint: true,
+        nft_transfer: true,
+        nft_burn: true,
+        owned_tokens: true,
+        transaction_queries: true,
+        account_transactions: true,
+        gas_estimation: true,
+        ledger_info: true,
+        block_queries: true,
+        staking_add: true,
+        staking_unlock: true,
+        staking_withdraw: true,
+        staking_reactivate: true,
+        staking_info: true,
+        delegation_pools: true,
+        staking_activities: true,
+      },
+      sui: {
+        wallet_create: true,
+        wallet_import_private_key: true,
+        wallet_import_mnemonic: true,
+        wallet_delete: true,
+        multi_scheme_keypairs: true,
+        ed25519: true,
+        secp256k1: true,
+        secp256r1: true,
+        sui_balance: true,
+        all_coin_balances: true,
+        coin_objects: true,
+        owned_objects: true,
+        sui_transfer: true,
+        batch_transfer: true,
+        coin_split: true,
+        coin_merge: true,
+        coin_metadata: true,
+        move_call: true,
+        publish_package: true,
+        upgrade_package: true,
+        transaction_build: true,
+        transaction_execute: true,
+        transaction_simulate: true,
+        transaction_wait: true,
+        transaction_history_local: true,
+        nft_mint: true,
+        nft_transfer: true,
+        nft_query: true,
+        dynamic_fields: true,
+        object_query: true,
+        batch_object_query: true,
+        staking: true,
+        unstaking: true,
+        multi_coin_staking: true,
+        validator_query: true,
+        staking_rewards: true,
+        epoch_info: true,
+        system_state: true,
+        sign_message: true,
+        verify_signature: true,
+        verify_transaction_signature: true,
+        multisig_create: true,
+        multisig_combine_execute: true,
+        name_service_lookup: true,
+        name_service_reverse: true,
+        move_package_inspect: true,
+        move_function_inspect: true,
+        move_type_inspect: true,
+        package_versions: true,
+        checkpoint_query: true,
+        reference_gas_price: true,
+        chain_info: true,
+        faucet_devnet_testnet: true,
+        grpc_transport: true,
+      },
     },
     networks: {
       solana: config.solanaRpcUrl,
@@ -135,6 +239,16 @@ app.get("/health", (_req, res) => {
         network: config.nearNetwork,
         rpc: config.nearRpcUrl,
         failover_endpoints: config.nearFallbackRpcUrls.length,
+      },
+      aptos: {
+        network: config.aptosNetwork,
+        node_url: config.aptosNodeUrl,
+      },
+      sui: {
+        mainnet: "https://fullnode.mainnet.sui.io:443",
+        testnet: "https://fullnode.testnet.sui.io:443",
+        devnet: "https://fullnode.devnet.sui.io:443",
+        transport: "gRPC",
       },
     },
   });
@@ -253,6 +367,9 @@ app.use(
 );
 
 app.listen(config.port, () => {
+  logger.info("═══════════════════════════════════════════════════");
+  logger.info("  Solana + NEAR + Aptos + Sui Wallet Service");
+  logger.info("═══════════════════════════════════════════════════");
   logger.info(`  Port        : ${config.port}`);
   logger.info(`  Environment : ${config.nodeEnv}`);
   logger.info("───────────────────────────────────────────────────");
@@ -264,6 +381,10 @@ app.listen(config.port, () => {
       logger.info(`  NEAR Fallback [${i + 1}]: ${url}`),
     );
   }
+  logger.info(`  Aptos Network: ${config.aptosNetwork}`);
+  logger.info(`  Aptos Node   : ${config.aptosNodeUrl}`);
+  logger.info("  Sui Networks : mainnet | testnet | devnet | localnet");
+  logger.info("  Sui Transport: gRPC (SuiGrpcClient)");
   logger.info("───────────────────────────────────────────────────");
   logger.info("  Security:");
   logger.info(`    Encryption      : AES-256-GCM`);
@@ -302,6 +423,94 @@ app.listen(config.port, () => {
   logger.info(
     "    /near/social/**      SocialDB + Mazaryn posts, likes, follows, tips",
   );
+  logger.info("───────────────────────────────────────────────────");
+  logger.info("  Aptos routes:");
+  logger.info(
+    "    /aptos/accounts/**       create, import, delete, balance, FA balance",
+  );
+  logger.info(
+    "    /aptos/transactions/**   APT transfer, FA transfer, gas estimate, tx queries",
+  );
+  logger.info(
+    "    /aptos/nft/**            collections, mint, transfer, burn, owned tokens",
+  );
+  logger.info(
+    "    /aptos/tokens/**         coin balance, FA balance, FA metadata, transfer coin,",
+  );
+  logger.info(
+    "                             transfer FA, mint coin, view function, FA activities",
+  );
+  logger.info(
+    "    /aptos/staking/**        add stake, unlock, withdraw, reactivate,",
+  );
+  logger.info(
+    "                             stake info, delegation pools, staking activities",
+  );
+  logger.info("    /aptos/ledger            ledger info");
+  logger.info("    /aptos/blocks/**         block by height");
+  logger.info("───────────────────────────────────────────────────");
+  logger.info("  Sui routes (all via gRPC):");
+  logger.info(
+    "    /sui/wallets/**          create, import (key/mnemonic), delete,",
+  );
+  logger.info(
+    "                             info, label, primary, Ed25519/k1/r1",
+  );
+  logger.info("    /sui/wallets/:id/balance[/:coinType]");
+  logger.info("    /sui/wallets/:id/balances    all coin balances");
+  logger.info("    /sui/wallets/:id/coins       owned coin objects");
+  logger.info("    /sui/wallets/:id/objects     owned Move objects");
+  logger.info("    /sui/wallets/:id/sign        sign personal message");
+  logger.info("    /sui/transfer                SUI transfer");
+  logger.info(
+    "    /sui/transfer/batch          batch multi-recipient transfer",
+  );
+  logger.info("    /sui/coins/split|merge       coin management");
+  logger.info("    /sui/coins/info/:coinType    coin metadata & treasury");
+  logger.info("    /sui/transactions/:digest    get transaction");
+  logger.info("    /sui/transactions/batch      batch fetch");
+  logger.info("    /sui/transactions/execute    submit raw tx + signatures");
+  logger.info("    /sui/transactions/simulate   dry-run with balance changes");
+  logger.info("    /sui/transactions/wait       wait for finality");
+  logger.info("    /sui/transactions/build      build PTB bytes");
+  logger.info("    /sui/history/:walletId       local tx history (paginated)");
+  logger.info("    /sui/history/user/:userId    user-level history");
+  logger.info("    /sui/history/digest/:digest  lookup by digest");
+  logger.info("    /sui/move/call               execute Move function");
+  logger.info("    /sui/move/publish            publish Move package");
+  logger.info("    /sui/move/upgrade            upgrade Move package");
+  logger.info("    /sui/move/package/:id        inspect package modules");
+  logger.info("    /sui/move/package/:id/versions");
+  logger.info("    /sui/move/package/:id/module/:m/function/:f");
+  logger.info("    /sui/move/package/:id/module/:m/type/:t");
+  logger.info("    /sui/staking/validators      active validator list + APY");
+  logger.info("    /sui/staking/validators/:addr");
+  logger.info("    /sui/staking/epoch           current epoch + system state");
+  logger.info("    /sui/staking/stake           add stake to validator");
+  logger.info("    /sui/staking/stake/multi-coin");
+  logger.info("    /sui/staking/unstake         withdraw staked SUI");
+  logger.info("    /sui/staking/staked/:owner   staked SUI positions");
+  logger.info("    /sui/staking/rewards/:owner  estimated rewards");
+  logger.info("    /sui/staking/history/:walletId");
+  logger.info("    /sui/objects/:objectId       fetch object");
+  logger.info("    /sui/objects/batch           fetch multiple objects");
+  logger.info("    /sui/objects/:id/dynamic-fields");
+  logger.info("    /sui/nft/mint                mint NFT via Move call");
+  logger.info("    /sui/nft/transfer            transfer NFT object");
+  logger.info("    /sui/nft/:owner              list owned NFTs");
+  logger.info("    /sui/verify/signature        verify personal message sig");
+  logger.info("    /sui/verify/transaction      verify transaction sig");
+  logger.info("    /sui/multisig/create         derive multisig address");
+  logger.info(
+    "    /sui/multisig/combine        combine partial sigs + execute",
+  );
+  logger.info("    /sui/names/lookup            SuiNS forward lookup");
+  logger.info("    /sui/names/reverse/:address  SuiNS reverse lookup");
+  logger.info("    /sui/chain/info              service info + chain ID");
+  logger.info("    /sui/chain/gas-price         reference gas price");
+  logger.info("    /sui/chain/checkpoint        checkpoint by seq/digest");
+  logger.info("    /sui/chain/epoch             epoch data");
+  logger.info("    /sui/faucet                  devnet/testnet faucet");
   logger.info("═══════════════════════════════════════════════════");
   logger.info("  System ready.");
   logger.info("═══════════════════════════════════════════════════");

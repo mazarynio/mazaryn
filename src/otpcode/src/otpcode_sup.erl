@@ -33,7 +33,9 @@
  interview_prep, job_market_insights, user_job_analytics, job_message, background_check, employment_verification,
  job_referral, job_board_settings, leaderboard, artist, artist_request,
  solana_wallet, solana_transaction, solana_airdrop, solana_airdrop_recipient, solana_stake_account, solana_token_account, solana_nft,
- near_wallet, near_transaction, near_access_key, near_stake, near_implicit_account, near_social_post]).
+ near_wallet, near_transaction, near_access_key, near_stake, near_implicit_account, near_social_post,
+ aptos_wallet, aptos_transaction, aptos_nft_collection, aptos_nft_token, aptos_fungible_asset,
+ aptos_stake, aptos_coin_balance, aptos_fa_balance]).
 
 start_link() ->
     case initialize() of
@@ -165,7 +167,8 @@ init([]) ->
         ?RATE_LIMITER_SERVER,
         ?CONTENT_CACHE,
         ?SOLANA_WALLET_SERVER,
-        ?NEAR_WALLET_SERVER
+        ?NEAR_WALLET_SERVER,
+        ?APTOS_WALLET_SERVER
     ],
     {ok, {SupFlags, ChildSpecs}}.
 
@@ -266,9 +269,7 @@ wait_for_tables() ->
 
 create_table_indexes() ->
     IndexesToCreate = [
-        %% Core user indexes
         {user, username}, {user, email},
-        %% Learning indexes
         {enrollment, user_id}, {enrollment, path_id},
         {user_completion, user_id}, {instructor_profile, user_id},
         {admin_action, admin_username}, {admin_action, content_type}, {admin_action, content_id},
@@ -280,13 +281,11 @@ create_table_indexes() ->
         {student_question, lesson_id}, {question_answer, question_id},
         {path_review, path_id}, {learning_notification, user_id},
         {video_upload_session, lesson_id},
-        %% Jobs indexes
         {job_posting, poster_id}, {job_posting, status},
         {resume, user_id},
         {job_application, job_posting_id}, {job_application, applicant_user_id}, {job_application, status},
         {saved_job, user_id}, {job_alert, user_id},
         {skill_endorsement, user_id}, {company_review, business_id},
-        %% Solana indexes
         {solana_wallet, user_id}, {solana_wallet, public_key},
         {solana_transaction, wallet_id}, {solana_transaction, user_id}, {solana_transaction, signature},
         {solana_airdrop, wallet_id}, {solana_airdrop, user_id},
@@ -294,13 +293,27 @@ create_table_indexes() ->
         {solana_stake_account, wallet_id}, {solana_stake_account, user_id}, {solana_stake_account, stake_account_address},
         {solana_token_account, wallet_id}, {solana_token_account, user_id},
         {solana_nft, wallet_id}, {solana_nft, user_id},
-        %% NEAR indexes
         {near_wallet, user_id}, {near_wallet, account_id},
         {near_transaction, wallet_id}, {near_transaction, user_id},
         {near_access_key, wallet_id}, {near_access_key, user_id},
         {near_stake, wallet_id}, {near_stake, user_id},
         {near_implicit_account, wallet_id}, {near_implicit_account, user_id},
-        {near_social_post, wallet_id}, {near_social_post, user_id}
+        {near_social_post, wallet_id}, {near_social_post, user_id},
+        {aptos_wallet, user_id}, {aptos_wallet, account_address},
+        {aptos_transaction, wallet_id}, {aptos_transaction, user_id},
+        {aptos_transaction, transaction_hash}, {aptos_transaction, tx_type},
+        {aptos_nft_collection, wallet_id}, {aptos_nft_collection, user_id},
+        {aptos_nft_collection, creator_address},
+        {aptos_nft_token, wallet_id}, {aptos_nft_token, user_id},
+        {aptos_nft_token, collection_id},
+        {aptos_fungible_asset, wallet_id}, {aptos_fungible_asset, user_id},
+        {aptos_fungible_asset, creator_address},
+        {aptos_stake, wallet_id}, {aptos_stake, user_id},
+        {aptos_stake, pool_address}, {aptos_stake, delegator_address},
+        {aptos_coin_balance, wallet_id}, {aptos_coin_balance, user_id},
+        {aptos_coin_balance, account_address}, {aptos_coin_balance, coin_type},
+        {aptos_fa_balance, wallet_id}, {aptos_fa_balance, user_id},
+        {aptos_fa_balance, account_address}, {aptos_fa_balance, asset_type}
     ],
     Results = [create_index(Table, Field) || {Table, Field} <- IndexesToCreate],
     case lists:all(fun(Result) -> Result == ok end, Results) of
@@ -472,7 +485,6 @@ table_attributes(job_board_settings) -> record_info(fields, job_board_settings);
 table_attributes(leaderboard) -> record_info(fields, leaderboard);
 table_attributes(artist) -> record_info(fields, artist);
 table_attributes(artist_request) -> record_info(fields, artist_request);
-%% Solana
 table_attributes(solana_wallet) -> record_info(fields, solana_wallet);
 table_attributes(solana_transaction) -> record_info(fields, solana_transaction);
 table_attributes(solana_airdrop) -> record_info(fields, solana_airdrop);
@@ -480,10 +492,17 @@ table_attributes(solana_airdrop_recipient) -> record_info(fields, solana_airdrop
 table_attributes(solana_stake_account) -> record_info(fields, solana_stake_account);
 table_attributes(solana_token_account) -> record_info(fields, solana_token_account);
 table_attributes(solana_nft) -> record_info(fields, solana_nft);
-%% NEAR
 table_attributes(near_wallet) -> record_info(fields, near_wallet);
 table_attributes(near_transaction) -> record_info(fields, near_transaction);
 table_attributes(near_access_key) -> record_info(fields, near_access_key);
 table_attributes(near_stake) -> record_info(fields, near_stake);
 table_attributes(near_implicit_account) -> record_info(fields, near_implicit_account);
-table_attributes(near_social_post) -> record_info(fields, near_social_post).
+table_attributes(near_social_post) -> record_info(fields, near_social_post);
+table_attributes(aptos_wallet) -> record_info(fields, aptos_wallet);
+table_attributes(aptos_transaction) -> record_info(fields, aptos_transaction);
+table_attributes(aptos_nft_collection) -> record_info(fields, aptos_nft_collection);
+table_attributes(aptos_nft_token) -> record_info(fields, aptos_nft_token);
+table_attributes(aptos_fungible_asset) -> record_info(fields, aptos_fungible_asset);
+table_attributes(aptos_stake) -> record_info(fields, aptos_stake);
+table_attributes(aptos_coin_balance) -> record_info(fields, aptos_coin_balance);
+table_attributes(aptos_fa_balance) -> record_info(fields, aptos_fa_balance).

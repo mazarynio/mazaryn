@@ -23,6 +23,7 @@ export function authenticate(
     }
 
     const parts = authHeader.split(" ");
+
     if (parts.length !== 2 || parts[0] !== "Bearer") {
       return res
         .status(401)
@@ -61,6 +62,7 @@ export function optionalAuth(
     }
 
     const parts = authHeader.split(" ");
+
     if (parts.length !== 2 || parts[0] !== "Bearer") {
       return next();
     }

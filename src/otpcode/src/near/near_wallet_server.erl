@@ -133,7 +133,6 @@ get_user_access_keys(UserId) ->
 delete_access_key(KeyId) ->
     gen_server:call({global, ?MODULE}, {delete_access_key, KeyId}).
 
-
 create_stake(WalletId, StakeData) ->
     gen_server:call({global, ?MODULE}, {create_stake, WalletId, StakeData}).
 
@@ -164,7 +163,6 @@ get_wallet_implicit_accounts(WalletId) ->
 mark_implicit_funded(ImplicitId, FundedAt) ->
     gen_server:call({global, ?MODULE}, {mark_implicit_funded, ImplicitId, FundedAt}).
 
-
 create_social_post(WalletId, PostData) ->
     gen_server:call({global, ?MODULE}, {create_social_post, WalletId, PostData}).
 
@@ -187,22 +185,32 @@ init([]) ->
 initialize_worker_pool(Size) ->
     [spawn_link(fun() -> worker_loop() end) || _ <- lists:seq(1, Size)].
 
+tag_to_network(Tag) when is_list(Tag) ->
+    binary_to_atom(list_to_binary(Tag), utf8);
+tag_to_network(Tag) when is_binary(Tag) ->
+    binary_to_atom(Tag, utf8);
+tag_to_network(Tag) when is_atom(Tag) ->
+    Tag;
+tag_to_network(_) ->
+    testnet.
 
 worker_loop() ->
     receive
         {create_wallet, UserId, AccountId, EncryptedData, From} ->
-            EncKey = maps:get(encrypted_private_key, EncryptedData),
-            IV     = maps:get(encryption_iv, EncryptedData),
-            Tag    = maps:get(encryption_tag, EncryptedData),
-            Result = near_walletdb:create_wallet(UserId, AccountId, EncKey, IV, Tag),
+            EncKey  = maps:get(encrypted_private_key, EncryptedData),
+            IV      = maps:get(encryption_iv, EncryptedData),
+            Tag     = maps:get(encryption_tag, EncryptedData),
+            Network = tag_to_network(Tag),
+            Result  = near_walletdb:create_wallet(UserId, AccountId, EncKey, IV, Tag, undefined, Network),
             gen_server:reply(From, Result),
             worker_loop();
 
         {create_wallet_labeled, UserId, AccountId, EncryptedData, Label, From} ->
-            EncKey = maps:get(encrypted_private_key, EncryptedData),
-            IV     = maps:get(encryption_iv, EncryptedData),
-            Tag    = maps:get(encryption_tag, EncryptedData),
-            Result = near_walletdb:create_wallet(UserId, AccountId, EncKey, IV, Tag, Label),
+            EncKey  = maps:get(encrypted_private_key, EncryptedData),
+            IV      = maps:get(encryption_iv, EncryptedData),
+            Tag     = maps:get(encryption_tag, EncryptedData),
+            Network = tag_to_network(Tag),
+            Result  = near_walletdb:create_wallet(UserId, AccountId, EncKey, IV, Tag, Label, Network),
             gen_server:reply(From, Result),
             worker_loop();
 
@@ -223,7 +231,6 @@ handle_call({create_wallet_labeled, UserId, AccountId, EncryptedData, Label}, Fr
             State = #state{worker_pool = [Worker | Rest]}) ->
     Worker ! {create_wallet_labeled, UserId, AccountId, EncryptedData, Label, From},
     {noreply, State#state{worker_pool = Rest ++ [Worker]}};
-
 
 handle_call({get_wallet, WalletId}, _From, State) ->
     {reply, near_walletdb:get_wallet(WalletId), State};
@@ -255,7 +262,6 @@ handle_call({wallet_exists, WalletId}, _From, State) ->
 handle_call({account_id_exists, AccountId}, _From, State) ->
     {reply, near_walletdb:account_id_exists(AccountId), State};
 
-
 handle_call({create_transaction, WalletId, TxData}, _From, State) ->
     {reply, near_walletdb:create_transaction(WalletId, TxData), State};
 
@@ -274,7 +280,6 @@ handle_call({get_user_transactions, UserId}, _From, State) ->
 handle_call({get_transactions_by_type, WalletId, TxType}, _From, State) ->
     {reply, near_walletdb:get_transactions_by_type(WalletId, TxType), State};
 
-
 handle_call({create_access_key, WalletId, KeyData}, _From, State) ->
     {reply, near_walletdb:create_access_key(WalletId, KeyData), State};
 
@@ -289,7 +294,6 @@ handle_call({get_user_access_keys, UserId}, _From, State) ->
 
 handle_call({delete_access_key, KeyId}, _From, State) ->
     {reply, near_walletdb:delete_access_key(KeyId), State};
-
 
 handle_call({create_stake, WalletId, StakeData}, _From, State) ->
     {reply, near_walletdb:create_stake(WalletId, StakeData), State};
@@ -306,7 +310,6 @@ handle_call({get_user_stakes, UserId}, _From, State) ->
 handle_call({update_stake, StakeId, Updates}, _From, State) ->
     {reply, near_walletdb:update_stake(StakeId, Updates), State};
 
-
 handle_call({create_implicit_account, WalletId, ImplicitData}, _From, State) ->
     {reply, near_walletdb:create_implicit_account(WalletId, ImplicitData), State};
 
@@ -321,7 +324,6 @@ handle_call({get_wallet_implicit_accounts, WalletId}, _From, State) ->
 
 handle_call({mark_implicit_funded, ImplicitId, FundedAt}, _From, State) ->
     {reply, near_walletdb:mark_implicit_funded(ImplicitId, FundedAt), State};
-
 
 handle_call({create_social_post, WalletId, PostData}, _From, State) ->
     {reply, near_walletdb:create_social_post(WalletId, PostData), State};
@@ -340,7 +342,6 @@ handle_call(_Request, _From, State) ->
 
 handle_cast(_Request, State) ->
     {noreply, State}.
-
 
 handle_info({'EXIT', Pid, Reason}, State = #state{worker_pool = Workers}) ->
     case lists:member(Pid, Workers) of
