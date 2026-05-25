@@ -96,7 +96,16 @@ defmodule Context.AptosWallet do
   end
 
   def get_user_wallets(user_id) do
+    # Change this:
     records = :erlang.apply(@walletdb, :get_user_wallets, [user_id])
+
+    # To this:
+    records =
+      case :erlang.apply(@walletdb, :get_user_wallets, [user_id]) do
+        {:ok, list} when is_list(list) -> list
+        list when is_list(list) -> list
+        _ -> []
+      end
 
     wallets =
       records

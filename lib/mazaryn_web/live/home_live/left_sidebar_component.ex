@@ -1,6 +1,5 @@
 defmodule MazarynWeb.HomeLive.LeftSidebarComponent do
   use MazarynWeb, :live_component
-  use Phoenix.VerifiedRoutes, endpoint: MazarynWeb.Endpoint, router: MazarynWeb.Router
 
   @impl true
   def mount(socket) do

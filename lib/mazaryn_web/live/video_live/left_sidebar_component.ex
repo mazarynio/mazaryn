@@ -1,6 +1,5 @@
 defmodule MazarynWeb.VideoLive.LeftSidebarComponent do
   use MazarynWeb, :live_component
-  use Phoenix.VerifiedRoutes, endpoint: MazarynWeb.Endpoint, router: MazarynWeb.Router
 
   def render(assigns) do
     ~H"""

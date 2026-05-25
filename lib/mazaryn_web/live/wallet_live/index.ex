@@ -4,6 +4,8 @@ defmodule MazarynWeb.WalletLive.Index do
   alias Account.Users
   alias Mazaryn.SolanaWallets
   alias Mazaryn.NearWallets
+  alias Mazaryn.AptosWallets
+  alias Mazaryn.SuiWallets
 
   @impl true
   def mount(_params, %{"session_uuid" => session_uuid} = _session, socket) do
@@ -21,6 +23,18 @@ defmodule MazarynWeb.WalletLive.Index do
             _ -> []
           end
 
+        aptos_wallets =
+          case AptosWallets.get_user_wallets(user.id) do
+            {:ok, wallets} -> wallets
+            _ -> []
+          end
+
+        sui_wallets =
+          case SuiWallets.get_user_wallets(user.id) do
+            {:ok, wallets} -> wallets
+            _ -> []
+          end
+
         {:ok,
          socket
          |> assign(:user, user)
@@ -28,11 +42,15 @@ defmodule MazarynWeb.WalletLive.Index do
          |> assign(:session_uuid, session_uuid)
          |> assign(:solana_wallets, solana_wallets)
          |> assign(:near_wallets, near_wallets)
+         |> assign(:aptos_wallets, aptos_wallets)
+         |> assign(:sui_wallets, sui_wallets)
          |> assign(:active_wallet_tab, "solana")
          |> assign(:show_create_modal, false)
          |> assign(:show_import_modal, false)
          |> assign(:show_export_modal, false)
          |> assign(:show_near_create_modal, false)
+         |> assign(:show_aptos_create_modal, false)
+         |> assign(:show_sui_create_modal, false)
          |> assign(:create_label, "")
          |> assign(:create_password, "")
          |> assign(:import_public_key, "")
@@ -46,6 +64,13 @@ defmodule MazarynWeb.WalletLive.Index do
          |> assign(:near_create_label, "")
          |> assign(:near_create_network, "testnet")
          |> assign(:near_creating, false)
+         |> assign(:aptos_create_label, "")
+         |> assign(:aptos_create_network, "mainnet")
+         |> assign(:aptos_creating, false)
+         |> assign(:sui_create_label, "")
+         |> assign(:sui_create_network, "mainnet")
+         |> assign(:sui_create_scheme, "ed25519")
+         |> assign(:sui_creating, false)
          |> assign(:form_errors, %{})}
 
       {:error, _} ->
@@ -134,6 +159,37 @@ defmodule MazarynWeb.WalletLive.Index do
   end
 
   @impl true
+  def handle_event("open_aptos_create_modal", _params, socket) do
+    {:noreply,
+     socket
+     |> assign(:show_aptos_create_modal, true)
+     |> assign(:aptos_create_label, "")
+     |> assign(:aptos_create_network, "mainnet")
+     |> assign(:form_errors, %{})}
+  end
+
+  @impl true
+  def handle_event("close_aptos_create_modal", _params, socket) do
+    {:noreply, assign(socket, :show_aptos_create_modal, false)}
+  end
+
+  @impl true
+  def handle_event("open_sui_create_modal", _params, socket) do
+    {:noreply,
+     socket
+     |> assign(:show_sui_create_modal, true)
+     |> assign(:sui_create_label, "")
+     |> assign(:sui_create_network, "mainnet")
+     |> assign(:sui_create_scheme, "ed25519")
+     |> assign(:form_errors, %{})}
+  end
+
+  @impl true
+  def handle_event("close_sui_create_modal", _params, socket) do
+    {:noreply, assign(socket, :show_sui_create_modal, false)}
+  end
+
+  @impl true
   def handle_event("validate_create", %{"label" => label, "password" => password}, socket) do
     {:noreply,
      socket
@@ -160,16 +216,31 @@ defmodule MazarynWeb.WalletLive.Index do
   end
 
   @impl true
-  def handle_event(
-        "validate_near_create",
-        %{"account_id" => account_id, "label" => label, "network" => network},
-        socket
-      ) do
+  def handle_event("validate_near_create", %{"account_id" => account_id, "label" => label, "network" => network}, socket) do
     {:noreply,
      socket
      |> assign(:near_create_account_id, account_id)
      |> assign(:near_create_label, label)
      |> assign(:near_create_network, network)
+     |> assign(:form_errors, %{})}
+  end
+
+  @impl true
+  def handle_event("validate_aptos_create", %{"label" => label, "network" => network}, socket) do
+    {:noreply,
+     socket
+     |> assign(:aptos_create_label, label)
+     |> assign(:aptos_create_network, network)
+     |> assign(:form_errors, %{})}
+  end
+
+  @impl true
+  def handle_event("validate_sui_create", params, socket) do
+    {:noreply,
+     socket
+     |> assign(:sui_create_label, Map.get(params, "label", ""))
+     |> assign(:sui_create_network, Map.get(params, "network", "mainnet"))
+     |> assign(:sui_create_scheme, Map.get(params, "scheme", "ed25519"))
      |> assign(:form_errors, %{})}
   end
 
@@ -221,11 +292,7 @@ defmodule MazarynWeb.WalletLive.Index do
   end
 
   @impl true
-  def handle_event(
-        "create_near_wallet",
-        %{"account_id" => account_id, "label" => label, "network" => network},
-        socket
-      ) do
+  def handle_event("create_near_wallet", %{"account_id" => account_id, "label" => label, "network" => network}, socket) do
     errors = %{}
 
     errors =
@@ -244,7 +311,7 @@ defmodule MazarynWeb.WalletLive.Index do
       socket = assign(socket, :near_creating, true)
 
       case NearWallets.create_wallet(socket.assigns.user.id, account_id, network, label) do
-        {:ok, _wallet_id} ->
+        {:ok, _} ->
           wallets =
             case NearWallets.get_user_wallets(socket.assigns.user.id) do
               {:ok, w} -> w
@@ -279,6 +346,91 @@ defmodule MazarynWeb.WalletLive.Index do
   end
 
   @impl true
+  def handle_event("create_aptos_wallet", %{"label" => label, "network" => network}, socket) do
+    errors =
+      if String.trim(label) == "",
+        do: %{label: "Label is required"},
+        else: %{}
+
+    if map_size(errors) > 0 do
+      {:noreply, assign(socket, :form_errors, errors)}
+    else
+      socket = assign(socket, :aptos_creating, true)
+
+      case AptosWallets.create_wallet(socket.assigns.user.id, nil, network, label) do
+        {:ok, _} ->
+          wallets =
+            case AptosWallets.get_user_wallets(socket.assigns.user.id) do
+              {:ok, w} -> w
+              _ -> []
+            end
+
+          {:noreply,
+           socket
+           |> assign(:aptos_creating, false)
+           |> assign(:show_aptos_create_modal, false)
+           |> assign(:aptos_create_label, "")
+           |> assign(:aptos_create_network, "mainnet")
+           |> assign(:aptos_wallets, wallets)
+           |> put_flash(:info, "Aptos wallet created successfully")}
+
+        {:error, reason} ->
+          Logger.error("Aptos wallet creation failed: #{inspect(reason)}")
+
+          {:noreply,
+           socket
+           |> assign(:aptos_creating, false)
+           |> assign(:form_errors, %{general: "Failed to create Aptos wallet. Please try again."})}
+      end
+    end
+  end
+
+  @impl true
+  def handle_event("create_sui_wallet", params, socket) do
+    label   = Map.get(params, "label", "") |> String.trim()
+    network = Map.get(params, "network", "mainnet")
+    scheme  = Map.get(params, "scheme", "ed25519")
+
+    errors =
+      if label == "",
+        do: %{label: "Label is required"},
+        else: %{}
+
+    if map_size(errors) > 0 do
+      {:noreply, assign(socket, :form_errors, errors)}
+    else
+      socket = assign(socket, :sui_creating, true)
+
+      case SuiWallets.create_wallet(socket.assigns.user.id, nil, network, label) do
+        {:ok, _} ->
+          wallets =
+            case SuiWallets.get_user_wallets(socket.assigns.user.id) do
+              {:ok, w} -> w
+              _ -> []
+            end
+
+          {:noreply,
+           socket
+           |> assign(:sui_creating, false)
+           |> assign(:show_sui_create_modal, false)
+           |> assign(:sui_create_label, "")
+           |> assign(:sui_create_network, "mainnet")
+           |> assign(:sui_create_scheme, "ed25519")
+           |> assign(:sui_wallets, wallets)
+           |> put_flash(:info, "Sui wallet created successfully")}
+
+        {:error, reason} ->
+          Logger.error("Sui wallet creation failed: #{inspect(reason)}")
+
+          {:noreply,
+           socket
+           |> assign(:sui_creating, false)
+           |> assign(:form_errors, %{general: "Failed to create Sui wallet. Please try again."})}
+      end
+    end
+  end
+
+  @impl true
   def handle_event("export_key", %{"password" => password}, socket) do
     if String.trim(password) == "" do
       {:noreply, assign(socket, :form_errors, %{password: "Password is required"})}
@@ -294,8 +446,7 @@ defmodule MazarynWeb.WalletLive.Index do
           {:noreply, assign(socket, :form_errors, %{password: "Incorrect password"})}
 
         {:error, _} ->
-          {:noreply,
-           assign(socket, :form_errors, %{password: "Failed to export key. Try again."})}
+          {:noreply, assign(socket, :form_errors, %{password: "Failed to export key. Try again."})}
       end
     end
   end
@@ -341,6 +492,46 @@ defmodule MazarynWeb.WalletLive.Index do
   end
 
   @impl true
+  def handle_event("set_aptos_primary_wallet", %{"wallet_id" => wallet_id}, socket) do
+    case AptosWallets.set_primary_wallet(socket.assigns.user.id, wallet_id) do
+      {:ok, _} ->
+        wallets =
+          case AptosWallets.get_user_wallets(socket.assigns.user.id) do
+            {:ok, w} -> w
+            _ -> []
+          end
+
+        {:noreply,
+         socket
+         |> assign(:aptos_wallets, wallets)
+         |> put_flash(:info, "Primary Aptos wallet updated")}
+
+      {:error, _} ->
+        {:noreply, put_flash(socket, :error, "Failed to update primary Aptos wallet")}
+    end
+  end
+
+  @impl true
+  def handle_event("set_sui_primary_wallet", %{"wallet_id" => wallet_id}, socket) do
+    case SuiWallets.set_primary_wallet(socket.assigns.user.id, wallet_id) do
+      {:ok, _} ->
+        wallets =
+          case SuiWallets.get_user_wallets(socket.assigns.user.id) do
+            {:ok, w} -> w
+            _ -> []
+          end
+
+        {:noreply,
+         socket
+         |> assign(:sui_wallets, wallets)
+         |> put_flash(:info, "Primary Sui wallet updated")}
+
+      {:error, _} ->
+        {:noreply, put_flash(socket, :error, "Failed to update primary Sui wallet")}
+    end
+  end
+
+  @impl true
   def handle_event("delete_wallet", %{"wallet_id" => wallet_id}, socket) do
     case SolanaWallets.delete_wallet(wallet_id) do
       :ok ->
@@ -377,6 +568,46 @@ defmodule MazarynWeb.WalletLive.Index do
 
       {:error, _} ->
         {:noreply, put_flash(socket, :error, "Failed to delete NEAR wallet")}
+    end
+  end
+
+  @impl true
+  def handle_event("delete_aptos_wallet", %{"wallet_id" => wallet_id}, socket) do
+    case AptosWallets.delete_wallet(wallet_id) do
+      {:ok, :deleted} ->
+        wallets =
+          case AptosWallets.get_user_wallets(socket.assigns.user.id) do
+            {:ok, w} -> w
+            _ -> []
+          end
+
+        {:noreply,
+         socket
+         |> assign(:aptos_wallets, wallets)
+         |> put_flash(:info, "Aptos wallet deleted")}
+
+      {:error, _} ->
+        {:noreply, put_flash(socket, :error, "Failed to delete Aptos wallet")}
+    end
+  end
+
+  @impl true
+  def handle_event("delete_sui_wallet", %{"wallet_id" => wallet_id}, socket) do
+    case SuiWallets.delete_wallet(wallet_id) do
+      {:ok, :deleted} ->
+        wallets =
+          case SuiWallets.get_user_wallets(socket.assigns.user.id) do
+            {:ok, w} -> w
+            _ -> []
+          end
+
+        {:noreply,
+         socket
+         |> assign(:sui_wallets, wallets)
+         |> put_flash(:info, "Sui wallet deleted")}
+
+      {:error, _} ->
+        {:noreply, put_flash(socket, :error, "Failed to delete Sui wallet")}
     end
   end
 

@@ -1,0 +1,364 @@
+<.live_component
+  module={MazarynWeb.HomeLive.NavComponent}
+  id="navigation"
+  user={@current_user}
+  search=""
+  locale={@locale}
+/>
+
+<div class="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950">
+  <div class="max-w-5xl mx-auto px-6 py-10">
+
+    <div class="flex items-center gap-3 mb-8">
+      <.link
+        navigate={~p"/#{@locale}/sui/#{@wallet_id}"}
+        class="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white transition-all text-sm font-medium"
+      >
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+        </svg>
+        Back to Wallet
+      </.link>
+    </div>
+
+    <div class="flex items-center justify-between mb-8">
+      <div>
+        <h1 class="text-3xl font-bold text-white">Staking</h1>
+        <p class="text-slate-400 mt-1 text-sm">
+          Stake SUI from <span class="font-mono text-cyan-400"><%= to_string(@wallet.label || "this wallet") %></span> to earn rewards
+        </p>
+      </div>
+      <button
+        phx-click="open_new_stake_modal"
+        class="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-cyan-600 to-teal-600 text-white text-sm font-semibold hover:from-cyan-700 hover:to-teal-700 transition-all shadow-lg shadow-cyan-900/30"
+      >
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+        </svg>
+        New Stake
+      </button>
+    </div>
+
+    <%
+      total_staked_mist =
+        @stakes
+        |> Enum.map(fn s ->
+          case Integer.parse(to_string(s.principal_mist || "0")) do
+            {n, _} -> n
+            :error  -> 0
+          end
+        end)
+        |> Enum.sum()
+
+      total_rewards_mist =
+        @stakes
+        |> Enum.map(fn s ->
+          case Integer.parse(to_string(s.estimated_reward_mist || "0")) do
+            {n, _} -> n
+            :error  -> 0
+          end
+        end)
+        |> Enum.sum()
+
+      active_count   = Enum.count(@stakes, fn s -> to_string(s.status) == "active" end)
+      pending_count  = Enum.count(@stakes, fn s -> to_string(s.status) == "pending" end)
+      unstaked_count = Enum.count(@stakes, fn s -> to_string(s.status) == "unstaked" end)
+    %>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      <div class="bg-gradient-to-br from-green-900/40 to-emerald-900/40 border border-green-500/20 rounded-2xl p-5">
+        <div class="text-green-400 text-xs font-medium mb-1">Total Staked</div>
+        <div class="text-2xl font-bold text-white"><%= format_mist(total_staked_mist) %></div>
+        <div class="text-green-600 text-xs">SUI</div>
+      </div>
+      <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-5">
+        <div class="text-slate-400 text-xs mb-1">Est. Rewards</div>
+        <div class="text-2xl font-bold text-green-400"><%= format_mist(total_rewards_mist) %></div>
+        <div class="text-slate-500 text-xs">SUI</div>
+      </div>
+      <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-5">
+        <div class="text-slate-400 text-xs mb-1">Active / Pending</div>
+        <div class="text-2xl font-bold text-white"><%= active_count %> / <%= pending_count %></div>
+        <div class="text-slate-500 text-xs">Stakes</div>
+      </div>
+      <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-5">
+        <div class="text-slate-400 text-xs mb-1">Unstaked</div>
+        <div class="text-2xl font-bold text-white"><%= unstaked_count %></div>
+        <div class="text-slate-500 text-xs">Completed</div>
+      </div>
+    </div>
+
+    <div class="bg-cyan-900/20 border border-cyan-500/20 rounded-2xl p-5 mb-8">
+      <div class="flex items-start gap-3">
+        <svg class="w-5 h-5 text-cyan-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <div>
+          <h3 class="text-cyan-300 font-semibold text-sm mb-1">About Sui Staking</h3>
+          <p class="text-cyan-200/70 text-xs leading-relaxed">
+            Stake SUI with validators to secure the Sui network and earn rewards each epoch. Staking is non-custodial — you keep ownership of your SUI. Rewards are distributed automatically each epoch (~24 hours). Unstaking takes effect at the next epoch boundary.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-slate-900/60 border border-slate-800 rounded-3xl p-6">
+      <div class="flex items-center justify-between mb-5">
+        <h2 class="text-white font-bold text-lg">Staking Positions</h2>
+        <button phx-click="refresh" class="text-slate-400 hover:text-white text-xs transition-colors">↻ Refresh</button>
+      </div>
+
+      <%= if length(@stakes) == 0 do %>
+        <div class="text-center py-16">
+          <div class="w-16 h-16 bg-cyan-500/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <svg class="w-8 h-8 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+            </svg>
+          </div>
+          <h3 class="text-white font-bold text-lg mb-2">No Staking Positions</h3>
+          <p class="text-slate-400 text-sm mb-5 max-w-sm mx-auto leading-relaxed">
+            Start earning rewards by delegating SUI to a validator. Minimum stake is 1 SUI.
+          </p>
+          <button
+            phx-click="open_new_stake_modal"
+            class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-cyan-600 to-teal-600 text-white text-sm font-semibold"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            </svg>
+            Stake SUI
+          </button>
+        </div>
+      <% else %>
+        <div class="space-y-3">
+          <%= for stake <- @stakes do %>
+            <div
+              class="flex items-center justify-between p-4 bg-slate-800/50 border border-slate-700/50 rounded-2xl hover:border-slate-600 transition-all cursor-pointer"
+              phx-click="select_stake"
+              phx-value-stake_id={to_string(stake.stake_id)}
+            >
+              <div class="flex items-center gap-3">
+                <div class={"w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 #{case to_string(stake.status) do "active" -> "bg-green-500/20"; "pending" -> "bg-yellow-500/20"; _ -> "bg-slate-700" end}"}>
+                  <svg class={"w-5 h-5 #{case to_string(stake.status) do "active" -> "text-green-400"; "pending" -> "text-yellow-400"; _ -> "text-slate-400" end}"} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4" />
+                  </svg>
+                </div>
+                <div>
+                  <div class="text-white font-semibold">
+                    Validator: <span class="font-mono"><%= truncate_addr(stake.validator_address) %></span>
+                  </div>
+                  <%= if stake.staked_sui_id && to_string(stake.staked_sui_id) != "" do %>
+                    <div class="text-slate-500 text-xs font-mono">ID: <%= truncate_addr(stake.staked_sui_id) %></div>
+                  <% end %>
+                  <%= if stake.stake_activation_epoch && to_string(stake.stake_activation_epoch) != "" do %>
+                    <div class="text-slate-500 text-xs">Epoch: <%= to_string(stake.stake_activation_epoch) %></div>
+                  <% end %>
+                </div>
+              </div>
+              <div class="flex items-center gap-4">
+                <div class="text-right hidden sm:block">
+                  <div class="text-white font-bold"><%= format_mist(stake.principal_mist) %> SUI</div>
+                  <%= if stake.estimated_reward_mist && to_string(stake.estimated_reward_mist) != "0" do %>
+                    <div class="text-green-400 text-xs">+<%= format_mist(stake.estimated_reward_mist) %> est.</div>
+                  <% end %>
+                </div>
+                <span class={"px-2.5 py-1 rounded-full text-xs font-semibold #{status_class(stake.status)}"}>
+                  <%= to_string(stake.status || "unknown") %>
+                </span>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+
+  </div>
+</div>
+
+<%= if @show_new_stake_modal do %>
+  <div class="fixed inset-0 z-50 overflow-y-auto" phx-click="close_new_stake_modal">
+    <div class="flex items-center justify-center min-h-screen px-4">
+      <div class="fixed inset-0 bg-black/70 backdrop-blur-sm"></div>
+      <div
+        class="relative bg-slate-900 border border-slate-700 rounded-3xl shadow-2xl max-w-md w-full p-8"
+        phx-click="stop_propagation"
+      >
+        <div class="flex items-center gap-3 mb-6">
+          <div class="w-10 h-10 bg-gradient-to-br from-cyan-500 to-teal-600 rounded-xl flex items-center justify-center">
+            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            </svg>
+          </div>
+          <div>
+            <h2 class="text-xl font-bold text-white">Stake SUI</h2>
+            <p class="text-slate-400 text-sm">Delegate to a Sui validator</p>
+          </div>
+          <button
+            phx-click="close_new_stake_modal"
+            class="ml-auto p-2 text-slate-500 hover:text-slate-300 hover:bg-slate-800 rounded-xl transition-colors"
+          >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        <%= if Map.get(@form_errors, :general) do %>
+          <div class="mb-4 px-4 py-3 bg-red-500/10 border border-red-500/20 rounded-xl">
+            <p class="text-red-400 text-sm"><%= @form_errors.general %></p>
+          </div>
+        <% end %>
+
+        <form phx-submit="create_stake" phx-change="validate_stake" class="space-y-5">
+          <div>
+            <label class="block text-sm font-medium text-slate-300 mb-2">Validator Address</label>
+            <input
+              type="text"
+              name="validator_address"
+              value={@validator_address}
+              placeholder="0xvalidator..."
+              class={"w-full px-4 py-3 bg-slate-800 border rounded-xl text-white placeholder-slate-500 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-all #{if Map.get(@form_errors, :validator_address), do: "border-red-500", else: "border-slate-700"}"}
+            />
+            <%= if Map.get(@form_errors, :validator_address) do %>
+              <p class="mt-1.5 text-red-400 text-xs"><%= @form_errors.validator_address %></p>
+            <% end %>
+            <p class="mt-1.5 text-slate-500 text-xs">Find validators at <span class="text-cyan-400">suiexplorer.com/validators</span></p>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-slate-300 mb-2">Amount (SUI)</label>
+            <input
+              type="number"
+              name="stake_amount_sui"
+              value={@stake_amount_sui}
+              placeholder="Min. 1 SUI"
+              step="0.000000001"
+              min="1"
+              class={"w-full px-4 py-3 bg-slate-800 border rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-all #{if Map.get(@form_errors, :stake_amount_sui), do: "border-red-500", else: "border-slate-700"}"}
+            />
+            <%= if Map.get(@form_errors, :stake_amount_sui) do %>
+              <p class="mt-1.5 text-red-400 text-xs"><%= @form_errors.stake_amount_sui %></p>
+            <% end %>
+            <p class="mt-1.5 text-slate-500 text-xs">1 SUI = 1,000,000,000 MIST · Minimum: 1 SUI</p>
+          </div>
+
+          <div class="bg-slate-800/60 rounded-xl p-4">
+            <div class="flex items-center gap-2 mb-2">
+              <svg class="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span class="text-slate-300 text-xs font-semibold">Staking Info</span>
+            </div>
+            <ul class="text-slate-500 text-xs space-y-1 leading-relaxed">
+              <li>• Rewards distributed each epoch (~24h)</li>
+              <li>• Unstaking takes effect next epoch</li>
+              <li>• You retain ownership of staked SUI</li>
+              <li>• Typical APY: 3–5% depending on validator</li>
+            </ul>
+          </div>
+
+          <div class="flex items-center gap-3 pt-2">
+            <button
+              type="button"
+              phx-click="close_new_stake_modal"
+              class="flex-1 px-4 py-3 bg-slate-800 border border-slate-700 text-slate-300 font-semibold rounded-xl hover:bg-slate-700 transition-all text-sm"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={@submitting}
+              class="flex-1 px-4 py-3 bg-gradient-to-r from-cyan-600 to-teal-600 text-white font-semibold rounded-xl hover:from-cyan-700 hover:to-teal-700 transition-all text-sm shadow-lg shadow-cyan-900/30 disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              <%= if @submitting, do: "Staking...", else: "Stake SUI" %>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+<% end %>
+
+<%= if @selected_stake do %>
+  <div class="fixed inset-0 z-50 overflow-y-auto" phx-click="close_stake_detail">
+    <div class="flex items-center justify-center min-h-screen px-4">
+      <div class="fixed inset-0 bg-black/70 backdrop-blur-sm"></div>
+      <div
+        class="relative bg-slate-900 border border-slate-700 rounded-3xl shadow-2xl max-w-md w-full p-8"
+        phx-click="stop_propagation"
+      >
+        <div class="flex items-center justify-between mb-6">
+          <h2 class="text-xl font-bold text-white">Stake Details</h2>
+          <button
+            phx-click="close_stake_detail"
+            class="p-2 text-slate-500 hover:text-slate-300 hover:bg-slate-800 rounded-xl transition-colors"
+          >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        <div class="space-y-3 mb-6">
+          <div class="flex justify-between py-2.5 border-b border-slate-800">
+            <span class="text-slate-500 text-sm">Status</span>
+            <span class={"px-2.5 py-1 rounded-full text-xs font-semibold #{status_class(@selected_stake.status)}"}>
+              <%= to_string(@selected_stake.status || "unknown") %>
+            </span>
+          </div>
+          <div class="flex justify-between py-2.5 border-b border-slate-800">
+            <span class="text-slate-500 text-sm">Principal</span>
+            <span class="text-white font-bold"><%= format_mist(@selected_stake.principal_mist) %> SUI</span>
+          </div>
+          <div class="flex justify-between py-2.5 border-b border-slate-800">
+            <span class="text-slate-500 text-sm">Est. Reward</span>
+            <span class="text-green-400 font-semibold"><%= format_mist(@selected_stake.estimated_reward_mist) %> SUI</span>
+          </div>
+          <div class="flex justify-between py-2.5 border-b border-slate-800">
+            <span class="text-slate-500 text-sm">Validator</span>
+            <span class="text-slate-300 text-xs font-mono"><%= truncate_addr(@selected_stake.validator_address) %></span>
+          </div>
+          <%= if @selected_stake.staked_sui_id && to_string(@selected_stake.staked_sui_id) != "" do %>
+            <div class="flex justify-between py-2.5 border-b border-slate-800">
+              <span class="text-slate-500 text-sm">Staked SUI ID</span>
+              <span class="text-slate-300 text-xs font-mono"><%= truncate_addr(@selected_stake.staked_sui_id) %></span>
+            </div>
+          <% end %>
+          <%= if @selected_stake.stake_activation_epoch && to_string(@selected_stake.stake_activation_epoch) != "" do %>
+            <div class="flex justify-between py-2.5 border-b border-slate-800">
+              <span class="text-slate-500 text-sm">Activation Epoch</span>
+              <span class="text-slate-300 text-sm"><%= to_string(@selected_stake.stake_activation_epoch) %></span>
+            </div>
+          <% end %>
+          <div class="flex justify-between py-2.5 border-b border-slate-800">
+            <span class="text-slate-500 text-sm">Network</span>
+            <span class="text-slate-300 text-sm"><%= to_string(@selected_stake.network || "") %></span>
+          </div>
+          <div class="flex justify-between py-2.5">
+            <span class="text-slate-500 text-sm">Created</span>
+            <span class="text-slate-300 text-sm"><%= format_datetime(@selected_stake.created_at) %></span>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <button
+            phx-click="close_stake_detail"
+            class="flex-1 px-4 py-3 bg-slate-800 border border-slate-700 text-slate-300 font-semibold rounded-xl hover:bg-slate-700 transition-all text-sm"
+          >
+            Close
+          </button>
+          <%= if to_string(@selected_stake.status) in ["active", "pending"] do %>
+            <button
+              phx-click="unstake"
+              phx-value-stake_id={to_string(@selected_stake.stake_id)}
+              data-confirm="Initiate unstaking? Your SUI will be returned at the next epoch boundary."
+              class="flex-1 px-4 py-3 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-400 font-semibold rounded-xl transition-all text-sm"
+            >
+              Unstake
+            </button>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+<% end %>
